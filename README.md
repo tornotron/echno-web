@@ -198,10 +198,12 @@ NEXT_PUBLIC_API_URL=https://api.echno.com
 NEXT_PUBLIC_API_VERSION=v1
 
 # Keycloak OpenID Connect
-NEXT_PUBLIC_KEYCLOAK_URL=https://auth.echno.com
-NEXT_PUBLIC_KEYCLOAK_REALM=echno-realm
-NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=echno-web-client
-NEXT_PUBLIC_KEYCLOAK_REDIRECT_URI=http://localhost:3000/api/auth/callback
+KEYCLOAK_CLIENT_ID=your-client-id
+KEYCLOAK_ISSUER=https://your-keycloak-domain/realms/your-realm
+
+# NextAuth Configuration
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key
 
 # Feature Flags
 NEXT_PUBLIC_APP_ENV=development
@@ -211,6 +213,30 @@ NEXT_PUBLIC_ENABLE_PWA=true
 NEXT_PUBLIC_POSTHOG_KEY=
 NEXT_PUBLIC_POSTHOG_HOST=
 ```
+
+### Keycloak Configuration
+
+To set up authentication with Keycloak using PKCE:
+
+1. **Install and Start Keycloak**: Follow the [Keycloak documentation](https://www.keycloak.org/getting-started/getting-started-docker) to run Keycloak locally or use a hosted instance.
+
+2. **Create a Realm**: Create a new realm (e.g., `echno-realm`) in Keycloak admin console.
+
+3. **Create a Client**:
+   - Client ID: `echno-web-client` (or your preferred name)
+   - Client Type: `OpenID Connect`
+   - Access Type: `public` (no client secret required for PKCE)
+   - Valid Redirect URIs: `http://localhost:3000/api/auth/callback/keycloak`
+   - Web Origins: `http://localhost:3000`
+   - Enable PKCE: `S256` (should be enabled by default)
+
+4. **PKCE Flow**: NextAuth automatically handles PKCE (Proof Key for Code Exchange) for enhanced security in public clients.
+
+5. **Update Environment Variables**: Replace the placeholder values in `.env.local` with your actual Keycloak configuration:
+   - `KEYCLOAK_ISSUER`: Your Keycloak issuer URL (e.g., `http://localhost:8080/realms/your-realm`)
+   - `KEYCLOAK_CLIENT_ID`: Your client ID
+
+6. **Create Users**: Add users in Keycloak and assign appropriate roles for role-based access control.
 
 ### 4. Run Development Server
 
