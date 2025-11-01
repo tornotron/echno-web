@@ -6,29 +6,48 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Eye, EyeOff } from "lucide-react"
+import { toast } from "@/lib/toast-styles"
 import Image from "next/image"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      // For now, we'll use a placeholder. In a real app, you'd have a credentials provider
+      console.log("Attempting login with:", { email, password })
+
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
 
+      console.log("SignIn result:", result)
+
       if (result?.error) {
+        toast.error("Login failed", {
+          description: "Invalid email or password. Please try again.",
+        })
         console.error("Login failed:", result.error)
+      } else if (result?.ok && !result.error) {
+        // Redirect immediately to dashboard
+        window.location.href = "/dashboard"
+      } else {
+        toast.error("Login failed", {
+          description: "Unable to authenticate. Please check your credentials.",
+        })
       }
     } catch (error) {
+      toast.error("Login error", {
+        description: "An unexpected error occurred. Please try again.",
+      })
       console.error("Login error:", error)
     } finally {
       setIsLoading(false)
@@ -80,15 +99,31 @@ export default function LoginPage() {
               <Label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-zinc-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-zinc-500" />
+                  )}
+                </Button>
+              </div>
             </div>
             <Button
               type="submit"

@@ -3,6 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { toast } from "sonner"
 
 export function AuthButton() {
   const { data: session, status } = useSession()
@@ -16,7 +17,15 @@ export function AuthButton() {
     return (
       <div className="flex items-center gap-4">
         <span>Welcome, {session.user?.name}</span>
-        <Button onClick={() => signOut()}>Sign Out</Button>
+                      <Button
+                onClick={() => {
+                  signOut({ callbackUrl: "/?logout=success" });
+                }}
+                variant="outline"
+                size="sm"
+              >
+                Sign Out
+              </Button>
       </div>
     )
   }

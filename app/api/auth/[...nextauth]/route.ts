@@ -16,20 +16,35 @@ const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        // This is a placeholder - in a real app, you'd validate against your backend
-        if (credentials?.email === "admin@echno.com" && credentials?.password === "password") {
+        // Mock user for testing - in production, validate against your backend
+        console.log("Credentials received:", credentials)
+
+        if (!credentials?.email || !credentials?.password) {
+          console.log("Missing credentials")
+          return null
+        }
+
+        if (credentials.email === "admin@echno.local" && credentials.password === "password@123") {
+          console.log("Login successful for admin user")
           return {
             id: "1",
             email: credentials.email,
             name: "Admin User",
+            role: "admin",
           }
         }
+
+        console.log("Login failed - invalid credentials")
         return null
       }
     }),
   ],
   session: {
     strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+    error: "/login",
   },
   callbacks: {
     async jwt({ token, account }) {

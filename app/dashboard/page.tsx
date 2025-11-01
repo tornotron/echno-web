@@ -2,20 +2,33 @@
 
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { signOut } from "next-auth/react"
+import { toast } from "@/lib/toast-styles"
 import Image from "next/image"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const loginToastShown = useRef(false)
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login")
     }
   }, [status, router])
+
+  useEffect(() => {
+    // Show login success toast when user arrives at dashboard
+    if (status === "authenticated" && session && !loginToastShown.current) {
+      toast.success("Login successful!", {
+        description: "Welcome back to your dashboard.",
+      })
+      loginToastShown.current = true
+    }
+  }, [status, session])
 
   if (status === "loading") {
     return (
@@ -55,7 +68,9 @@ export default function DashboardPage() {
                 Welcome, {session.user?.name}
               </span>
               <Button
-                onClick={() => router.push("/")}
+                onClick={() => {
+                  signOut({ callbackUrl: "/?logout=success" });
+                }}
                 variant="outline"
                 size="sm"
               >
