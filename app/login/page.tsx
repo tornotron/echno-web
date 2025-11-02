@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { useState, useEffect, useRef } from "react"
+import { signIn, useSession } from "next-auth/react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Eye, EyeOff } from "lucide-react"
-import { toast } from "@/lib/toast-styles"
+import { toast } from "@/lib/styles/toast-styles"
 import Image from "next/image"
 
 export default function LoginPage() {
@@ -15,34 +16,60 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const { data: session, status } = useSession()
+  const logoutToastShown = useRef(false)
+
+  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+
+  // Show logout success toast if redirected from logout
+  useEffect(() => {
+    const logoutParam = searchParams.get('logout')
+    console.log('logout param:', logoutParam)
+    if (logoutParam === 'success' && !logoutToastShown.current) {
+      console.log('showing logout toast')
+      setTimeout(() => {
+        toast.success("Logout successful", {
+          description: "You have been logged out successfully.",
+        })
+      }, 100)
+      // Clear the login toast flag on logout
+      localStorage.removeItem('loginToastShown')
+      logoutToastShown.current = true
+    }
+  }, [searchParams])
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (status === 'authenticated' && session) {
+      router.push(callbackUrl)
+    }
+  }, [status, session, router, callbackUrl])
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
     try {
-      console.log("Attempting login with:", { email, password })
-
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
       })
 
-      console.log("SignIn result:", result)
-
       if (result?.error) {
         toast.error("Login failed", {
           description: "Invalid email or password. Please try again.",
         })
         console.error("Login failed:", result.error)
-      } else if (result?.ok && !result.error) {
-        // Redirect immediately to dashboard
-        window.location.href = "/dashboard"
-      } else {
-        toast.error("Login failed", {
-          description: "Unable to authenticate. Please check your credentials.",
+      } else if (result?.ok) {
+        toast.success("Login successful", {
+          description: "Redirecting to dashboard...",
         })
+        // Use Next.js router for client-side navigation
+        router.push(callbackUrl)
+        router.refresh()
       }
     } catch (error) {
       toast.error("Login error", {
@@ -55,7 +82,20 @@ export default function LoginPage() {
   }
 
   const handleSSOLogin = () => {
-    signIn("keycloak", { callbackUrl: "/" })
+    setIsLoading(true)
+    signIn("keycloak", { callbackUrl })
+  }
+
+  // Show loading state while checking session
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-zinc-900 dark:border-zinc-100 mx-auto"></div>
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
