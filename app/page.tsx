@@ -4,15 +4,16 @@ import Image from "next/image";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, Suspense } from "react";
-import { AuthButton } from "@/components/auth-button";
+import { AuthButton } from "@/components/common/auth-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/lib/toast-styles";
+import { toast } from "@/lib/styles/toast-styles";
 
 function HomeContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -45,7 +46,7 @@ function HomeContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black">
       {/* Navigation */}
-      <nav className="relative z-10 px-6 py-4">
+      <nav className="relative z-10 px-4 py-4">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Image
@@ -62,7 +63,7 @@ function HomeContent() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative px-6 py-20 sm:py-32">
+      <section className="relative px-4 py-20 sm:py-32">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex justify-center mb-8">
             <Image
@@ -112,7 +113,7 @@ function HomeContent() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="px-6 py-20 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm">
+      <section id="features" className="px-4 py-20 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
@@ -213,7 +214,7 @@ function HomeContent() {
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-8 border-t border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
+      <footer className="px-4 py-8 border-t border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <Image
@@ -226,7 +227,7 @@ function HomeContent() {
             <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Echno</span>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            © 2025 Echno. Modern attendance management for the future.
+            © {currentYear} Echno. Modern attendance management for the future.
           </p>
         </div>
       </footer>
