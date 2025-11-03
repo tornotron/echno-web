@@ -124,5 +124,3 @@ export const api = {
   delete: apiClient.delete.bind(apiClient),
 }
 
-// Export user API functions
-export * from './user-api';
