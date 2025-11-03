@@ -6,6 +6,7 @@ import { UserProfileView } from '@/components/user-profile/user-profile-view';
 import { Card, CardContent } from '@/components/ui/card';
 import { fetchUserProfileFromBackend } from '@/lib/api/user-api';
 import { AppLayout } from '@/components/common/app-layout';
+import { ProfilePageClient } from './profile-client';
 
 /**
  * Server Component: Fetches user profile data from backend
@@ -84,11 +85,7 @@ export default async function ProfilePage() {
     <AppLayout>
       <div className="px-4 py-8">
         <Suspense fallback={<ProfileSkeleton />}>
-          <UserProfileView 
-            user={user} 
-            showEditButton={false}
-            variant="detailed"
-          />
+          <ProfilePageClient user={user} />
         </Suspense>
       </div>
     </AppLayout>

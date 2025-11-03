@@ -20,23 +20,26 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const { data: session, status } = useSession()
   const logoutToastShown = useRef(false)
+  const loginToastShown = useRef(false)
 
   const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
 
   // Show logout success toast if redirected from logout
   useEffect(() => {
     const logoutParam = searchParams.get('logout')
-    console.log('logout param:', logoutParam)
     if (logoutParam === 'success' && !logoutToastShown.current) {
-      console.log('showing logout toast')
-      setTimeout(() => {
-        toast.success("Logout successful", {
-          description: "You have been logged out successfully.",
-        })
-      }, 100)
+      logoutToastShown.current = true
       // Clear the login toast flag on logout
       localStorage.removeItem('loginToastShown')
-      logoutToastShown.current = true
+      
+      // Show toast after a small delay to ensure component is mounted
+      const timer = setTimeout(() => {
+        toast.success("Logged out successfully", {
+          description: "You have been signed out of your account.",
+        })
+      }, 100)
+      
+      return () => clearTimeout(timer)
     }
   }, [searchParams])
 
@@ -64,12 +67,9 @@ export default function LoginPage() {
         })
         console.error("Login failed:", result.error)
       } else if (result?.ok) {
-        toast.success("Login successful", {
-          description: "Redirecting to dashboard...",
-        })
-        // Use Next.js router for client-side navigation
-        router.push(callbackUrl)
-        router.refresh()
+        // Navigate with login success parameter
+        const redirectUrl = `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}login=success`
+        window.location.href = redirectUrl
       }
     } catch (error) {
       toast.error("Login error", {
@@ -83,7 +83,9 @@ export default function LoginPage() {
 
   const handleSSOLogin = () => {
     setIsLoading(true)
-    signIn("keycloak", { callbackUrl })
+    // Add login=success parameter to callbackUrl for SSO login
+    const ssoCallbackUrl = `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}login=success`
+    signIn("keycloak", { callbackUrl: ssoCallbackUrl })
   }
 
   // Show loading state while checking session

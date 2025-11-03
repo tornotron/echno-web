@@ -1,15 +1,17 @@
 "use client"
 
 import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "@/lib/styles/toast-styles"
 import { AppLayout } from "@/components/common/app-layout"
+import { toast } from "@/lib/styles/toast-styles"
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const loginToastShown = useRef(false)
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -17,15 +19,27 @@ export default function DashboardPage() {
     }
   }, [status, router])
 
+  // Show login success toast if redirected from login
   useEffect(() => {
-    // Show login success toast when user arrives at dashboard
-    if (status === "authenticated" && session && !localStorage.getItem('loginToastShown')) {
-      toast.success("Login successful!", {
-        description: "Welcome back to your dashboard.",
-      })
-      localStorage.setItem('loginToastShown', 'true')
+    const loginParam = searchParams.get('login')
+    if (loginParam === 'success' && status === 'authenticated' && !loginToastShown.current) {
+      loginToastShown.current = true
+      
+      // Show toast after a small delay to ensure component is mounted
+      const timer = setTimeout(() => {
+        toast.success("Login successful!", {
+          description: "Welcome back to your dashboard.",
+        })
+        
+        // Clean up URL by removing the login parameter
+        const url = new URL(window.location.href)
+        url.searchParams.delete('login')
+        window.history.replaceState({}, '', url.toString())
+      }, 100)
+      
+      return () => clearTimeout(timer)
     }
-  }, [status, session])
+  }, [searchParams, status])
 
   if (status === "loading") {
     return (
