@@ -89,7 +89,8 @@ export function UserProfileView({
                   {user.organizations && user.organizations.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       <Building2 className="mr-1 h-3 w-3" />
-                      {user.organizations[0].name}
+                      {user.organizations[0].organizationName
+                      }
                     </Badge>
                   )}
                   {user.experience !== undefined && user.experience > 0 && (
@@ -290,7 +291,7 @@ export function UserProfileView({
                   className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3"
                 >
                   <Building2 className="h-5 w-5 text-primary" />
-                  <span className="font-medium">{org.name}</span>
+                  <span className="font-medium">{org.organizationName}</span>
                 </div>
               ))}
             </div>

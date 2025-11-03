@@ -1,6 +1,6 @@
 // types/user/user.ts
 import { UserRole, userRoleFromString } from './user-role';
-import { Organization } from '../organization';;
+import { Organization } from '@/types/organization';
 
 export interface User {
   id?: number;
@@ -74,12 +74,7 @@ export function parseUser(json: any): User {
     experience: json.experience ?? undefined,
     cvUrl: json.cvUrl ?? undefined,
     emergencyContact: json.emergencyContact ?? undefined,
-    organizations: json.organizations
-      ? (json.organizations as any[]).map(o => ({
-          id: o.id,
-          name: o.name,
-        }))
-      : undefined,
+    organizations: json.organizations ? (json.organizations as Organization[]) : undefined,
     role: json.role ? userRoleFromString(json.role) : UserRole.laborer,
     profilePictureUrl: json.profilePictureUrl ?? undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
@@ -102,7 +97,7 @@ export function userToJson(user: User): Record<string, any> {
     experience: user.experience,
     cvUrl: user.cvUrl,
     emergencyContact: user.emergencyContact,
-    organizations: user.organizations?.map(o => ({ id: o.id, name: o.name })),
+    organizations: user.organizations?.map(o => o.id),
     role: user.role,
     profilePictureUrl: user.profilePictureUrl,
     createdAt: user.createdAt?.toISOString(),
