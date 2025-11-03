@@ -4,7 +4,6 @@ import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
 import { handleSignOut } from "@/lib/utils/auth-utils"
 
 export function AuthButton() {
@@ -25,10 +24,9 @@ export function AuthButton() {
       setIsSigningOut(true)
       try {
         await handleSignOut(session)
-        toast.success("Signed out successfully")
+        // Toast will be shown on the login page after redirect
       } catch (error) {
         console.error("Sign out error:", error)
-        toast.error("Error signing out")
         setIsSigningOut(false)
       }
     }
