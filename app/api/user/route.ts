@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { parseUser } from '@/types/user/user';
+import { createErrorResponse, parseErrorResponse } from '@/lib/utils/api-utils';
 
 /**
  * GET /api/user
@@ -13,10 +14,16 @@ export async function GET(request: NextRequest) {
     const session = await auth();
 
     if (!session || !session.accessToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'No valid session found' },
-        { status: 401 }
+      const errorResponse = createErrorResponse(
+        'Unauthorized',
+        'No valid session found',
+        {
+          userMessage: 'Your session has expired. Please log in again.',
+          statusCode: 401,
+          path: request.nextUrl.pathname,
+        }
       );
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
     // Fetch from Spring Boot backend
@@ -34,17 +41,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Backend API error:', response.status, errorText);
+      const backendError = await parseErrorResponse(response);
       
-      return NextResponse.json(
-        { 
-          error: 'Backend Error', 
-          message: `Failed to fetch user profile: ${response.status}`,
-          details: errorText 
-        },
-        { status: response.status }
-      );
+      console.error('Backend API error:', {
+        status: response.status,
+        error: backendError,
+      });
+      
+      return NextResponse.json(backendError, { status: response.status });
     }
 
     const userData = await response.json();
@@ -60,13 +64,17 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error in user API route:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Internal Server Error', 
-        message: error instanceof Error ? error.message : 'An unexpected error occurred' 
-      },
-      { status: 500 }
+    const errorResponse = createErrorResponse(
+      'Internal Server Error',
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      {
+        userMessage: 'An unexpected error occurred while retrieving your profile. Please try again.',
+        statusCode: 500,
+        path: request.nextUrl.pathname,
+      }
     );
+    
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
 
@@ -79,13 +87,49 @@ export async function PATCH(request: NextRequest) {
     const session = await auth();
 
     if (!session || !session.accessToken) {
-      return NextResponse.json(
-        { error: 'Unauthorized', message: 'No valid session found' },
-        { status: 401 }
+      const errorResponse = createErrorResponse(
+        'Unauthorized',
+        'No valid session found',
+        {
+          userMessage: 'Your session has expired. Please log in again.',
+          statusCode: 401,
+          path: request.nextUrl.pathname,
+        }
       );
+      return NextResponse.json(errorResponse, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      const errorResponse = createErrorResponse(
+        'Bad Request',
+        'Invalid request body',
+        {
+          userMessage: 'Invalid profile data. Please check your input and try again.',
+          statusCode: 400,
+          path: request.nextUrl.pathname,
+          details: parseError,
+        }
+      );
+      return NextResponse.json(errorResponse, { status: 400 });
+    }
+
+    // Validate that body is not empty
+    if (!body || Object.keys(body).length === 0) {
+      const errorResponse = createErrorResponse(
+        'Bad Request',
+        'No data provided for update',
+        {
+          userMessage: 'No profile changes were provided. Please update at least one field.',
+          statusCode: 400,
+          path: request.nextUrl.pathname,
+        }
+      );
+      return NextResponse.json(errorResponse, { status: 400 });
+    }
+
     const backendUrl = process.env.NEXT_PUBLIC_API_URL;
     const endpoint = `${backendUrl}/user`;
 
@@ -99,15 +143,15 @@ export async function PATCH(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      return NextResponse.json(
-        { 
-          error: 'Backend Error', 
-          message: `Failed to update user profile: ${response.status}`,
-          details: errorText 
-        },
-        { status: response.status }
-      );
+      const backendError = await parseErrorResponse(response);
+      
+      console.error('Backend API error during update:', {
+        status: response.status,
+        error: backendError,
+        requestBody: body,
+      });
+      
+      return NextResponse.json(backendError, { status: response.status });
     }
 
     const userData = await response.json();
@@ -117,12 +161,16 @@ export async function PATCH(request: NextRequest) {
   } catch (error) {
     console.error('Error updating user profile:', error);
     
-    return NextResponse.json(
-      { 
-        error: 'Internal Server Error', 
-        message: error instanceof Error ? error.message : 'An unexpected error occurred' 
-      },
-      { status: 500 }
+    const errorResponse = createErrorResponse(
+      'Internal Server Error',
+      error instanceof Error ? error.message : 'An unexpected error occurred',
+      {
+        userMessage: 'An unexpected error occurred while updating your profile. Please try again.',
+        statusCode: 500,
+        path: request.nextUrl.pathname,
+      }
     );
+    
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }
