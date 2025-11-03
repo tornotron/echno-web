@@ -9,10 +9,31 @@ export interface ApiSuccessResponse<T = any> {
   success: true;
 }
 
+/**
+ * Comprehensive error response structure for API errors
+ * Used across all API endpoints for consistent error handling
+ */
 export interface ApiErrorResponse {
+  /** Error category/type (e.g., 'Unauthorized', 'Validation Error') */
   error: string;
+  /** Technical error message for logging/debugging */
   message: string;
+  /** User-friendly error message for display in UI */
+  userMessage?: string;
+  /** Additional error details or context */
   details?: any;
+  /** HTTP status code */
+  statusCode?: number;
+  /** Error timestamp */
+  timestamp?: string;
+  /** Request path that caused the error */
+  path?: string;
+  /** Validation errors (for 400/422 responses) */
+  validationErrors?: Array<{
+    field: string;
+    message: string;
+    value?: any;
+  }>;
   success: false;
 }
 
@@ -49,14 +70,120 @@ export function createSuccessResponse<T>(data: T, message?: string): ApiSuccessR
 export function createErrorResponse(
   error: string,
   message: string,
-  details?: any
+  options?: {
+    userMessage?: string;
+    details?: any;
+    statusCode?: number;
+    path?: string;
+    validationErrors?: Array<{ field: string; message: string; value?: any }>;
+  }
 ): ApiErrorResponse {
   return {
     error,
     message,
-    details,
+    userMessage: options?.userMessage,
+    details: options?.details,
+    statusCode: options?.statusCode,
+    timestamp: new Date().toISOString(),
+    path: options?.path,
+    validationErrors: options?.validationErrors,
     success: false,
   };
+}
+
+/**
+ * Extracts user-friendly error message from API error response
+ * Prioritizes userMessage, falls back to message, then generic message
+ */
+export function getUserFriendlyMessage(error: ApiErrorResponse | unknown): string {
+  if (error && typeof error === 'object' && 'userMessage' in error) {
+    const apiError = error as ApiErrorResponse;
+    return apiError.userMessage || apiError.message || 'An unexpected error occurred';
+  }
+  
+  return extractErrorMessage(error);
+}
+
+/**
+ * Parses error response from fetch and returns ApiErrorResponse
+ */
+export async function parseErrorResponse(response: Response): Promise<ApiErrorResponse> {
+  try {
+    const contentType = response.headers.get('content-type');
+    if (contentType?.includes('application/json')) {
+      const errorData = await response.json();
+      // If it's already an ApiErrorResponse, return it
+      if (errorData.error && errorData.message) {
+        return {
+          ...errorData,
+          statusCode: errorData.statusCode || response.status,
+          success: false,
+        };
+      }
+      // Otherwise, construct one
+      return createErrorResponse(
+        'API Error',
+        errorData.message || JSON.stringify(errorData),
+        {
+          userMessage: errorData.userMessage,
+          details: errorData,
+          statusCode: response.status,
+        }
+      );
+    }
+    
+    // Handle text responses
+    const text = await response.text();
+    return createErrorResponse(
+      'API Error',
+      text || `HTTP ${response.status}`,
+      {
+        userMessage: getDefaultErrorMessage(response.status),
+        statusCode: response.status,
+      }
+    );
+  } catch (parseError) {
+    return createErrorResponse(
+      'Parse Error',
+      'Failed to parse error response',
+      {
+        userMessage: getDefaultErrorMessage(response.status),
+        details: parseError,
+        statusCode: response.status,
+      }
+    );
+  }
+}
+
+/**
+ * Gets default user-friendly message for HTTP status codes
+ */
+export function getDefaultErrorMessage(statusCode: number): string {
+  switch (statusCode) {
+    case 400:
+      return 'Invalid request. Please check your input and try again.';
+    case 401:
+      return 'Your session has expired. Please log in again.';
+    case 403:
+      return 'You do not have permission to perform this action.';
+    case 404:
+      return 'The requested resource was not found.';
+    case 409:
+      return 'Conflict detected. The resource may have been modified.';
+    case 422:
+      return 'Invalid data provided. Please check all fields and try again.';
+    case 429:
+      return 'Too many requests. Please wait a moment and try again.';
+    case 500:
+      return 'Server error occurred. Please try again later.';
+    case 502:
+    case 503:
+      return 'Service is temporarily unavailable. Please try again in a few moments.';
+    case 504:
+      return 'Request timeout. Please check your connection and try again.';
+    default:
+      return 'An unexpected error occurred. Please try again.';
+  }
 }
 
 /**
