@@ -4,11 +4,14 @@
  */
 
 import { User, parseUser } from '@/types/user/user';
+import { parseErrorResponse, getUserFriendlyMessage } from '@/lib/utils/api-utils';
 
 /**
  * Fetches the current user's profile from the BFF
  * This should be called from server components for static rendering
  */
+const backendUrl = process.env.NEXT_PUBLIC_API_URL;
+
 export async function fetchUserProfile(accessToken?: string): Promise<User> {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -18,7 +21,7 @@ export async function fetchUserProfile(accessToken?: string): Promise<User> {
     headers['Authorization'] = `Bearer ${accessToken}`;
   }
 
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user`, {
+  const response = await fetch(`${backendUrl}/user`, {
     method: 'GET',
     headers,
     cache: 'no-store',
@@ -26,10 +29,8 @@ export async function fetchUserProfile(accessToken?: string): Promise<User> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ 
-      message: 'Failed to fetch user profile' 
-    }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    const errorResponse = await parseErrorResponse(response);
+    throw new Error(getUserFriendlyMessage(errorResponse));
   }
 
   const data = await response.json();
@@ -41,7 +42,6 @@ export async function fetchUserProfile(accessToken?: string): Promise<User> {
  * Use this in server components when you have the access token
  */
 export async function fetchUserProfileFromBackend(accessToken: string): Promise<User> {
-  const backendUrl = process.env.NEXT_PUBLIC_API_URL;
   const endpoint = `${backendUrl}/user`;
 
   const response = await fetch(endpoint, {
@@ -55,7 +55,8 @@ export async function fetchUserProfileFromBackend(accessToken: string): Promise<
   });
 
   if (!response.ok) {
-    throw new Error(`Failed to fetch user profile: ${response.status}`);
+    const errorResponse = await parseErrorResponse(response);
+    throw new Error(getUserFriendlyMessage(errorResponse));
   }
 
   const data = await response.json();
@@ -75,10 +76,36 @@ export async function updateUserProfile(updates: Partial<User>): Promise<User> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ 
-      message: 'Failed to update user profile' 
-    }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    const errorResponse = await parseErrorResponse(response);
+    throw new Error(getUserFriendlyMessage(errorResponse));
+  }
+
+  const data = await response.json();
+  return parseUser(data);
+}
+
+/**
+ * Updates user profile directly on backend (Server-side only)
+ * Use this in server components when you have the access token
+ */
+export async function updateUserProfileOnBackend(
+  accessToken: string,
+  updates: Partial<User>
+): Promise<User> {
+  const endpoint = `${backendUrl}/user`;
+
+  const response = await fetch(endpoint, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updates),
+  });
+
+  if (!response.ok) {
+    const errorResponse = await parseErrorResponse(response);
+    throw new Error(getUserFriendlyMessage(errorResponse));
   }
 
   const data = await response.json();
@@ -99,10 +126,8 @@ export async function getUserProfileClient(): Promise<User> {
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ 
-      message: 'Failed to fetch user profile' 
-    }));
-    throw new Error(error.message || `HTTP ${response.status}`);
+    const errorResponse = await parseErrorResponse(response);
+    throw new Error(getUserFriendlyMessage(errorResponse));
   }
 
   const data = await response.json();
