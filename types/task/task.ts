@@ -1,0 +1,90 @@
+// types/task/task.ts
+import { Member, memberToJson, parseMember } from '@/types/member';
+import { Issue, issueToJson, parseIssue } from '@/types/issue';
+import { WorkCategory, parseWorkCategory, workCategoryToJson } from './work-category';
+import { TaskStatus, taskStatusFromString } from './task-status';
+
+export interface Task {
+  id?: number;
+  projectId: number;
+  title: string;
+  startDate?: Date;
+  endDate?: Date;
+  creator?: Member;
+  assignees?: Member[];
+  category?: WorkCategory;
+  progress: number;
+  tags?: string[];
+  createdAt?: Date;
+  updatedAt?: Date;
+  status: TaskStatus;
+  issues?: Issue[];
+}
+
+export const creatorId = (task: Task): number | undefined => task.creator?.id;
+export const categoryId = (task: Task): number | undefined => task.category?.id;
+export const asignees = (task: Task): Member[] | undefined => task.assignees;
+
+/** JSON → Task */
+export function parseTask(json: any): Task {
+  return {
+    id: json.id ?? undefined,
+    projectId: json.projectId ?? 1,
+    title: json.title ?? 'Untitled Task',
+    startDate: parseDateTime(json.startDate),
+    endDate: parseDateTime(json.endDate),
+    creator: json.creator ? parseMember(json.creator) : undefined,
+    assignees: json.assignees
+      ? (json.assignees as any[]).filter(Boolean).map(parseMember)
+      : [],
+    category: json.category ? parseWorkCategory(json.category) : undefined,
+    progress: Number(json.progress ?? 0),
+    tags: json.tags ? (json.tags as any[]).filter(Boolean) : [],
+    createdAt: parseDateTime(json.createdAt),
+    updatedAt: parseDateTime(json.updatedAt),
+    status: taskStatusFromString(json.status),
+    issues: json.issues
+      ? (json.issues as any[]).filter(Boolean).map(parseIssue)
+      : [],
+  };
+}
+
+/** Helper: parse DateTime (string or timestamp) */
+function parseDateTime(value: any): Date | undefined {
+  if (!value) return undefined;
+  try {
+    if (typeof value === 'string') return new Date(value);
+    if (typeof value === 'number') return new Date(value);
+    return undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Task → JSON */
+export function taskToJson(task: Task): Record<string, any> {
+  return {
+    id: task.id,
+    projectId: task.projectId,
+    title: task.title,
+    startDate: task.startDate?.toISOString(),
+    endDate: task.endDate?.toISOString(),
+    creator: task.creator ? memberToJson(task.creator) : undefined,
+    assignees: task.assignees?.map(memberToJson),
+    category: task.category ? workCategoryToJson(task.category) : undefined,
+    progress: task.progress,
+    tags: task.tags ?? [],
+    createdAt: task.createdAt?.toISOString(),
+    updatedAt: task.updatedAt?.toISOString(),
+    status: task.status,
+    issues: task.issues?.map(issueToJson) ?? [],
+  };
+}
+
+/** copyWith */
+export function copyTask(
+  task: Task,
+  updates: Partial<Omit<Task, 'id' | 'createdAt' | 'updatedAt'>>
+): Task {
+  return { ...task, ...updates };
+}
