@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, Suspense } from "react";
 import { AuthButton } from "@/components/common/auth-button";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { toast } from "@/lib/styles/toast-styles";
 function HomeContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
@@ -22,15 +21,18 @@ function HomeContent() {
   }, [status, router]);
 
   useEffect(() => {
-    // Check if user just logged out
-    if (searchParams.get('logout') === 'success') {
-      toast.success("Signed out successfully", {
-        description: "You have been logged out.",
-      });
-      // Clean up the URL parameter
-      router.replace('/', { scroll: false });
+    // Check if user just logged out (client-side only)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('logout') === 'success') {
+        toast.success("Signed out successfully", {
+          description: "You have been logged out.",
+        });
+        // Clean up the URL parameter
+        router.replace('/', { scroll: false });
+      }
     }
-  }, [searchParams, router]);
+  }, [router]);
 
   if (status === "loading") {
     return (
