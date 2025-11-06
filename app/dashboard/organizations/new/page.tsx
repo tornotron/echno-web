@@ -1,0 +1,55 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { AppLayout } from '@/components/common/app-layout';
+import { OrganizationForm } from '@/components/organization/organization-form';
+import { Organization } from '@/types/organization';
+import { toast } from '@/lib/styles/toast-styles';
+
+export default function NewOrganizationPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (data: Partial<Organization>) => {
+    setIsLoading(true);
+
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Here you would make an API call to create the organization
+      console.log('Creating organization:', data);
+
+      toast.success('Organization created!', {
+        description: `${data.organizationName} has been successfully created.`,
+      });
+
+      // Redirect to organizations list
+      router.push('/dashboard/organizations');
+    } catch (error) {
+      toast.error('Error', {
+        description: 'Failed to create organization. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    router.push('/dashboard/organizations');
+  };
+
+  return (
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
+        {/* Form */}
+        <OrganizationForm
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={isLoading}
+        />
+      </div>
+    </AppLayout>
+  );
+}
