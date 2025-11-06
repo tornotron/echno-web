@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { signIn, useSession } from "next-auth/react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,31 +17,35 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-  const searchParams = useSearchParams()
   const { data: session, status } = useSession()
   const logoutToastShown = useRef(false)
-  const loginToastShown = useRef(false)
+  const [callbackUrl, setCallbackUrl] = useState('/dashboard')
 
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
-
-  // Show logout success toast if redirected from logout
+  // Get callback URL and check for logout param (client-side only)
   useEffect(() => {
-    const logoutParam = searchParams.get('logout')
-    if (logoutParam === 'success' && !logoutToastShown.current) {
-      logoutToastShown.current = true
-      // Clear the login toast flag on logout
-      localStorage.removeItem('loginToastShown')
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const callback = params.get('callbackUrl') || '/dashboard'
+      setCallbackUrl(callback)
       
-      // Show toast after a small delay to ensure component is mounted
-      const timer = setTimeout(() => {
-        toast.success("Logged out successfully", {
-          description: "You have been signed out of your account.",
-        })
-      }, 100)
-      
-      return () => clearTimeout(timer)
+      // Show logout success toast if redirected from logout
+      const logoutParam = params.get('logout')
+      if (logoutParam === 'success' && !logoutToastShown.current) {
+        logoutToastShown.current = true
+        // Clear the login toast flag on logout
+        localStorage.removeItem('loginToastShown')
+        
+        // Show toast after a small delay to ensure component is mounted
+        const timer = setTimeout(() => {
+          toast.success("Logged out successfully", {
+            description: "You have been signed out of your account.",
+          })
+        }, 100)
+        
+        return () => clearTimeout(timer)
+      }
     }
-  }, [searchParams])
+  }, [])
 
   // Redirect if already logged in
   useEffect(() => {

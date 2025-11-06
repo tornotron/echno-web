@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { User } from '@/types/user/user';
 import { UserProfileView } from '@/components/user-profile/user-profile-view';
 import { ProfileEditForm } from '@/components/user-profile/profile-edit-form';
@@ -16,29 +15,31 @@ interface ProfilePageClientProps {
 export function ProfilePageClient({ user }: ProfilePageClientProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [currentUser, setCurrentUser] = useState(user);
-  const searchParams = useSearchParams();
   const loginToastShown = useRef(false);
 
-  // Show login success toast if redirected from login
+  // Show login success toast if redirected from login (client-side only)
   useEffect(() => {
-    const loginParam = searchParams.get('login');
-    if (loginParam === 'success' && !loginToastShown.current) {
-      loginToastShown.current = true;
-      
-      const timer = setTimeout(() => {
-        toast.success("Login successful!", {
-          description: "Welcome to your profile.",
-        });
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const loginParam = params.get('login');
+      if (loginParam === 'success' && !loginToastShown.current) {
+        loginToastShown.current = true;
         
-        // Clean up URL
-        const url = new URL(window.location.href);
-        url.searchParams.delete('login');
-        window.history.replaceState({}, '', url.toString());
-      }, 100);
-      
-      return () => clearTimeout(timer);
+        const timer = setTimeout(() => {
+          toast.success("Login successful!", {
+            description: "Welcome to your profile.",
+          });
+          
+          // Clean up URL
+          const url = new URL(window.location.href);
+          url.searchParams.delete('login');
+          window.history.replaceState({}, '', url.toString());
+        }, 100);
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [searchParams]);
+  }, []);
 
   const handleEdit = () => {
     setIsEditing(true);
