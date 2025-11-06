@@ -24,6 +24,24 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   settings: "Settings",
   users: "Users",
   admin: "Admin",
+  employees: "Employees",
+  organizations: "Organizations",
+  tasks: "Tasks",
+  issues: "Issues",
+  attendance: "Attendance",
+  leaves: "Leave Requests",
+  "time-tracking": "Time Tracking",
+  new: "New",
+  edit: "Edit",
+  workforce: "Workforce",
+  workflow: "Workflow",
+  "third-party": "Third Party",
+  "sub-contracts": "Sub-Contracts",
+  labour: "Labour",
+  vendors: "Vendors",
+  resources: "Resources",
+  inventory: "Inventory",
+  locations: "Locations",
 }
 
 export function Breadcrumbs() {
@@ -49,18 +67,35 @@ export function Breadcrumbs() {
     )
   }
 
-  // Build breadcrumb items starting with Dashboard
-  const breadcrumbItems = pathSegments.map((segment, index) => {
-    const href = "/" + pathSegments.slice(0, index + 1).join("/")
-    const isLast = index === pathSegments.length - 1
-    const label = breadcrumbNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
+  // Segments that should not be clickable (category segments without their own pages)
+  const nonInteractiveSegments = ['workforce', 'workflow', 'third-party', 'resources']
 
-    return {
-      href,
-      label,
-      isLast,
-    }
-  })
+  // Build breadcrumb items, excluding "dashboard" since we add it separately
+  const breadcrumbItems = pathSegments
+    .filter((segment) => segment !== "dashboard")
+    .map((segment, index, filteredArray) => {
+      // Find the actual index in the original pathSegments
+      const actualIndex = pathSegments.indexOf(segment)
+      const href = "/" + pathSegments.slice(0, actualIndex + 1).join("/")
+      const isLast = index === filteredArray.length - 1
+      const label = breadcrumbNameMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1)
+      const isNonInteractive = nonInteractiveSegments.includes(segment)
+
+      return {
+        href,
+        label,
+        isLast,
+        segment, // Keep track of the segment name
+        isNonInteractive, // Mark if this should not be clickable
+      }
+    })
+    // Remove consecutive duplicates (e.g., if both "workforce" segment and "Workforce" label exist)
+    .filter((item, index, array) => {
+      if (index === 0) return true
+      const prevLabel = array[index - 1].label.toLowerCase()
+      const currLabel = item.label.toLowerCase()
+      return prevLabel !== currLabel
+    })
 
   return (
     <Breadcrumb className="text-base">
@@ -75,7 +110,7 @@ export function Breadcrumbs() {
           <div key={item.href} className="flex items-center gap-1.5">
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              {item.isLast ? (
+              {item.isLast || item.isNonInteractive ? (
                 <BreadcrumbPage>{item.label}</BreadcrumbPage>
               ) : (
                 <BreadcrumbLink asChild>

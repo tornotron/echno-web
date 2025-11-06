@@ -1,11 +1,23 @@
 "use client"
 
-import { SidebarProvider, useSidebar } from "@/components/providers/sidebar-provider"
-import { Sidebar } from "@/components/common/sidebar"
+import { OrganizationProvider } from "@/components/providers/organization-provider"
+import { AppSidebar } from "@/components/common/sidebar"
 import { Footer } from "@/components/common/footer"
 import { UserMenu } from "@/components/common/user-menu"
+import { OrganizationSelector } from "@/components/organization/organization-selector"
 import { Breadcrumbs } from "@/components/common/breadcrumbs"
-import { cn } from "@/lib/utils/tailwind-utils"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { useMemo } from "react"
+
+const SIDEBAR_COOKIE_NAME = "sidebar_state"
+
+function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null
+  const value = `; ${document.cookie}`
+  const parts = value.split(`; ${name}=`)
+  if (parts.length === 2) return parts.pop()?.split(';').shift() || null
+  return null
+}
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -13,47 +25,49 @@ interface AppLayoutProps {
 }
 
 function AppLayoutContent({ children, title }: AppLayoutProps) {
-  const { collapsed } = useSidebar()
-
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-black">
-      <Sidebar />
-      
-      {/* Main Content */}
-      <div className={cn(
-        "transition-all duration-300 ease-in-out min-h-screen flex flex-col",
-        collapsed ? "md:pl-16" : "md:pl-64"
-      )}>
+    <>
+      <AppSidebar />
+      <SidebarInset>
         {/* Header */}
-        <header className="bg-white dark:bg-black border-b border-zinc-200 dark:border-zinc-800">
-          <div className="flex justify-between items-center h-16 px-4">
-            <div className="flex items-center">
-              <Breadcrumbs />
-            </div>
+        <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex flex-1 items-center justify-between">
+            <Breadcrumbs />
             <div className="flex items-center gap-4">
+              <OrganizationSelector />
               <UserMenu />
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1">
+        <main className="flex-1 p-4">
           {children}
         </main>
 
         {/* Footer */}
         <Footer />
-      </div>
-    </div>
+      </SidebarInset>
+    </>
   )
 }
 
 export function AppLayout({ children, title }: AppLayoutProps) {
+  // Read cookie value immediately (not in useEffect) to prevent flash
+  const defaultOpen = useMemo(() => {
+    const cookieValue = getCookie(SIDEBAR_COOKIE_NAME)
+    // If cookie exists, use its value; otherwise default to true
+    return cookieValue !== null ? cookieValue === 'true' : true
+  }, [])
+
   return (
-    <SidebarProvider>
-      <AppLayoutContent title={title}>
-        {children}
-      </AppLayoutContent>
-    </SidebarProvider>
+    <OrganizationProvider>
+      <SidebarProvider defaultOpen={defaultOpen}>
+        <AppLayoutContent title={title}>
+          {children}
+        </AppLayoutContent>
+      </SidebarProvider>
+    </OrganizationProvider>
   )
 }
