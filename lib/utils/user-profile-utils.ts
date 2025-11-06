@@ -222,7 +222,7 @@ export function getOrganizationNames(user: User): string {
   if (!user.organizations || user.organizations.length === 0) {
     return 'No organizations';
   }
-  return user.organizations.map(org => org.name).join(', ');
+  return user.organizations.map(org => org.organizationName).join(', ');
 }
 
 /**
