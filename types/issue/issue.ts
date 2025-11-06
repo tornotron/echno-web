@@ -2,9 +2,11 @@
 import { IssueType, issueTypeFromString } from './issue-type';
 import { IssueStatus, issueStatusFromString } from './issue-status';
 import { IssueComment } from './issue-comment';
+import { Attachment, parseAttachment, attachmentToJson } from '@/types/attachment';
 
 export interface Issue {
   id?: number;
+  taskId?: number; // Link to parent task
   title: string;
   description?: string;
   type: IssueType;
@@ -13,12 +15,14 @@ export interface Issue {
   updatedAt?: Date;
   creator: string;
   comments?: IssueComment[];
+  attachments?: Attachment[];
 }
 
 /** JSON → Issue */
 export function parseIssue(json: any): Issue {
   return {
     id: json.id ?? undefined,
+    taskId: json.taskId ?? undefined,
     title: json.title ?? '',
     description: json.description ?? undefined,
     type: issueTypeFromString(json.type),

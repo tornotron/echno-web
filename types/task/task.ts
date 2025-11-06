@@ -3,6 +3,7 @@ import { Member, memberToJson, parseMember } from '@/types/member';
 import { Issue, issueToJson, parseIssue } from '@/types/issue';
 import { WorkCategory, parseWorkCategory, workCategoryToJson } from './work-category';
 import { TaskStatus, taskStatusFromString } from './task-status';
+import { Attachment, parseAttachment, attachmentToJson } from '@/types/attachment';
 
 export interface Task {
   id?: number;
@@ -19,6 +20,7 @@ export interface Task {
   updatedAt?: Date;
   status: TaskStatus;
   issues?: Issue[];
+  attachments?: Attachment[];
 }
 
 export const creatorId = (task: Task): number | undefined => task.creator?.id;
