@@ -1,7 +1,11 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+
 import importPlugin from "eslint-plugin-import";
+import prettierConfig from "eslint-config-prettier";
+import perfectionistPlugin from "eslint-plugin-perfectionist";
+import unicornPlugin from "eslint-plugin-unicorn";
 
 const customRulesConfig = {
   // Apply these rules to all TypeScript/JavaScript files
@@ -68,10 +72,70 @@ const customRulesConfig = {
   }
 };
 
+// PERFECTIONIST (SORTING) RULES ---
+const perfectionistRules = {
+  ...perfectionistPlugin.configs["eslint-plugin-perfectionist/recommended-natural"],
+  // You can also use 'recommended-alphabetical' if you prefer
+};
+
+// UNICORN (FILENAME & CODE QUALITY) RULES ---
+const unicornRules = {
+  files: ["**/*.{js,jsx,ts,tsx}"],
+  plugins: {
+    unicorn: unicornPlugin,
+  },
+  rules: {
+    ...unicornPlugin.configs.recommended.rules,
+
+    // This is the 'ls-lint' replacement.
+    // It enforces file naming conventions.
+    "unicorn/filename-case": [
+      "error",
+      {
+        "case": "kebabCase",
+        "ignore": [
+          // We must ignore these to allow React components (PascalCase)
+          // and Next.js files (lowercase).
+          /\[...all\]\.tsx?$/,
+          /\[.+\]\.tsx?$/,
+        ],
+        "cases": {
+          "pascalCase": true, // Allow PascalCase
+        },
+      }
+    ],
+
+    // Next.js 'app' router uses files with `page.tsx` etc.
+    // We must disable this rule for the 'app' directory.
+    "unicorn/prevent-abbreviations": "off",
+    "unicorn/no-null": "off", // 'null' is often needed in Next.js
+  }
+};
+
+// UNICORN OVERRIDE FOR NEXT.JS FILES ---
+// We must allow `page.tsx`, `layout.tsx`, etc.
+const nextFileOverrides = {
+  files: [
+    "app/**/{page,layout,template,loading,error,global-error,not-found}.tsx"
+  ],
+  rules: {
+    "unicorn/filename-case": [
+      "error",
+      {
+        "case": "lowercase" // Enforce these specific files are lowercase
+      }
+    ]
+  }
+};
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   customRulesConfig,
+  perfectionistRules,
+  unicornRules,
+  nextFileOverrides,
+
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
