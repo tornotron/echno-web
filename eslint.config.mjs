@@ -3,6 +3,7 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
 import importPlugin from "eslint-plugin-import";
+import boundariesPlugin from "eslint-plugin-boundaries";
 import prettierConfig from "eslint-config-prettier";
 import perfectionistPlugin from "eslint-plugin-perfectionist";
 import unicornPlugin from "eslint-plugin-unicorn";
@@ -11,65 +12,91 @@ const customRulesConfig = {
   // Apply these rules to all TypeScript/JavaScript files
   files: ["**/*.{js,jsx,ts,tsx}"],
 
-  // Add the 'eslint-plugin-import'
   plugins: {
-    import: importPlugin,
+    boundaries: boundariesPlugin,
   },
 
-  // Add settings for the import resolver
   settings: {
     "import/resolver": {
       typescript: {
         alwaysTryTypes: true,
       },
     },
-  },
-
-  // All the rules we discussed before
-  rules: {
-    // === 1. Enforce Path Aliases ===
-    "no-restricted-imports": [
-      "error",
+    "boundaries/include": ["**/*"],
+    "boundaries/elements": [
       {
-        "patterns": ["../../*"],
+        type: "app",
+        pattern: "app/*",
+      },
+      {
+        type: "features",
+        pattern: "features/*",
+        capture: ["featureName"],
+      },
+      {
+        type: "ui",
+        pattern: "components/ui/*",
+      },
+      {
+        type: "layout",
+        pattern: "components/layout/*",
+      },
+      {
+        type: "shared",
+        pattern: "components/shared/*",
+      },
+      {
+        type: "lib",
+        pattern: "lib/*",
+      },
+      {
+        type: "types",
+        pattern: "types/*",
       },
     ],
+  },
 
-    // === 2. Enforce One-Way Dependency Structure (NO SRC) ===
-    "import/no-restricted-paths": [
+  rules: {
+    // Enforce One-Way Dependency Structure using eslint-plugin-boundaries
+    "boundaries/element-types": [
       "error",
       {
-        "zones": [
+        default: "disallow",
+        rules: [
           {
-            "target": "lib/**",
-            "from": ["features/**", "components/**", "app/**"],
-            "message": "The 'lib' layer cannot import from 'features', 'components', or 'app'."
+            from: "app",
+            allow: ["features", "layout", "shared", "ui", "lib", "types"],
           },
           {
-            "target": "components/**",
-            "from": ["features/**", "app/**"],
-            "message": "Shared 'components' cannot import from 'features' or 'app'."
+            from: "features",
+            allow: ["ui", "shared", "lib", "types"],
           },
           {
-            "target": "features/**",
-            "from": ["app/**"],
-            "message": "Features cannot import from 'app'."
+            from: "features",
+            allow: [
+              ["features", { featureName: "${from.featureName}" }],
+              "ui",
+              "shared",
+              "lib",
+              "types",
+            ],
           },
           {
-            // This rule prevents features from importing each other
-            "target": "features/*/**",
-            "from": "features/*/**",
-            "message": "A feature must not import from another feature. Elevate shared logic to 'lib' or a shared hook.",
-            // This filter *allows* a feature to import its *own* sub-files
-            "filter": {
-              "type": "path",
-              "pattern": "^features/{{$1}}/.+"
-            }
-          }
-        ]
-      }
-    ]
-  }
+            from: ["ui", "layout", "shared"],
+            allow: ["ui", "layout", "shared", "lib", "types"],
+          },
+          {
+            from: "lib",
+            allow: ["types"],
+          },
+          {
+            from: "types",
+            allow: ["types"],
+          },
+        ],
+      },
+    ],
+  },
 };
 
 // PERFECTIONIST (SORTING) RULES ---
@@ -92,16 +119,16 @@ const unicornRules = {
     "unicorn/filename-case": [
       "error",
       {
-        "case": "kebabCase",
+        "cases": {
+          "kebabCase": true,
+          "pascalCase": true, // Allow PascalCase
+        },
         "ignore": [
           // We must ignore these to allow React components (PascalCase)
           // and Next.js files (lowercase).
           /\[...all\]\.tsx?$/,
           /\[.+\]\.tsx?$/,
         ],
-        "cases": {
-          "pascalCase": true, // Allow PascalCase
-        },
       }
     ],
 
@@ -122,7 +149,9 @@ const nextFileOverrides = {
     "unicorn/filename-case": [
       "error",
       {
-        "case": "lowercase" // Enforce these specific files are lowercase
+        "cases": {
+          "kebabCase": true
+        }
       }
     ]
   }

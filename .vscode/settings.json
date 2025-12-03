@@ -1,0 +1,20 @@
+{
+  // --- 1. Set Prettier as the Default Formatter ---
+  // This tells VSCode to use your Prettier extension for all
+  // relevant file types, which will in turn use your .prettierrc.mjs.
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  // --- 2. Make ESLint Fix on Save (For Sorting & Logic) ---
+  // This runs *after* Prettier and fixes everything Prettier doesn't
+  // handle, like import sorting (Perfectionist) and code rules (Unicorn).
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  // --- 3. Ensure ESLint is Running on the Right Files ---
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ]
+}
