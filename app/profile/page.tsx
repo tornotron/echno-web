@@ -1,8 +1,10 @@
 import { Suspense } from 'react';
 import { auth } from '@/auth';
+
+export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import { User } from '@/types/user/user';
-import { UserProfileView } from '@/components/user-profile/user-profile-view';
+
 import { Card, CardContent } from '@/components/ui/card';
 import { fetchUserProfileFromBackend } from '@/lib/api/user-api';
 import { AppLayout } from '@/components/common/app-layout';
@@ -39,13 +41,13 @@ function ProfileSkeleton() {
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-            <div className="h-32 w-32 animate-pulse rounded-full bg-muted" />
+            <div className="bg-muted h-32 w-32 animate-pulse rounded-full" />
             <div className="flex-1 space-y-4">
-              <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-              <div className="h-4 w-64 animate-pulse rounded bg-muted" />
+              <div className="bg-muted h-8 w-48 animate-pulse rounded" />
+              <div className="bg-muted h-4 w-64 animate-pulse rounded" />
               <div className="flex gap-2">
-                <div className="h-6 w-20 animate-pulse rounded bg-muted" />
-                <div className="h-6 w-32 animate-pulse rounded bg-muted" />
+                <div className="bg-muted h-6 w-20 animate-pulse rounded" />
+                <div className="bg-muted h-6 w-32 animate-pulse rounded" />
               </div>
             </div>
           </div>
@@ -56,10 +58,10 @@ function ProfileSkeleton() {
         {[1, 2, 3, 4].map((i) => (
           <Card key={i}>
             <CardContent className="pt-6">
-              <div className="h-6 w-32 animate-pulse rounded bg-muted mb-4" />
+              <div className="bg-muted mb-4 h-6 w-32 animate-pulse rounded" />
               <div className="space-y-3">
-                <div className="h-4 w-full animate-pulse rounded bg-muted" />
-                <div className="h-4 w-3/4 animate-pulse rounded bg-muted" />
+                <div className="bg-muted h-4 w-full animate-pulse rounded" />
+                <div className="bg-muted h-4 w-3/4 animate-pulse rounded" />
               </div>
             </CardContent>
           </Card>

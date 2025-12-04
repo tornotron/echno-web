@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockIssues, mockProjects, mockTasks } from '@/lib/mock-data';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  mockIssues,
+  mockProjects,
+  mockTasks,
+} from '@/components/shared/mock-data';
 import { AppLayout, Pagination } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -28,19 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Search,
-  AlertCircle,
-  Plus,
-  Filter,
-  Eye,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Calendar,
-  ListTodo,
-} from 'lucide-react';
+import { Search, AlertCircle, Plus, Filter, Eye, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { IssueStatus, IssueType } from '@/types/issue';
 import { format } from 'date-fns';
@@ -63,9 +61,10 @@ export default function IssuesPage() {
         issue.description?.toLowerCase().includes(searchLower) ||
         issue.creator?.toLowerCase().includes(searchLower);
 
-      const matchesStatus = statusFilter === 'all' || issue.status === statusFilter;
+      const matchesStatus =
+        statusFilter === 'all' || issue.status === statusFilter;
       const matchesType = typeFilter === 'all' || issue.type === typeFilter;
-      
+
       // For project filter, we would need a way to link issues to projects
       // For now, we'll just show all issues when project filter is 'all'
       const matchesProject = projectFilter === 'all';
@@ -81,18 +80,38 @@ export default function IssuesPage() {
   const paginatedIssues = filteredIssues.slice(startIndex, endIndex);
 
   // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, typeFilter, projectFilter, itemsPerPage]);
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCurrentPage(1);
+    }
+  }, [
+    searchQuery,
+    statusFilter,
+    typeFilter,
+    projectFilter,
+    itemsPerPage,
+    currentPage,
+  ]);
 
   // Statistics
   const totalIssues = mockIssues.length;
-  const openIssues = mockIssues.filter((i) => i.status === IssueStatus.open).length;
-  const inProgressIssues = mockIssues.filter((i) => i.status === IssueStatus.inProgress).length;
-  const resolvedIssues = mockIssues.filter((i) => i.status === IssueStatus.resolved).length;
+  const openIssues = mockIssues.filter(
+    (i) => i.status === IssueStatus.open
+  ).length;
+  const inProgressIssues = mockIssues.filter(
+    (i) => i.status === IssueStatus.inProgress
+  ).length;
+  const resolvedIssues = mockIssues.filter(
+    (i) => i.status === IssueStatus.resolved
+  ).length;
 
   const hasActiveFilters =
-    searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || projectFilter !== 'all';
+    searchQuery ||
+    statusFilter !== 'all' ||
+    typeFilter !== 'all' ||
+    projectFilter !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -104,92 +123,108 @@ export default function IssuesPage() {
 
   const getStatusColor = (status: IssueStatus) => {
     switch (status) {
-      case IssueStatus.open:
+      case IssueStatus.open: {
         return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case IssueStatus.inProgress:
+      }
+      case IssueStatus.inProgress: {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      case IssueStatus.resolved:
+      }
+      case IssueStatus.resolved: {
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case IssueStatus.closed:
+      }
+      case IssueStatus.closed: {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-      default:
+      }
+      default: {
         return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+      }
     }
   };
 
   const getStatusLabel = (status: IssueStatus) => {
     switch (status) {
-      case IssueStatus.open:
+      case IssueStatus.open: {
         return 'Open';
-      case IssueStatus.inProgress:
+      }
+      case IssueStatus.inProgress: {
         return 'In Progress';
-      case IssueStatus.resolved:
+      }
+      case IssueStatus.resolved: {
         return 'Resolved';
-      case IssueStatus.closed:
+      }
+      case IssueStatus.closed: {
         return 'Closed';
-      default:
+      }
+      default: {
         return status;
+      }
     }
   };
 
   const getTypeColor = (type: IssueType) => {
     switch (type) {
-      case IssueType.technical:
+      case IssueType.technical: {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      case IssueType.design:
+      }
+      case IssueType.design: {
         return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-      case IssueType.quality:
+      }
+      case IssueType.quality: {
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case IssueType.safety:
+      }
+      case IssueType.safety: {
         return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case IssueType.material:
+      }
+      case IssueType.material: {
         return 'bg-brown-100 text-brown-800 dark:bg-brown-900/20 dark:text-brown-400';
-      case IssueType.equipment:
+      }
+      case IssueType.equipment: {
         return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-900/20 dark:text-zinc-400';
-      default:
+      }
+      default: {
         return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+      }
     }
   };
 
   const getTypeLabel = (type: IssueType) => {
     switch (type) {
-      case IssueType.technical:
+      case IssueType.technical: {
         return 'Technical';
-      case IssueType.design:
+      }
+      case IssueType.design: {
         return 'Design';
-      case IssueType.quality:
+      }
+      case IssueType.quality: {
         return 'Quality';
-      case IssueType.safety:
+      }
+      case IssueType.safety: {
         return 'Safety';
-      case IssueType.material:
+      }
+      case IssueType.material: {
         return 'Material';
-      case IssueType.equipment:
+      }
+      case IssueType.equipment: {
         return 'Equipment';
-      case IssueType.labour:
+      }
+      case IssueType.labour: {
         return 'Labour';
-      case IssueType.weather:
+      }
+      case IssueType.weather: {
         return 'Weather';
-      case IssueType.permit:
+      }
+      case IssueType.permit: {
         return 'Permit';
-      case IssueType.coordination:
+      }
+      case IssueType.coordination: {
         return 'Coordination';
-      case IssueType.other:
+      }
+      case IssueType.other: {
         return 'Other';
-      default:
+      }
+      default: {
         return type;
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority.toLowerCase()) {
-      case 'high':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'low':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      default:
-        return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+      }
     }
   };
 
@@ -197,28 +232,32 @@ export default function IssuesPage() {
     <AppLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Issues</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">Track and manage project issues</p>
+            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Issues
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Track and manage project issues
+            </p>
           </div>
           <Link href="/dashboard/workflow/issues/new">
             <Button className="mt-4 md:mt-0">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               New Issue
             </Button>
           </Link>
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Total Issues</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
                   <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -234,7 +273,7 @@ export default function IssuesPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
                   <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -250,7 +289,7 @@ export default function IssuesPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
                   <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -266,7 +305,7 @@ export default function IssuesPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
                   <AlertCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -293,11 +332,11 @@ export default function IssuesPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Search */}
               <div>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
                   <Input
                     placeholder="Search issues..."
                     value={searchQuery}
@@ -315,7 +354,9 @@ export default function IssuesPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value={IssueStatus.open}>Open</SelectItem>
-                  <SelectItem value={IssueStatus.inProgress}>In Progress</SelectItem>
+                  <SelectItem value={IssueStatus.inProgress}>
+                    In Progress
+                  </SelectItem>
                   <SelectItem value={IssueStatus.resolved}>Resolved</SelectItem>
                   <SelectItem value={IssueStatus.closed}>Closed</SelectItem>
                 </SelectContent>
@@ -337,7 +378,9 @@ export default function IssuesPage() {
                   <SelectItem value={IssueType.labour}>Labour</SelectItem>
                   <SelectItem value={IssueType.weather}>Weather</SelectItem>
                   <SelectItem value={IssueType.permit}>Permit</SelectItem>
-                  <SelectItem value={IssueType.coordination}>Coordination</SelectItem>
+                  <SelectItem value={IssueType.coordination}>
+                    Coordination
+                  </SelectItem>
                   <SelectItem value={IssueType.other}>Other</SelectItem>
                 </SelectContent>
               </Select>
@@ -363,11 +406,14 @@ export default function IssuesPage() {
         {/* Results Summary */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredIssues.length)} of{' '}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredIssues.length)} of{' '}
             {filteredIssues.length} issues
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -405,10 +451,12 @@ export default function IssuesPage() {
                 <TableBody>
                   {paginatedIssues.map((issue) => {
                     // Find the task that contains this issue
-                    const relatedTask = mockTasks.find((task) => 
+                    const relatedTask = mockTasks.find((task) =>
                       task.issues?.some((i) => i.id === issue.id)
                     );
-                    const project = mockProjects.find((p) => p.id === relatedTask?.projectId);
+                    const project = mockProjects.find(
+                      (p) => p.id === relatedTask?.projectId
+                    );
 
                     return (
                       <TableRow key={issue.id}>
@@ -418,7 +466,7 @@ export default function IssuesPage() {
                               {issue.title}
                             </p>
                             {issue.description && (
-                              <p className="text-sm text-zinc-600 dark:text-zinc-400 truncate max-w-[300px]">
+                              <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
                                 {issue.description}
                               </p>
                             )}
@@ -431,9 +479,11 @@ export default function IssuesPage() {
                         </TableCell>
                         <TableCell>
                           {relatedTask ? (
-                            <Link href={`/dashboard/workflow/tasks/${relatedTask.id}`}>
+                            <Link
+                              href={`/dashboard/workflow/tasks/${relatedTask.id}`}
+                            >
                               <div className="hover:underline">
-                                <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">
+                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
                                   {relatedTask.title}
                                 </p>
                                 {project && (
@@ -444,13 +494,15 @@ export default function IssuesPage() {
                               </div>
                             </Link>
                           ) : (
-                            <span className="text-sm text-zinc-400">No task</span>
+                            <span className="text-sm text-zinc-400">
+                              No task
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-purple-500 to-purple-600 flex items-center justify-center">
-                              <span className="text-xs text-white font-medium">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                              <span className="text-xs font-medium text-white">
                                 {issue.creator?.charAt(0) || '?'}
                               </span>
                             </div>
@@ -462,7 +514,9 @@ export default function IssuesPage() {
                         <TableCell>
                           <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
                             <Calendar className="h-3 w-3" />
-                            <span>{format(issue.createdAt, 'MMM d, yyyy')}</span>
+                            <span>
+                              {format(issue.createdAt, 'MMM d, yyyy')}
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -474,8 +528,14 @@ export default function IssuesPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Link href={`/dashboard/workflow/issues/${issue.id}`}>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Link
+                                  href={`/dashboard/workflow/issues/${issue.id}`}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                  >
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                 </Link>
@@ -502,12 +562,12 @@ export default function IssuesPage() {
           </Card>
         ) : (
           <Card>
-            <CardContent className="text-center py-12">
-              <AlertCircle className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 No issues found
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 {hasActiveFilters
                   ? 'Try adjusting your search or filters'
                   : 'Get started by creating your first issue'}
@@ -515,7 +575,7 @@ export default function IssuesPage() {
               {!hasActiveFilters && (
                 <Link href="/dashboard/workflow/issues/new">
                   <Button>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     New Issue
                   </Button>
                 </Link>

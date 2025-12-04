@@ -52,16 +52,16 @@ export function getAttendanceStatusColor(status: AttendanceStatus): string {
  */
 export function getAttendanceWeight(status: AttendanceStatus): number {
   const weights: Record<AttendanceStatus, number> = {
-    [AttendanceStatus.present]: 1.0,
+    [AttendanceStatus.present]: 1,
     [AttendanceStatus.halfDay]: 0.5,
-    [AttendanceStatus.absent]: 0.0,
-    [AttendanceStatus.leave]: 1.0, // Paid leave
-    [AttendanceStatus.weeklyOff]: 1.0,
-    [AttendanceStatus.holiday]: 1.0,
+    [AttendanceStatus.absent]: 0,
+    [AttendanceStatus.leave]: 1, // Paid leave
+    [AttendanceStatus.weeklyOff]: 1,
+    [AttendanceStatus.holiday]: 1,
     [AttendanceStatus.late]: 0.9, // 10% deduction for late arrival
     [AttendanceStatus.earlyCheckout]: 0.9, // 10% deduction for early checkout
     [AttendanceStatus.overtime]: 1.5, // 1.5x for overtime
-    [AttendanceStatus.pendingRegularization]: 0.0, // No pay until regularized
+    [AttendanceStatus.pendingRegularization]: 0, // No pay until regularized
   };
   return weights[status];
 }

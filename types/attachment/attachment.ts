@@ -26,14 +26,16 @@ export function getFileTypeFromMimeType(mimeType: string): AttachmentType {
   if (mimeType.startsWith('image/')) return AttachmentType.image;
   if (mimeType === 'application/pdf') return AttachmentType.pdf;
   if (
-    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    mimeType ===
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
     mimeType === 'application/msword' ||
     mimeType === 'text/plain'
   ) {
     return AttachmentType.document;
   }
   if (
-    mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    mimeType ===
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
     mimeType === 'application/vnd.ms-excel' ||
     mimeType === 'text/csv'
   ) {
@@ -52,7 +54,7 @@ export function getFileTypeFromMimeType(mimeType: string): AttachmentType {
 /** Helper: Get file extension */
 export function getFileExtension(fileName: string): string {
   const parts = fileName.split('.');
-  return parts.length > 1 ? parts[parts.length - 1].toLowerCase() : '';
+  return parts.length > 1 ? (parts.at(-1) ?? '').toLowerCase() : '';
 }
 
 /** Helper: Format file size */
@@ -91,6 +93,7 @@ export function getFileTypeColor(type: AttachmentType): string {
 }
 
 /** JSON → Attachment */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseAttachment(json: any): Attachment {
   return {
     id: json.id ?? undefined,
@@ -106,7 +109,9 @@ export function parseAttachment(json: any): Attachment {
 }
 
 /** Attachment → JSON */
-export function attachmentToJson(attachment: Attachment): Record<string, any> {
+export function attachmentToJson(
+  attachment: Attachment
+): Record<string, unknown> {
   return {
     id: attachment.id,
     fileName: attachment.fileName,

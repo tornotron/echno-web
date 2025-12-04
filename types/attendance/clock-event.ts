@@ -96,6 +96,7 @@ export function isWithinGeofence(
 /**
  * Parse clock event from JSON
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseClockEvent(data: any): ClockEvent {
   return {
     ...data,
@@ -107,7 +108,7 @@ export function parseClockEvent(data: any): ClockEvent {
 /**
  * Convert clock event to JSON
  */
-export function clockEventToJson(event: ClockEvent): any {
+export function clockEventToJson(event: ClockEvent): Record<string, unknown> {
   return {
     ...event,
     timestamp: event.timestamp.toISOString(),

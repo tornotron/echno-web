@@ -101,6 +101,7 @@ export function getUserRoleLabel(role: UserRole): string {
 }
 
 export function userRoleFromString(str: string): UserRole {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const role = (UserRole as any)[str];
   if (!role) throw new Error(`Invalid user role: ${str}`);
   return role;

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Image from 'next/image';
 import { User, userInitials } from '@/types/user/user';
 import { getAvatarColor } from '@/lib/utils/user-profile-utils';
 import { cn } from '@/lib/utils/tailwind-utils';
@@ -22,11 +23,19 @@ export function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
 
   if (user.profilePictureUrl) {
     return (
-      <div className={cn('relative overflow-hidden rounded-full', sizeClasses[size], className)}>
-        <img
+      <div
+        className={cn(
+          'relative overflow-hidden rounded-full',
+          sizeClasses[size],
+          className
+        )}
+      >
+        <Image
           src={user.profilePictureUrl}
           alt={user.name}
-          className="h-full w-full object-cover"
+          fill
+          className="object-cover"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>
     );

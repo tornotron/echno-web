@@ -48,34 +48,34 @@ export interface Attendance {
   projectName: string;
   status: AttendanceStatus;
   shiftTiming: ShiftTiming;
-  
+
   // Clock events for the day
   morningClockIn?: ClockEvent;
   lunchBreakStart?: ClockEvent;
   lunchBreakEnd?: ClockEvent;
   eveningClockOut?: ClockEvent;
-  
+
   // Calculated fields
   workDuration: WorkDuration;
   isLateArrival: boolean;
   isEarlyCheckout: boolean;
   isOvertime: boolean;
-  
+
   // Leave integration
   leaveId?: number; // If employee is on leave
   leaveType?: string;
-  
+
   // Regularization
   regularization?: AttendanceRegularization;
-  
+
   // Movement tracking
   movements?: MovementRecord[]; // Daily movements and activities
-  
+
   // Approval workflow
   approvalStatus: 'pending' | 'approved' | 'rejected';
   approvedBy?: string;
   approvedAt?: Date;
-  
+
   // Metadata
   remarks?: string;
   createdAt: Date;
@@ -87,7 +87,7 @@ export interface AttendanceSummary {
   employeeName: string;
   month: number; // 1-12
   year: number;
-  
+
   // Counts
   totalWorkingDays: number;
   presentDays: number;
@@ -98,12 +98,12 @@ export interface AttendanceSummary {
   holidays: number;
   lateDays: number;
   overtimeDays: number;
-  
+
   // Time tracking
   totalHoursWorked: number;
   totalOvertimeHours: number;
   averageWorkHours: number;
-  
+
   // Salary calculation
   attendancePercentage: number;
   effectiveWorkDays: number; // Weighted days for salary
@@ -111,7 +111,7 @@ export interface AttendanceSummary {
   attendanceDeductions: number;
   overtimePay: number;
   netSalary: number;
-  
+
   // Project-wise breakdown
   projectWiseAttendance: ProjectAttendanceSummary[];
 }
@@ -130,10 +130,10 @@ export interface AttendanceReport {
   endDate: Date;
   totalEmployees: number;
   averageAttendance: number;
-  
+
   // Status wise counts
   statusCounts: Record<AttendanceStatus, number>;
-  
+
   // Project wise summary
   projectSummaries: {
     projectId: number;
@@ -142,7 +142,7 @@ export interface AttendanceReport {
     averageAttendance: number;
     employeeCount: number;
   }[];
-  
+
   // Daily trends
   dailyTrends: {
     date: Date;
@@ -151,7 +151,7 @@ export interface AttendanceReport {
     lateCount: number;
     averageWorkHours: number;
   }[];
-  
+
   // Top performers
   topPerformers: {
     employeeId: string;
@@ -159,7 +159,7 @@ export interface AttendanceReport {
     attendancePercentage: number;
     totalHours: number;
   }[];
-  
+
   // Attendance issues
   issues: {
     employeeId: string;
@@ -324,11 +324,11 @@ export function calculateMonthlySalary(
 
   // Calculate effective work days with weights
   let effectiveWorkDays = 0;
-  effectiveWorkDays += summary.presentDays * 1.0;
+  effectiveWorkDays += summary.presentDays * 1;
   effectiveWorkDays += summary.halfDays * 0.5;
-  effectiveWorkDays += summary.leaveDays * 1.0; // Paid leave
-  effectiveWorkDays += summary.weeklyOffs * 1.0;
-  effectiveWorkDays += summary.holidays * 1.0;
+  effectiveWorkDays += summary.leaveDays * 1; // Paid leave
+  effectiveWorkDays += summary.weeklyOffs * 1;
+  effectiveWorkDays += summary.holidays * 1;
   effectiveWorkDays += summary.lateDays * 0.9; // 10% deduction
 
   // Calculate deductions
@@ -348,14 +348,14 @@ export function calculateMonthlySalary(
     attendanceDeductions,
     overtimePay,
     netSalary,
-    attendancePercentage:
-      (effectiveWorkDays / summary.totalWorkingDays) * 100,
+    attendancePercentage: (effectiveWorkDays / summary.totalWorkingDays) * 100,
   };
 }
 
 /**
  * Parse attendance from JSON
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseAttendance(data: any): Attendance {
   return {
     ...data,
@@ -369,7 +369,9 @@ export function parseAttendance(data: any): Attendance {
 /**
  * Convert attendance to JSON
  */
-export function attendanceToJson(attendance: Attendance): any {
+export function attendanceToJson(
+  attendance: Attendance
+): Record<string, unknown> {
   return {
     ...attendance,
     date: attendance.date.toISOString(),

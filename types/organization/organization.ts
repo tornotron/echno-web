@@ -14,11 +14,13 @@ export interface Organization {
   creatorId: number;
   createdAt?: Date;
   isActive: boolean;
+  type: 'client' | 'internal';
 }
 
 /** -------------------------------------------------------------
  *  JSON → Organization
  *  ------------------------------------------------------------- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseOrganization(json: any): Organization {
   return {
     id: json.id ?? undefined,
@@ -29,20 +31,20 @@ export function parseOrganization(json: any): Organization {
     organizationWebsite: json.organizationWebsite ?? undefined,
     organizationLogo: json.organizationLogo ?? undefined,
     employees: json.employees
-      ? (json.employees as any[]).map((e) => parseEmployee(e))
+      ? (json.employees as unknown[]).map((e) => parseEmployee(e))
       : undefined,
     projects: json.projects
-      ? (json.projects as any[]).map((p) => parseProject(p))
+      ? (json.projects as unknown[]).map((p) => parseProject(p))
       : undefined,
     creatorId: json.proprietorId ?? json.creatorId ?? 0,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     isActive: json.isActive ?? true,
+    type: json.type ?? 'internal',
   };
 }
 
-
 /** Full JSON (for UI / debug) */
-export function organizationToJson(org: Organization): Record<string, any> {
+export function organizationToJson(org: Organization): Record<string, unknown> {
   return {
     id: org.id,
     organizationName: org.organizationName,
@@ -51,16 +53,19 @@ export function organizationToJson(org: Organization): Record<string, any> {
     organizationPhone: org.organizationPhone,
     organizationWebsite: org.organizationWebsite,
     organizationLogo: org.organizationLogo,
-    employees: org.employees?.map(employeeToJson),
-    projects: org.projects?.map(projectToJson),
+    employees: org.employees?.map((e) => employeeToJson(e)),
+    projects: org.projects?.map((p) => projectToJson(p)),
     creatorId: org.creatorId,
     createdAt: org.createdAt?.toISOString(),
     isActive: org.isActive,
+    type: org.type,
   };
 }
 
 /** Minimal JSON with only IDs (for API POST/PUT) */
-export function organizationToJsonWithIds(org: Organization): Record<string, any> {
+export function organizationToJsonWithIds(
+  org: Organization
+): Record<string, unknown> {
   return {
     id: org.id,
     organizationName: org.organizationName,
@@ -72,6 +77,7 @@ export function organizationToJsonWithIds(org: Organization): Record<string, any
     creatorId: org.creatorId,
     createdAt: org.createdAt?.toISOString(),
     isActive: org.isActive,
+    type: org.type,
   };
 }
 

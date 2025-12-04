@@ -1,35 +1,37 @@
-import { getSession } from 'next-auth/react'
+import { getSession } from 'next-auth/react';
 
-export interface ApiResponse<T = any> {
-  data: T
-  message?: string
-  success: boolean
+export interface ApiResponse<T = unknown> {
+  data: T;
+  message?: string;
+  success: boolean;
 }
 
 export interface ApiError {
-  message: string
-  status: number
-  errors?: Record<string, string[]>
+  message: string;
+  status: number;
+  errors?: Record<string, string[]>;
 }
 
 class ApiClient {
-  private baseURL: string
+  private baseURL: string;
 
   constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || '/api') {
-    this.baseURL = baseURL
+    this.baseURL = baseURL;
   }
 
   private async getAuthHeaders(): Promise<HeadersInit> {
-    const session = await getSession()
+    const session = await getSession();
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sessionWithToken = session as any;
+    if (sessionWithToken?.accessToken) {
+      headers['Authorization'] = `Bearer ${sessionWithToken.accessToken}`;
     }
 
-    if (session?.accessToken) {
-      headers['Authorization'] = `Bearer ${session.accessToken}`
-    }
-
-    return headers
+    return headers;
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
@@ -37,83 +39,89 @@ class ApiClient {
       const errorData: ApiError = await response.json().catch(() => ({
         message: 'An error occurred',
         status: response.status,
-      }))
+      }));
 
-      throw new Error(errorData.message || `HTTP ${response.status}`)
+      throw new Error(errorData.message || `HTTP ${response.status}`);
     }
 
-    return response.json()
+    return response.json();
   }
 
-  async get<T = any>(endpoint: string, params?: Record<string, any>): Promise<T> {
-    const headers = await this.getAuthHeaders()
-    const url = new URL(`${this.baseURL}${endpoint}`, window.location.origin)
+  async get<T = unknown>(
+    endpoint: string,
+    params?: Record<string, string | number | boolean>
+  ): Promise<T> {
+    const headers = await this.getAuthHeaders();
+    const url = new URL(
+      `${this.baseURL}${endpoint}`,
+      globalThis.location.origin
+    );
 
     if (params) {
-      Object.keys(params).forEach(key => {
+      for (const key of Object.keys(params)) {
         if (params[key] !== undefined && params[key] !== null) {
-          url.searchParams.append(key, params[key].toString())
+          url.searchParams.append(key, params[key].toString());
         }
-      })
+      }
     }
 
     const response = await fetch(url.toString(), {
       method: 'GET',
       headers,
-    })
+    });
 
-    return this.handleResponse<T>(response)
+    return this.handleResponse<T>(response);
   }
 
-  async post<T = any>(endpoint: string, data?: any): Promise<T> {
-    const headers = await this.getAuthHeaders()
+  async post<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const headers = await this.getAuthHeaders();
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'POST',
       headers,
       body: data ? JSON.stringify(data) : undefined,
-    })
+    });
 
-    return this.handleResponse<T>(response)
+    return this.handleResponse<T>(response);
   }
 
-  async put<T = any>(endpoint: string, data?: any): Promise<T> {
-    const headers = await this.getAuthHeaders()
+  async put<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const headers = await this.getAuthHeaders();
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'PUT',
       headers,
       body: data ? JSON.stringify(data) : undefined,
-    })
+    });
 
-    return this.handleResponse<T>(response)
+    return this.handleResponse<T>(response);
   }
 
-  async patch<T = any>(endpoint: string, data?: any): Promise<T> {
-    const headers = await this.getAuthHeaders()
+  async patch<T = unknown>(endpoint: string, data?: unknown): Promise<T> {
+    const headers = await this.getAuthHeaders();
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'PATCH',
       headers,
       body: data ? JSON.stringify(data) : undefined,
-    })
+    });
 
-    return this.handleResponse<T>(response)
+    return this.handleResponse<T>(response);
   }
 
-  async delete<T = any>(endpoint: string): Promise<T> {
-    const headers = await this.getAuthHeaders()
+  async delete<T = unknown>(endpoint: string): Promise<T> {
+    const headers = await this.getAuthHeaders();
 
     const response = await fetch(`${this.baseURL}${endpoint}`, {
       method: 'DELETE',
       headers,
-    })
+    });
 
-    return this.handleResponse<T>(response)
+    return this.handleResponse<T>(response);
   }
 }
 
-export const apiClient = new ApiClient()
+export const apiClient = new ApiClient();
 
 // Export individual methods for convenience
 export const api = {
@@ -122,5 +130,4 @@ export const api = {
   put: apiClient.put.bind(apiClient),
   patch: apiClient.patch.bind(apiClient),
   delete: apiClient.delete.bind(apiClient),
-}
-
+};

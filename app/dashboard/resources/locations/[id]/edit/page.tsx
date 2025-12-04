@@ -3,22 +3,28 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AppLayout } from '@/components/common';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { MapPin, Save, X, ArrowLeft, Trash2 } from 'lucide-react';
 import { LocationType, locationTypeLabels } from '@/types/resource/location';
-import { mockLocations } from '@/lib/mock-data';
+import { mockLocations } from '@/components/shared/mock-data';
 import { toast } from 'sonner';
 
 interface LocationFormData {
@@ -34,12 +40,14 @@ interface LocationFormData {
 export default function EditLocationPage() {
   const params = useParams();
   const router = useRouter();
-  const locationId = parseInt(params.id as string);
-  
+  const locationId = Number.parseInt(params.id as string);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [location, setLocation] = useState<typeof mockLocations[0] | null>(null);
-  
+  const [location, setLocation] = useState<(typeof mockLocations)[0] | null>(
+    null
+  );
+
   const [formData, setFormData] = useState<LocationFormData>({
     name: '',
     type: 'warehouse',
@@ -54,6 +62,7 @@ export default function EditLocationPage() {
     // Find and load the location
     const foundLocation = mockLocations.find((l) => l.id === locationId);
     if (foundLocation) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLocation(foundLocation);
       setFormData({
         name: foundLocation.name,
@@ -67,7 +76,10 @@ export default function EditLocationPage() {
     }
   }, [locationId]);
 
-  const handleInputChange = (field: keyof LocationFormData, value: string | boolean) => {
+  const handleInputChange = (
+    field: keyof LocationFormData,
+    value: string | boolean
+  ) => {
     setFormData({ ...formData, [field]: value });
   };
 
@@ -88,7 +100,7 @@ export default function EditLocationPage() {
       return;
     }
 
-    if (!formData.capacity || parseInt(formData.capacity) <= 0) {
+    if (!formData.capacity || Number.parseInt(formData.capacity) <= 0) {
       toast.error('Please enter a valid capacity');
       setIsSubmitting(false);
       return;
@@ -96,18 +108,22 @@ export default function EditLocationPage() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success('Location updated successfully!');
       router.push(`/dashboard/resources/locations/${locationId}`);
-    } catch (error) {
+    } catch {
       toast.error('Failed to update location');
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this location? This action cannot be undone.')) {
+    if (
+      !confirm(
+        'Are you sure you want to delete this location? This action cannot be undone.'
+      )
+    ) {
       return;
     }
 
@@ -115,11 +131,11 @@ export default function EditLocationPage() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success('Location deleted successfully!');
       router.push('/dashboard/resources/locations');
-    } catch (error) {
+    } catch {
       toast.error('Failed to delete location');
       setIsDeleting(false);
     }
@@ -133,15 +149,15 @@ export default function EditLocationPage() {
     return (
       <AppLayout title="Location Not Found">
         <Card>
-          <CardContent className="text-center py-12">
-            <MapPin className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Location Not Found</h3>
+          <CardContent className="py-12 text-center">
+            <MapPin className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+            <h3 className="mb-2 text-lg font-semibold">Location Not Found</h3>
             <p className="text-muted-foreground mb-4">
-              The location you're trying to edit doesn't exist.
+              The location you&apos;re looking for doesn&apos;t exist.
             </p>
             <Button asChild>
               <Link href="/dashboard/resources/locations">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+                <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Locations
               </Link>
             </Button>
@@ -156,7 +172,7 @@ export default function EditLocationPage() {
       <div className="px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
+          <div className="mb-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <MapPin className="h-6 w-6" />
               <h1 className="text-3xl font-bold">Edit Location</h1>
@@ -166,7 +182,7 @@ export default function EditLocationPage() {
               onClick={handleDelete}
               disabled={isDeleting || isSubmitting}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <Trash2 className="mr-2 h-4 w-4" />
               {isDeleting ? 'Deleting...' : 'Delete Location'}
             </Button>
           </div>
@@ -180,7 +196,9 @@ export default function EditLocationPage() {
           <Card>
             <CardHeader>
               <CardTitle>Location Details</CardTitle>
-              <CardDescription>Modify the information for this location</CardDescription>
+              <CardDescription>
+                Modify the information for this location
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Basic Information */}
@@ -210,11 +228,13 @@ export default function EditLocationPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(locationTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
+                      {Object.entries(locationTypeLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -246,7 +266,9 @@ export default function EditLocationPage() {
                     type="number"
                     placeholder="e.g., 5000"
                     value={formData.capacity}
-                    onChange={(e) => handleInputChange('capacity', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('capacity', e.target.value)
+                    }
                     min="1"
                     required
                   />
@@ -256,7 +278,9 @@ export default function EditLocationPage() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.isActive ? 'active' : 'inactive'}
-                    onValueChange={(value) => handleInputChange('isActive', value === 'active')}
+                    onValueChange={(value) =>
+                      handleInputChange('isActive', value === 'active')
+                    }
                   >
                     <SelectTrigger id="status">
                       <SelectValue />
@@ -278,7 +302,9 @@ export default function EditLocationPage() {
                     type="number"
                     placeholder="e.g., 1"
                     value={formData.organizationId}
-                    onChange={(e) => handleInputChange('organizationId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('organizationId', e.target.value)
+                    }
                   />
                 </div>
 
@@ -289,24 +315,26 @@ export default function EditLocationPage() {
                     type="number"
                     placeholder="e.g., 101"
                     value={formData.projectId}
-                    onChange={(e) => handleInputChange('projectId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('projectId', e.target.value)
+                    }
                   />
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 justify-end pt-4 border-t">
+              <div className="flex justify-end gap-3 border-t pt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleCancel}
                   disabled={isSubmitting || isDeleting}
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting || isDeleting}>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 h-4 w-4" />
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>

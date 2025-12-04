@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { AppLayout } from '@/components/common/app-layout';
-import { OrganizationForm } from '@/components/organization/organization-form';
+import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
 import { toast } from '@/lib/styles/toast-styles';
 
@@ -27,7 +27,7 @@ export default function NewOrganizationPage() {
 
       // Redirect to organizations list
       router.push('/dashboard/organizations');
-    } catch (error) {
+    } catch {
       toast.error('Error', {
         description: 'Failed to create organization. Please try again.',
       });
@@ -42,7 +42,7 @@ export default function NewOrganizationPage() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto max-w-3xl px-4 py-8">
         {/* Form */}
         <OrganizationForm
           onSubmit={handleSubmit}

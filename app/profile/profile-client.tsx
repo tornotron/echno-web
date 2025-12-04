@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { User } from '@/types/user/user';
-import { UserProfileView } from '@/components/user-profile/user-profile-view';
-import { ProfileEditForm } from '@/components/user-profile/profile-edit-form';
+import { UserProfileView } from '@/features/user-profile/user-profile-view';
+import { ProfileEditForm } from '@/features/user-profile/profile-edit-form';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
@@ -19,23 +19,23 @@ export function ProfilePageClient({ user }: ProfilePageClientProps) {
 
   // Show login success toast if redirected from login (client-side only)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
+    if (globalThis.window !== undefined) {
+      const params = new URLSearchParams(globalThis.location.search);
       const loginParam = params.get('login');
       if (loginParam === 'success' && !loginToastShown.current) {
         loginToastShown.current = true;
-        
+
         const timer = setTimeout(() => {
-          toast.success("Login successful!", {
-            description: "Welcome to your profile.",
+          toast.success('Login successful!', {
+            description: 'Welcome to your profile.',
           });
-          
+
           // Clean up URL
-          const url = new URL(window.location.href);
+          const url = new URL(globalThis.location.href);
           url.searchParams.delete('login');
-          window.history.replaceState({}, '', url.toString());
+          globalThis.history.replaceState({}, '', url.toString());
         }, 100);
-        
+
         return () => clearTimeout(timer);
       }
     }

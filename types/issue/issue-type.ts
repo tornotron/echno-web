@@ -35,17 +35,17 @@ export function getIssueTypeLabel(type: IssueType): string {
 /** Tailwind hex color */
 export function getIssueTypeColor(type: IssueType): string {
   const map: Record<IssueType, string> = {
-    [IssueType.technical]: '#2196F3',    // Blue
-    [IssueType.design]: '#9C27B0',      // Purple
-    [IssueType.quality]: '#4CAF50',     // Green
-    [IssueType.safety]: '#F44336',      // Red
-    [IssueType.material]: '#795548',    // Brown
-    [IssueType.equipment]: '#607D8B',   // Blue Grey
-    [IssueType.labour]: '#FF9800',      // Orange
-    [IssueType.weather]: '#00BCD4',     // Cyan
-    [IssueType.permit]: '#673AB7',      // Deep Purple
-    [IssueType.coordination]: '#3F51B5',// Indigo
-    [IssueType.other]: '#9E9E9E',       // Grey
+    [IssueType.technical]: '#2196F3', // Blue
+    [IssueType.design]: '#9C27B0', // Purple
+    [IssueType.quality]: '#4CAF50', // Green
+    [IssueType.safety]: '#F44336', // Red
+    [IssueType.material]: '#795548', // Brown
+    [IssueType.equipment]: '#607D8B', // Blue Grey
+    [IssueType.labour]: '#FF9800', // Orange
+    [IssueType.weather]: '#00BCD4', // Cyan
+    [IssueType.permit]: '#673AB7', // Deep Purple
+    [IssueType.coordination]: '#3F51B5', // Indigo
+    [IssueType.other]: '#9E9E9E', // Grey
   };
   return map[type];
 }
@@ -70,6 +70,7 @@ export function getIssueTypeIcon(type: IssueType): string {
 
 /** Convert string → IssueType */
 export function issueTypeFromString(str: string): IssueType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const type = (IssueType as any)[str];
   if (!type) throw new Error(`Invalid issue type: ${str}`);
   return type;

@@ -1,6 +1,6 @@
 // types/project/project.ts
 import { Member, parseMember, memberToJson } from '@/types/member';
-import { Task, parseTask, taskToJson } from '@/types/task';
+import { Task, parseTask } from '@/types/task';
 import { ProjectStatus, getProjectStatus } from './project-status';
 
 export interface Project {
@@ -19,7 +19,7 @@ export interface Project {
 
 /** Add member (immutable) */
 export function addMember(project: Project, member: Member): Project {
-  if (project.members.some(m => m.id === member.id)) {
+  if (project.members.some((m) => m.id === member.id)) {
     return project;
   }
   return {
@@ -32,11 +32,12 @@ export function addMember(project: Project, member: Member): Project {
 export function removeMember(project: Project, member: Member): Project {
   return {
     ...project,
-    members: project.members.filter(m => m.id !== member.id),
+    members: project.members.filter((m) => m.id !== member.id),
   };
 }
 
 /** JSON → Project */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseProject(json: any): Project {
   return {
     id: json.id ?? 0,
@@ -49,16 +50,14 @@ export function parseProject(json: any): Project {
     endDate: json.endDate ? new Date(json.endDate) : undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     members: json.teamMembers
-      ? (json.teamMembers as any[]).map(parseMember)
+      ? (json.teamMembers as unknown[]).map((m) => parseMember(m))
       : [],
-    tasks: json.tasks
-      ? (json.tasks as any[]).map(parseTask)
-      : [],
+    tasks: json.tasks ? (json.tasks as unknown[]).map((t) => parseTask(t)) : [],
   };
 }
 
 /** Project → JSON */
-export function projectToJson(project: Project): Record<string, any> {
+export function projectToJson(project: Project): Record<string, unknown> {
   return {
     id: project.id,
     projectName: project.projectName,
@@ -68,7 +67,7 @@ export function projectToJson(project: Project): Record<string, any> {
     projectLatitude: project.projectLatitude,
     startDate: project.startDate?.toISOString(),
     endDate: project.endDate?.toISOString(),
-    teamMembers: project.members.map(memberToJson),
+    teamMembers: project.members.map((m) => memberToJson(m)),
     createdAt: project.createdAt?.toISOString(),
     // tasks are not sent in update
   };

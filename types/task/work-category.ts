@@ -9,6 +9,7 @@ export interface WorkCategory {
 }
 
 /** JSON → WorkCategory */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseWorkCategory(json: any): WorkCategory {
   const name = json.name ?? '';
   return {
@@ -20,7 +21,7 @@ export function parseWorkCategory(json: any): WorkCategory {
   };
 }
 
-export function workCategoryToJson(cat: WorkCategory): Record<string, any> {
+export function workCategoryToJson(cat: WorkCategory): Record<string, unknown> {
   return {
     id: cat.id,
     name: cat.name,
@@ -33,16 +34,38 @@ export function workCategoryToJson(cat: WorkCategory): Record<string, any> {
 /** Abbreviated name (e.g., "Civil Engineering" → "CE") */
 export function abbreviatedName(cat: WorkCategory): string {
   const excluded = new Set([
-    'and', 'or', 'the', 'a', 'an', 'in', 'on', 'at', 'to', 'for', 'of',
-    'with', 'by', 'from', 'as', 'is', 'are', 'was', 'were', '&', '+', '-', 'vs', 'versus'
+    'and',
+    'or',
+    'the',
+    'a',
+    'an',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'from',
+    'as',
+    'is',
+    'are',
+    'was',
+    'were',
+    '&',
+    '+',
+    '-',
+    'vs',
+    'versus',
   ]);
 
   return cat.name
     .split(' ')
-    .map(word => word.replace(/[^\w]/g, '').toLowerCase())
-    .filter(word => word && !excluded.has(word))
+    .map((word) => word.replaceAll(/[^\w]/g, '').toLowerCase())
+    .filter((word) => word && !excluded.has(word))
     .slice(0, 3)
-    .map(word => word[0].toUpperCase())
+    .map((word) => word[0].toUpperCase())
     .join('');
 }
 
@@ -50,7 +73,7 @@ export function abbreviatedName(cat: WorkCategory): string {
 function generateAbbreviation(name: string): string {
   return name
     .split(' ')
-    .map(word => word[0]?.toUpperCase() ?? '')
+    .map((word) => word[0]?.toUpperCase() ?? '')
     .join('')
     .slice(0, 3);
 }

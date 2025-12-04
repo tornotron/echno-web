@@ -2,9 +2,9 @@ import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 
-import importPlugin from "eslint-plugin-import";
+
 import boundariesPlugin from "eslint-plugin-boundaries";
-import prettierConfig from "eslint-config-prettier";
+
 import perfectionistPlugin from "eslint-plugin-perfectionist";
 import unicornPlugin from "eslint-plugin-unicorn";
 
@@ -87,7 +87,7 @@ const customRulesConfig = {
           },
           {
             from: "lib",
-            allow: ["types"],
+            allow: ["types", "lib"],
           },
           {
             from: "types",

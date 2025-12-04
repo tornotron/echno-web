@@ -4,7 +4,13 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Organization } from '@/types/organization';
 import { Building, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
@@ -34,7 +40,9 @@ export function OrganizationForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [logoPreview, setLogoPreview] = useState<string | null>(organization?.organizationLogo || null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    organization?.organizationLogo || null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = () => {
@@ -134,7 +142,7 @@ export function OrganizationForm({
       <Card>
         <CardHeader>
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-blue-600">
               <Building className="h-5 w-5 text-white" />
             </div>
             <div>
@@ -175,12 +183,16 @@ export function OrganizationForm({
             <Input
               id="organizationAddress"
               value={formData.organizationAddress}
-              onChange={(e) => handleChange('organizationAddress', e.target.value)}
+              onChange={(e) =>
+                handleChange('organizationAddress', e.target.value)
+              }
               placeholder="Enter organization address"
               className={errors.organizationAddress ? 'border-red-500' : ''}
             />
             {errors.organizationAddress && (
-              <p className="text-sm text-red-500">{errors.organizationAddress}</p>
+              <p className="text-sm text-red-500">
+                {errors.organizationAddress}
+              </p>
             )}
           </div>
 
@@ -193,7 +205,9 @@ export function OrganizationForm({
               id="organizationEmail"
               type="email"
               value={formData.organizationEmail}
-              onChange={(e) => handleChange('organizationEmail', e.target.value)}
+              onChange={(e) =>
+                handleChange('organizationEmail', e.target.value)
+              }
               placeholder="contact@example.com"
               className={errors.organizationEmail ? 'border-red-500' : ''}
             />
@@ -210,7 +224,9 @@ export function OrganizationForm({
             <Input
               id="organizationPhone"
               value={formData.organizationPhone}
-              onChange={(e) => handleChange('organizationPhone', e.target.value)}
+              onChange={(e) =>
+                handleChange('organizationPhone', e.target.value)
+              }
               placeholder="+91 XX XXXX XXXX"
               className={errors.organizationPhone ? 'border-red-500' : ''}
             />
@@ -226,7 +242,9 @@ export function OrganizationForm({
               id="organizationWebsite"
               type="url"
               value={formData.organizationWebsite}
-              onChange={(e) => handleChange('organizationWebsite', e.target.value)}
+              onChange={(e) =>
+                handleChange('organizationWebsite', e.target.value)
+              }
               placeholder="https://example.com"
             />
           </div>
@@ -236,7 +254,7 @@ export function OrganizationForm({
             <Label>Organization Logo</Label>
             <div className="flex items-start space-x-4">
               {/* Logo Preview */}
-              <div className="relative w-32 h-32 rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-700 flex items-center justify-center overflow-hidden bg-zinc-50 dark:bg-zinc-900">
+              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
                 {logoPreview ? (
                   <>
                     <Image
@@ -248,7 +266,7 @@ export function OrganizationForm({
                     <button
                       type="button"
                       onClick={handleRemoveLogo}
-                      className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      className="absolute top-1 right-1 rounded-full bg-red-500 p-1 text-white transition-colors hover:bg-red-600"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -273,7 +291,7 @@ export function OrganizationForm({
                   onClick={handleUploadClick}
                   className="w-full"
                 >
-                  <Upload className="h-4 w-4 mr-2" />
+                  <Upload className="mr-2 h-4 w-4" />
                   {logoPreview ? 'Change Logo' : 'Upload Logo'}
                 </Button>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
@@ -290,7 +308,7 @@ export function OrganizationForm({
               id="isActive"
               checked={formData.isActive}
               onChange={(e) => handleChange('isActive', e.target.checked)}
-              className="w-4 h-4 rounded border-zinc-300 text-primary focus:ring-primary"
+              className="text-primary focus:ring-primary h-4 w-4 rounded border-zinc-300"
             />
             <Label htmlFor="isActive" className="cursor-pointer">
               Active Organization
@@ -298,14 +316,19 @@ export function OrganizationForm({
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+          <div className="flex justify-end space-x-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Saving...
                 </>
               ) : (

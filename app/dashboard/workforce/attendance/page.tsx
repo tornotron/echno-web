@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { AppLayout, Pagination } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,10 +57,6 @@ import {
   Camera,
   CheckCircle,
   XCircle,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Check,
   X,
   Route,
@@ -73,8 +75,15 @@ import {
   Wrench,
   FileText,
 } from 'lucide-react';
-import { mockAttendance, mockProjects } from '@/lib/mock-data';
-import { AttendanceStatus, getAttendanceStatusLabel, getAttendanceStatusColor, MovementType, getMovementTypeLabel, getMovementTypeColor, getMovementTypeIcon, type MovementRecord } from '@/types/attendance';
+import { mockAttendance, mockProjects } from '@/components/shared/mock-data';
+import {
+  AttendanceStatus,
+  getAttendanceStatusLabel,
+  getAttendanceStatusColor,
+  MovementType,
+  getMovementTypeLabel,
+  getMovementTypeIcon,
+} from '@/types/attendance';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
@@ -87,10 +96,10 @@ export default function AttendancePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedAttendance, setSelectedAttendance] = useState<number[]>([]);
-  
+
   // Movement tracking dialog state
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+
   const [newMovement, setNewMovement] = useState({
     type: MovementType.siteTravel,
     fromLocation: '',
@@ -112,7 +121,8 @@ export default function AttendancePage() {
       att.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       att.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || att.status === statusFilter;
-    const matchesProject = projectFilter === 'all' || att.projectId.toString() === projectFilter;
+    const matchesProject =
+      projectFilter === 'all' || att.projectId.toString() === projectFilter;
     return matchesSearch && matchesStatus && matchesProject;
   });
 
@@ -126,21 +136,28 @@ export default function AttendancePage() {
   const stats = {
     total: dateAttendance.length,
     present: dateAttendance.filter(
-      (a) => a.status === AttendanceStatus.present || a.status === AttendanceStatus.overtime
+      (a) =>
+        a.status === AttendanceStatus.present ||
+        a.status === AttendanceStatus.overtime
     ).length,
-    absent: dateAttendance.filter((a) => a.status === AttendanceStatus.absent).length,
-    late: dateAttendance.filter((a) => a.status === AttendanceStatus.late).length,
-    halfDay: dateAttendance.filter((a) => a.status === AttendanceStatus.halfDay).length,
-    pending: dateAttendance.filter((a) => a.status === AttendanceStatus.pendingRegularization)
+    absent: dateAttendance.filter((a) => a.status === AttendanceStatus.absent)
       .length,
+    late: dateAttendance.filter((a) => a.status === AttendanceStatus.late)
+      .length,
+    halfDay: dateAttendance.filter((a) => a.status === AttendanceStatus.halfDay)
+      .length,
+    pending: dateAttendance.filter(
+      (a) => a.status === AttendanceStatus.pendingRegularization
+    ).length,
     avgWorkHours:
       dateAttendance.reduce((sum, a) => sum + (a.workDuration?.hours || 0), 0) /
         dateAttendance.length || 0,
   };
 
-  const attendanceRate = dateAttendance.length > 0 
-    ? ((stats.present + stats.late + stats.halfDay * 0.5) / stats.total) * 100 
-    : 0;
+  const attendanceRate =
+    dateAttendance.length > 0
+      ? ((stats.present + stats.late + stats.halfDay * 0.5) / stats.total) * 100
+      : 0;
 
   // Selection handlers
   const handleSelectAll = () => {
@@ -172,19 +189,23 @@ export default function AttendancePage() {
     setSelectedAttendance([]);
   };
 
-  const isAllSelected = paginatedAttendance.length > 0 && selectedAttendance.length === paginatedAttendance.length;
-  const isSomeSelected = selectedAttendance.length > 0 && selectedAttendance.length < paginatedAttendance.length;
+  const isAllSelected =
+    paginatedAttendance.length > 0 &&
+    selectedAttendance.length === paginatedAttendance.length;
+  const isSomeSelected =
+    selectedAttendance.length > 0 &&
+    selectedAttendance.length < paginatedAttendance.length;
 
   return (
     <AppLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               Attendance Management
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
               Track employee attendance with geo-location and photo verification
             </p>
           </div>
@@ -196,7 +217,7 @@ export default function AttendancePage() {
                   className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
                   onClick={() => handleApprove(selectedAttendance)}
                 >
-                  <Check className="h-4 w-4 mr-2" />
+                  <Check className="mr-2 h-4 w-4" />
                   Approve ({selectedAttendance.length})
                 </Button>
                 <Button
@@ -204,24 +225,24 @@ export default function AttendancePage() {
                   className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                   onClick={() => handleReject(selectedAttendance)}
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   Reject ({selectedAttendance.length})
                 </Button>
               </>
             )}
             <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
+              <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
             <Button>
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="mr-2 h-4 w-4" />
               View Calendar
             </Button>
           </div>
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -229,11 +250,11 @@ export default function AttendancePage() {
                   <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Total Employees
                   </p>
-                  <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">
+                  <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                     {stats.total}
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
                   <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
               </div>
@@ -247,14 +268,14 @@ export default function AttendancePage() {
                   <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Present Today
                   </p>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+                  <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
                     {stats.present}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                     {attendanceRate.toFixed(1)}% rate
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
                   <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
               </div>
@@ -268,14 +289,14 @@ export default function AttendancePage() {
                   <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Late / Absent
                   </p>
-                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400 mt-1">
+                  <p className="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">
                     {stats.late + stats.absent}
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                     {stats.late} late, {stats.absent} absent
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
                   <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
                 </div>
               </div>
@@ -289,14 +310,14 @@ export default function AttendancePage() {
                   <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Avg Work Hours
                   </p>
-                  <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">
+                  <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                     {stats.avgWorkHours.toFixed(1)}h
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
                     {stats.pending} pending approval
                   </p>
                 </div>
-                <div className="w-12 h-12 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
                   <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
               </div>
@@ -323,9 +344,9 @@ export default function AttendancePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <div className="flex flex-col gap-4 md:flex-row">
+              <div className="relative flex-1">
+                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
                 <Input
                   placeholder="Search by name or employee ID..."
                   value={searchQuery}
@@ -348,12 +369,22 @@ export default function AttendancePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value={AttendanceStatus.present}>Present</SelectItem>
-                  <SelectItem value={AttendanceStatus.absent}>Absent</SelectItem>
+                  <SelectItem value={AttendanceStatus.present}>
+                    Present
+                  </SelectItem>
+                  <SelectItem value={AttendanceStatus.absent}>
+                    Absent
+                  </SelectItem>
                   <SelectItem value={AttendanceStatus.late}>Late</SelectItem>
-                  <SelectItem value={AttendanceStatus.halfDay}>Half Day</SelectItem>
-                  <SelectItem value={AttendanceStatus.overtime}>Overtime</SelectItem>
-                  <SelectItem value={AttendanceStatus.pendingRegularization}>Pending</SelectItem>
+                  <SelectItem value={AttendanceStatus.halfDay}>
+                    Half Day
+                  </SelectItem>
+                  <SelectItem value={AttendanceStatus.overtime}>
+                    Overtime
+                  </SelectItem>
+                  <SelectItem value={AttendanceStatus.pendingRegularization}>
+                    Pending
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -382,11 +413,14 @@ export default function AttendancePage() {
         {/* Results Summary */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredAttendance.length)} of{' '}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredAttendance.length)} of{' '}
             {filteredAttendance.length} attendance records
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
@@ -437,8 +471,8 @@ export default function AttendancePage() {
               <TableBody>
                 {filteredAttendance.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12">
-                      <AlertCircle className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
+                    <TableCell colSpan={9} className="py-12 text-center">
+                      <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
                       <p className="text-zinc-600 dark:text-zinc-400">
                         No attendance records found
                       </p>
@@ -457,7 +491,7 @@ export default function AttendancePage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
                             <User className="h-5 w-5 text-white" />
                           </div>
                           <div>
@@ -478,27 +512,9 @@ export default function AttendancePage() {
                       <TableCell>
                         <Badge
                           variant="outline"
-                          className={`
-                            ${
-                              getAttendanceStatusColor(attendance.status) === 'green'
-                                ? 'border-green-500 text-green-700 dark:text-green-400'
-                                : getAttendanceStatusColor(attendance.status) === 'red'
-                                ? 'border-red-500 text-red-700 dark:text-red-400'
-                                : getAttendanceStatusColor(attendance.status) === 'orange'
-                                ? 'border-orange-500 text-orange-700 dark:text-orange-400'
-                                : getAttendanceStatusColor(attendance.status) === 'yellow'
-                                ? 'border-yellow-500 text-yellow-700 dark:text-yellow-400'
-                                : getAttendanceStatusColor(attendance.status) === 'blue'
-                                ? 'border-blue-500 text-blue-700 dark:text-blue-400'
-                                : getAttendanceStatusColor(attendance.status) === 'purple'
-                                ? 'border-purple-500 text-purple-700 dark:text-purple-400'
-                                : getAttendanceStatusColor(attendance.status) === 'teal'
-                                ? 'border-teal-500 text-teal-700 dark:text-teal-400'
-                                : getAttendanceStatusColor(attendance.status) === 'amber'
-                                ? 'border-amber-500 text-amber-700 dark:text-amber-400'
-                                : 'border-zinc-500 text-zinc-700 dark:text-zinc-400'
-                            }
-                          `}
+                          className={getAttendanceStatusColor(
+                            attendance.status
+                          )}
                         >
                           {getAttendanceStatusLabel(attendance.status)}
                         </Badge>
@@ -508,7 +524,10 @@ export default function AttendancePage() {
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
                             <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                              {format(attendance.morningClockIn.timestamp, 'HH:mm')}
+                              {format(
+                                attendance.morningClockIn.timestamp,
+                                'HH:mm'
+                              )}
                             </span>
                           </div>
                         ) : (
@@ -520,7 +539,10 @@ export default function AttendancePage() {
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4 text-red-600 dark:text-red-400" />
                             <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                              {format(attendance.eveningClockOut.timestamp, 'HH:mm')}
+                              {format(
+                                attendance.eveningClockOut.timestamp,
+                                'HH:mm'
+                              )}
                             </span>
                           </div>
                         ) : (
@@ -531,12 +553,17 @@ export default function AttendancePage() {
                         <div className="flex items-center space-x-2">
                           <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            {attendance.workDuration.hours}h {attendance.workDuration.minutes}m
+                            {attendance.workDuration.hours}h{' '}
+                            {attendance.workDuration.minutes}m
                           </span>
                         </div>
                         {attendance.isOvertime && (
                           <span className="text-xs text-teal-600 dark:text-teal-400">
-                            +{Math.floor(attendance.workDuration.overtimeMinutes / 60)}h OT
+                            +
+                            {Math.floor(
+                              attendance.workDuration.overtimeMinutes / 60
+                            )}
+                            h OT
                           </span>
                         )}
                       </TableCell>
@@ -558,15 +585,18 @@ export default function AttendancePage() {
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end space-x-1">
                           <TooltipProvider>
-                            {attendance.status === AttendanceStatus.pendingRegularization && (
+                            {attendance.status ===
+                              AttendanceStatus.pendingRegularization && (
                               <>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
-                                      onClick={() => handleApprove([attendance.id])}
+                                      className="h-8 w-8 p-0 text-green-600 hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20"
+                                      onClick={() =>
+                                        handleApprove([attendance.id])
+                                      }
                                     >
                                       <Check className="h-4 w-4" />
                                     </Button>
@@ -580,8 +610,10 @@ export default function AttendancePage() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                      onClick={() => handleReject([attendance.id])}
+                                      className="h-8 w-8 p-0 text-red-600 hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-900/20"
+                                      onClick={() =>
+                                        handleReject([attendance.id])
+                                      }
                                     >
                                       <X className="h-4 w-4" />
                                     </Button>
@@ -598,27 +630,38 @@ export default function AttendancePage() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
-                                    setSelectedEmployeeId(attendance.employeeId);
                                     setMovementDialogOpen(true);
                                   }}
-                                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 relative"
+                                  className="relative h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20"
                                 >
                                   <Route className="h-4 w-4" />
-                                  {attendance.movements && attendance.movements.length > 0 && (
-                                    <span className="absolute -top-1 -right-1 h-4 w-4 text-[10px] font-bold bg-blue-500 text-white rounded-full flex items-center justify-center">
-                                      {attendance.movements.length}
-                                    </span>
-                                  )}
+                                  {attendance.movements &&
+                                    attendance.movements.length > 0 && (
+                                      <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] font-bold text-white">
+                                        {attendance.movements.length}
+                                      </span>
+                                    )}
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>View Movements {attendance.movements && attendance.movements.length > 0 && `(${attendance.movements.length})`}</p>
+                                <p>
+                                  View Movements{' '}
+                                  {attendance.movements &&
+                                    attendance.movements.length > 0 &&
+                                    `(${attendance.movements.length})`}
+                                </p>
                               </TooltipContent>
                             </Tooltip>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Link href={`/dashboard/workforce/attendance/${attendance.id}`}>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Link
+                                  href={`/dashboard/workforce/attendance/${attendance.id}`}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                  >
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                 </Link>
@@ -667,7 +710,12 @@ export default function AttendancePage() {
                   <Label htmlFor="movementType">Movement Type *</Label>
                   <Select
                     value={newMovement.type}
-                    onValueChange={(value) => setNewMovement({ ...newMovement, type: value as MovementType })}
+                    onValueChange={(value) =>
+                      setNewMovement({
+                        ...newMovement,
+                        type: value as MovementType,
+                      })
+                    }
                   >
                     <SelectTrigger id="movementType">
                       <SelectValue placeholder="Select movement type" />
@@ -676,10 +724,24 @@ export default function AttendancePage() {
                       {Object.values(MovementType).map((type) => {
                         const iconName = getMovementTypeIcon(type);
                         const iconMap: Record<string, typeof Car> = {
-                          Car, Users, Package, Home, MapPin, GraduationCap, Building, ClipboardCheck, ShoppingCart, Eye, MoreHorizontal, Briefcase, HandshakeIcon, Wrench, FileText
+                          Car,
+                          Users,
+                          Package,
+                          Home,
+                          MapPin,
+                          GraduationCap,
+                          Building,
+                          ClipboardCheck,
+                          ShoppingCart,
+                          Eye,
+                          MoreHorizontal,
+                          Briefcase,
+                          HandshakeIcon,
+                          Wrench,
+                          FileText,
                         };
                         const Icon = iconMap[iconName] || Route;
-                        
+
                         return (
                           <SelectItem key={type} value={type}>
                             <div className="flex items-center space-x-2">
@@ -702,7 +764,12 @@ export default function AttendancePage() {
                     id="fromLocation"
                     placeholder="e.g., Main Office"
                     value={newMovement.fromLocation}
-                    onChange={(e) => setNewMovement({ ...newMovement, fromLocation: e.target.value })}
+                    onChange={(e) =>
+                      setNewMovement({
+                        ...newMovement,
+                        fromLocation: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -711,7 +778,12 @@ export default function AttendancePage() {
                     id="toLocation"
                     placeholder="e.g., Site A, Client Office"
                     value={newMovement.toLocation}
-                    onChange={(e) => setNewMovement({ ...newMovement, toLocation: e.target.value })}
+                    onChange={(e) =>
+                      setNewMovement({
+                        ...newMovement,
+                        toLocation: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -724,7 +796,12 @@ export default function AttendancePage() {
                     id="startTime"
                     type="time"
                     value={newMovement.startTime}
-                    onChange={(e) => setNewMovement({ ...newMovement, startTime: e.target.value })}
+                    onChange={(e) =>
+                      setNewMovement({
+                        ...newMovement,
+                        startTime: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -733,7 +810,12 @@ export default function AttendancePage() {
                     id="endTime"
                     type="time"
                     value={newMovement.endTime}
-                    onChange={(e) => setNewMovement({ ...newMovement, endTime: e.target.value })}
+                    onChange={(e) =>
+                      setNewMovement({
+                        ...newMovement,
+                        endTime: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -743,7 +825,12 @@ export default function AttendancePage() {
                     type="number"
                     placeholder="0"
                     value={newMovement.distanceKm || ''}
-                    onChange={(e) => setNewMovement({ ...newMovement, distanceKm: parseFloat(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      setNewMovement({
+                        ...newMovement,
+                        distanceKm: Number.parseFloat(e.target.value) || 0,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -756,19 +843,25 @@ export default function AttendancePage() {
                   placeholder="Describe the purpose of this movement..."
                   rows={3}
                   value={newMovement.purpose}
-                  onChange={(e) => setNewMovement({ ...newMovement, purpose: e.target.value })}
+                  onChange={(e) =>
+                    setNewMovement({ ...newMovement, purpose: e.target.value })
+                  }
                 />
               </div>
 
               {/* Quick Info */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
                 <div className="flex items-start space-x-3">
-                  <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                  <AlertCircle className="mt-0.5 h-5 w-5 text-blue-600 dark:text-blue-400" />
                   <div className="text-sm text-blue-900 dark:text-blue-100">
-                    <p className="font-medium mb-1">Movement Tracking Features</p>
+                    <p className="mb-1 font-medium">
+                      Movement Tracking Features
+                    </p>
                     <ul className="space-y-1 text-blue-700 dark:text-blue-300">
                       <li>• GPS coordinates will be automatically captured</li>
-                      <li>• Photo verification can be added for start/end points</li>
+                      <li>
+                        • Photo verification can be added for start/end points
+                      </li>
                       <li>• Movements can be verified by supervisors</li>
                     </ul>
                   </div>
@@ -819,7 +912,7 @@ export default function AttendancePage() {
                   !newMovement.purpose
                 }
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 Add Movement
               </Button>
             </DialogFooter>

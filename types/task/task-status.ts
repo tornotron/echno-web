@@ -22,8 +22,8 @@ export function getTaskStatusLabel(status: TaskStatus): string {
 export function getTaskStatusColor(status: TaskStatus): string {
   const map: Record<TaskStatus, string> = {
     [TaskStatus.upcoming]: '#607D8B', // Blue Grey
-    [TaskStatus.onGoing]: '#2196F3',  // Blue
-    [TaskStatus.onHold]: '#FF9800',   // Orange
+    [TaskStatus.onGoing]: '#2196F3', // Blue
+    [TaskStatus.onHold]: '#FF9800', // Orange
     [TaskStatus.completed]: '#4CAF50', // Green
   };
   return map[status];
@@ -35,7 +35,8 @@ export function getTaskStatusGradient(status: TaskStatus): string {
     [TaskStatus.upcoming]: 'linear-gradient(to bottom right, #607D8B, #78909C)',
     [TaskStatus.onHold]: 'linear-gradient(to bottom right, #FF9800, #FFB74D)',
     [TaskStatus.onGoing]: 'linear-gradient(to bottom right, #2196F3, #64B5F6)',
-    [TaskStatus.completed]: 'linear-gradient(to bottom right, #4CAF50, #81C784)',
+    [TaskStatus.completed]:
+      'linear-gradient(to bottom right, #4CAF50, #81C784)',
   };
   return map[status];
 }
@@ -53,6 +54,7 @@ export function getTaskStatusIcon(status: TaskStatus): string {
 
 /** Convert string → TaskStatus */
 export function taskStatusFromString(str: string): TaskStatus {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const status = (TaskStatus as any)[str];
   if (!status) throw new Error(`Invalid task status: ${str}`);
   return status;

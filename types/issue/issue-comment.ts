@@ -13,6 +13,7 @@ export interface IssueComment {
 /** -------------------------------------------------------------
  *  JSON → IssueComment
  *  ------------------------------------------------------------- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseIssueComment(json: any): IssueComment {
   return {
     id: json.id ?? undefined,
@@ -25,7 +26,9 @@ export function parseIssueComment(json: any): IssueComment {
 /** -------------------------------------------------------------
  *  IssueComment → JSON
  *  ------------------------------------------------------------- */
-export function issueCommentToJson(comment: IssueComment): Record<string, any> {
+export function issueCommentToJson(
+  comment: IssueComment
+): Record<string, unknown> {
   return {
     id: comment.id,
     comment: comment.comment,

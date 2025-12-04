@@ -1,8 +1,9 @@
-import NextAuth from "next-auth"
-import Keycloak from "next-auth/providers/keycloak"
-import Credentials from "next-auth/providers/credentials"
+import NextAuth from 'next-auth';
+import Keycloak from 'next-auth/providers/keycloak';
+import Credentials from 'next-auth/providers/credentials';
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID,
@@ -10,24 +11,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       issuer: process.env.KEYCLOAK_ISSUER,
       authorization: {
         params: {
-          scope: "openid email profile",
+          scope: 'openid email profile',
         },
       },
     }),
     Credentials({
-      name: "credentials",
+      name: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          return null
+          return null;
         }
 
         try {
           // Call your backend API to validate credentials
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+          const apiUrl =
+            process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
           const response = await fetch(`${apiUrl}/auth/login`, {
             method: 'POST',
             headers: {
@@ -37,14 +39,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               email: credentials.email,
               password: credentials.password,
             }),
-          })
+          });
 
           if (!response.ok) {
-            console.error('Login failed:', response.statusText)
-            return null
+            console.error('Login failed:', response.statusText);
+            return null;
           }
 
-          const data = await response.json()
+          const data = await response.json();
 
           // Return user object if authentication successful
           if (data.access_token && data.user) {
@@ -53,15 +55,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               email: data.user.email,
               name: data.user.name || data.user.email,
               accessToken: data.access_token,
-            }
+            };
           }
 
-          return null
+          return null;
         } catch (error) {
-          console.error('Authorization error:', error)
-          return null
+          console.error('Authorization error:', error);
+          return null;
         }
-      }
+      },
     }),
   ],
   pages: {
@@ -69,34 +71,36 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: '/login',
   },
   callbacks: {
-    async jwt({ token, user, account }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async jwt({ token, user, account }: any) {
       // Initial sign in
       if (account && user) {
-        token.accessToken = account.access_token
-        token.idToken = account.id_token
-        token.provider = account.provider
-        token.refreshToken = account.refresh_token
-      }
-      
-      // Add user accessToken for credentials provider
-      if (user && 'accessToken' in user) {
-        token.accessToken = user.accessToken as string
+        token.accessToken = account.access_token;
+        token.idToken = account.id_token;
+        token.provider = account.provider;
+        token.refreshToken = account.refresh_token;
       }
 
-      return token
+      // Add user accessToken for credentials provider
+      if (user && 'accessToken' in user) {
+        token.accessToken = user.accessToken as string;
+      }
+
+      return token;
     },
-    async session({ session, token }) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async session({ session, token }: any) {
       // Add tokens to session for client-side access
       if (token) {
-        session.accessToken = token.accessToken as string
-        session.idToken = token.idToken as string
-        session.provider = token.provider as string
+        session.accessToken = token.accessToken as string;
+        session.idToken = token.idToken as string;
+        session.provider = token.provider as string;
       }
-      return session
+      return session;
     },
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   debug: process.env.NODE_ENV === 'development',
-})
+});

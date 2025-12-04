@@ -3,28 +3,36 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AppLayout } from "@/components/common/app-layout";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { AppLayout } from '@/components/common/app-layout';
 import {
-  ArrowLeft,
-  Package,
-  Save,
-  X
-} from 'lucide-react';
-import { inventoryCategoryLabels, InventoryCategory, InventoryItem } from '@/types/resource/inventory';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ArrowLeft, Package, Save, X } from 'lucide-react';
+import {
+  InventoryCategory,
+  inventoryCategoryLabels,
+} from '@/types/resource/inventory';
 import { toast } from 'sonner';
-import { mockLocations, mockInventoryItems, mockVendors } from '@/lib/mock-data';
+import {
+  mockLocations,
+  mockInventoryItems,
+  mockVendors,
+} from '@/components/shared/mock-data';
 
 export default function EditInventoryPage() {
   const params = useParams();
@@ -47,13 +55,14 @@ export default function EditInventoryPage() {
     vendorId: '',
     brand: '',
     batchNumber: '',
-    notes: ''
+    notes: '',
   });
 
   useEffect(() => {
     // In real app, fetch from API
-    const item = mockInventoryItems.find(i => i.id === itemId);
+    const item = mockInventoryItems.find((i) => i.id === itemId);
     if (item) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         name: item.name,
         description: item.description || '',
@@ -68,7 +77,7 @@ export default function EditInventoryPage() {
         vendorId: item.vendorId?.toString() || '',
         brand: item.brand || '',
         batchNumber: item.batchNumber || '',
-        notes: item.notes || ''
+        notes: item.notes || '',
       });
     }
     setIsLoading(false);
@@ -79,7 +88,13 @@ export default function EditInventoryPage() {
     setIsSubmitting(true);
 
     // Validation
-    if (!formData.name || !formData.category || !formData.quantity || !formData.unit || !formData.locationId) {
+    if (
+      !formData.name ||
+      !formData.category ||
+      !formData.quantity ||
+      !formData.unit ||
+      !formData.locationId
+    ) {
       toast.error('Please fill in all required fields');
       setIsSubmitting(false);
       return;
@@ -93,15 +108,15 @@ export default function EditInventoryPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   if (isLoading) {
     return (
       <AppLayout>
         <div className="px-4 py-8">
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 animate-pulse" />
+          <div className="py-12 text-center">
+            <Package className="text-muted-foreground mx-auto mb-4 h-12 w-12 animate-pulse" />
             <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
@@ -111,26 +126,22 @@ export default function EditInventoryPage() {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8 space-y-6">
+      <div className="space-y-6 px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                asChild
-              >
+              <Button variant="ghost" size="sm" asChild>
                 <Link href={`/dashboard/resources/inventory/${itemId}`}>
-                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </Link>
               </Button>
               <span className="text-muted-foreground">/</span>
               <h1 className="text-2xl font-bold">Edit Inventory Item</h1>
             </div>
-            <p className="text-muted-foreground">
-              Update inventory item details and stock levels
+            <p className="text-muted-foreground mb-4">
+              The item you&apos;re looking for doesn&apos;t exist.
             </p>
           </div>
         </div>
@@ -138,12 +149,14 @@ export default function EditInventoryPage() {
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Main Form - Left Side (2 columns) */}
-            <div className="md:col-span-2 space-y-6">
+            <div className="space-y-6 md:col-span-2">
               {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Edit the basic details of the inventory item</CardDescription>
+                  <CardDescription>
+                    Edit the basic details of the inventory item
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -155,7 +168,9 @@ export default function EditInventoryPage() {
                         id="name"
                         placeholder="e.g., Portland Cement - Grade 53"
                         value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('name', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -166,7 +181,9 @@ export default function EditInventoryPage() {
                         id="description"
                         placeholder="Enter item description..."
                         value={formData.description}
-                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('description', e.target.value)
+                        }
                         rows={3}
                       />
                     </div>
@@ -177,18 +194,22 @@ export default function EditInventoryPage() {
                       </Label>
                       <Select
                         value={formData.category}
-                        onValueChange={(value) => handleInputChange('category', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('category', value)
+                        }
                         required
                       >
                         <SelectTrigger id="category">
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(inventoryCategoryLabels).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
+                          {Object.entries(inventoryCategoryLabels).map(
+                            ([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
                     </div>
@@ -201,7 +222,9 @@ export default function EditInventoryPage() {
                         id="unit"
                         placeholder="e.g., bags, pieces, meters"
                         value={formData.unit}
-                        onChange={(e) => handleInputChange('unit', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('unit', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -213,7 +236,9 @@ export default function EditInventoryPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Stock Management</CardTitle>
-                  <CardDescription>Update stock levels and thresholds</CardDescription>
+                  <CardDescription>
+                    Update stock levels and thresholds
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -227,7 +252,9 @@ export default function EditInventoryPage() {
                         min="0"
                         placeholder="0"
                         value={formData.quantity}
-                        onChange={(e) => handleInputChange('quantity', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('quantity', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -238,7 +265,9 @@ export default function EditInventoryPage() {
                       </Label>
                       <Select
                         value={formData.locationId}
-                        onValueChange={(value) => handleInputChange('locationId', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('locationId', value)
+                        }
                         required
                       >
                         <SelectTrigger id="locationId">
@@ -246,7 +275,10 @@ export default function EditInventoryPage() {
                         </SelectTrigger>
                         <SelectContent>
                           {mockLocations.map((location) => (
-                            <SelectItem key={location.id} value={location.id.toString()}>
+                            <SelectItem
+                              key={location.id}
+                              value={location.id.toString()}
+                            >
                               {location.name}
                             </SelectItem>
                           ))}
@@ -265,9 +297,13 @@ export default function EditInventoryPage() {
                         min="0"
                         placeholder="0"
                         value={formData.minStockLevel}
-                        onChange={(e) => handleInputChange('minStockLevel', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('minStockLevel', e.target.value)
+                        }
                       />
-                      <p className="text-xs text-muted-foreground">Below this level triggers low stock warning</p>
+                      <p className="text-muted-foreground text-xs">
+                        Below this level triggers low stock warning
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -278,9 +314,13 @@ export default function EditInventoryPage() {
                         min="0"
                         placeholder="0"
                         value={formData.maxStockLevel}
-                        onChange={(e) => handleInputChange('maxStockLevel', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('maxStockLevel', e.target.value)
+                        }
                       />
-                      <p className="text-xs text-muted-foreground">Maximum capacity for this item</p>
+                      <p className="text-muted-foreground text-xs">
+                        Maximum capacity for this item
+                      </p>
                     </div>
 
                     <div className="space-y-2">
@@ -291,9 +331,13 @@ export default function EditInventoryPage() {
                         min="0"
                         placeholder="0"
                         value={formData.reorderPoint}
-                        onChange={(e) => handleInputChange('reorderPoint', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('reorderPoint', e.target.value)
+                        }
                       />
-                      <p className="text-xs text-muted-foreground">When to reorder stock</p>
+                      <p className="text-muted-foreground text-xs">
+                        When to reorder stock
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -303,7 +347,9 @@ export default function EditInventoryPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Additional Details</CardTitle>
-                  <CardDescription>Update vendor and tracking information</CardDescription>
+                  <CardDescription>
+                    Update vendor and tracking information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -316,7 +362,9 @@ export default function EditInventoryPage() {
                         step="0.01"
                         placeholder="0.00"
                         value={formData.unitPrice}
-                        onChange={(e) => handleInputChange('unitPrice', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('unitPrice', e.target.value)
+                        }
                       />
                     </div>
 
@@ -324,14 +372,19 @@ export default function EditInventoryPage() {
                       <Label htmlFor="vendorId">Vendor</Label>
                       <Select
                         value={formData.vendorId}
-                        onValueChange={(value) => handleInputChange('vendorId', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('vendorId', value)
+                        }
                       >
                         <SelectTrigger id="vendorId">
                           <SelectValue placeholder="Select vendor" />
                         </SelectTrigger>
                         <SelectContent>
-                          {mockVendors.map(vendor => (
-                            <SelectItem key={vendor.id} value={vendor.id.toString()}>
+                          {mockVendors.map((vendor) => (
+                            <SelectItem
+                              key={vendor.id}
+                              value={vendor.id.toString()}
+                            >
                               {vendor.companyName}
                             </SelectItem>
                           ))}
@@ -345,7 +398,9 @@ export default function EditInventoryPage() {
                         id="brand"
                         placeholder="e.g., UltraTech"
                         value={formData.brand}
-                        onChange={(e) => handleInputChange('brand', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('brand', e.target.value)
+                        }
                       />
                     </div>
 
@@ -355,7 +410,9 @@ export default function EditInventoryPage() {
                         id="batchNumber"
                         placeholder="e.g., UT-2024-11-001"
                         value={formData.batchNumber}
-                        onChange={(e) => handleInputChange('batchNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('batchNumber', e.target.value)
+                        }
                       />
                     </div>
 
@@ -365,7 +422,9 @@ export default function EditInventoryPage() {
                         id="notes"
                         placeholder="Additional notes or instructions..."
                         value={formData.notes}
-                        onChange={(e) => handleInputChange('notes', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('notes', e.target.value)
+                        }
                         rows={3}
                       />
                     </div>
@@ -384,23 +443,37 @@ export default function EditInventoryPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Item ID</span>
-                      <span className="font-medium font-mono">INV-001</span>
+                      <span className="font-mono font-medium">INV-001</span>
                     </div>
                     {formData.quantity && formData.unitPrice && (
                       <>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Quantity</span>
-                          <span className="font-medium">{formData.quantity} {formData.unit || 'units'}</span>
+                          <span className="text-muted-foreground">
+                            Quantity
+                          </span>
+                          <span className="font-medium">
+                            {formData.quantity} {formData.unit || 'units'}
+                          </span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Unit Price</span>
-                          <span className="font-medium">₹{formData.unitPrice}</span>
+                          <span className="text-muted-foreground">
+                            Unit Price
+                          </span>
+                          <span className="font-medium">
+                            ₹{formData.unitPrice}
+                          </span>
                         </div>
-                        <div className="pt-3 border-t">
+                        <div className="border-t pt-3">
                           <div className="flex justify-between">
-                            <span className="text-sm text-muted-foreground">Total Value</span>
+                            <span className="text-muted-foreground text-sm">
+                              Total Value
+                            </span>
                             <span className="text-lg font-bold text-green-600">
-                              ₹{(Number(formData.quantity) * Number(formData.unitPrice)).toLocaleString()}
+                              ₹
+                              {(
+                                Number(formData.quantity) *
+                                Number(formData.unitPrice)
+                              ).toLocaleString()}
                             </span>
                           </div>
                         </div>
@@ -410,7 +483,7 @@ export default function EditInventoryPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900">
+              <Card className="border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/20">
                 <CardHeader>
                   <CardTitle className="text-base text-amber-900 dark:text-amber-100">
                     Important Note
@@ -418,28 +491,31 @@ export default function EditInventoryPage() {
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm text-amber-800 dark:text-amber-200">
                   <p>Changes to quantity will be tracked in stock history.</p>
-                  <p>Consider using "Adjust Stock" for better tracking of stock movements.</p>
+                  <p>
+                    Consider using &quot;Adjust Stock&quot; for better tracking
+                    of stock movements.
+                  </p>
                 </CardContent>
               </Card>
 
               {/* Action Buttons */}
               <div className="space-y-2">
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   className="w-full"
                   disabled={isSubmitting}
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 h-4 w-4" />
                   {isSubmitting ? 'Saving...' : 'Save Changes'}
                 </Button>
-                <Button 
+                <Button
                   type="button"
-                  variant="outline" 
+                  variant="outline"
                   className="w-full"
                   onClick={() => router.back()}
                   disabled={isSubmitting}
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   Cancel
                 </Button>
               </div>

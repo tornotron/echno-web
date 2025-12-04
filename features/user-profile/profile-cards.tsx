@@ -1,5 +1,11 @@
 import { ReactNode } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface ProfileCardProps {
@@ -36,7 +42,9 @@ export function ProfileCard({
               {title}
             </CardTitle>
             {description && (
-              <CardDescription className="text-sm">{description}</CardDescription>
+              <CardDescription className="text-sm">
+                {description}
+              </CardDescription>
             )}
           </div>
         </div>
@@ -63,12 +71,14 @@ export function InfoField({
 }: InfoFieldProps) {
   return (
     <div className={cn('space-y-1', className)}>
-      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+      <div className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
         {icon && <span className="text-primary">{icon}</span>}
         {label}
       </div>
       <div className={cn('text-sm font-normal', valueClassName)}>
-        {value || <span className="text-muted-foreground italic">Not specified</span>}
+        {value || (
+          <span className="text-muted-foreground italic">Not specified</span>
+        )}
       </div>
     </div>
   );
@@ -106,16 +116,22 @@ interface StatsCardProps {
   className?: string;
 }
 
-export function StatsCard({ label, value, icon, trend, className }: StatsCardProps) {
+export function StatsCard({
+  label,
+  value,
+  icon,
+  trend,
+  className,
+}: StatsCardProps) {
   return (
     <div
       className={cn(
-        'flex items-center justify-between rounded-lg border border-border bg-card p-4',
+        'border-border bg-card flex items-center justify-between rounded-lg border p-4',
         className
       )}
     >
       <div className="space-y-1">
-        <p className="text-sm font-medium text-muted-foreground">{label}</p>
+        <p className="text-muted-foreground text-sm font-medium">{label}</p>
         <p className="text-2xl font-bold">{value}</p>
         {trend && (
           <p
@@ -129,7 +145,7 @@ export function StatsCard({ label, value, icon, trend, className }: StatsCardPro
         )}
       </div>
       {icon && (
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-full">
           {icon}
         </div>
       )}
@@ -148,10 +164,10 @@ interface DataListProps {
 
 export function DataList({ items, className }: DataListProps) {
   return (
-    <dl className={cn('divide-y divide-border', className)}>
+    <dl className={cn('divide-border divide-y', className)}>
       {items.map((item, index) => (
         <div key={index} className="flex items-center justify-between py-3">
-          <dt className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+          <dt className="text-muted-foreground flex items-center gap-2 text-sm font-medium">
             {item.icon && <span className="text-primary">{item.icon}</span>}
             {item.label}
           </dt>

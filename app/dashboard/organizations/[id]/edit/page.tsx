@@ -3,9 +3,9 @@
 import { useRouter, notFound } from 'next/navigation';
 import { useState, use } from 'react';
 import { AppLayout } from '@/components/common/app-layout';
-import { OrganizationForm } from '@/components/organization/organization-form';
+import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
-import { mockOrganizations } from '@/lib/mock-data';
+import { mockOrganizations } from '@/components/shared/mock-data';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface EditOrganizationPageProps {
@@ -14,12 +14,16 @@ interface EditOrganizationPageProps {
   }>;
 }
 
-export default function EditOrganizationPage({ params }: EditOrganizationPageProps) {
+export default function EditOrganizationPage({
+  params,
+}: EditOrganizationPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
-  const organization = mockOrganizations.find((org) => org.id === parseInt(resolvedParams.id));
+  const organization = mockOrganizations.find(
+    (org) => org.id === Number.parseInt(resolvedParams.id)
+  );
 
   if (!organization) {
     notFound();
@@ -41,7 +45,7 @@ export default function EditOrganizationPage({ params }: EditOrganizationPagePro
 
       // Redirect to organization detail page
       router.push(`/dashboard/organizations/${organization.id}`);
-    } catch (error) {
+    } catch {
       toast.error('Error', {
         description: 'Failed to update organization. Please try again.',
       });
@@ -56,7 +60,7 @@ export default function EditOrganizationPage({ params }: EditOrganizationPagePro
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="container mx-auto max-w-3xl px-4 py-8">
         {/* Form */}
         <OrganizationForm
           organization={organization}

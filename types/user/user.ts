@@ -40,7 +40,7 @@ export function primaryOrganization(user: User): Organization | undefined {
 }
 
 export function belongsToOrganization(user: User, orgId: number): boolean {
-  return user.organizations?.some(o => o.id === orgId) ?? false;
+  return user.organizations?.some((o) => o.id === orgId) ?? false;
 }
 
 export function organizationCount(user: User): number {
@@ -48,17 +48,24 @@ export function organizationCount(user: User): number {
 }
 
 // ────── JSON Parsing & Serialization ──────
-function parseSkills(data: any): string[] {
+function parseSkills(data: unknown): string[] {
   if (!data) return [];
   if (typeof data === 'string') {
-    return data.split(',').map(s => s.trim()).filter(Boolean);
+    return data
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   if (Array.isArray(data)) {
-    return data.map(String).map(s => s.trim()).filter(Boolean);
+    return data
+      .map(String)
+      .map((s) => s.trim())
+      .filter(Boolean);
   }
   return [String(data)];
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseUser(json: any): User {
   return {
     id: json.id ?? undefined,
@@ -74,7 +81,9 @@ export function parseUser(json: any): User {
     experience: json.experience ?? undefined,
     cvUrl: json.cvUrl ?? undefined,
     emergencyContact: json.emergencyContact ?? undefined,
-    organizations: json.organizations ? (json.organizations as Organization[]) : undefined,
+    organizations: json.organizations
+      ? (json.organizations as Organization[])
+      : undefined,
     role: json.role ? userRoleFromString(json.role) : UserRole.laborer,
     profilePictureUrl: json.profilePictureUrl ?? undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
@@ -82,7 +91,7 @@ export function parseUser(json: any): User {
   };
 }
 
-export function userToJson(user: User): Record<string, any> {
+export function userToJson(user: User): Record<string, unknown> {
   return {
     id: user.id,
     name: user.name,
@@ -97,7 +106,7 @@ export function userToJson(user: User): Record<string, any> {
     experience: user.experience,
     cvUrl: user.cvUrl,
     emergencyContact: user.emergencyContact,
-    organizations: user.organizations?.map(o => o.id),
+    organizations: user.organizations?.map((o) => o.id),
     role: user.role,
     profilePictureUrl: user.profilePictureUrl,
     createdAt: user.createdAt?.toISOString(),

@@ -2,18 +2,24 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { AppLayout } from '@/components/common';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
 import { MapPin, Save, X } from 'lucide-react';
 import { LocationType, locationTypeLabels } from '@/types/resource/location';
@@ -32,7 +38,7 @@ interface LocationFormData {
 export default function NewLocationPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState<LocationFormData>({
     name: '',
     type: 'warehouse',
@@ -43,7 +49,10 @@ export default function NewLocationPage() {
     isActive: true,
   });
 
-  const handleInputChange = (field: keyof LocationFormData, value: string | boolean) => {
+  const handleInputChange = (
+    field: keyof LocationFormData,
+    value: string | boolean
+  ) => {
     setFormData({ ...formData, [field]: value });
   };
 
@@ -64,7 +73,7 @@ export default function NewLocationPage() {
       return;
     }
 
-    if (!formData.capacity || parseInt(formData.capacity) <= 0) {
+    if (!formData.capacity || Number.parseInt(formData.capacity) <= 0) {
       toast.error('Please enter a valid capacity');
       setIsSubmitting(false);
       return;
@@ -72,11 +81,11 @@ export default function NewLocationPage() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       toast.success('Location created successfully!');
       router.push('/dashboard/resources/locations');
-    } catch (error) {
+    } catch {
       toast.error('Failed to create location');
       setIsSubmitting(false);
     }
@@ -91,7 +100,7 @@ export default function NewLocationPage() {
       <div className="px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="mb-2 flex items-center gap-2">
             <MapPin className="h-6 w-6" />
             <h1 className="text-3xl font-bold">Add New Location</h1>
           </div>
@@ -105,7 +114,9 @@ export default function NewLocationPage() {
           <Card>
             <CardHeader>
               <CardTitle>Location Details</CardTitle>
-              <CardDescription>Enter the information for the new location</CardDescription>
+              <CardDescription>
+                Enter the information for the new location
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Basic Information */}
@@ -135,11 +146,13 @@ export default function NewLocationPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(locationTypeLabels).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
+                      {Object.entries(locationTypeLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -171,7 +184,9 @@ export default function NewLocationPage() {
                     type="number"
                     placeholder="e.g., 5000"
                     value={formData.capacity}
-                    onChange={(e) => handleInputChange('capacity', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('capacity', e.target.value)
+                    }
                     min="1"
                     required
                   />
@@ -181,7 +196,9 @@ export default function NewLocationPage() {
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={formData.isActive ? 'active' : 'inactive'}
-                    onValueChange={(value) => handleInputChange('isActive', value === 'active')}
+                    onValueChange={(value) =>
+                      handleInputChange('isActive', value === 'active')
+                    }
                   >
                     <SelectTrigger id="status">
                       <SelectValue />
@@ -203,7 +220,9 @@ export default function NewLocationPage() {
                     type="number"
                     placeholder="e.g., 1"
                     value={formData.organizationId}
-                    onChange={(e) => handleInputChange('organizationId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('organizationId', e.target.value)
+                    }
                   />
                 </div>
 
@@ -214,24 +233,26 @@ export default function NewLocationPage() {
                     type="number"
                     placeholder="e.g., 101"
                     value={formData.projectId}
-                    onChange={(e) => handleInputChange('projectId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange('projectId', e.target.value)
+                    }
                   />
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex gap-3 justify-end pt-4 border-t">
+              <div className="flex justify-end gap-3 border-t pt-4">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={handleCancel}
                   disabled={isSubmitting}
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 h-4 w-4" />
                   {isSubmitting ? 'Creating...' : 'Create Location'}
                 </Button>
               </div>

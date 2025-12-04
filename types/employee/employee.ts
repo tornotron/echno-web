@@ -54,27 +54,31 @@ export function employeeFromUser(
 }
 
 // JSON → Employee
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseEmployee(json: any): Employee {
   const baseUser = parseUser(json);
   return {
     ...baseUser,
     employeeId: json.employeeId ?? '',
     designation: json.designation ?? '',
-    department: json.department ? (Department as any)[json.department] : Department.engineering,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    department: json.department
+      ? (Department as any)[json.department]
+      : Department.engineering,
     joiningDate: json.joiningDate ? new Date(json.joiningDate) : undefined,
-    salary: json.salary != null ? Number(json.salary) : undefined,
+    salary: json.salary == null ? undefined : Number(json.salary),
     reportingManager: json.reportingManager ?? undefined,
     shiftTiming: json.shiftTiming ?? undefined,
     status: employeeStatusFromString(json.status ?? 'active'),
-    certifications: json.certifications ? Array.from(json.certifications) : undefined,
+    certifications: json.certifications ? [...json.certifications] : undefined,
     currentProjects: json.currentProjects
-      ? (json.currentProjects as any[]).map((p: any) => parseProject(p))
+      ? (json.currentProjects as unknown[]).map((p) => parseProject(p))
       : undefined,
   };
 }
 
 // Employee → JSON
-export function employeeToJson(emp: Employee): Record<string, any> {
+export function employeeToJson(emp: Employee): Record<string, unknown> {
   const userJson = userToJson(emp);
   return {
     ...userJson,
@@ -87,7 +91,7 @@ export function employeeToJson(emp: Employee): Record<string, any> {
     shiftTiming: emp.shiftTiming,
     status: emp.status,
     certifications: emp.certifications,
-    currentProjects: emp.currentProjects?.map(projectToJson),
+    currentProjects: emp.currentProjects?.map((p) => projectToJson(p)),
   };
 }
 
@@ -156,5 +160,5 @@ export function formattedJoiningDateTime(emp: Employee): string | null {
 }
 
 // Reuse User helpers
-import { primaryOrganization, belongsToOrganization } from '@/types/user';
-export { primaryOrganization, belongsToOrganization };
+
+export { primaryOrganization, belongsToOrganization } from '@/types/user';

@@ -1,24 +1,34 @@
 'use client';
 
 import { useState } from 'react';
-import { OrganizationCard } from '@/components/organization/organization-card';
+import { OrganizationCard } from '@/features/organization/organization-card';
 import { AppLayout } from '@/components/common/app-layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Plus, Search, Filter } from 'lucide-react';
-import { mockOrganizations } from '@/lib/mock-data';
+import { mockOrganizations } from '@/components/shared/mock-data';
 import Link from 'next/link';
 
 export default function OrganizationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'active' | 'inactive'
+  >('all');
 
   // Filter organizations based on search and status
   const filteredOrganizations = mockOrganizations.filter((org) => {
     const matchesSearch =
       org.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      org.organizationAddress.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      org.organizationAddress
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       org.organizationEmail.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
@@ -33,24 +43,27 @@ export default function OrganizationsPage() {
     <AppLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Organizations</h1>
-          <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-            Manage and view all organizations
-          </p>
-        </div>
-        <Link href="/dashboard/organizations/new">
-          <Button className="sm:w-auto">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Organization
-          </Button>
-        </Link>
-      </div>        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Organizations
+            </h1>
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+              Manage and view all organizations
+            </p>
+          </div>
+          <Link href="/dashboard/organizations/new">
+            <Button className="sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Organization
+            </Button>
+          </Link>
+        </div>{' '}
+        {/* Filters */}
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
             <Input
               type="text"
               placeholder="Search organizations..."
@@ -61,9 +74,14 @@ export default function OrganizationsPage() {
           </div>
 
           {/* Status Filter */}
-          <Select value={statusFilter} onValueChange={(value: any) => setStatusFilter(value)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              setStatusFilter(value as 'all' | 'active' | 'inactive')
+            }
+          >
             <SelectTrigger className="w-full sm:w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
+              <Filter className="mr-2 h-4 w-4" />
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -73,42 +91,45 @@ export default function OrganizationsPage() {
             </SelectContent>
           </Select>
         </div>
-
         {/* Stats */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4">
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">Total Organizations</p>
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Total Organizations
+            </p>
+            <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               {mockOrganizations.length}
             </p>
           </div>
-          <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Active</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-500 mt-1">
+            <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-500">
               {mockOrganizations.filter((org) => org.isActive).length}
             </p>
           </div>
-          <div className="bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 p-4">
+          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">Inactive</p>
-            <p className="text-2xl font-bold text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-2xl font-bold text-zinc-600 dark:text-zinc-400">
               {mockOrganizations.filter((org) => !org.isActive).length}
             </p>
           </div>
         </div>
-
         {/* Organizations Grid */}
         {filteredOrganizations.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredOrganizations.map((organization) => (
-              <OrganizationCard key={organization.id} organization={organization} />
+              <OrganizationCard
+                key={organization.id}
+                organization={organization}
+              />
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 dark:bg-zinc-800 mb-4">
+          <div className="py-12 text-center">
+            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
               <Search className="h-8 w-8 text-zinc-400" />
             </div>
-            <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
               No organizations found
             </h3>
             <p className="text-zinc-600 dark:text-zinc-400">

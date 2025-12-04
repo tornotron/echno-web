@@ -3,7 +3,7 @@
  * Centralized type definitions and helper functions for API responses
  */
 
-export interface ApiSuccessResponse<T = any> {
+export interface ApiSuccessResponse<T = unknown> {
   data: T;
   message?: string;
   success: true;
@@ -21,7 +21,7 @@ export interface ApiErrorResponse {
   /** User-friendly error message for display in UI */
   userMessage?: string;
   /** Additional error details or context */
-  details?: any;
+  details?: unknown;
   /** HTTP status code */
   statusCode?: number;
   /** Error timestamp */
@@ -32,31 +32,48 @@ export interface ApiErrorResponse {
   validationErrors?: Array<{
     field: string;
     message: string;
-    value?: any;
+    value?: unknown;
   }>;
   success: false;
 }
 
-export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
+export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 /**
  * Type guard to check if response is an error
  */
-export function isApiError(response: any): response is ApiErrorResponse {
-  return response && response.success === false && 'error' in response;
+export function isApiError(response: unknown): response is ApiErrorResponse {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'success' in response &&
+    (response as { success: boolean }).success === false &&
+    'error' in response
+  );
 }
 
 /**
  * Type guard to check if response is successful
  */
-export function isApiSuccess<T>(response: any): response is ApiSuccessResponse<T> {
-  return response && response.success === true && 'data' in response;
+export function isApiSuccess<T>(
+  response: unknown
+): response is ApiSuccessResponse<T> {
+  return (
+    typeof response === 'object' &&
+    response !== null &&
+    'success' in response &&
+    (response as { success: boolean }).success === true &&
+    'data' in response
+  );
 }
 
 /**
  * Creates a standardized success response
  */
-export function createSuccessResponse<T>(data: T, message?: string): ApiSuccessResponse<T> {
+export function createSuccessResponse<T>(
+  data: T,
+  message?: string
+): ApiSuccessResponse<T> {
   return {
     data,
     message,
@@ -72,10 +89,14 @@ export function createErrorResponse(
   message: string,
   options?: {
     userMessage?: string;
-    details?: any;
+    details?: unknown;
     statusCode?: number;
     path?: string;
-    validationErrors?: Array<{ field: string; message: string; value?: any }>;
+    validationErrors?: Array<{
+      field: string;
+      message: string;
+      value?: unknown;
+    }>;
   }
 ): ApiErrorResponse {
   return {
@@ -95,19 +116,25 @@ export function createErrorResponse(
  * Extracts user-friendly error message from API error response
  * Prioritizes userMessage, falls back to message, then generic message
  */
-export function getUserFriendlyMessage(error: ApiErrorResponse | unknown): string {
+export function getUserFriendlyMessage(
+  error: ApiErrorResponse | unknown
+): string {
   if (error && typeof error === 'object' && 'userMessage' in error) {
     const apiError = error as ApiErrorResponse;
-    return apiError.userMessage || apiError.message || 'An unexpected error occurred';
+    return (
+      apiError.userMessage || apiError.message || 'An unexpected error occurred'
+    );
   }
-  
+
   return extractErrorMessage(error);
 }
 
 /**
  * Parses error response from fetch and returns ApiErrorResponse
  */
-export async function parseErrorResponse(response: Response): Promise<ApiErrorResponse> {
+export async function parseErrorResponse(
+  response: Response
+): Promise<ApiErrorResponse> {
   try {
     const contentType = response.headers.get('content-type');
     if (contentType?.includes('application/json')) {
@@ -131,17 +158,13 @@ export async function parseErrorResponse(response: Response): Promise<ApiErrorRe
         }
       );
     }
-    
+
     // Handle text responses
     const text = await response.text();
-    return createErrorResponse(
-      'API Error',
-      text || `HTTP ${response.status}`,
-      {
-        userMessage: getDefaultErrorMessage(response.status),
-        statusCode: response.status,
-      }
-    );
+    return createErrorResponse('API Error', text || `HTTP ${response.status}`, {
+      userMessage: getDefaultErrorMessage(response.status),
+      statusCode: response.status,
+    });
   } catch (parseError) {
     return createErrorResponse(
       'Parse Error',
@@ -160,29 +183,40 @@ export async function parseErrorResponse(response: Response): Promise<ApiErrorRe
  */
 export function getDefaultErrorMessage(statusCode: number): string {
   switch (statusCode) {
-    case 400:
+    case 400: {
       return 'Invalid request. Please check your input and try again.';
-    case 401:
+    }
+    case 401: {
       return 'Your session has expired. Please log in again.';
-    case 403:
+    }
+    case 403: {
       return 'You do not have permission to perform this action.';
-    case 404:
+    }
+    case 404: {
       return 'The requested resource was not found.';
-    case 409:
+    }
+    case 409: {
       return 'Conflict detected. The resource may have been modified.';
-    case 422:
+    }
+    case 422: {
       return 'Invalid data provided. Please check all fields and try again.';
-    case 429:
+    }
+    case 429: {
       return 'Too many requests. Please wait a moment and try again.';
-    case 500:
+    }
+    case 500: {
       return 'Server error occurred. Please try again later.';
+    }
     case 502:
-    case 503:
+    case 503: {
       return 'Service is temporarily unavailable. Please try again in a few moments.';
-    case 504:
+    }
+    case 504: {
       return 'Request timeout. Please check your connection and try again.';
-    default:
+    }
+    default: {
       return 'An unexpected error occurred. Please try again.';
+    }
   }
 }
 
@@ -193,22 +227,22 @@ export function extractErrorMessage(error: unknown): string {
   if (error instanceof Error) {
     return error.message;
   }
-  
+
   if (typeof error === 'string') {
     return error;
   }
-  
+
   if (error && typeof error === 'object' && 'message' in error) {
     return String(error.message);
   }
-  
+
   return 'An unexpected error occurred';
 }
 
 /**
  * Safe JSON parse with fallback
  */
-export async function safeJsonParse<T = any>(
+export async function safeJsonParse<T = unknown>(
   response: Response,
   fallback: T
 ): Promise<T> {
@@ -224,25 +258,26 @@ export async function safeJsonParse<T = any>(
  */
 export function handleApiError(error: unknown): string {
   const message = extractErrorMessage(error);
-  
+
   // Map common error messages to user-friendly versions
   const errorMap: Record<string, string> = {
-    'Failed to fetch': 'Unable to connect to the server. Please check your internet connection.',
+    'Failed to fetch':
+      'Unable to connect to the server. Please check your internet connection.',
     'Network request failed': 'Network error. Please try again.',
-    'Unauthorized': 'Your session has expired. Please login again.',
+    Unauthorized: 'Your session has expired. Please login again.',
     '401': 'Authentication required. Please login.',
     '403': 'You do not have permission to access this resource.',
     '404': 'The requested resource was not found.',
     '500': 'Server error. Please try again later.',
   };
-  
+
   // Check if any mapped error matches
   for (const [key, value] of Object.entries(errorMap)) {
     if (message.toLowerCase().includes(key.toLowerCase())) {
       return value;
     }
   }
-  
+
   return message;
 }
 
@@ -256,27 +291,29 @@ export async function fetchWithRetry(
   initialDelay: number = 1000
 ): Promise<Response> {
   let lastError: Error | null = null;
-  
+
   for (let i = 0; i < maxRetries; i++) {
     try {
       const response = await fetch(url, options);
-      
+
       // If successful or client error (4xx), return immediately
       if (response.ok || (response.status >= 400 && response.status < 500)) {
         return response;
       }
-      
+
       // For server errors (5xx), retry
       lastError = new Error(`HTTP ${response.status}`);
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
     }
-    
+
     // Wait before retrying (exponential backoff)
     if (i < maxRetries - 1) {
-      await new Promise(resolve => setTimeout(resolve, initialDelay * Math.pow(2, i)));
+      await new Promise((resolve) =>
+        setTimeout(resolve, initialDelay * Math.pow(2, i))
+      );
     }
   }
-  
+
   throw lastError || new Error('Fetch failed after retries');
 }

@@ -1,104 +1,105 @@
-"use client"
+'use client';
 
-import { useState } from "react"
-import { AppLayout } from "@/components/common"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
+import { useState } from 'react';
+import { AppLayout } from '@/components/common';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from '@/components/ui/select';
 import {
-  Calendar,
   Upload,
   X,
   Save,
   Send,
   AlertCircle,
-  Users,
   FileText,
+  Users,
   Tag,
-  Folder,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { format } from "date-fns"
-import {
-  TaskStatus,
-  getTaskStatusLabel,
-} from "@/types/task/task-status"
-import { toast } from "@/lib/styles/toast-styles"
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
+import { toast } from '@/lib/styles/toast-styles';
 
 // Mock data for dropdowns
 const mockProjects = [
-  { id: 1, name: "Metro Station Construction" },
-  { id: 2, name: "Highway Expansion Project" },
-  { id: 3, name: "Bridge Reconstruction" },
-  { id: 4, name: "Airport Terminal Development" },
-]
+  { id: 1, name: 'Metro Station Construction' },
+  { id: 2, name: 'Highway Expansion Project' },
+  { id: 3, name: 'Bridge Reconstruction' },
+  { id: 4, name: 'Airport Terminal Development' },
+];
 
 const mockCategories = [
-  { id: 1, name: "Civil Engineering", icon: "CE" },
-  { id: 2, name: "Electrical Works", icon: "EW" },
-  { id: 3, name: "Mechanical Installation", icon: "MI" },
-  { id: 4, name: "Safety & Compliance", icon: "SC" },
-  { id: 5, name: "Quality Assurance", icon: "QA" },
-]
+  { id: 1, name: 'Civil Engineering', icon: 'CE' },
+  { id: 2, name: 'Electrical Works', icon: 'EW' },
+  { id: 3, name: 'Mechanical Installation', icon: 'MI' },
+  { id: 4, name: 'Safety & Compliance', icon: 'SC' },
+  { id: 5, name: 'Quality Assurance', icon: 'QA' },
+];
 
 const mockMembers = [
-  { id: 1, name: "Rajesh Kumar", department: "Engineering" },
-  { id: 2, name: "Priya Sharma", department: "Engineering" },
-  { id: 3, name: "Amit Patel", department: "Engineering" },
-  { id: 4, name: "Sneha Reddy", department: "Quality" },
-  { id: 5, name: "Vikram Singh", department: "Safety" },
-]
+  { id: 1, name: 'Rajesh Kumar', department: 'Engineering' },
+  { id: 2, name: 'Priya Sharma', department: 'Engineering' },
+  { id: 3, name: 'Amit Patel', department: 'Engineering' },
+  { id: 4, name: 'Sneha Reddy', department: 'Quality' },
+  { id: 5, name: 'Vikram Singh', department: 'Safety' },
+];
 
 const availableTags = [
-  "Urgent",
-  "High Priority",
-  "Documentation",
-  "Testing",
-  "Review Required",
-  "Client Deliverable",
-  "Internal",
-  "Blocked",
-]
+  'Urgent',
+  'High Priority',
+  'Documentation',
+  'Testing',
+  'Review Required',
+  'Client Deliverable',
+  'Internal',
+  'Blocked',
+];
 
 export default function NewTaskPage() {
-  const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
-  const [projectId, setProjectId] = useState<string>("")
-  const [title, setTitle] = useState("")
-  const [startDate, setStartDate] = useState("")
-  const [endDate, setEndDate] = useState("")
-  const [categoryId, setCategoryId] = useState<string>("")
-  const [status, setStatus] = useState<TaskStatus>(TaskStatus.upcoming)
-  const [progress, setProgress] = useState("0")
-  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([])
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [description, setDescription] = useState("")
-  const [attachments, setAttachments] = useState<File[]>([])
+  const [projectId, setProjectId] = useState<string>('');
+  const [title, setTitle] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [status, setStatus] = useState<TaskStatus>(TaskStatus.upcoming);
+  const [progress, setProgress] = useState('0');
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [description, setDescription] = useState('');
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files)
-      setAttachments([...attachments, ...newFiles])
+      const newFiles = [...e.target.files];
+      setAttachments([...attachments, ...newFiles]);
     }
-  }
+  };
 
   // Remove attachment
   const removeAttachment = (index: number) => {
-    setAttachments(attachments.filter((_, i) => i !== index))
-  }
+    setAttachments(attachments.filter((_, i) => i !== index));
+  };
 
   // Toggle assignee
   const toggleAssignee = (memberId: string) => {
@@ -106,105 +107,119 @@ export default function NewTaskPage() {
       prev.includes(memberId)
         ? prev.filter((id) => id !== memberId)
         : [...prev, memberId]
-    )
-  }
+    );
+  };
 
   // Toggle tag
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    )
-  }
+    );
+  };
 
   // Validate form
   const validateForm = () => {
     if (!projectId) {
-      toast.error("Validation Error", { description: "Please select a project" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Please select a project',
+      });
+      return false;
     }
     if (!title.trim()) {
-      toast.error("Validation Error", { description: "Please enter a task title" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Please enter a task title',
+      });
+      return false;
     }
     if (title.trim().length < 5) {
-      toast.error("Validation Error", { description: "Title must be at least 5 characters" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Title must be at least 5 characters',
+      });
+      return false;
     }
     if (!startDate) {
-      toast.error("Validation Error", { description: "Please select a start date" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Please select a start date',
+      });
+      return false;
     }
     if (!endDate) {
-      toast.error("Validation Error", { description: "Please select an end date" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Please select an end date',
+      });
+      return false;
     }
     if (new Date(startDate) > new Date(endDate)) {
-      toast.error("Validation Error", { description: "Start date cannot be after end date" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Start date cannot be after end date',
+      });
+      return false;
     }
     if (selectedAssignees.length === 0) {
-      toast.error("Validation Error", { description: "Please assign at least one member" })
-      return false
+      toast.error('Validation Error', {
+        description: 'Please assign at least one member',
+      });
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   // Handle save as draft
   const handleSaveDraft = async () => {
     if (!projectId || !title.trim()) {
-      toast.error("Validation Error", {
-        description: "Please fill in project and title before saving draft"
-      })
-      return
+      toast.error('Validation Error', {
+        description: 'Please fill in project and title before saving draft',
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     try {
       // TODO: Implement API call to save draft
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      toast.success("Draft Saved", {
-        description: "Your task has been saved as draft"
-      })
-      router.push("/dashboard/workflow/tasks")
-    } catch (error) {
-      toast.error("Error", {
-        description: "Failed to save draft. Please try again."
-      })
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      toast.success('Draft Saved', {
+        description: 'Your task has been saved as draft',
+      });
+      router.push('/dashboard/workflow/tasks');
+    } catch {
+      toast.error('Error', {
+        description: 'Failed to save draft. Please try again.',
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!validateForm()) return
+    e.preventDefault();
 
-    setIsSubmitting(true)
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
     try {
       // TODO: Implement API call to create task
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      toast.success("Task Created", {
-        description: `Task "${title}" has been created successfully`
-      })
-      router.push("/dashboard/workflow/tasks")
-    } catch (error) {
-      toast.error("Error", {
-        description: "Failed to create task. Please try again."
-      })
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      toast.success('Task Created', {
+        description: `Task "${title}" has been created successfully`,
+      });
+      router.push('/dashboard/workflow/tasks');
+    } catch {
+      toast.error('Error', {
+        description: 'Failed to create task. Please try again.',
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <AppLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               Create New Task
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
@@ -216,7 +231,7 @@ export default function NewTaskPage() {
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 lg:grid-cols-3">
             {/* Main Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6 lg:col-span-2">
               {/* Basic Details Card */}
               <Card>
                 <CardHeader>
@@ -240,7 +255,10 @@ export default function NewTaskPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {mockProjects.map((project) => (
-                          <SelectItem key={project.id} value={project.id.toString()}>
+                          <SelectItem
+                            key={project.id}
+                            value={project.id.toString()}
+                          >
                             {project.name}
                           </SelectItem>
                         ))}
@@ -317,9 +335,11 @@ export default function NewTaskPage() {
                       <Label htmlFor="status">
                         Status <span className="text-red-500">*</span>
                       </Label>
-                      <Select 
-                        value={status} 
-                        onValueChange={(value) => setStatus(value as TaskStatus)}
+                      <Select
+                        value={status}
+                        onValueChange={(value) =>
+                          setStatus(value as TaskStatus)
+                        }
                       >
                         <SelectTrigger id="status">
                           <SelectValue />
@@ -386,10 +406,10 @@ export default function NewTaskPage() {
                     {mockMembers.map((member) => (
                       <div
                         key={member.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
                           selectedAssignees.includes(member.id.toString())
-                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700"
-                            : "bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                            ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                            : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
                         }`}
                         onClick={() => toggleAssignee(member.id.toString())}
                       >
@@ -408,7 +428,7 @@ export default function NewTaskPage() {
                     ))}
                   </div>
                   {selectedAssignees.length === 0 && (
-                    <p className="text-sm text-red-600 dark:text-red-400 mt-2">
+                    <p className="mt-2 text-sm text-red-600 dark:text-red-400">
                       * At least one team member must be assigned
                     </p>
                   )}
@@ -431,7 +451,9 @@ export default function NewTaskPage() {
                     {availableTags.map((tag) => (
                       <Badge
                         key={tag}
-                        variant={selectedTags.includes(tag) ? "default" : "outline"}
+                        variant={
+                          selectedTags.includes(tag) ? 'default' : 'outline'
+                        }
                         className="cursor-pointer"
                         onClick={() => toggleTag(tag)}
                       >
@@ -472,7 +494,13 @@ export default function NewTaskPage() {
                       <Button
                         type="button"
                         variant="outline"
-                        onClick={() => document.getElementById("attachments")?.click()}
+                        onClick={() =>
+                          (
+                            document.querySelector(
+                              '#attachments'
+                            ) as HTMLElement
+                          )?.click()
+                        }
                       >
                         <Upload className="mr-2 h-4 w-4" />
                         Choose Files
@@ -489,7 +517,7 @@ export default function NewTaskPage() {
                       {attachments.map((file, index) => (
                         <div
                           key={index}
-                          className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg"
+                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
                         >
                           <div className="flex items-center gap-2">
                             <FileText className="h-4 w-4 text-zinc-500" />
@@ -540,7 +568,7 @@ export default function NewTaskPage() {
                   className="ml-auto"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  {isSubmitting ? "Creating..." : "Create Task"}
+                  {isSubmitting ? 'Creating...' : 'Create Task'}
                 </Button>
               </div>
             </div>
@@ -554,34 +582,49 @@ export default function NewTaskPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">Project</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Project
+                    </span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {projectId 
-                        ? mockProjects.find(p => p.id.toString() === projectId)?.name 
-                        : "Not selected"}
+                      {projectId
+                        ? mockProjects.find(
+                            (p) => p.id.toString() === projectId
+                          )?.name
+                        : 'Not selected'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">Assignees</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Assignees
+                    </span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {selectedAssignees.length} member{selectedAssignees.length !== 1 ? "s" : ""}
+                      {selectedAssignees.length} member
+                      {selectedAssignees.length === 1 ? '' : 's'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">Tags</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Tags
+                    </span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
                       {selectedTags.length}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">Attachments</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Attachments
+                    </span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
                       {attachments.length}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">Status</span>
-                    <Badge variant="outline">{getTaskStatusLabel(status)}</Badge>
+                    <span className="text-zinc-600 dark:text-zinc-400">
+                      Status
+                    </span>
+                    <Badge variant="outline">
+                      {getTaskStatusLabel(status)}
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -589,7 +632,7 @@ export default function NewTaskPage() {
               {/* Guidelines */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-sm">
                     <AlertCircle className="h-4 w-4" />
                     Task Guidelines
                   </CardTitle>
@@ -625,16 +668,17 @@ export default function NewTaskPage() {
               </Card>
 
               {/* Help Card */}
-              <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+              <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
                 <CardContent className="pt-6">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
                         Need Help?
                       </p>
                       <p className="text-xs text-blue-700 dark:text-blue-300">
-                        Contact your project manager if you need assistance with task creation.
+                        Contact your project manager if you need assistance with
+                        task creation.
                       </p>
                     </div>
                   </div>
@@ -645,5 +689,5 @@ export default function NewTaskPage() {
         </form>
       </div>
     </AppLayout>
-  )
+  );
 }

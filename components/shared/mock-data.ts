@@ -1,7 +1,6 @@
 // lib/comprehensive-mock-data.ts
 // Comprehensive mock data for all types in the application
 
-import { User, UserRole } from '@/types/user';
 import { Employee, EmployeeStatus, Department } from '@/types/employee';
 import { Organization } from '@/types/organization';
 import { Project, ProjectStatus } from '@/types/project';
@@ -26,322 +25,25 @@ import {
   EmployeeLeaveQuota,
   LeaveBalance,
   QuotaPeriod,
-  LeaveApprover,
-  WorkDelegation,
 } from '@/types/leave';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1. USERS
 // ═════════════════════════════════════════════════════════════════════════════
 
-const mockUsers: User[] = [
-  {
-    id: 1,
-    name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@echno.com',
-    phone: '+91 98765 43210',
-    address: '123 MG Road, Bangalore, Karnataka 560001',
-    gender: 'Male',
-    dateOfBirth: new Date('1985-05-15'),
-    qualification: 'B.Tech Civil Engineering',
-    skills: ['Project Management', 'Structural Design', 'AutoCAD', 'Site Supervision'],
-    experience: 15,
-    cvUrl: '/cv/rajesh-kumar.pdf',
-    emergencyContact: '+91 98765 43211',
-    role: UserRole.projectManager,
-    profilePictureUrl: '/avatars/rajesh.jpg',
-    bloodGroup: 'O+',
-    createdAt: new Date('2023-01-15'),
-    updatedAt: new Date('2025-01-10'),
-  },
-  {
-    id: 2,
-    name: 'Priya Sharma',
-    email: 'priya.sharma@echno.com',
-    phone: '+91 87654 32109',
-    address: '456 Anna Salai, Chennai, Tamil Nadu 600002',
-    gender: 'Female',
-    dateOfBirth: new Date('1990-08-22'),
-    qualification: 'M.Tech Structural Engineering',
-    skills: ['Structural Analysis', 'ETABS', 'SAP2000', 'Quality Control'],
-    experience: 8,
-    cvUrl: '/cv/priya-sharma.pdf',
-    emergencyContact: '+91 87654 32110',
-    role: UserRole.civilEngineer,
-    profilePictureUrl: '/avatars/priya.jpg',
-    bloodGroup: 'A+',
-    createdAt: new Date('2023-03-20'),
-    updatedAt: new Date('2025-01-08'),
-  },
-  {
-    id: 3,
-    name: 'Amit Patel',
-    email: 'amit.patel@echno.com',
-    phone: '+91 76543 21098',
-    address: '789 CG Road, Ahmedabad, Gujarat 380009',
-    gender: 'Male',
-    dateOfBirth: new Date('1992-03-10'),
-    qualification: 'Diploma in Electrical Engineering',
-    skills: ['Electrical Installation', 'Wiring', 'Circuit Design', 'Safety Protocols'],
-    experience: 6,
-    cvUrl: '/cv/amit-patel.pdf',
-    emergencyContact: '+91 76543 21099',
-    role: UserRole.electrician,
-    profilePictureUrl: '/avatars/amit.jpg',
-    bloodGroup: 'B+',
-    createdAt: new Date('2023-06-10'),
-    updatedAt: new Date('2025-01-05'),
-  },
-  {
-    id: 4,
-    name: 'Sneha Reddy',
-    email: 'sneha.reddy@echno.com',
-    phone: '+91 65432 10987',
-    address: '321 Banjara Hills, Hyderabad, Telangana 500034',
-    gender: 'Female',
-    dateOfBirth: new Date('1988-11-05'),
-    qualification: 'MBA in Human Resources',
-    skills: ['Recruitment', 'Employee Relations', 'Performance Management', 'Payroll'],
-    experience: 10,
-    cvUrl: '/cv/sneha-reddy.pdf',
-    emergencyContact: '+91 65432 10988',
-    role: UserRole.hrManager,
-    profilePictureUrl: '/avatars/sneha.jpg',
-    bloodGroup: 'AB+',
-    createdAt: new Date('2023-02-01'),
-    updatedAt: new Date('2025-01-12'),
-  },
-  {
-    id: 5,
-    name: 'Vikram Singh',
-    email: 'vikram.singh@echno.com',
-    phone: '+91 54321 09876',
-    address: '567 Park Street, Kolkata, West Bengal 700016',
-    gender: 'Male',
-    dateOfBirth: new Date('1995-07-18'),
-    qualification: 'ITI in Plumbing',
-    skills: ['Pipe Fitting', 'Drainage Systems', 'Water Supply', 'Maintenance'],
-    experience: 5,
-    cvUrl: '/cv/vikram-singh.pdf',
-    emergencyContact: '+91 54321 09877',
-    role: UserRole.plumber,
-    profilePictureUrl: '/avatars/vikram.jpg',
-    bloodGroup: 'O-',
-    createdAt: new Date('2023-09-15'),
-    updatedAt: new Date('2025-01-03'),
-  },
-  {
-    id: 6,
-    name: 'Anjali Verma',
-    email: 'anjali.verma@echno.com',
-    phone: '+91 43210 98765',
-    address: '890 Civil Lines, Delhi 110054',
-    gender: 'Female',
-    dateOfBirth: new Date('1993-02-14'),
-    qualification: 'B.Sc Safety Management',
-    skills: ['Safety Audits', 'Risk Assessment', 'Emergency Response', 'Training'],
-    experience: 7,
-    cvUrl: '/cv/anjali-verma.pdf',
-    emergencyContact: '+91 43210 98766',
-    role: UserRole.safetyOfficer,
-    profilePictureUrl: '/avatars/anjali.jpg',
-    bloodGroup: 'A-',
-    createdAt: new Date('2023-04-22'),
-    updatedAt: new Date('2025-01-11'),
-  },
-  {
-    id: 7,
-    name: 'Karan Mehta',
-    email: 'karan.mehta@echno.com',
-    phone: '+91 32109 87654',
-    address: '234 FC Road, Pune, Maharashtra 411004',
-    gender: 'Male',
-    dateOfBirth: new Date('1991-09-28'),
-    qualification: 'B.Arch',
-    skills: ['Architectural Design', 'Revit', 'SketchUp', '3D Modeling', 'Site Planning'],
-    experience: 9,
-    cvUrl: '/cv/karan-mehta.pdf',
-    emergencyContact: '+91 32109 87655',
-    role: UserRole.architect,
-    profilePictureUrl: '/avatars/karan.jpg',
-    bloodGroup: 'B-',
-    createdAt: new Date('2023-05-18'),
-    updatedAt: new Date('2025-01-09'),
-  },
-  {
-    id: 8,
-    name: 'Divya Iyer',
-    email: 'divya.iyer@echno.com',
-    phone: '+91 21098 76543',
-    address: '678 Residency Road, Bangalore, Karnataka 560025',
-    gender: 'Female',
-    dateOfBirth: new Date('1994-12-03'),
-    qualification: 'B.Com with Accounting Certification',
-    skills: ['Financial Reporting', 'Taxation', 'Budgeting', 'Tally', 'Excel'],
-    experience: 6,
-    cvUrl: '/cv/divya-iyer.pdf',
-    emergencyContact: '+91 21098 76544',
-    role: UserRole.accountant,
-    profilePictureUrl: '/avatars/divya.jpg',
-    bloodGroup: 'O+',
-    createdAt: new Date('2023-07-25'),
-    updatedAt: new Date('2025-01-07'),
-  },
-];
+import { mockUsers } from './data/users';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 2. ORGANIZATIONS
 // ═════════════════════════════════════════════════════════════════════════════
 
-const mockOrganizations: Organization[] = [
-  {
-    id: 1,
-    organizationName: 'Echno Construction Ltd.',
-    organizationAddress: 'Plot No. 45, Andheri East, Mumbai, Maharashtra 400069',
-    organizationEmail: 'contact@echno.com',
-    organizationPhone: '+91 22 4567 8900',
-    organizationWebsite: 'https://echno.com',
-    organizationLogo: 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=400&fit=crop',
-    creatorId: 1,
-    createdAt: new Date('2020-01-10'),
-    isActive: true,
-  },
-  {
-    id: 2,
-    organizationName: 'BuildRight Infrastructure Pvt. Ltd.',
-    organizationAddress: 'Sector 62, Noida, Uttar Pradesh 201301',
-    organizationEmail: 'info@buildright.com',
-    organizationPhone: '+91 120 456 7890',
-    organizationWebsite: 'https://buildright.com',
-    organizationLogo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=400&h=400&fit=crop',
-    creatorId: 1,
-    createdAt: new Date('2019-06-15'),
-    isActive: true,
-  },
-  {
-    id: 3,
-    organizationName: 'GreenBuild Constructions',
-    organizationAddress: 'Whitefield, Bangalore, Karnataka 560066',
-    organizationEmail: 'hello@greenbuild.in',
-    organizationPhone: '+91 80 2345 6789',
-    organizationWebsite: 'https://greenbuild.in',
-    organizationLogo: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=400&h=400&fit=crop',
-    creatorId: 4,
-    createdAt: new Date('2021-03-20'),
-    isActive: true,
-  },
-];
+import { mockOrganizations } from './data/organizations';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 3. EMPLOYEES
 // ═════════════════════════════════════════════════════════════════════════════
 
-const mockEmployees: Employee[] = [
-  {
-    ...mockUsers[0],
-    employeeId: 'EMP001',
-    designation: 'Senior Project Manager',
-    department: Department.engineering,
-    salary: 120000,
-    reportingManager: 'CEO',
-    shiftTiming: '09:00 - 18:00',
-    status: EmployeeStatus.active,
-    certifications: ['PMP', 'LEED Green Associate', 'OSHA Safety'],
-    joiningDate: new Date('2020-02-01'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[1],
-    employeeId: 'EMP002',
-    designation: 'Structural Engineer',
-    department: Department.engineering,
-    salary: 85000,
-    reportingManager: 'Rajesh Kumar',
-    shiftTiming: '09:00 - 18:00',
-    status: EmployeeStatus.active,
-    certifications: ['Professional Engineer (PE)', 'LEED AP'],
-    joiningDate: new Date('2020-04-15'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[2],
-    employeeId: 'EMP003',
-    designation: 'Senior Electrician',
-    department: Department.engineering,
-    salary: 55000,
-    reportingManager: 'Rajesh Kumar',
-    shiftTiming: '08:00 - 17:00',
-    status: EmployeeStatus.active,
-    certifications: ['Licensed Electrician', 'NFPA 70E'],
-    joiningDate: new Date('2021-01-10'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[3],
-    employeeId: 'EMP004',
-    designation: 'HR Manager',
-    department: Department.humanResources,
-    salary: 95000,
-    reportingManager: 'CEO',
-    shiftTiming: '09:00 - 18:00',
-    status: EmployeeStatus.active,
-    certifications: ['SHRM-CP', 'PHR'],
-    joiningDate: new Date('2020-03-01'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[4],
-    employeeId: 'EMP005',
-    designation: 'Lead Plumber',
-    department: Department.construction,
-    salary: 48000,
-    reportingManager: 'Site Supervisor',
-    shiftTiming: '07:00 - 16:00',
-    status: EmployeeStatus.active,
-    certifications: ['Licensed Plumber', 'Backflow Prevention'],
-    joiningDate: new Date('2021-06-01'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[5],
-    employeeId: 'EMP006',
-    designation: 'Safety Officer',
-    department: Department.safety,
-    salary: 72000,
-    reportingManager: 'Rajesh Kumar',
-    shiftTiming: '08:00 - 17:00',
-    status: EmployeeStatus.active,
-    certifications: ['OSHA 30-Hour', 'NEBOSH IGC', 'First Aid'],
-    joiningDate: new Date('2020-07-15'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[6],
-    employeeId: 'EMP007',
-    designation: 'Lead Architect',
-    department: Department.engineering,
-    salary: 105000,
-    reportingManager: 'Rajesh Kumar',
-    shiftTiming: '09:00 - 18:00',
-    status: EmployeeStatus.active,
-    certifications: ['Registered Architect', 'LEED AP BD+C'],
-    joiningDate: new Date('2020-05-20'),
-    organizations: [mockOrganizations[0]],
-  },
-  {
-    ...mockUsers[7],
-    employeeId: 'EMP008',
-    designation: 'Accountant',
-    department: Department.finance,
-    salary: 65000,
-    reportingManager: 'Finance Head',
-    shiftTiming: '09:00 - 18:00',
-    status: EmployeeStatus.active,
-    certifications: ['CPA', 'Tally Certified'],
-    joiningDate: new Date('2021-02-10'),
-    organizations: [mockOrganizations[0]],
-  },
-];
+import { mockEmployees } from './data/employees';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 4. MEMBERS (For Projects)
@@ -499,7 +201,8 @@ const mockIssues: Issue[] = [
   {
     id: 1,
     title: 'Crack in foundation wall near column C3',
-    description: 'A hairline crack has been observed in the foundation wall near column C3. Requires immediate structural assessment.',
+    description:
+      'A hairline crack has been observed in the foundation wall near column C3. Requires immediate structural assessment.',
     type: IssueType.technical,
     status: IssueStatus.inProgress,
     createdAt: new Date('2025-01-12T08:00:00'),
@@ -510,7 +213,8 @@ const mockIssues: Issue[] = [
   {
     id: 2,
     title: 'Electrical panel not meeting specifications',
-    description: 'The installed electrical panel does not match the approved specifications in the design documents.',
+    description:
+      'The installed electrical panel does not match the approved specifications in the design documents.',
     type: IssueType.design,
     status: IssueStatus.open,
     createdAt: new Date('2025-01-10T11:30:00'),
@@ -521,7 +225,8 @@ const mockIssues: Issue[] = [
   {
     id: 3,
     title: 'Poor quality concrete in slab',
-    description: 'Visual inspection reveals honeycombing and segregation in the concrete slab at Level 3.',
+    description:
+      'Visual inspection reveals honeycombing and segregation in the concrete slab at Level 3.',
     type: IssueType.quality,
     status: IssueStatus.pending,
     createdAt: new Date('2025-01-08T15:20:00'),
@@ -532,7 +237,8 @@ const mockIssues: Issue[] = [
   {
     id: 4,
     title: 'Missing safety barriers on 4th floor',
-    description: 'Safety barriers are not installed on the 4th floor perimeter. This is a critical safety violation.',
+    description:
+      'Safety barriers are not installed on the 4th floor perimeter. This is a critical safety violation.',
     type: IssueType.safety,
     status: IssueStatus.resolved,
     createdAt: new Date('2025-01-05T08:00:00'),
@@ -543,7 +249,8 @@ const mockIssues: Issue[] = [
   {
     id: 5,
     title: 'Delay in steel delivery',
-    description: 'Structural steel shipment delayed by 2 weeks due to supplier issues.',
+    description:
+      'Structural steel shipment delayed by 2 weeks due to supplier issues.',
     type: IssueType.material,
     status: IssueStatus.blocked,
     createdAt: new Date('2025-01-03T09:00:00'),
@@ -554,7 +261,8 @@ const mockIssues: Issue[] = [
   {
     id: 6,
     title: 'Crane breakdown',
-    description: 'Tower crane experienced mechanical failure. Repair estimated to take 3-4 days.',
+    description:
+      'Tower crane experienced mechanical failure. Repair estimated to take 3-4 days.',
     type: IssueType.equipment,
     status: IssueStatus.inReview,
     createdAt: new Date('2025-01-11T13:45:00'),
@@ -715,7 +423,7 @@ const mockProjects: Project[] = [
     endDate: new Date('2026-11-30'),
     createdAt: new Date('2024-11-01'),
     members: mockMembers.slice(0, 4),
-    tasks: mockTasks.filter(t => t.projectId === 1),
+    tasks: mockTasks.filter((t) => t.projectId === 1),
   },
   {
     id: 2,
@@ -728,14 +436,14 @@ const mockProjects: Project[] = [
     endDate: new Date('2027-01-14'),
     createdAt: new Date('2024-12-10'),
     members: mockMembers,
-    tasks: mockTasks.filter(t => t.projectId === 2),
+    tasks: mockTasks.filter((t) => t.projectId === 2),
   },
   {
     id: 3,
     projectName: 'Metro Station - Sector 18',
     projectAddress: 'Sector 18, Noida, Uttar Pradesh 201301',
     status: ProjectStatus.upcoming,
-    projectLongitude: 77.3260,
+    projectLongitude: 77.326,
     projectLatitude: 28.5688,
     startDate: new Date('2025-03-01'),
     endDate: new Date('2027-02-28'),
@@ -761,7 +469,7 @@ const mockProjects: Project[] = [
     projectName: 'Shopping Mall - Phoenix',
     projectAddress: 'Viman Nagar, Pune, Maharashtra 411014',
     status: ProjectStatus.onHold,
-    projectLongitude: 73.9190,
+    projectLongitude: 73.919,
     projectLatitude: 18.5679,
     startDate: new Date('2024-08-01'),
     endDate: new Date('2026-07-31'),
@@ -785,7 +493,7 @@ const mockInvitations: Invitation[] = [
     organizationName: 'Echno Construction Ltd.',
     status: EmployeeStatus.active,
     joiningDate: new Date('2025-02-01'),
-    salary: 75000,
+    salary: 75_000,
     reportingManager: 'Rajesh Kumar',
     shiftTiming: '07:00 - 16:00',
     validityDays: 30,
@@ -801,7 +509,7 @@ const mockInvitations: Invitation[] = [
     organizationName: 'Echno Construction Ltd.',
     status: EmployeeStatus.probation,
     joiningDate: new Date('2025-02-10'),
-    salary: 45000,
+    salary: 45_000,
     reportingManager: 'Priya Sharma',
     shiftTiming: '09:00 - 18:00',
     validityDays: 45,
@@ -817,7 +525,7 @@ const mockInvitations: Invitation[] = [
     organizationName: 'BuildRight Infrastructure Pvt. Ltd.',
     status: EmployeeStatus.active,
     joiningDate: new Date('2025-03-01'),
-    salary: 80000,
+    salary: 80_000,
     reportingManager: 'Project Manager',
     shiftTiming: '09:00 - 18:00',
     validityDays: 60,
@@ -884,7 +592,7 @@ function createClockEvent(
 ): ClockEvent {
   const timestamp = new Date(date);
   timestamp.setHours(hour, minute, 0, 0);
-  
+
   const employeeLocation: GeoLocation = {
     latitude: projectLat + (Math.random() - 0.5) * 0.001, // Within ~55 meters
     longitude: projectLng + (Math.random() - 0.5) * 0.001,
@@ -897,8 +605,14 @@ function createClockEvent(
   };
 
   const distance = Math.sqrt(
-    Math.pow((employeeLocation.latitude - projectLocation.latitude) * 111000, 2) +
-    Math.pow((employeeLocation.longitude - projectLocation.longitude) * 111000, 2)
+    Math.pow(
+      (employeeLocation.latitude - projectLocation.latitude) * 111_000,
+      2
+    ) +
+      Math.pow(
+        (employeeLocation.longitude - projectLocation.longitude) * 111_000,
+        2
+      )
   );
 
   // Array of Unsplash portrait photos for professional selfies
@@ -923,7 +637,7 @@ function createClockEvent(
     projectName,
     deviceInfo: {
       platform: ['iOS', 'Android', 'Web'][Math.floor(Math.random() * 3)],
-      deviceId: `DEVICE-${Math.random().toString(36).substring(7).toUpperCase()}`,
+      deviceId: `DEVICE-${Math.random().toString(36).slice(7).toUpperCase()}`,
     },
     isWithinGeofence: distance <= 100,
     distanceFromProject: Math.round(distance),
@@ -941,10 +655,50 @@ const mockAttendance: Attendance[] = [
     projectName: 'Sunrise Tower',
     status: AttendanceStatus.present,
     shiftTiming: mockShiftTimings[0],
-    morningClockIn: createClockEvent(1, ClockEventType.morningClockIn, new Date('2025-01-13'), 8, 55, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakStart: createClockEvent(2, ClockEventType.lunchBreakStart, new Date('2025-01-13'), 13, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakEnd: createClockEvent(3, ClockEventType.lunchBreakEnd, new Date('2025-01-13'), 14, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    eveningClockOut: createClockEvent(4, ClockEventType.eveningClockOut, new Date('2025-01-13'), 18, 10, 1, 'Sunrise Tower', 19.0607, 72.8347),
+    morningClockIn: createClockEvent(
+      1,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-13'),
+      8,
+      55,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakStart: createClockEvent(
+      2,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-13'),
+      13,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakEnd: createClockEvent(
+      3,
+      ClockEventType.lunchBreakEnd,
+      new Date('2025-01-13'),
+      14,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    eveningClockOut: createClockEvent(
+      4,
+      ClockEventType.eveningClockOut,
+      new Date('2025-01-13'),
+      18,
+      10,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
     workDuration: {
       totalMinutes: 490,
       hours: 8,
@@ -1022,10 +776,50 @@ const mockAttendance: Attendance[] = [
     projectName: 'Sunrise Tower',
     status: AttendanceStatus.late,
     shiftTiming: mockShiftTimings[0],
-    morningClockIn: createClockEvent(5, ClockEventType.morningClockIn, new Date('2025-01-13'), 9, 30, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakStart: createClockEvent(6, ClockEventType.lunchBreakStart, new Date('2025-01-13'), 13, 15, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakEnd: createClockEvent(7, ClockEventType.lunchBreakEnd, new Date('2025-01-13'), 14, 10, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    eveningClockOut: createClockEvent(8, ClockEventType.eveningClockOut, new Date('2025-01-13'), 18, 30, 1, 'Sunrise Tower', 19.0607, 72.8347),
+    morningClockIn: createClockEvent(
+      5,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-13'),
+      9,
+      30,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakStart: createClockEvent(
+      6,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-13'),
+      13,
+      15,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakEnd: createClockEvent(
+      7,
+      ClockEventType.lunchBreakEnd,
+      new Date('2025-01-13'),
+      14,
+      10,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    eveningClockOut: createClockEvent(
+      8,
+      ClockEventType.eveningClockOut,
+      new Date('2025-01-13'),
+      18,
+      30,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
     workDuration: {
       totalMinutes: 485,
       hours: 8,
@@ -1079,8 +873,28 @@ const mockAttendance: Attendance[] = [
     projectName: 'Sunrise Tower',
     status: AttendanceStatus.halfDay,
     shiftTiming: mockShiftTimings[1],
-    morningClockIn: createClockEvent(9, ClockEventType.morningClockIn, new Date('2025-01-13'), 8, 5, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakStart: createClockEvent(10, ClockEventType.lunchBreakStart, new Date('2025-01-13'), 12, 30, 1, 'Sunrise Tower', 19.0607, 72.8347),
+    morningClockIn: createClockEvent(
+      9,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-13'),
+      8,
+      5,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakStart: createClockEvent(
+      10,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-13'),
+      12,
+      30,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
     workDuration: {
       totalMinutes: 265,
       hours: 4,
@@ -1111,10 +925,50 @@ const mockAttendance: Attendance[] = [
     projectName: 'Sunrise Tower',
     status: AttendanceStatus.overtime,
     shiftTiming: mockShiftTimings[2],
-    morningClockIn: createClockEvent(11, ClockEventType.morningClockIn, new Date('2025-01-12'), 7, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakStart: createClockEvent(12, ClockEventType.lunchBreakStart, new Date('2025-01-12'), 12, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakEnd: createClockEvent(13, ClockEventType.lunchBreakEnd, new Date('2025-01-12'), 13, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    eveningClockOut: createClockEvent(14, ClockEventType.eveningClockOut, new Date('2025-01-12'), 18, 30, 1, 'Sunrise Tower', 19.0607, 72.8347),
+    morningClockIn: createClockEvent(
+      11,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-12'),
+      7,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakStart: createClockEvent(
+      12,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-12'),
+      12,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakEnd: createClockEvent(
+      13,
+      ClockEventType.lunchBreakEnd,
+      new Date('2025-01-12'),
+      13,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    eveningClockOut: createClockEvent(
+      14,
+      ClockEventType.eveningClockOut,
+      new Date('2025-01-12'),
+      18,
+      30,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
     workDuration: {
       totalMinutes: 570,
       hours: 9,
@@ -1145,10 +999,50 @@ const mockAttendance: Attendance[] = [
     projectName: 'Green Valley Residential Complex',
     status: AttendanceStatus.present,
     shiftTiming: mockShiftTimings[1],
-    morningClockIn: createClockEvent(15, ClockEventType.morningClockIn, new Date('2025-01-12'), 8, 0, 2, 'Green Valley Residential Complex', 12.9698, 77.7499),
-    lunchBreakStart: createClockEvent(16, ClockEventType.lunchBreakStart, new Date('2025-01-12'), 12, 30, 2, 'Green Valley Residential Complex', 12.9698, 77.7499),
-    lunchBreakEnd: createClockEvent(17, ClockEventType.lunchBreakEnd, new Date('2025-01-12'), 13, 30, 2, 'Green Valley Residential Complex', 12.9698, 77.7499),
-    eveningClockOut: createClockEvent(18, ClockEventType.eveningClockOut, new Date('2025-01-12'), 17, 0, 2, 'Green Valley Residential Complex', 12.9698, 77.7499),
+    morningClockIn: createClockEvent(
+      15,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-12'),
+      8,
+      0,
+      2,
+      'Green Valley Residential Complex',
+      12.9698,
+      77.7499
+    ),
+    lunchBreakStart: createClockEvent(
+      16,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-12'),
+      12,
+      30,
+      2,
+      'Green Valley Residential Complex',
+      12.9698,
+      77.7499
+    ),
+    lunchBreakEnd: createClockEvent(
+      17,
+      ClockEventType.lunchBreakEnd,
+      new Date('2025-01-12'),
+      13,
+      30,
+      2,
+      'Green Valley Residential Complex',
+      12.9698,
+      77.7499
+    ),
+    eveningClockOut: createClockEvent(
+      18,
+      ClockEventType.eveningClockOut,
+      new Date('2025-01-12'),
+      17,
+      0,
+      2,
+      'Green Valley Residential Complex',
+      12.9698,
+      77.7499
+    ),
     workDuration: {
       totalMinutes: 480,
       hours: 8,
@@ -1178,9 +1072,39 @@ const mockAttendance: Attendance[] = [
     projectName: 'Sunrise Tower',
     status: AttendanceStatus.pendingRegularization,
     shiftTiming: mockShiftTimings[0],
-    morningClockIn: createClockEvent(19, ClockEventType.morningClockIn, new Date('2025-01-11'), 9, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakStart: createClockEvent(20, ClockEventType.lunchBreakStart, new Date('2025-01-11'), 13, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakEnd: createClockEvent(21, ClockEventType.lunchBreakEnd, new Date('2025-01-11'), 14, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
+    morningClockIn: createClockEvent(
+      19,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-11'),
+      9,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakStart: createClockEvent(
+      20,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-11'),
+      13,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakEnd: createClockEvent(
+      21,
+      ClockEventType.lunchBreakEnd,
+      new Date('2025-01-11'),
+      14,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
     workDuration: {
       totalMinutes: 240,
       hours: 4,
@@ -1243,10 +1167,50 @@ const mockAttendance: Attendance[] = [
     projectName: 'Sunrise Tower',
     status: AttendanceStatus.present,
     shiftTiming: mockShiftTimings[0],
-    morningClockIn: createClockEvent(22, ClockEventType.morningClockIn, new Date('2025-01-12'), 9, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakStart: createClockEvent(23, ClockEventType.lunchBreakStart, new Date('2025-01-12'), 13, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    lunchBreakEnd: createClockEvent(24, ClockEventType.lunchBreakEnd, new Date('2025-01-12'), 14, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
-    eveningClockOut: createClockEvent(25, ClockEventType.eveningClockOut, new Date('2025-01-12'), 18, 0, 1, 'Sunrise Tower', 19.0607, 72.8347),
+    morningClockIn: createClockEvent(
+      22,
+      ClockEventType.morningClockIn,
+      new Date('2025-01-12'),
+      9,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakStart: createClockEvent(
+      23,
+      ClockEventType.lunchBreakStart,
+      new Date('2025-01-12'),
+      13,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    lunchBreakEnd: createClockEvent(
+      24,
+      ClockEventType.lunchBreakEnd,
+      new Date('2025-01-12'),
+      14,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
+    eveningClockOut: createClockEvent(
+      25,
+      ClockEventType.eveningClockOut,
+      new Date('2025-01-12'),
+      18,
+      0,
+      1,
+      'Sunrise Tower',
+      19.0607,
+      72.8347
+    ),
     workDuration: {
       totalMinutes: 480,
       hours: 8,
@@ -1291,10 +1255,10 @@ const mockAttendanceSummaries: AttendanceSummary[] = [
     averageWorkHours: 8.4,
     attendancePercentage: 100,
     effectiveWorkDays: 22,
-    baseSalary: 120000,
+    baseSalary: 120_000,
     attendanceDeductions: 0,
     overtimePay: 1125,
-    netSalary: 121125,
+    netSalary: 121_125,
     projectWiseAttendance: [
       {
         projectId: 1,
@@ -1325,10 +1289,10 @@ const mockAttendanceSummaries: AttendanceSummary[] = [
     averageWorkHours: 7.75,
     attendancePercentage: 91.8,
     effectiveWorkDays: 20.2,
-    baseSalary: 85000,
+    baseSalary: 85_000,
     attendanceDeductions: 6954.55,
     overtimePay: 0,
-    netSalary: 78045.45,
+    netSalary: 78_045.45,
     projectWiseAttendance: [
       {
         projectId: 1,
@@ -1359,10 +1323,10 @@ const mockAttendanceSummaries: AttendanceSummary[] = [
     averageWorkHours: 7.8,
     attendancePercentage: 90.9,
     effectiveWorkDays: 20,
-    baseSalary: 55000,
+    baseSalary: 55_000,
     attendanceDeductions: 5000,
     overtimePay: 0,
-    netSalary: 50000,
+    netSalary: 50_000,
     projectWiseAttendance: [
       {
         projectId: 1,
@@ -1393,10 +1357,10 @@ const mockAttendanceSummaries: AttendanceSummary[] = [
     averageWorkHours: 8.6,
     attendancePercentage: 100,
     effectiveWorkDays: 22,
-    baseSalary: 48000,
+    baseSalary: 48_000,
     attendanceDeductions: 0,
     overtimePay: 1227.27,
-    netSalary: 49227.27,
+    netSalary: 49_227.27,
     projectWiseAttendance: [
       {
         projectId: 1,
@@ -1432,9 +1396,6 @@ export const COMPREHENSIVE_MOCK_DATA = {
 
 // Individual exports for convenience
 export {
-  mockUsers,
-  mockEmployees,
-  mockOrganizations,
   mockMembers,
   mockWorkCategories,
   mockIssueComments,
@@ -1455,21 +1416,21 @@ export {
  * Get employee by ID
  */
 export function getEmployeeById(id: number): Employee | undefined {
-  return mockEmployees.find(emp => emp.id === id);
+  return mockEmployees.find((emp) => emp.id === id);
 }
 
 /**
  * Get project by ID
  */
 export function getProjectById(id: number): Project | undefined {
-  return mockProjects.find(proj => proj.id === id);
+  return mockProjects.find((proj) => proj.id === id);
 }
 
 /**
  * Get tasks for a specific project
  */
 export function getTasksForProject(projectId: number): Task[] {
-  return mockTasks.filter(task => task.projectId === projectId);
+  return mockTasks.filter((task) => task.projectId === projectId);
 }
 
 /**
@@ -1483,21 +1444,21 @@ export function getIssuesForTask(task: Task): Issue[] {
  * Get organization by ID
  */
 export function getOrganizationById(id: number): Organization | undefined {
-  return mockOrganizations.find(org => org.id === id);
+  return mockOrganizations.find((org) => org.id === id);
 }
 
 /**
  * Get all active employees
  */
 export function getActiveEmployees(): Employee[] {
-  return mockEmployees.filter(emp => emp.status === EmployeeStatus.active);
+  return mockEmployees.filter((emp) => emp.status === EmployeeStatus.active);
 }
 
 /**
  * Get employees by department
  */
 export function getEmployeesByDepartment(department: Department): Employee[] {
-  return mockEmployees.filter(emp => emp.department === department);
+  return mockEmployees.filter((emp) => emp.department === department);
 }
 
 /**
@@ -1505,7 +1466,9 @@ export function getEmployeesByDepartment(department: Department): Employee[] {
  */
 export function getOpenIssues(): Issue[] {
   return mockIssues.filter(
-    issue => issue.status === IssueStatus.open || issue.status === IssueStatus.inProgress
+    (issue) =>
+      issue.status === IssueStatus.open ||
+      issue.status === IssueStatus.inProgress
   );
 }
 
@@ -1513,28 +1476,28 @@ export function getOpenIssues(): Issue[] {
  * Get ongoing tasks
  */
 export function getOngoingTasks(): Task[] {
-  return mockTasks.filter(task => task.status === TaskStatus.onGoing);
+  return mockTasks.filter((task) => task.status === TaskStatus.onGoing);
 }
 
 /**
  * Get upcoming tasks
  */
 export function getUpcomingTasks(): Task[] {
-  return mockTasks.filter(task => task.status === TaskStatus.upcoming);
+  return mockTasks.filter((task) => task.status === TaskStatus.upcoming);
 }
 
 /**
  * Get completed tasks
  */
 export function getCompletedTasks(): Task[] {
-  return mockTasks.filter(task => task.status === TaskStatus.completed);
+  return mockTasks.filter((task) => task.status === TaskStatus.completed);
 }
 
 /**
  * Get active invitations
  */
 export function getActiveInvitations(): Invitation[] {
-  return mockInvitations.filter(inv => {
+  return mockInvitations.filter((inv) => {
     if (!inv.expiryDate) return true;
     return inv.expiryDate > new Date();
   });
@@ -1544,7 +1507,7 @@ export function getActiveInvitations(): Invitation[] {
  * Get projects by status
  */
 export function getProjectsByStatus(status: ProjectStatus): Project[] {
-  return mockProjects.filter(proj => proj.status === status);
+  return mockProjects.filter((proj) => proj.status === status);
 }
 
 /**
@@ -1556,7 +1519,7 @@ export function getAttendanceByEmployeeAndDateRange(
   endDate: Date
 ): Attendance[] {
   return mockAttendance.filter(
-    att =>
+    (att) =>
       att.employeeId === employeeId &&
       att.date >= startDate &&
       att.date <= endDate
@@ -1571,7 +1534,7 @@ export function getAttendanceByProjectAndDate(
   date: Date
 ): Attendance[] {
   return mockAttendance.filter(
-    att =>
+    (att) =>
       att.projectId === projectId &&
       att.date.toDateString() === date.toDateString()
   );
@@ -1585,7 +1548,7 @@ export function getAttendanceByDateRange(
   endDate: Date
 ): Attendance[] {
   return mockAttendance.filter(
-    att => att.date >= startDate && att.date <= endDate
+    (att) => att.date >= startDate && att.date <= endDate
   );
 }
 
@@ -1594,9 +1557,7 @@ export function getAttendanceByDateRange(
  */
 export function getPendingRegularizations(): Attendance[] {
   return mockAttendance.filter(
-    att =>
-      att.regularization &&
-      att.regularization.status === 'pending'
+    (att) => att.regularization && att.regularization.status === 'pending'
   );
 }
 
@@ -1609,7 +1570,7 @@ export function getAttendanceSummaryByEmployee(
   year: number
 ): AttendanceSummary | undefined {
   return mockAttendanceSummaries.find(
-    summary =>
+    (summary) =>
       summary.employeeId === employeeId &&
       summary.month === month &&
       summary.year === year
@@ -1624,7 +1585,7 @@ export function getAttendanceSummariesByMonth(
   year: number
 ): AttendanceSummary[] {
   return mockAttendanceSummaries.filter(
-    summary => summary.month === month && summary.year === year
+    (summary) => summary.month === month && summary.year === year
   );
 }
 
@@ -1645,7 +1606,7 @@ export function calculateAttendancePercentage(
   if (attendanceRecords.length === 0) return 0;
 
   const presentCount = attendanceRecords.filter(
-    att =>
+    (att) =>
       att.status === AttendanceStatus.present ||
       att.status === AttendanceStatus.late ||
       att.status === AttendanceStatus.overtime ||
@@ -1664,7 +1625,7 @@ export function getEmployeesWithLowAttendance(
   threshold: number = 80
 ): AttendanceSummary[] {
   return mockAttendanceSummaries.filter(
-    summary =>
+    (summary) =>
       summary.month === month &&
       summary.year === year &&
       summary.attendancePercentage < threshold
@@ -1679,7 +1640,7 @@ export function getOvertimeWorkers(
   year: number
 ): AttendanceSummary[] {
   return mockAttendanceSummaries.filter(
-    summary =>
+    (summary) =>
       summary.month === month &&
       summary.year === year &&
       summary.overtimeDays > 0
@@ -1689,17 +1650,19 @@ export function getOvertimeWorkers(
 /**
  * Get project-wise attendance for a date
  */
-export function getProjectWiseAttendance(date: Date): Record<number, Attendance[]> {
+export function getProjectWiseAttendance(
+  date: Date
+): Record<number, Attendance[]> {
   const attendanceByProject: Record<number, Attendance[]> = {};
-  
-  mockAttendance
-    .filter(att => att.date.toDateString() === date.toDateString())
-    .forEach(att => {
-      if (!attendanceByProject[att.projectId]) {
-        attendanceByProject[att.projectId] = [];
-      }
-      attendanceByProject[att.projectId].push(att);
-    });
+
+  for (const att of mockAttendance.filter(
+    (att) => att.date.toDateString() === date.toDateString()
+  )) {
+    if (!attendanceByProject[att.projectId]) {
+      attendanceByProject[att.projectId] = [];
+    }
+    attendanceByProject[att.projectId].push(att);
+  }
 
   return attendanceByProject;
 }
@@ -1713,248 +1676,248 @@ export function getProjectWiseAttendance(date: Date): Record<number, Attendance[
  */
 export const mockLeaveRequests: LeaveRequest[] = [
   {
-    id: "LV-2025-001",
-    employeeId: "1",
-    employeeName: "Rajesh Kumar",
-    employeeEmail: "rajesh.kumar@echno.com",
-    department: "Engineering",
+    id: 'LV-2025-001',
+    employeeId: '1',
+    employeeName: 'Rajesh Kumar',
+    employeeEmail: 'rajesh.kumar@echno.com',
+    department: 'Engineering',
     leaveType: LeaveType.earnedLeave,
-    fromDate: new Date("2025-01-20"),
-    toDate: new Date("2025-01-22"),
+    fromDate: new Date('2025-01-20'),
+    toDate: new Date('2025-01-22'),
     daysCount: 3,
-    reason: "Family vacation to Goa",
+    reason: 'Family vacation to Goa',
     status: LeaveStatus.approved,
-    appliedAt: new Date("2025-01-10"),
+    appliedAt: new Date('2025-01-10'),
     approvers: [
       {
-        id: "APP-001",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
-        approvedAt: new Date("2025-01-11"),
-        comments: "Approved. Enjoy your vacation!",
+        id: 'APP-001',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        approvedAt: new Date('2025-01-11'),
+        comments: 'Approved. Enjoy your vacation!',
       },
     ],
     delegation: {
-      delegateToId: "2",
-      delegateToName: "Priya Sharma",
-      delegateToEmail: "priya.sharma@echno.com",
-      responsibilities: "Handle project reviews and client meetings",
+      delegateToId: '2',
+      delegateToName: 'Priya Sharma',
+      delegateToEmail: 'priya.sharma@echno.com',
+      responsibilities: 'Handle project reviews and client meetings',
       notified: true,
     },
     attachments: [],
-    createdAt: new Date("2025-01-10"),
-    updatedAt: new Date("2025-01-11"),
+    createdAt: new Date('2025-01-10'),
+    updatedAt: new Date('2025-01-11'),
   },
   {
-    id: "LV-2025-002",
-    employeeId: "2",
-    employeeName: "Priya Sharma",
-    employeeEmail: "priya.sharma@echno.com",
-    department: "Engineering",
+    id: 'LV-2025-002',
+    employeeId: '2',
+    employeeName: 'Priya Sharma',
+    employeeEmail: 'priya.sharma@echno.com',
+    department: 'Engineering',
     leaveType: LeaveType.sickLeave,
-    fromDate: new Date("2025-01-15"),
-    toDate: new Date("2025-01-16"),
+    fromDate: new Date('2025-01-15'),
+    toDate: new Date('2025-01-16'),
     daysCount: 2,
-    reason: "Fever and flu",
+    reason: 'Fever and flu',
     status: LeaveStatus.approved,
-    appliedAt: new Date("2025-01-14"),
+    appliedAt: new Date('2025-01-14'),
     approvers: [
       {
-        id: "APP-002",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
-        approvedAt: new Date("2025-01-14"),
-        comments: "Approved. Take rest and get well soon.",
+        id: 'APP-002',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        approvedAt: new Date('2025-01-14'),
+        comments: 'Approved. Take rest and get well soon.',
       },
     ],
     attachments: [
       {
-        id: "ATT-001",
-        fileName: "medical-certificate.pdf",
-        fileUrl: "/documents/medical-certificate.pdf",
-        fileType: "application/pdf",
-        uploadedAt: new Date("2025-01-14"),
+        id: 'ATT-001',
+        fileName: 'medical-certificate.pdf',
+        fileUrl: '/documents/medical-certificate.pdf',
+        fileType: 'application/pdf',
+        uploadedAt: new Date('2025-01-14'),
       },
     ],
-    emergencyContact: "+91 98765 11111",
-    createdAt: new Date("2025-01-14"),
-    updatedAt: new Date("2025-01-14"),
+    emergencyContact: '+91 98765 11111',
+    createdAt: new Date('2025-01-14'),
+    updatedAt: new Date('2025-01-14'),
   },
   {
-    id: "LV-2025-003",
-    employeeId: "3",
-    employeeName: "Amit Patel",
-    employeeEmail: "amit.patel@echno.com",
-    department: "Electrical",
+    id: 'LV-2025-003',
+    employeeId: '3',
+    employeeName: 'Amit Patel',
+    employeeEmail: 'amit.patel@echno.com',
+    department: 'Electrical',
     leaveType: LeaveType.casualLeave,
-    fromDate: new Date("2025-02-05"),
-    toDate: new Date("2025-02-05"),
+    fromDate: new Date('2025-02-05'),
+    toDate: new Date('2025-02-05'),
     daysCount: 1,
-    reason: "Personal work - bank visit",
+    reason: 'Personal work - bank visit',
     status: LeaveStatus.pending,
-    appliedAt: new Date("2025-01-30"),
+    appliedAt: new Date('2025-01-30'),
     approvers: [
       {
-        id: "APP-003",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
+        id: 'APP-003',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
       },
     ],
-    currentApproverId: "4",
+    currentApproverId: '4',
     attachments: [],
-    createdAt: new Date("2025-01-30"),
-    updatedAt: new Date("2025-01-30"),
+    createdAt: new Date('2025-01-30'),
+    updatedAt: new Date('2025-01-30'),
   },
   {
-    id: "LV-2025-004",
-    employeeId: "5",
-    employeeName: "Vikram Singh",
-    employeeEmail: "vikram.singh@echno.com",
-    department: "Operations",
+    id: 'LV-2025-004',
+    employeeId: '5',
+    employeeName: 'Vikram Singh',
+    employeeEmail: 'vikram.singh@echno.com',
+    department: 'Operations',
     leaveType: LeaveType.paternityLeave,
-    fromDate: new Date("2025-02-10"),
-    toDate: new Date("2025-02-24"),
+    fromDate: new Date('2025-02-10'),
+    toDate: new Date('2025-02-24'),
     daysCount: 15,
-    reason: "Expecting a baby",
+    reason: 'Expecting a baby',
     status: LeaveStatus.pending,
-    appliedAt: new Date("2025-01-25"),
+    appliedAt: new Date('2025-01-25'),
     approvers: [
       {
-        id: "APP-004",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
+        id: 'APP-004',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
       },
     ],
-    currentApproverId: "4",
+    currentApproverId: '4',
     delegation: {
-      delegateToId: "6",
-      delegateToName: "Ananya Iyer",
-      delegateToEmail: "ananya.iyer@echno.com",
-      responsibilities: "Manage site operations and coordinate with vendors",
+      delegateToId: '6',
+      delegateToName: 'Ananya Iyer',
+      delegateToEmail: 'ananya.iyer@echno.com',
+      responsibilities: 'Manage site operations and coordinate with vendors',
       notified: true,
     },
     attachments: [],
-    emergencyContact: "+91 98765 33333",
-    createdAt: new Date("2025-01-25"),
-    updatedAt: new Date("2025-01-25"),
+    emergencyContact: '+91 98765 33333',
+    createdAt: new Date('2025-01-25'),
+    updatedAt: new Date('2025-01-25'),
   },
   {
-    id: "LV-2025-005",
-    employeeId: "7",
-    employeeName: "Karthik Menon",
-    employeeEmail: "karthik.menon@echno.com",
-    department: "Administration",
+    id: 'LV-2025-005',
+    employeeId: '7',
+    employeeName: 'Karthik Menon',
+    employeeEmail: 'karthik.menon@echno.com',
+    department: 'Administration',
     leaveType: LeaveType.casualLeave,
-    fromDate: new Date("2025-01-18"),
-    toDate: new Date("2025-01-18"),
+    fromDate: new Date('2025-01-18'),
+    toDate: new Date('2025-01-18'),
     daysCount: 1,
-    reason: "Wedding anniversary celebration",
+    reason: 'Wedding anniversary celebration',
     status: LeaveStatus.approved,
-    appliedAt: new Date("2025-01-12"),
+    appliedAt: new Date('2025-01-12'),
     approvers: [
       {
-        id: "APP-005",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
-        approvedAt: new Date("2025-01-13"),
-        comments: "Approved. Congratulations!",
+        id: 'APP-005',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        approvedAt: new Date('2025-01-13'),
+        comments: 'Approved. Congratulations!',
       },
     ],
     attachments: [],
-    createdAt: new Date("2025-01-12"),
-    updatedAt: new Date("2025-01-13"),
+    createdAt: new Date('2025-01-12'),
+    updatedAt: new Date('2025-01-13'),
   },
   {
-    id: "LV-2025-006",
-    employeeId: "8",
-    employeeName: "Divya Nair",
-    employeeEmail: "divya.nair@echno.com",
-    department: "Finance",
+    id: 'LV-2025-006',
+    employeeId: '8',
+    employeeName: 'Divya Nair',
+    employeeEmail: 'divya.nair@echno.com',
+    department: 'Finance',
     leaveType: LeaveType.sickLeave,
-    fromDate: new Date("2025-02-15"),
-    toDate: new Date("2025-02-17"),
+    fromDate: new Date('2025-02-15'),
+    toDate: new Date('2025-02-17'),
     daysCount: 3,
-    reason: "Dental surgery",
+    reason: 'Dental surgery',
     status: LeaveStatus.pending,
-    appliedAt: new Date("2025-02-01"),
+    appliedAt: new Date('2025-02-01'),
     approvers: [
       {
-        id: "APP-006",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
+        id: 'APP-006',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
       },
     ],
-    currentApproverId: "4",
+    currentApproverId: '4',
     attachments: [
       {
-        id: "ATT-002",
-        fileName: "dental-appointment.pdf",
-        fileUrl: "/documents/dental-appointment.pdf",
-        fileType: "application/pdf",
-        uploadedAt: new Date("2025-02-01"),
+        id: 'ATT-002',
+        fileName: 'dental-appointment.pdf',
+        fileUrl: '/documents/dental-appointment.pdf',
+        fileType: 'application/pdf',
+        uploadedAt: new Date('2025-02-01'),
       },
     ],
-    emergencyContact: "+91 98765 44444",
-    createdAt: new Date("2025-02-01"),
-    updatedAt: new Date("2025-02-01"),
+    emergencyContact: '+91 98765 44444',
+    createdAt: new Date('2025-02-01'),
+    updatedAt: new Date('2025-02-01'),
   },
   {
-    id: "LV-2025-007",
-    employeeId: "1",
-    employeeName: "Rajesh Kumar",
-    employeeEmail: "rajesh.kumar@echno.com",
-    department: "Engineering",
+    id: 'LV-2025-007',
+    employeeId: '1',
+    employeeName: 'Rajesh Kumar',
+    employeeEmail: 'rajesh.kumar@echno.com',
+    department: 'Engineering',
     leaveType: LeaveType.earnedLeave,
-    fromDate: new Date("2025-03-10"),
-    toDate: new Date("2025-03-14"),
+    fromDate: new Date('2025-03-10'),
+    toDate: new Date('2025-03-14'),
     daysCount: 5,
     reason: "Attending cousin's wedding in Delhi",
     status: LeaveStatus.draft,
-    appliedAt: new Date("2025-02-05"),
+    appliedAt: new Date('2025-02-05'),
     approvers: [],
     attachments: [],
-    createdAt: new Date("2025-02-05"),
-    updatedAt: new Date("2025-02-05"),
+    createdAt: new Date('2025-02-05'),
+    updatedAt: new Date('2025-02-05'),
   },
   {
-    id: "LV-2025-008",
-    employeeId: "2",
-    employeeName: "Priya Sharma",
-    employeeEmail: "priya.sharma@echno.com",
-    department: "Engineering",
+    id: 'LV-2025-008',
+    employeeId: '2',
+    employeeName: 'Priya Sharma',
+    employeeEmail: 'priya.sharma@echno.com',
+    department: 'Engineering',
     leaveType: LeaveType.casualLeave,
-    fromDate: new Date("2025-01-12"),
-    toDate: new Date("2025-01-12"),
+    fromDate: new Date('2025-01-12'),
+    toDate: new Date('2025-01-12'),
     daysCount: 1,
-    reason: "House maintenance work",
+    reason: 'House maintenance work',
     status: LeaveStatus.rejected,
-    appliedAt: new Date("2025-01-10"),
+    appliedAt: new Date('2025-01-10'),
     approvers: [
       {
-        id: "APP-007",
-        employeeId: "4",
-        employeeName: "Sneha Reddy",
-        employeeEmail: "sneha.reddy@echno.com",
-        role: "HR Manager",
-        rejectedAt: new Date("2025-01-11"),
-        comments: "Critical project deadline on this date. Please reschedule.",
+        id: 'APP-007',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        rejectedAt: new Date('2025-01-11'),
+        comments: 'Critical project deadline on this date. Please reschedule.',
       },
     ],
     attachments: [],
-    createdAt: new Date("2025-01-10"),
-    updatedAt: new Date("2025-01-11"),
+    createdAt: new Date('2025-01-10'),
+    updatedAt: new Date('2025-01-11'),
   },
 ];
 
@@ -1963,9 +1926,9 @@ export const mockLeaveRequests: LeaveRequest[] = [
  */
 export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
   {
-    employeeId: "1",
-    employeeName: "Rajesh Kumar",
-    department: "Engineering",
+    employeeId: '1',
+    employeeName: 'Rajesh Kumar',
+    department: 'Engineering',
     period: QuotaPeriod.yearly,
     year: 2025,
     balances: [
@@ -2006,14 +1969,14 @@ export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
         carriedForward: 2,
       },
     ],
-    effectiveFrom: new Date("2025-01-01"),
-    effectiveTo: new Date("2025-12-31"),
-    lastUpdated: new Date("2025-02-05"),
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
   },
   {
-    employeeId: "2",
-    employeeName: "Priya Sharma",
-    department: "Engineering",
+    employeeId: '2',
+    employeeName: 'Priya Sharma',
+    department: 'Engineering',
     period: QuotaPeriod.yearly,
     year: 2025,
     balances: [
@@ -2045,14 +2008,14 @@ export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
         carriedForward: 0,
       },
     ],
-    effectiveFrom: new Date("2025-01-01"),
-    effectiveTo: new Date("2025-12-31"),
-    lastUpdated: new Date("2025-02-05"),
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
   },
   {
-    employeeId: "3",
-    employeeName: "Amit Patel",
-    department: "Electrical",
+    employeeId: '3',
+    employeeName: 'Amit Patel',
+    department: 'Electrical',
     period: QuotaPeriod.yearly,
     year: 2025,
     balances: [
@@ -2084,14 +2047,14 @@ export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
         carriedForward: 0,
       },
     ],
-    effectiveFrom: new Date("2025-01-01"),
-    effectiveTo: new Date("2025-12-31"),
-    lastUpdated: new Date("2025-02-05"),
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
   },
   {
-    employeeId: "4",
-    employeeName: "Sneha Reddy",
-    department: "Human Resources",
+    employeeId: '4',
+    employeeName: 'Sneha Reddy',
+    department: 'Human Resources',
     period: QuotaPeriod.yearly,
     year: 2025,
     balances: [
@@ -2123,14 +2086,14 @@ export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
         carriedForward: 0,
       },
     ],
-    effectiveFrom: new Date("2025-01-01"),
-    effectiveTo: new Date("2025-12-31"),
-    lastUpdated: new Date("2025-02-05"),
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
   },
   {
-    employeeId: "5",
-    employeeName: "Vikram Singh",
-    department: "Operations",
+    employeeId: '5',
+    employeeName: 'Vikram Singh',
+    department: 'Operations',
     period: QuotaPeriod.yearly,
     year: 2025,
     balances: [
@@ -2171,9 +2134,9 @@ export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
         carriedForward: 0,
       },
     ],
-    effectiveFrom: new Date("2025-01-01"),
-    effectiveTo: new Date("2025-12-31"),
-    lastUpdated: new Date("2025-02-05"),
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
   },
 ];
 
@@ -2181,38 +2144,47 @@ export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
  * Get leave requests for an employee
  */
 export function getEmployeeLeaveRequests(employeeId: string): LeaveRequest[] {
-  return mockLeaveRequests.filter(leave => leave.employeeId === employeeId);
+  return mockLeaveRequests.filter((leave) => leave.employeeId === employeeId);
 }
 
 /**
  * Get pending leave requests
  */
 export function getPendingLeaveRequests(): LeaveRequest[] {
-  return mockLeaveRequests.filter(leave => leave.status === LeaveStatus.pending);
+  return mockLeaveRequests.filter(
+    (leave) => leave.status === LeaveStatus.pending
+  );
 }
 
 /**
  * Get leave requests by status
  */
 export function getLeaveRequestsByStatus(status: LeaveStatus): LeaveRequest[] {
-  return mockLeaveRequests.filter(leave => leave.status === status);
+  return mockLeaveRequests.filter((leave) => leave.status === status);
 }
 
 /**
  * Get leave requests for approval (for a specific approver)
  */
-export function getLeaveRequestsForApproval(approverId: string): LeaveRequest[] {
+export function getLeaveRequestsForApproval(
+  approverId: string
+): LeaveRequest[] {
   return mockLeaveRequests.filter(
-    leave => leave.status === LeaveStatus.pending && leave.currentApproverId === approverId
+    (leave) =>
+      leave.status === LeaveStatus.pending &&
+      leave.currentApproverId === approverId
   );
 }
 
 /**
  * Get employee leave quota
  */
-export function getEmployeeLeaveQuota(employeeId: string, year: number): EmployeeLeaveQuota | undefined {
+export function getEmployeeLeaveQuota(
+  employeeId: string,
+  year: number
+): EmployeeLeaveQuota | undefined {
   return mockEmployeeLeaveQuotas.find(
-    quota => quota.employeeId === employeeId && quota.year === year
+    (quota) => quota.employeeId === employeeId && quota.year === year
   );
 }
 
@@ -2225,7 +2197,7 @@ export function getLeaveBalance(
   year: number
 ): LeaveBalance | undefined {
   const quota = getEmployeeLeaveQuota(employeeId, year);
-  return quota?.balances.find(balance => balance.leaveType === leaveType);
+  return quota?.balances.find((balance) => balance.leaveType === leaveType);
 }
 
 /**
@@ -2234,16 +2206,19 @@ export function getLeaveBalance(
 export function getUpcomingLeaves(): LeaveRequest[] {
   const today = new Date();
   return mockLeaveRequests.filter(
-    leave => leave.status === LeaveStatus.approved && leave.fromDate > today
+    (leave) => leave.status === LeaveStatus.approved && leave.fromDate > today
   );
 }
 
 /**
  * Get leaves by date range
  */
-export function getLeavesByDateRange(fromDate: Date, toDate: Date): LeaveRequest[] {
+export function getLeavesByDateRange(
+  fromDate: Date,
+  toDate: Date
+): LeaveRequest[] {
   return mockLeaveRequests.filter(
-    leave =>
+    (leave) =>
       (leave.fromDate >= fromDate && leave.fromDate <= toDate) ||
       (leave.toDate >= fromDate && leave.toDate <= toDate) ||
       (leave.fromDate <= fromDate && leave.toDate >= toDate)
@@ -2254,7 +2229,7 @@ export function getLeavesByDateRange(fromDate: Date, toDate: Date): LeaveRequest
 // RESOURCES - INVENTORY, LOCATIONS, ASSETS
 // ═════════════════════════════════════════════════════════════════════════════
 
-import { Location, LocationType } from '@/types/resource/location';
+import { Location } from '@/types/resource/location';
 import { InventoryItem } from '@/types/resource/inventory';
 
 // Mock Locations
@@ -2266,7 +2241,7 @@ export const mockLocations: Location[] = [
     address: 'Plot No. 45, MIDC Industrial Area, Andheri East, Mumbai - 400093',
     capacity: 5000,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 2,
@@ -2276,7 +2251,7 @@ export const mockLocations: Location[] = [
     capacity: 2000,
     organizationId: 1,
     projectId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 3,
@@ -2285,7 +2260,7 @@ export const mockLocations: Location[] = [
     address: 'Powai, Mumbai - 400076',
     capacity: 1000,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 4,
@@ -2294,7 +2269,7 @@ export const mockLocations: Location[] = [
     address: 'Sector 11, Vashi, Navi Mumbai - 400703',
     capacity: 8000,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 5,
@@ -2304,7 +2279,7 @@ export const mockLocations: Location[] = [
     capacity: 1500,
     organizationId: 1,
     projectId: 2,
-    isActive: true
+    isActive: true,
   },
   {
     id: 6,
@@ -2313,7 +2288,7 @@ export const mockLocations: Location[] = [
     address: 'Ghodbunder Road, Thane - 400607',
     capacity: 3000,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 7,
@@ -2323,7 +2298,7 @@ export const mockLocations: Location[] = [
     capacity: 1200,
     organizationId: 1,
     projectId: 3,
-    isActive: false
+    isActive: false,
   },
   {
     id: 8,
@@ -2332,7 +2307,7 @@ export const mockLocations: Location[] = [
     address: 'MIDC Industrial Area, Panvel, Navi Mumbai - 410206',
     capacity: 6000,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 9,
@@ -2342,7 +2317,7 @@ export const mockLocations: Location[] = [
     capacity: 1800,
     organizationId: 1,
     projectId: 4,
-    isActive: true
+    isActive: true,
   },
   {
     id: 10,
@@ -2351,7 +2326,7 @@ export const mockLocations: Location[] = [
     address: 'Kalyan Bhiwandi Road, Kalyan - 421306',
     capacity: 4500,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 11,
@@ -2361,7 +2336,7 @@ export const mockLocations: Location[] = [
     capacity: 1600,
     organizationId: 1,
     projectId: 5,
-    isActive: true
+    isActive: true,
   },
   {
     id: 12,
@@ -2370,7 +2345,7 @@ export const mockLocations: Location[] = [
     address: 'Hinjewadi IT Park, Phase 1, Pune - 411057',
     capacity: 800,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 13,
@@ -2379,7 +2354,7 @@ export const mockLocations: Location[] = [
     address: 'MIDC Turbhe, Navi Mumbai - 400705',
     capacity: 7000,
     organizationId: 1,
-    isActive: true
+    isActive: true,
   },
   {
     id: 14,
@@ -2389,7 +2364,7 @@ export const mockLocations: Location[] = [
     capacity: 2200,
     organizationId: 1,
     projectId: 6,
-    isActive: true
+    isActive: true,
   },
   {
     id: 15,
@@ -2398,8 +2373,8 @@ export const mockLocations: Location[] = [
     address: 'Industrial Estate, Borivali East, Mumbai - 400066',
     capacity: 3500,
     organizationId: 1,
-    isActive: true
-  }
+    isActive: true,
+  },
 ];
 
 // Mock inventory count per location
@@ -2418,12 +2393,12 @@ export const mockLocationInventory: Record<number, number> = {
   12: 2,
   13: 9,
   14: 5,
-  15: 4
+  15: 4,
 };
 
 // Helper function to get location by ID
 export function getLocationById(id: number): Location | undefined {
-  return mockLocations.find(loc => loc.id === id);
+  return mockLocations.find((loc) => loc.id === id);
 }
 
 // Mock Inventory Items
@@ -2432,7 +2407,8 @@ export const mockInventoryItems: InventoryItem[] = [
     id: 1,
     itemId: 'INV-001',
     name: 'Portland Cement - Grade 53',
-    description: 'High-grade cement for structural concrete work. Suitable for all types of construction including high-rise buildings, bridges, and industrial structures.',
+    description:
+      'High-grade cement for structural concrete work. Suitable for all types of construction including high-rise buildings, bridges, and industrial structures.',
     category: 'cement',
     quantity: 450,
     unit: 'bags',
@@ -2442,20 +2418,20 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 1,
     location: mockLocations[0],
     unitPrice: 350,
-    totalValue: 157500,
+    totalValue: 157_500,
     vendorId: 1, // UltraTech Cement Ltd.
     brand: 'UltraTech',
     specifications: {
       grade: '53',
       packagingSize: '50 kg',
       compressiveStrength: '53 MPa',
-      standard: 'IS 12269:2013'
+      standard: 'IS 12269:2013',
     },
     batchNumber: 'UT-2024-11-001',
     lastRestockedDate: new Date('2024-10-25'),
     notes: 'Store in dry conditions. Keep away from moisture.',
     createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-10-25')
+    updatedAt: new Date('2024-10-25'),
   },
   {
     id: 2,
@@ -2471,13 +2447,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 1,
     location: mockLocations[0],
     unitPrice: 450,
-    totalValue: 67500,
+    totalValue: 67_500,
     vendorId: 2, // Tata Steel
     brand: 'Tata Tiscon',
     batchNumber: 'TS-12MM-2024-045',
     lastRestockedDate: new Date('2024-11-01'),
     createdAt: new Date('2024-02-10'),
-    updatedAt: new Date('2024-11-01')
+    updatedAt: new Date('2024-11-01'),
   },
   {
     id: 3,
@@ -2493,13 +2469,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 2,
     location: mockLocations[1],
     unitPrice: 1200,
-    totalValue: 30000,
+    totalValue: 30_000,
     vendorId: 3, // Mumbai Aggregates
     notes: 'Low stock - urgent reorder needed',
     lastRestockedDate: new Date('2024-10-15'),
     lastUsedDate: new Date('2024-11-05'),
     createdAt: new Date('2024-03-15'),
-    updatedAt: new Date('2024-11-05')
+    updatedAt: new Date('2024-11-05'),
   },
   {
     id: 4,
@@ -2510,18 +2486,18 @@ export const mockInventoryItems: InventoryItem[] = [
     quantity: 5000,
     unit: 'pieces',
     minStockLevel: 2000,
-    maxStockLevel: 10000,
+    maxStockLevel: 10_000,
     reorderPoint: 3000,
     locationId: 2,
     location: mockLocations[1],
     unitPrice: 8,
-    totalValue: 40000,
+    totalValue: 40_000,
     vendorId: 1, // Maharashtra Brick Works
     brand: 'Premium Clay',
     batchNumber: 'MBW-2024-10-025',
     lastRestockedDate: new Date('2024-10-20'),
     createdAt: new Date('2024-04-01'),
-    updatedAt: new Date('2024-10-20')
+    updatedAt: new Date('2024-10-20'),
   },
   {
     id: 5,
@@ -2543,7 +2519,7 @@ export const mockInventoryItems: InventoryItem[] = [
     notes: 'OUT OF STOCK - Order placed',
     lastUsedDate: new Date('2024-11-03'),
     createdAt: new Date('2024-05-10'),
-    updatedAt: new Date('2024-11-05')
+    updatedAt: new Date('2024-11-05'),
   },
   {
     id: 6,
@@ -2559,13 +2535,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 1,
     location: mockLocations[0],
     unitPrice: 280,
-    totalValue: 50400,
+    totalValue: 50_400,
     vendorId: 5, // Supreme Industries
     brand: 'Supreme',
     batchNumber: 'SUP-4IN-2024-08',
     lastRestockedDate: new Date('2024-09-15'),
     createdAt: new Date('2024-06-01'),
-    updatedAt: new Date('2024-09-15')
+    updatedAt: new Date('2024-09-15'),
   },
   {
     id: 7,
@@ -2581,13 +2557,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 1,
     location: mockLocations[0],
     unitPrice: 450,
-    totalValue: 54000,
+    totalValue: 54_000,
     vendorId: 1, // Birla White
     brand: 'Birla White',
     batchNumber: 'BW-2024-10-015',
     lastRestockedDate: new Date('2024-10-15'),
     createdAt: new Date('2024-01-20'),
-    updatedAt: new Date('2024-10-15')
+    updatedAt: new Date('2024-10-15'),
   },
   {
     id: 8,
@@ -2603,13 +2579,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 2,
     location: mockLocations[1],
     unitPrice: 380,
-    totalValue: 95000,
+    totalValue: 95_000,
     vendorId: 2, // Kajaria Ceramics
     brand: 'Kajaria',
     batchNumber: 'KAJ-GT-2024-09',
     lastRestockedDate: new Date('2024-09-25'),
     createdAt: new Date('2024-03-10'),
-    updatedAt: new Date('2024-09-25')
+    updatedAt: new Date('2024-09-25'),
   },
   {
     id: 9,
@@ -2625,13 +2601,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 3,
     location: mockLocations[2],
     unitPrice: 580,
-    totalValue: 26100,
+    totalValue: 26_100,
     vendorId: 3, // Asian Paints
     brand: 'Asian Paints',
     batchNumber: 'AP-TE-2024-10',
     lastRestockedDate: new Date('2024-10-05'),
     createdAt: new Date('2024-04-15'),
-    updatedAt: new Date('2024-10-05')
+    updatedAt: new Date('2024-10-05'),
   },
   {
     id: 10,
@@ -2647,13 +2623,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 3,
     location: mockLocations[2],
     unitPrice: 95,
-    totalValue: 30400,
+    totalValue: 30_400,
     vendorId: 4, // Philips India
     brand: 'Philips',
     batchNumber: 'PH-LED-2024-10',
     lastRestockedDate: new Date('2024-10-12'),
     createdAt: new Date('2024-05-20'),
-    updatedAt: new Date('2024-10-12')
+    updatedAt: new Date('2024-10-12'),
   },
   {
     id: 11,
@@ -2669,13 +2645,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 2,
     location: mockLocations[1],
     unitPrice: 180,
-    totalValue: 15300,
+    totalValue: 15_300,
     vendorId: 5, // Karam Industries
     brand: 'Karam',
     batchNumber: 'KI-SH-2024-08',
     lastRestockedDate: new Date('2024-08-20'),
     createdAt: new Date('2024-02-15'),
-    updatedAt: new Date('2024-08-20')
+    updatedAt: new Date('2024-08-20'),
   },
   {
     id: 12,
@@ -2691,13 +2667,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 1,
     location: mockLocations[0],
     unitPrice: 620,
-    totalValue: 136400,
+    totalValue: 136_400,
     vendorId: 2, // JSW Steel
     brand: 'JSW Neosteel',
     batchNumber: 'JSW-16MM-2024-09',
     lastRestockedDate: new Date('2024-09-10'),
     createdAt: new Date('2024-03-01'),
-    updatedAt: new Date('2024-09-10')
+    updatedAt: new Date('2024-09-10'),
   },
   {
     id: 13,
@@ -2713,13 +2689,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 3,
     location: mockLocations[2],
     unitPrice: 250,
-    totalValue: 36250,
+    totalValue: 36_250,
     vendorId: 1, // Godrej supplier: 'Godrej & Boyce', Boyce
     brand: 'Godrej',
     batchNumber: 'GB-DH-2024-07',
     lastRestockedDate: new Date('2024-07-15'),
     createdAt: new Date('2024-06-10'),
-    updatedAt: new Date('2024-07-15')
+    updatedAt: new Date('2024-07-15'),
   },
   {
     id: 14,
@@ -2735,13 +2711,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 2,
     location: mockLocations[1],
     unitPrice: 850,
-    totalValue: 153000,
+    totalValue: 153_000,
     vendorId: 2, // Johnson Tiles
     brand: 'Johnson',
     batchNumber: 'JT-MT-2024-08',
     lastRestockedDate: new Date('2024-08-25'),
     createdAt: new Date('2024-04-20'),
-    updatedAt: new Date('2024-08-25')
+    updatedAt: new Date('2024-08-25'),
   },
   {
     id: 15,
@@ -2757,13 +2733,13 @@ export const mockInventoryItems: InventoryItem[] = [
     locationId: 1,
     location: mockLocations[0],
     unitPrice: 1500,
-    totalValue: 97500,
+    totalValue: 97_500,
     vendorId: 3, // Mumbai Aggregates
     batchNumber: 'MA-20MM-2024-10',
     lastRestockedDate: new Date('2024-10-08'),
     createdAt: new Date('2024-02-25'),
-    updatedAt: new Date('2024-10-08')
-  }
+    updatedAt: new Date('2024-10-08'),
+  },
 ];
 
 // Mock stock history
@@ -2776,7 +2752,7 @@ export const mockStockHistory = [
     previousQuantity: 250,
     newQuantity: 450,
     performedBy: 'Rajesh Kumar',
-    notes: 'Monthly stock replenishment'
+    notes: 'Monthly stock replenishment',
   },
   {
     id: 2,
@@ -2786,7 +2762,7 @@ export const mockStockHistory = [
     previousQuantity: 300,
     newQuantity: 250,
     performedBy: 'Site Manager',
-    notes: 'Used for Gateway Plaza project'
+    notes: 'Used for Gateway Plaza project',
   },
   {
     id: 3,
@@ -2796,7 +2772,7 @@ export const mockStockHistory = [
     previousQuantity: 310,
     newQuantity: 300,
     performedBy: 'Warehouse Admin',
-    notes: 'Stock audit adjustment - damaged bags removed'
+    notes: 'Stock audit adjustment - damaged bags removed',
   },
   {
     id: 4,
@@ -2806,13 +2782,13 @@ export const mockStockHistory = [
     previousQuantity: 160,
     newQuantity: 310,
     performedBy: 'Rajesh Kumar',
-    notes: 'Regular procurement'
-  }
+    notes: 'Regular procurement',
+  },
 ];
 
 // Helper function to get inventory item by ID
 export function getInventoryItemById(id: number): InventoryItem | undefined {
-  return mockInventoryItems.find(item => item.id === id);
+  return mockInventoryItems.find((item) => item.id === id);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -2847,7 +2823,8 @@ export const mockLabour = [
     ifscCode: 'SBIN0001234',
     emergencyContact: '+91 98765 11111',
     emergencyContactName: 'Ramesh Kumar',
-    notes: 'Experienced mason with excellent work quality. Punctual and reliable.',
+    notes:
+      'Experienced mason with excellent work quality. Punctual and reliable.',
   },
   {
     id: 2,
@@ -2858,11 +2835,11 @@ export const mockLabour = [
     type: 'monthly',
     skillLevel: 'highlySkilled',
     status: 'active',
-    monthlyRate: 25000,
+    monthlyRate: 25_000,
     currentProject: 'Residential Complex',
     joiningDate: new Date('2024-02-01'),
     totalWorkDays: 165,
-    totalDue: 12000,
+    totalDue: 12_000,
     contractorName: 'XYZ Construction',
   },
   {
@@ -2905,7 +2882,7 @@ export const mockLabour = [
     type: 'monthly',
     skillLevel: 'highlySkilled',
     status: 'active',
-    monthlyRate: 28000,
+    monthlyRate: 28_000,
     currentProject: 'Metro Station Phase 2',
     joiningDate: new Date('2023-12-01'),
     totalWorkDays: 220,
@@ -2926,8 +2903,8 @@ export const mockVendors = [
     type: 'material',
     status: 'active',
     category: ['Steel', 'Reinforcement'],
-    totalPurchaseValue: 5800000,
-    totalOutstanding: 280000,
+    totalPurchaseValue: 5_800_000,
+    totalOutstanding: 280_000,
     paymentTerms: 'net30',
     rating: 4.5,
     totalOrders: 48,
@@ -2943,8 +2920,8 @@ export const mockVendors = [
     type: 'material',
     status: 'active',
     category: ['Cement', 'Aggregates'],
-    totalPurchaseValue: 4200000,
-    totalOutstanding: 150000,
+    totalPurchaseValue: 4_200_000,
+    totalOutstanding: 150_000,
     paymentTerms: 'net15',
     rating: 4.2,
     totalOrders: 65,
@@ -2960,8 +2937,8 @@ export const mockVendors = [
     type: 'equipment',
     status: 'active',
     category: ['Machinery', 'Tools'],
-    totalPurchaseValue: 3600000,
-    totalOutstanding: 420000,
+    totalPurchaseValue: 3_600_000,
+    totalOutstanding: 420_000,
     paymentTerms: 'net60',
     rating: 4.8,
     totalOrders: 32,
@@ -2977,10 +2954,10 @@ export const mockVendors = [
     type: 'transport',
     status: 'active',
     category: ['Logistics', 'Delivery'],
-    totalPurchaseValue: 1800000,
-    totalOutstanding: 95000,
+    totalPurchaseValue: 1_800_000,
+    totalOutstanding: 95_000,
     paymentTerms: 'immediate',
-    rating: 4.0,
+    rating: 4,
     totalOrders: 124,
     onTimeDeliveryRate: 85,
   },
@@ -2994,7 +2971,7 @@ export const mockVendors = [
     type: 'service',
     status: 'inactive',
     category: ['Security', 'Surveillance'],
-    totalPurchaseValue: 850000,
+    totalPurchaseValue: 850_000,
     totalOutstanding: 0,
     paymentTerms: 'net30',
     rating: 3.8,
@@ -3014,9 +2991,9 @@ export const mockContracts = [
     phone: '+91 98765 43210',
     type: 'lumpsum',
     status: 'active',
-    contractValue: 8500000,
-    totalPaid: 5100000,
-    totalDue: 3400000,
+    contractValue: 8_500_000,
+    totalPaid: 5_100_000,
+    totalDue: 3_400_000,
     completionPercentage: 65,
     projectName: 'Metro Station Phase 2',
     startDate: new Date('2024-01-15'),
@@ -3033,9 +3010,9 @@ export const mockContracts = [
     phone: '+91 98765 43211',
     type: 'itemRate',
     status: 'active',
-    contractValue: 4200000,
-    totalPaid: 2940000,
-    totalDue: 1260000,
+    contractValue: 4_200_000,
+    totalPaid: 2_940_000,
+    totalDue: 1_260_000,
     completionPercentage: 70,
     projectName: 'Commercial Plaza',
     startDate: new Date('2024-02-01'),
@@ -3052,9 +3029,9 @@ export const mockContracts = [
     phone: '+91 98765 43212',
     type: 'unitPrice',
     status: 'active',
-    contractValue: 3600000,
-    totalPaid: 2160000,
-    totalDue: 1440000,
+    contractValue: 3_600_000,
+    totalPaid: 2_160_000,
+    totalDue: 1_440_000,
     completionPercentage: 60,
     projectName: 'Residential Complex',
     startDate: new Date('2024-03-01'),
@@ -3071,9 +3048,9 @@ export const mockContracts = [
     phone: '+91 98765 43213',
     type: 'timeAndMaterial',
     status: 'onHold',
-    contractValue: 5200000,
-    totalPaid: 1040000,
-    totalDue: 4160000,
+    contractValue: 5_200_000,
+    totalPaid: 1_040_000,
+    totalDue: 4_160_000,
     completionPercentage: 20,
     projectName: 'Commercial Plaza',
     startDate: new Date('2024-04-01'),
@@ -3090,8 +3067,8 @@ export const mockContracts = [
     phone: '+91 98765 43214',
     type: 'lumpsum',
     status: 'completed',
-    contractValue: 2800000,
-    totalPaid: 2800000,
+    contractValue: 2_800_000,
+    totalPaid: 2_800_000,
     totalDue: 0,
     completionPercentage: 100,
     projectName: 'Residential Complex',
@@ -3104,13 +3081,17 @@ export const mockContracts = [
 
 // Helper functions
 export function getLabourById(id: number) {
-  return mockLabour.find(labour => labour.id === id);
+  return mockLabour.find((labour) => labour.id === id);
 }
 
 export function getVendorById(id: number) {
-  return mockVendors.find(vendor => vendor.id === id);
+  return mockVendors.find((vendor) => vendor.id === id);
 }
 
 export function getContractById(id: number) {
-  return mockContracts.find(contract => contract.id === id);
+  return mockContracts.find((contract) => contract.id === id);
 }
+
+export { mockUsers } from './data/users';
+export { mockOrganizations } from './data/organizations';
+export { mockEmployees } from './data/employees';

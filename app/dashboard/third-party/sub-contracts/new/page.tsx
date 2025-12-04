@@ -4,13 +4,33 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
-import { User, FileText, Save, X, Plus, Trash2, TrendingUp } from 'lucide-react';
+import {
+  User,
+  FileText,
+  Save,
+  X,
+  Plus,
+  Trash2,
+  TrendingUp,
+} from 'lucide-react';
 
 interface Milestone {
   name: string;
@@ -51,7 +71,7 @@ export default function SubContractNewPage() {
     notes: '',
   });
 
-  const handleInputChange = (field: string, value: any) => {
+  const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
       // Auto-calculate pending amount
@@ -62,7 +82,11 @@ export default function SubContractNewPage() {
     });
   };
 
-  const handleMilestoneChange = (index: number, field: string, value: any) => {
+  const handleMilestoneChange = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
     const updatedMilestones = [...formData.milestones];
     updatedMilestones[index] = { ...updatedMilestones[index], [field]: value };
     setFormData((prev) => ({ ...prev, milestones: updatedMilestones }));
@@ -87,9 +111,14 @@ export default function SubContractNewPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
-    if (!formData.contractorName || !formData.contactPerson || !formData.phone || !formData.email) {
+    if (
+      !formData.contractorName ||
+      !formData.contactPerson ||
+      !formData.phone ||
+      !formData.email
+    ) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -109,21 +138,21 @@ export default function SubContractNewPage() {
     <AppLayout>
       <div className="space-y-6 p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               Add New Sub-Contract
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
               Fill in the details to add a new sub-contract
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Main Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6 lg:col-span-2">
               {/* Contractor Information */}
               <Card>
                 <CardHeader>
@@ -131,16 +160,20 @@ export default function SubContractNewPage() {
                     <User className="h-5 w-5" />
                     <span>Contractor Information</span>
                   </CardTitle>
-                  <CardDescription>Basic contractor and contact details</CardDescription>
+                  <CardDescription>
+                    Basic contractor and contact details
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                       <Label htmlFor="contractId">Contract ID *</Label>
                       <Input
                         id="contractId"
                         value={formData.contractId}
-                        onChange={(e) => handleInputChange('contractId', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('contractId', e.target.value)
+                        }
                         placeholder="SUB-001"
                         required
                       />
@@ -150,7 +183,9 @@ export default function SubContractNewPage() {
                       <Input
                         id="contractorName"
                         value={formData.contractorName}
-                        onChange={(e) => handleInputChange('contractorName', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('contractorName', e.target.value)
+                        }
                         placeholder="Elite Construction Services"
                         required
                       />
@@ -160,7 +195,9 @@ export default function SubContractNewPage() {
                       <Input
                         id="contactPerson"
                         value={formData.contactPerson}
-                        onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('contactPerson', e.target.value)
+                        }
                         placeholder="Amit Patel"
                         required
                       />
@@ -171,7 +208,9 @@ export default function SubContractNewPage() {
                         id="phone"
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('phone', e.target.value)
+                        }
                         placeholder="+91 98765 43210"
                         required
                       />
@@ -182,7 +221,9 @@ export default function SubContractNewPage() {
                         id="email"
                         type="email"
                         value={formData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('email', e.target.value)
+                        }
                         placeholder="amit@eliteconstruction.com"
                         required
                       />
@@ -191,18 +232,24 @@ export default function SubContractNewPage() {
                       <Label htmlFor="workType">Work Type *</Label>
                       <Select
                         value={formData.workType}
-                        onValueChange={(value) => handleInputChange('workType', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('workType', value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="construction">Construction</SelectItem>
+                          <SelectItem value="construction">
+                            Construction
+                          </SelectItem>
                           <SelectItem value="electrical">Electrical</SelectItem>
                           <SelectItem value="plumbing">Plumbing</SelectItem>
                           <SelectItem value="painting">Painting</SelectItem>
                           <SelectItem value="hvac">HVAC</SelectItem>
-                          <SelectItem value="landscaping">Landscaping</SelectItem>
+                          <SelectItem value="landscaping">
+                            Landscaping
+                          </SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -212,7 +259,9 @@ export default function SubContractNewPage() {
                       <Textarea
                         id="address"
                         value={formData.address}
-                        onChange={(e) => handleInputChange('address', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('address', e.target.value)
+                        }
                         placeholder="789, Contractor Colony, Sector 15"
                         rows={2}
                         required
@@ -226,15 +275,19 @@ export default function SubContractNewPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Contract Details</CardTitle>
-                  <CardDescription>Contract dates, status, and scope</CardDescription>
+                  <CardDescription>
+                    Contract dates, status, and scope
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                       <Label htmlFor="status">Status *</Label>
                       <Select
                         value={formData.status}
-                        onValueChange={(value) => handleInputChange('status', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('status', value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
@@ -251,14 +304,18 @@ export default function SubContractNewPage() {
                       <Label htmlFor="contractStatus">Contract Status *</Label>
                       <Select
                         value={formData.contractStatus}
-                        onValueChange={(value) => handleInputChange('contractStatus', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('contractStatus', value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="in-progress">
+                            In Progress
+                          </SelectItem>
                           <SelectItem value="completed">Completed</SelectItem>
                           <SelectItem value="cancelled">Cancelled</SelectItem>
                           <SelectItem value="onhold">On Hold</SelectItem>
@@ -271,7 +328,9 @@ export default function SubContractNewPage() {
                         id="contractDate"
                         type="date"
                         value={formData.contractDate}
-                        onChange={(e) => handleInputChange('contractDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('contractDate', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -279,15 +338,21 @@ export default function SubContractNewPage() {
                       <Label htmlFor="paymentTerms">Payment Terms *</Label>
                       <Select
                         value={formData.paymentTerms}
-                        onValueChange={(value) => handleInputChange('paymentTerms', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('paymentTerms', value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="milestone">Milestone-based</SelectItem>
+                          <SelectItem value="milestone">
+                            Milestone-based
+                          </SelectItem>
                           <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="completion">On Completion</SelectItem>
+                          <SelectItem value="completion">
+                            On Completion
+                          </SelectItem>
                           <SelectItem value="custom">Custom</SelectItem>
                         </SelectContent>
                       </Select>
@@ -298,7 +363,9 @@ export default function SubContractNewPage() {
                         id="startDate"
                         type="date"
                         value={formData.startDate}
-                        onChange={(e) => handleInputChange('startDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('startDate', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -308,19 +375,28 @@ export default function SubContractNewPage() {
                         id="endDate"
                         type="date"
                         value={formData.endDate}
-                        onChange={(e) => handleInputChange('endDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('endDate', e.target.value)
+                        }
                         required
                       />
                     </div>
                     <div>
-                      <Label htmlFor="completionPercentage">Completion Percentage</Label>
+                      <Label htmlFor="completionPercentage">
+                        Completion Percentage
+                      </Label>
                       <Input
                         id="completionPercentage"
                         type="number"
                         min="0"
                         max="100"
                         value={formData.completionPercentage}
-                        onChange={(e) => handleInputChange('completionPercentage', parseInt(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'completionPercentage',
+                            Number.parseInt(e.target.value) || 0
+                          )
+                        }
                       />
                     </div>
                     <div className="md:col-span-2">
@@ -328,7 +404,9 @@ export default function SubContractNewPage() {
                       <Textarea
                         id="scope"
                         value={formData.scope}
-                        onChange={(e) => handleInputChange('scope', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('scope', e.target.value)
+                        }
                         placeholder="Detailed description of work to be performed"
                         rows={3}
                         required
@@ -342,17 +420,26 @@ export default function SubContractNewPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Financial Information</CardTitle>
-                  <CardDescription>Contract value and payment details</CardDescription>
+                  <CardDescription>
+                    Contract value and payment details
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                      <Label htmlFor="contractValue">Contract Value (₹) *</Label>
+                      <Label htmlFor="contractValue">
+                        Contract Value (₹) *
+                      </Label>
                       <Input
                         id="contractValue"
                         type="number"
                         value={formData.contractValue}
-                        onChange={(e) => handleInputChange('contractValue', parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'contractValue',
+                            Number.parseFloat(e.target.value) || 0
+                          )
+                        }
                         placeholder="2500000"
                         required
                       />
@@ -363,7 +450,12 @@ export default function SubContractNewPage() {
                         id="paidAmount"
                         type="number"
                         value={formData.paidAmount}
-                        onChange={(e) => handleInputChange('paidAmount', parseFloat(e.target.value) || 0)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'paidAmount',
+                            Number.parseFloat(e.target.value) || 0
+                          )
+                        }
                         placeholder="0"
                       />
                     </div>
@@ -382,7 +474,9 @@ export default function SubContractNewPage() {
                       <Input
                         id="bankAccount"
                         value={formData.bankAccount}
-                        onChange={(e) => handleInputChange('bankAccount', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('bankAccount', e.target.value)
+                        }
                         placeholder="1234567890"
                       />
                     </div>
@@ -391,7 +485,9 @@ export default function SubContractNewPage() {
                       <Input
                         id="bankName"
                         value={formData.bankName}
-                        onChange={(e) => handleInputChange('bankName', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('bankName', e.target.value)
+                        }
                         placeholder="ICICI Bank"
                       />
                     </div>
@@ -400,7 +496,9 @@ export default function SubContractNewPage() {
                       <Input
                         id="ifscCode"
                         value={formData.ifscCode}
-                        onChange={(e) => handleInputChange('ifscCode', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('ifscCode', e.target.value)
+                        }
                         placeholder="ICIC0001234"
                       />
                     </div>
@@ -417,23 +515,33 @@ export default function SubContractNewPage() {
                         <TrendingUp className="h-5 w-5" />
                         <span>Project Milestones</span>
                       </CardTitle>
-                      <CardDescription>Define payment milestones</CardDescription>
+                      <CardDescription>
+                        Define payment milestones
+                      </CardDescription>
                     </div>
-                    <Button type="button" size="sm" variant="outline" onClick={addMilestone}>
-                      <Plus className="h-4 w-4 mr-2" />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={addMilestone}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
                       Add Milestone
                     </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {formData.milestones.length === 0 ? (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-500 text-center py-4">
+                    <p className="py-4 text-center text-sm text-zinc-500 dark:text-zinc-500">
                       No milestones added yet
                     </p>
                   ) : (
                     formData.milestones.map((milestone, index) => (
-                      <div key={index} className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4">
-                        <div className="flex items-start justify-between mb-4">
+                      <div
+                        key={index}
+                        className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
+                      >
+                        <div className="mb-4 flex items-start justify-between">
                           <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                             Milestone {index + 1}
                           </h4>
@@ -447,59 +555,99 @@ export default function SubContractNewPage() {
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                           <div className="md:col-span-2">
-                            <Label htmlFor={`milestone-name-${index}`}>Milestone Name</Label>
+                            <Label htmlFor={`milestone-name-${index}`}>
+                              Milestone Name
+                            </Label>
                             <Input
                               id={`milestone-name-${index}`}
                               value={milestone.name}
-                              onChange={(e) => handleMilestoneChange(index, 'name', e.target.value)}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'name',
+                                  e.target.value
+                                )
+                              }
                               placeholder="Foundation Work"
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`milestone-percentage-${index}`}>Percentage (%)</Label>
+                            <Label htmlFor={`milestone-percentage-${index}`}>
+                              Percentage (%)
+                            </Label>
                             <Input
                               id={`milestone-percentage-${index}`}
                               type="number"
                               min="0"
                               max="100"
                               value={milestone.percentage}
-                              onChange={(e) => handleMilestoneChange(index, 'percentage', parseInt(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'percentage',
+                                  Number.parseInt(e.target.value) || 0
+                                )
+                              }
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`milestone-amount-${index}`}>Amount (₹)</Label>
+                            <Label htmlFor={`milestone-amount-${index}`}>
+                              Amount (₹)
+                            </Label>
                             <Input
                               id={`milestone-amount-${index}`}
                               type="number"
                               value={milestone.amount}
-                              onChange={(e) => handleMilestoneChange(index, 'amount', parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'amount',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
                             />
                           </div>
                           <div>
-                            <Label htmlFor={`milestone-status-${index}`}>Status</Label>
+                            <Label htmlFor={`milestone-status-${index}`}>
+                              Status
+                            </Label>
                             <Select
                               value={milestone.status}
-                              onValueChange={(value) => handleMilestoneChange(index, 'status', value)}
+                              onValueChange={(value) =>
+                                handleMilestoneChange(index, 'status', value)
+                              }
                             >
                               <SelectTrigger>
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="in-progress">In Progress</SelectItem>
-                                <SelectItem value="completed">Completed</SelectItem>
+                                <SelectItem value="in-progress">
+                                  In Progress
+                                </SelectItem>
+                                <SelectItem value="completed">
+                                  Completed
+                                </SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label htmlFor={`milestone-date-${index}`}>Due Date</Label>
+                            <Label htmlFor={`milestone-date-${index}`}>
+                              Due Date
+                            </Label>
                             <Input
                               id={`milestone-date-${index}`}
                               type="date"
                               value={milestone.date}
-                              onChange={(e) => handleMilestoneChange(index, 'date', e.target.value)}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'date',
+                                  e.target.value
+                                )
+                              }
                             />
                           </div>
                         </div>
@@ -526,7 +674,9 @@ export default function SubContractNewPage() {
                     <Input
                       id="gstNumber"
                       value={formData.gstNumber}
-                      onChange={(e) => handleInputChange('gstNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('gstNumber', e.target.value)
+                      }
                       placeholder="09AABCU9603R1ZX"
                     />
                   </div>
@@ -535,7 +685,9 @@ export default function SubContractNewPage() {
                     <Input
                       id="panNumber"
                       value={formData.panNumber}
-                      onChange={(e) => handleInputChange('panNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('panNumber', e.target.value)
+                      }
                       placeholder="AABCU9603R"
                     />
                   </div>
@@ -560,9 +712,9 @@ export default function SubContractNewPage() {
 
               {/* Action Buttons */}
               <Card>
-                <CardContent className="pt-6 space-y-2">
+                <CardContent className="space-y-2 pt-6">
                   <Button type="submit" className="w-full">
-                    <Save className="h-4 w-4 mr-2" />
+                    <Save className="mr-2 h-4 w-4" />
                     Create Sub-Contract
                   </Button>
                   <Button
@@ -571,7 +723,7 @@ export default function SubContractNewPage() {
                     className="w-full"
                     onClick={handleCancel}
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="mr-2 h-4 w-4" />
                     Cancel
                   </Button>
                 </CardContent>

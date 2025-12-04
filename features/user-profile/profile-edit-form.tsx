@@ -14,7 +14,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { toast } from '@/lib/styles/toast-styles';
 import { Loader2, Save, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -25,7 +31,11 @@ interface ProfileEditFormProps {
   onSuccess?: (updatedUser: User) => void;
 }
 
-export function ProfileEditForm({ user, onCancel, onSuccess }: ProfileEditFormProps) {
+export function ProfileEditForm({
+  user,
+  onCancel,
+  onSuccess,
+}: ProfileEditFormProps) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -65,18 +75,25 @@ export function ProfileEditForm({ user, onCancel, onSuccess }: ProfileEditFormPr
         phone: formData.phone,
         address: formData.address,
         gender: formData.gender,
-        dateOfBirth: formData.dateOfBirth ? new Date(formData.dateOfBirth) : user.dateOfBirth,
+        dateOfBirth: formData.dateOfBirth
+          ? new Date(formData.dateOfBirth)
+          : user.dateOfBirth,
         qualification: formData.qualification,
         bloodGroup: formData.bloodGroup || undefined,
         emergencyContact: formData.emergencyContact || undefined,
-        experience: formData.experience ? parseInt(formData.experience, 10) : undefined,
+        experience: formData.experience
+          ? Number.parseInt(formData.experience, 10)
+          : undefined,
         skills: formData.skills
-          ? formData.skills.split(',').map((s) => s.trim()).filter(Boolean)
+          ? formData.skills
+              .split(',')
+              .map((s) => s.trim())
+              .filter(Boolean)
           : undefined,
       };
 
       const updatedUser = await updateUserProfile(updates);
-      
+
       toast.success('Profile updated successfully!', {
         description: 'Your changes have been saved.',
       });
@@ -90,7 +107,8 @@ export function ProfileEditForm({ user, onCancel, onSuccess }: ProfileEditFormPr
     } catch (error) {
       console.error('Error updating profile:', error);
       toast.error('Failed to update profile', {
-        description: error instanceof Error ? error.message : 'Please try again later.',
+        description:
+          error instanceof Error ? error.message : 'Please try again later.',
       });
     } finally {
       setIsSubmitting(false);
@@ -152,7 +170,9 @@ export function ProfileEditForm({ user, onCancel, onSuccess }: ProfileEditFormPr
               <Label htmlFor="bloodGroup">Blood Group</Label>
               <Select
                 value={formData.bloodGroup}
-                onValueChange={(value) => handleSelectChange('bloodGroup', value)}
+                onValueChange={(value) =>
+                  handleSelectChange('bloodGroup', value)
+                }
               >
                 <SelectTrigger id="bloodGroup">
                   <SelectValue placeholder="Select blood group" />
@@ -266,7 +286,7 @@ export function ProfileEditForm({ user, onCancel, onSuccess }: ProfileEditFormPr
               placeholder="Enter your skills separated by commas (e.g., CAD, Candy, MS Excel)"
               rows={3}
             />
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Separate multiple skills with commas
             </p>
           </div>

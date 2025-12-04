@@ -8,8 +8,8 @@ export function formatDate(date: Date | string | undefined): string {
   if (!date) return 'Not specified';
   try {
     const d = typeof date === 'string' ? new Date(date) : date;
-    if (isNaN(d.getTime())) return 'Invalid date';
-    
+    if (Number.isNaN(d.getTime())) return 'Invalid date';
+
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'long',
@@ -27,8 +27,8 @@ export function formatDateShort(date: Date | string | undefined): string {
   if (!date) return 'Not specified';
   try {
     const d = typeof date === 'string' ? new Date(date) : date;
-    if (isNaN(d.getTime())) return 'Invalid date';
-    
+    if (Number.isNaN(d.getTime())) return 'Invalid date';
+
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
@@ -46,8 +46,8 @@ export function formatDateForInput(date: Date | string | undefined): string {
   if (!date) return '';
   try {
     const d = typeof date === 'string' ? new Date(date) : date;
-    if (isNaN(d.getTime())) return '';
-    
+    if (Number.isNaN(d.getTime())) return '';
+
     return d.toISOString().split('T')[0];
   } catch {
     return '';
@@ -57,20 +57,23 @@ export function formatDateForInput(date: Date | string | undefined): string {
 /**
  * Calculates age from date of birth
  */
-export function calculateAge(dateOfBirth: Date | string | undefined): number | null {
+export function calculateAge(
+  dateOfBirth: Date | string | undefined
+): number | null {
   if (!dateOfBirth) return null;
   try {
-    const dob = typeof dateOfBirth === 'string' ? new Date(dateOfBirth) : dateOfBirth;
-    if (isNaN(dob.getTime())) return null;
-    
+    const dob =
+      typeof dateOfBirth === 'string' ? new Date(dateOfBirth) : dateOfBirth;
+    if (Number.isNaN(dob.getTime())) return null;
+
     const today = new Date();
     let age = today.getFullYear() - dob.getFullYear();
     const monthDiff = today.getMonth() - dob.getMonth();
-    
+
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
       age--;
     }
-    
+
     return age >= 0 ? age : null;
   } catch {
     return null;
@@ -114,8 +117,8 @@ export function isProfileComplete(user: User): boolean {
     user.dateOfBirth,
     user.gender,
   ];
-  
-  return requiredFields.every(field => field && field !== 'Not Specified');
+
+  return requiredFields.every((field) => field && field !== 'Not Specified');
 }
 
 /**
@@ -137,14 +140,14 @@ export function getProfileCompletionPercentage(user: User): number {
     user.emergencyContact,
     user.profilePictureUrl,
   ];
-  
-  const filledFields = fields.filter(field => {
+
+  const filledFields = fields.filter((field) => {
     if (typeof field === 'string') {
       return field && field !== 'Not Specified';
     }
     return field !== null && field !== undefined;
   }).length;
-  
+
   return Math.round((filledFields / fields.length) * 100);
 }
 
@@ -160,7 +163,7 @@ export function getRoleDisplayName(role: string): string {
     laborer: 'Laborer',
     viewer: 'Viewer',
   };
-  
+
   return roleMap[role.toLowerCase()] || role;
 }
 
@@ -188,15 +191,15 @@ export function getAvatarColor(initials: string): string {
     'bg-indigo-500',
     'bg-teal-500',
   ];
-  
-  const charCode = initials.charCodeAt(0) || 0;
+
+  const charCode = initials.codePointAt(0) || 0;
   return colors[charCode % colors.length];
 }
 
 /**
  * Validates if a field has a meaningful value
  */
-export function hasValue(field: any): boolean {
+export function hasValue(field: unknown): boolean {
   if (field === null || field === undefined) return false;
   if (typeof field === 'string') {
     return field.trim() !== '' && field !== 'Not Specified';
@@ -222,7 +225,7 @@ export function getOrganizationNames(user: User): string {
   if (!user.organizations || user.organizations.length === 0) {
     return 'No organizations';
   }
-  return user.organizations.map(org => org.organizationName).join(', ');
+  return user.organizations.map((org) => org.organizationName).join(', ');
 }
 
 /**
@@ -251,7 +254,5 @@ export function getCompletionColor(percentage: number): string {
  */
 export function sanitizeString(input: string | undefined): string {
   if (!input) return '';
-  return input
-    .replace(/[<>]/g, '')
-    .trim();
+  return input.replaceAll(/[<>]/g, '').trim();
 }

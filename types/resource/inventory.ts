@@ -19,7 +19,7 @@ export interface InventoryItem {
   totalValue: number;
   vendorId?: number; // Foreign key to Vendor
   brand?: string;
-  specifications?: Record<string, any>;
+  specifications?: Record<string, unknown>;
   batchNumber?: string;
   expiryDate?: Date;
   lastRestockedDate?: Date;
@@ -30,7 +30,7 @@ export interface InventoryItem {
 }
 
 // Inventory categories
-export type InventoryCategory = 
+export type InventoryCategory =
   | 'cement'
   | 'steel'
   | 'aggregates'
@@ -67,7 +67,9 @@ export interface InventoryFilters {
 }
 
 // Helper functions
-export const getStockStatus = (item: InventoryItem): 'out-of-stock' | 'low' | 'optimal' | 'excess' => {
+export const getStockStatus = (
+  item: InventoryItem
+): 'out-of-stock' | 'low' | 'optimal' | 'excess' => {
   if (item.quantity === 0) return 'out-of-stock';
   if (item.quantity <= item.reorderPoint) return 'low';
   if (item.quantity > item.maxStockLevel) return 'excess';
@@ -77,9 +79,10 @@ export const getStockStatus = (item: InventoryItem): 'out-of-stock' | 'low' | 'o
 export const getStockStatusColor = (status: string): string => {
   const colors = {
     'out-of-stock': 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    'low': 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    'optimal': 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    'excess': 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    low: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+    optimal:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    excess: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
   };
   return colors[status as keyof typeof colors] || colors.optimal;
 };

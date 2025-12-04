@@ -1,12 +1,22 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { mockTasks, mockProjects, mockUsers, mockIssues } from '@/lib/mock-data';
+import { useState, useMemo, useEffect } from 'react';
+import {
+  mockTasks,
+  mockProjects,
+  mockIssues,
+} from '@/components/shared/mock-data';
 import { AppLayout, Pagination } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -34,12 +44,7 @@ import {
   Plus,
   Filter,
   Eye,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Calendar,
-  User,
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -60,10 +65,13 @@ export default function TasksPage() {
       const matchesSearch =
         !searchQuery ||
         task.title.toLowerCase().includes(searchLower) ||
-        task.tags?.some(tag => tag.toLowerCase().includes(searchLower));
+        task.tags?.some((tag) => tag.toLowerCase().includes(searchLower));
 
-      const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
-      const matchesProject = projectFilter === 'all' || task.projectId === parseInt(projectFilter);
+      const matchesStatus =
+        statusFilter === 'all' || task.status === statusFilter;
+      const matchesProject =
+        projectFilter === 'all' ||
+        task.projectId === Number.parseInt(projectFilter);
 
       return matchesSearch && matchesStatus && matchesProject;
     });
@@ -76,15 +84,25 @@ export default function TasksPage() {
   const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
 
   // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, projectFilter, itemsPerPage]);
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCurrentPage(1);
+    }
+  }, [searchQuery, statusFilter, projectFilter, itemsPerPage, currentPage]);
 
   // Statistics
   const totalTasks = mockTasks.length;
-  const upcomingTasks = mockTasks.filter((t) => t.status === TaskStatus.upcoming).length;
-  const onGoingTasks = mockTasks.filter((t) => t.status === TaskStatus.onGoing).length;
-  const completedTasks = mockTasks.filter((t) => t.status === TaskStatus.completed).length;
+  const upcomingTasks = mockTasks.filter(
+    (t) => t.status === TaskStatus.upcoming
+  ).length;
+  const onGoingTasks = mockTasks.filter(
+    (t) => t.status === TaskStatus.onGoing
+  ).length;
+  const completedTasks = mockTasks.filter(
+    (t) => t.status === TaskStatus.completed
+  ).length;
 
   const hasActiveFilters =
     searchQuery || statusFilter !== 'all' || projectFilter !== 'all';
@@ -98,31 +116,41 @@ export default function TasksPage() {
 
   const getStatusColor = (status: TaskStatus) => {
     switch (status) {
-      case TaskStatus.upcoming:
+      case TaskStatus.upcoming: {
         return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400';
-      case TaskStatus.onGoing:
+      }
+      case TaskStatus.onGoing: {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      case TaskStatus.completed:
+      }
+      case TaskStatus.completed: {
         return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-      case TaskStatus.onHold:
+      }
+      case TaskStatus.onHold: {
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      default:
+      }
+      default: {
         return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+      }
     }
   };
 
   const getStatusLabel = (status: TaskStatus) => {
     switch (status) {
-      case TaskStatus.upcoming:
+      case TaskStatus.upcoming: {
         return 'Upcoming';
-      case TaskStatus.onGoing:
+      }
+      case TaskStatus.onGoing: {
         return 'On Going';
-      case TaskStatus.completed:
+      }
+      case TaskStatus.completed: {
         return 'Completed';
-      case TaskStatus.onHold:
+      }
+      case TaskStatus.onHold: {
         return 'On Hold';
-      default:
+      }
+      default: {
         return status;
+      }
     }
   };
 
@@ -130,28 +158,32 @@ export default function TasksPage() {
     <AppLayout>
       <div className="px-4 py-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
+        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">Tasks</h1>
-            <p className="text-zinc-600 dark:text-zinc-400">Manage and track project tasks</p>
+            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Tasks
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Manage and track project tasks
+            </p>
           </div>
           <Link href="/dashboard/workflow/tasks/new">
             <Button className="mt-4 md:mt-0">
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               New Task
             </Button>
           </Link>
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Total Tasks</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
                   <ListTodo className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -167,7 +199,7 @@ export default function TasksPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-gray-100 dark:bg-gray-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-900/20">
                   <ListTodo className="h-6 w-6 text-gray-600 dark:text-gray-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -183,7 +215,7 @@ export default function TasksPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
                   <ListTodo className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -199,7 +231,7 @@ export default function TasksPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
                   <ListTodo className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
                 <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -226,11 +258,11 @@ export default function TasksPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {/* Search */}
               <div>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
                   <Input
                     placeholder="Search tasks..."
                     value={searchQuery}
@@ -249,7 +281,9 @@ export default function TasksPage() {
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value={TaskStatus.upcoming}>Upcoming</SelectItem>
                   <SelectItem value={TaskStatus.onGoing}>On Going</SelectItem>
-                  <SelectItem value={TaskStatus.completed}>Completed</SelectItem>
+                  <SelectItem value={TaskStatus.completed}>
+                    Completed
+                  </SelectItem>
                   <SelectItem value={TaskStatus.onHold}>On Hold</SelectItem>
                 </SelectContent>
               </Select>
@@ -275,11 +309,14 @@ export default function TasksPage() {
         {/* Results Summary */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredTasks.length)} of{' '}
-            {filteredTasks.length} tasks
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredTasks.length)} of {filteredTasks.length}{' '}
+            tasks
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => setItemsPerPage(Number(value))}
@@ -318,11 +355,15 @@ export default function TasksPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedTasks.map((task) => {
-                    const project = mockProjects.find((p) => p.id === task.projectId);
-                    const taskIssues = mockIssues.filter((issue) => 
+                    const project = mockProjects.find(
+                      (p) => p.id === task.projectId
+                    );
+                    const taskIssues = mockIssues.filter((issue) =>
                       task.issues?.some((i) => i.id === issue.id)
                     );
-                    const openIssuesCount = taskIssues.filter((i) => i.status !== 'closed' && i.status !== 'resolved').length;
+                    const openIssuesCount = taskIssues.filter(
+                      (i) => i.status !== 'closed' && i.status !== 'resolved'
+                    ).length;
 
                     return (
                       <TableRow key={task.id}>
@@ -332,9 +373,13 @@ export default function TasksPage() {
                               {task.title}
                             </p>
                             {task.tags && task.tags.length > 0 && (
-                              <div className="flex gap-1 mt-1">
+                              <div className="mt-1 flex gap-1">
                                 {task.tags.slice(0, 2).map((tag, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs">
+                                  <Badge
+                                    key={index}
+                                    variant="outline"
+                                    className="text-xs"
+                                  >
                                     {tag}
                                   </Badge>
                                 ))}
@@ -355,29 +400,33 @@ export default function TasksPage() {
                         <TableCell>
                           {task.assignees && task.assignees.length > 0 ? (
                             <div className="flex items-center -space-x-2">
-                              {task.assignees.slice(0, 3).map((assignee, index) => {
-                                return (
-                                  <div
-                                    key={index}
-                                    className="w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-white dark:border-zinc-900"
-                                    title={assignee.memberName}
-                                  >
-                                    <span className="text-xs text-white font-medium">
-                                      {assignee.memberName?.charAt(0) || '?'}
-                                    </span>
-                                  </div>
-                                );
-                              })}
+                              {task.assignees
+                                .slice(0, 3)
+                                .map((assignee, index) => {
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-linear-to-br from-blue-500 to-blue-600 dark:border-zinc-900"
+                                      title={assignee.memberName}
+                                    >
+                                      <span className="text-xs font-medium text-white">
+                                        {assignee.memberName?.charAt(0) || '?'}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               {task.assignees.length > 3 && (
-                                <div className="w-8 h-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center border-2 border-white dark:border-zinc-900">
-                                  <span className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-zinc-200 dark:border-zinc-900 dark:bg-zinc-700">
+                                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                                     +{task.assignees.length - 3}
                                   </span>
                                 </div>
                               )}
                             </div>
                           ) : (
-                            <span className="text-sm text-zinc-400">Unassigned</span>
+                            <span className="text-sm text-zinc-400">
+                              Unassigned
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -392,12 +441,14 @@ export default function TasksPage() {
                               <span>{format(task.endDate, 'MMM d, yyyy')}</span>
                             </div>
                           ) : (
-                            <span className="text-sm text-zinc-400">No due date</span>
+                            <span className="text-sm text-zinc-400">
+                              No due date
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-2">
-                            <div className="w-16 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full overflow-hidden">
+                            <div className="h-2 w-16 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
                               <div
                                 className="h-full bg-blue-600 dark:bg-blue-500"
                                 style={{ width: `${task.progress}%` }}
@@ -416,7 +467,10 @@ export default function TasksPage() {
                                 {taskIssues.length}
                               </span>
                               {openIssuesCount > 0 && (
-                                <Badge variant="outline" className="text-xs bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400">
+                                <Badge
+                                  variant="outline"
+                                  className="bg-red-50 text-xs text-red-700 dark:bg-red-900/20 dark:text-red-400"
+                                >
                                   {openIssuesCount} open
                                 </Badge>
                               )}
@@ -434,8 +488,14 @@ export default function TasksPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Link href={`/dashboard/workflow/tasks/${task.id}`}>
-                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <Link
+                                  href={`/dashboard/workflow/tasks/${task.id}`}
+                                >
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                  >
                                     <Eye className="h-4 w-4" />
                                   </Button>
                                 </Link>
@@ -462,12 +522,12 @@ export default function TasksPage() {
           </Card>
         ) : (
           <Card>
-            <CardContent className="text-center py-12">
-              <ListTodo className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <ListTodo className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 No tasks found
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 {hasActiveFilters
                   ? 'Try adjusting your search or filters'
                   : 'Get started by creating your first task'}
@@ -475,7 +535,7 @@ export default function TasksPage() {
               {!hasActiveFilters && (
                 <Link href="/dashboard/workflow/tasks/new">
                   <Button>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     New Task
                   </Button>
                 </Link>

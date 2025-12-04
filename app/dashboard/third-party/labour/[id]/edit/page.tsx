@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,10 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowLeft, Save } from 'lucide-react';
-import Link from 'next/link';
+import { Save } from 'lucide-react';
 import { toast } from 'sonner';
-import { mockLabour, getLabourById } from '@/lib/mock-data';
+import { getLabourById } from '@/components/shared/mock-data';
 import { format } from 'date-fns';
 
 export default function LabourFormPage() {
@@ -42,7 +47,9 @@ export default function LabourFormPage() {
     monthlyRate: mockLabourData?.monthlyRate?.toString() || '',
     overtimeRate: mockLabourData?.overtimeRate?.toString() || '',
     currentProject: mockLabourData?.currentProject || '',
-    joiningDate: mockLabourData?.joiningDate ? format(mockLabourData.joiningDate, 'yyyy-MM-dd') : '',
+    joiningDate: mockLabourData?.joiningDate
+      ? format(mockLabourData.joiningDate, 'yyyy-MM-dd')
+      : '',
     contractorName: mockLabourData?.contractorName || '',
     contractorPhone: mockLabourData?.contractorPhone || '',
     aadhaarNumber: mockLabourData?.aadhaarNumber || '',
@@ -59,7 +66,7 @@ export default function LabourFormPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Validate required fields
     if (!formData.name || !formData.phone || !formData.trade) {
       toast.error('Please fill in all required fields');
@@ -67,7 +74,9 @@ export default function LabourFormPage() {
     }
 
     // Simulate API call
-    toast.success(isEdit ? 'Labour updated successfully' : 'Labour created successfully');
+    toast.success(
+      isEdit ? 'Labour updated successfully' : 'Labour created successfully'
+    );
     router.push('/dashboard/third-party/labour');
   };
 
@@ -84,24 +93,28 @@ export default function LabourFormPage() {
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               {isEdit ? 'Edit Labour' : 'Add New Labour'}
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-              {isEdit ? 'Update labour information' : 'Enter new labour details'}
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+              {isEdit
+                ? 'Update labour information'
+                : 'Enter new labour details'}
             </p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Main Form */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6 lg:col-span-2">
               {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Enter personal and contact details</CardDescription>
+                  <CardDescription>
+                    Enter personal and contact details
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                       <Label htmlFor="labourId">
                         Labour ID <span className="text-red-500">*</span>
@@ -109,7 +122,9 @@ export default function LabourFormPage() {
                       <Input
                         id="labourId"
                         value={formData.labourId}
-                        onChange={(e) => handleChange('labourId', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('labourId', e.target.value)
+                        }
                         placeholder="LAB-001"
                         required
                       />
@@ -154,7 +169,9 @@ export default function LabourFormPage() {
                       <Textarea
                         id="address"
                         value={formData.address}
-                        onChange={(e) => handleChange('address', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('address', e.target.value)
+                        }
                         placeholder="Enter complete address"
                         rows={3}
                       />
@@ -167,13 +184,16 @@ export default function LabourFormPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Work Details</CardTitle>
-                  <CardDescription>Employment and work-related information</CardDescription>
+                  <CardDescription>
+                    Employment and work-related information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                       <Label htmlFor="trade">
-                        Trade/Specialization <span className="text-red-500">*</span>
+                        Trade/Specialization{' '}
+                        <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="trade"
@@ -187,16 +207,22 @@ export default function LabourFormPage() {
                       <Label htmlFor="skillLevel">Skill Level</Label>
                       <Select
                         value={formData.skillLevel}
-                        onValueChange={(value) => handleChange('skillLevel', value)}
+                        onValueChange={(value) =>
+                          handleChange('skillLevel', value)
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="unskilled">Unskilled</SelectItem>
-                          <SelectItem value="semiskilled">Semi-Skilled</SelectItem>
+                          <SelectItem value="semiskilled">
+                            Semi-Skilled
+                          </SelectItem>
                           <SelectItem value="skilled">Skilled</SelectItem>
-                          <SelectItem value="highlySkilled">Highly Skilled</SelectItem>
+                          <SelectItem value="highlySkilled">
+                            Highly Skilled
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -240,7 +266,9 @@ export default function LabourFormPage() {
                         id="joiningDate"
                         type="date"
                         value={formData.joiningDate}
-                        onChange={(e) => handleChange('joiningDate', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('joiningDate', e.target.value)
+                        }
                       />
                     </div>
                     <div>
@@ -248,7 +276,9 @@ export default function LabourFormPage() {
                       <Input
                         id="currentProject"
                         value={formData.currentProject}
-                        onChange={(e) => handleChange('currentProject', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('currentProject', e.target.value)
+                        }
                         placeholder="Project name"
                       />
                     </div>
@@ -257,7 +287,9 @@ export default function LabourFormPage() {
                       <Input
                         id="contractorName"
                         value={formData.contractorName}
-                        onChange={(e) => handleChange('contractorName', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('contractorName', e.target.value)
+                        }
                         placeholder="Contractor name"
                       />
                     </div>
@@ -267,7 +299,9 @@ export default function LabourFormPage() {
                         id="contractorPhone"
                         type="tel"
                         value={formData.contractorPhone}
-                        onChange={(e) => handleChange('contractorPhone', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('contractorPhone', e.target.value)
+                        }
                         placeholder="+91 98765 00000"
                       />
                     </div>
@@ -282,7 +316,7 @@ export default function LabourFormPage() {
                   <CardDescription>Salary and payment details</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {formData.type === 'daily' && (
                       <div>
                         <Label htmlFor="dailyRate">Daily Rate (₹)</Label>
@@ -290,7 +324,9 @@ export default function LabourFormPage() {
                           id="dailyRate"
                           type="number"
                           value={formData.dailyRate}
-                          onChange={(e) => handleChange('dailyRate', e.target.value)}
+                          onChange={(e) =>
+                            handleChange('dailyRate', e.target.value)
+                          }
                           placeholder="800"
                         />
                       </div>
@@ -302,7 +338,9 @@ export default function LabourFormPage() {
                           id="monthlyRate"
                           type="number"
                           value={formData.monthlyRate}
-                          onChange={(e) => handleChange('monthlyRate', e.target.value)}
+                          onChange={(e) =>
+                            handleChange('monthlyRate', e.target.value)
+                          }
                           placeholder="25000"
                         />
                       </div>
@@ -313,7 +351,9 @@ export default function LabourFormPage() {
                         id="overtimeRate"
                         type="number"
                         value={formData.overtimeRate}
-                        onChange={(e) => handleChange('overtimeRate', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('overtimeRate', e.target.value)
+                        }
                         placeholder="100"
                       />
                     </div>
@@ -322,7 +362,9 @@ export default function LabourFormPage() {
                       <Input
                         id="bankAccount"
                         value={formData.bankAccount}
-                        onChange={(e) => handleChange('bankAccount', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('bankAccount', e.target.value)
+                        }
                         placeholder="1234567890"
                       />
                     </div>
@@ -331,7 +373,9 @@ export default function LabourFormPage() {
                       <Input
                         id="bankName"
                         value={formData.bankName}
-                        onChange={(e) => handleChange('bankName', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('bankName', e.target.value)
+                        }
                         placeholder="State Bank of India"
                       />
                     </div>
@@ -340,7 +384,9 @@ export default function LabourFormPage() {
                       <Input
                         id="ifscCode"
                         value={formData.ifscCode}
-                        onChange={(e) => handleChange('ifscCode', e.target.value)}
+                        onChange={(e) =>
+                          handleChange('ifscCode', e.target.value)
+                        }
                         placeholder="SBIN0001234"
                       />
                     </div>
@@ -363,7 +409,9 @@ export default function LabourFormPage() {
                     <Input
                       id="aadhaarNumber"
                       value={formData.aadhaarNumber}
-                      onChange={(e) => handleChange('aadhaarNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleChange('aadhaarNumber', e.target.value)
+                      }
                       placeholder="1234 5678 9012"
                     />
                   </div>
@@ -372,7 +420,9 @@ export default function LabourFormPage() {
                     <Input
                       id="panNumber"
                       value={formData.panNumber}
-                      onChange={(e) => handleChange('panNumber', e.target.value)}
+                      onChange={(e) =>
+                        handleChange('panNumber', e.target.value)
+                      }
                       placeholder="ABCDE1234F"
                     />
                   </div>
@@ -383,7 +433,9 @@ export default function LabourFormPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Emergency Contact</CardTitle>
-                  <CardDescription>Contact person in case of emergency</CardDescription>
+                  <CardDescription>
+                    Contact person in case of emergency
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
@@ -391,7 +443,9 @@ export default function LabourFormPage() {
                     <Input
                       id="emergencyContactName"
                       value={formData.emergencyContactName}
-                      onChange={(e) => handleChange('emergencyContactName', e.target.value)}
+                      onChange={(e) =>
+                        handleChange('emergencyContactName', e.target.value)
+                      }
                       placeholder="Enter name"
                     />
                   </div>
@@ -401,7 +455,9 @@ export default function LabourFormPage() {
                       id="emergencyContact"
                       type="tel"
                       value={formData.emergencyContact}
-                      onChange={(e) => handleChange('emergencyContact', e.target.value)}
+                      onChange={(e) =>
+                        handleChange('emergencyContact', e.target.value)
+                      }
                       placeholder="+91 98765 11111"
                     />
                   </div>
@@ -428,7 +484,7 @@ export default function LabourFormPage() {
               {/* Action Buttons */}
               <div className="flex flex-col space-y-2">
                 <Button type="submit" className="w-full">
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 h-4 w-4" />
                   {isEdit ? 'Update Labour' : 'Create Labour'}
                 </Button>
                 <Button

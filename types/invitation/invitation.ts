@@ -19,6 +19,7 @@ export interface Invitation {
 }
 
 /** JSON → Invitation */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseInvitation(json: any): Invitation {
   return {
     inviteCode: json.inviteCode ?? '',
@@ -26,7 +27,7 @@ export function parseInvitation(json: any): Invitation {
     designation: json.designation ?? '',
     department: json.department ?? '',
     joiningDate: json.joiningDate ? new Date(json.joiningDate) : undefined,
-    salary: json.salary != null ? Number(json.salary) : undefined,
+    salary: json.salary == null ? undefined : Number(json.salary),
     reportingManager: json.reportingManager ?? undefined,
     shiftTiming: json.shiftTiming ?? undefined,
     organizationId: json.organizationId ?? '',
@@ -39,7 +40,7 @@ export function parseInvitation(json: any): Invitation {
 }
 
 /** Invitation → JSON */
-export function invitationToJson(inv: Invitation): Record<string, any> {
+export function invitationToJson(inv: Invitation): Record<string, unknown> {
   return {
     inviteCode: inv.inviteCode,
     employeeId: inv.employeeId,
@@ -86,9 +87,12 @@ export function whatsappMessage(inv: Invitation): string {
 
   if (inv.joiningDate) {
     const d = inv.joiningDate;
-    lines.push(`*Start Date*: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`);
+    lines.push(
+      `*Start Date*: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+    );
   }
-  if (inv.reportingManager) lines.push(`*Reporting Manager*: ${inv.reportingManager}`);
+  if (inv.reportingManager)
+    lines.push(`*Reporting Manager*: ${inv.reportingManager}`);
   if (inv.shiftTiming) lines.push(`*Shift Timing*: ${inv.shiftTiming}`);
 
   lines.push(
@@ -121,9 +125,12 @@ export function emailBody(inv: Invitation): string {
 
   if (inv.joiningDate) {
     const d = inv.joiningDate;
-    lines.push(`- Start Date: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`);
+    lines.push(
+      `- Start Date: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
+    );
   }
-  if (inv.reportingManager) lines.push(`- Reporting Manager: ${inv.reportingManager}`);
+  if (inv.reportingManager)
+    lines.push(`- Reporting Manager: ${inv.reportingManager}`);
   if (inv.shiftTiming) lines.push(`- Shift Timing: ${inv.shiftTiming}`);
 
   lines.push(

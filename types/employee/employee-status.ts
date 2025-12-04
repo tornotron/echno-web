@@ -36,6 +36,7 @@ export function getEmployeeStatusColor(status: EmployeeStatus): string {
 }
 
 export function employeeStatusFromString(str: string): EmployeeStatus {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const status = (EmployeeStatus as any)[str];
   if (!status) return EmployeeStatus.active;
   return status;

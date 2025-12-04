@@ -8,8 +8,6 @@ import {
   getRoleDisplayName,
   formatExperience,
   getProfileCompletionPercentage,
-  formatList,
-  getOrganizationNames,
   hasProfessionalInfo,
   getCompletionColor,
 } from '@/lib/utils/user-profile-utils';
@@ -47,7 +45,6 @@ export function UserProfileView({
   onEdit,
   showEditButton = false,
   className,
-  variant = 'default',
 }: UserProfileViewProps) {
   const completionPercentage = getProfileCompletionPercentage(user);
   const age = calculateAge(user.dateOfBirth);
@@ -61,23 +58,34 @@ export function UserProfileView({
         className="border-none shadow-lg"
       >
         <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
-          <UserAvatar user={user} size="xl" className="ring-4 ring-background shadow-xl" />
+          <UserAvatar
+            user={user}
+            size="xl"
+            className="ring-background shadow-xl ring-4"
+          />
 
           <div className="flex-1 text-center sm:text-left">
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight">{user.name}</h1>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {user.name}
+                </h1>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="text-muted-foreground flex items-center gap-2">
                     <Mail className="h-4 w-4" />
                     <span className="text-sm">{formatEmail(user.email)}</span>
                   </div>
                   {user.phone && user.phone !== 'Not Specified' && (
                     <>
-                      <Separator orientation="vertical" className="hidden h-4 sm:block" />
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                      <Separator
+                        orientation="vertical"
+                        className="hidden h-4 sm:block"
+                      />
+                      <div className="text-muted-foreground flex items-center gap-2">
                         <Phone className="h-4 w-4" />
-                        <span className="text-sm">{formatPhoneNumber(user.phone)}</span>
+                        <span className="text-sm">
+                          {formatPhoneNumber(user.phone)}
+                        </span>
                       </div>
                     </>
                   )}
@@ -89,8 +97,7 @@ export function UserProfileView({
                   {user.organizations && user.organizations.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       <Building2 className="mr-1 h-3 w-3" />
-                      {user.organizations[0].organizationName
-                      }
+                      {user.organizations[0].organizationName}
                     </Badge>
                   )}
                   {user.experience !== undefined && user.experience > 0 && (
@@ -110,28 +117,33 @@ export function UserProfileView({
             </div>
 
             {/* Profile Completion Bar */}
-            <div className="mt-6 space-y-2 rounded-lg bg-muted/50 p-4">
+            <div className="bg-muted/50 mt-6 space-y-2 rounded-lg p-4">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium">Profile Completion</span>
-                <span className={cn('font-bold', getCompletionColor(completionPercentage))}>
+                <span
+                  className={cn(
+                    'font-bold',
+                    getCompletionColor(completionPercentage)
+                  )}
+                >
                   {completionPercentage}%
                 </span>
               </div>
-              <div className="h-2.5 w-full overflow-hidden rounded-full bg-secondary">
+              <div className="bg-secondary h-2.5 w-full overflow-hidden rounded-full">
                 <div
                   className={cn(
                     'h-full transition-all duration-500',
                     completionPercentage >= 80
                       ? 'bg-green-500'
                       : completionPercentage >= 50
-                      ? 'bg-yellow-500'
-                      : 'bg-red-500'
+                        ? 'bg-yellow-500'
+                        : 'bg-red-500'
                   )}
                   style={{ width: `${completionPercentage}%` }}
                 />
               </div>
               {completionPercentage < 100 && (
-                <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                <p className="text-muted-foreground flex items-center gap-1 text-xs">
                   <AlertCircle className="h-3 w-3" />
                   Complete your profile to unlock all features
                 </p>
@@ -194,14 +206,14 @@ export function UserProfileView({
             <InfoField
               label="Phone Number"
               value={
-                user.phone !== 'Not Specified' ? (
+                user.phone === 'Not Specified' ? undefined : (
                   <a
                     href={`tel:${user.phone}`}
                     className="text-primary hover:underline"
                   >
                     {formatPhoneNumber(user.phone)}
                   </a>
-                ) : undefined
+                )
               }
               icon={<Phone className="h-4 w-4" />}
             />
@@ -245,7 +257,7 @@ export function UserProfileView({
                   href={user.cvUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                  className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
                 >
                   <FileText className="h-4 w-4" />
                   View CV/Resume
@@ -288,9 +300,9 @@ export function UserProfileView({
               {user.organizations.map((org) => (
                 <div
                   key={org.id}
-                  className="flex items-center gap-2 rounded-md border border-border bg-muted/50 p-3"
+                  className="border-border bg-muted/50 flex items-center gap-2 rounded-md border p-3"
                 >
-                  <Building2 className="h-5 w-5 text-primary" />
+                  <Building2 className="text-primary h-5 w-5" />
                   <span className="font-medium">{org.organizationName}</span>
                 </div>
               ))}

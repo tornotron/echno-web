@@ -34,6 +34,7 @@ export function getTaskTypeIcon(type: TaskType): string {
 }
 
 export function taskTypeFromString(str: string): TaskType {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const type = (TaskType as any)[str];
   if (!type) throw new Error(`Invalid task type: ${str}`);
   return type;

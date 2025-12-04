@@ -2,7 +2,7 @@
 import { IssueType, issueTypeFromString } from './issue-type';
 import { IssueStatus, issueStatusFromString } from './issue-status';
 import { IssueComment } from './issue-comment';
-import { Attachment, parseAttachment, attachmentToJson } from '@/types/attachment';
+import { Attachment } from '@/types/attachment';
 
 export interface Issue {
   id?: number;
@@ -19,6 +19,7 @@ export interface Issue {
 }
 
 /** JSON → Issue */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseIssue(json: any): Issue {
   return {
     id: json.id ?? undefined,
@@ -31,7 +32,7 @@ export function parseIssue(json: any): Issue {
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
     creator: json.creator ?? '',
     comments: json.comments
-      ? (json.comments as any[]).map(parseIssueComment)
+      ? (json.comments as unknown[]).map((c) => parseIssueComment(c))
       : [],
   };
 }
@@ -39,7 +40,7 @@ export function parseIssue(json: any): Issue {
 import { parseIssueComment } from './issue-comment'; // for nested parsing
 
 /** Issue → JSON */
-export function issueToJson(issue: Issue): Record<string, any> {
+export function issueToJson(issue: Issue): Record<string, unknown> {
   return {
     id: issue.id,
     title: issue.title,
@@ -56,7 +57,9 @@ export function issueToJson(issue: Issue): Record<string, any> {
 /** copyWith – immutable update */
 export function copyIssue(
   issue: Issue,
-  updates: Partial<Pick<Issue, 'title' | 'description' | 'type' | 'status' | 'creator'>>
+  updates: Partial<
+    Pick<Issue, 'title' | 'description' | 'type' | 'status' | 'creator'>
+  >
 ): Issue {
   return {
     ...issue,

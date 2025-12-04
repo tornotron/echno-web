@@ -1,5 +1,5 @@
 // types/user/member.ts
-import { UserRole, getUserRoleLabel, userRoleFromString } from '../user';
+import { getUserRoleLabel, userRoleFromString } from '../user';
 
 /**
  * Member – shape only (like Dart class)
@@ -9,7 +9,7 @@ export interface Member {
   memberName: string;
   memberEmail: string;
   memberPhone: string;
-  memberRole: string;        // raw string from API
+  memberRole: string; // raw string from API
   department: string;
   designation: string;
   memberImage?: string;
@@ -23,7 +23,7 @@ export function memberInitials(member: Member): string {
   if (words.length === 0) return 'U';
   if (words.length === 1) return words[0][0].toUpperCase();
   const first = words[0][0];
-  const last = words[words.length - 1][0];
+  const last = (words.at(-1) ?? '')[0];
   return `${first}${last}`.toUpperCase();
 }
 
@@ -40,14 +40,18 @@ export function memberRoleLabel(member: Member): string {
     const lower = member.memberRole.toLowerCase();
     switch (lower) {
       case 'admin':
-      case 'administrator':
+      case 'administrator': {
         return 'Administrator';
-      case 'manager':
+      }
+      case 'manager': {
         return 'Manager';
-      case 'employee':
+      }
+      case 'employee': {
         return 'Employee';
-      default:
+      }
+      default: {
         return member.memberRole || 'Unknown';
+      }
     }
   }
 }
@@ -56,28 +60,24 @@ export function memberRoleLabel(member: Member): string {
  *  JSON → Member
  *  Handles multiple possible field names (like Dart)
  *  ------------------------------------------------------------- */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseMember(json: any): Member {
   return {
     id: json.id ?? undefined,
-    memberName:
-      json.employeeName ?? json.memberName ?? '',
-    memberEmail:
-      json.emailAddress ?? json.memberEmail ?? '',
-    memberPhone:
-      json.phoneNumber ?? json.memberPhone ?? '',
-    memberRole:
-      json.role ?? json.memberRole ?? '',
+    memberName: json.employeeName ?? json.memberName ?? '',
+    memberEmail: json.emailAddress ?? json.memberEmail ?? '',
+    memberPhone: json.phoneNumber ?? json.memberPhone ?? '',
+    memberRole: json.role ?? json.memberRole ?? '',
     department: json.department ?? 'N/A',
     designation: json.designation ?? 'N/A',
-    memberImage:
-      json.profilePictureUrl ?? json.memberImage ?? undefined,
+    memberImage: json.profilePictureUrl ?? json.memberImage ?? undefined,
   };
 }
 
 /** -------------------------------------------------------------
  *  Member → JSON (for POST/PUT)
  *  ------------------------------------------------------------- */
-export function memberToJson(member: Member): Record<string, any> {
+export function memberToJson(member: Member): Record<string, unknown> {
   return {
     id: member.id,
     memberName: member.memberName,

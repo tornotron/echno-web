@@ -2,10 +2,16 @@
 
 import { notFound, useRouter } from 'next/navigation';
 import { use, useState } from 'react';
-import { mockEmployees } from '@/lib/mock-data';
+import { mockEmployees } from '@/components/shared/mock-data';
 import { AppLayout } from '@/components/common/app-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -16,12 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  User, 
-  Briefcase, 
-  Building2, 
-  DollarSign, 
-  Calendar, 
+import {
+  User,
+  Briefcase,
+  Building2,
+  DollarSign,
+  Calendar,
   Clock,
   Shield,
   Award,
@@ -37,7 +43,10 @@ import {
   FileText,
 } from 'lucide-react';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
-import { EmployeeStatus, getEmployeeStatusLabel } from '@/types/employee/employee-status';
+import {
+  EmployeeStatus,
+  getEmployeeStatusLabel,
+} from '@/types/employee/employee-status';
 import { UserRole } from '@/types/user/user-role';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -51,7 +60,9 @@ interface EditEmployeePageProps {
 export default function EditEmployeePage({ params }: EditEmployeePageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
-  const employee = mockEmployees.find((emp) => emp.id === parseInt(resolvedParams.id));
+  const employee = mockEmployees.find(
+    (emp) => emp.id === Number.parseInt(resolvedParams.id)
+  );
 
   if (!employee) {
     notFound();
@@ -64,11 +75,13 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
     email: employee.email,
     phone: employee.phone,
     gender: employee.gender,
-    dateOfBirth: employee.dateOfBirth ? format(employee.dateOfBirth, 'yyyy-MM-dd') : '',
+    dateOfBirth: employee.dateOfBirth
+      ? format(employee.dateOfBirth, 'yyyy-MM-dd')
+      : '',
     bloodGroup: employee.bloodGroup || '',
     address: employee.address,
     emergencyContact: employee.emergencyContact || '',
-    
+
     // Professional Information
     employeeId: employee.employeeId,
     designation: employee.designation,
@@ -76,15 +89,17 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
     qualification: employee.qualification,
     experience: employee.experience?.toString() || '',
     skills: employee.skills?.join(', ') || '',
-    
+
     // Employment Details
-    joiningDate: employee.joiningDate ? format(employee.joiningDate, 'yyyy-MM-dd') : '',
+    joiningDate: employee.joiningDate
+      ? format(employee.joiningDate, 'yyyy-MM-dd')
+      : '',
     status: employee.status,
     salary: employee.salary?.toString() || '',
     reportingManager: employee.reportingManager || '',
     shiftTiming: employee.shiftTiming || '',
     role: employee.role,
-    
+
     // Additional
     certifications: employee.certifications?.join(', ') || '',
     cvUrl: employee.cvUrl || '',
@@ -113,9 +128,9 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
   return (
     <AppLayout>
       <div className="px-4 py-8">
-        <div className="max-w-5xl mx-auto">
+        <div className="mx-auto max-w-5xl">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               Edit Employee
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
@@ -136,19 +151,21 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="name">
                       Full Name <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <UserCircle className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <UserCircle className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="name"
                         placeholder="Enter full name"
                         className="pl-9"
                         value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -159,14 +176,16 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       Email <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Mail className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="email"
                         type="email"
                         placeholder="email@example.com"
                         className="pl-9"
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -177,13 +196,15 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       Phone <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Phone className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="phone"
                         placeholder="+1 234 567 8900"
                         className="pl-9"
                         value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
                         required
                       />
                     </div>
@@ -195,7 +216,9 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                     </Label>
                     <Select
                       value={formData.gender}
-                      onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, gender: value })
+                      }
                     >
                       <SelectTrigger id="gender">
                         <SelectValue placeholder="Select gender" />
@@ -211,13 +234,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                   <div>
                     <Label htmlFor="dateOfBirth">Date of Birth</Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Calendar className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="dateOfBirth"
                         type="date"
                         className="pl-9"
                         value={formData.dateOfBirth}
-                        onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            dateOfBirth: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -225,13 +253,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                   <div>
                     <Label htmlFor="bloodGroup">Blood Group</Label>
                     <div className="relative">
-                      <Droplet className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Droplet className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="bloodGroup"
                         placeholder="e.g., A+, B-, O+"
                         className="pl-9"
                         value={formData.bloodGroup}
-                        onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            bloodGroup: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -240,14 +273,16 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 <div>
                   <Label htmlFor="address">Address</Label>
                   <div className="relative">
-                    <MapPin className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                    <MapPin className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                     <Textarea
                       id="address"
                       placeholder="Enter full address"
                       rows={2}
                       className="pl-9"
                       value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, address: e.target.value })
+                      }
                     />
                   </div>
                 </div>
@@ -255,13 +290,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 <div>
                   <Label htmlFor="emergencyContact">Emergency Contact</Label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                    <Phone className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                     <Input
                       id="emergencyContact"
                       placeholder="Emergency contact number"
                       className="pl-9"
                       value={formData.emergencyContact}
-                      onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          emergencyContact: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -280,7 +320,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="employeeId">
                       Employee ID <span className="text-red-500">*</span>
@@ -289,7 +329,9 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       id="employeeId"
                       placeholder="EMP-001"
                       value={formData.employeeId}
-                      onChange={(e) => setFormData({ ...formData, employeeId: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, employeeId: e.target.value })
+                      }
                       required
                     />
                   </div>
@@ -299,13 +341,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       Designation <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Briefcase className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Briefcase className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="designation"
                         placeholder="e.g., Senior Engineer"
                         className="pl-9"
                         value={formData.designation}
-                        onChange={(e) => setFormData({ ...formData, designation: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            designation: e.target.value,
+                          })
+                        }
                         required
                       />
                     </div>
@@ -317,7 +364,12 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                     </Label>
                     <Select
                       value={formData.department}
-                      onValueChange={(value) => setFormData({ ...formData, department: value as Department })}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          department: value as Department,
+                        })
+                      }
                     >
                       <SelectTrigger id="department">
                         <SelectValue placeholder="Select department" />
@@ -335,13 +387,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                   <div>
                     <Label htmlFor="qualification">Qualification</Label>
                     <div className="relative">
-                      <GraduationCap className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <GraduationCap className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="qualification"
                         placeholder="e.g., B.Tech in Civil Engineering"
                         className="pl-9"
                         value={formData.qualification}
-                        onChange={(e) => setFormData({ ...formData, qualification: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            qualification: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -355,20 +412,24 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       min="0"
                       step="0.1"
                       value={formData.experience}
-                      onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({ ...formData, experience: e.target.value })
+                      }
                     />
                   </div>
 
                   <div>
                     <Label htmlFor="cvUrl">CV/Resume URL</Label>
                     <div className="relative">
-                      <FileText className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <FileText className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="cvUrl"
                         placeholder="https://example.com/cv.pdf"
                         className="pl-9"
                         value={formData.cvUrl}
-                        onChange={(e) => setFormData({ ...formData, cvUrl: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, cvUrl: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -381,21 +442,30 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                     placeholder="e.g., AutoCAD, Project Management, Site Supervision"
                     rows={2}
                     value={formData.skills}
-                    onChange={(e) => setFormData({ ...formData, skills: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, skills: e.target.value })
+                    }
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="certifications">Certifications (comma-separated)</Label>
+                  <Label htmlFor="certifications">
+                    Certifications (comma-separated)
+                  </Label>
                   <div className="relative">
-                    <Award className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                    <Award className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                     <Textarea
                       id="certifications"
                       placeholder="e.g., PMP, Safety Officer Level 2"
                       rows={2}
                       className="pl-9"
                       value={formData.certifications}
-                      onChange={(e) => setFormData({ ...formData, certifications: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          certifications: e.target.value,
+                        })
+                      }
                     />
                   </div>
                 </div>
@@ -414,17 +484,22 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <Label htmlFor="joiningDate">Joining Date</Label>
                     <div className="relative">
-                      <Calendar className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Calendar className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="joiningDate"
                         type="date"
                         className="pl-9"
                         value={formData.joiningDate}
-                        onChange={(e) => setFormData({ ...formData, joiningDate: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            joiningDate: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -435,7 +510,12 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                     </Label>
                     <Select
                       value={formData.status}
-                      onValueChange={(value) => setFormData({ ...formData, status: value as EmployeeStatus })}
+                      onValueChange={(value) =>
+                        setFormData({
+                          ...formData,
+                          status: value as EmployeeStatus,
+                        })
+                      }
                     >
                       <SelectTrigger id="status">
                         <SelectValue placeholder="Select status" />
@@ -453,7 +533,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                   <div>
                     <Label htmlFor="salary">Monthly Salary</Label>
                     <div className="relative">
-                      <DollarSign className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <DollarSign className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="salary"
                         type="number"
@@ -461,7 +541,9 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                         className="pl-9"
                         min="0"
                         value={formData.salary}
-                        onChange={(e) => setFormData({ ...formData, salary: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({ ...formData, salary: e.target.value })
+                        }
                       />
                     </div>
                   </div>
@@ -469,13 +551,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                   <div>
                     <Label htmlFor="reportingManager">Reporting Manager</Label>
                     <div className="relative">
-                      <UsersIcon className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <UsersIcon className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="reportingManager"
                         placeholder="Manager's name"
                         className="pl-9"
                         value={formData.reportingManager}
-                        onChange={(e) => setFormData({ ...formData, reportingManager: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            reportingManager: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -483,13 +570,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                   <div>
                     <Label htmlFor="shiftTiming">Shift Timing</Label>
                     <div className="relative">
-                      <Clock className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Clock className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Input
                         id="shiftTiming"
                         placeholder="e.g., 9:00 AM - 6:00 PM"
                         className="pl-9"
                         value={formData.shiftTiming}
-                        onChange={(e) => setFormData({ ...formData, shiftTiming: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            shiftTiming: e.target.value,
+                          })
+                        }
                       />
                     </div>
                   </div>
@@ -499,45 +591,105 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       System Role <span className="text-red-500">*</span>
                     </Label>
                     <div className="relative">
-                      <Shield className="absolute left-3 top-3 h-4 w-4 text-zinc-400" />
+                      <Shield className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                       <Select
                         value={formData.role}
-                        onValueChange={(value) => setFormData({ ...formData, role: value as UserRole })}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, role: value as UserRole })
+                        }
                       >
                         <SelectTrigger id="role" className="pl-9">
                           <SelectValue placeholder="Select role" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value={UserRole.projectManager}>Project Manager</SelectItem>
-                          <SelectItem value={UserRole.siteManager}>Site Manager</SelectItem>
-                          <SelectItem value={UserRole.supervisor}>Supervisor</SelectItem>
-                          <SelectItem value={UserRole.foreman}>Foreman</SelectItem>
-                          <SelectItem value={UserRole.civilEngineer}>Civil Engineer</SelectItem>
-                          <SelectItem value={UserRole.siteEngineer}>Site Engineer</SelectItem>
-                          <SelectItem value={UserRole.structuralEngineer}>Structural Engineer</SelectItem>
-                          <SelectItem value={UserRole.architect}>Architect</SelectItem>
-                          <SelectItem value={UserRole.safetyOfficer}>Safety Officer</SelectItem>
-                          <SelectItem value={UserRole.planningEngineer}>Planning Engineer</SelectItem>
-                          <SelectItem value={UserRole.quantitySurveyor}>Quantity Surveyor</SelectItem>
-                          <SelectItem value={UserRole.technicalCoordinator}>Technical Coordinator</SelectItem>
-                          <SelectItem value={UserRole.hrManager}>HR Manager</SelectItem>
-                          <SelectItem value={UserRole.accountant}>Accountant</SelectItem>
-                          <SelectItem value={UserRole.adminStaff}>Admin Staff</SelectItem>
-                          <SelectItem value={UserRole.documentController}>Document Controller</SelectItem>
-                          <SelectItem value={UserRole.itSupport}>IT Support</SelectItem>
-                          <SelectItem value={UserRole.laborer}>Laborer</SelectItem>
-                          <SelectItem value={UserRole.electrician}>Electrician</SelectItem>
-                          <SelectItem value={UserRole.plumber}>Plumber</SelectItem>
-                          <SelectItem value={UserRole.carpenter}>Carpenter</SelectItem>
+                          <SelectItem value={UserRole.projectManager}>
+                            Project Manager
+                          </SelectItem>
+                          <SelectItem value={UserRole.siteManager}>
+                            Site Manager
+                          </SelectItem>
+                          <SelectItem value={UserRole.supervisor}>
+                            Supervisor
+                          </SelectItem>
+                          <SelectItem value={UserRole.foreman}>
+                            Foreman
+                          </SelectItem>
+                          <SelectItem value={UserRole.civilEngineer}>
+                            Civil Engineer
+                          </SelectItem>
+                          <SelectItem value={UserRole.siteEngineer}>
+                            Site Engineer
+                          </SelectItem>
+                          <SelectItem value={UserRole.structuralEngineer}>
+                            Structural Engineer
+                          </SelectItem>
+                          <SelectItem value={UserRole.architect}>
+                            Architect
+                          </SelectItem>
+                          <SelectItem value={UserRole.safetyOfficer}>
+                            Safety Officer
+                          </SelectItem>
+                          <SelectItem value={UserRole.planningEngineer}>
+                            Planning Engineer
+                          </SelectItem>
+                          <SelectItem value={UserRole.quantitySurveyor}>
+                            Quantity Surveyor
+                          </SelectItem>
+                          <SelectItem value={UserRole.technicalCoordinator}>
+                            Technical Coordinator
+                          </SelectItem>
+                          <SelectItem value={UserRole.hrManager}>
+                            HR Manager
+                          </SelectItem>
+                          <SelectItem value={UserRole.accountant}>
+                            Accountant
+                          </SelectItem>
+                          <SelectItem value={UserRole.adminStaff}>
+                            Admin Staff
+                          </SelectItem>
+                          <SelectItem value={UserRole.documentController}>
+                            Document Controller
+                          </SelectItem>
+                          <SelectItem value={UserRole.itSupport}>
+                            IT Support
+                          </SelectItem>
+                          <SelectItem value={UserRole.laborer}>
+                            Laborer
+                          </SelectItem>
+                          <SelectItem value={UserRole.electrician}>
+                            Electrician
+                          </SelectItem>
+                          <SelectItem value={UserRole.plumber}>
+                            Plumber
+                          </SelectItem>
+                          <SelectItem value={UserRole.carpenter}>
+                            Carpenter
+                          </SelectItem>
                           <SelectItem value={UserRole.mason}>Mason</SelectItem>
-                          <SelectItem value={UserRole.welder}>Welder</SelectItem>
-                          <SelectItem value={UserRole.painter}>Painter</SelectItem>
-                          <SelectItem value={UserRole.contractor}>Contractor</SelectItem>
-                          <SelectItem value={UserRole.subcontractor}>Subcontractor</SelectItem>
-                          <SelectItem value={UserRole.consultant}>Consultant</SelectItem>
-                          <SelectItem value={UserRole.client}>Client</SelectItem>
-                          <SelectItem value={UserRole.intern}>Intern</SelectItem>
-                          <SelectItem value={UserRole.trainee}>Trainee</SelectItem>
+                          <SelectItem value={UserRole.welder}>
+                            Welder
+                          </SelectItem>
+                          <SelectItem value={UserRole.painter}>
+                            Painter
+                          </SelectItem>
+                          <SelectItem value={UserRole.contractor}>
+                            Contractor
+                          </SelectItem>
+                          <SelectItem value={UserRole.subcontractor}>
+                            Subcontractor
+                          </SelectItem>
+                          <SelectItem value={UserRole.consultant}>
+                            Consultant
+                          </SelectItem>
+                          <SelectItem value={UserRole.client}>
+                            Client
+                          </SelectItem>
+                          <SelectItem value={UserRole.intern}>
+                            Intern
+                          </SelectItem>
+                          <SelectItem value={UserRole.trainee}>
+                            Trainee
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -554,11 +706,11 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 onClick={handleCancel}
                 disabled={isSubmitting}
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="mr-2 h-4 w-4" />
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 {isSubmitting ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>

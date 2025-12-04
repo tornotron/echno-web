@@ -1,12 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { use } from 'react';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import {
   Edit,
   Trash2,
@@ -22,6 +21,7 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  LucideIcon,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
@@ -39,9 +39,9 @@ const mockSubContract = {
   status: 'active',
   contractStatus: 'in-progress',
   scope: 'Foundation and structural work for Building A',
-  contractValue: 2500000,
-  paidAmount: 1500000,
-  pendingAmount: 1000000,
+  contractValue: 2_500_000,
+  paidAmount: 1_500_000,
+  pendingAmount: 1_000_000,
   startDate: new Date('2024-01-15'),
   endDate: new Date('2024-06-30'),
   duration: 167,
@@ -54,11 +54,30 @@ const mockSubContract = {
   contractDate: new Date('2024-01-10'),
   paymentTerms: 'milestone',
   milestones: [
-    { name: 'Foundation Work', percentage: 30, amount: 750000, status: 'completed', date: '2024-02-28' },
-    { name: 'Ground Floor Structure', percentage: 40, amount: 1000000, status: 'completed', date: '2024-04-15' },
-    { name: 'First Floor Structure', percentage: 30, amount: 750000, status: 'in-progress', date: '2024-06-30' },
+    {
+      name: 'Foundation Work',
+      percentage: 30,
+      amount: 750_000,
+      status: 'completed',
+      date: '2024-02-28',
+    },
+    {
+      name: 'Ground Floor Structure',
+      percentage: 40,
+      amount: 1_000_000,
+      status: 'completed',
+      date: '2024-04-15',
+    },
+    {
+      name: 'First Floor Structure',
+      percentage: 30,
+      amount: 750_000,
+      status: 'in-progress',
+      date: '2024-06-30',
+    },
   ],
-  notes: 'Experienced contractor with good track record. Regular progress updates provided.',
+  notes:
+    'Experienced contractor with good track record. Regular progress updates provided.',
 };
 
 const workTypeLabels: Record<string, string> = {
@@ -101,7 +120,7 @@ const contractStatusLabels: Record<string, string> = {
   onhold: 'On Hold',
 };
 
-const milestoneStatusIcons: Record<string, any> = {
+const milestoneStatusIcons: Record<string, LucideIcon> = {
   completed: CheckCircle2,
   'in-progress': Clock,
   pending: AlertCircle,
@@ -113,41 +132,55 @@ const milestoneStatusColors: Record<string, string> = {
   pending: 'text-orange-600',
 };
 
-export default function SubContractDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const [subContract] = useState(mockSubContract);
+interface PageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export default function SubContractDetailPage({ params }: PageProps) {
+  use(params);
+  // The router import was unused and has been removed.
+  // The useState for subContract was unused and has been removed.
+  // Assuming `subContract` should directly use `mockSubContract` for now.
+  const subContract = mockSubContract;
 
   return (
     <AppLayout>
       <div className="space-y-6 p-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               {subContract.contractorName}
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
               Contract ID: {subContract.contractId}
             </p>
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/dashboard/third-party/sub-contracts/${subContract.id}/edit`}>
-                <Edit className="h-4 w-4 mr-2" />
+              <Link
+                href={`/dashboard/third-party/sub-contracts/${subContract.id}/edit`}
+              >
+                <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Link>
             </Button>
-            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-              <Trash2 className="h-4 w-4 mr-2" />
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
               Delete
             </Button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Info */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -157,12 +190,12 @@ export default function SubContractDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Contractor Name
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.contractorName}
                     </p>
                   </div>
@@ -170,7 +203,7 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Contract ID
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.contractId}
                     </p>
                   </div>
@@ -178,25 +211,25 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Contact Person
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.contactPerson}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center space-x-1">
+                    <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       <Phone className="h-3 w-3" />
                       <span>Phone</span>
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.phone}
                     </p>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center space-x-1">
+                    <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       <Mail className="h-3 w-3" />
                       <span>Email</span>
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.email}
                     </p>
                   </div>
@@ -211,11 +244,11 @@ export default function SubContractDetailPage() {
                     </div>
                   </div>
                   <div className="md:col-span-2">
-                    <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center space-x-1">
+                    <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       <MapPin className="h-3 w-3" />
                       <span>Address</span>
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.address}
                     </p>
                   </div>
@@ -232,7 +265,7 @@ export default function SubContractDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Status
@@ -258,11 +291,11 @@ export default function SubContractDetailPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400 flex items-center space-x-1">
+                    <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       <Calendar className="h-3 w-3" />
                       <span>Contract Date</span>
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {format(subContract.contractDate, 'MMM dd, yyyy')}
                     </p>
                   </div>
@@ -270,7 +303,7 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Payment Terms
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1 capitalize">
+                    <p className="mt-1 text-base text-zinc-900 capitalize dark:text-zinc-100">
                       {subContract.paymentTerms}
                     </p>
                   </div>
@@ -278,7 +311,7 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Start Date
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {format(subContract.startDate, 'MMM dd, yyyy')}
                     </p>
                   </div>
@@ -286,7 +319,7 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       End Date
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {format(subContract.endDate, 'MMM dd, yyyy')}
                     </p>
                   </div>
@@ -294,7 +327,7 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Duration
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.duration} days
                     </p>
                   </div>
@@ -302,21 +335,25 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Completion
                     </label>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <div className="flex-1 bg-zinc-200 dark:bg-zinc-700 rounded-full h-2">
+                    <div className="mt-1 flex items-center space-x-2">
+                      <div className="h-2 flex-1 rounded-full bg-zinc-200 dark:bg-zinc-700">
                         <div
-                          className="bg-blue-500 h-2 rounded-full"
-                          style={{ width: `${subContract.completionPercentage}%` }}
+                          className="h-2 rounded-full bg-blue-500"
+                          style={{
+                            width: `${subContract.completionPercentage}%`,
+                          }}
                         />
                       </div>
-                      <span className="text-sm font-semibold">{subContract.completionPercentage}%</span>
+                      <span className="text-sm font-semibold">
+                        {subContract.completionPercentage}%
+                      </span>
                     </div>
                   </div>
                   <div className="md:col-span-2">
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Scope of Work
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.scope}
                     </p>
                   </div>
@@ -333,39 +370,39 @@ export default function SubContractDetailPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Contract Value
                     </label>
-                    <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100 mt-1">
-                      ₹{(subContract.contractValue / 100000).toFixed(2)}L
+                    <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                      ₹{(subContract.contractValue / 100_000).toFixed(2)}L
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Paid Amount
                     </label>
-                    <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">
-                      ₹{(subContract.paidAmount / 100000).toFixed(2)}L
+                    <p className="mt-1 text-xl font-bold text-green-600 dark:text-green-400">
+                      ₹{(subContract.paidAmount / 100_000).toFixed(2)}L
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Pending Amount
                     </label>
-                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400 mt-1">
-                      ₹{(subContract.pendingAmount / 100000).toFixed(2)}L
+                    <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
+                      ₹{(subContract.pendingAmount / 100_000).toFixed(2)}L
                     </p>
                   </div>
                 </div>
                 <Separator />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       Bank Account
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.bankAccount}
                     </p>
                     <p className="text-sm text-zinc-500 dark:text-zinc-500">
@@ -376,7 +413,7 @@ export default function SubContractDetailPage() {
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       IFSC Code
                     </label>
-                    <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                    <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                       {subContract.ifscCode}
                     </p>
                   </div>
@@ -394,13 +431,17 @@ export default function SubContractDetailPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Progress</span>
-                    <span className="text-sm font-bold">{subContract.completionPercentage}%</span>
+                  <div className="mb-1 flex items-center justify-between">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Progress
+                    </span>
+                    <span className="text-sm font-bold">
+                      {subContract.completionPercentage}%
+                    </span>
                   </div>
-                  <div className="w-full bg-zinc-200 dark:bg-zinc-700 rounded-full h-2">
+                  <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700">
                     <div
-                      className="bg-blue-500 h-2 rounded-full"
+                      className="h-2 rounded-full bg-blue-500"
                       style={{ width: `${subContract.completionPercentage}%` }}
                     />
                   </div>
@@ -408,27 +449,37 @@ export default function SubContractDetailPage() {
                 <Separator />
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Contract Value</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Contract Value
+                    </span>
                     <span className="text-sm font-semibold">
-                      ₹{(subContract.contractValue / 100000).toFixed(2)}L
+                      ₹{(subContract.contractValue / 100_000).toFixed(2)}L
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Paid</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Paid
+                    </span>
                     <span className="text-sm font-semibold text-green-600">
-                      ₹{(subContract.paidAmount / 100000).toFixed(2)}L
+                      ₹{(subContract.paidAmount / 100_000).toFixed(2)}L
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Pending</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Pending
+                    </span>
                     <span className="text-sm font-semibold text-orange-600">
-                      ₹{(subContract.pendingAmount / 100000).toFixed(2)}L
+                      ₹{(subContract.pendingAmount / 100_000).toFixed(2)}L
                     </span>
                   </div>
                   <Separator />
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">Duration</span>
-                    <span className="text-sm font-semibold">{subContract.duration} days</span>
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Duration
+                    </span>
+                    <span className="text-sm font-semibold">
+                      {subContract.duration} days
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -447,10 +498,15 @@ export default function SubContractDetailPage() {
                   {subContract.milestones.map((milestone, idx) => {
                     const StatusIcon = milestoneStatusIcons[milestone.status];
                     return (
-                      <div key={idx} className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <StatusIcon className={`h-4 w-4 ${milestoneStatusColors[milestone.status]}`} />
-                          <h4 className="font-semibold text-sm text-zinc-900 dark:text-zinc-100">
+                      <div
+                        key={idx}
+                        className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
+                      >
+                        <div className="mb-2 flex items-center space-x-2">
+                          <StatusIcon
+                            className={`h-4 w-4 ${milestoneStatusColors[milestone.status]}`}
+                          />
+                          <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {milestone.name}
                           </h4>
                         </div>
@@ -459,7 +515,8 @@ export default function SubContractDetailPage() {
                             Due: {milestone.date}
                           </span>
                           <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                            {milestone.percentage}% • ₹{(milestone.amount / 100000).toFixed(2)}L
+                            {milestone.percentage}% • ₹
+                            {(milestone.amount / 100_000).toFixed(2)}L
                           </span>
                         </div>
                       </div>
@@ -482,7 +539,7 @@ export default function SubContractDetailPage() {
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     GST Number
                   </label>
-                  <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                     {subContract.gstNumber}
                   </p>
                 </div>
@@ -490,7 +547,7 @@ export default function SubContractDetailPage() {
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     PAN Number
                   </label>
-                  <p className="text-base text-zinc-900 dark:text-zinc-100 mt-1">
+                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                     {subContract.panNumber}
                   </p>
                 </div>

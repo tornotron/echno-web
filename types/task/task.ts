@@ -1,9 +1,13 @@
 // types/task/task.ts
 import { Member, memberToJson, parseMember } from '@/types/member';
 import { Issue, issueToJson, parseIssue } from '@/types/issue';
-import { WorkCategory, parseWorkCategory, workCategoryToJson } from './work-category';
+import {
+  WorkCategory,
+  parseWorkCategory,
+  workCategoryToJson,
+} from './work-category';
 import { TaskStatus, taskStatusFromString } from './task-status';
-import { Attachment, parseAttachment, attachmentToJson } from '@/types/attachment';
+import { Attachment } from '@/types/attachment';
 
 export interface Task {
   id?: number;
@@ -28,6 +32,7 @@ export const categoryId = (task: Task): number | undefined => task.category?.id;
 export const asignees = (task: Task): Member[] | undefined => task.assignees;
 
 /** JSON → Task */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseTask(json: any): Task {
   return {
     id: json.id ?? undefined,
@@ -37,22 +42,24 @@ export function parseTask(json: any): Task {
     endDate: parseDateTime(json.endDate),
     creator: json.creator ? parseMember(json.creator) : undefined,
     assignees: json.assignees
-      ? (json.assignees as any[]).filter(Boolean).map(parseMember)
+      ? (json.assignees as unknown[]).filter(Boolean).map((m) => parseMember(m))
       : [],
     category: json.category ? parseWorkCategory(json.category) : undefined,
     progress: Number(json.progress ?? 0),
-    tags: json.tags ? (json.tags as any[]).filter(Boolean) : [],
+    tags: json.tags
+      ? ((json.tags as unknown[]).filter(Boolean) as string[])
+      : [],
     createdAt: parseDateTime(json.createdAt),
     updatedAt: parseDateTime(json.updatedAt),
     status: taskStatusFromString(json.status),
     issues: json.issues
-      ? (json.issues as any[]).filter(Boolean).map(parseIssue)
+      ? (json.issues as unknown[]).filter(Boolean).map((i) => parseIssue(i))
       : [],
   };
 }
 
 /** Helper: parse DateTime (string or timestamp) */
-function parseDateTime(value: any): Date | undefined {
+function parseDateTime(value: unknown): Date | undefined {
   if (!value) return undefined;
   try {
     if (typeof value === 'string') return new Date(value);
@@ -64,7 +71,7 @@ function parseDateTime(value: any): Date | undefined {
 }
 
 /** Task → JSON */
-export function taskToJson(task: Task): Record<string, any> {
+export function taskToJson(task: Task): Record<string, unknown> {
   return {
     id: task.id,
     projectId: task.projectId,
@@ -72,14 +79,14 @@ export function taskToJson(task: Task): Record<string, any> {
     startDate: task.startDate?.toISOString(),
     endDate: task.endDate?.toISOString(),
     creator: task.creator ? memberToJson(task.creator) : undefined,
-    assignees: task.assignees?.map(memberToJson),
+    assignees: task.assignees?.map((m) => memberToJson(m)),
     category: task.category ? workCategoryToJson(task.category) : undefined,
     progress: task.progress,
     tags: task.tags ?? [],
     createdAt: task.createdAt?.toISOString(),
     updatedAt: task.updatedAt?.toISOString(),
     status: task.status,
-    issues: task.issues?.map(issueToJson) ?? [],
+    issues: task.issues?.map((i) => issueToJson(i)) ?? [],
   };
 }
 
