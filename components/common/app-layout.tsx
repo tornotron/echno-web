@@ -11,17 +11,6 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { useMemo } from 'react';
-
-const SIDEBAR_COOKIE_NAME = 'sidebar_state';
-
-function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
-  return null;
-}
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -56,16 +45,9 @@ function AppLayoutContent({ children }: AppLayoutProps) {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  // Read cookie value immediately (not in useEffect) to prevent flash
-  const defaultOpen = useMemo(() => {
-    const cookieValue = getCookie(SIDEBAR_COOKIE_NAME);
-    // If cookie exists, use its value; otherwise default to true
-    return cookieValue === null ? true : cookieValue === 'true';
-  }, []);
-
   return (
     <OrganizationProvider>
-      <SidebarProvider defaultOpen={defaultOpen}>
+      <SidebarProvider defaultOpen={true}>
         <AppLayoutContent>{children}</AppLayoutContent>
       </SidebarProvider>
     </OrganizationProvider>

@@ -36,8 +36,26 @@ export interface Asset {
   specifications?: Record<string, unknown>;
   documents?: string[];
   notes?: string;
+  locationHistory?: import('./asset').AssetLocationHistory[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface AssetLocationHistory {
+  id: number;
+  assetId: number;
+  fromLocationId?: number;
+  fromLocation?: Location;
+  toLocationId?: number;
+  toLocation?: Location;
+  transferDate: Date;
+  transferredBy: string;
+  reason: string;
+  notes?: string;
+  previousAssignedTo?: string;
+  newAssignedTo?: string;
+  previousProject?: string;
+  newProject?: string;
 }
 
 // Asset Types

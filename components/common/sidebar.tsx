@@ -179,6 +179,7 @@ const navItems: NavItem[] = [
     url: '/dashboard/finance',
     icon: Wallet,
     items: [
+      { title: 'Estimates', url: '/dashboard/finance/estimates', icon: FileText },
       { title: 'Receipts', url: '/dashboard/finance/receipts', icon: Receipt },
       {
         title: 'Payments',

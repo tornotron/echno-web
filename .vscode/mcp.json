@@ -1,0 +1,18 @@
+{
+    "servers": {
+        "postman-api-http-server": {
+            "type": "http",
+            "url": "https://mcp.postman.com/mcp",
+            "headers": {
+                "Authorization": "Bearer ${input:postman-api-key}"
+            }
+        }
+    },
+    "inputs": [
+        {
+            "id": "postman-api-key",
+            "type": "promptString",
+            "description": "Enter your Postman API key"
+        }
+    ]
+}

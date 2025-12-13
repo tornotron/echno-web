@@ -69,22 +69,11 @@ function SidebarProvider({
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
-  // Read the cookie value on initialization
-  const getInitialOpenState = React.useCallback(() => {
-    if (typeof document === 'undefined') return defaultOpen;
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${SIDEBAR_COOKIE_NAME}=`);
-    if (parts.length === 2) {
-      const cookieValue = parts.pop()?.split(';').shift();
-      return cookieValue === 'true';
-    }
-    return defaultOpen;
-  }, [defaultOpen]);
-
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(getInitialOpenState);
+  const [_open, _setOpen] = React.useState(defaultOpen);
   const open = openProp ?? _open;
+
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === 'function' ? value(open) : value;
@@ -100,6 +89,21 @@ function SidebarProvider({
     },
     [setOpenProp, open]
   );
+
+  // Hydration fix: Read cookie in useEffect
+  React.useEffect(() => {
+    if (openProp !== undefined) return; // Controlled mode, don't read cookie
+
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${SIDEBAR_COOKIE_NAME}=`);
+    if (parts.length === 2) {
+      const cookieValue = parts.pop()?.split(';').shift();
+      const shouldBeOpen = cookieValue === 'true';
+      if (shouldBeOpen !== _open) {
+        _setOpen(shouldBeOpen);
+      }
+    }
+  }, []);
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {

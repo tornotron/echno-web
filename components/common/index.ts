@@ -1,6 +1,7 @@
 export * from "./sidebar"
 export * from "./footer"
 export * from "./user-menu"
+export * from "./filters-card"
 export * from "./auth-button"
 export * from "./breadcrumbs"
 export * from "./app-layout"

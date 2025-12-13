@@ -37,3 +37,6 @@ export * from './expense';
 
 // Export budget types
 export * from './budget';
+
+// Export estimate types
+export * from './estimate';

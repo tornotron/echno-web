@@ -1,0 +1,496 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AppLayout } from '@/components/common/app-layout';
+import { FiltersCard } from '@/components/common/filters-card';
+import { Pagination } from '@/components/common/pagination';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Settings,
+  Plus,
+  Clock,
+  Eye,
+  FileText,
+  TrendingUp,
+  TrendingDown,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react';
+
+// Mock stock adjustments data (inline until we create proper types)
+const stockAdjustments = [
+  {
+    id: 1,
+    adjustmentId: 'SA-2024-001',
+    type: 'correction',
+    reason: 'stock-discrepancy',
+    material: 'Cement Bags (50kg)',
+    location: 'Warehouse A',
+    systemQuantity: 500,
+    physicalQuantity: 485,
+    variance: -15,
+    unit: 'bags',
+    status: 'approved',
+    requestedBy: 'Rajesh Kumar',
+    approvedBy: 'Suresh Patel',
+    adjustmentDate: '2024-03-01',
+    notes: 'Physical count revealed missing bags',
+  },
+  {
+    id: 2,
+    adjustmentId: 'SA-2024-002',
+    type: 'write-off',
+    reason: 'damage',
+    material: 'Steel Rods (12mm)',
+    location: 'Site A - Building Project',
+    systemQuantity: 1000,
+    physicalQuantity: 980,
+    variance: -20,
+    unit: 'pcs',
+    status: 'pending',
+    requestedBy: 'Amit Patel',
+    approvedBy: null,
+    adjustmentDate: '2024-03-05',
+    notes: 'Damaged during transport',
+  },
+  {
+    id: 3,
+    adjustmentId: 'SA-2024-003',
+    type: 'found',
+    reason: 'found-items',
+    material: 'Power Tools Set',
+    location: 'Warehouse B',
+    systemQuantity: 20,
+    physicalQuantity: 23,
+    variance: 3,
+    unit: 'sets',
+    status: 'approved',
+    requestedBy: 'Priya Singh',
+    approvedBy: 'Suresh Patel',
+    adjustmentDate: '2024-02-28',
+    notes: 'Found during inventory check',
+  },
+  {
+    id: 4,
+    adjustmentId: 'SA-2024-004',
+    type: 'correction',
+    reason: 'counting-error',
+    material: 'Paint Cans (20L)',
+    location: 'Warehouse A',
+    systemQuantity: 150,
+    physicalQuantity: 155,
+    variance: 5,
+    unit: 'cans',
+    status: 'rejected',
+    requestedBy: 'Neha Sharma',
+    approvedBy: 'Suresh Patel',
+    adjustmentDate: '2024-03-02',
+    notes: 'Recounting required',
+  },
+  {
+    id: 5,
+    adjustmentId: 'SA-2024-005',
+    type: 'write-off',
+    reason: 'expiry',
+    material: 'Adhesive Bottles (1L)',
+    location: 'Warehouse B',
+    systemQuantity: 80,
+    physicalQuantity: 70,
+    variance: -10,
+    unit: 'bottles',
+    status: 'draft',
+    requestedBy: 'Vikram Reddy',
+    approvedBy: null,
+    adjustmentDate: null,
+    notes: 'Expired stock to be written off',
+  },
+];
+
+// Helper functions for badge colors
+const getStatusBadgeColor = (status: string): string => {
+  const colors: Record<string, string> = {
+    draft: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+    pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+    approved: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    rejected: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+  };
+  return colors[status] || colors.draft;
+};
+
+export default function StockAdjustmentsPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [reasonFilter, setReasonFilter] = useState<string>('all');
+
+  // Filter adjustments
+  const filteredAdjustments = useMemo(() => {
+    return stockAdjustments.filter((adjustment) => {
+      const matchesSearch = 
+        adjustment.adjustmentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        adjustment.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        adjustment.location.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesType = typeFilter === 'all' || adjustment.type === typeFilter;
+      const matchesStatus = statusFilter === 'all' || adjustment.status === statusFilter;
+      const matchesReason = reasonFilter === 'all' || adjustment.reason === reasonFilter;
+
+      return matchesSearch && matchesType && matchesStatus && matchesReason;
+    });
+  }, [searchQuery, typeFilter, statusFilter, reasonFilter]);
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [searchQuery, typeFilter, statusFilter, reasonFilter]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredAdjustments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedAdjustments = filteredAdjustments.slice(startIndex, endIndex);
+
+  // Calculate stats
+  const totalAdjustments = stockAdjustments.length;
+  const pendingAdjustments = stockAdjustments.filter(a => a.status === 'pending').length;
+  const positiveVariance = stockAdjustments.filter(a => a.variance > 0).reduce((sum, a) => sum + a.variance, 0);
+  const negativeVariance = Math.abs(stockAdjustments.filter(a => a.variance < 0).reduce((sum, a) => sum + a.variance, 0));
+
+  const hasActiveFilters =
+    searchQuery || typeFilter !== 'all' || statusFilter !== 'all' || reasonFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setTypeFilter('all');
+    setStatusFilter('all');
+    setReasonFilter('all');
+    setCurrentPage(1);
+  };
+
+  return (
+    <AppLayout>
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Stock Adjustments
+            </h1>
+            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1">
+              Manage stock corrections and adjustments
+            </p>
+          </div>
+          <Button asChild className="w-full sm:w-auto">
+            <Link href="/dashboard/resources/stock-adjustments/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Adjustment
+            </Link>
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Total Adjustments</CardTitle>
+              <FileText className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalAdjustments}</div>
+              <p className="text-xs text-muted-foreground">All adjustments</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+              <Clock className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-orange-600">{pendingAdjustments}</div>
+              <p className="text-xs text-muted-foreground">Awaiting approval</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Surplus</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">+{positiveVariance}</div>
+              <p className="text-xs text-muted-foreground">Items found</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-xs sm:text-sm font-medium">Shortage</CardTitle>
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">-{negativeVariance}</div>
+              <p className="text-xs text-muted-foreground">Items missing</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <div className="mb-6">
+          <FiltersCard
+            title="Search & Filters"
+            searchPlaceholder="Search by adjustment ID, material..."
+            searchValue={searchQuery}
+            onSearchChange={(value) => {
+              setSearchQuery(value);
+              setCurrentPage(1);
+            }}
+          >
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+                <Select
+                  value={typeFilter}
+                  onValueChange={(value) => {
+                    setTypeFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="correction">Correction</SelectItem>
+                    <SelectItem value="write-off">Write-off</SelectItem>
+                    <SelectItem value="found">Found Items</SelectItem>
+                    <SelectItem value="return">Return</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="draft">Draft</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+                <Select
+                  value={reasonFilter}
+                  onValueChange={(value) => {
+                    setReasonFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Reasons" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Reasons</SelectItem>
+                    <SelectItem value="stock-discrepancy">Stock Discrepancy</SelectItem>
+                    <SelectItem value="damage">Damage</SelectItem>
+                    <SelectItem value="expiry">Expiry</SelectItem>
+                    <SelectItem value="theft">Theft</SelectItem>
+                    <SelectItem value="found-items">Found Items</SelectItem>
+                    <SelectItem value="counting-error">Counting Error</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                onClick={clearFilters}
+                className="mt-2"
+              >
+                Clear Filters
+              </Button>
+            )}
+          </FiltersCard>
+        </div>
+
+        {/* Results Summary */}
+        <div className="mb-6 flex items-center justify-between">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            Showing {startIndex + 1} to {Math.min(endIndex, filteredAdjustments.length)} of{' '}
+            {filteredAdjustments.length} adjustments
+          </p>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => {
+                setItemsPerPage(parseInt(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Stock Adjustments List */}
+        {filteredAdjustments.length > 0 ? (
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {paginatedAdjustments.map((adj) => (
+                  <div
+                    key={adj.id}
+                    className="border rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                      {/* Left Section */}
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Link
+                                href={`/dashboard/resources/stock-adjustments/${adj.id}`}
+                                className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400"
+                              >
+                                {adj.adjustmentId}
+                              </Link>
+                              <Badge className={getStatusBadgeColor(adj.status)}>
+                                {adj.status.charAt(0).toUpperCase() + adj.status.slice(1)}
+                              </Badge>
+                              <Badge variant="outline">
+                                {adj.type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                              Material: <span className="font-medium text-zinc-900 dark:text-zinc-100">{adj.material}</span>
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <span className="text-zinc-500 dark:text-zinc-500">Location:</span>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {adj.location}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 dark:text-zinc-500">System Qty:</span>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {adj.systemQuantity} {adj.unit}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 dark:text-zinc-500">Physical Qty:</span>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {adj.physicalQuantity} {adj.unit}
+                            </p>
+                          </div>
+                          <div>
+                            <span className="text-zinc-500 dark:text-zinc-500">Variance:</span>
+                            <Badge variant="outline" className={adj.variance > 0 ? 'text-green-600' : adj.variance < 0 ? 'text-red-600' : ''}>
+                              {adj.variance > 0 ? '+' : ''}{adj.variance} {adj.unit}
+                            </Badge>
+                          </div>
+                        </div>
+
+                        {adj.notes && (
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                            Note: {adj.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Right Section */}
+                      <div className="flex flex-col lg:items-end gap-2">
+                        <div className="text-right">
+                          <p className="text-sm text-zinc-500 dark:text-zinc-500">Reason</p>
+                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {adj.reason.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                          </p>
+                        </div>
+                        <Link href={`/dashboard/resources/stock-adjustments/${adj.id}`}>
+                          <Button variant="outline" size="sm">
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+
+            {/* Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </Card>
+        ) : (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Settings className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+                {hasActiveFilters ? 'No stock adjustments found' : 'No stock adjustments yet'}
+              </h3>
+              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+                {hasActiveFilters
+                  ? 'Try adjusting your filters to find what you\'re looking for.'
+                  : 'Create your first stock adjustment to get started.'}
+              </p>
+              {hasActiveFilters ? (
+                <Button onClick={clearFilters} variant="outline">
+                  Clear Filters
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link href="/dashboard/resources/stock-adjustments/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Adjustment
+                  </Link>
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </AppLayout>
+  );
+}

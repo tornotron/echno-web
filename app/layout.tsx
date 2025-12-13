@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers/auth-provider';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 
 // const geistSans = Geist({
@@ -24,10 +25,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`antialiased`}>
-        <Providers>{children}</Providers>
-        <Toaster />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>{children}</Providers>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );

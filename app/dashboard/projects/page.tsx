@@ -1,0 +1,364 @@
+'use client';
+
+import { useState, useMemo } from 'react';
+import Link from 'next/link';
+import { format } from 'date-fns';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { AppLayout, Pagination, FiltersCard } from '@/components/common';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  FolderKanban,
+  MapPin,
+  Plus,
+  Users,
+  ListTodo,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  AlertCircle,
+  XCircle,
+  Pause,
+  Ban,
+  TrendingUp,
+  Eye,
+  Edit,
+} from 'lucide-react';
+import { ProjectStatus, getProjectStatusLabel } from '@/types/project/project-status';
+import type { Project } from '@/types/project/project';
+import { mockProjects } from '@/components/shared/mock-data';
+
+interface ProjectFilters {
+  search: string;
+  status: ProjectStatus | 'all';
+}
+
+export default function ProjectsPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12; // 4 columns x 3 rows
+  
+  const [filters, setFilters] = useState<ProjectFilters>({
+    search: '',
+    status: 'all',
+  });
+
+  // Filter projects
+  const filteredProjects = useMemo(() => {
+    return mockProjects.filter(project => {
+      const matchesSearch = 
+        project.projectName.toLowerCase().includes(filters.search.toLowerCase()) ||
+        project.projectAddress.toLowerCase().includes(filters.search.toLowerCase());
+      
+      const matchesStatus = filters.status === 'all' || project.status === filters.status;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [filters]);
+
+  // Reset to page 1 when filters change
+  useMemo(() => {
+    setCurrentPage(1);
+  }, [filters]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+
+  // Handle filter changes
+  const handleFilterChange = (key: keyof ProjectFilters, value: any) => {
+    setFilters({ ...filters, [key]: value });
+    setCurrentPage(1);
+  };
+
+  // Statistics
+  const totalProjects = mockProjects.length;
+  const activeProjects = mockProjects.filter(p => p.status === ProjectStatus.open).length;
+  const completedProjects = mockProjects.filter(p => p.status === ProjectStatus.completed).length;
+  const upcomingProjects = mockProjects.filter(p => p.status === ProjectStatus.upcoming).length;
+
+  const getStatusIcon = (status: ProjectStatus) => {
+    switch (status) {
+      case ProjectStatus.open:
+        return <TrendingUp className="h-4 w-4" />;
+      case ProjectStatus.completed:
+        return <CheckCircle2 className="h-4 w-4" />;
+      case ProjectStatus.upcoming:
+        return <Clock className="h-4 w-4" />;
+      case ProjectStatus.onHold:
+        return <Pause className="h-4 w-4" />;
+      case ProjectStatus.cancelled:
+      case ProjectStatus.dropped:
+        return <XCircle className="h-4 w-4" />;
+      default:
+        return <FolderKanban className="h-4 w-4" />;
+    }
+  };
+
+  const getStatusBadgeColor = (status: ProjectStatus): string => {
+    const colors = {
+      [ProjectStatus.open]: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+      [ProjectStatus.upcoming]: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+      [ProjectStatus.completed]: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+      [ProjectStatus.closed]: 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
+      [ProjectStatus.onHold]: 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+      [ProjectStatus.cancelled]: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+      [ProjectStatus.dropped]: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    };
+    return colors[status];
+  };
+
+  const getProjectProgress = (project: Project): number => {
+    if (!project.startDate || !project.endDate) return 0;
+    if (project.status === ProjectStatus.completed) return 100;
+    if (project.status === ProjectStatus.upcoming) return 0;
+    
+    const now = new Date();
+    const start = new Date(project.startDate);
+    const end = new Date(project.endDate);
+    
+    if (now < start) return 0;
+    if (now > end) return 100;
+    
+    const total = end.getTime() - start.getTime();
+    const elapsed = now.getTime() - start.getTime();
+    return Math.round((elapsed / total) * 100);
+  };
+
+  return (
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Projects</h1>
+            <p className="text-muted-foreground">
+              Manage and monitor all construction projects
+            </p>
+          </div>
+          <Button asChild>
+            <Link href="/dashboard/projects/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Project
+            </Link>
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+              <FolderKanban className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalProjects}</div>
+              <p className="text-xs text-muted-foreground">All time</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{activeProjects}</div>
+              <p className="text-xs text-muted-foreground">Currently running</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <CheckCircle2 className="h-4 w-4 text-purple-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">{completedProjects}</div>
+              <p className="text-xs text-muted-foreground">Successfully finished</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
+              <Clock className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{upcomingProjects}</div>
+              <p className="text-xs text-muted-foreground">Not started yet</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <FiltersCard
+          title="Search & Filters"
+          searchPlaceholder="Search projects..."
+          searchValue={filters.search}
+          onSearchChange={(value) => handleFilterChange('search', value)}
+        >
+          <div className="w-full sm:w-[200px]">
+            <Select
+              value={filters.status}
+              onValueChange={(value) => handleFilterChange('status', value as ProjectStatus | 'all')}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value={ProjectStatus.open}>{getProjectStatusLabel(ProjectStatus.open)}</SelectItem>
+                <SelectItem value={ProjectStatus.upcoming}>{getProjectStatusLabel(ProjectStatus.upcoming)}</SelectItem>
+                <SelectItem value={ProjectStatus.completed}>{getProjectStatusLabel(ProjectStatus.completed)}</SelectItem>
+                <SelectItem value={ProjectStatus.closed}>{getProjectStatusLabel(ProjectStatus.closed)}</SelectItem>
+                <SelectItem value={ProjectStatus.onHold}>{getProjectStatusLabel(ProjectStatus.onHold)}</SelectItem>
+                <SelectItem value={ProjectStatus.cancelled}>{getProjectStatusLabel(ProjectStatus.cancelled)}</SelectItem>
+                <SelectItem value={ProjectStatus.dropped}>{getProjectStatusLabel(ProjectStatus.dropped)}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </FiltersCard>
+
+        {/* Projects Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Projects</CardTitle>
+            <CardDescription>
+              Showing {paginatedProjects.length} of {filteredProjects.length} projects
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              {paginatedProjects.map((project: Project) => {
+                const progress = getProjectProgress(project);
+                return (
+                  <Card key={project.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className={`p-2 rounded-lg ${getStatusBadgeColor(project.status)}`}>
+                            <FolderKanban className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-base line-clamp-2">{project.projectName}</CardTitle>
+                            <Badge variant="outline" className="mt-1">
+                              <span className="flex items-center gap-1">
+                                {getStatusIcon(project.status)}
+                                {getProjectStatusLabel(project.status)}
+                              </span>
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="text-sm text-muted-foreground line-clamp-2">
+                        <MapPin className="h-3 w-3 inline mr-1" />
+                        {project.projectAddress}
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      {project.status !== ProjectStatus.upcoming && project.status !== ProjectStatus.cancelled && (
+                        <div>
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-medium">{progress}%</span>
+                          </div>
+                          <div className="w-full bg-zinc-200 dark:bg-zinc-800 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all ${
+                                progress === 100 ? 'bg-purple-600' : 'bg-green-600'
+                              }`}
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-xs text-muted-foreground">Start Date</div>
+                          <div className="text-sm font-medium">
+                            {project.startDate ? format(project.startDate, 'MMM dd, yyyy') : 'Not set'}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground">End Date</div>
+                          <div className="text-sm font-medium">
+                            {project.endDate ? format(project.endDate, 'MMM dd, yyyy') : 'Not set'}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Users className="h-4 w-4" />
+                          <span>{project.members.length} members</span>
+                        </div>
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <ListTodo className="h-4 w-4" />
+                          <span>{project.tasks.length} tasks</span>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <Button variant="default" size="sm" className="flex-1" asChild>
+                          <Link href={`/dashboard/projects/${project.id}`}>
+                            <Eye className="h-4 w-4 mr-1" />
+                            Dashboard
+                          </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1" asChild>
+                          <Link href={`/dashboard/projects/${project.id}/edit`}>
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
+                          </Link>
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            {paginatedProjects.length === 0 && (
+              <div className="text-center py-12">
+                <FolderKanban className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No projects found</h3>
+                <p className="text-muted-foreground mb-4">
+                  {filters.search || filters.status !== 'all'
+                    ? 'Try adjusting your filters to find what you\'re looking for.'
+                    : 'Get started by creating your first project.'}
+                </p>
+                <Button asChild>
+                  <Link href="/dashboard/projects/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Project
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </CardContent>
+
+          {/* Pagination */}
+          {filteredProjects.length > 0 && totalPages > 1 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
+        </Card>
+      </div>
+    </AppLayout>
+  );
+}
