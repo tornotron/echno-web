@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,10 +85,7 @@ export default function TransfersPage() {
     });
   }, [searchQuery, typeFilter, statusFilter, priorityFilter]);
 
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, typeFilter, statusFilter, priorityFilter]);
+
 
   // Pagination
   const totalPages = Math.ceil(filteredTransfers.length / itemsPerPage);
@@ -154,7 +151,7 @@ export default function TransfersPage() {
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 100000).toFixed(1)}L</div>
+              <div className="text-2xl font-bold">₹{(totalValue / 100_000).toFixed(1)}L</div>
               <p className="text-xs text-muted-foreground">Estimated value</p>
             </CardContent>
           </Card>
@@ -296,7 +293,7 @@ export default function TransfersPage() {
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
-                setItemsPerPage(parseInt(value));
+                setItemsPerPage(Number.parseInt(value));
                 setCurrentPage(1);
               }}
             >
@@ -364,7 +361,7 @@ export default function TransfersPage() {
                           <div>
                             <span className="text-zinc-500 dark:text-zinc-500">Items:</span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {transfer.lineItems.length} item{transfer.lineItems.length !== 1 ? 's' : ''}
+                              {transfer.lineItems.length} item{transfer.lineItems.length === 1 ? '' : 's'}
                             </p>
                           </div>
                           <div>
@@ -381,7 +378,7 @@ export default function TransfersPage() {
                         <div className="text-right">
                           <p className="text-sm text-zinc-500 dark:text-zinc-500">Total Value</p>
                           <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            ₹{(transfer.totalValue / 100000).toFixed(2)}L
+                            ₹{(transfer.totalValue / 100_000).toFixed(2)}L
                           </p>
                         </div>
                         <Link href={`/dashboard/resources/transfers/${transfer.id}`}>

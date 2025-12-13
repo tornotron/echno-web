@@ -87,7 +87,7 @@ export default function StockAdjustmentDetailPage({
   const router = useRouter();
   
   // In a real app, fetch data based on ID
-  const adjustment = mockStockAdjustments.find((sa) => sa.id === parseInt(id));
+  const adjustment = mockStockAdjustments.find((sa) => sa.id === Number.parseInt(id));
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -134,21 +134,26 @@ export default function StockAdjustmentDetailPage({
   };
 
   const handlePrint = () => {
-    window.print();
+    globalThis.print();
   };
 
   const getStatusBadgeColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'completed':
+      case 'completed': {
         return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
-      case 'pending':
+      }
+      case 'pending': {
         return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
-      case 'approved':
+      }
+      case 'approved': {
         return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'rejected':
+      }
+      case 'rejected': {
         return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
-      default:
+      }
+      default: {
         return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+      }
     }
   };
 
@@ -312,9 +317,9 @@ export default function StockAdjustmentDetailPage({
                             className={
                               item.difference > 0
                                 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                                : item.difference < 0
+                                : (item.difference < 0
                                 ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
-                                : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400'
+                                : 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400')
                             }
                           >
                             {item.difference > 0 ? '+' : ''}
@@ -361,9 +366,9 @@ export default function StockAdjustmentDetailPage({
                             className={`font-semibold ${
                               item.totalImpact > 0
                                 ? 'text-green-600 dark:text-green-400'
-                                : item.totalImpact < 0
+                                : (item.totalImpact < 0
                                 ? 'text-red-600 dark:text-red-400'
-                                : 'text-zinc-900 dark:text-zinc-100'
+                                : 'text-zinc-900 dark:text-zinc-100')
                             }`}
                           >
                             {item.totalImpact > 0 ? '+' : ''}₹
@@ -385,9 +390,9 @@ export default function StockAdjustmentDetailPage({
                       className={`text-xl font-bold ${
                         totalImpact > 0
                           ? 'text-green-600 dark:text-green-400'
-                          : totalImpact < 0
+                          : (totalImpact < 0
                           ? 'text-red-600 dark:text-red-400'
-                          : 'text-zinc-900 dark:text-zinc-100'
+                          : 'text-zinc-900 dark:text-zinc-100')
                       }`}
                     >
                       {totalImpact > 0 ? '+' : ''}₹{totalImpact.toLocaleString()}
@@ -512,9 +517,9 @@ export default function StockAdjustmentDetailPage({
                       className={`font-bold ${
                         totalImpact > 0
                           ? 'text-green-600 dark:text-green-400'
-                          : totalImpact < 0
+                          : (totalImpact < 0
                           ? 'text-red-600 dark:text-red-400'
-                          : 'text-zinc-900 dark:text-zinc-100'
+                          : 'text-zinc-900 dark:text-zinc-100')
                       }`}
                     >
                       {totalImpact > 0 ? '+' : ''}₹

@@ -44,7 +44,7 @@ interface EstimateLineItem {
 export default function CreateEstimatePage() {
   const router = useRouter();
   const [estimateNumber] = useState(
-    `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`
+    `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000).toString().padStart(4, '0')}`
   );
 
   // Basic Information
@@ -148,8 +148,8 @@ export default function CreateEstimatePage() {
     
     const { contingencyAmount, taxAmount, total } = calculateEstimateTotal(
       subtotal,
-      parseFloat(contingencyPercent) || 0,
-      parseFloat(taxRate) || 0
+      Number.parseFloat(contingencyPercent) || 0,
+      Number.parseFloat(taxRate) || 0
     );
 
     return {
@@ -574,7 +574,7 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.quantity || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -588,7 +588,7 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.unitRate || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitRate', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'unitRate', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -602,7 +602,7 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.laborCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'laborCost', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'laborCost', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -616,7 +616,7 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.materialCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'materialCost', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'materialCost', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -630,7 +630,7 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.equipmentCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'equipmentCost', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'equipmentCost', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"

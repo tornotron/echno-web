@@ -135,9 +135,9 @@ export function UserProfileView({
                     'h-full transition-all duration-500',
                     completionPercentage >= 80
                       ? 'bg-green-500'
-                      : completionPercentage >= 50
+                      : (completionPercentage >= 50
                         ? 'bg-yellow-500'
-                        : 'bg-red-500'
+                        : 'bg-red-500')
                   )}
                   style={{ width: `${completionPercentage}%` }}
                 />

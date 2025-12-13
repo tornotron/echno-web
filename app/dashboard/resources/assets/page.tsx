@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -80,11 +80,6 @@ export default function AssetsPage() {
     });
   }, [searchQuery, typeFilter, statusFilter, conditionFilter, locationFilter, maintenanceDueFilter]);
 
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, typeFilter, statusFilter, conditionFilter, locationFilter, maintenanceDueFilter]);
-
   // Pagination
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -152,7 +147,7 @@ export default function AssetsPage() {
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 10000000).toFixed(1)}Cr</div>
+              <div className="text-2xl font-bold">₹{(totalValue / 10_000_000).toFixed(1)}Cr</div>
               <p className="text-xs text-muted-foreground">Current value</p>
             </CardContent>
           </Card>
@@ -279,7 +274,7 @@ export default function AssetsPage() {
                 <Select
                   value={locationFilter === 'all' ? 'all' : locationFilter.toString()}
                   onValueChange={(value) => {
-                    setLocationFilter(value === 'all' ? 'all' : parseInt(value));
+                    setLocationFilter(value === 'all' ? 'all' : Number.parseInt(value));
                     setCurrentPage(1);
                   }}
                 >
@@ -347,7 +342,7 @@ export default function AssetsPage() {
                   const maintenanceDue = isMaintenanceDue(asset);
                   const daysUntilMaintenance = asset.nextMaintenanceDate
                     ? Math.floor(
-                        (asset.nextMaintenanceDate.getTime() - new Date().getTime()) /
+                        (asset.nextMaintenanceDate.getTime() - Date.now()) /
                           (1000 * 60 * 60 * 24)
                       )
                     : null;
@@ -421,7 +416,7 @@ export default function AssetsPage() {
                                 Value
                               </div>
                               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                                ₹{(asset.currentValue / 100000).toFixed(1)}L
+                                ₹{(asset.currentValue / 100_000).toFixed(1)}L
                               </div>
                             </div>
                             {asset.usageHours && asset.maxUsageHours && (

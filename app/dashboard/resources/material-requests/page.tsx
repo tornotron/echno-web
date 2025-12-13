@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -87,11 +87,6 @@ export default function MaterialRequestsPage() {
     });
   }, [searchQuery, typeFilter, statusFilter, priorityFilter]);
 
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, typeFilter, statusFilter, priorityFilter]);
-
   // Pagination
   const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -159,7 +154,7 @@ export default function MaterialRequestsPage() {
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 100000).toFixed(1)}L</div>
+              <div className="text-2xl font-bold">₹{(totalValue / 100_000).toFixed(1)}L</div>
               <p className="text-xs text-muted-foreground">Estimated value</p>
             </CardContent>
           </Card>
@@ -292,7 +287,7 @@ export default function MaterialRequestsPage() {
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
-                setItemsPerPage(parseInt(value));
+                setItemsPerPage(Number.parseInt(value));
                 setCurrentPage(1);
               }}
             >
@@ -360,7 +355,7 @@ export default function MaterialRequestsPage() {
                           <div>
                             <span className="text-zinc-500 dark:text-zinc-500">Items:</span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {mr.lineItems.length} item{mr.lineItems.length !== 1 ? 's' : ''}
+                              {mr.lineItems.length} item{mr.lineItems.length === 1 ? '' : 's'}
                             </p>
                           </div>
                           <div>
@@ -386,7 +381,7 @@ export default function MaterialRequestsPage() {
                         <div className="text-right">
                           <p className="text-sm text-zinc-500 dark:text-zinc-500">Estimated Cost</p>
                           <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            ₹{(mr.estimatedTotalCost / 100000).toFixed(2)}L
+                            ₹{(mr.estimatedTotalCost / 100_000).toFixed(2)}L
                           </p>
                           {mr.actualTotalCost && (
                             <p className="text-xs text-green-600 dark:text-green-400">

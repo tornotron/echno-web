@@ -60,33 +60,35 @@ const getPriorityBadgeColor = (priority: TransferPriority): string => {
   return colors[priority];
 };
 
+const handleApprove = () => {
+  toast.success('Transfer approved successfully');
+};
+
+const handleReject = () => {
+  toast.error('Transfer rejected');
+};
+
+const handleMarkInTransit = () => {
+  toast.success('Transfer marked as in transit');
+};
+
+const handleMarkCompleted = () => {
+  toast.success('Transfer completed');
+};
+
+const handleDelete = () => {
+  toast.success('Transfer deleted successfully');
+};
+
 export default function TransferViewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const transfer = mockTransfers.find((t) => t.id === parseInt(id));
+  const transfer = mockTransfers.find((t) => t.id === Number.parseInt(id));
 
   if (!transfer) {
     notFound();
   }
 
-  const handleApprove = () => {
-    toast.success('Transfer approved successfully');
-  };
 
-  const handleReject = () => {
-    toast.error('Transfer rejected');
-  };
-
-  const handleMarkInTransit = () => {
-    toast.success('Transfer marked as in transit');
-  };
-
-  const handleMarkCompleted = () => {
-    toast.success('Transfer completed');
-  };
-
-  const handleDelete = () => {
-    toast.success('Transfer deleted successfully');
-  };
 
   return (
     <AppLayout>
@@ -425,7 +427,7 @@ export default function TransferViewPage({ params }: { params: Promise<{ id: str
                     Total Transfer Value:
                   </span>
                   <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    ₹{(transfer.totalValue / 100000).toFixed(2)}L
+                    ₹{(transfer.totalValue / 100_000).toFixed(2)}L
                   </span>
                 </div>
               </CardContent>

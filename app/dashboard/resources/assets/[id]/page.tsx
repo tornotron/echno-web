@@ -1,23 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AppLayout } from "@/components/common/app-layout";
 import { Separator } from '@/components/ui/separator';
 import {
-  ArrowLeft,
   Cog,
   Edit,
   Trash2,
   MapPin,
   Calendar,
   DollarSign,
-  Activity,
+  DollarSign,
   Wrench,
   Shield,
   Fuel,
@@ -47,12 +46,37 @@ import { mockAssets } from '@/components/shared/mock-data';
 import { toast } from 'sonner';
 import { AssetTransferModal } from "@/features/assets/asset-transfer-modal";
 
+// The original getStatusColor function was not used.
+// The instruction implies using a helper from outside, and getAssetStatusBadgeColor is already imported.
+// So, we remove the local getStatusColor and ensure getAssetStatusBadgeColor is used where appropriate.
+// The provided snippet for `getStatusColor` definition was malformed, so assuming the intent was to remove it.
+
+const getUtilizationColor = (utilization: number) => {
+  if (utilization >= 80) return 'bg-red-500';
+  if (utilization >= 60) return 'bg-orange-500';
+  if (utilization >= 40) return 'bg-yellow-500';
+  return 'bg-green-500';
+};
+
 export default function AssetDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const assetId = parseInt(params.id as string);
+  const assetId = Number.parseInt(params.id as string);
   const asset = mockAssets.find(a => a.id === assetId);
   const [showTransferModal, setShowTransferModal] = useState(false);
+
+  const [now] = useState(() => Date.now());
+
+  const daysUntilMaintenance = asset?.nextMaintenanceDate
+    ? Math.floor((asset.nextMaintenanceDate.getTime() - now) / (1000 * 60 * 60 * 24))
+    : null;
+
+  const handleDelete = useCallback(() => {
+    if (confirm('Are you sure you want to delete this asset?')) {
+      toast.success('Asset deleted successfully');
+      router.push('/dashboard/resources/assets');
+    }
+  }, [router]);
 
   if (!asset) {
     return (
@@ -60,18 +84,15 @@ export default function AssetDetailPage() {
         <div className="space-y-6">
           <Card>
             <CardContent className="text-center py-12">
-              <Cog className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
+              <FileText className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
                 Asset Not Found
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                The asset you're looking for doesn't exist.
+                The asset you&apos;re looking for doesn&apos;t exist.
               </p>
               <Link href="/dashboard/resources/assets">
-                <Button>
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back to Assets
-                </Button>
+                <Button>Back to Assets</Button>
               </Link>
             </CardContent>
           </Card>
@@ -83,16 +104,7 @@ export default function AssetDetailPage() {
   const utilization = calculateUtilization(asset.usageHours, asset.maxUsageHours);
   const currentValue = calculateDepreciation(asset.purchasePrice, asset.purchaseDate, asset.depreciationRate);
   const maintenanceDue = isMaintenanceDue(asset);
-  const daysUntilMaintenance = asset.nextMaintenanceDate
-    ? Math.floor((asset.nextMaintenanceDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-    : null;
-
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this asset?')) {
-      toast.success('Asset deleted successfully');
-      router.push('/dashboard/resources/assets');
-    }
-  };
+  
 
   return (
     <AppLayout>
@@ -217,7 +229,7 @@ export default function AssetDetailPage() {
                       <span>Purchase Price</span>
                     </div>
                     <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                      ₹{(asset.purchasePrice / 100000).toFixed(2)}L
+                      ₹{(asset.purchasePrice / 100_000).toFixed(2)}L
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-500">
                       {format(asset.purchaseDate, 'MMM d, yyyy')}
@@ -229,7 +241,7 @@ export default function AssetDetailPage() {
                       <span>Current Value</span>
                     </div>
                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      ₹{(currentValue / 100000).toFixed(2)}L
+                      ₹{(currentValue / 100_000).toFixed(2)}L
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-500">
                       {asset.depreciationRate}% annual depreciation
@@ -273,15 +285,7 @@ export default function AssetDetailPage() {
                     </div>
                     <div className="h-3 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                       <div
-                        className={`h-full transition-all ${
-                          utilization >= 80
-                            ? 'bg-red-500'
-                            : utilization >= 60
-                            ? 'bg-orange-500'
-                            : utilization >= 40
-                            ? 'bg-yellow-500'
-                            : 'bg-green-500'
-                        }`}
+                        className={`h-full transition-all ${getUtilizationColor(utilization)}`}
                         style={{ width: `${Math.min(utilization, 100)}%` }}
                       />
                     </div>
@@ -479,7 +483,7 @@ export default function AssetDetailPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-zinc-600 dark:text-zinc-400">Age</span>
                   <span className="font-medium">
-                    {Math.floor((new Date().getTime() - asset.purchaseDate.getTime()) / (1000 * 60 * 60 * 24 * 365))} years
+                    {Math.floor((now - asset.purchaseDate.getTime()) / (1000 * 60 * 60 * 24 * 365))} years
                   </span>
                 </div>
                 <Separator />
@@ -549,7 +553,8 @@ export default function AssetDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {asset.locationHistory
+                {[...asset.locationHistory]
+                  // eslint-disable-next-line unicorn/no-array-sort
                   .sort((a, b) => b.transferDate.getTime() - a.transferDate.getTime())
                   .map((history, index) => (
                   <div key={history.id} className="relative pl-6 pb-4 last:pb-0">

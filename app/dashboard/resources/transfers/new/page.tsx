@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -38,7 +38,7 @@ interface LineItem {
 
 export default function CreateTransferPage() {
   const router = useRouter();
-  const [transferNumber] = useState(`TRF-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`);
+  const [transferNumber] = useState(() => `TRF-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000).toString().padStart(4, '0')}`);
   
   // Basic Information
   const [transferDate, setTransferDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -100,7 +100,7 @@ export default function CreateTransferPage() {
     }
   };
 
-  const updateLineItem = (id: number, field: keyof LineItem, value: any) => {
+  const updateLineItem = (id: number, field: keyof LineItem, value: string | number) => {
     setLineItems(
       lineItems.map((item) =>
         item.id === id ? { ...item, [field]: value } : item
@@ -492,7 +492,7 @@ export default function CreateTransferPage() {
                           type="number"
                           value={item.quantityRequested || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantityRequested', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'quantityRequested', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -526,7 +526,7 @@ export default function CreateTransferPage() {
                           type="number"
                           value={item.unitValue || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitValue', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'unitValue', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -584,7 +584,7 @@ export default function CreateTransferPage() {
                 <div className="flex justify-between">
                   <span className="text-zinc-500 dark:text-zinc-400">Total Value:</span>
                   <span className="font-bold text-lg text-zinc-900 dark:text-zinc-100">
-                    ₹{(totalValue / 100000).toFixed(2)}L
+                    ₹{(totalValue / 100_000).toFixed(2)}L
                   </span>
                 </div>
               </CardContent>

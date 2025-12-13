@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -62,11 +62,6 @@ export default function ProjectsPage() {
     });
   }, [filters]);
 
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [filters]);
-
   // Pagination
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -87,19 +82,25 @@ export default function ProjectsPage() {
 
   const getStatusIcon = (status: ProjectStatus) => {
     switch (status) {
-      case ProjectStatus.open:
+      case ProjectStatus.open: {
         return <TrendingUp className="h-4 w-4" />;
-      case ProjectStatus.completed:
+      }
+      case ProjectStatus.completed: {
         return <CheckCircle2 className="h-4 w-4" />;
-      case ProjectStatus.upcoming:
+      }
+      case ProjectStatus.upcoming: {
         return <Clock className="h-4 w-4" />;
-      case ProjectStatus.onHold:
+      }
+      case ProjectStatus.onHold: {
         return <Pause className="h-4 w-4" />;
+      }
       case ProjectStatus.cancelled:
-      case ProjectStatus.dropped:
+      case ProjectStatus.dropped: {
         return <XCircle className="h-4 w-4" />;
-      default:
+      }
+      default: {
         return <FolderKanban className="h-4 w-4" />;
+      }
     }
   };
 

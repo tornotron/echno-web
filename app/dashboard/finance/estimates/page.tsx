@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,7 +39,7 @@ const mockEstimates = [
     category: 'construction',
     preparedDate: new Date('2024-11-01'),
     expiryDate: new Date('2024-12-01'),
-    totalAmount: 5500000,
+    totalAmount: 5_500_000,
     validityPeriod: 30,
   },
   {
@@ -51,7 +51,7 @@ const mockEstimates = [
     category: 'renovation',
     preparedDate: new Date('2024-11-05'),
     expiryDate: new Date('2024-12-05'),
-    totalAmount: 2800000,
+    totalAmount: 2_800_000,
     validityPeriod: 30,
   },
 ];
@@ -118,10 +118,7 @@ export default function EstimatesPage() {
     });
   }, [searchQuery, statusFilter, categoryFilter]);
 
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, categoryFilter]);
+
 
   // Pagination
   const totalPages = Math.ceil(filteredEstimates.length / itemsPerPage);
@@ -184,7 +181,7 @@ export default function EstimatesPage() {
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 10000000).toFixed(1)}Cr</div>
+              <div className="text-2xl font-bold">₹{(totalValue / 10_000_000).toFixed(1)}Cr</div>
               <p className="text-xs text-muted-foreground">Estimated value</p>
             </CardContent>
           </Card>
@@ -297,7 +294,7 @@ export default function EstimatesPage() {
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
-                setItemsPerPage(parseInt(value));
+                setItemsPerPage(Number.parseInt(value));
                 setCurrentPage(1);
               }}
             >
@@ -382,7 +379,7 @@ export default function EstimatesPage() {
                         <div className="text-right">
                           <p className="text-sm text-zinc-500 dark:text-zinc-500">Total Amount</p>
                           <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            ₹{(estimate.totalAmount / 100000).toFixed(2)}L
+                            ₹{(estimate.totalAmount / 100_000).toFixed(2)}L
                           </p>
                         </div>
                         <Link href={`/dashboard/finance/estimates/${estimate.id}`}>

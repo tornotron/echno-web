@@ -40,7 +40,7 @@ const fetchProject = async (id: string): Promise<Project | null> => {
       projectAddress: 'Plot 456, Andheri East, Mumbai, Maharashtra',
       status: ProjectStatus.open,
       projectLongitude: 72.8777,
-      projectLatitude: 19.0760,
+      projectLatitude: 19.076,
       startDate: new Date('2024-01-15'),
       endDate: new Date('2025-12-31'),
       createdAt: new Date('2023-12-01'),
@@ -53,7 +53,7 @@ const fetchProject = async (id: string): Promise<Project | null> => {
     },
   ];
   
-  return mockProjects.find(p => p.id === parseInt(id)) || null;
+  return mockProjects.find(p => p.id === Number.parseInt(id)) || null;
 };
 
 export default function ProjectDashboardPage() {
@@ -160,8 +160,8 @@ export default function ProjectDashboardPage() {
     completedTasks: 28,
     pendingTasks: 12,
     overdueTasks: 5,
-    totalBudget: 15000000,
-    spentBudget: 8500000,
+    totalBudget: 15_000_000,
+    spentBudget: 8_500_000,
     inspections: 12,
     issues: 3,
   };
@@ -285,9 +285,9 @@ export default function ProjectDashboardPage() {
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(stats.spentBudget / 10000000).toFixed(1)}Cr</div>
+              <div className="text-2xl font-bold">₹{(stats.spentBudget / 10_000_000).toFixed(1)}Cr</div>
               <p className="text-xs text-muted-foreground">
-                of ₹{(stats.totalBudget / 10000000).toFixed(1)}Cr total
+                of ₹{(stats.totalBudget / 10_000_000).toFixed(1)}Cr total
               </p>
             </CardContent>
           </Card>

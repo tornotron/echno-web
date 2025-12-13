@@ -66,12 +66,8 @@ const mockInvitation: Invitation & {
   phone: '+91-9876543210',
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function InvitationDetailPage({
-  params: _params,
-}: {
-  params: { id: string };
-}) {
+ 
+export default function InvitationPage() {
   const [copied, setCopied] = useState(false);
   const invitation = mockInvitation; // In real app: fetch based on params.id
 

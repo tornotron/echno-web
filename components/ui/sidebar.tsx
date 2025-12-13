@@ -87,12 +87,15 @@ function SidebarProvider({
       // eslint-disable-next-line unicorn/no-document-cookie
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
-    [setOpenProp, open]
+    [open, setOpenProp]
   );
 
   // Hydration fix: Read cookie in useEffect
   React.useEffect(() => {
-    if (openProp !== undefined) return; // Controlled mode, don't read cookie
+    if (openProp !== undefined) {
+      setOpen(openProp);
+      return;
+    }
 
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${SIDEBAR_COOKIE_NAME}=`);
@@ -103,7 +106,7 @@ function SidebarProvider({
         _setOpen(shouldBeOpen);
       }
     }
-  }, []);
+  }, [openProp, setOpen, _open]);
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {

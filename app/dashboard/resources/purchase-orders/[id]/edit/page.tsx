@@ -40,7 +40,7 @@ interface LineItem {
 export default function EditPurchaseOrderPage() {
   const params = useParams();
   const router = useRouter();
-  const poId = parseInt(params.id as string);
+  const poId = Number.parseInt(params.id as string);
   const po = mockPurchaseOrders.find(p => p.id === poId);
 
   // Check if PO is editable
@@ -526,7 +526,7 @@ export default function EditPurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)}
                             disabled={!isEditable}
                             min="0"
                             step="0.01"
@@ -546,7 +546,7 @@ export default function EditPurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.unitPrice}
-                            onChange={(e) => updateLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'unitPrice', Number.parseFloat(e.target.value) || 0)}
                             disabled={!isEditable}
                             min="0"
                             step="0.01"
@@ -558,7 +558,7 @@ export default function EditPurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.taxRate}
-                            onChange={(e) => updateLineItem(item.id, 'taxRate', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'taxRate', Number.parseFloat(e.target.value) || 0)}
                             disabled={!isEditable}
                             min="0"
                             max="100"
@@ -715,7 +715,7 @@ export default function EditPurchaseOrderPage() {
                         id="advancePaymentPercentage"
                         type="number"
                         value={advancePaymentPercentage}
-                        onChange={(e) => setAdvancePaymentPercentage(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setAdvancePaymentPercentage(Number.parseFloat(e.target.value) || 0)}
                         disabled={!isEditable}
                         min="0"
                         max="100"
@@ -797,7 +797,7 @@ export default function EditPurchaseOrderPage() {
                         id="shippingCost"
                         type="number"
                         value={shippingCost}
-                        onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setShippingCost(Number.parseFloat(e.target.value) || 0)}
                         min="0"
                         step="0.01"
                       />
@@ -808,7 +808,7 @@ export default function EditPurchaseOrderPage() {
                         id="otherCharges"
                         type="number"
                         value={otherCharges}
-                        onChange={(e) => setOtherCharges(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setOtherCharges(Number.parseFloat(e.target.value) || 0)}
                         min="0"
                         step="0.01"
                       />

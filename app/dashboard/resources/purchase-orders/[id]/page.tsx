@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -23,10 +23,7 @@ import {
   MapPin,
   Phone,
   Mail,
-  Calendar,
-  User,
   DollarSign,
-  Percent,
   AlertCircle,
 } from 'lucide-react';
 import { 
@@ -71,11 +68,30 @@ const getDeliveryStatusBadgeColor = (status: DeliveryStatus): string => {
   return colors[status];
 };
 
+const handleApprove = () => {
+  toast.success('Purchase order approved successfully');
+};
+
+const handleReject = () => {
+  toast.error('Purchase order rejected');
+};
+
+const handleSendToVendor = () => {
+  toast.success('Purchase order sent to vendor');
+};
+
 export default function PurchaseOrderDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const poId = parseInt(params.id as string);
+  const poId = Number.parseInt(params.id as string);
   const po = mockPurchaseOrders.find(p => p.id === poId);
+
+  const handleDelete = useCallback(() => {
+    if (confirm('Are you sure you want to delete this purchase order?')) {
+      toast.success('Purchase order deleted successfully');
+      router.push('/dashboard/resources/purchase-orders');
+    }
+  }, [router]);
 
   if (!po) {
     return (
@@ -88,7 +104,7 @@ export default function PurchaseOrderDetailPage() {
                 Purchase Order Not Found
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                The purchase order you're looking for doesn't exist.
+                The purchase order you&apos;re looking for doesn&apos;t exist.
               </p>
               <Link href="/dashboard/resources/purchase-orders">
                 <Button>Back to Purchase Orders</Button>
@@ -99,25 +115,6 @@ export default function PurchaseOrderDetailPage() {
       </AppLayout>
     );
   }
-
-  const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this purchase order?')) {
-      toast.success('Purchase order deleted successfully');
-      router.push('/dashboard/resources/purchase-orders');
-    }
-  };
-
-  const handleApprove = () => {
-    toast.success('Purchase order approved successfully');
-  };
-
-  const handleReject = () => {
-    toast.error('Purchase order rejected');
-  };
-
-  const handleSendToVendor = () => {
-    toast.success('Purchase order sent to vendor');
-  };
 
   return (
     <AppLayout>
@@ -323,13 +320,13 @@ export default function PurchaseOrderDetailPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600 dark:text-zinc-400">Subtotal</span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ₹{(po.subtotal / 100000).toFixed(2)}L
+                      ₹{(po.subtotal / 100_000).toFixed(2)}L
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600 dark:text-zinc-400">Tax Amount</span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ₹{(po.taxAmount / 100000).toFixed(2)}L
+                      ₹{(po.taxAmount / 100_000).toFixed(2)}L
                     </span>
                   </div>
                   {po.discountAmount > 0 && (
@@ -358,7 +355,7 @@ export default function PurchaseOrderDetailPage() {
                   <div className="flex justify-between text-lg font-bold">
                     <span className="text-zinc-900 dark:text-zinc-100">Total Amount</span>
                     <span className="text-zinc-900 dark:text-zinc-100">
-                      ₹{(po.totalAmount / 100000).toFixed(2)}L
+                      ₹{(po.totalAmount / 100_000).toFixed(2)}L
                     </span>
                   </div>
                 </div>
@@ -436,7 +433,7 @@ export default function PurchaseOrderDetailPage() {
                           Advance Payment Required
                         </p>
                         <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                          {po.advancePaymentPercentage}% of total amount = ₹{(po.advancePaymentAmount! / 100000).toFixed(2)}L
+                          {po.advancePaymentPercentage}% of total amount = ₹{(po.advancePaymentAmount! / 100_000).toFixed(2)}L
                         </p>
                       </div>
                     </div>

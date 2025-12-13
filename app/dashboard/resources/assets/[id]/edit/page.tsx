@@ -29,7 +29,7 @@ import { mockAssets, mockLocations } from '@/components/shared/mock-data';
 export default function EditAssetPage() {
   const params = useParams();
   const router = useRouter();
-  const assetId = parseInt(params.id as string);
+  const assetId = Number.parseInt(params.id as string);
   const asset = mockAssets.find(a => a.id === assetId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);

@@ -390,7 +390,7 @@ export default function CreateMaterialRequestPage() {
                           <Input
                             type="number"
                             value={item.quantityRequested}
-                            onChange={(e) => updateLineItem(item.id, 'quantityRequested', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'quantityRequested', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
                             required
@@ -409,7 +409,7 @@ export default function CreateMaterialRequestPage() {
                           <Input
                             type="number"
                             value={item.estimatedCost}
-                            onChange={(e) => updateLineItem(item.id, 'estimatedCost', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'estimatedCost', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
                           />

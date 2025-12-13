@@ -275,9 +275,9 @@ export default function InventoryDetailPage() {
                             <div className="font-medium">
                               {history.type === 'restock'
                                 ? 'Stock Replenishment'
-                                : history.type === 'usage'
+                                : (history.type === 'usage'
                                   ? 'Stock Usage'
-                                  : 'Stock Adjustment'}
+                                  : 'Stock Adjustment')}
                             </div>
                             <div className="text-muted-foreground text-sm">
                               {history.quantity > 0 ? '+' : ''}

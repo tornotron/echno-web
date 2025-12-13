@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -65,13 +65,13 @@ const mockEstimate: Estimate = {
       quantity: 500,
       unit: 'cum',
       unitRate: 8500,
-      laborCost: 200000,
-      materialCost: 4050000,
+      laborCost: 200_000,
+      materialCost: 4_050_000,
       equipmentCost: 0,
       overhead: 10,
       profit: 15,
-      subtotal: 4250000,
-      total: 4890625,
+      subtotal: 4_250_000,
+      total: 4_890_625,
     },
     {
       id: 2,
@@ -80,41 +80,41 @@ const mockEstimate: Estimate = {
       specifications: 'As per industry standards',
       quantity: 1,
       unit: 'lump sum',
-      unitRate: 800000,
-      laborCost: 800000,
+      unitRate: 800_000,
+      laborCost: 800_000,
       materialCost: 0,
-      equipmentCost: 50000,
+      equipmentCost: 50_000,
       overhead: 10,
       profit: 15,
-      subtotal: 850000,
-      total: 977500,
+      subtotal: 850_000,
+      total: 977_500,
     },
   ],
   
   // Cost Summary
-  materialCost: 4050000,
-  laborCost: 1000000,
-  equipmentCost: 50000,
+  materialCost: 4_050_000,
+  laborCost: 1_000_000,
+  equipmentCost: 50_000,
   subcontractorCost: 0,
-  overheadCost: 510000,
-  profitMargin: 765000,
-  subtotal: 5375000,
+  overheadCost: 510_000,
+  profitMargin: 765_000,
+  subtotal: 5_375_000,
   
   // Adjustments
   contingency: 5,
-  contingencyAmount: 266781,
+  contingencyAmount: 266_781,
   taxRate: 18,
-  taxAmount: 1011081,
-  totalAmount: 6245344,
+  taxAmount: 1_011_081,
+  totalAmount: 6_245_344,
   
   // Payment Terms
   paymentTerms: '30% advance, 40% on completion of structure, 30% on completion',
   advancePayment: 30,
   milestonePayments: [
-    { milestone: 'Foundation work', percentage: 20, amount: 1249069 },
-    { milestone: 'Structure completion', percentage: 40, amount: 2498138 },
-    { milestone: 'Finishing work', percentage: 30, amount: 1873603 },
-    { milestone: 'Final handover', percentage: 10, amount: 624534 },
+    { milestone: 'Foundation work', percentage: 20, amount: 1_249_069 },
+    { milestone: 'Structure completion', percentage: 40, amount: 2_498_138 },
+    { milestone: 'Finishing work', percentage: 30, amount: 1_873_603 },
+    { milestone: 'Final handover', percentage: 10, amount: 624_534 },
   ],
   
   // Documents
@@ -178,11 +178,53 @@ const getStatusBadgeColor = (status: EstimateStatus): string => {
   return colors[status];
 };
 
+const handleDownload = () => {
+  toast.info('Download functionality coming soon');
+};
+
+const handleSend = () => {
+  toast.info('Send to client functionality coming soon');
+};
+
+const handleApprove = () => {
+  toast.success('Estimate approved successfully');
+};
+
+const handleReject = () => {
+  toast.error('Estimate rejected');
+};
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
 export default function ViewEstimatePage() {
   const params = useParams();
   const router = useRouter();
   const [estimate] = useState<Estimate>(mockEstimate);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = useCallback(async () => {
+    if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      // TODO: Implement actual delete API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast.success('Estimate deleted successfully');
+      router.push('/dashboard/finance/estimates');
+    } catch {
+      toast.error('Failed to delete estimate');
+      setIsDeleting(false);
+    }
+  }, [router]);
 
   if (!estimate) {
     return (
@@ -195,7 +237,7 @@ export default function ViewEstimatePage() {
                 Estimate not found
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                The estimate you're looking for doesn't exist or has been removed.
+                The estimate you&apos;re looking for doesn&apos;t exist or has been removed.
               </p>
               <Button asChild>
                 <Link href="/dashboard/finance/estimates">Back to Estimates</Link>
@@ -206,48 +248,6 @@ export default function ViewEstimatePage() {
       </AppLayout>
     );
   }
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this estimate? This action cannot be undone.')) {
-      return;
-    }
-
-    setIsDeleting(true);
-    try {
-      // TODO: Implement actual delete API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      toast.success('Estimate deleted successfully');
-      router.push('/dashboard/finance/estimates');
-    } catch (error) {
-      toast.error('Failed to delete estimate');
-      setIsDeleting(false);
-    }
-  };
-
-  const handleDownload = () => {
-    toast.info('Download functionality coming soon');
-  };
-
-  const handleSend = () => {
-    toast.info('Send to client functionality coming soon');
-  };
-
-  const handleApprove = () => {
-    toast.success('Estimate approved successfully');
-  };
-
-  const handleReject = () => {
-    toast.error('Estimate rejected');
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <AppLayout>

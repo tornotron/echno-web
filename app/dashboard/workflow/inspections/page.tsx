@@ -21,8 +21,6 @@ import {
   Plus,
   Eye,
   Calendar,
-  CheckCircle2,
-  XCircle,
   Clock,
   AlertTriangle,
 } from 'lucide-react';
@@ -131,9 +129,7 @@ export default function InspectionsPage() {
   }, [searchQuery, statusFilter, typeFilter, resultFilter]);
 
   // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, statusFilter, typeFilter, resultFilter]);
+
 
   // Pagination
   const totalPages = Math.ceil(filteredInspections.length / itemsPerPage);
@@ -145,7 +141,7 @@ export default function InspectionsPage() {
   const totalInspections = mockInspections.length;
   const scheduledCount = mockInspections.filter(i => i.status === 'scheduled').length;
   const inProgressCount = mockInspections.filter(i => i.status === 'in-progress').length;
-  const completedCount = mockInspections.filter(i => i.status === 'completed' || i.status === 'passed' || i.status === 'failed').length;
+
   const criticalDefectsCount = mockInspections.reduce((sum, i) => sum + i.criticalDefects, 0);
 
   const hasActiveFilters = searchQuery || statusFilter !== 'all' || typeFilter !== 'all' || resultFilter !== 'all';
@@ -333,7 +329,7 @@ export default function InspectionsPage() {
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
-                setItemsPerPage(parseInt(value));
+                setItemsPerPage(Number.parseInt(value));
                 setCurrentPage(1);
               }}
             >
@@ -430,8 +426,8 @@ export default function InspectionsPage() {
                             <p className="text-sm text-zinc-500 dark:text-zinc-500">Compliance</p>
                             <p className={`text-xl font-bold ${
                               inspection.compliancePercentage >= 95 ? 'text-green-600' :
-                              inspection.compliancePercentage >= 80 ? 'text-orange-600' :
-                              'text-red-600'
+                              (inspection.compliancePercentage >= 80 ? 'text-orange-600' :
+                              'text-red-600')
                             }`}>
                               {inspection.compliancePercentage}%
                             </p>

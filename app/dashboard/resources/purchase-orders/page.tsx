@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,10 +93,7 @@ export default function PurchaseOrdersPage() {
     });
   }, [searchQuery, typeFilter, statusFilter, deliveryStatusFilter]);
 
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
-  }, [searchQuery, typeFilter, statusFilter, deliveryStatusFilter]);
+
 
   // Pagination
   const totalPages = Math.ceil(filteredPOs.length / itemsPerPage);
@@ -162,7 +159,7 @@ export default function PurchaseOrdersPage() {
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 100000).toFixed(1)}L</div>
+              <div className="text-2xl font-bold">₹{(totalValue / 100_000).toFixed(1)}L</div>
               <p className="text-xs text-muted-foreground">Order value</p>
             </CardContent>
           </Card>
@@ -308,7 +305,7 @@ export default function PurchaseOrdersPage() {
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
-                setItemsPerPage(parseInt(value));
+                setItemsPerPage(Number.parseInt(value));
                 setCurrentPage(1);
               }}
             >
@@ -376,7 +373,7 @@ export default function PurchaseOrdersPage() {
                           <div>
                             <span className="text-zinc-500 dark:text-zinc-500">Items:</span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {po.lineItems.length} item{po.lineItems.length !== 1 ? 's' : ''}
+                              {po.lineItems.length} item{po.lineItems.length === 1 ? '' : 's'}
                             </p>
                           </div>
                           <div>
@@ -391,7 +388,7 @@ export default function PurchaseOrdersPage() {
                           <div className="flex items-center gap-2 text-sm">
                             <AlertCircle className="h-4 w-4 text-orange-500" />
                             <span className="text-orange-600 dark:text-orange-400">
-                              Advance Payment: {po.advancePaymentPercentage}% (₹{(po.advancePaymentAmount! / 100000).toFixed(2)}L)
+                              Advance Payment: {po.advancePaymentPercentage}% (₹{(po.advancePaymentAmount! / 100_000).toFixed(2)}L)
                             </span>
                           </div>
                         )}
@@ -402,7 +399,7 @@ export default function PurchaseOrdersPage() {
                         <div className="text-right">
                           <p className="text-sm text-zinc-500 dark:text-zinc-500">Total Amount</p>
                           <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            ₹{(po.totalAmount / 100000).toFixed(2)}L
+                            ₹{(po.totalAmount / 100_000).toFixed(2)}L
                           </p>
                           {po.discountAmount > 0 && (
                             <p className="text-xs text-green-600 dark:text-green-400">

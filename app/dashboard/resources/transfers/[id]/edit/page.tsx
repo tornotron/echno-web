@@ -80,7 +80,7 @@ export default function EditTransferPage({
 
   useEffect(() => {
     // Simulate API call
-    const foundTransfer = mockTransfers.find((t) => t.id === parseInt(id));
+    const foundTransfer = mockTransfers.find((t) => t.id === Number.parseInt(id));
     
     if (foundTransfer) {
       setTransfer(foundTransfer);
@@ -565,7 +565,7 @@ export default function EditTransferPage({
                           type="number"
                           value={item.quantityRequested || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantityRequested', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'quantityRequested', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -599,7 +599,7 @@ export default function EditTransferPage({
                           type="number"
                           value={item.unitValue || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitValue', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'unitValue', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -657,7 +657,7 @@ export default function EditTransferPage({
                 <div className="flex justify-between">
                   <span className="text-zinc-500 dark:text-zinc-400">Total Value:</span>
                   <span className="font-bold text-lg text-zinc-900 dark:text-zinc-100">
-                    ₹{(totalValue / 100000).toFixed(2)}L
+                    ₹{(totalValue / 100_000).toFixed(2)}L
                   </span>
                 </div>
               </CardContent>

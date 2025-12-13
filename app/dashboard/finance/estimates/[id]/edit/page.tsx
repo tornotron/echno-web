@@ -73,27 +73,27 @@ const fetchEstimate = async (id: string): Promise<Estimate | null> => {
         quantity: 500,
         unit: 'cum',
         unitRate: 8500,
-        laborCost: 200000,
-        materialCost: 4050000,
+        laborCost: 200_000,
+        materialCost: 4_050_000,
         equipmentCost: 0,
         overhead: 10,
         profit: 15,
-        subtotal: 4250000,
-        total: 4890625,
+        subtotal: 4_250_000,
+        total: 4_890_625,
       },
     ],
-    materialCost: 4050000,
-    laborCost: 1000000,
-    equipmentCost: 50000,
+    materialCost: 4_050_000,
+    laborCost: 1_000_000,
+    equipmentCost: 50_000,
     subcontractorCost: 0,
-    overheadCost: 510000,
-    profitMargin: 765000,
-    subtotal: 5375000,
+    overheadCost: 510_000,
+    profitMargin: 765_000,
+    subtotal: 5_375_000,
     contingency: 10,
-    contingencyAmount: 537500,
+    contingencyAmount: 537_500,
     taxRate: 18,
-    taxAmount: 1064250,
-    totalAmount: 6976750,
+    taxAmount: 1_064_250,
+    totalAmount: 6_976_750,
     paymentTerms: '30% advance, 40% on structure, 30% on completion',
     advancePayment: 30,
     termsAndConditions: 'All work as per approved drawings',
@@ -295,8 +295,8 @@ export default function EditEstimatePage() {
     
     const { contingencyAmount, taxAmount, total } = calculateEstimateTotal(
       subtotal,
-      parseFloat(contingencyPercent) || 0,
-      parseFloat(taxRate) || 0
+      Number.parseFloat(contingencyPercent) || 0,
+      Number.parseFloat(taxRate) || 0
     );
 
     return {
@@ -783,7 +783,7 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.quantity || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -797,7 +797,7 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.unitRate || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitRate', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'unitRate', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -811,7 +811,7 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.laborCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'laborCost', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'laborCost', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -825,7 +825,7 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.materialCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'materialCost', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'materialCost', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"
@@ -839,7 +839,7 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.equipmentCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'equipmentCost', parseFloat(e.target.value) || 0)
+                            updateLineItem(item.id, 'equipmentCost', Number.parseFloat(e.target.value) || 0)
                           }
                           placeholder="0"
                           min="0"

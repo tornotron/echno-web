@@ -403,7 +403,7 @@ export default function CreatePurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.quantity}
-                            onChange={(e) => updateLineItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
                             required
@@ -422,7 +422,7 @@ export default function CreatePurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.unitPrice}
-                            onChange={(e) => updateLineItem(item.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'unitPrice', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
                             required
@@ -433,7 +433,7 @@ export default function CreatePurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.taxRate}
-                            onChange={(e) => updateLineItem(item.id, 'taxRate', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'taxRate', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             max="100"
                             step="0.01"
@@ -444,7 +444,7 @@ export default function CreatePurchaseOrderPage() {
                           <Input
                             type="number"
                             value={item.discount}
-                            onChange={(e) => updateLineItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'discount', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             max="100"
                             step="0.01"
@@ -591,7 +591,7 @@ export default function CreatePurchaseOrderPage() {
                         id="advancePaymentPercentage"
                         type="number"
                         value={advancePaymentPercentage}
-                        onChange={(e) => setAdvancePaymentPercentage(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setAdvancePaymentPercentage(Number.parseFloat(e.target.value) || 0)}
                         min="0"
                         max="100"
                         step="1"
@@ -672,7 +672,7 @@ export default function CreatePurchaseOrderPage() {
                         id="shippingCost"
                         type="number"
                         value={shippingCost}
-                        onChange={(e) => setShippingCost(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setShippingCost(Number.parseFloat(e.target.value) || 0)}
                         min="0"
                         step="0.01"
                       />
@@ -683,7 +683,7 @@ export default function CreatePurchaseOrderPage() {
                         id="otherCharges"
                         type="number"
                         value={otherCharges}
-                        onChange={(e) => setOtherCharges(parseFloat(e.target.value) || 0)}
+                        onChange={(e) => setOtherCharges(Number.parseFloat(e.target.value) || 0)}
                         min="0"
                         step="0.01"
                       />

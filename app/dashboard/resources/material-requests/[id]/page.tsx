@@ -64,7 +64,7 @@ const getPriorityBadgeColor = (priority: MaterialRequestPriority): string => {
 export default function MaterialRequestDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const requestId = parseInt(params.id as string);
+  const requestId = Number.parseInt(params.id as string);
   const mr = mockMaterialRequests.find(r => r.id === requestId);
 
   if (!mr) {
@@ -368,14 +368,14 @@ export default function MaterialRequestDetailPage() {
                   <div className="flex justify-between text-sm">
                     <span className="text-zinc-600 dark:text-zinc-400">Estimated Total Cost</span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ₹{(mr.estimatedTotalCost / 100000).toFixed(2)}L
+                      ₹{(mr.estimatedTotalCost / 100_000).toFixed(2)}L
                     </span>
                   </div>
                   {mr.actualTotalCost > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">Actual Total Cost</span>
                       <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                        ₹{(mr.actualTotalCost / 100000).toFixed(2)}L
+                        ₹{(mr.actualTotalCost / 100_000).toFixed(2)}L
                       </span>
                     </div>
                   )}

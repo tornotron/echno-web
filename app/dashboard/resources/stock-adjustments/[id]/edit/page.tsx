@@ -94,7 +94,7 @@ export default function EditStockAdjustmentPage({
 
   useEffect(() => {
     // Simulate API call
-    const foundAdjustment = mockStockAdjustments.find((sa) => sa.id === parseInt(id));
+    const foundAdjustment = mockStockAdjustments.find((sa) => sa.id === Number.parseInt(id));
     
     if (foundAdjustment) {
       setAdjustmentNumber(foundAdjustment.adjustmentNumber);
@@ -389,7 +389,7 @@ export default function EditStockAdjustmentPage({
                             type="number"
                             value={item.currentStock || ''}
                             onChange={(e) =>
-                              updateItem(item.id, 'currentStock', parseFloat(e.target.value) || 0)
+                              updateItem(item.id, 'currentStock', Number.parseFloat(e.target.value) || 0)
                             }
                             placeholder="0"
                             min="0"
@@ -402,7 +402,7 @@ export default function EditStockAdjustmentPage({
                             type="number"
                             value={item.countedStock || ''}
                             onChange={(e) =>
-                              updateItem(item.id, 'countedStock', parseFloat(e.target.value) || 0)
+                              updateItem(item.id, 'countedStock', Number.parseFloat(e.target.value) || 0)
                             }
                             placeholder="0"
                             min="0"
@@ -436,7 +436,7 @@ export default function EditStockAdjustmentPage({
                             type="number"
                             value={item.unitCost || ''}
                             onChange={(e) =>
-                              updateItem(item.id, 'unitCost', parseFloat(e.target.value) || 0)
+                              updateItem(item.id, 'unitCost', Number.parseFloat(e.target.value) || 0)
                             }
                             placeholder="0"
                             min="0"
@@ -464,16 +464,16 @@ export default function EditStockAdjustmentPage({
                           <div className="flex items-center gap-1">
                             {difference > 0 ? (
                               <TrendingUp className="h-4 w-4 text-green-500" />
-                            ) : difference < 0 ? (
+                            ) : (difference < 0 ? (
                               <TrendingDown className="h-4 w-4 text-red-500" />
-                            ) : null}
+                            ) : null)}
                             <span
                               className={`font-semibold ${
                                 difference > 0
                                   ? 'text-green-600 dark:text-green-400'
-                                  : difference < 0
+                                  : (difference < 0
                                   ? 'text-red-600 dark:text-red-400'
-                                  : 'text-zinc-900 dark:text-zinc-100'
+                                  : 'text-zinc-900 dark:text-zinc-100')
                               }`}
                             >
                               {difference > 0 ? '+' : ''}
@@ -488,9 +488,9 @@ export default function EditStockAdjustmentPage({
                             className={`font-semibold ${
                               impact > 0
                                 ? 'text-green-600 dark:text-green-400'
-                                : impact < 0
+                                : (impact < 0
                                 ? 'text-red-600 dark:text-red-400'
-                                : 'text-zinc-900 dark:text-zinc-100'
+                                : 'text-zinc-900 dark:text-zinc-100')
                             }`}
                           >
                             {impact > 0 ? '+' : ''}₹{impact.toLocaleString()}
@@ -537,9 +537,9 @@ export default function EditStockAdjustmentPage({
                     className={`font-bold text-lg ${
                       totalImpact > 0
                         ? 'text-green-600 dark:text-green-400'
-                        : totalImpact < 0
+                        : (totalImpact < 0
                         ? 'text-red-600 dark:text-red-400'
-                        : 'text-zinc-900 dark:text-zinc-100'
+                        : 'text-zinc-900 dark:text-zinc-100')
                     }`}
                   >
                     {totalImpact > 0 ? '+' : ''}₹{(Math.abs(totalImpact) / 1000).toFixed(2)}K

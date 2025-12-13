@@ -23,6 +23,7 @@ const fetchProjectById = async (id: number): Promise<Project> => {
   await new Promise((resolve) => setTimeout(resolve, 300));
   const project = mockProjects.find((p) => p.id === id);
   if (!project) throw new Error('Project not found');
+
   return project;
 };
 
@@ -42,7 +43,8 @@ const updateProject = async (project: Project): Promise<Project> => {
   return project;
 };
 
-const deleteProject = async (id: number): Promise<void> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const deleteProject = async (_: number): Promise<void> => {
   // Simulate API call
   await new Promise((resolve) => setTimeout(resolve, 500));
 };

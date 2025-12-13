@@ -39,7 +39,7 @@ interface LineItem {
 export default function EditMaterialRequestPage() {
   const params = useParams();
   const router = useRouter();
-  const requestId = parseInt(params.id as string);
+  const requestId = Number.parseInt(params.id as string);
   const mr = mockMaterialRequests.find(r => r.id === requestId);
 
   // Check if editable
@@ -445,7 +445,7 @@ export default function EditMaterialRequestPage() {
                           <Input
                             type="number"
                             value={item.quantityRequested}
-                            onChange={(e) => updateLineItem(item.id, 'quantityRequested', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'quantityRequested', Number.parseFloat(e.target.value) || 0)}
                             disabled={!isEditable}
                             min="0"
                             step="0.01"
@@ -465,7 +465,7 @@ export default function EditMaterialRequestPage() {
                           <Input
                             type="number"
                             value={item.estimatedCost}
-                            onChange={(e) => updateLineItem(item.id, 'estimatedCost', parseFloat(e.target.value) || 0)}
+                            onChange={(e) => updateLineItem(item.id, 'estimatedCost', Number.parseFloat(e.target.value) || 0)}
                             min="0"
                             step="0.01"
                           />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -150,11 +150,6 @@ export default function StockAdjustmentsPage() {
 
       return matchesSearch && matchesType && matchesStatus && matchesReason;
     });
-  }, [searchQuery, typeFilter, statusFilter, reasonFilter]);
-
-  // Reset to page 1 when filters change
-  useMemo(() => {
-    setCurrentPage(1);
   }, [searchQuery, typeFilter, statusFilter, reasonFilter]);
 
   // Pagination
@@ -349,7 +344,7 @@ export default function StockAdjustmentsPage() {
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
-                setItemsPerPage(parseInt(value));
+                setItemsPerPage(Number.parseInt(value));
                 setCurrentPage(1);
               }}
             >
@@ -422,7 +417,7 @@ export default function StockAdjustmentsPage() {
                           </div>
                           <div>
                             <span className="text-zinc-500 dark:text-zinc-500">Variance:</span>
-                            <Badge variant="outline" className={adj.variance > 0 ? 'text-green-600' : adj.variance < 0 ? 'text-red-600' : ''}>
+                            <Badge variant="outline" className={adj.variance > 0 ? 'text-green-600' : (adj.variance < 0 ? 'text-red-600' : '')}>
                               {adj.variance > 0 ? '+' : ''}{adj.variance} {adj.unit}
                             </Badge>
                           </div>

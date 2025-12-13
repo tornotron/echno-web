@@ -61,10 +61,11 @@ export function parseEmployee(json: any): Employee {
     ...baseUser,
     employeeId: json.employeeId ?? '',
     designation: json.designation ?? '',
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    department: json.department
-      ? (Department as any)[json.department]
-      : Department.engineering,
+     
+    department:
+      json.department && json.department in Department
+        ? Department[json.department as keyof typeof Department]
+        : Department.engineering,
     joiningDate: json.joiningDate ? new Date(json.joiningDate) : undefined,
     salary: json.salary == null ? undefined : Number(json.salary),
     reportingManager: json.reportingManager ?? undefined,
