@@ -3,26 +3,26 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AppLayout } from "@/components/common/app-layout";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { AppLayout } from '@/components/common/app-layout';
 import {
-  ArrowLeft,
-  Cog,
-  Save,
-  X,
-  Calendar
-} from 'lucide-react';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Save, X } from 'lucide-react';
 import { AssetType, AssetStatus, AssetCondition } from '@/types/resource';
 import { toast } from 'sonner';
 import { mockLocations } from '@/components/shared/mock-data';
@@ -55,7 +55,7 @@ export default function NewAssetPage() {
     insuranceProvider: '',
     policyNumber: '',
     insuranceExpiry: '',
-    notes: ''
+    notes: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +63,13 @@ export default function NewAssetPage() {
     setIsSubmitting(true);
 
     // Validation
-    if (!formData.name || !formData.type || !formData.locationId || !formData.purchaseDate || !formData.purchasePrice) {
+    if (
+      !formData.name ||
+      !formData.type ||
+      !formData.locationId ||
+      !formData.purchaseDate ||
+      !formData.purchasePrice
+    ) {
       toast.error('Please fill in all required fields');
       setIsSubmitting(false);
       return;
@@ -77,7 +83,7 @@ export default function NewAssetPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -96,12 +102,14 @@ export default function NewAssetPage() {
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Main Form - Left Side (2 columns) */}
-            <div className="md:col-span-2 space-y-6">
+            <div className="space-y-6 md:col-span-2">
               {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Enter the basic details of the asset</CardDescription>
+                  <CardDescription>
+                    Enter the basic details of the asset
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -113,7 +121,9 @@ export default function NewAssetPage() {
                         id="name"
                         placeholder="e.g., Excavator CAT 320D"
                         value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('name', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -124,7 +134,9 @@ export default function NewAssetPage() {
                         id="description"
                         placeholder="Enter asset description..."
                         value={formData.description}
-                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('description', e.target.value)
+                        }
                         rows={3}
                       />
                     </div>
@@ -135,20 +147,28 @@ export default function NewAssetPage() {
                       </Label>
                       <Select
                         value={formData.type}
-                        onValueChange={(value) => handleInputChange('type', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('type', value)
+                        }
                         required
                       >
                         <SelectTrigger id="type">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="heavy-equipment">Heavy Equipment</SelectItem>
-                          <SelectItem value="light-equipment">Light Equipment</SelectItem>
+                          <SelectItem value="heavy-equipment">
+                            Heavy Equipment
+                          </SelectItem>
+                          <SelectItem value="light-equipment">
+                            Light Equipment
+                          </SelectItem>
                           <SelectItem value="vehicle">Vehicle</SelectItem>
                           <SelectItem value="tool">Tool</SelectItem>
                           <SelectItem value="machinery">Machinery</SelectItem>
                           <SelectItem value="generator">Generator</SelectItem>
-                          <SelectItem value="computer">Computer & IT</SelectItem>
+                          <SelectItem value="computer">
+                            Computer & IT
+                          </SelectItem>
                           <SelectItem value="furniture">Furniture</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
@@ -161,7 +181,9 @@ export default function NewAssetPage() {
                         id="category"
                         placeholder="e.g., Excavators"
                         value={formData.category}
-                        onChange={(e) => handleInputChange('category', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('category', e.target.value)
+                        }
                       />
                     </div>
 
@@ -171,7 +193,9 @@ export default function NewAssetPage() {
                         id="manufacturer"
                         placeholder="e.g., Caterpillar"
                         value={formData.manufacturer}
-                        onChange={(e) => handleInputChange('manufacturer', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('manufacturer', e.target.value)
+                        }
                       />
                     </div>
 
@@ -181,7 +205,9 @@ export default function NewAssetPage() {
                         id="model"
                         placeholder="e.g., 320D"
                         value={formData.model}
-                        onChange={(e) => handleInputChange('model', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('model', e.target.value)
+                        }
                       />
                     </div>
 
@@ -191,17 +217,26 @@ export default function NewAssetPage() {
                         id="serialNumber"
                         placeholder="e.g., CAT320D2024001"
                         value={formData.serialNumber}
-                        onChange={(e) => handleInputChange('serialNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('serialNumber', e.target.value)
+                        }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="registrationNumber">Registration Number</Label>
+                      <Label htmlFor="registrationNumber">
+                        Registration Number
+                      </Label>
                       <Input
                         id="registrationNumber"
                         placeholder="e.g., KA-01-EQ-1234"
                         value={formData.registrationNumber}
-                        onChange={(e) => handleInputChange('registrationNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'registrationNumber',
+                            e.target.value
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -212,7 +247,9 @@ export default function NewAssetPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Purchase & Financial Details</CardTitle>
-                  <CardDescription>Asset purchase and valuation information</CardDescription>
+                  <CardDescription>
+                    Asset purchase and valuation information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -224,34 +261,43 @@ export default function NewAssetPage() {
                         id="purchaseDate"
                         type="date"
                         value={formData.purchaseDate}
-                        onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('purchaseDate', e.target.value)
+                        }
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="purchasePrice">
-                        Purchase Price (₹) <span className="text-red-500">*</span>
+                        Purchase Price (₹){' '}
+                        <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="purchasePrice"
                         type="number"
                         placeholder="e.g., 8500000"
                         value={formData.purchasePrice}
-                        onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('purchasePrice', e.target.value)
+                        }
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="depreciationRate">Depreciation Rate (%)</Label>
+                      <Label htmlFor="depreciationRate">
+                        Depreciation Rate (%)
+                      </Label>
                       <Input
                         id="depreciationRate"
                         type="number"
                         step="0.1"
                         placeholder="e.g., 10"
                         value={formData.depreciationRate}
-                        onChange={(e) => handleInputChange('depreciationRate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('depreciationRate', e.target.value)
+                        }
                       />
                     </div>
 
@@ -261,7 +307,9 @@ export default function NewAssetPage() {
                         id="warrantyExpiry"
                         type="date"
                         value={formData.warrantyExpiry}
-                        onChange={(e) => handleInputChange('warrantyExpiry', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('warrantyExpiry', e.target.value)
+                        }
                       />
                     </div>
                   </div>
@@ -272,7 +320,9 @@ export default function NewAssetPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Operational Details</CardTitle>
-                  <CardDescription>Usage and maintenance information</CardDescription>
+                  <CardDescription>
+                    Usage and maintenance information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -283,7 +333,9 @@ export default function NewAssetPage() {
                         type="number"
                         placeholder="e.g., 15000"
                         value={formData.maxUsageHours}
-                        onChange={(e) => handleInputChange('maxUsageHours', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('maxUsageHours', e.target.value)
+                        }
                       />
                     </div>
 
@@ -291,7 +343,9 @@ export default function NewAssetPage() {
                       <Label htmlFor="fuelType">Fuel Type</Label>
                       <Select
                         value={formData.fuelType}
-                        onValueChange={(value) => handleInputChange('fuelType', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('fuelType', value)
+                        }
                       >
                         <SelectTrigger id="fuelType">
                           <SelectValue placeholder="Select fuel type" />
@@ -308,12 +362,19 @@ export default function NewAssetPage() {
                     </div>
 
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="maintenanceSchedule">Maintenance Schedule</Label>
+                      <Label htmlFor="maintenanceSchedule">
+                        Maintenance Schedule
+                      </Label>
                       <Input
                         id="maintenanceSchedule"
                         placeholder="e.g., Every 500 hours"
                         value={formData.maintenanceSchedule}
-                        onChange={(e) => handleInputChange('maintenanceSchedule', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'maintenanceSchedule',
+                            e.target.value
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -329,12 +390,16 @@ export default function NewAssetPage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="insuranceProvider">Insurance Provider</Label>
+                      <Label htmlFor="insuranceProvider">
+                        Insurance Provider
+                      </Label>
                       <Input
                         id="insuranceProvider"
                         placeholder="e.g., HDFC Ergo"
                         value={formData.insuranceProvider}
-                        onChange={(e) => handleInputChange('insuranceProvider', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('insuranceProvider', e.target.value)
+                        }
                       />
                     </div>
 
@@ -344,7 +409,9 @@ export default function NewAssetPage() {
                         id="policyNumber"
                         placeholder="e.g., HDFC-EQ-2024-001"
                         value={formData.policyNumber}
-                        onChange={(e) => handleInputChange('policyNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('policyNumber', e.target.value)
+                        }
                       />
                     </div>
 
@@ -354,7 +421,9 @@ export default function NewAssetPage() {
                         id="insuranceExpiry"
                         type="date"
                         value={formData.insuranceExpiry}
-                        onChange={(e) => handleInputChange('insuranceExpiry', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('insuranceExpiry', e.target.value)
+                        }
                       />
                     </div>
                   </div>
@@ -373,7 +442,9 @@ export default function NewAssetPage() {
                       id="notes"
                       placeholder="Any additional notes or comments..."
                       value={formData.notes}
-                      onChange={(e) => handleInputChange('notes', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('notes', e.target.value)
+                      }
                       rows={4}
                     />
                   </div>
@@ -395,7 +466,9 @@ export default function NewAssetPage() {
                     </Label>
                     <Select
                       value={formData.status}
-                      onValueChange={(value) => handleInputChange('status', value)}
+                      onValueChange={(value) =>
+                        handleInputChange('status', value)
+                      }
                       required
                     >
                       <SelectTrigger id="status">
@@ -417,7 +490,9 @@ export default function NewAssetPage() {
                     </Label>
                     <Select
                       value={formData.condition}
-                      onValueChange={(value) => handleInputChange('condition', value)}
+                      onValueChange={(value) =>
+                        handleInputChange('condition', value)
+                      }
                       required
                     >
                       <SelectTrigger id="condition">
@@ -439,7 +514,9 @@ export default function NewAssetPage() {
                     </Label>
                     <Select
                       value={formData.locationId}
-                      onValueChange={(value) => handleInputChange('locationId', value)}
+                      onValueChange={(value) =>
+                        handleInputChange('locationId', value)
+                      }
                       required
                     >
                       <SelectTrigger id="locationId">
@@ -447,7 +524,10 @@ export default function NewAssetPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {mockLocations.map((location) => (
-                          <SelectItem key={location.id} value={location.id.toString()}>
+                          <SelectItem
+                            key={location.id}
+                            value={location.id.toString()}
+                          >
                             {location.name}
                           </SelectItem>
                         ))}
@@ -469,7 +549,9 @@ export default function NewAssetPage() {
                       id="assignedTo"
                       placeholder="e.g., John Doe"
                       value={formData.assignedTo}
-                      onChange={(e) => handleInputChange('assignedTo', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('assignedTo', e.target.value)
+                      }
                     />
                   </div>
 
@@ -479,7 +561,9 @@ export default function NewAssetPage() {
                       id="assignedProject"
                       placeholder="e.g., Metro Line Extension"
                       value={formData.assignedProject}
-                      onChange={(e) => handleInputChange('assignedProject', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('assignedProject', e.target.value)
+                      }
                     />
                   </div>
                 </CardContent>
@@ -498,7 +582,11 @@ export default function NewAssetPage() {
                       {isSubmitting ? 'Saving...' : 'Register Asset'}
                     </Button>
                     <Link href="/dashboard/resources/assets" className="block">
-                      <Button type="button" variant="outline" className="w-full">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                      >
                         <X className="mr-2 h-4 w-4" />
                         Cancel
                       </Button>

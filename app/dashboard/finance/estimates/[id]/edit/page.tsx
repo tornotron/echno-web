@@ -3,12 +3,24 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/common/app-layout';
 import {
@@ -44,7 +56,7 @@ interface EstimateLineItem {
 }
 
 // Mock function to fetch estimate - replace with actual API call
-const fetchEstimate = async (id: string): Promise<Estimate | null> => {
+const fetchEstimate = async (): Promise<Estimate | null> => {
   // Simulate API call
   return {
     id: 1,
@@ -119,8 +131,12 @@ export default function EditEstimatePage() {
 
   // Basic Information
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<EstimateCategory>(EstimateCategory.construction);
-  const [preparedDate, setPreparedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [category, setCategory] = useState<EstimateCategory>(
+    EstimateCategory.construction
+  );
+  const [preparedDate, setPreparedDate] = useState(
+    format(new Date(), 'yyyy-MM-dd')
+  );
   const [validityPeriod, setValidityPeriod] = useState('30');
 
   // Client Information
@@ -175,10 +191,10 @@ export default function EditEstimatePage() {
   useEffect(() => {
     const loadEstimate = async () => {
       if (!params.id) return;
-      
+
       try {
-        const estimate = await fetchEstimate(params.id as string);
-        
+        const estimate = await fetchEstimate();
+
         if (!estimate) {
           toast.error('Estimate not found');
           router.push('/dashboard/finance/estimates');
@@ -191,36 +207,38 @@ export default function EditEstimatePage() {
         setCategory(estimate.category);
         setPreparedDate(format(estimate.preparedDate, 'yyyy-MM-dd'));
         setValidityPeriod(estimate.validityPeriod.toString());
-        
+
         setClientName(estimate.clientName);
         setClientEmail(estimate.clientEmail || '');
         setClientPhone(estimate.clientPhone || '');
         setClientAddress(estimate.clientAddress || '');
-        
+
         setProjectLocation(estimate.projectLocation);
         setProjectDescription(estimate.projectDescription);
         setScope(estimate.scope);
         setAssumptions(estimate.assumptions || '');
         setExclusions(estimate.exclusions || '');
-        
+
         if (estimate.estimatedStartDate) {
-          setEstimatedStartDate(format(estimate.estimatedStartDate, 'yyyy-MM-dd'));
+          setEstimatedStartDate(
+            format(estimate.estimatedStartDate, 'yyyy-MM-dd')
+          );
         }
         if (estimate.estimatedEndDate) {
           setEstimatedEndDate(format(estimate.estimatedEndDate, 'yyyy-MM-dd'));
         }
         setEstimatedDuration(estimate.estimatedDuration?.toString() || '');
-        
+
         setContingencyPercent(estimate.contingency.toString());
         setTaxRate(estimate.taxRate.toString());
-        
+
         setPaymentTerms(estimate.paymentTerms || '');
         setAdvancePayment(estimate.advancePayment?.toString() || '');
-        
+
         setTermsAndConditions(estimate.termsAndConditions || '');
         setWarrantyTerms(estimate.warrantyTerms || '');
         setNotes(estimate.notes || '');
-        
+
         // Convert line items
         const convertedLineItems = estimate.lineItems.map((item) => ({
           id: item.id,
@@ -236,7 +254,7 @@ export default function EditEstimatePage() {
           notes: item.notes || '',
         }));
         setLineItems(convertedLineItems);
-        
+
         setLoading(false);
       } catch (error) {
         console.error('Failed to load estimate:', error);
@@ -273,7 +291,11 @@ export default function EditEstimatePage() {
     }
   };
 
-  const updateLineItem = (id: number, field: keyof EstimateLineItem, value: any) => {
+  const updateLineItem = (
+    id: number,
+    field: keyof EstimateLineItem,
+    value: string | number
+  ) => {
     setLineItems(
       lineItems.map((item) =>
         item.id === id ? { ...item, [field]: value } : item
@@ -283,16 +305,26 @@ export default function EditEstimatePage() {
 
   const calculateItemTotal = (item: EstimateLineItem) => {
     const baseTotal = item.quantity * item.unitRate;
-    const componentTotal = item.laborCost + item.materialCost + item.equipmentCost;
+    const componentTotal =
+      item.laborCost + item.materialCost + item.equipmentCost;
     return baseTotal + componentTotal;
   };
 
   const calculateTotals = () => {
-    const subtotal = lineItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    const materialCost = lineItems.reduce((sum, item) => sum + item.materialCost, 0);
+    const subtotal = lineItems.reduce(
+      (sum, item) => sum + calculateItemTotal(item),
+      0
+    );
+    const materialCost = lineItems.reduce(
+      (sum, item) => sum + item.materialCost,
+      0
+    );
     const laborCost = lineItems.reduce((sum, item) => sum + item.laborCost, 0);
-    const equipmentCost = lineItems.reduce((sum, item) => sum + item.equipmentCost, 0);
-    
+    const equipmentCost = lineItems.reduce(
+      (sum, item) => sum + item.equipmentCost,
+      0
+    );
+
     const { contingencyAmount, taxAmount, total } = calculateEstimateTotal(
       subtotal,
       Number.parseFloat(contingencyPercent) || 0,
@@ -338,11 +370,14 @@ export default function EditEstimatePage() {
     }
 
     const hasInvalidItems = lineItems.some(
-      (item) => !item.description.trim() || item.quantity <= 0 || item.unitRate <= 0
+      (item) =>
+        !item.description.trim() || item.quantity <= 0 || item.unitRate <= 0
     );
 
     if (hasInvalidItems) {
-      toast.error('Please ensure all items have description, quantity, and unit rate');
+      toast.error(
+        'Please ensure all items have description, quantity, and unit rate'
+      );
       return;
     }
 
@@ -386,8 +421,10 @@ export default function EditEstimatePage() {
         <div className="space-y-6">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-zinc-600 dark:text-zinc-400">Loading estimate...</p>
+              <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                Loading estimate...
+              </p>
             </div>
           </div>
         </div>
@@ -398,17 +435,20 @@ export default function EditEstimatePage() {
   if (!estimateToEdit) {
     return (
       <AppLayout>
-        <div className="space-y-6 max-w-7xl mx-auto">
+        <div className="mx-auto max-w-7xl space-y-6">
           <Card>
-            <CardContent className="text-center py-12">
-              <FileText className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <FileText className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 Estimate not found
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                The estimate you're trying to edit doesn't exist or has been removed.
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+                The estimate you&apos;re trying to edit doesn&apos;t exist or
+                has been removed.
               </p>
-              <Button onClick={() => router.push('/dashboard/finance/estimates')}>
+              <Button
+                onClick={() => router.push('/dashboard/finance/estimates')}
+              >
                 Back to Estimates
               </Button>
             </CardContent>
@@ -420,15 +460,15 @@ export default function EditEstimatePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
         <div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
                 Edit Construction Estimate
               </h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                 Update your construction project estimate details
               </p>
             </div>
@@ -438,16 +478,16 @@ export default function EditEstimatePage() {
                 Cancel
               </Button>
               <Button onClick={handleSubmit}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 Update Estimate
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -458,10 +498,14 @@ export default function EditEstimatePage() {
                 <CardDescription>General estimate details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="estimateNumber">Estimate Number</Label>
-                    <Input id="estimateNumber" value={estimateNumber} disabled />
+                    <Input
+                      id="estimateNumber"
+                      value={estimateNumber}
+                      disabled
+                    />
                   </div>
 
                   <div>
@@ -486,7 +530,12 @@ export default function EditEstimatePage() {
 
                   <div>
                     <Label htmlFor="category">Category *</Label>
-                    <Select value={category} onValueChange={(value) => setCategory(value as EstimateCategory)}>
+                    <Select
+                      value={category}
+                      onValueChange={(value) =>
+                        setCategory(value as EstimateCategory)
+                      }
+                    >
                       <SelectTrigger id="category">
                         <SelectValue />
                       </SelectTrigger>
@@ -501,7 +550,9 @@ export default function EditEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="validityPeriod">Validity Period (Days) *</Label>
+                    <Label htmlFor="validityPeriod">
+                      Validity Period (Days) *
+                    </Label>
                     <Input
                       id="validityPeriod"
                       type="number"
@@ -522,7 +573,7 @@ export default function EditEstimatePage() {
                 <CardDescription>Details about the client</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <Label htmlFor="clientName">Client Name *</Label>
                     <Input
@@ -572,7 +623,9 @@ export default function EditEstimatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Project Details</CardTitle>
-                <CardDescription>Information about the construction project</CardDescription>
+                <CardDescription>
+                  Information about the construction project
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -586,7 +639,9 @@ export default function EditEstimatePage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="projectDescription">Project Description *</Label>
+                  <Label htmlFor="projectDescription">
+                    Project Description *
+                  </Label>
                   <Textarea
                     id="projectDescription"
                     value={projectDescription}
@@ -638,9 +693,11 @@ export default function EditEstimatePage() {
                 <CardDescription>Estimated project schedule</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <Label htmlFor="estimatedStartDate">Estimated Start Date</Label>
+                    <Label htmlFor="estimatedStartDate">
+                      Estimated Start Date
+                    </Label>
                     <Input
                       id="estimatedStartDate"
                       type="date"
@@ -660,7 +717,9 @@ export default function EditEstimatePage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <Label htmlFor="estimatedDuration">Estimated Duration (Days)</Label>
+                    <Label htmlFor="estimatedDuration">
+                      Estimated Duration (Days)
+                    </Label>
                     <Input
                       id="estimatedDuration"
                       type="number"
@@ -683,17 +742,22 @@ export default function EditEstimatePage() {
                       <Calculator className="h-5 w-5" />
                       Cost Items
                     </CardTitle>
-                    <CardDescription>Add detailed cost breakdown</CardDescription>
+                    <CardDescription>
+                      Add detailed cost breakdown
+                    </CardDescription>
                   </div>
                   <Button onClick={addLineItem} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Item
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {lineItems.map((item, index) => (
-                  <div key={item.id} className="border rounded-lg p-4 space-y-4">
+                  <div
+                    key={item.id}
+                    className="space-y-4 rounded-lg border p-4"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Item #{index + 1}
@@ -709,12 +773,14 @@ export default function EditEstimatePage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <Label>Category</Label>
                         <Select
                           value={item.category}
-                          onValueChange={(value) => updateLineItem(item.id, 'category', value)}
+                          onValueChange={(value) =>
+                            updateLineItem(item.id, 'category', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -723,8 +789,12 @@ export default function EditEstimatePage() {
                             <SelectItem value="Materials">Materials</SelectItem>
                             <SelectItem value="Labor">Labor</SelectItem>
                             <SelectItem value="Equipment">Equipment</SelectItem>
-                            <SelectItem value="Subcontractor">Subcontractor</SelectItem>
-                            <SelectItem value="Permits & Fees">Permits & Fees</SelectItem>
+                            <SelectItem value="Subcontractor">
+                              Subcontractor
+                            </SelectItem>
+                            <SelectItem value="Permits & Fees">
+                              Permits & Fees
+                            </SelectItem>
                             <SelectItem value="Other">Other</SelectItem>
                           </SelectContent>
                         </Select>
@@ -734,7 +804,9 @@ export default function EditEstimatePage() {
                         <Label>Unit</Label>
                         <Select
                           value={item.unit}
-                          onValueChange={(value) => updateLineItem(item.id, 'unit', value)}
+                          onValueChange={(value) =>
+                            updateLineItem(item.id, 'unit', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -759,7 +831,11 @@ export default function EditEstimatePage() {
                         <Input
                           value={item.description}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'description', e.target.value)
+                            updateLineItem(
+                              item.id,
+                              'description',
+                              e.target.value
+                            )
                           }
                           placeholder="Item description"
                         />
@@ -770,7 +846,11 @@ export default function EditEstimatePage() {
                         <Textarea
                           value={item.specifications}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'specifications', e.target.value)
+                            updateLineItem(
+                              item.id,
+                              'specifications',
+                              e.target.value
+                            )
                           }
                           placeholder="Technical specifications, materials, standards, etc."
                           rows={2}
@@ -783,7 +863,11 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.quantity || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'quantity',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -797,7 +881,11 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.unitRate || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitRate', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'unitRate',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -811,7 +899,11 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.laborCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'laborCost', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'laborCost',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -825,7 +917,11 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.materialCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'materialCost', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'materialCost',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -839,7 +935,11 @@ export default function EditEstimatePage() {
                           type="number"
                           value={item.equipmentCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'equipmentCost', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'equipmentCost',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -862,10 +962,16 @@ export default function EditEstimatePage() {
 
                     <Separator />
 
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-zinc-500 dark:text-zinc-400">Item Total:</span>
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-lg">
-                        ₹{calculateItemTotal(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-500 dark:text-zinc-400">
+                        Item Total:
+                      </span>
+                      <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                        ₹
+                        {calculateItemTotal(item).toLocaleString('en-IN', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   </div>
@@ -913,7 +1019,9 @@ export default function EditEstimatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Terms & Conditions</CardTitle>
-                <CardDescription>Legal and warranty information</CardDescription>
+                <CardDescription>
+                  Legal and warranty information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -961,28 +1069,48 @@ export default function EditEstimatePage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Material Cost:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Material Cost:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.materialCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.materialCost.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Labor Cost:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Labor Cost:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.laborCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.laborCost.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Equipment Cost:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Equipment Cost:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.equipmentCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.equipmentCost.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Subtotal:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Subtotal:
+                  </span>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.subtotal.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -990,7 +1118,10 @@ export default function EditEstimatePage() {
                     Contingency ({contingencyPercent}%):
                   </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.contingencyAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.contingencyAmount.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -998,16 +1129,22 @@ export default function EditEstimatePage() {
                     Tax ({taxRate}%):
                   </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.taxAmount.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <Separator />
-                <div className="flex justify-between items-center pt-2">
+                <div className="flex items-center justify-between pt-2">
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     Total Amount:
                   </span>
-                  <span className="font-bold text-xl text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    ₹
+                    {totals.totalAmount.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
               </CardContent>
@@ -1031,7 +1168,7 @@ export default function EditEstimatePage() {
                     max="100"
                     step="0.1"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Buffer for unexpected costs
                   </p>
                 </div>
@@ -1048,7 +1185,7 @@ export default function EditEstimatePage() {
                     max="100"
                     step="0.1"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     GST or applicable tax rate
                   </p>
                 </div>
@@ -1058,7 +1195,7 @@ export default function EditEstimatePage() {
             {/* Quick Tips */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <AlertCircle className="h-4 w-4" />
                   Quick Tips
                 </CardTitle>
@@ -1066,7 +1203,7 @@ export default function EditEstimatePage() {
               <CardContent className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <p>• Be detailed in scope to avoid disputes</p>
                 <p>• Include all assumptions clearly</p>
-                <p>• Specify what's excluded from estimate</p>
+                <p>• Specify what&apos;s excluded from estimate</p>
                 <p>• Add contingency for unforeseen costs</p>
                 <p>• Review cost breakdown before submitting</p>
                 <p>• Set realistic timelines and validity period</p>

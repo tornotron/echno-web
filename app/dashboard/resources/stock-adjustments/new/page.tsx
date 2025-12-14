@@ -1,15 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/common/app-layout';
 import {
@@ -34,15 +46,22 @@ interface AdjustmentItem {
 
 export default function CreateStockAdjustmentPage() {
   const router = useRouter();
-  const [adjustmentNumber] = useState(`SA-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000).toString().padStart(4, '0')}`);
-  
+  const [adjustmentNumber] = useState(
+    () =>
+      `SA-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000)
+        .toString()
+        .padStart(4, '0')}`
+  );
+
   // Basic Information
-  const [adjustmentDate, setAdjustmentDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [adjustmentDate, setAdjustmentDate] = useState(
+    format(new Date(), 'yyyy-MM-dd')
+  );
   const [adjustmentType, setAdjustmentType] = useState('Physical Count');
   const [location, setLocation] = useState('');
   const [adjustmentReason, setAdjustmentReason] = useState('');
   const [notes, setNotes] = useState('');
-  
+
   // Adjustment Items
   const [items, setItems] = useState<AdjustmentItem[]>([
     {
@@ -77,11 +96,13 @@ export default function CreateStockAdjustmentPage() {
     }
   };
 
-  const updateItem = (id: number, field: keyof AdjustmentItem, value: any) => {
+  const updateItem = (
+    id: number,
+    field: keyof AdjustmentItem,
+    value: string | number
+  ) => {
     setItems(
-      items.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
+      items.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
   };
 
@@ -96,10 +117,17 @@ export default function CreateStockAdjustmentPage() {
 
   const calculateTotals = () => {
     const totalItems = items.length;
-    const totalImpact = items.reduce((sum, item) => sum + calculateItemImpact(item), 0);
-    const surplusItems = items.filter((item) => calculateItemDifference(item) > 0).length;
-    const shortageItems = items.filter((item) => calculateItemDifference(item) < 0).length;
-    
+    const totalImpact = items.reduce(
+      (sum, item) => sum + calculateItemImpact(item),
+      0
+    );
+    const surplusItems = items.filter(
+      (item) => calculateItemDifference(item) > 0
+    ).length;
+    const shortageItems = items.filter(
+      (item) => calculateItemDifference(item) < 0
+    ).length;
+
     return { totalItems, totalImpact, surplusItems, shortageItems };
   };
 
@@ -132,19 +160,20 @@ export default function CreateStockAdjustmentPage() {
     router.push('/dashboard/resources/stock-adjustments');
   };
 
-  const { totalItems, totalImpact, surplusItems, shortageItems } = calculateTotals();
+  const { totalItems, totalImpact, surplusItems, shortageItems } =
+    calculateTotals();
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
         <div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
                 Create Stock Adjustment
               </h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                 Record stock adjustments from physical counts or corrections
               </p>
             </div>
@@ -154,16 +183,16 @@ export default function CreateStockAdjustmentPage() {
                 Cancel
               </Button>
               <Button onClick={handleSubmit}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 Create Adjustment
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -171,10 +200,14 @@ export default function CreateStockAdjustmentPage() {
                 <CardDescription>General adjustment details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="adjustmentNumber">Adjustment Number</Label>
-                    <Input id="adjustmentNumber" value={adjustmentNumber} disabled />
+                    <Input
+                      id="adjustmentNumber"
+                      value={adjustmentNumber}
+                      disabled
+                    />
                   </div>
 
                   <div>
@@ -189,12 +222,17 @@ export default function CreateStockAdjustmentPage() {
 
                   <div>
                     <Label htmlFor="adjustmentType">Adjustment Type *</Label>
-                    <Select value={adjustmentType} onValueChange={setAdjustmentType}>
+                    <Select
+                      value={adjustmentType}
+                      onValueChange={setAdjustmentType}
+                    >
                       <SelectTrigger id="adjustmentType">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Physical Count">Physical Count</SelectItem>
+                        <SelectItem value="Physical Count">
+                          Physical Count
+                        </SelectItem>
                         <SelectItem value="Damage/Loss">Damage/Loss</SelectItem>
                         <SelectItem value="Expiry">Expiry</SelectItem>
                         <SelectItem value="Correction">Correction</SelectItem>
@@ -213,8 +251,12 @@ export default function CreateStockAdjustmentPage() {
                       <SelectContent>
                         <SelectItem value="Warehouse A">Warehouse A</SelectItem>
                         <SelectItem value="Warehouse B">Warehouse B</SelectItem>
-                        <SelectItem value="Site A - Building Project">Site A - Building Project</SelectItem>
-                        <SelectItem value="Site B - Bridge Construction">Site B - Bridge Construction</SelectItem>
+                        <SelectItem value="Site A - Building Project">
+                          Site A - Building Project
+                        </SelectItem>
+                        <SelectItem value="Site B - Bridge Construction">
+                          Site B - Bridge Construction
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -253,7 +295,7 @@ export default function CreateStockAdjustmentPage() {
                     <CardDescription>Items being adjusted</CardDescription>
                   </div>
                   <Button onClick={addItem} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Item
                   </Button>
                 </div>
@@ -264,7 +306,10 @@ export default function CreateStockAdjustmentPage() {
                   const impact = calculateItemImpact(item);
 
                   return (
-                    <div key={item.id} className="border rounded-lg p-4 space-y-4">
+                    <div
+                      key={item.id}
+                      className="space-y-4 rounded-lg border p-4"
+                    >
                       <div className="flex items-center justify-between">
                         <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                           Item #{index + 1}
@@ -280,7 +325,7 @@ export default function CreateStockAdjustmentPage() {
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="sm:col-span-2">
                           <Label>Item Description *</Label>
                           <Input
@@ -298,7 +343,11 @@ export default function CreateStockAdjustmentPage() {
                             type="number"
                             value={item.currentStock || ''}
                             onChange={(e) =>
-                              updateItem(item.id, 'currentStock', Number.parseFloat(e.target.value) || 0)
+                              updateItem(
+                                item.id,
+                                'currentStock',
+                                Number.parseFloat(e.target.value) || 0
+                              )
                             }
                             placeholder="0"
                             min="0"
@@ -311,7 +360,11 @@ export default function CreateStockAdjustmentPage() {
                             type="number"
                             value={item.countedStock || ''}
                             onChange={(e) =>
-                              updateItem(item.id, 'countedStock', Number.parseFloat(e.target.value) || 0)
+                              updateItem(
+                                item.id,
+                                'countedStock',
+                                Number.parseFloat(e.target.value) || 0
+                              )
                             }
                             placeholder="0"
                             min="0"
@@ -322,7 +375,9 @@ export default function CreateStockAdjustmentPage() {
                           <Label>Unit</Label>
                           <Select
                             value={item.unit}
-                            onValueChange={(value) => updateItem(item.id, 'unit', value)}
+                            onValueChange={(value) =>
+                              updateItem(item.id, 'unit', value)
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue />
@@ -345,7 +400,11 @@ export default function CreateStockAdjustmentPage() {
                             type="number"
                             value={item.unitCost || ''}
                             onChange={(e) =>
-                              updateItem(item.id, 'unitCost', Number.parseFloat(e.target.value) || 0)
+                              updateItem(
+                                item.id,
+                                'unitCost',
+                                Number.parseFloat(e.target.value) || 0
+                              )
                             }
                             placeholder="0"
                             min="0"
@@ -368,21 +427,23 @@ export default function CreateStockAdjustmentPage() {
                       <Separator />
 
                       <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-zinc-500 dark:text-zinc-400">Difference:</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-zinc-500 dark:text-zinc-400">
+                            Difference:
+                          </span>
                           <div className="flex items-center gap-1">
                             {difference > 0 ? (
                               <TrendingUp className="h-4 w-4 text-green-500" />
-                            ) : (difference < 0 ? (
+                            ) : difference < 0 ? (
                               <TrendingDown className="h-4 w-4 text-red-500" />
-                            ) : null)}
+                            ) : null}
                             <span
                               className={`font-semibold ${
                                 difference > 0
                                   ? 'text-green-600 dark:text-green-400'
-                                  : (difference < 0
-                                  ? 'text-red-600 dark:text-red-400'
-                                  : 'text-zinc-900 dark:text-zinc-100')
+                                  : difference < 0
+                                    ? 'text-red-600 dark:text-red-400'
+                                    : 'text-zinc-900 dark:text-zinc-100'
                               }`}
                             >
                               {difference > 0 ? '+' : ''}
@@ -391,15 +452,17 @@ export default function CreateStockAdjustmentPage() {
                           </div>
                         </div>
 
-                        <div className="flex justify-between items-center">
-                          <span className="text-zinc-500 dark:text-zinc-400">Impact:</span>
+                        <div className="flex items-center justify-between">
+                          <span className="text-zinc-500 dark:text-zinc-400">
+                            Impact:
+                          </span>
                           <span
                             className={`font-semibold ${
                               impact > 0
                                 ? 'text-green-600 dark:text-green-400'
-                                : (impact < 0
-                                ? 'text-red-600 dark:text-red-400'
-                                : 'text-zinc-900 dark:text-zinc-100')
+                                : impact < 0
+                                  ? 'text-red-600 dark:text-red-400'
+                                  : 'text-zinc-900 dark:text-zinc-100'
                             }`}
                           >
                             {impact > 0 ? '+' : ''}₹{impact.toLocaleString()}
@@ -422,36 +485,45 @@ export default function CreateStockAdjustmentPage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Total Items:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Total Items:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {totalItems}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Surplus Items:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Surplus Items:
+                  </span>
                   <span className="font-medium text-green-600 dark:text-green-400">
                     {surplusItems}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Shortage Items:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Shortage Items:
+                  </span>
                   <span className="font-medium text-red-600 dark:text-red-400">
                     {shortageItems}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Net Impact:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Net Impact:
+                  </span>
                   <span
-                    className={`font-bold text-lg ${
+                    className={`text-lg font-bold ${
                       totalImpact > 0
                         ? 'text-green-600 dark:text-green-400'
-                        : (totalImpact < 0
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-zinc-900 dark:text-zinc-100')
+                        : totalImpact < 0
+                          ? 'text-red-600 dark:text-red-400'
+                          : 'text-zinc-900 dark:text-zinc-100'
                     }`}
                   >
-                    {totalImpact > 0 ? '+' : ''}₹{(Math.abs(totalImpact) / 1000).toFixed(2)}K
+                    {totalImpact > 0 ? '+' : ''}₹
+                    {(Math.abs(totalImpact) / 1000).toFixed(2)}K
                   </span>
                 </div>
               </CardContent>
@@ -460,7 +532,7 @@ export default function CreateStockAdjustmentPage() {
             {/* Quick Tips */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <AlertCircle className="h-4 w-4" />
                   Quick Tips
                 </CardTitle>

@@ -23,8 +23,6 @@ import {
   FileText,
   TrendingUp,
   TrendingDown,
-  CheckCircle2,
-  XCircle,
 } from 'lucide-react';
 
 // Mock stock adjustments data (inline until we create proper types)
@@ -120,8 +118,10 @@ const stockAdjustments = [
 const getStatusBadgeColor = (status: string): string => {
   const colors: Record<string, string> = {
     draft: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
-    pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    approved: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    pending:
+      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+    approved:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
     rejected: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
   };
   return colors[status] || colors.draft;
@@ -130,7 +130,7 @@ const getStatusBadgeColor = (status: string): string => {
 export default function StockAdjustmentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -139,14 +139,19 @@ export default function StockAdjustmentsPage() {
   // Filter adjustments
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adjustment) => {
-      const matchesSearch = 
-        adjustment.adjustmentId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        adjustment.adjustmentId
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
         adjustment.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
         adjustment.location.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesType = typeFilter === 'all' || adjustment.type === typeFilter;
-      const matchesStatus = statusFilter === 'all' || adjustment.status === statusFilter;
-      const matchesReason = reasonFilter === 'all' || adjustment.reason === reasonFilter;
+
+      const matchesType =
+        typeFilter === 'all' || adjustment.type === typeFilter;
+      const matchesStatus =
+        statusFilter === 'all' || adjustment.status === statusFilter;
+      const matchesReason =
+        reasonFilter === 'all' || adjustment.reason === reasonFilter;
 
       return matchesSearch && matchesType && matchesStatus && matchesReason;
     });
@@ -160,12 +165,23 @@ export default function StockAdjustmentsPage() {
 
   // Calculate stats
   const totalAdjustments = stockAdjustments.length;
-  const pendingAdjustments = stockAdjustments.filter(a => a.status === 'pending').length;
-  const positiveVariance = stockAdjustments.filter(a => a.variance > 0).reduce((sum, a) => sum + a.variance, 0);
-  const negativeVariance = Math.abs(stockAdjustments.filter(a => a.variance < 0).reduce((sum, a) => sum + a.variance, 0));
+  const pendingAdjustments = stockAdjustments.filter(
+    (a) => a.status === 'pending'
+  ).length;
+  const positiveVariance = stockAdjustments
+    .filter((a) => a.variance > 0)
+    .reduce((sum, a) => sum + a.variance, 0);
+  const negativeVariance = Math.abs(
+    stockAdjustments
+      .filter((a) => a.variance < 0)
+      .reduce((sum, a) => sum + a.variance, 0)
+  );
 
   const hasActiveFilters =
-    searchQuery || typeFilter !== 'all' || statusFilter !== 'all' || reasonFilter !== 'all';
+    searchQuery ||
+    typeFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    reasonFilter !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -179,12 +195,12 @@ export default function StockAdjustmentsPage() {
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
               Stock Adjustments
             </h1>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-sm text-zinc-600 sm:text-base dark:text-zinc-400">
               Manage stock corrections and adjustments
             </p>
           </div>
@@ -197,48 +213,62 @@ export default function StockAdjustmentsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Adjustments</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Adjustments
+              </CardTitle>
+              <FileText className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalAdjustments}</div>
-              <p className="text-xs text-muted-foreground">All adjustments</p>
+              <p className="text-muted-foreground text-xs">All adjustments</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Pending
+              </CardTitle>
               <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{pendingAdjustments}</div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
+              <div className="text-2xl font-bold text-orange-600">
+                {pendingAdjustments}
+              </div>
+              <p className="text-muted-foreground text-xs">Awaiting approval</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Surplus</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Surplus
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">+{positiveVariance}</div>
-              <p className="text-xs text-muted-foreground">Items found</p>
+              <div className="text-2xl font-bold text-green-600">
+                +{positiveVariance}
+              </div>
+              <p className="text-muted-foreground text-xs">Items found</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Shortage</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Shortage
+              </CardTitle>
               <TrendingDown className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">-{negativeVariance}</div>
-              <p className="text-xs text-muted-foreground">Items missing</p>
+              <div className="text-2xl font-bold text-red-600">
+                -{negativeVariance}
+              </div>
+              <p className="text-muted-foreground text-xs">Items missing</p>
             </CardContent>
           </Card>
         </div>
@@ -254,8 +284,8 @@ export default function StockAdjustmentsPage() {
               setCurrentPage(1);
             }}
           >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={typeFilter}
                   onValueChange={(value) => {
@@ -276,7 +306,7 @@ export default function StockAdjustmentsPage() {
                 </Select>
               </div>
 
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={statusFilter}
                   onValueChange={(value) => {
@@ -297,7 +327,7 @@ export default function StockAdjustmentsPage() {
                 </Select>
               </div>
 
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={reasonFilter}
                   onValueChange={(value) => {
@@ -310,23 +340,23 @@ export default function StockAdjustmentsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Reasons</SelectItem>
-                    <SelectItem value="stock-discrepancy">Stock Discrepancy</SelectItem>
+                    <SelectItem value="stock-discrepancy">
+                      Stock Discrepancy
+                    </SelectItem>
                     <SelectItem value="damage">Damage</SelectItem>
                     <SelectItem value="expiry">Expiry</SelectItem>
                     <SelectItem value="theft">Theft</SelectItem>
                     <SelectItem value="found-items">Found Items</SelectItem>
-                    <SelectItem value="counting-error">Counting Error</SelectItem>
+                    <SelectItem value="counting-error">
+                      Counting Error
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
             {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                onClick={clearFilters}
-                className="mt-2"
-              >
+              <Button variant="ghost" onClick={clearFilters} className="mt-2">
                 Clear Filters
               </Button>
             )}
@@ -336,11 +366,14 @@ export default function StockAdjustmentsPage() {
         {/* Results Summary */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredAdjustments.length)} of{' '}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredAdjustments.length)} of{' '}
             {filteredAdjustments.length} adjustments
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
@@ -369,56 +402,86 @@ export default function StockAdjustmentsPage() {
                 {paginatedAdjustments.map((adj) => (
                   <div
                     key={adj.id}
-                    className="border rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
                       {/* Left Section */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="mb-1 flex items-center gap-2">
                               <Link
                                 href={`/dashboard/resources/stock-adjustments/${adj.id}`}
-                                className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400"
+                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
                               >
                                 {adj.adjustmentId}
                               </Link>
-                              <Badge className={getStatusBadgeColor(adj.status)}>
-                                {adj.status.charAt(0).toUpperCase() + adj.status.slice(1)}
+                              <Badge
+                                className={getStatusBadgeColor(adj.status)}
+                              >
+                                {adj.status.charAt(0).toUpperCase() +
+                                  adj.status.slice(1)}
                               </Badge>
                               <Badge variant="outline">
-                                {adj.type.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                {adj.type
+                                  .split('-')
+                                  .map(
+                                    (w) =>
+                                      w.charAt(0).toUpperCase() + w.slice(1)
+                                  )
+                                  .join(' ')}
                               </Badge>
                             </div>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              Material: <span className="font-medium text-zinc-900 dark:text-zinc-100">{adj.material}</span>
+                              Material:{' '}
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {adj.material}
+                              </span>
                             </p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Location:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Location:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {adj.location}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">System Qty:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              System Qty:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {adj.systemQuantity} {adj.unit}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Physical Qty:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Physical Qty:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {adj.physicalQuantity} {adj.unit}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Variance:</span>
-                            <Badge variant="outline" className={adj.variance > 0 ? 'text-green-600' : (adj.variance < 0 ? 'text-red-600' : '')}>
-                              {adj.variance > 0 ? '+' : ''}{adj.variance} {adj.unit}
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Variance:
+                            </span>
+                            <Badge
+                              variant="outline"
+                              className={
+                                adj.variance > 0
+                                  ? 'text-green-600'
+                                  : adj.variance < 0
+                                    ? 'text-red-600'
+                                    : ''
+                              }
+                            >
+                              {adj.variance > 0 ? '+' : ''}
+                              {adj.variance} {adj.unit}
                             </Badge>
                           </div>
                         </div>
@@ -431,14 +494,23 @@ export default function StockAdjustmentsPage() {
                       </div>
 
                       {/* Right Section */}
-                      <div className="flex flex-col lg:items-end gap-2">
+                      <div className="flex flex-col gap-2 lg:items-end">
                         <div className="text-right">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">Reason</p>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                            Reason
+                          </p>
                           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            {adj.reason.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                            {adj.reason
+                              .split('-')
+                              .map(
+                                (w) => w.charAt(0).toUpperCase() + w.slice(1)
+                              )
+                              .join(' ')}
                           </p>
                         </div>
-                        <Link href={`/dashboard/resources/stock-adjustments/${adj.id}`}>
+                        <Link
+                          href={`/dashboard/resources/stock-adjustments/${adj.id}`}
+                        >
                           <Button variant="outline" size="sm">
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
@@ -460,14 +532,16 @@ export default function StockAdjustmentsPage() {
           </Card>
         ) : (
           <Card>
-            <CardContent className="text-center py-12">
-              <Settings className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
-                {hasActiveFilters ? 'No stock adjustments found' : 'No stock adjustments yet'}
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+            <CardContent className="py-12 text-center">
+              <Settings className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 {hasActiveFilters
-                  ? 'Try adjusting your filters to find what you\'re looking for.'
+                  ? 'No stock adjustments found'
+                  : 'No stock adjustments yet'}
+              </h3>
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+                {hasActiveFilters
+                  ? "Try adjusting your filters to find what you're looking for."
                   : 'Create your first stock adjustment to get started.'}
               </p>
               {hasActiveFilters ? (

@@ -1,23 +1,30 @@
 'use client';
 
 import { use, useState, useEffect } from 'react';
-import Link from 'next/link';
+
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/common/app-layout';
-import {
-  Plus,
-  Trash2,
-  Save,
-  AlertCircle,
-} from 'lucide-react';
+import { Plus, Trash2, Save, AlertCircle } from 'lucide-react';
 import {
   Transfer,
   TransferType,
@@ -45,86 +52,108 @@ export default function EditTransferPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-  
+
   const [transfer, setTransfer] = useState<Transfer | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Basic Information
   const [transferDate, setTransferDate] = useState('');
-  const [transferType, setTransferType] = useState<TransferType>(TransferType.locationToLocation);
-  const [priority, setPriority] = useState<TransferPriority>(TransferPriority.medium);
+  const [transferType, setTransferType] = useState<TransferType>(
+    TransferType.locationToLocation
+  );
+  const [priority, setPriority] = useState<TransferPriority>(
+    TransferPriority.medium
+  );
   const [scheduledDate, setScheduledDate] = useState('');
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
-  
+
   // Transfer Details
   const [purpose, setPurpose] = useState('');
   const [notes, setNotes] = useState('');
-  
+
   // Location/Project Information
   const [sourceLocationId, setSourceLocationId] = useState('');
   const [destinationLocationId, setDestinationLocationId] = useState('');
-  
+
   // Transport Details
   const [transportMethod, setTransportMethod] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [driverName, setDriverName] = useState('');
   const [driverPhone, setDriverPhone] = useState('');
   const [transportCost, setTransportCost] = useState('');
-  
+
   // Temporary Transfer
   const [isTemporary, setIsTemporary] = useState(false);
   const [expectedReturnDate, setExpectedReturnDate] = useState('');
-  
+
   // Line Items
   const [lineItems, setLineItems] = useState<LineItem[]>([]);
 
   useEffect(() => {
     // Simulate API call
-    const foundTransfer = mockTransfers.find((t) => t.id === Number.parseInt(id));
-    
-    if (foundTransfer) {
-      setTransfer(foundTransfer);
-      
-      // Populate form fields
-      setTransferDate(format(foundTransfer.requestDate, 'yyyy-MM-dd'));
-      setTransferType(foundTransfer.type);
-      setPriority(foundTransfer.priority);
-      setScheduledDate(foundTransfer.scheduledDate ? format(foundTransfer.scheduledDate, 'yyyy-MM-dd') : '');
-      setExpectedDeliveryDate(foundTransfer.expectedDeliveryDate ? format(foundTransfer.expectedDeliveryDate, 'yyyy-MM-dd') : '');
-      setPurpose(foundTransfer.purpose);
-      setNotes(foundTransfer.notes || '');
-      setSourceLocationId(foundTransfer.sourceLocationId.toString());
-      setDestinationLocationId(foundTransfer.destinationLocationId.toString());
-      
-      // Transport details
-      setTransportMethod(foundTransfer.transportMethod || '');
-      setVehicleNumber(foundTransfer.vehicleNumber || '');
-      setDriverName(foundTransfer.driverName || '');
-      setDriverPhone(foundTransfer.driverPhone || '');
-      setTransportCost(foundTransfer.transportCost?.toString() || '');
-      
-      // Temporary transfer
-      setIsTemporary(foundTransfer.isTemporary || false);
-      setExpectedReturnDate(
-        foundTransfer.expectedReturnDate 
-          ? format(foundTransfer.expectedReturnDate, 'yyyy-MM-dd') 
-          : ''
+    const timer = setTimeout(() => {
+      const foundTransfer = mockTransfers.find(
+        (t) => t.id === Number.parseInt(id)
       );
-      
-      // Line items
-      const items: LineItem[] = foundTransfer.lineItems.map((item, index) => ({
-        id: index + 1,
-        description: item.description,
-        specifications: '',
-        quantityRequested: item.quantityRequested,
-        unit: item.unit,
-        unitValue: item.unitValue,
-        notes: item.notes || '',
-      }));
-      setLineItems(items);
-    }
-    
-    setLoading(false);
+
+      if (foundTransfer) {
+        setTransfer(foundTransfer);
+
+        // Populate form fields
+        setTransferDate(format(foundTransfer.requestDate, 'yyyy-MM-dd'));
+        setTransferType(foundTransfer.type);
+        setPriority(foundTransfer.priority);
+        setScheduledDate(
+          foundTransfer.scheduledDate
+            ? format(foundTransfer.scheduledDate, 'yyyy-MM-dd')
+            : ''
+        );
+        setExpectedDeliveryDate(
+          foundTransfer.expectedDeliveryDate
+            ? format(foundTransfer.expectedDeliveryDate, 'yyyy-MM-dd')
+            : ''
+        );
+        setPurpose(foundTransfer.purpose);
+        setNotes(foundTransfer.notes || '');
+        setSourceLocationId(foundTransfer.sourceLocationId.toString());
+        setDestinationLocationId(
+          foundTransfer.destinationLocationId.toString()
+        );
+
+        // Transport details
+        setTransportMethod(foundTransfer.transportMethod || '');
+        setVehicleNumber(foundTransfer.vehicleNumber || '');
+        setDriverName(foundTransfer.driverName || '');
+        setDriverPhone(foundTransfer.driverPhone || '');
+        setTransportCost(foundTransfer.transportCost?.toString() || '');
+
+        // Temporary transfer
+        setIsTemporary(foundTransfer.isTemporary || false);
+        setExpectedReturnDate(
+          foundTransfer.expectedReturnDate
+            ? format(foundTransfer.expectedReturnDate, 'yyyy-MM-dd')
+            : ''
+        );
+
+        // Line items
+        const items: LineItem[] = foundTransfer.lineItems.map(
+          (item, index) => ({
+            id: index + 1,
+            description: item.description,
+            specifications: '',
+            quantityRequested: item.quantityRequested,
+            unit: item.unit,
+            unitValue: item.unitValue,
+            notes: item.notes || '',
+          })
+        );
+        setLineItems(items);
+      }
+
+      setLoading(false);
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [id]);
 
   const addLineItem = () => {
@@ -148,7 +177,11 @@ export default function EditTransferPage({
     }
   };
 
-  const updateLineItem = (itemId: number, field: keyof LineItem, value: any) => {
+  const updateLineItem = (
+    itemId: number,
+    field: keyof LineItem,
+    value: string | number
+  ) => {
     setLineItems(
       lineItems.map((item) =>
         item.id === itemId ? { ...item, [field]: value } : item
@@ -158,9 +191,13 @@ export default function EditTransferPage({
 
   const calculateTotals = () => {
     const totalItems = lineItems.length;
-    const totalQuantity = lineItems.reduce((sum, item) => sum + (item.quantityRequested || 0), 0);
+    const totalQuantity = lineItems.reduce(
+      (sum, item) => sum + (item.quantityRequested || 0),
+      0
+    );
     const totalValue = lineItems.reduce(
-      (sum, item) => sum + (item.quantityRequested || 0) * (item.unitValue || 0),
+      (sum, item) =>
+        sum + (item.quantityRequested || 0) * (item.unitValue || 0),
       0
     );
     return { totalItems, totalQuantity, totalValue };
@@ -183,7 +220,9 @@ export default function EditTransferPage({
     );
 
     if (hasInvalidItems) {
-      toast.error('Please ensure all items have a description and quantity greater than 0');
+      toast.error(
+        'Please ensure all items have a description and quantity greater than 0'
+      );
       return;
     }
 
@@ -198,9 +237,11 @@ export default function EditTransferPage({
   if (loading) {
     return (
       <AppLayout>
-        <div className="space-y-6 max-w-7xl mx-auto">
-          <div className="flex items-center justify-center h-96">
-            <div className="text-zinc-500 dark:text-zinc-400">Loading transfer...</div>
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="flex h-96 items-center justify-center">
+            <div className="text-zinc-500 dark:text-zinc-400">
+              Loading transfer...
+            </div>
           </div>
         </div>
       </AppLayout>
@@ -210,10 +251,12 @@ export default function EditTransferPage({
   if (!transfer) {
     return (
       <AppLayout>
-        <div className="space-y-6 max-w-7xl mx-auto">
-          <div className="flex flex-col items-center justify-center h-96 gap-4">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="flex h-96 flex-col items-center justify-center gap-4">
             <AlertCircle className="h-12 w-12 text-zinc-400 dark:text-zinc-600" />
-            <div className="text-zinc-500 dark:text-zinc-400">Transfer not found</div>
+            <div className="text-zinc-500 dark:text-zinc-400">
+              Transfer not found
+            </div>
           </div>
         </div>
       </AppLayout>
@@ -224,16 +267,17 @@ export default function EditTransferPage({
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
         <div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
                 Edit Transfer
               </h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
-                {transfer.transferNumber} • Created {format(transfer.createdAt, 'PPP')}
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                {transfer.transferNumber} • Created{' '}
+                {format(transfer.createdAt, 'PPP')}
               </p>
             </div>
 
@@ -242,16 +286,16 @@ export default function EditTransferPage({
                 Cancel
               </Button>
               <Button onClick={handleSubmit}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 Save Changes
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -259,10 +303,14 @@ export default function EditTransferPage({
                 <CardDescription>General transfer details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="transferNumber">Transfer Number</Label>
-                    <Input id="transferNumber" value={transfer.transferNumber} disabled />
+                    <Input
+                      id="transferNumber"
+                      value={transfer.transferNumber}
+                      disabled
+                    />
                   </div>
 
                   <div>
@@ -277,7 +325,12 @@ export default function EditTransferPage({
 
                   <div>
                     <Label htmlFor="transferType">Transfer Type *</Label>
-                    <Select value={transferType} onValueChange={(value) => setTransferType(value as TransferType)}>
+                    <Select
+                      value={transferType}
+                      onValueChange={(value) =>
+                        setTransferType(value as TransferType)
+                      }
+                    >
                       <SelectTrigger id="transferType">
                         <SelectValue />
                       </SelectTrigger>
@@ -293,7 +346,12 @@ export default function EditTransferPage({
 
                   <div>
                     <Label htmlFor="priority">Priority *</Label>
-                    <Select value={priority} onValueChange={(value) => setPriority(value as TransferPriority)}>
+                    <Select
+                      value={priority}
+                      onValueChange={(value) =>
+                        setPriority(value as TransferPriority)
+                      }
+                    >
                       <SelectTrigger id="priority">
                         <SelectValue />
                       </SelectTrigger>
@@ -318,7 +376,9 @@ export default function EditTransferPage({
                   </div>
 
                   <div>
-                    <Label htmlFor="expectedDeliveryDate">Expected Delivery Date</Label>
+                    <Label htmlFor="expectedDeliveryDate">
+                      Expected Delivery Date
+                    </Label>
                     <Input
                       id="expectedDeliveryDate"
                       type="date"
@@ -334,7 +394,9 @@ export default function EditTransferPage({
             <Card>
               <CardHeader>
                 <CardTitle>Transfer Details</CardTitle>
-                <CardDescription>Purpose and additional information</CardDescription>
+                <CardDescription>
+                  Purpose and additional information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -365,36 +427,54 @@ export default function EditTransferPage({
             <Card>
               <CardHeader>
                 <CardTitle>Location Information</CardTitle>
-                <CardDescription>Source and destination details</CardDescription>
+                <CardDescription>
+                  Source and destination details
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="sourceLocation">Source Location *</Label>
-                    <Select value={sourceLocationId} onValueChange={setSourceLocationId}>
+                    <Select
+                      value={sourceLocationId}
+                      onValueChange={setSourceLocationId}
+                    >
                       <SelectTrigger id="sourceLocation">
                         <SelectValue placeholder="Select source location" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="1">Warehouse A</SelectItem>
                         <SelectItem value="2">Warehouse B</SelectItem>
-                        <SelectItem value="3">Site A - Building Project</SelectItem>
-                        <SelectItem value="4">Site B - Bridge Construction</SelectItem>
+                        <SelectItem value="3">
+                          Site A - Building Project
+                        </SelectItem>
+                        <SelectItem value="4">
+                          Site B - Bridge Construction
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div>
-                    <Label htmlFor="destinationLocation">Destination Location *</Label>
-                    <Select value={destinationLocationId} onValueChange={setDestinationLocationId}>
+                    <Label htmlFor="destinationLocation">
+                      Destination Location *
+                    </Label>
+                    <Select
+                      value={destinationLocationId}
+                      onValueChange={setDestinationLocationId}
+                    >
                       <SelectTrigger id="destinationLocation">
                         <SelectValue placeholder="Select destination location" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="1">Warehouse A</SelectItem>
                         <SelectItem value="2">Warehouse B</SelectItem>
-                        <SelectItem value="3">Site A - Building Project</SelectItem>
-                        <SelectItem value="4">Site B - Bridge Construction</SelectItem>
+                        <SelectItem value="3">
+                          Site A - Building Project
+                        </SelectItem>
+                        <SelectItem value="4">
+                          Site B - Bridge Construction
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -406,13 +486,18 @@ export default function EditTransferPage({
             <Card>
               <CardHeader>
                 <CardTitle>Transport Details</CardTitle>
-                <CardDescription>Vehicle and driver information</CardDescription>
+                <CardDescription>
+                  Vehicle and driver information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="transportMethod">Transport Method</Label>
-                    <Select value={transportMethod} onValueChange={setTransportMethod}>
+                    <Select
+                      value={transportMethod}
+                      onValueChange={setTransportMethod}
+                    >
                       <SelectTrigger id="transportMethod">
                         <SelectValue placeholder="Select transport method" />
                       </SelectTrigger>
@@ -473,7 +558,9 @@ export default function EditTransferPage({
             <Card>
               <CardHeader>
                 <CardTitle>Temporary Transfer</CardTitle>
-                <CardDescription>If this is a temporary transfer (loan)</CardDescription>
+                <CardDescription>
+                  If this is a temporary transfer (loan)
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2">
@@ -491,7 +578,9 @@ export default function EditTransferPage({
 
                 {isTemporary && (
                   <div>
-                    <Label htmlFor="expectedReturnDate">Expected Return Date</Label>
+                    <Label htmlFor="expectedReturnDate">
+                      Expected Return Date
+                    </Label>
                     <Input
                       id="expectedReturnDate"
                       type="date"
@@ -512,14 +601,17 @@ export default function EditTransferPage({
                     <CardDescription>Items to be transferred</CardDescription>
                   </div>
                   <Button onClick={addLineItem} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Item
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {lineItems.map((item, index) => (
-                  <div key={item.id} className="border rounded-lg p-4 space-y-4">
+                  <div
+                    key={item.id}
+                    className="space-y-4 rounded-lg border p-4"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Item #{index + 1}
@@ -535,13 +627,17 @@ export default function EditTransferPage({
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="sm:col-span-2">
                         <Label>Description *</Label>
                         <Input
                           value={item.description}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'description', e.target.value)
+                            updateLineItem(
+                              item.id,
+                              'description',
+                              e.target.value
+                            )
                           }
                           placeholder="Item description"
                         />
@@ -552,7 +648,11 @@ export default function EditTransferPage({
                         <Textarea
                           value={item.specifications}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'specifications', e.target.value)
+                            updateLineItem(
+                              item.id,
+                              'specifications',
+                              e.target.value
+                            )
                           }
                           placeholder="Technical specifications, dimensions, etc."
                           rows={2}
@@ -565,7 +665,11 @@ export default function EditTransferPage({
                           type="number"
                           value={item.quantityRequested || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantityRequested', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'quantityRequested',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -576,7 +680,9 @@ export default function EditTransferPage({
                         <Label>Unit</Label>
                         <Select
                           value={item.unit}
-                          onValueChange={(value) => updateLineItem(item.id, 'unit', value)}
+                          onValueChange={(value) =>
+                            updateLineItem(item.id, 'unit', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -599,7 +705,11 @@ export default function EditTransferPage({
                           type="number"
                           value={item.unitValue || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitValue', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'unitValue',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -621,10 +731,15 @@ export default function EditTransferPage({
 
                     <Separator />
 
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-zinc-500 dark:text-zinc-400">Item Total:</span>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-500 dark:text-zinc-400">
+                        Item Total:
+                      </span>
                       <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        ₹{((item.quantityRequested || 0) * (item.unitValue || 0)).toLocaleString()}
+                        ₹
+                        {(
+                          (item.quantityRequested || 0) * (item.unitValue || 0)
+                        ).toLocaleString()}
                       </span>
                     </div>
                   </div>
@@ -642,21 +757,27 @@ export default function EditTransferPage({
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Total Items:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Total Items:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {totalItems}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Total Quantity:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Total Quantity:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
                     {totalQuantity}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Total Value:</span>
-                  <span className="font-bold text-lg text-zinc-900 dark:text-zinc-100">
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Total Value:
+                  </span>
+                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
                     ₹{(totalValue / 100_000).toFixed(2)}L
                   </span>
                 </div>
@@ -666,7 +787,7 @@ export default function EditTransferPage({
             {/* Quick Tips */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <AlertCircle className="h-4 w-4" />
                   Quick Tips
                 </CardTitle>

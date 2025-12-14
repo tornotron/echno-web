@@ -1,394 +1,209 @@
 
 > echno-web@0.1.0 lint /home/abhijith/Dev/Tornotron/echno-web
-> eslint app/ features/ components/
+> eslint
 
 
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/organizations/[id]/page.tsx
-   22:3   warning  'ArrowLeft' is defined but never used     @typescript-eslint/no-unused-vars
-  130:53  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/finance/estimates/[id]/edit/page.tsx
+    47:30  warning  'id' is defined but never used                                   @typescript-eslint/no-unused-vars
+   276:77  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   409:33  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   409:57  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  1069:34  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
 
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/page.tsx
-   69:49  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  113:39  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/finance/estimates/[id]/page.tsx
+  467:50  warning  'index' is defined but never used  @typescript-eslint/no-unused-vars
 
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/inventory/[id]/edit/page.tsx
-   25:54  warning  'InventoryItem' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
-   57:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/inventory/[id]/edit/page.tsx:57:7
-  55 |     const item = mockInventoryItems.find(i => i.id === itemId);
-  56 |     if (item) {
-> 57 |       setFormData({
-     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  58 |         name: item.name,
-  59 |         description: item.description || '',
-  60 |         category: item.category as InventoryCategory,  react-hooks/set-state-in-effect
-  421:37  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react/no-unescaped-entities
-  421:50  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            react/no-unescaped-entities
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/inventory/[id]/page.tsx
-   19:3   warning  'Calendar' is defined but never used                             @typescript-eslint/no-unused-vars
-   21:3   warning  'Box' is defined but never used                                  @typescript-eslint/no-unused-vars
-   23:3   warning  'Tag' is defined but never used                                  @typescript-eslint/no-unused-vars
-   31:3   warning  'InventoryItem' is defined but never used                        @typescript-eslint/no-unused-vars
-   33:3   warning  'getStockStatusColor' is defined but never used                  @typescript-eslint/no-unused-vars
-   41:9   warning  'router' is assigned a value but never used                      @typescript-eslint/no-unused-vars
-   55:37  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-   55:58  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-   90:18  error    Do not nest ternary expressions                                  unicorn/no-nested-ternary
-  164:25  error    Do not nest ternary expressions                                  unicorn/no-nested-ternary
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/inventory/new/page.tsx
-   5:8  warning  'Link' is defined but never used       @typescript-eslint/no-unused-vars
-  20:3  warning  'ArrowLeft' is defined but never used  @typescript-eslint/no-unused-vars
-  21:3  warning  'Package' is defined but never used    @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/inventory/page.tsx
-   24:3   warning  'CheckCircle2' is defined but never used   @typescript-eslint/no-unused-vars
-   25:3   warning  'Eye' is defined but never used            @typescript-eslint/no-unused-vars
-   26:3   warning  'Edit' is defined but never used           @typescript-eslint/no-unused-vars
-   27:3   warning  'Trash2' is defined but never used         @typescript-eslint/no-unused-vars
-   29:3   warning  'ChevronsLeft' is defined but never used   @typescript-eslint/no-unused-vars
-   30:3   warning  'ChevronLeft' is defined but never used    @typescript-eslint/no-unused-vars
-   31:3   warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
-   32:3   warning  'ChevronsRight' is defined but never used  @typescript-eslint/no-unused-vars
-   35:3   warning  'InventoryItem' is defined but never used  @typescript-eslint/no-unused-vars
-   72:67  error    Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
-  266:36  error    Do not nest ternary expressions            unicorn/no-nested-ternary
-  322:35  error    Do not nest ternary expressions            unicorn/no-nested-ternary
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/locations/[id]/edit/page.tsx
-   57:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/locations/[id]/edit/page.tsx:57:7
-  55 |     const foundLocation = mockLocations.find((l) => l.id === locationId);
-  56 |     if (foundLocation) {
-> 57 |       setLocation(foundLocation);
-     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  58 |       setFormData({
-  59 |         name: foundLocation.name,
-  60 |         type: foundLocation.type,  react-hooks/set-state-in-effect
-  140:31  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react/no-unescaped-entities
-  140:55  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react/no-unescaped-entities
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/locations/[id]/page.tsx
-  28:9   warning  'router' is assigned a value but never used                      @typescript-eslint/no-unused-vars
-  42:31  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  42:52  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  76:45  error    Move arrow function 'getTypeColor' to the outer scope            unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/locations/page.tsx
-   30:3   warning  'ChevronsLeft' is defined but never used               @typescript-eslint/no-unused-vars
-   31:3   warning  'ChevronLeft' is defined but never used                @typescript-eslint/no-unused-vars
-   32:3   warning  'ChevronRight' is defined but never used               @typescript-eslint/no-unused-vars
-   33:3   warning  'ChevronsRight' is defined but never used              @typescript-eslint/no-unused-vars
-   35:10  warning  'Location' is defined but never used                   @typescript-eslint/no-unused-vars
-   35:54  warning  'locationTypeColors' is defined but never used         @typescript-eslint/no-unused-vars
-   73:66  error    Unexpected any. Specify a different type               @typescript-eslint/no-explicit-any
-  104:45  error    Move arrow function 'getTypeColor' to the outer scope  unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/labour/[id]/edit/page.tsx
-   3:20  warning  'useEffect' is defined but never used   @typescript-eslint/no-unused-vars
-  18:10  warning  'ArrowLeft' is defined but never used   @typescript-eslint/no-unused-vars
-  19:8   warning  'Link' is defined but never used        @typescript-eslint/no-unused-vars
-  21:10  warning  'mockLabour' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/labour/[id]/page.tsx
-   3:10  warning  'useState' is defined but never used         @typescript-eslint/no-unused-vars
-   7:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
-  11:3   warning  'ArrowLeft' is defined but never used        @typescript-eslint/no-unused-vars
-  19:3   warning  'Briefcase' is defined but never used        @typescript-eslint/no-unused-vars
-  59:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/labour/page.tsx
-  42:3   warning  'ChevronLeft' is defined but never used    @typescript-eslint/no-unused-vars
-  43:3   warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
-  44:3   warning  'ChevronsLeft' is defined but never used   @typescript-eslint/no-unused-vars
-  45:3   warning  'ChevronsRight' is defined but never used  @typescript-eslint/no-unused-vars
-  48:10  warning  'format' is defined but never used         @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/sub-contracts/[id]/edit/page.tsx
-   94:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  105:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/sub-contracts/[id]/page.tsx
-    7:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
-  104:44  error    Unexpected any. Specify a different type     @typescript-eslint/no-explicit-any
-  117:9   warning  'params' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  118:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/sub-contracts/new/page.tsx
-  54:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  65:71  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/sub-contracts/page.tsx
-   41:3   warning  'ChevronLeft' is defined but never used    @typescript-eslint/no-unused-vars
-   42:3   warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
-   43:3   warning  'ChevronsLeft' is defined but never used   @typescript-eslint/no-unused-vars
-   44:3   warning  'ChevronsRight' is defined but never used  @typescript-eslint/no-unused-vars
-  411:41  error    Do not nest ternary expressions            unicorn/no-nested-ternary
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/vendors/[id]/edit/page.tsx
-  78:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/vendors/[id]/page.tsx
-   7:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
-  18:3   warning  'TrendingUp' is defined but never used       @typescript-eslint/no-unused-vars
-  23:3   warning  'ShoppingCart' is defined but never used     @typescript-eslint/no-unused-vars
-  88:9   warning  'params' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  89:9   warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/vendors/new/page.tsx
-  40:52  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/third-party/vendors/page.tsx
-  41:3  warning  'ChevronLeft' is defined but never used    @typescript-eslint/no-unused-vars
-  42:3  warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
-  43:3  warning  'ChevronsLeft' is defined but never used   @typescript-eslint/no-unused-vars
-  44:3  warning  'ChevronsRight' is defined but never used  @typescript-eslint/no-unused-vars
-  47:3  warning  'User' is defined but never used           @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/issues/[id]/edit/page.tsx
-   82:30  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-   82:54  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  108:47  error  Move arrow function 'getPriorityColor' to the outer scope        unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/issues/[id]/page.tsx
-   60:1   warning  Prevent Client Components from being async functions. See: https://nextjs.org/docs/messages/no-async-client-component  @next/next/no-async-client-component
-   61:24  error    React Hook "use" cannot be called in an async function                                                                 react-hooks/rules-of-hooks
-   82:30  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                        react/no-unescaped-entities
-   82:51  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                        react/no-unescaped-entities
-   97:57  error    Move arrow function 'getStatusColor' to the outer scope                                                                unicorn/consistent-function-scoping
-  107:57  error    Move arrow function 'getStatusLabel' to the outer scope                                                                unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/issues/new/page.tsx
-  93:47  error  Move arrow function 'getPriorityColor' to the outer scope  unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/issues/page.tsx
-   37:3   warning  'ChevronLeft' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
-   38:3   warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
-   39:3   warning  'ChevronsLeft' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  @typescript-eslint/no-unused-vars
-   40:3   warning  'ChevronsRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 @typescript-eslint/no-unused-vars
-   42:3   warning  'ListTodo' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
-   85:5   error    Error: Calling setState from useMemo may trigger an infinite loop
-
-Each time the memo callback is evaluated it will change state. This can cause a memoization dependency to change, running the memo function again and causing an infinite loop. Instead of setting state in useMemo(), prefer deriving the value during render. (https://react.dev/reference/react/useState).
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/issues/page.tsx:85:5
-  83 |   // Reset to page 1 when filters change
-  84 |   useMemo(() => {
-> 85 |     setCurrentPage(1);
-     |     ^^^^^^^^^^^^^^ Found setState() within useMemo()
-  86 |   }, [searchQuery, statusFilter, typeFilter, projectFilter, itemsPerPage]);
-  87 |
-  88 |   // Statistics  react-hooks/set-state-in-render
-   86:6   warning  React Hook useMemo has unnecessary dependencies: 'itemsPerPage', 'projectFilter', 'searchQuery', 'statusFilter', and 'typeFilter'. Either exclude them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/exhaustive-deps
-  212:9   warning  'getPriorityColor' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
-  212:47  error    Move arrow function 'getPriorityColor' to the outer scope                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/tasks/[id]/edit/page.tsx
-  114:29  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  114:53  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/tasks/[id]/page.tsx
-   43:42  warning  'getTaskStatusColor' is defined but never used                   @typescript-eslint/no-unused-vars
-   74:29  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-   74:50  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-   89:47  error    Move arrow function 'getStatusColor' to the outer scope          unicorn/consistent-function-scoping
-   99:48  error    Move arrow function 'getIssueStatusColor' to the outer scope     unicorn/consistent-function-scoping
-  109:48  error    Move arrow function 'getIssueStatusLabel' to the outer scope     unicorn/consistent-function-scoping
-  119:52  error    Move arrow function 'getAttachmentIcon' to the outer scope       unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/tasks/new/page.tsx
-  19:3   warning  'Calendar' is defined but never used  @typescript-eslint/no-unused-vars
-  28:3   warning  'Folder' is defined but never used    @typescript-eslint/no-unused-vars
-  31:10  warning  'format' is defined but never used    @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/tasks/page.tsx
-   4:35  warning  'mockUsers' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
-  37:3   warning  'ChevronLeft' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
-  38:3   warning  'ChevronRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
-  39:3   warning  'ChevronsLeft' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
-  40:3   warning  'ChevronsRight' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
-  42:3   warning  'User' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
-  80:5   error    Error: Calling setState from useMemo may trigger an infinite loop
-
-Each time the memo callback is evaluated it will change state. This can cause a memoization dependency to change, running the memo function again and causing an infinite loop. Instead of setting state in useMemo(), prefer deriving the value during render. (https://react.dev/reference/react/useState).
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workflow/tasks/page.tsx:80:5
-  78 |   // Reset to page 1 when filters change
-  79 |   useMemo(() => {
-> 80 |     setCurrentPage(1);
-     |     ^^^^^^^^^^^^^^ Found setState() within useMemo()
-  81 |   }, [searchQuery, statusFilter, projectFilter, itemsPerPage]);
-  82 |
-  83 |   // Statistics  react-hooks/set-state-in-render
-  81:6   warning  React Hook useMemo has unnecessary dependencies: 'itemsPerPage', 'projectFilter', 'searchQuery', and 'statusFilter'. Either exclude them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/attendance/[id]/page.tsx
-    9:3   warning  'ArrowLeft' is defined but never used                            @typescript-eslint/no-unused-vars
-   15:3   warning  'Calendar' is defined but never used                             @typescript-eslint/no-unused-vars
-   23:3   warning  'Edit' is defined but never used                                 @typescript-eslint/no-unused-vars
-   36:3   warning  'TrendingUp' is defined but never used                           @typescript-eslint/no-unused-vars
-   41:8   warning  'Link' is defined but never used                                 @typescript-eslint/no-unused-vars
-   63:42  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-   63:63  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-  166:33  error    Do not nest ternary expressions                                  unicorn/no-nested-ternary
-  294:35  error    Do not nest ternary expressions                                  unicorn/no-nested-ternary
-  307:37  error    Do not nest ternary expressions                                  unicorn/no-nested-ternary
-  551:27  warning  'movementColor' is assigned a value but never used               @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/attendance/page.tsx
-   54:3    warning  'ChevronLeft' is defined but never used                  @typescript-eslint/no-unused-vars
-   55:3    warning  'ChevronRight' is defined but never used                 @typescript-eslint/no-unused-vars
-   56:3    warning  'ChevronsLeft' is defined but never used                 @typescript-eslint/no-unused-vars
-   57:3    warning  'ChevronsRight' is defined but never used                @typescript-eslint/no-unused-vars
-   77:116  warning  'getMovementTypeColor' is defined but never used         @typescript-eslint/no-unused-vars
-   77:164  warning  'MovementRecord' is defined but never used               @typescript-eslint/no-unused-vars
-   93:10   warning  'selectedEmployeeId' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  487:35   error    Do not nest ternary expressions                          unicorn/no-nested-ternary
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/employees/[id]/page.tsx
-   5:25  warning  'mockOrganizations' is defined but never used            @typescript-eslint/no-unused-vars
-   5:44  warning  'mockProjects' is defined but never used                 @typescript-eslint/no-unused-vars
-  44:43  error    Move arrow function 'getStatusColor' to the outer scope  unicorn/consistent-function-scoping
-  61:43  error    Move arrow function 'getStatusLabel' to the outer scope  unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/employees/page.tsx
-   31:35  warning  'Building' is defined but never used                     @typescript-eslint/no-unused-vars
-   35:10  warning  'format' is defined but never used                       @typescript-eslint/no-unused-vars
-   47:88  error    Use `Array#toSorted()` instead of `Array#sort()`         unicorn/no-array-sort
-   93:9   warning  'handleFilterChange' is assigned a value but never used  @typescript-eslint/no-unused-vars
-  380:61  error    Move arrow function 'getStatusColor' to the outer scope  unicorn/consistent-function-scoping
-  397:61  error    Move arrow function 'getStatusLabel' to the outer scope  unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/invitations/[id]/page.tsx
-   62:48  warning  'params' is defined but never used        @typescript-eslint/no-unused-vars
-  320:37  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/invitations/new/page.tsx
-   9:10  warning  'Textarea' is defined but never used                         @typescript-eslint/no-unused-vars
-  19:3   warning  'Send' is defined but never used                             @typescript-eslint/no-unused-vars
-  53:33  error    Move arrow function 'generateInviteCode' to the outer scope  unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/invitations/page.tsx
-   39:3   warning  'ChevronLeft' is defined but never used     @typescript-eslint/no-unused-vars
-   40:3   warning  'ChevronRight' is defined but never used    @typescript-eslint/no-unused-vars
-   41:3   warning  'ChevronsLeft' is defined but never used    @typescript-eslint/no-unused-vars
-   42:3   warning  'ChevronsRight' is defined but never used   @typescript-eslint/no-unused-vars
-   48:10  warning  'EmployeeStatus' is defined but never used  @typescript-eslint/no-unused-vars
-  101:76  error    Unexpected any. Specify a different type    @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/leaves/apply/page.tsx
-  29:44  warning  'addDays' is defined but never used            @typescript-eslint/no-unused-vars
-  34:3   warning  'getLeaveTypeQuota' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/leaves/balance/page.tsx
-  24:3  warning  'LeaveStatus' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/workforce/leaves/page.tsx
-   31:3   warning  'Calendar' is defined but never used                    @typescript-eslint/no-unused-vars
-   42:3   warning  'ChevronLeft' is defined but never used                 @typescript-eslint/no-unused-vars
-   43:3   warning  'ChevronRight' is defined but never used                @typescript-eslint/no-unused-vars
-   44:3   warning  'ChevronsLeft' is defined but never used                @typescript-eslint/no-unused-vars
-   45:3   warning  'ChevronsRight' is defined but never used               @typescript-eslint/no-unused-vars
-  132:43  error    Move arrow function 'handleApprove' to the outer scope  unicorn/consistent-function-scoping
-  137:42  error    Move arrow function 'handleReject' to the outer scope   unicorn/consistent-function-scoping
-
-/home/abhijith/Dev/Tornotron/echno-web/app/login/page.tsx
-  216:18  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-
-/home/abhijith/Dev/Tornotron/echno-web/app/page.tsx
-   9:16  warning  'CardContent' is defined but never used                          @typescript-eslint/no-unused-vars
-  14:17  warning  'session' is assigned a value but never used                     @typescript-eslint/no-unused-vars
-  89:41  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
-
-/home/abhijith/Dev/Tornotron/echno-web/app/profile/page.tsx
-  5:10  warning  'UserProfileView' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/components/common/app-layout.tsx
-  27:39  warning  'title' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/components/common/breadcrumbs.tsx
-   13:10  warning  'Home' is defined but never used   @typescript-eslint/no-unused-vars
-  109:37  warning  'index' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/components/common/sidebar.tsx
-  69:9   error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-  73:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-/home/abhijith/Dev/Tornotron/echno-web/components/providers/organization-provider.tsx
-  25:11  error  Error: Calling setState synchronously within an effect can trigger cascading renders
-
-Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
-* Update external systems with the latest state from React.
-* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
-
-Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
-
-/home/abhijith/Dev/Tornotron/echno-web/components/providers/organization-provider.tsx:25:11
-  23 |       if (stored) {
-  24 |         try {
-> 25 |           setSelectedOrganizationState(JSON.parse(stored))
-     |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  26 |         } catch (error) {
-  27 |           console.error("Failed to parse stored organization:", error)
-  28 |         }  react-hooks/set-state-in-effect
-
-/home/abhijith/Dev/Tornotron/echno-web/components/shared/mock-data.ts
-  1959:20  warning  'LocationType' is defined but never used  @typescript-eslint/no-unused-vars
-
-/home/abhijith/Dev/Tornotron/echno-web/components/ui/sidebar.tsx
-   98:7   error  Do not use `document.cookie` directly                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     unicorn/no-document-cookie
-  623:26  error  Error: Cannot call impure function during render
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/finance/estimates/new/page.tsx
+   47:51  error  Error: Cannot call impure function during render
 
 `Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
 
-/home/abhijith/Dev/Tornotron/echno-web/components/ui/sidebar.tsx:623:26
-  621 |   // Random width between 50 to 90%.
-  622 |   const width = React.useMemo(() => {
-> 623 |     return `${Math.floor(Math.random() * 40) + 50}%`
-      |                          ^^^^^^^^^^^^^ Cannot call impure function
-  624 |   }, [])
-  625 |
-  626 |   return (  react-hooks/purity
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/finance/estimates/new/page.tsx:47:51
+  45 |   const router = useRouter();
+  46 |   const [estimateNumber] = useState(
+> 47 |     `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000).toString().padStart(4, '0')}`
+     |                                                   ^^^^^^^^^^^^^ Cannot call impure function
+  48 |   );
+  49 |
+  50 |   // Basic Information  react-hooks/purity
+  129:77  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-explicit-any
+  860:34  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  react/no-unescaped-entities
 
-/home/abhijith/Dev/Tornotron/echno-web/features/auth/index.ts
-  1:1  error  Empty files are not allowed  unicorn/no-empty-file
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/finance/estimates/page.tsx
+  24:3  warning  'XCircle' is defined but never used      @typescript-eslint/no-unused-vars
+  27:3  warning  'TrendingUp' is defined but never used   @typescript-eslint/no-unused-vars
+  28:3  warning  'AlertCircle' is defined but never used  @typescript-eslint/no-unused-vars
 
-/home/abhijith/Dev/Tornotron/echno-web/features/employee/employee-card.tsx
-  15:43  error  Move arrow function 'getStatusColor' to the outer scope  unicorn/consistent-function-scoping
-  32:43  error  Move arrow function 'getStatusLabel' to the outer scope  unicorn/consistent-function-scoping
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/projects/[id]/page.tsx
+   16:3   warning  'Calendar' is defined but never used                             @typescript-eslint/no-unused-vars
+   19:3   warning  'TrendingUp' is defined but never used                           @typescript-eslint/no-unused-vars
+   20:3   warning  'CheckCircle2' is defined but never used                         @typescript-eslint/no-unused-vars
+   21:3   warning  'Clock' is defined but never used                                @typescript-eslint/no-unused-vars
+   23:3   warning  'FileText' is defined but never used                             @typescript-eslint/no-unused-vars
+   26:3   warning  'Target' is defined but never used                               @typescript-eslint/no-unused-vars
+  104:32  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  104:53  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
 
-/home/abhijith/Dev/Tornotron/echno-web/features/organization/organization-card.tsx
-  4:29  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/projects/page.tsx
+  23:3   warning  'Calendar' is defined but never used      @typescript-eslint/no-unused-vars
+  26:3   warning  'AlertCircle' is defined but never used   @typescript-eslint/no-unused-vars
+  29:3   warning  'Ban' is defined but never used           @typescript-eslint/no-unused-vars
+  72:65  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
 
-/home/abhijith/Dev/Tornotron/echno-web/features/organization/organization-selector.tsx
-  60:6  warning  React Hook useEffect has missing dependencies: 'selectedOrganization', 'setOrganizations', and 'setSelectedOrganization'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/assets/[id]/edit/page.tsx
+   68:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
 
-/home/abhijith/Dev/Tornotron/echno-web/features/settings/index.ts
-  1:1  error  Empty files are not allowed  unicorn/no-empty-file
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
 
-/home/abhijith/Dev/Tornotron/echno-web/features/user-profile/user-avatar.tsx
-  26:9  warning  Using `<img>` could result in slower LCP and higher bandwidth. Consider using `<Image />` from `next/image` or a custom image loader to automatically optimize images. This may incur additional usage or cost from your provider. See: https://nextjs.org/docs/messages/no-img-element  @next/next/no-img-element
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-/home/abhijith/Dev/Tornotron/echno-web/features/user-profile/user-profile-view.tsx
-  11:3  warning  'formatList' is defined but never used            @typescript-eslint/no-unused-vars
-  12:3  warning  'getOrganizationNames' is defined but never used  @typescript-eslint/no-unused-vars
-  50:3  warning  'variant' is assigned a value but never used      @typescript-eslint/no-unused-vars
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/assets/[id]/edit/page.tsx:68:7
+  66 |   useEffect(() => {
+  67 |     if (asset) {
+> 68 |       setFormData({
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  69 |         name: asset.name,
+  70 |         description: asset.description,
+  71 |         type: asset.type,  react-hooks/set-state-in-effect
+  110:30  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react/no-unescaped-entities
+  110:54  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react/no-unescaped-entities
 
-✖ 200 problems (76 errors, 124 warnings)
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/assets/new/page.tsx
+  20:3  warning  'ArrowLeft' is defined but never used  @typescript-eslint/no-unused-vars
+  21:3  warning  'Cog' is defined but never used        @typescript-eslint/no-unused-vars
+  24:3  warning  'Calendar' is defined but never used   @typescript-eslint/no-unused-vars
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/assets/page.tsx
+    5:10  warning  'format' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+    6:29  warning  'CardDescription' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   19:3   warning  'Search' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   20:3   warning  'Filter' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              @typescript-eslint/no-unused-vars
+   22:3   warning  'TrendingUp' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   23:3   warning  'AlertTriangle' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   24:3   warning  'CheckCircle2' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+   28:3   warning  'Calendar' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+   32:3   warning  'Fuel' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-unused-vars
+   33:3   warning  'Clock' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   37:3   warning  'Asset' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   41:3   warning  'assetTypeLabels' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+  345:64  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/assets/page.tsx:345:64
+  343 |                   const daysUntilMaintenance = asset.nextMaintenanceDate
+  344 |                     ? Math.floor(
+> 345 |                         (asset.nextMaintenanceDate.getTime() - Date.now()) /
+      |                                                                ^^^^^^^^^^ Cannot call impure function
+  346 |                           (1000 * 60 * 60 * 24)
+  347 |                       )
+  348 |                     : null;  react-hooks/purity
+  480:39  error    Do not nest ternary expressions                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 unicorn/no-nested-ternary
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/material-requests/[id]/edit/page.tsx
+   13:10  warning  'Badge' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   54:10  warning  'status' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
+   70:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/material-requests/[id]/edit/page.tsx:70:7
+  68 |   useEffect(() => {
+  69 |     if (mr) {
+> 70 |       setRequestNumber(mr.requestNumber);
+     |       ^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  71 |       setType(mr.type);
+  72 |       setStatus(mr.status);
+  73 |       setPriority(mr.priority);  react-hooks/set-state-in-effect
+  108:41  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react/no-unescaped-entities
+  108:65  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react/no-unescaped-entities
+  150:69  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/material-requests/[id]/page.tsx
+    3:10  warning  'useState' is defined but never used                             @typescript-eslint/no-unused-vars
+   19:3   warning  'Calendar' is defined but never used                             @typescript-eslint/no-unused-vars
+   22:3   warning  'DollarSign' is defined but never used                           @typescript-eslint/no-unused-vars
+   23:3   warning  'AlertCircle' is defined but never used                          @typescript-eslint/no-unused-vars
+   24:3   warning  'TrendingUp' is defined but never used                           @typescript-eslint/no-unused-vars
+   81:41  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+   81:62  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  100:28  error    Move arrow function 'handleApprove' to the outer scope           unicorn/consistent-function-scoping
+  104:27  error    Move arrow function 'handleReject' to the outer scope            unicorn/consistent-function-scoping
+  108:28  error    Move arrow function 'handleFulfill' to the outer scope           unicorn/consistent-function-scoping
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/material-requests/new/page.tsx
+   19:3    warning  'FulfillmentMethod' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+   21:3    warning  'materialRequestStatusLabels' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+   23:3    warning  'fulfillmentMethodLabels' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-unused-vars
+   43:106  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/material-requests/new/page.tsx:43:106
+  41 |   
+  42 |   // Basic Information
+> 43 |   const [requestNumber, setRequestNumber] = useState(`MR-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`);
+     |                                                                                                          ^^^^^^^^^^^^^ Cannot call impure function
+  44 |   const [type, setType] = useState<MaterialRequestType>(MaterialRequestType.project);
+  45 |   const [status, setStatus] = useState<MaterialRequestStatus>(MaterialRequestStatus.draft);
+  46 |   const [priority, setPriority] = useState<MaterialRequestPriority>(MaterialRequestPriority.medium);  react-hooks/purity
+   45:10   warning  'status' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       @typescript-eslint/no-unused-vars
+   45:18   warning  'setStatus' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  104:69   error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-explicit-any
+  512:53   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react/no-unescaped-entities
+  512:62   error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react/no-unescaped-entities
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/material-requests/page.tsx
+  27:3  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/purchase-orders/[id]/edit/page.tsx
+   95:7   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/purchase-orders/[id]/edit/page.tsx:95:7
+  93 |   useEffect(() => {
+  94 |     if (po) {
+> 95 |       setPoNumber(po.poNumber);
+     |       ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  96 |       setType(po.type);
+  97 |       setStatus(po.status);
+  98 |       setDeliveryStatus(po.deliveryStatus);  react-hooks/set-state-in-effect
+  147:39  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react/no-unescaped-entities
+  147:63  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    react/no-unescaped-entities
+  193:69  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-explicit-any
+  214:37  error  `Array#reduce()` is not allowed. Prefer other types of loop for readability                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        unicorn/no-array-reduce
+  221:32  error  `Array#reduce()` is not allowed. Prefer other types of loop for readability                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        unicorn/no-array-reduce
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/purchase-orders/new/page.tsx
+   41:96  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/home/abhijith/Dev/Tornotron/echno-web/app/dashboard/resources/purchase-orders/new/page.tsx:41:96
+  39 |   
+  40 |   // Basic Information
+> 41 |   const [poNumber, setPoNumber] = useState(`PO-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`);
+     |                                                                                                ^^^^^^^^^^^^^ Cannot call impure function
+  42 |   const [type, setType] = useState<PurchaseOrderType>(PurchaseOrderType.materials);
+  43 |   const [status, setStatus] = useState<PurchaseOrderStatus>(PurchaseOrderStatus.draft);
+  44 |   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>(DeliveryStatus.pending);  react-hooks/purity
+  113:69  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-explicit-any
+  134:37  error  `Array#reduce()` is not allowed. Prefer other types of loop for readability                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     unicorn/no-array-reduce
+  141:32  error  `Array#reduce()` is not allowed. Prefer other types of loop for readability                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     unicorn/no-array-reduce
+  728:58  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react/no-unescaped-entities
+  728:67  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react/no-unescaped-entities
+
+✖ 82 problems (40 errors, 42 warnings)
 
  ELIFECYCLE  Command failed with exit code 1.

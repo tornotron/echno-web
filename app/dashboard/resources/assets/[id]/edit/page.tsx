@@ -3,25 +3,28 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+
 import { format } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AppLayout } from "@/components/common/app-layout";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { AppLayout } from '@/components/common/app-layout';
 import {
-  ArrowLeft,
-  Save,
-  X,
-} from 'lucide-react';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { ArrowLeft, Save, X } from 'lucide-react';
 import { AssetType, AssetStatus, AssetCondition } from '@/types/resource';
 import { toast } from 'sonner';
 import { mockAssets, mockLocations } from '@/components/shared/mock-data';
@@ -30,7 +33,7 @@ export default function EditAssetPage() {
   const params = useParams();
   const router = useRouter();
   const assetId = Number.parseInt(params.id as string);
-  const asset = mockAssets.find(a => a.id === assetId);
+  const asset = mockAssets.find((a) => a.id === assetId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -60,40 +63,50 @@ export default function EditAssetPage() {
     insuranceProvider: '',
     policyNumber: '',
     insuranceExpiry: '',
-    notes: ''
+    notes: '',
   });
 
   useEffect(() => {
     if (asset) {
-      setFormData({
-        name: asset.name,
-        description: asset.description,
-        type: asset.type,
-        category: asset.category,
-        status: asset.status,
-        condition: asset.condition,
-        locationId: asset.locationId.toString(),
-        assignedTo: asset.assignedTo || '',
-        assignedProject: asset.assignedProject || '',
-        purchaseDate: format(asset.purchaseDate, 'yyyy-MM-dd'),
-        purchasePrice: asset.purchasePrice.toString(),
-        depreciationRate: asset.depreciationRate.toString(),
-        manufacturer: asset.manufacturer || '',
-        model: asset.model || '',
-        serialNumber: asset.serialNumber || '',
-        registrationNumber: asset.registrationNumber || '',
-        warrantyExpiry: asset.warrantyExpiry ? format(asset.warrantyExpiry, 'yyyy-MM-dd') : '',
-        lastMaintenanceDate: asset.lastMaintenanceDate ? format(asset.lastMaintenanceDate, 'yyyy-MM-dd') : '',
-        nextMaintenanceDate: asset.nextMaintenanceDate ? format(asset.nextMaintenanceDate, 'yyyy-MM-dd') : '',
-        maintenanceSchedule: asset.maintenanceSchedule || '',
-        usageHours: asset.usageHours?.toString() || '',
-        maxUsageHours: asset.maxUsageHours?.toString() || '',
-        fuelType: asset.fuelType || '',
-        insuranceProvider: asset.insuranceProvider || '',
-        policyNumber: asset.policyNumber || '',
-        insuranceExpiry: asset.insuranceExpiry ? format(asset.insuranceExpiry, 'yyyy-MM-dd') : '',
-        notes: asset.notes || ''
-      });
+      setTimeout(() => {
+        setFormData({
+          name: asset.name,
+          description: asset.description,
+          type: asset.type,
+          category: asset.category,
+          status: asset.status,
+          condition: asset.condition,
+          locationId: asset.locationId.toString(),
+          assignedTo: asset.assignedTo || '',
+          assignedProject: asset.assignedProject || '',
+          purchaseDate: format(asset.purchaseDate, 'yyyy-MM-dd'),
+          purchasePrice: asset.purchasePrice.toString(),
+          depreciationRate: asset.depreciationRate.toString(),
+          manufacturer: asset.manufacturer || '',
+          model: asset.model || '',
+          serialNumber: asset.serialNumber || '',
+          registrationNumber: asset.registrationNumber || '',
+          warrantyExpiry: asset.warrantyExpiry
+            ? format(asset.warrantyExpiry, 'yyyy-MM-dd')
+            : '',
+          lastMaintenanceDate: asset.lastMaintenanceDate
+            ? format(asset.lastMaintenanceDate, 'yyyy-MM-dd')
+            : '',
+          nextMaintenanceDate: asset.nextMaintenanceDate
+            ? format(asset.nextMaintenanceDate, 'yyyy-MM-dd')
+            : '',
+          maintenanceSchedule: asset.maintenanceSchedule || '',
+          usageHours: asset.usageHours?.toString() || '',
+          maxUsageHours: asset.maxUsageHours?.toString() || '',
+          fuelType: asset.fuelType || '',
+          insuranceProvider: asset.insuranceProvider || '',
+          policyNumber: asset.policyNumber || '',
+          insuranceExpiry: asset.insuranceExpiry
+            ? format(asset.insuranceExpiry, 'yyyy-MM-dd')
+            : '',
+          notes: asset.notes || '',
+        });
+      }, 0);
     }
   }, [asset]);
 
@@ -102,12 +115,12 @@ export default function EditAssetPage() {
       <AppLayout>
         <div className="space-y-6">
           <Card>
-            <CardContent className="text-center py-12">
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 Asset Not Found
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                The asset you're trying to edit doesn't exist.
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+                The asset you&apos;re trying to edit doesn&apos;t exist.
               </p>
               <Link href="/dashboard/resources/assets">
                 <Button>
@@ -127,7 +140,13 @@ export default function EditAssetPage() {
     setIsSubmitting(true);
 
     // Validation
-    if (!formData.name || !formData.type || !formData.locationId || !formData.purchaseDate || !formData.purchasePrice) {
+    if (
+      !formData.name ||
+      !formData.type ||
+      !formData.locationId ||
+      !formData.purchaseDate ||
+      !formData.purchasePrice
+    ) {
       toast.error('Please fill in all required fields');
       setIsSubmitting(false);
       return;
@@ -141,7 +160,7 @@ export default function EditAssetPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -151,21 +170,21 @@ export default function EditAssetPage() {
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-2xl font-bold">Edit Asset</h1>
-            <p className="text-muted-foreground">
-              Update asset information
-            </p>
+            <p className="text-muted-foreground">Update asset information</p>
           </div>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Main Form - Left Side (2 columns) */}
-            <div className="md:col-span-2 space-y-6">
+            <div className="space-y-6 md:col-span-2">
               {/* Basic Information */}
               <Card>
                 <CardHeader>
                   <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Update the basic details of the asset</CardDescription>
+                  <CardDescription>
+                    Update the basic details of the asset
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -177,7 +196,9 @@ export default function EditAssetPage() {
                         id="name"
                         placeholder="e.g., Excavator CAT 320D"
                         value={formData.name}
-                        onChange={(e) => handleInputChange('name', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('name', e.target.value)
+                        }
                         required
                       />
                     </div>
@@ -188,7 +209,9 @@ export default function EditAssetPage() {
                         id="description"
                         placeholder="Enter asset description..."
                         value={formData.description}
-                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('description', e.target.value)
+                        }
                         rows={3}
                       />
                     </div>
@@ -199,20 +222,28 @@ export default function EditAssetPage() {
                       </Label>
                       <Select
                         value={formData.type}
-                        onValueChange={(value) => handleInputChange('type', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('type', value)
+                        }
                         required
                       >
                         <SelectTrigger id="type">
                           <SelectValue placeholder="Select type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="heavy-equipment">Heavy Equipment</SelectItem>
-                          <SelectItem value="light-equipment">Light Equipment</SelectItem>
+                          <SelectItem value="heavy-equipment">
+                            Heavy Equipment
+                          </SelectItem>
+                          <SelectItem value="light-equipment">
+                            Light Equipment
+                          </SelectItem>
                           <SelectItem value="vehicle">Vehicle</SelectItem>
                           <SelectItem value="tool">Tool</SelectItem>
                           <SelectItem value="machinery">Machinery</SelectItem>
                           <SelectItem value="generator">Generator</SelectItem>
-                          <SelectItem value="computer">Computer & IT</SelectItem>
+                          <SelectItem value="computer">
+                            Computer & IT
+                          </SelectItem>
                           <SelectItem value="furniture">Furniture</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
@@ -225,7 +256,9 @@ export default function EditAssetPage() {
                         id="category"
                         placeholder="e.g., Excavators"
                         value={formData.category}
-                        onChange={(e) => handleInputChange('category', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('category', e.target.value)
+                        }
                       />
                     </div>
 
@@ -235,7 +268,9 @@ export default function EditAssetPage() {
                         id="manufacturer"
                         placeholder="e.g., Caterpillar"
                         value={formData.manufacturer}
-                        onChange={(e) => handleInputChange('manufacturer', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('manufacturer', e.target.value)
+                        }
                       />
                     </div>
 
@@ -245,7 +280,9 @@ export default function EditAssetPage() {
                         id="model"
                         placeholder="e.g., 320D"
                         value={formData.model}
-                        onChange={(e) => handleInputChange('model', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('model', e.target.value)
+                        }
                       />
                     </div>
 
@@ -255,17 +292,26 @@ export default function EditAssetPage() {
                         id="serialNumber"
                         placeholder="e.g., CAT320D2024001"
                         value={formData.serialNumber}
-                        onChange={(e) => handleInputChange('serialNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('serialNumber', e.target.value)
+                        }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="registrationNumber">Registration Number</Label>
+                      <Label htmlFor="registrationNumber">
+                        Registration Number
+                      </Label>
                       <Input
                         id="registrationNumber"
                         placeholder="e.g., KA-01-EQ-1234"
                         value={formData.registrationNumber}
-                        onChange={(e) => handleInputChange('registrationNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'registrationNumber',
+                            e.target.value
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -276,7 +322,9 @@ export default function EditAssetPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Purchase & Financial Details</CardTitle>
-                  <CardDescription>Asset purchase and valuation information</CardDescription>
+                  <CardDescription>
+                    Asset purchase and valuation information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -288,34 +336,43 @@ export default function EditAssetPage() {
                         id="purchaseDate"
                         type="date"
                         value={formData.purchaseDate}
-                        onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('purchaseDate', e.target.value)
+                        }
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="purchasePrice">
-                        Purchase Price (₹) <span className="text-red-500">*</span>
+                        Purchase Price (₹){' '}
+                        <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="purchasePrice"
                         type="number"
                         placeholder="e.g., 8500000"
                         value={formData.purchasePrice}
-                        onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('purchasePrice', e.target.value)
+                        }
                         required
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="depreciationRate">Depreciation Rate (%)</Label>
+                      <Label htmlFor="depreciationRate">
+                        Depreciation Rate (%)
+                      </Label>
                       <Input
                         id="depreciationRate"
                         type="number"
                         step="0.1"
                         placeholder="e.g., 10"
                         value={formData.depreciationRate}
-                        onChange={(e) => handleInputChange('depreciationRate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('depreciationRate', e.target.value)
+                        }
                       />
                     </div>
 
@@ -325,7 +382,9 @@ export default function EditAssetPage() {
                         id="warrantyExpiry"
                         type="date"
                         value={formData.warrantyExpiry}
-                        onChange={(e) => handleInputChange('warrantyExpiry', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('warrantyExpiry', e.target.value)
+                        }
                       />
                     </div>
                   </div>
@@ -336,7 +395,9 @@ export default function EditAssetPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Operational Details</CardTitle>
-                  <CardDescription>Usage and maintenance information</CardDescription>
+                  <CardDescription>
+                    Usage and maintenance information
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
@@ -347,7 +408,9 @@ export default function EditAssetPage() {
                         type="number"
                         placeholder="e.g., 4200"
                         value={formData.usageHours}
-                        onChange={(e) => handleInputChange('usageHours', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('usageHours', e.target.value)
+                        }
                       />
                     </div>
 
@@ -358,7 +421,9 @@ export default function EditAssetPage() {
                         type="number"
                         placeholder="e.g., 15000"
                         value={formData.maxUsageHours}
-                        onChange={(e) => handleInputChange('maxUsageHours', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('maxUsageHours', e.target.value)
+                        }
                       />
                     </div>
 
@@ -366,7 +431,9 @@ export default function EditAssetPage() {
                       <Label htmlFor="fuelType">Fuel Type</Label>
                       <Select
                         value={formData.fuelType}
-                        onValueChange={(value) => handleInputChange('fuelType', value)}
+                        onValueChange={(value) =>
+                          handleInputChange('fuelType', value)
+                        }
                       >
                         <SelectTrigger id="fuelType">
                           <SelectValue placeholder="Select fuel type" />
@@ -383,32 +450,53 @@ export default function EditAssetPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="maintenanceSchedule">Maintenance Schedule</Label>
+                      <Label htmlFor="maintenanceSchedule">
+                        Maintenance Schedule
+                      </Label>
                       <Input
                         id="maintenanceSchedule"
                         placeholder="e.g., Every 500 hours"
                         value={formData.maintenanceSchedule}
-                        onChange={(e) => handleInputChange('maintenanceSchedule', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'maintenanceSchedule',
+                            e.target.value
+                          )
+                        }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="lastMaintenanceDate">Last Maintenance Date</Label>
+                      <Label htmlFor="lastMaintenanceDate">
+                        Last Maintenance Date
+                      </Label>
                       <Input
                         id="lastMaintenanceDate"
                         type="date"
                         value={formData.lastMaintenanceDate}
-                        onChange={(e) => handleInputChange('lastMaintenanceDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'lastMaintenanceDate',
+                            e.target.value
+                          )
+                        }
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="nextMaintenanceDate">Next Maintenance Date</Label>
+                      <Label htmlFor="nextMaintenanceDate">
+                        Next Maintenance Date
+                      </Label>
                       <Input
                         id="nextMaintenanceDate"
                         type="date"
                         value={formData.nextMaintenanceDate}
-                        onChange={(e) => handleInputChange('nextMaintenanceDate', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange(
+                            'nextMaintenanceDate',
+                            e.target.value
+                          )
+                        }
                       />
                     </div>
                   </div>
@@ -424,12 +512,16 @@ export default function EditAssetPage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="insuranceProvider">Insurance Provider</Label>
+                      <Label htmlFor="insuranceProvider">
+                        Insurance Provider
+                      </Label>
                       <Input
                         id="insuranceProvider"
                         placeholder="e.g., HDFC Ergo"
                         value={formData.insuranceProvider}
-                        onChange={(e) => handleInputChange('insuranceProvider', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('insuranceProvider', e.target.value)
+                        }
                       />
                     </div>
 
@@ -439,7 +531,9 @@ export default function EditAssetPage() {
                         id="policyNumber"
                         placeholder="e.g., HDFC-EQ-2024-001"
                         value={formData.policyNumber}
-                        onChange={(e) => handleInputChange('policyNumber', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('policyNumber', e.target.value)
+                        }
                       />
                     </div>
 
@@ -449,7 +543,9 @@ export default function EditAssetPage() {
                         id="insuranceExpiry"
                         type="date"
                         value={formData.insuranceExpiry}
-                        onChange={(e) => handleInputChange('insuranceExpiry', e.target.value)}
+                        onChange={(e) =>
+                          handleInputChange('insuranceExpiry', e.target.value)
+                        }
                       />
                     </div>
                   </div>
@@ -468,7 +564,9 @@ export default function EditAssetPage() {
                       id="notes"
                       placeholder="Any additional notes or comments..."
                       value={formData.notes}
-                      onChange={(e) => handleInputChange('notes', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('notes', e.target.value)
+                      }
                       rows={4}
                     />
                   </div>
@@ -490,7 +588,9 @@ export default function EditAssetPage() {
                     </Label>
                     <Select
                       value={formData.status}
-                      onValueChange={(value) => handleInputChange('status', value)}
+                      onValueChange={(value) =>
+                        handleInputChange('status', value)
+                      }
                       required
                     >
                       <SelectTrigger id="status">
@@ -514,7 +614,9 @@ export default function EditAssetPage() {
                     </Label>
                     <Select
                       value={formData.condition}
-                      onValueChange={(value) => handleInputChange('condition', value)}
+                      onValueChange={(value) =>
+                        handleInputChange('condition', value)
+                      }
                       required
                     >
                       <SelectTrigger id="condition">
@@ -536,7 +638,9 @@ export default function EditAssetPage() {
                     </Label>
                     <Select
                       value={formData.locationId}
-                      onValueChange={(value) => handleInputChange('locationId', value)}
+                      onValueChange={(value) =>
+                        handleInputChange('locationId', value)
+                      }
                       required
                     >
                       <SelectTrigger id="locationId">
@@ -544,7 +648,10 @@ export default function EditAssetPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {mockLocations.map((location) => (
-                          <SelectItem key={location.id} value={location.id.toString()}>
+                          <SelectItem
+                            key={location.id}
+                            value={location.id.toString()}
+                          >
                             {location.name}
                           </SelectItem>
                         ))}
@@ -566,7 +673,9 @@ export default function EditAssetPage() {
                       id="assignedTo"
                       placeholder="e.g., John Doe"
                       value={formData.assignedTo}
-                      onChange={(e) => handleInputChange('assignedTo', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('assignedTo', e.target.value)
+                      }
                     />
                   </div>
 
@@ -576,7 +685,9 @@ export default function EditAssetPage() {
                       id="assignedProject"
                       placeholder="e.g., Metro Line Extension"
                       value={formData.assignedProject}
-                      onChange={(e) => handleInputChange('assignedProject', e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange('assignedProject', e.target.value)
+                      }
                     />
                   </div>
                 </CardContent>
@@ -594,8 +705,15 @@ export default function EditAssetPage() {
                       <Save className="mr-2 h-4 w-4" />
                       {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </Button>
-                    <Link href={`/dashboard/resources/assets/${assetId}`} className="block">
-                      <Button type="button" variant="outline" className="w-full">
+                    <Link
+                      href={`/dashboard/resources/assets/${assetId}`}
+                      className="block"
+                    >
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full"
+                      >
                         <X className="mr-2 h-4 w-4" />
                         Cancel
                       </Button>

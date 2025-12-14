@@ -21,11 +21,8 @@ import {
   Plus,
   Clock,
   CheckCircle2,
-  XCircle,
   Eye,
   DollarSign,
-  TrendingUp,
-  AlertCircle,
 } from 'lucide-react';
 
 // Mock data - replace with actual API call
@@ -56,8 +53,23 @@ const mockEstimates = [
   },
 ];
 
-type EstimateStatus = 'draft' | 'pending' | 'sent' | 'approved' | 'rejected' | 'revised' | 'converted' | 'expired' | 'cancelled';
-type EstimateCategory = 'construction' | 'renovation' | 'maintenance' | 'consulting' | 'design' | 'mixed';
+type EstimateStatus =
+  | 'draft'
+  | 'pending'
+  | 'sent'
+  | 'approved'
+  | 'rejected'
+  | 'revised'
+  | 'converted'
+  | 'expired'
+  | 'cancelled';
+type EstimateCategory =
+  | 'construction'
+  | 'renovation'
+  | 'maintenance'
+  | 'consulting'
+  | 'design'
+  | 'mixed';
 
 const estimateStatusLabels: Record<EstimateStatus, string> = {
   draft: 'Draft',
@@ -83,12 +95,16 @@ const estimateCategoryLabels: Record<EstimateCategory, string> = {
 const getStatusBadgeColor = (status: EstimateStatus): string => {
   const colors = {
     draft: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
-    pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+    pending:
+      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
     sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    approved: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    approved:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
     rejected: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    revised: 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
-    converted: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+    revised:
+      'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
+    converted:
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
     expired: 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
     cancelled: 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
   };
@@ -98,27 +114,33 @@ const getStatusBadgeColor = (status: EstimateStatus): string => {
 export default function EstimatesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<EstimateStatus | 'all'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<EstimateCategory | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<EstimateStatus | 'all'>(
+    'all'
+  );
+  const [categoryFilter, setCategoryFilter] = useState<
+    EstimateCategory | 'all'
+  >('all');
 
   // Filter estimates
   const filteredEstimates = useMemo(() => {
     return mockEstimates.filter((estimate) => {
-      const matchesSearch = 
-        estimate.estimateNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      const matchesSearch =
+        estimate.estimateNumber
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
         estimate.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         estimate.clientName.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || estimate.status === statusFilter;
-      const matchesCategory = categoryFilter === 'all' || estimate.category === categoryFilter;
+
+      const matchesStatus =
+        statusFilter === 'all' || estimate.status === statusFilter;
+      const matchesCategory =
+        categoryFilter === 'all' || estimate.category === categoryFilter;
 
       return matchesSearch && matchesStatus && matchesCategory;
     });
   }, [searchQuery, statusFilter, categoryFilter]);
-
-
 
   // Pagination
   const totalPages = Math.ceil(filteredEstimates.length / itemsPerPage);
@@ -129,10 +151,15 @@ export default function EstimatesPage() {
   // Calculate stats
   const totalEstimates = mockEstimates.length;
   const totalValue = mockEstimates.reduce((sum, e) => sum + e.totalAmount, 0);
-  const pendingCount = mockEstimates.filter(e => e.status === 'pending' || e.status === 'sent').length;
-  const approvedCount = mockEstimates.filter(e => e.status === 'approved').length;
+  const pendingCount = mockEstimates.filter(
+    (e) => e.status === 'pending' || e.status === 'sent'
+  ).length;
+  const approvedCount = mockEstimates.filter(
+    (e) => e.status === 'approved'
+  ).length;
 
-  const hasActiveFilters = searchQuery || statusFilter !== 'all' || categoryFilter !== 'all';
+  const hasActiveFilters =
+    searchQuery || statusFilter !== 'all' || categoryFilter !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -145,12 +172,12 @@ export default function EstimatesPage() {
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
               Estimates
             </h1>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-sm text-zinc-600 sm:text-base dark:text-zinc-400">
               Create and manage construction project estimates
             </p>
           </div>
@@ -163,48 +190,62 @@ export default function EstimatesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Estimates</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Estimates
+              </CardTitle>
+              <FileText className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalEstimates}</div>
-              <p className="text-xs text-muted-foreground">All estimates</p>
+              <p className="text-muted-foreground text-xs">All estimates</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Value</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Value
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 10_000_000).toFixed(1)}Cr</div>
-              <p className="text-xs text-muted-foreground">Estimated value</p>
+              <div className="text-2xl font-bold">
+                ₹{(totalValue / 10_000_000).toFixed(1)}Cr
+              </div>
+              <p className="text-muted-foreground text-xs">Estimated value</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Pending
+              </CardTitle>
               <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{pendingCount}</div>
-              <p className="text-xs text-muted-foreground">Awaiting response</p>
+              <div className="text-2xl font-bold text-orange-600">
+                {pendingCount}
+              </div>
+              <p className="text-muted-foreground text-xs">Awaiting response</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Approved</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Approved
+              </CardTitle>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{approvedCount}</div>
-              <p className="text-xs text-muted-foreground">Client approved</p>
+              <div className="text-2xl font-bold text-green-600">
+                {approvedCount}
+              </div>
+              <p className="text-muted-foreground text-xs">Client approved</p>
             </CardContent>
           </Card>
         </div>
@@ -220,8 +261,8 @@ export default function EstimatesPage() {
               setCurrentPage(1);
             }}
           >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={statusFilter}
                   onValueChange={(value) => {
@@ -240,14 +281,16 @@ export default function EstimatesPage() {
                     <SelectItem value="approved">Approved</SelectItem>
                     <SelectItem value="rejected">Rejected</SelectItem>
                     <SelectItem value="revised">Revised</SelectItem>
-                    <SelectItem value="converted">Converted to Project</SelectItem>
+                    <SelectItem value="converted">
+                      Converted to Project
+                    </SelectItem>
                     <SelectItem value="expired">Expired</SelectItem>
                     <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={categoryFilter}
                   onValueChange={(value) => {
@@ -272,11 +315,7 @@ export default function EstimatesPage() {
             </div>
 
             {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                onClick={clearFilters}
-                className="mt-2"
-              >
+              <Button variant="ghost" onClick={clearFilters} className="mt-2">
                 Clear Filters
               </Button>
             )}
@@ -286,11 +325,14 @@ export default function EstimatesPage() {
         {/* Results Summary */}
         <div className="flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredEstimates.length)} of{' '}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredEstimates.length)} of{' '}
             {filteredEstimates.length} estimates
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
@@ -319,25 +361,37 @@ export default function EstimatesPage() {
                 {paginatedEstimates.map((estimate) => (
                   <div
                     key={estimate.id}
-                    className="border rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
                       {/* Left Section */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="mb-1 flex items-center gap-2">
                               <Link
                                 href={`/dashboard/finance/estimates/${estimate.id}`}
-                                className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400"
+                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
                               >
                                 {estimate.estimateNumber}
                               </Link>
-                              <Badge className={getStatusBadgeColor(estimate.status as EstimateStatus)}>
-                                {estimateStatusLabels[estimate.status as EstimateStatus]}
+                              <Badge
+                                className={getStatusBadgeColor(
+                                  estimate.status as EstimateStatus
+                                )}
+                              >
+                                {
+                                  estimateStatusLabels[
+                                    estimate.status as EstimateStatus
+                                  ]
+                                }
                               </Badge>
                               <Badge variant="outline">
-                                {estimateCategoryLabels[estimate.category as EstimateCategory]}
+                                {
+                                  estimateCategoryLabels[
+                                    estimate.category as EstimateCategory
+                                  ]
+                                }
                               </Badge>
                             </div>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -346,27 +400,35 @@ export default function EstimatesPage() {
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Client:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Client:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {estimate.clientName}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Prepared:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Prepared:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {format(estimate.preparedDate, 'MMM dd, yyyy')}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Valid Until:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Valid Until:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {format(estimate.expiryDate, 'MMM dd, yyyy')}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Validity:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Validity:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {estimate.validityPeriod} days
                             </p>
@@ -375,14 +437,18 @@ export default function EstimatesPage() {
                       </div>
 
                       {/* Right Section */}
-                      <div className="flex flex-col lg:items-end gap-2">
+                      <div className="flex flex-col gap-2 lg:items-end">
                         <div className="text-right">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">Total Amount</p>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                            Total Amount
+                          </p>
                           <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                             ₹{(estimate.totalAmount / 100_000).toFixed(2)}L
                           </p>
                         </div>
-                        <Link href={`/dashboard/finance/estimates/${estimate.id}`}>
+                        <Link
+                          href={`/dashboard/finance/estimates/${estimate.id}`}
+                        >
                           <Button variant="outline" size="sm">
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
@@ -404,14 +470,14 @@ export default function EstimatesPage() {
           </Card>
         ) : (
           <Card>
-            <CardContent className="text-center py-12">
-              <FileText className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <FileText className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 {hasActiveFilters ? 'No estimates found' : 'No estimates yet'}
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 {hasActiveFilters
-                  ? 'Try adjusting your filters to find what you\'re looking for.'
+                  ? "Try adjusting your filters to find what you're looking for."
                   : 'Create your first estimate to get started.'}
               </p>
               {hasActiveFilters ? (

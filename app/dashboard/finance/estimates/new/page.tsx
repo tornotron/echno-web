@@ -3,12 +3,24 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/common/app-layout';
 import {
@@ -44,13 +56,20 @@ interface EstimateLineItem {
 export default function CreateEstimatePage() {
   const router = useRouter();
   const [estimateNumber] = useState(
-    `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000).toString().padStart(4, '0')}`
+    () =>
+      `EST-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000)
+        .toString()
+        .padStart(4, '0')}`
   );
 
   // Basic Information
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<EstimateCategory>(EstimateCategory.construction);
-  const [preparedDate, setPreparedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [category, setCategory] = useState<EstimateCategory>(
+    EstimateCategory.construction
+  );
+  const [preparedDate, setPreparedDate] = useState(
+    format(new Date(), 'yyyy-MM-dd')
+  );
   const [validityPeriod, setValidityPeriod] = useState('30');
 
   // Client Information
@@ -126,7 +145,11 @@ export default function CreateEstimatePage() {
     }
   };
 
-  const updateLineItem = (id: number, field: keyof EstimateLineItem, value: any) => {
+  const updateLineItem = (
+    id: number,
+    field: keyof EstimateLineItem,
+    value: string | number
+  ) => {
     setLineItems(
       lineItems.map((item) =>
         item.id === id ? { ...item, [field]: value } : item
@@ -136,16 +159,26 @@ export default function CreateEstimatePage() {
 
   const calculateItemTotal = (item: EstimateLineItem) => {
     const baseTotal = item.quantity * item.unitRate;
-    const componentTotal = item.laborCost + item.materialCost + item.equipmentCost;
+    const componentTotal =
+      item.laborCost + item.materialCost + item.equipmentCost;
     return baseTotal + componentTotal;
   };
 
   const calculateTotals = () => {
-    const subtotal = lineItems.reduce((sum, item) => sum + calculateItemTotal(item), 0);
-    const materialCost = lineItems.reduce((sum, item) => sum + item.materialCost, 0);
+    const subtotal = lineItems.reduce(
+      (sum, item) => sum + calculateItemTotal(item),
+      0
+    );
+    const materialCost = lineItems.reduce(
+      (sum, item) => sum + item.materialCost,
+      0
+    );
     const laborCost = lineItems.reduce((sum, item) => sum + item.laborCost, 0);
-    const equipmentCost = lineItems.reduce((sum, item) => sum + item.equipmentCost, 0);
-    
+    const equipmentCost = lineItems.reduce(
+      (sum, item) => sum + item.equipmentCost,
+      0
+    );
+
     const { contingencyAmount, taxAmount, total } = calculateEstimateTotal(
       subtotal,
       Number.parseFloat(contingencyPercent) || 0,
@@ -191,11 +224,14 @@ export default function CreateEstimatePage() {
     }
 
     const hasInvalidItems = lineItems.some(
-      (item) => !item.description.trim() || item.quantity <= 0 || item.unitRate <= 0
+      (item) =>
+        !item.description.trim() || item.quantity <= 0 || item.unitRate <= 0
     );
 
     if (hasInvalidItems) {
-      toast.error('Please ensure all items have description, quantity, and unit rate');
+      toast.error(
+        'Please ensure all items have description, quantity, and unit rate'
+      );
       return;
     }
 
@@ -211,15 +247,15 @@ export default function CreateEstimatePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl space-y-6">
         {/* Header */}
         <div>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
                 Create Construction Estimate
               </h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                 Prepare a detailed cost estimate for your construction project
               </p>
             </div>
@@ -229,16 +265,16 @@ export default function CreateEstimatePage() {
                 Cancel
               </Button>
               <Button onClick={handleSubmit}>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 Create Estimate
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="space-y-6 lg:col-span-2">
             {/* Basic Information */}
             <Card>
               <CardHeader>
@@ -249,10 +285,14 @@ export default function CreateEstimatePage() {
                 <CardDescription>General estimate details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="estimateNumber">Estimate Number</Label>
-                    <Input id="estimateNumber" value={estimateNumber} disabled />
+                    <Input
+                      id="estimateNumber"
+                      value={estimateNumber}
+                      disabled
+                    />
                   </div>
 
                   <div>
@@ -277,7 +317,12 @@ export default function CreateEstimatePage() {
 
                   <div>
                     <Label htmlFor="category">Category *</Label>
-                    <Select value={category} onValueChange={(value) => setCategory(value as EstimateCategory)}>
+                    <Select
+                      value={category}
+                      onValueChange={(value) =>
+                        setCategory(value as EstimateCategory)
+                      }
+                    >
                       <SelectTrigger id="category">
                         <SelectValue />
                       </SelectTrigger>
@@ -292,7 +337,9 @@ export default function CreateEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="validityPeriod">Validity Period (Days) *</Label>
+                    <Label htmlFor="validityPeriod">
+                      Validity Period (Days) *
+                    </Label>
                     <Input
                       id="validityPeriod"
                       type="number"
@@ -313,7 +360,7 @@ export default function CreateEstimatePage() {
                 <CardDescription>Details about the client</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <Label htmlFor="clientName">Client Name *</Label>
                     <Input
@@ -363,7 +410,9 @@ export default function CreateEstimatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Project Details</CardTitle>
-                <CardDescription>Information about the construction project</CardDescription>
+                <CardDescription>
+                  Information about the construction project
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -377,7 +426,9 @@ export default function CreateEstimatePage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="projectDescription">Project Description *</Label>
+                  <Label htmlFor="projectDescription">
+                    Project Description *
+                  </Label>
                   <Textarea
                     id="projectDescription"
                     value={projectDescription}
@@ -429,9 +480,11 @@ export default function CreateEstimatePage() {
                 <CardDescription>Estimated project schedule</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
-                    <Label htmlFor="estimatedStartDate">Estimated Start Date</Label>
+                    <Label htmlFor="estimatedStartDate">
+                      Estimated Start Date
+                    </Label>
                     <Input
                       id="estimatedStartDate"
                       type="date"
@@ -451,7 +504,9 @@ export default function CreateEstimatePage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <Label htmlFor="estimatedDuration">Estimated Duration (Days)</Label>
+                    <Label htmlFor="estimatedDuration">
+                      Estimated Duration (Days)
+                    </Label>
                     <Input
                       id="estimatedDuration"
                       type="number"
@@ -474,17 +529,22 @@ export default function CreateEstimatePage() {
                       <Calculator className="h-5 w-5" />
                       Cost Items
                     </CardTitle>
-                    <CardDescription>Add detailed cost breakdown</CardDescription>
+                    <CardDescription>
+                      Add detailed cost breakdown
+                    </CardDescription>
                   </div>
                   <Button onClick={addLineItem} size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Add Item
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {lineItems.map((item, index) => (
-                  <div key={item.id} className="border rounded-lg p-4 space-y-4">
+                  <div
+                    key={item.id}
+                    className="space-y-4 rounded-lg border p-4"
+                  >
                     <div className="flex items-center justify-between">
                       <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Item #{index + 1}
@@ -500,12 +560,14 @@ export default function CreateEstimatePage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div>
                         <Label>Category</Label>
                         <Select
                           value={item.category}
-                          onValueChange={(value) => updateLineItem(item.id, 'category', value)}
+                          onValueChange={(value) =>
+                            updateLineItem(item.id, 'category', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -514,8 +576,12 @@ export default function CreateEstimatePage() {
                             <SelectItem value="Materials">Materials</SelectItem>
                             <SelectItem value="Labor">Labor</SelectItem>
                             <SelectItem value="Equipment">Equipment</SelectItem>
-                            <SelectItem value="Subcontractor">Subcontractor</SelectItem>
-                            <SelectItem value="Permits & Fees">Permits & Fees</SelectItem>
+                            <SelectItem value="Subcontractor">
+                              Subcontractor
+                            </SelectItem>
+                            <SelectItem value="Permits & Fees">
+                              Permits & Fees
+                            </SelectItem>
                             <SelectItem value="Other">Other</SelectItem>
                           </SelectContent>
                         </Select>
@@ -525,7 +591,9 @@ export default function CreateEstimatePage() {
                         <Label>Unit</Label>
                         <Select
                           value={item.unit}
-                          onValueChange={(value) => updateLineItem(item.id, 'unit', value)}
+                          onValueChange={(value) =>
+                            updateLineItem(item.id, 'unit', value)
+                          }
                         >
                           <SelectTrigger>
                             <SelectValue />
@@ -550,7 +618,11 @@ export default function CreateEstimatePage() {
                         <Input
                           value={item.description}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'description', e.target.value)
+                            updateLineItem(
+                              item.id,
+                              'description',
+                              e.target.value
+                            )
                           }
                           placeholder="Item description"
                         />
@@ -561,7 +633,11 @@ export default function CreateEstimatePage() {
                         <Textarea
                           value={item.specifications}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'specifications', e.target.value)
+                            updateLineItem(
+                              item.id,
+                              'specifications',
+                              e.target.value
+                            )
                           }
                           placeholder="Technical specifications, materials, standards, etc."
                           rows={2}
@@ -574,7 +650,11 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.quantity || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'quantity', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'quantity',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -588,7 +668,11 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.unitRate || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unitRate', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'unitRate',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -602,7 +686,11 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.laborCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'laborCost', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'laborCost',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -616,7 +704,11 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.materialCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'materialCost', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'materialCost',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -630,7 +722,11 @@ export default function CreateEstimatePage() {
                           type="number"
                           value={item.equipmentCost || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'equipmentCost', Number.parseFloat(e.target.value) || 0)
+                            updateLineItem(
+                              item.id,
+                              'equipmentCost',
+                              Number.parseFloat(e.target.value) || 0
+                            )
                           }
                           placeholder="0"
                           min="0"
@@ -653,10 +749,16 @@ export default function CreateEstimatePage() {
 
                     <Separator />
 
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-zinc-500 dark:text-zinc-400">Item Total:</span>
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100 text-lg">
-                        ₹{calculateItemTotal(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-zinc-500 dark:text-zinc-400">
+                        Item Total:
+                      </span>
+                      <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                        ₹
+                        {calculateItemTotal(item).toLocaleString('en-IN', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     </div>
                   </div>
@@ -704,7 +806,9 @@ export default function CreateEstimatePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Terms & Conditions</CardTitle>
-                <CardDescription>Legal and warranty information</CardDescription>
+                <CardDescription>
+                  Legal and warranty information
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -752,28 +856,48 @@ export default function CreateEstimatePage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Material Cost:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Material Cost:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.materialCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.materialCost.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Labor Cost:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Labor Cost:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.laborCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.laborCost.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Equipment Cost:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Equipment Cost:
+                  </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.equipmentCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.equipmentCost.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <Separator />
                 <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">Subtotal:</span>
+                  <span className="text-zinc-500 dark:text-zinc-400">
+                    Subtotal:
+                  </span>
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.subtotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.subtotal.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -781,7 +905,10 @@ export default function CreateEstimatePage() {
                     Contingency ({contingencyPercent}%):
                   </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.contingencyAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.contingencyAmount.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -789,16 +916,22 @@ export default function CreateEstimatePage() {
                     Tax ({taxRate}%):
                   </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    ₹
+                    {totals.taxAmount.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
                 <Separator />
-                <div className="flex justify-between items-center pt-2">
+                <div className="flex items-center justify-between pt-2">
                   <span className="font-semibold text-zinc-900 dark:text-zinc-100">
                     Total Amount:
                   </span>
-                  <span className="font-bold text-xl text-zinc-900 dark:text-zinc-100">
-                    ₹{totals.totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    ₹
+                    {totals.totalAmount.toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                    })}
                   </span>
                 </div>
               </CardContent>
@@ -822,7 +955,7 @@ export default function CreateEstimatePage() {
                     max="100"
                     step="0.1"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     Buffer for unexpected costs
                   </p>
                 </div>
@@ -839,7 +972,7 @@ export default function CreateEstimatePage() {
                     max="100"
                     step="0.1"
                   />
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                     GST or applicable tax rate
                   </p>
                 </div>
@@ -849,7 +982,7 @@ export default function CreateEstimatePage() {
             {/* Quick Tips */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-base flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base">
                   <AlertCircle className="h-4 w-4" />
                   Quick Tips
                 </CardTitle>
@@ -857,7 +990,7 @@ export default function CreateEstimatePage() {
               <CardContent className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <p>• Be detailed in scope to avoid disputes</p>
                 <p>• Include all assumptions clearly</p>
-                <p>• Specify what's excluded from estimate</p>
+                <p>• Specify what&apos;s excluded from estimate</p>
                 <p>• Add contingency for unforeseen costs</p>
                 <p>• Review cost breakdown before submitting</p>
                 <p>• Set realistic timelines and validity period</p>

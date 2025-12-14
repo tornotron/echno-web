@@ -2,83 +2,100 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AppLayout, Pagination, FiltersCard } from '@/components/common';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select';
-import { 
-  Cog,
-  Search, 
-  Filter,
-  MapPin,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  Eye,
-  Wrench,
-  Truck,
-  Calendar,
-  DollarSign,
+import {
   Activity,
-  Shield,
-  Fuel,
-  Clock,
   AlertCircle,
+  Cog,
+  DollarSign,
+  Eye,
+  MapPin,
+  Shield,
+  Truck,
+  Wrench,
 } from 'lucide-react';
-import { 
-  Asset,
-  AssetType,
+import {
   AssetStatus,
-  AssetCondition,
-  assetTypeLabels,
   assetStatusLabels,
   assetConditionLabels,
   getAssetStatusBadgeColor,
   getAssetConditionBadgeColor,
   calculateUtilization,
-  isMaintenanceDue
+  isMaintenanceDue,
 } from '@/types/resource';
 import { mockAssets, mockLocations } from '@/components/shared/mock-data';
+
+import { useMemo } from 'react';
+
+const getUtilizationColor = (utilization: number) => {
+  if (utilization >= 80) return 'bg-red-500';
+  if (utilization >= 60) return 'bg-orange-500';
+  if (utilization >= 40) return 'bg-yellow-500';
+  return 'bg-green-500';
+};
 
 export default function AssetsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<AssetType | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<AssetStatus | 'all'>('all');
-  const [conditionFilter, setConditionFilter] = useState<AssetCondition | 'all'>('all');
+  const [conditionFilter, setConditionFilter] = useState<
+    AssetCondition | 'all'
+  >('all');
   const [locationFilter, setLocationFilter] = useState<number | 'all'>('all');
   const [maintenanceDueFilter, setMaintenanceDueFilter] = useState(false);
+
+  const [now] = useState(() => Date.now());
 
   // Filter assets
   const filteredAssets = useMemo(() => {
     return mockAssets.filter((asset) => {
-      const matchesSearch = 
+      const matchesSearch =
         asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         asset.assetId.toLowerCase().includes(searchQuery.toLowerCase()) ||
         asset.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         asset.manufacturer?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         asset.model?.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      const matchesType = typeFilter === 'all' || asset.type === typeFilter;
-      const matchesStatus = statusFilter === 'all' || asset.status === statusFilter;
-      const matchesCondition = conditionFilter === 'all' || asset.condition === conditionFilter;
-      const matchesLocation = locationFilter === 'all' || asset.locationId === locationFilter;
-      const matchesMaintenanceDue = !maintenanceDueFilter || isMaintenanceDue(asset);
 
-      return matchesSearch && matchesType && matchesStatus && matchesCondition && 
-             matchesLocation && matchesMaintenanceDue;
+      const matchesType = typeFilter === 'all' || asset.type === typeFilter;
+      const matchesStatus =
+        statusFilter === 'all' || asset.status === statusFilter;
+      const matchesCondition =
+        conditionFilter === 'all' || asset.condition === conditionFilter;
+      const matchesLocation =
+        locationFilter === 'all' || asset.locationId === locationFilter;
+      const matchesMaintenanceDue =
+        !maintenanceDueFilter || isMaintenanceDue(asset);
+
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesStatus &&
+        matchesCondition &&
+        matchesLocation &&
+        matchesMaintenanceDue
+      );
     });
-  }, [searchQuery, typeFilter, statusFilter, conditionFilter, locationFilter, maintenanceDueFilter]);
+  }, [
+    searchQuery,
+    typeFilter,
+    statusFilter,
+    conditionFilter,
+    locationFilter,
+    maintenanceDueFilter,
+  ]);
 
   // Pagination
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
@@ -88,14 +105,27 @@ export default function AssetsPage() {
 
   // Calculate stats
   const totalAssets = mockAssets.length;
-  const totalValue = mockAssets.reduce((sum, asset) => sum + asset.currentValue, 0);
-  const inUseAssets = mockAssets.filter(asset => asset.status === 'in-use').length;
-  const maintenanceDueAssets = mockAssets.filter(asset => isMaintenanceDue(asset)).length;
-  const underRepairAssets = mockAssets.filter(asset => asset.status === 'repair' || asset.status === 'maintenance').length;
+  const totalValue = mockAssets.reduce(
+    (sum, asset) => sum + asset.currentValue,
+    0
+  );
+  const inUseAssets = mockAssets.filter(
+    (asset) => asset.status === 'in-use'
+  ).length;
+  const maintenanceDueAssets = mockAssets.filter((asset) =>
+    isMaintenanceDue(asset)
+  ).length;
+  const underRepairAssets = mockAssets.filter(
+    (asset) => asset.status === 'repair' || asset.status === 'maintenance'
+  ).length;
 
   const hasActiveFilters =
-    searchQuery || typeFilter !== 'all' || statusFilter !== 'all' || 
-    conditionFilter !== 'all' || locationFilter !== 'all' || maintenanceDueFilter;
+    searchQuery ||
+    typeFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    conditionFilter !== 'all' ||
+    locationFilter !== 'all' ||
+    maintenanceDueFilter;
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -111,12 +141,12 @@ export default function AssetsPage() {
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-8">
+        <div className="mb-8 flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
               Assets
             </h1>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-sm text-zinc-600 sm:text-base dark:text-zinc-400">
               Track equipment, vehicles, and machinery
             </p>
           </div>
@@ -129,59 +159,77 @@ export default function AssetsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Assets</CardTitle>
-              <Cog className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Assets
+              </CardTitle>
+              <Cog className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalAssets}</div>
-              <p className="text-xs text-muted-foreground">Registered</p>
+              <p className="text-muted-foreground text-xs">Registered</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Value</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Value
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 10_000_000).toFixed(1)}Cr</div>
-              <p className="text-xs text-muted-foreground">Current value</p>
+              <div className="text-2xl font-bold">
+                ₹{(totalValue / 10_000_000).toFixed(1)}Cr
+              </div>
+              <p className="text-muted-foreground text-xs">Current value</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">In Use</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                In Use
+              </CardTitle>
               <Activity className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{inUseAssets}</div>
-              <p className="text-xs text-muted-foreground">Active assets</p>
+              <div className="text-2xl font-bold text-green-600">
+                {inUseAssets}
+              </div>
+              <p className="text-muted-foreground text-xs">Active assets</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Maintenance Due</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Maintenance Due
+              </CardTitle>
               <AlertCircle className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{maintenanceDueAssets}</div>
-              <p className="text-xs text-muted-foreground">Need attention</p>
+              <div className="text-2xl font-bold text-orange-600">
+                {maintenanceDueAssets}
+              </div>
+              <p className="text-muted-foreground text-xs">Need attention</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Under Repair</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Under Repair
+              </CardTitle>
               <Wrench className="h-4 w-4 text-red-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{underRepairAssets}</div>
-              <p className="text-xs text-muted-foreground">In workshop</p>
+              <div className="text-2xl font-bold text-red-600">
+                {underRepairAssets}
+              </div>
+              <p className="text-muted-foreground text-xs">In workshop</p>
             </CardContent>
           </Card>
         </div>
@@ -197,8 +245,8 @@ export default function AssetsPage() {
               setCurrentPage(1);
             }}
           >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={typeFilter}
                   onValueChange={(value) => {
@@ -211,8 +259,12 @@ export default function AssetsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="heavy-equipment">Heavy Equipment</SelectItem>
-                    <SelectItem value="light-equipment">Light Equipment</SelectItem>
+                    <SelectItem value="heavy-equipment">
+                      Heavy Equipment
+                    </SelectItem>
+                    <SelectItem value="light-equipment">
+                      Light Equipment
+                    </SelectItem>
                     <SelectItem value="vehicle">Vehicle</SelectItem>
                     <SelectItem value="tool">Tool</SelectItem>
                     <SelectItem value="machinery">Machinery</SelectItem>
@@ -224,7 +276,7 @@ export default function AssetsPage() {
                 </Select>
               </div>
 
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={statusFilter}
                   onValueChange={(value) => {
@@ -248,7 +300,7 @@ export default function AssetsPage() {
                 </Select>
               </div>
 
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
                   value={conditionFilter}
                   onValueChange={(value) => {
@@ -270,11 +322,15 @@ export default function AssetsPage() {
                 </Select>
               </div>
 
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
+              <div className="w-full sm:min-w-[200px] sm:flex-1">
                 <Select
-                  value={locationFilter === 'all' ? 'all' : locationFilter.toString()}
+                  value={
+                    locationFilter === 'all' ? 'all' : locationFilter.toString()
+                  }
                   onValueChange={(value) => {
-                    setLocationFilter(value === 'all' ? 'all' : Number.parseInt(value));
+                    setLocationFilter(
+                      value === 'all' ? 'all' : Number.parseInt(value)
+                    );
                     setCurrentPage(1);
                   }}
                 >
@@ -284,7 +340,10 @@ export default function AssetsPage() {
                   <SelectContent>
                     <SelectItem value="all">All Locations</SelectItem>
                     {mockLocations.map((location) => (
-                      <SelectItem key={location.id} value={location.id.toString()}>
+                      <SelectItem
+                        key={location.id}
+                        value={location.id.toString()}
+                      >
                         {location.name}
                       </SelectItem>
                     ))}
@@ -306,11 +365,14 @@ export default function AssetsPage() {
         {/* Results Summary */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredAssets.length)} of{' '}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredAssets.length)} of{' '}
             {filteredAssets.length} assets
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
@@ -338,31 +400,34 @@ export default function AssetsPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {paginatedAssets.map((asset) => {
-                  const utilization = calculateUtilization(asset.usageHours, asset.maxUsageHours);
+                  const utilization = calculateUtilization(
+                    asset.usageHours,
+                    asset.maxUsageHours
+                  );
                   const maintenanceDue = isMaintenanceDue(asset);
                   const daysUntilMaintenance = asset.nextMaintenanceDate
                     ? Math.floor(
-                        (asset.nextMaintenanceDate.getTime() - Date.now()) /
+                        (asset.nextMaintenanceDate.getTime() - now) /
                           (1000 * 60 * 60 * 24)
                       )
                     : null;
 
                   return (
-                    <Link 
-                      key={asset.id} 
+                    <Link
+                      key={asset.id}
                       href={`/dashboard/resources/assets/${asset.id}`}
                       className="block"
                     >
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                      <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">
+                        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
                           {/* Left: Asset Info */}
-                          <div className="flex-1 min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-start gap-3">
-                              <div className="w-12 h-12 rounded-lg bg-linear-to-br from-blue-500 to-blue-600 flex items-center justify-center shrink-0">
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-blue-600">
                                 <Cog className="h-6 w-6 text-white" />
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                                     {asset.name}
                                   </h3>
@@ -370,28 +435,31 @@ export default function AssetsPage() {
                                     {asset.assetId}
                                   </span>
                                   {maintenanceDue && (
-                                    <Badge variant="outline" className="border-orange-500 text-orange-600 dark:text-orange-400">
-                                      <AlertCircle className="h-3 w-3 mr-1" />
+                                    <Badge
+                                      variant="outline"
+                                      className="border-orange-500 text-orange-600 dark:text-orange-400"
+                                    >
+                                      <AlertCircle className="mr-1 h-3 w-3" />
                                       Maintenance Due
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1 line-clamp-1">
+                                <p className="mt-1 line-clamp-1 text-sm text-zinc-600 dark:text-zinc-400">
                                   {asset.description}
                                 </p>
-                                <div className="flex items-center gap-4 mt-2 flex-wrap">
+                                <div className="mt-2 flex flex-wrap items-center gap-4">
                                   <div className="flex items-center text-xs text-zinc-500">
-                                    <Truck className="h-3 w-3 mr-1" />
+                                    <Truck className="mr-1 h-3 w-3" />
                                     {asset.manufacturer} {asset.model}
                                   </div>
                                   {asset.registrationNumber && (
                                     <div className="flex items-center text-xs text-zinc-500">
-                                      <Shield className="h-3 w-3 mr-1" />
+                                      <Shield className="mr-1 h-3 w-3" />
                                       {asset.registrationNumber}
                                     </div>
                                   )}
                                   <div className="flex items-center text-xs text-zinc-500">
-                                    <MapPin className="h-3 w-3 mr-1" />
+                                    <MapPin className="mr-1 h-3 w-3" />
                                     {asset.location.name}
                                   </div>
                                 </div>
@@ -401,18 +469,24 @@ export default function AssetsPage() {
 
                           {/* Middle: Status & Condition */}
                           <div className="flex gap-2">
-                            <Badge className={getAssetStatusBadgeColor(asset.status)}>
+                            <Badge
+                              className={getAssetStatusBadgeColor(asset.status)}
+                            >
                               {assetStatusLabels[asset.status]}
                             </Badge>
-                            <Badge className={getAssetConditionBadgeColor(asset.condition)}>
+                            <Badge
+                              className={getAssetConditionBadgeColor(
+                                asset.condition
+                              )}
+                            >
                               {assetConditionLabels[asset.condition]}
                             </Badge>
                           </div>
 
                           {/* Right: Metrics */}
-                          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:w-auto">
+                          <div className="grid grid-cols-2 gap-4 lg:w-auto lg:grid-cols-4">
                             <div className="text-center">
-                              <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-1">
+                              <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
                                 Value
                               </div>
                               <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -421,7 +495,7 @@ export default function AssetsPage() {
                             </div>
                             {asset.usageHours && asset.maxUsageHours && (
                               <div className="text-center">
-                                <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-1">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
                                   Utilization
                                 </div>
                                 <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -431,15 +505,18 @@ export default function AssetsPage() {
                             )}
                             {asset.nextMaintenanceDate && (
                               <div className="text-center">
-                                <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-1">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
                                   Next Service
                                 </div>
-                                <div className={`text-sm font-semibold ${
-                                  maintenanceDue 
-                                    ? 'text-orange-600 dark:text-orange-400' 
-                                    : 'text-zinc-900 dark:text-zinc-100'
-                                }`}>
-                                  {daysUntilMaintenance !== null && daysUntilMaintenance >= 0
+                                <div
+                                  className={`text-sm font-semibold ${
+                                    maintenanceDue
+                                      ? 'text-orange-600 dark:text-orange-400'
+                                      : 'text-zinc-900 dark:text-zinc-100'
+                                  }`}
+                                >
+                                  {daysUntilMaintenance !== null &&
+                                  daysUntilMaintenance >= 0
                                     ? `${daysUntilMaintenance}d`
                                     : 'Overdue'}
                                 </div>
@@ -447,10 +524,10 @@ export default function AssetsPage() {
                             )}
                             {asset.assignedProject && (
                               <div className="text-center">
-                                <div className="text-xs text-zinc-500 dark:text-zinc-500 mb-1">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
                                   Project
                                 </div>
-                                <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 truncate">
+                                <div className="truncate text-sm font-semibold text-blue-600 dark:text-blue-400">
                                   {asset.assignedProject}
                                 </div>
                               </div>
@@ -458,30 +535,31 @@ export default function AssetsPage() {
                           </div>
 
                           {/* View Button */}
-                          <Button variant="ghost" size="sm" className="shrink-0">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="shrink-0"
+                          >
                             <Eye className="h-4 w-4" />
                           </Button>
                         </div>
 
                         {/* Utilization Bar (if applicable) */}
                         {asset.usageHours && asset.maxUsageHours && (
-                          <div className="mt-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
-                            <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-500 mb-1">
-                              <span>Usage Hours: {asset.usageHours} / {asset.maxUsageHours}</span>
+                          <div className="mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+                            <div className="mb-1 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-500">
+                              <span>
+                                Usage Hours: {asset.usageHours} /{' '}
+                                {asset.maxUsageHours}
+                              </span>
                               <span>{utilization.toFixed(1)}%</span>
                             </div>
-                            <div className="h-2 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="h-2 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
                               <div
-                                className={`h-full transition-all ${
-                                  utilization >= 80
-                                    ? 'bg-red-500'
-                                    : utilization >= 60
-                                    ? 'bg-orange-500'
-                                    : utilization >= 40
-                                    ? 'bg-yellow-500'
-                                    : 'bg-green-500'
-                                }`}
-                                style={{ width: `${Math.min(utilization, 100)}%` }}
+                                className={`h-full transition-all ${getUtilizationColor(utilization)}`}
+                                style={{
+                                  width: `${Math.min(utilization, 100)}%`,
+                                }}
                               />
                             </div>
                           </div>
@@ -502,12 +580,12 @@ export default function AssetsPage() {
           </Card>
         ) : (
           <Card>
-            <CardContent className="text-center py-12">
-              <Cog className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <Cog className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 No assets found
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 {hasActiveFilters
                   ? 'Try adjusting your search or filters'
                   : 'Get started by registering your first asset'}
