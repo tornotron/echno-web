@@ -42,7 +42,7 @@ export default function CreateMaterialRequestPage() {
   const router = useRouter();
 
   // Basic Information
-  const [requestNumber] = useState(
+  const [requestNumber, setRequestNumber] = useState(
     () =>
       `MR-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
   );
@@ -546,9 +546,6 @@ export default function CreateMaterialRequestPage() {
                       Allow partial fulfillment
                     </Label>
                   </div>
-                  <p className="mt-2 text-sm text-zinc-500 italic">
-                    Purpose: &quot;{item.purpose}&quot;
-                  </p>
                   <p className="mt-2 text-sm text-zinc-500">
                     If enabled, items can be fulfilled in batches rather than
                     all at once

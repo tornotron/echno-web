@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import {
   AssetStatus,
+  AssetType,
+  AssetCondition,
   assetStatusLabels,
   assetConditionLabels,
   getAssetStatusBadgeColor,

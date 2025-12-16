@@ -60,6 +60,9 @@ export default function EditMaterialRequestPage() {
   const [type, setType] = useState<MaterialRequestType>(
     MaterialRequestType.project
   );
+  const [status, setStatus] = useState<MaterialRequestStatus>(
+    MaterialRequestStatus.draft
+  );
   const [priority, setPriority] = useState<MaterialRequestPriority>(
     MaterialRequestPriority.medium
   );
