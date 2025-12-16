@@ -16,7 +16,6 @@ import {
   MapPin,
   Calendar,
   DollarSign,
-  DollarSign,
   Wrench,
   Shield,
   Fuel,
