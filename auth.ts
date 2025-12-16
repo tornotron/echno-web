@@ -26,6 +26,25 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
           return null;
         }
 
+        // Check for test user credentials from environment
+        const testEmail = process.env.TEST_USER_EMAIL;
+        const testPassword = process.env.TEST_USER_PASSWORD;
+
+        if (
+          testEmail &&
+          testPassword &&
+          credentials.email === testEmail &&
+          credentials.password === testPassword
+        ) {
+          // Return test user for local development
+          return {
+            id: 'test-user-id',
+            email: testEmail,
+            name: 'Admin User',
+            accessToken: 'test-access-token',
+          };
+        }
+
         try {
           // Call your backend API to validate credentials
           const apiUrl =
