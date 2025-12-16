@@ -49,8 +49,6 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
-            NEXT_PUBLIC_KEYCLOAK_ISSUER=${{ secrets.NEXT_PUBLIC_KEYCLOAK_ISSUER }}
-            NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}
 
   # ------------ Job 2: Deploy to Server ------------
   deploy:
