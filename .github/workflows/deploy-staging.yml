@@ -8,7 +8,7 @@ on:
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   IMAGE_NAME: echno-web
-  SERVICE_NAME: app
+  SERVICE_NAME: echno-web-app
 
 jobs:
   # ------------ Job 1: Build and Push Docker Image ------------
@@ -65,7 +65,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             # Navigate to the project directory
-            cd /opt/echno-web
+            cd /opt/echno-backend
             
             # Export environment variables
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
