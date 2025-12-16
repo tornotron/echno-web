@@ -78,6 +78,3 @@ jobs:
             
             # Recreate and start the container
             docker compose up --force-recreate ${{ env.SERVICE_NAME }} -d
-            
-            # Clean up old images
-            docker image prune -af --filter "until=24h"
