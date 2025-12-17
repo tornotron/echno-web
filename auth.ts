@@ -4,6 +4,13 @@ import Credentials from 'next-auth/providers/credentials';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
+  trustHost: [
+    "ui.echno.xyz",
+    "auth.echno.xyz",
+    "echno.xyz",
+    "localhost:3000",
+    "backend.echno.xyz",
+  ],
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID,
