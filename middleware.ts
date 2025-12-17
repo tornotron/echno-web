@@ -6,6 +6,7 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth
 
   const isPublic =
+    pathname === "/" ||
     pathname === "/login" ||
     pathname.startsWith("/api/health")
 
@@ -24,9 +25,11 @@ export default auth((req) => {
     return NextResponse.redirect(new URL("/dashboard", req.url))
   }
 
+  // Handle token refresh errors by forcing re-authentication
   if (req.auth?.error === "RefreshAccessTokenError") {
     const url = new URL("/login", req.url)
     url.searchParams.set("error", "SessionExpired")
+    url.searchParams.set("callbackUrl", pathname)
     return NextResponse.redirect(url)
   }
 
