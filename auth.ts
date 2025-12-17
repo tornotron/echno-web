@@ -60,13 +60,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || undefined,
       issuer: process.env.KEYCLOAK_ISSUER!,
-      wellKnown: process.env.KEYCLOAK_WELL_KNOWN,
       authorization: {
         params: {
           scope: "openid email profile",
         },
       },
-      checks: ["pkce", "state"], 
+      checks: ["pkce", "state"],
     }),
 
     Credentials({
