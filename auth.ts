@@ -20,12 +20,14 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
       authorization: {
         params: {
           scope: 'openid email profile',
+          redirect_uri: process.env.NEXTAUTH_REDIRECT_URI,
         },
       },
       checks: ['pkce', 'state'],
       client: {
         token_endpoint_auth_method: 'none',
       },
+      allowDangerousEmailAccountLinking: true,
     }),
     Credentials({
       name: 'credentials',
