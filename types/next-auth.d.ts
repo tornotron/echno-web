@@ -7,6 +7,7 @@ declare module "next-auth" {
     idToken?: string
     refreshToken?: string
     provider?: string
+    error?: string
 
     user: {
       id: string
@@ -30,5 +31,7 @@ declare module "next-auth/jwt" {
     idToken?: string
     refreshToken?: string
     provider?: string
+    expiresAt?: number
+    error?: string
   }
 }
