@@ -166,6 +166,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.role = token.role
 
       session.accessToken = token.accessToken
+      session.idToken = token.idToken
       session.provider = token.provider
 
       if (token.error) {
