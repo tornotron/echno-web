@@ -1,5 +1,5 @@
 import NextAuth from "next-auth"
-import Keycloak from "next-auth/providers/keycloak"
+import KeycloakProvider from "next-auth/providers/keycloak"
 import Credentials from "next-auth/providers/credentials"
 
 /**
@@ -9,17 +9,22 @@ async function refreshAccessToken(token: any) {
   try {
     const issuer = process.env.KEYCLOAK_ISSUER!
 
+    const params: Record<string, string> = {
+      client_id: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
+      grant_type: "refresh_token",
+      refresh_token: token.refreshToken,
+    }
+
+    if (process.env.KEYCLOAK_CLIENT_SECRET) {
+      params.client_secret = process.env.KEYCLOAK_CLIENT_SECRET
+    }
+
     const response = await fetch(
       `${issuer}/protocol/openid-connect/token`,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          client_id: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
-          client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
-          grant_type: "refresh_token",
-          refresh_token: token.refreshToken,
-        }),
+        body: new URLSearchParams(params),
       }
     )
 
@@ -37,7 +42,7 @@ async function refreshAccessToken(token: any) {
       expiresAt: Date.now() + refreshed.expires_in * 1000,
     }
   } catch (err) {
-    console.error("🔴 Token refresh failed:", err)
+    console.error("Token refresh failed:", err)
     return { ...token, error: "RefreshAccessTokenError" }
   }
 }
@@ -51,25 +56,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   session: { strategy: "jwt" },
 
   providers: [
-    // =======================
-    // Keycloak Provider
-    // =======================
-    Keycloak({
+    KeycloakProvider({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
-      issuer: process.env.KEYCLOAK_ISSUER!, // must include /realms/{realm}
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || undefined,
+      issuer: process.env.KEYCLOAK_ISSUER!,
       wellKnown: process.env.KEYCLOAK_WELL_KNOWN,
       authorization: {
         params: {
           scope: "openid email profile",
         },
       },
-      checks: ["state"], // nonce removed for proxy safety
+      checks: ["pkce", "state"], 
     }),
 
-    // =======================
-    // Credentials Provider
-    // =======================
     Credentials({
       name: "Credentials",
       credentials: {
@@ -79,24 +78,41 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL!
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL
+        if (!apiUrl) {
+          console.error("NEXT_PUBLIC_API_URL is not configured")
+          return null
+        }
 
-        const res = await fetch(`${apiUrl}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(credentials),
-        })
+        try {
+          const res = await fetch(`${apiUrl}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(credentials),
+          })
 
-        if (!res.ok) return null
+          if (!res.ok) {
+            console.error(`Login failed: ${res.status} ${res.statusText}`)
+            return null
+          }
 
-        const data = await res.json()
+          const data = await res.json()
 
-        return {
-          id: String(data.user.id),
-          email: data.user.email,
-          name: data.user.name,
-          role: data.user.role,
-          accessToken: data.access_token,
+          if (!data?.user || !data?.access_token) {
+            console.error("Invalid response from auth API")
+            return null
+          }
+
+          return {
+            id: String(data.user.id),
+            email: data.user.email,
+            name: data.user.name,
+            role: data.user.role,
+            accessToken: data.access_token,
+          }
+        } catch (error) {
+          console.error("Auth API error:", error)
+          return null
         }
       },
     }),
@@ -104,9 +120,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async jwt({ token, user, account }) {
-      // =======================
-      // Initial Sign In
-      // =======================
+
       if (account?.provider === "keycloak") {
         token.provider = "keycloak"
         token.accessToken = account.access_token
@@ -128,16 +142,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as any).role
       }
 
-      // =======================
-      // Token Still Valid
-      // =======================
       if (token.expiresAt && Date.now() < token.expiresAt) {
         return token
       }
 
-      // =======================
-      // Refresh Token (Keycloak only)
-      // =======================
       if (token.provider === "keycloak" && token.refreshToken) {
         return refreshAccessToken(token)
       }
