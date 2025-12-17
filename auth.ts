@@ -98,11 +98,17 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
         token.idToken = account.id_token;
         token.provider = account.provider;
         token.refreshToken = account.refresh_token;
+        token.userId = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
 
       // Add user accessToken for credentials provider
       if (user && 'accessToken' in user) {
         token.accessToken = user.accessToken as string;
+        token.userId = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
 
       return token;
@@ -114,6 +120,12 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
         session.accessToken = token.accessToken as string;
         session.idToken = token.idToken as string;
         session.provider = token.provider as string;
+        // Add user info to session
+        if (session.user) {
+          session.user.id = token.userId as string;
+          session.user.email = token.email as string;
+          session.user.name = token.name as string;
+        }
       }
       return session;
     },
