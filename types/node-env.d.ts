@@ -8,5 +8,7 @@ declare namespace NodeJS {
       KEYCLOAK_WELL_KNOWN: string
       NEXT_PUBLIC_API_URL: string
       NEXT_PUBLIC_KEYCLOAK_ISSUER: string
+      AUTH_URL: string
+      NEXTAUTH_URL: string
     }
   }
