@@ -1,132 +1,100 @@
-import NextAuth from 'next-auth';
-import Keycloak from 'next-auth/providers/keycloak';
-import Credentials from 'next-auth/providers/credentials';
+import NextAuth from "next-auth"
+import Keycloak from "next-auth/providers/keycloak"
+import Credentials from "next-auth/providers/credentials"
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
-  trustHost: [
-    "ui.echno.xyz",
-    "auth.echno.xyz",
-    "echno.xyz",
-    "localhost:3000",
-    "backend.echno.xyz",
-  ],
-  basePath: '/api/auth',
+export const { handlers, signIn, signOut, auth } = NextAuth({
+  trustHost: true,
+
   providers: [
     Keycloak({
-      clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || '',
-      issuer: process.env.KEYCLOAK_ISSUER,
+      clientId: process.env.KEYCLOAK_CLIENT_ID!,
+      issuer: process.env.KEYCLOAK_ISSUER!,
       authorization: {
         params: {
-          scope: 'openid email profile',
-          redirect_uri: process.env.NEXTAUTH_REDIRECT_URI,
+          scope: "openid email profile",
         },
       },
-      checks: ['pkce', 'state'],
+      checks: ["pkce", "state"], 
       client: {
-        token_endpoint_auth_method: 'none',
+        token_endpoint_auth_method: "none",
       },
-      allowDangerousEmailAccountLinking: true,
     }),
+
     Credentials({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null
 
-        try {
-          // Call your backend API to validate credentials
-          const apiUrl =
-            process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-          const response = await fetch(`${apiUrl}/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080"
 
-          if (!response.ok) {
-            console.error('Login failed:', response.statusText);
-            return null;
-          }
+        const res = await fetch(`${apiUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(credentials),
+        })
 
-          const data = await response.json();
+        if (!res.ok) return null
 
-          // Return user object if authentication successful
-          if (data.access_token && data.user) {
-            return {
-              id: data.user.id,
-              email: data.user.email,
-              name: data.user.name || data.user.email,
-              accessToken: data.access_token,
-            };
-          }
+        const data = await res.json()
 
-          return null;
-        } catch (error) {
-          console.error('Authorization error:', error);
-          return null;
+        return {
+          id: data.user.id,
+          email: data.user.email,
+          name: data.user.name,
+          accessToken: data.access_token,
         }
       },
     }),
   ],
-  pages: {
-    signIn: '/login',
-    error: '/login',
-  },
+
+  session: { strategy: "jwt" },
+
   callbacks: {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async jwt({ token, user, account }: any) {
-      // Initial sign in
-      if (account && user) {
-        token.accessToken = account.access_token;
-        token.idToken = account.id_token;
-        token.provider = account.provider;
-        token.refreshToken = account.refresh_token;
-        token.userId = user.id;
-        token.email = user.email;
-        token.name = user.name;
+    async jwt({ token, user, account }) {
+      if (account?.provider === "keycloak") {
+        token.accessToken = account.access_token
+        token.refreshToken = account.refresh_token
+        token.idToken = account.id_token
+        token.provider = "keycloak"
       }
 
-      // Add user accessToken for credentials provider
-      if (user && 'accessToken' in user) {
-        token.accessToken = user.accessToken as string;
-        token.userId = user.id;
-        token.email = user.email;
-        token.name = user.name;
+      if (account?.provider === "credentials" && user) {
+        token.accessToken = user.accessToken
+        token.provider = "credentials"
       }
 
-      return token;
-    },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async session({ session, token }: any) {
-      // Add tokens to session for client-side access
-      if (token) {
-        session.accessToken = token.accessToken as string;
-        session.idToken = token.idToken as string;
-        session.provider = token.provider as string;
-        // Add user info to session
-        if (session.user) {
-          session.user.id = token.userId as string;
-          session.user.email = token.email as string;
-          session.user.name = token.name as string;
-        }
+      if (user) {
+        token.userId = user.id
+        token.email = user.email
+        token.name = user.name
       }
-      return session;
+
+      return token
     },
+
+    async session({ session, token }) {
+    session.accessToken = token.accessToken
+    session.provider = token.provider
+
+    if (session.user && token.userId) {
+      session.user.id = token.userId
+      session.user.email = token.email ?? ""
+      session.user.name = token.name ?? ""
+    }
+
+    return session
   },
-  session: {
-    strategy: 'jwt',
   },
-  debug: process.env.NODE_ENV === 'development',
-});
+
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+
+  debug: process.env.NODE_ENV === "development",
+})
