@@ -10,5 +10,6 @@ declare namespace NodeJS {
       NEXT_PUBLIC_KEYCLOAK_ISSUER: string
       AUTH_URL: string
       NEXTAUTH_URL: string
+      NEXTAUTH_SECRET: string
     }
   }

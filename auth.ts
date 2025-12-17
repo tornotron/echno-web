@@ -58,6 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
       clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
       issuer: process.env.KEYCLOAK_ISSUER!, // must include /realms/{realm}
+      wellKnown: process.env.KEYCLOAK_WELL_KNOWN,
       authorization: {
         params: {
           scope: "openid email profile",
