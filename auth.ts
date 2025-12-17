@@ -13,6 +13,7 @@ async function refreshAccessToken(token: any) {
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         client_id: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
+        client_secret: process.env.KEYCLOAK_CLIENT_SECRET!,
         grant_type: "refresh_token",
         refresh_token: token.refreshToken,
       }),
@@ -46,16 +47,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET!,
       issuer: process.env.KEYCLOAK_ISSUER!,
       authorization: {
         params: {
           scope: "openid email profile",
         },
       },
-      checks: ["pkce", "state", "nonce"], 
-      client: {
-        token_endpoint_auth_method: "none",
-      },
+      checks: ["state", "nonce"],
       allowDangerousEmailAccountLinking: false,
     }),
 
