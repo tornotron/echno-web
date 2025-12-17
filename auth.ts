@@ -4,7 +4,14 @@ import Credentials from 'next-auth/providers/credentials';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
-  trustHost: true,
+  trustHost: [
+    "ui.echno.xyz",
+    "auth.echno.xyz",
+    "echno.xyz",
+    "localhost:3000",
+    "backend.echno.xyz",
+  ],
+  basePath: '/api/auth',
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID,
@@ -14,6 +21,10 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
         params: {
           scope: 'openid email profile',
         },
+      },
+      checks: ['pkce', 'state'],
+      client: {
+        token_endpoint_auth_method: 'client_secret_post',
       },
     }),
     Credentials({
