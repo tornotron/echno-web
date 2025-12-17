@@ -15,7 +15,7 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
   providers: [
     Keycloak({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET,
+      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || '',
       issuer: process.env.KEYCLOAK_ISSUER,
       authorization: {
         params: {
@@ -24,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = (NextAuth as any)({
       },
       checks: ['pkce', 'state'],
       client: {
-        token_endpoint_auth_method: 'client_secret_post',
+        token_endpoint_auth_method: 'none',
       },
     }),
     Credentials({
