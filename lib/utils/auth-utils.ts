@@ -9,7 +9,7 @@ export async function handleSignOut(session: Session | null) {
 
   // If user is logged in via Keycloak, redirect to Keycloak logout
   if (session?.provider === 'keycloak') {
-    const keycloakIssuer = process.env.NEXT_PUBLIC_KEYCLOAK_ISSUER;
+    const keycloakIssuer = session?.keycloakIssuer;
 
     if (keycloakIssuer && session?.idToken) {
       const logoutUrl = `${keycloakIssuer}/protocol/openid-connect/logout`;

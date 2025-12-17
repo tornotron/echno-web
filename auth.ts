@@ -135,6 +135,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.refreshToken = account.refresh_token
         token.idToken = account.id_token
         token.expiresAt = Date.now() + (account.expires_in ?? 300) * 1000
+        token.keycloakIssuer = process.env.KEYCLOAK_ISSUER
       }
 
       if (account?.provider === "credentials" && user) {
@@ -170,6 +171,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.accessToken = token.accessToken
       session.idToken = token.idToken
       session.provider = token.provider
+      session.keycloakIssuer = token.keycloakIssuer
 
       if (token.error) {
         session.error = token.error
