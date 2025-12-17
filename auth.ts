@@ -9,22 +9,16 @@ async function refreshAccessToken(token: any) {
   try {
     const issuer = process.env.KEYCLOAK_ISSUER!
 
-    const params: Record<string, string> = {
-      client_id: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
-      grant_type: "refresh_token",
-      refresh_token: token.refreshToken,
-    }
-
-    if (process.env.KEYCLOAK_CLIENT_SECRET) {
-      params.client_secret = process.env.KEYCLOAK_CLIENT_SECRET
-    }
-
     const response = await fetch(
       `${issuer}/protocol/openid-connect/token`,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams(params),
+        body: new URLSearchParams({
+          client_id: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
+          grant_type: "refresh_token",
+          refresh_token: token.refreshToken,
+        }),
       }
     )
 
@@ -58,7 +52,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     KeycloakProvider({
       clientId: process.env.KEYCLOAK_PUBLIC_CLIENT_ID!,
-      clientSecret: process.env.KEYCLOAK_CLIENT_SECRET || undefined,
       issuer: process.env.KEYCLOAK_ISSUER!,
       authorization: {
         params: {
