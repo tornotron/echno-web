@@ -72,9 +72,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       authorization: {
         params: {
           scope: "openid email profile",
+          redirect_uri: `${process.env.NEXTAUTH_URL}/api/auth/callback/keycloak`,
         },
       },
       checks: ["state"],
+      token: {
+        url: `${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/token`,
+      },
     }),
 
     Credentials({
