@@ -1,9 +1,9 @@
-name: Build, Push, and Deploy to Staging
+name: Build, Push, and Deploy to Staging (For the time being `profile-refactor` branch)
 
 on:
   push:
     branches:
-      - staging
+      - profile-refactor
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
