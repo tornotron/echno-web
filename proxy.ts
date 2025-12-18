@@ -3,12 +3,17 @@ import { NextResponse } from "next/server"
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
+  
+  // Skip auth entirely for health checks to prevent token refresh
+  if (pathname.startsWith("/api/health")) {
+    return NextResponse.next()
+  }
+
   const isLoggedIn = !!req.auth
 
   const isPublic =
     pathname === "/" ||
-    pathname === "/login" ||
-    pathname.startsWith("/api/health")
+    pathname === "/login"
 
   const isProtected =
     pathname.startsWith("/dashboard") ||
