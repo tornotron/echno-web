@@ -35,6 +35,7 @@ async function refreshAccessToken(token: any) {
       idToken: refreshed.id_token,
       refreshToken: refreshed.refresh_token ?? token.refreshToken,
       expiresAt: Date.now() + refreshed.expires_in * 1000,
+      lastRefresh: Date.now(),
     }
   } catch (err) {
     console.error("Token refresh failed:", err)
@@ -135,6 +136,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.refreshToken = account.refresh_token
         token.idToken = account.id_token
         token.expiresAt = Date.now() + (account.expires_in ?? 300) * 1000
+        token.lastRefresh = Date.now()
         token.keycloakIssuer = process.env.KEYCLOAK_ISSUER
         token.error = undefined
       }
@@ -152,13 +154,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as any).role
       }
 
-      // Token still valid
-      if (token.expiresAt && Date.now() < token.expiresAt) {
+      // STOP refresh if already failed (check BEFORE expiration)
+      if (token.error === "RefreshAccessTokenError") {
         return token
       }
 
-      // STOP refresh if already failed
-      if (token.error === "RefreshAccessTokenError") {
+      // Token still valid
+      if (token.expiresAt && Date.now() < token.expiresAt) {
         return token
       }
 
@@ -180,6 +182,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.idToken = token.idToken
       session.provider = token.provider
       session.keycloakIssuer = token.keycloakIssuer
+      session.lastRefresh = token.lastRefresh
 
       if (token.error) {
         session.error = token.error

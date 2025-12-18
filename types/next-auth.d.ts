@@ -9,6 +9,7 @@ declare module "next-auth" {
     provider?: string
     keycloakIssuer?: string
     error?: string
+    lastRefresh?: number
     user: {
       id: string
       role?: string
@@ -32,6 +33,7 @@ declare module "next-auth/jwt" {
     provider?: string
     keycloakIssuer?: string
     expiresAt?: number
+    lastRefresh?: number
     error?: string
   }
 }
