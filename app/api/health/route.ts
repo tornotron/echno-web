@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
 
+// Force dynamic rendering and prevent cookie/auth processing
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET() {
   try {
-    // Basic health check
     return NextResponse.json(
       {
         status: 'healthy',
