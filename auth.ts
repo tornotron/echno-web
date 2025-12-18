@@ -136,6 +136,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.idToken = account.id_token
         token.expiresAt = Date.now() + (account.expires_in ?? 300) * 1000
         token.keycloakIssuer = process.env.KEYCLOAK_ISSUER
+        token.error = undefined
       }
 
       if (account?.provider === "credentials" && user) {
@@ -151,10 +152,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = (user as any).role
       }
 
+      // Token still valid
       if (token.expiresAt && Date.now() < token.expiresAt) {
         return token
       }
 
+      // STOP refresh if already failed
+      if (token.error === "RefreshAccessTokenError") {
+        return token
+      }
+
+      // Refresh only once
       if (token.provider === "keycloak" && token.refreshToken) {
         return refreshAccessToken(token)
       }
