@@ -51,30 +51,30 @@ jobs:
             NODE_ENV=production
 
   # ------------ Job 2: Deploy to Server ------------
-  deploy:
-    name: Deploy to Staging Server
-    needs: build_and_push
-    runs-on: ubuntu-latest
+  # deploy:
+  #   name: Deploy to Staging Server
+  #   needs: build_and_push
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            # Navigate to the project directory
-            cd /opt/echno-backend
+  #   steps:
+  #     - name: Deploy to Server via SSH
+  #       uses: appleboy/ssh-action@v1.0.3
+  #       with:
+  #         host: ${{ secrets.REMOTE_HOST }}
+  #         username: ${{ secrets.REMOTE_USER }}
+  #         key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #         script: |
+  #           # Navigate to the project directory
+  #           cd /opt/echno-backend
 
-            # Export environment variables
-            export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
+  #           # Export environment variables
+  #           export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
 
-            # Stop the current container
-            docker compose stop ${{ env.SERVICE_NAME }}
+  #           # Stop the current container
+  #           docker compose stop ${{ env.SERVICE_NAME }}
 
-            # Pull the latest image
-            docker compose pull ${{ env.SERVICE_NAME }}
+  #           # Pull the latest image
+  #           docker compose pull ${{ env.SERVICE_NAME }}
 
-            # Recreate and start the container
-            docker compose up --force-recreate ${{ env.SERVICE_NAME }} -d
+  #           # Recreate and start the container
+  #           docker compose up --force-recreate ${{ env.SERVICE_NAME }} -d
