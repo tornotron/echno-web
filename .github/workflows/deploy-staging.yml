@@ -1,9 +1,9 @@
-name: Build, Push, and Deploy to Staging (For the time being `profile-refactor` branch)
+name: Build, Push, and Deploy to Staging
 
 on:
   push:
     branches:
-      - profile-refactor
+      - staging
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -66,15 +66,15 @@ jobs:
           script: |
             # Navigate to the project directory
             cd /opt/echno-backend
-            
+
             # Export environment variables
             export DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}
-            
+
             # Stop the current container
             docker compose stop ${{ env.SERVICE_NAME }}
-            
+
             # Pull the latest image
             docker compose pull ${{ env.SERVICE_NAME }}
-            
+
             # Recreate and start the container
             docker compose up --force-recreate ${{ env.SERVICE_NAME }} -d
