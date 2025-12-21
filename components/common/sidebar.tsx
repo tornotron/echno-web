@@ -32,7 +32,10 @@ import {
   PiggyBank,
   MapPin,
   ChevronRight,
-  LucideIcon,
+  ClipboardCheck,
+  FolderKanban,
+  ShieldCheck,
+  CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -67,17 +70,25 @@ import {
 interface NavItem {
   title: string;
   url: string;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
   items?: {
     title: string;
     url: string;
-    icon: LucideIcon;
+    icon: React.ComponentType<{ className?: string }>;
   }[];
 }
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
   { title: 'Organizations', url: '/dashboard/organizations', icon: Building },
+  {
+    title: 'Projects',
+    url: '/dashboard/projects',
+    icon: FolderKanban,
+    items: [
+      { title: 'All Projects', url: '/dashboard/projects', icon: FolderKanban },
+    ],
+  },
   {
     title: 'Workforce',
     url: '/dashboard/workforce',
@@ -112,6 +123,11 @@ const navItems: NavItem[] = [
     items: [
       { title: 'Tasks', url: '/dashboard/workflow/tasks', icon: ListTodo },
       { title: 'Issues', url: '/dashboard/workflow/issues', icon: AlertCircle },
+      {
+        title: 'Inspections',
+        url: '/dashboard/workflow/inspections',
+        icon: ClipboardCheck,
+      },
     ],
   },
   {
@@ -179,7 +195,11 @@ const navItems: NavItem[] = [
     url: '/dashboard/finance',
     icon: Wallet,
     items: [
-      { title: 'Estimates', url: '/dashboard/finance/estimates', icon: FileText },
+      {
+        title: 'Estimates',
+        url: '/dashboard/finance/estimates',
+        icon: FileText,
+      },
       { title: 'Receipts', url: '/dashboard/finance/receipts', icon: Receipt },
       {
         title: 'Payments',
@@ -197,6 +217,38 @@ const navItems: NavItem[] = [
         icon: TrendingDown,
       },
       { title: 'Budgets', url: '/dashboard/finance/budgets', icon: PiggyBank },
+    ],
+  },
+  {
+    title: 'Compliance',
+    url: '/dashboard/compliance',
+    icon: ShieldCheck,
+    items: [
+      {
+        title: 'Permits & Licenses',
+        url: '/dashboard/compliance/permits',
+        icon: FileText,
+      },
+      {
+        title: 'Certificates',
+        url: '/dashboard/compliance/certificates',
+        icon: CheckCircle2,
+      },
+      {
+        title: 'Regulations',
+        url: '/dashboard/compliance/regulations',
+        icon: ClipboardList,
+      },
+      {
+        title: 'Audits',
+        url: '/dashboard/compliance/audits',
+        icon: ClipboardCheck,
+      },
+      {
+        title: 'Reports',
+        url: '/dashboard/compliance/reports',
+        icon: FileSpreadsheet,
+      },
     ],
   },
   { title: 'Reports', url: '/dashboard/reports', icon: BarChart3 },
