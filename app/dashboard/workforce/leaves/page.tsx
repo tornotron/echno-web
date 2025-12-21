@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -34,8 +33,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Search,
-  Filter,
   Plus,
   Check,
   X,
@@ -102,6 +99,17 @@ export default function LeaveRequestsPage() {
   const pendingLeaves = getPendingLeaveRequests().length;
   const approvedLeaves = getLeaveRequestsByStatus(LeaveStatus.approved).length;
   const rejectedLeaves = getLeaveRequestsByStatus(LeaveStatus.rejected).length;
+
+  const hasActiveFilters = Boolean(
+    searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
+  );
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setCurrentPage(1);
+  };
 
   // Pagination
   const totalPages = Math.ceil(filteredLeaves.length / itemsPerPage);
@@ -235,89 +243,51 @@ export default function LeaveRequestsPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                <CardTitle>Search & Filters</CardTitle>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {/* Search */}
-              <div>
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                  <Input
-                    placeholder="Search by employee, email, or reason..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value={LeaveStatus.pending}>Pending</SelectItem>
-                  <SelectItem value={LeaveStatus.approved}>Approved</SelectItem>
-                  <SelectItem value={LeaveStatus.rejected}>Rejected</SelectItem>
-                  <SelectItem value={LeaveStatus.draft}>Draft</SelectItem>
-                  <SelectItem value={LeaveStatus.cancelled}>
-                    Cancelled
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Type Filter */}
-              <Select
-                value={typeFilter}
-                onValueChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Leave Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={LeaveType.casualLeave}>
-                    Casual Leave
-                  </SelectItem>
-                  <SelectItem value={LeaveType.sickLeave}>
-                    Sick Leave
-                  </SelectItem>
-                  <SelectItem value={LeaveType.earnedLeave}>
-                    Earned Leave
-                  </SelectItem>
-                  <SelectItem value={LeaveType.maternityLeave}>
-                    Maternity Leave
-                  </SelectItem>
-                  <SelectItem value={LeaveType.paternityLeave}>
-                    Paternity Leave
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by employee, email, or reason..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                { value: LeaveStatus.pending, label: 'Pending' },
+                { value: LeaveStatus.approved, label: 'Approved' },
+                { value: LeaveStatus.rejected, label: 'Rejected' },
+                { value: LeaveStatus.draft, label: 'Draft' },
+                { value: LeaveStatus.cancelled, label: 'Cancelled' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Leave Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: LeaveType.casualLeave, label: 'Casual Leave' },
+                { value: LeaveType.sickLeave, label: 'Sick Leave' },
+                { value: LeaveType.earnedLeave, label: 'Earned Leave' },
+                { value: LeaveType.maternityLeave, label: 'Maternity Leave' },
+                { value: LeaveType.paternityLeave, label: 'Paternity Leave' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary and Bulk Actions */}
         <div className="mb-4 flex items-center justify-between">

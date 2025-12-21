@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Select,
@@ -34,8 +33,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Search,
-  Filter,
   Plus,
   Mail,
   Clock,
@@ -148,6 +145,17 @@ export default function InvitationsPage() {
   const endIndex = startIndex + itemsPerPage;
   const currentInvitations = filteredInvitations.slice(startIndex, endIndex);
 
+  const hasActiveFilters = Boolean(
+    searchQuery || statusFilter !== 'all' || departmentFilter !== 'all'
+  );
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+    setDepartmentFilter('all');
+    setCurrentPage(1);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
@@ -237,71 +245,50 @@ export default function InvitationsPage() {
         </div>
 
         {/* Search & Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Search & Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <div className="relative">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                <Input
-                  placeholder="Search by name, code, email..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  className="pl-10"
-                />
-              </div>
-
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="accepted">Accepted</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select
-                value={departmentFilter}
-                onValueChange={(value) => {
-                  setDepartmentFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="Engineering">Engineering</SelectItem>
-                  <SelectItem value="Quality">Quality</SelectItem>
-                  <SelectItem value="Safety">Safety</SelectItem>
-                  <SelectItem value="Human Resources">
-                    Human Resources
-                  </SelectItem>
-                  <SelectItem value="Operations">Operations</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by name, code, email..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'accepted', label: 'Accepted' },
+                { value: 'rejected', label: 'Rejected' },
+                { value: 'expired', label: 'Expired' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Department',
+              options: [
+                { value: 'all', label: 'All Departments' },
+                { value: 'Engineering', label: 'Engineering' },
+                { value: 'Quality', label: 'Quality' },
+                { value: 'Safety', label: 'Safety' },
+                { value: 'Human Resources', label: 'Human Resources' },
+                { value: 'Operations', label: 'Operations' },
+              ],
+              value: departmentFilter,
+              onChange: (value) => {
+                setDepartmentFilter(value);
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Table Header Info - Outside Card */}
         <div className="mb-4 flex items-center justify-between">

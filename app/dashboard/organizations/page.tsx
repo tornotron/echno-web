@@ -2,17 +2,9 @@
 
 import { useState } from 'react';
 import { OrganizationCard } from '@/features/organization/organization-card';
-import { AppLayout } from '@/components/common/app-layout';
+import { AppLayout, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { mockOrganizations } from '@/components/shared/mock-data';
 import Link from 'next/link';
 
@@ -39,6 +31,13 @@ export default function OrganizationsPage() {
     return matchesSearch && matchesStatus;
   });
 
+  const hasActiveFilters = !!searchQuery || statusFilter !== 'all';
+
+  const clearFilters = () => {
+    setSearchQuery('');
+    setStatusFilter('all');
+  };
+
   return (
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
@@ -58,39 +57,30 @@ export default function OrganizationsPage() {
               Add Organization
             </Button>
           </Link>
-        </div>{' '}
-        {/* Filters */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-            <Input
-              type="text"
-              placeholder="Search organizations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <Select
-            value={statusFilter}
-            onValueChange={(value) =>
-              setStatusFilter(value as 'all' | 'active' | 'inactive')
-            }
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <Filter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
+
+        {/* Search and Filters */}
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Search organizations..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+              ],
+              value: statusFilter,
+              onChange: (value) =>
+                setStatusFilter(value as 'all' | 'active' | 'inactive'),
+            },
+          ]}
+        />
         {/* Stats */}
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">

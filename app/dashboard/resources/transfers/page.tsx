@@ -6,9 +6,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/components/common/app-layout';
-import { FiltersCard } from '@/components/common/filters-card';
-import { Pagination } from '@/components/common/pagination';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -40,10 +38,13 @@ import { mockTransfers } from '@/components/shared/mock-data';
 const getStatusBadgeColor = (status: TransferStatus): string => {
   const colors = {
     draft: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
-    pending: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    approved: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    pending:
+      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+    approved:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
     in_transit: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    completed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
+    completed:
+      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
     rejected: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
     cancelled: 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
     failed: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
@@ -64,28 +65,36 @@ const getPriorityBadgeColor = (priority: TransferPriority): string => {
 export default function TransfersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransferType | 'all'>('all');
-  const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all');
-  const [priorityFilter, setPriorityFilter] = useState<TransferPriority | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>(
+    'all'
+  );
+  const [priorityFilter, setPriorityFilter] = useState<
+    TransferPriority | 'all'
+  >('all');
 
   // Filter transfers
   const filteredTransfers = useMemo(() => {
     return mockTransfers.filter((transfer) => {
-      const matchesSearch = 
-        transfer.transferNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        transfer.lineItems.some(item => item.description.toLowerCase().includes(searchQuery.toLowerCase()));
-      
+      const matchesSearch =
+        transfer.transferNumber
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        transfer.lineItems.some((item) =>
+          item.description.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
       const matchesType = typeFilter === 'all' || transfer.type === typeFilter;
-      const matchesStatus = statusFilter === 'all' || transfer.status === statusFilter;
-      const matchesPriority = priorityFilter === 'all' || transfer.priority === priorityFilter;
+      const matchesStatus =
+        statusFilter === 'all' || transfer.status === statusFilter;
+      const matchesPriority =
+        priorityFilter === 'all' || transfer.priority === priorityFilter;
 
       return matchesSearch && matchesType && matchesStatus && matchesPriority;
     });
   }, [searchQuery, typeFilter, statusFilter, priorityFilter]);
-
-
 
   // Pagination
   const totalPages = Math.ceil(filteredTransfers.length / itemsPerPage);
@@ -96,12 +105,22 @@ export default function TransfersPage() {
   // Calculate stats
   const totalTransfers = mockTransfers.length;
   const totalValue = mockTransfers.reduce((sum, t) => sum + t.totalValue, 0);
-  const pendingApproval = mockTransfers.filter(t => t.status === TransferStatus.pending).length;
-  const inTransit = mockTransfers.filter(t => t.status === TransferStatus.inTransit).length;
-  const completed = mockTransfers.filter(t => t.status === TransferStatus.completed).length;
+  const pendingApproval = mockTransfers.filter(
+    (t) => t.status === TransferStatus.pending
+  ).length;
+  const inTransit = mockTransfers.filter(
+    (t) => t.status === TransferStatus.inTransit
+  ).length;
+  const completed = mockTransfers.filter(
+    (t) => t.status === TransferStatus.completed
+  ).length;
 
-  const hasActiveFilters =
-    searchQuery || typeFilter !== 'all' || statusFilter !== 'all' || priorityFilter !== 'all';
+  const hasActiveFilters = Boolean(
+    searchQuery ||
+      typeFilter !== 'all' ||
+      statusFilter !== 'all' ||
+      priorityFilter !== 'all'
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -115,12 +134,12 @@ export default function TransfersPage() {
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
               Transfers
             </h1>
-            <p className="text-sm sm:text-base text-zinc-600 dark:text-zinc-400 mt-1">
+            <p className="mt-1 text-sm text-zinc-600 sm:text-base dark:text-zinc-400">
               Manage material and asset transfers between locations
             </p>
           </div>
@@ -133,163 +152,162 @@ export default function TransfersPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-5 mb-8">
+        <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Transfers</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Transfers
+              </CardTitle>
+              <FileText className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalTransfers}</div>
-              <p className="text-xs text-muted-foreground">All transfers</p>
+              <p className="text-muted-foreground text-xs">All transfers</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Total Value</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Total Value
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-blue-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{(totalValue / 100_000).toFixed(1)}L</div>
-              <p className="text-xs text-muted-foreground">Estimated value</p>
+              <div className="text-2xl font-bold">
+                ₹{(totalValue / 100_000).toFixed(1)}L
+              </div>
+              <p className="text-muted-foreground text-xs">Estimated value</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Pending
+              </CardTitle>
               <Clock className="h-4 w-4 text-orange-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{pendingApproval}</div>
-              <p className="text-xs text-muted-foreground">Awaiting approval</p>
+              <div className="text-2xl font-bold text-orange-600">
+                {pendingApproval}
+              </div>
+              <p className="text-muted-foreground text-xs">Awaiting approval</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">In Transit</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                In Transit
+              </CardTitle>
               <Truck className="h-4 w-4 text-purple-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{inTransit}</div>
-              <p className="text-xs text-muted-foreground">On the way</p>
+              <div className="text-2xl font-bold text-purple-600">
+                {inTransit}
+              </div>
+              <p className="text-muted-foreground text-xs">On the way</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs sm:text-sm font-medium">Completed</CardTitle>
+              <CardTitle className="text-xs font-medium sm:text-sm">
+                Completed
+              </CardTitle>
               <CheckCircle2 className="h-4 w-4 text-green-600" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{completed}</div>
-              <p className="text-xs text-muted-foreground">Delivered</p>
+              <div className="text-2xl font-bold text-green-600">
+                {completed}
+              </div>
+              <p className="text-muted-foreground text-xs">Delivered</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <div className="mb-6">
-          <FiltersCard
-            title="Search & Filters"
-            searchPlaceholder="Search by transfer number, location..."
-            searchValue={searchQuery}
-            onSearchChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-          >
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) => {
-                    setTypeFilter(value as TransferType | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value={TransferType.locationToLocation}>Location to Location</SelectItem>
-                    <SelectItem value={TransferType.projectToProject}>Project to Project</SelectItem>
-                    <SelectItem value={TransferType.returnToStock}>Return to Stock</SelectItem>
-                    <SelectItem value={TransferType.disposal}>Disposal</SelectItem>
-                    <SelectItem value={TransferType.temporary}>Temporary</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as TransferStatus | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value={TransferStatus.draft}>Draft</SelectItem>
-                    <SelectItem value={TransferStatus.pending}>Pending</SelectItem>
-                    <SelectItem value={TransferStatus.approved}>Approved</SelectItem>
-                    <SelectItem value={TransferStatus.inTransit}>In Transit</SelectItem>
-                    <SelectItem value={TransferStatus.completed}>Completed</SelectItem>
-                    <SelectItem value={TransferStatus.rejected}>Rejected</SelectItem>
-                    <SelectItem value={TransferStatus.cancelled}>Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:flex-1 sm:min-w-[200px]">
-                <Select
-                  value={priorityFilter}
-                  onValueChange={(value) => {
-                    setPriorityFilter(value as TransferPriority | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Priorities" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priorities</SelectItem>
-                    <SelectItem value={TransferPriority.low}>Low</SelectItem>
-                    <SelectItem value={TransferPriority.medium}>Medium</SelectItem>
-                    <SelectItem value={TransferPriority.high}>High</SelectItem>
-                    <SelectItem value={TransferPriority.urgent}>Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                onClick={clearFilters}
-                className="mt-2"
-              >
-                Clear Filters
-              </Button>
-            )}
-          </FiltersCard>
-        </div>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by transfer number, location..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                {
+                  value: TransferType.locationToLocation,
+                  label: 'Location to Location',
+                },
+                {
+                  value: TransferType.projectToProject,
+                  label: 'Project to Project',
+                },
+                { value: TransferType.returnToStock, label: 'Return to Stock' },
+                { value: TransferType.disposal, label: 'Disposal' },
+                { value: TransferType.temporary, label: 'Temporary' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value as TransferType | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: TransferStatus.draft, label: 'Draft' },
+                { value: TransferStatus.pending, label: 'Pending' },
+                { value: TransferStatus.approved, label: 'Approved' },
+                { value: TransferStatus.inTransit, label: 'In Transit' },
+                { value: TransferStatus.completed, label: 'Completed' },
+                { value: TransferStatus.rejected, label: 'Rejected' },
+                { value: TransferStatus.cancelled, label: 'Cancelled' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value as TransferStatus | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Priority',
+              options: [
+                { value: 'all', label: 'All Priorities' },
+                { value: TransferPriority.low, label: 'Low' },
+                { value: TransferPriority.medium, label: 'Medium' },
+                { value: TransferPriority.high, label: 'High' },
+                { value: TransferPriority.urgent, label: 'Urgent' },
+              ],
+              value: priorityFilter,
+              onChange: (value) => {
+                setPriorityFilter(value as TransferPriority | 'all');
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to {Math.min(endIndex, filteredTransfers.length)} of{' '}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(endIndex, filteredTransfers.length)} of{' '}
             {filteredTransfers.length} transfers
           </p>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">Rows per page:</span>
+            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              Rows per page:
+            </span>
             <Select
               value={itemsPerPage.toString()}
               onValueChange={(value) => {
@@ -318,21 +336,23 @@ export default function TransfersPage() {
                 {paginatedTransfers.map((transfer) => (
                   <div
                     key={transfer.id}
-                    className="border rounded-lg p-4 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
                       {/* Left Section */}
                       <div className="flex-1 space-y-3">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
+                            <div className="mb-1 flex items-center gap-2">
                               <Link
                                 href={`/dashboard/resources/transfers/${transfer.id}`}
-                                className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 hover:text-blue-600 dark:hover:text-blue-400"
+                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
                               >
                                 {transfer.transferNumber}
                               </Link>
-                              <Badge className={getStatusBadgeColor(transfer.status)}>
+                              <Badge
+                                className={getStatusBadgeColor(transfer.status)}
+                              >
                                 {transferStatusLabels[transfer.status]}
                               </Badge>
                               <Badge variant="outline">
@@ -340,33 +360,55 @@ export default function TransfersPage() {
                               </Badge>
                             </div>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              Transfer: <span className="font-medium text-zinc-900 dark:text-zinc-100">{transfer.lineItems.map(item => item.description).join(', ')}</span>
+                              Transfer:{' '}
+                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {transfer.lineItems
+                                  .map((item) => item.description)
+                                  .join(', ')}
+                              </span>
                             </p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Request Date:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Request Date:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {format(transfer.requestDate, 'MMM dd, yyyy')}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Expected:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Expected:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {transfer.expectedDeliveryDate ? format(transfer.expectedDeliveryDate, 'MMM dd, yyyy') : 'TBD'}
+                              {transfer.expectedDeliveryDate
+                                ? format(
+                                    transfer.expectedDeliveryDate,
+                                    'MMM dd, yyyy'
+                                  )
+                                : 'TBD'}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Items:</span>
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Items:
+                            </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {transfer.lineItems.length} item{transfer.lineItems.length === 1 ? '' : 's'}
+                              {transfer.lineItems.length} item
+                              {transfer.lineItems.length === 1 ? '' : 's'}
                             </p>
                           </div>
                           <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">Priority:</span>
-                            <Badge className={`${getPriorityBadgeColor(transfer.priority)} mt-1`} variant="outline">
+                            <span className="text-zinc-500 dark:text-zinc-500">
+                              Priority:
+                            </span>
+                            <Badge
+                              className={`${getPriorityBadgeColor(transfer.priority)} mt-1`}
+                              variant="outline"
+                            >
                               {transferPriorityLabels[transfer.priority]}
                             </Badge>
                           </div>
@@ -374,14 +416,18 @@ export default function TransfersPage() {
                       </div>
 
                       {/* Right Section */}
-                      <div className="flex flex-col lg:items-end gap-2">
+                      <div className="flex flex-col gap-2 lg:items-end">
                         <div className="text-right">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">Total Value</p>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                            Total Value
+                          </p>
                           <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                             ₹{(transfer.totalValue / 100_000).toFixed(2)}L
                           </p>
                         </div>
-                        <Link href={`/dashboard/resources/transfers/${transfer.id}`}>
+                        <Link
+                          href={`/dashboard/resources/transfers/${transfer.id}`}
+                        >
                           <Button variant="outline" size="sm">
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
@@ -403,14 +449,14 @@ export default function TransfersPage() {
           </Card>
         ) : (
           <Card>
-            <CardContent className="text-center py-12">
-              <ArrowRightLeft className="h-12 w-12 text-zinc-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100 mb-2">
+            <CardContent className="py-12 text-center">
+              <ArrowRightLeft className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
                 {hasActiveFilters ? 'No transfers found' : 'No transfers yet'}
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
+              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 {hasActiveFilters
-                  ? 'Try adjusting your filters to find what you\'re looking for.'
+                  ? "Try adjusting your filters to find what you're looking for."
                   : 'Create your first transfer to get started.'}
               </p>
               {hasActiveFilters ? (

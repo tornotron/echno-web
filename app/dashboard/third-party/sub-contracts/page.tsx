@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -35,7 +34,6 @@ import {
 } from '@/components/ui/tooltip';
 import {
   ClipboardList,
-  Search,
   Plus,
   Eye,
   Edit,
@@ -46,7 +44,6 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-  Filter,
   User,
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -106,6 +103,15 @@ export default function SubContractsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const hasActiveFilters =
+    statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== '';
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setSearchQuery('');
+  };
 
   // Filter data
   const filteredContracts = mockContracts.filter((contract) => {
@@ -243,78 +249,52 @@ export default function SubContractsPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-              <CardTitle>Search & Filters</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {/* Search */}
-              <div className="lg:col-span-2">
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                  <Input
-                    placeholder="Search by contract ID, company, or contact..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="onHold">On Hold</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="terminated">Terminated</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Type Filter */}
-              <Select
-                value={typeFilter}
-                onValueChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="lumpsum">Lump Sum</SelectItem>
-                  <SelectItem value="itemRate">Item Rate</SelectItem>
-                  <SelectItem value="timeAndMaterial">
-                    Time & Material
-                  </SelectItem>
-                  <SelectItem value="costPlus">Cost Plus</SelectItem>
-                  <SelectItem value="unitPrice">Unit Price</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by contract ID, company, or contact..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'active', label: 'Active' },
+                { value: 'onHold', label: 'On Hold' },
+                { value: 'completed', label: 'Completed' },
+                { value: 'terminated', label: 'Terminated' },
+                { value: 'expired', label: 'Expired' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: 'lumpsum', label: 'Lump Sum' },
+                { value: 'itemRate', label: 'Item Rate' },
+                { value: 'timeAndMaterial', label: 'Time & Material' },
+                { value: 'costPlus', label: 'Cost Plus' },
+                { value: 'unitPrice', label: 'Unit Price' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Showing results and rows per page */}
         <div className="flex items-center justify-between">

@@ -6,9 +6,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/components/common/app-layout';
-import { FiltersCard } from '@/components/common/filters-card';
-import { Pagination } from '@/components/common/pagination';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -121,11 +119,12 @@ export default function MaterialRequestsPage() {
     (mr) => mr.status === MaterialRequestStatus.partiallyFulfilled
   ).length;
 
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     searchQuery ||
-    typeFilter !== 'all' ||
-    statusFilter !== 'all' ||
-    priorityFilter !== 'all';
+      typeFilter !== 'all' ||
+      statusFilter !== 'all' ||
+      priorityFilter !== 'all'
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -218,132 +217,82 @@ export default function MaterialRequestsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6">
-          <FiltersCard
-            title="Search & Filters"
-            searchPlaceholder="Search by request number, purpose..."
-            searchValue={searchQuery}
-            onSearchChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) => {
-                    setTypeFilter(value as MaterialRequestType | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value={MaterialRequestType.project}>
-                      Project
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestType.maintenance}>
-                      Maintenance
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestType.emergency}>
-                      Emergency
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestType.replenishment}>
-                      Replenishment
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestType.other}>
-                      Other
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as MaterialRequestStatus | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value={MaterialRequestStatus.draft}>
-                      Draft
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestStatus.submitted}>
-                      Submitted
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestStatus.underReview}>
-                      Under Review
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestStatus.approved}>
-                      Approved
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestStatus.rejected}>
-                      Rejected
-                    </SelectItem>
-                    <SelectItem
-                      value={MaterialRequestStatus.partiallyFulfilled}
-                    >
-                      Partially Fulfilled
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestStatus.fulfilled}>
-                      Fulfilled
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestStatus.cancelled}>
-                      Cancelled
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={priorityFilter}
-                  onValueChange={(value) => {
-                    setPriorityFilter(value as MaterialRequestPriority | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Priorities" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Priorities</SelectItem>
-                    <SelectItem value={MaterialRequestPriority.low}>
-                      Low
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestPriority.medium}>
-                      Medium
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestPriority.high}>
-                      High
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestPriority.urgent}>
-                      Urgent
-                    </SelectItem>
-                    <SelectItem value={MaterialRequestPriority.critical}>
-                      Critical
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="mt-2">
-                Clear Filters
-              </Button>
-            )}
-          </FiltersCard>
-        </div>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by request number, purpose..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: MaterialRequestType.project, label: 'Project' },
+                {
+                  value: MaterialRequestType.maintenance,
+                  label: 'Maintenance',
+                },
+                { value: MaterialRequestType.emergency, label: 'Emergency' },
+                {
+                  value: MaterialRequestType.replenishment,
+                  label: 'Replenishment',
+                },
+                { value: MaterialRequestType.other, label: 'Other' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value as MaterialRequestType | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: MaterialRequestStatus.draft, label: 'Draft' },
+                { value: MaterialRequestStatus.submitted, label: 'Submitted' },
+                {
+                  value: MaterialRequestStatus.underReview,
+                  label: 'Under Review',
+                },
+                { value: MaterialRequestStatus.approved, label: 'Approved' },
+                { value: MaterialRequestStatus.rejected, label: 'Rejected' },
+                {
+                  value: MaterialRequestStatus.partiallyFulfilled,
+                  label: 'Partially Fulfilled',
+                },
+                { value: MaterialRequestStatus.fulfilled, label: 'Fulfilled' },
+                { value: MaterialRequestStatus.cancelled, label: 'Cancelled' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value as MaterialRequestStatus | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Priority',
+              options: [
+                { value: 'all', label: 'All Priorities' },
+                { value: MaterialRequestPriority.low, label: 'Low' },
+                { value: MaterialRequestPriority.medium, label: 'Medium' },
+                { value: MaterialRequestPriority.high, label: 'High' },
+                { value: MaterialRequestPriority.urgent, label: 'Urgent' },
+                { value: MaterialRequestPriority.critical, label: 'Critical' },
+              ],
+              value: priorityFilter,
+              onChange: (value) => {
+                setPriorityFilter(value as MaterialRequestPriority | 'all');
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="mb-6 flex items-center justify-between">

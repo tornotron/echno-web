@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/components/common/app-layout';
-import { FiltersCard } from '@/components/common/filters-card';
-import { Pagination } from '@/components/common/pagination';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -177,11 +175,12 @@ export default function StockAdjustmentsPage() {
       .reduce((sum, a) => sum + a.variance, 0)
   );
 
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     searchQuery ||
-    typeFilter !== 'all' ||
-    statusFilter !== 'all' ||
-    reasonFilter !== 'all';
+      typeFilter !== 'all' ||
+      statusFilter !== 'all' ||
+      reasonFilter !== 'all'
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -274,94 +273,66 @@ export default function StockAdjustmentsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6">
-          <FiltersCard
-            title="Search & Filters"
-            searchPlaceholder="Search by adjustment ID, material..."
-            searchValue={searchQuery}
-            onSearchChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) => {
-                    setTypeFilter(value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="correction">Correction</SelectItem>
-                    <SelectItem value="write-off">Write-off</SelectItem>
-                    <SelectItem value="found">Found Items</SelectItem>
-                    <SelectItem value="return">Return</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={reasonFilter}
-                  onValueChange={(value) => {
-                    setReasonFilter(value);
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Reasons" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Reasons</SelectItem>
-                    <SelectItem value="stock-discrepancy">
-                      Stock Discrepancy
-                    </SelectItem>
-                    <SelectItem value="damage">Damage</SelectItem>
-                    <SelectItem value="expiry">Expiry</SelectItem>
-                    <SelectItem value="theft">Theft</SelectItem>
-                    <SelectItem value="found-items">Found Items</SelectItem>
-                    <SelectItem value="counting-error">
-                      Counting Error
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="mt-2">
-                Clear Filters
-              </Button>
-            )}
-          </FiltersCard>
-        </div>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by adjustment ID, material..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: 'correction', label: 'Correction' },
+                { value: 'write-off', label: 'Write-off' },
+                { value: 'found', label: 'Found Items' },
+                { value: 'return', label: 'Return' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'approved', label: 'Approved' },
+                { value: 'rejected', label: 'Rejected' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Reason',
+              options: [
+                { value: 'all', label: 'All Reasons' },
+                { value: 'stock-discrepancy', label: 'Stock Discrepancy' },
+                { value: 'damage', label: 'Damage' },
+                { value: 'expiry', label: 'Expiry' },
+                { value: 'theft', label: 'Theft' },
+                { value: 'found-items', label: 'Found Items' },
+                { value: 'counting-error', label: 'Counting Error' },
+              ],
+              value: reasonFilter,
+              onChange: (value) => {
+                setReasonFilter(value);
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="mb-6 flex items-center justify-between">
