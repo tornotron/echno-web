@@ -31,7 +31,6 @@ import {
   AtSign,
   LucideIcon,
 } from 'lucide-react';
-import Link from 'next/link';
 import { toast } from 'sonner';
 import { whatsappMessage, emailSubject, emailBody } from '@/types/invitation';
 import type { Invitation } from '@/types/invitation';
@@ -369,24 +368,16 @@ export default function InvitationPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-5xl space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Link href="/dashboard/workforce/invitations">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back
-              </Button>
-            </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-                Invitation Details
-              </h1>
-              <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-                {invitation.inviteCode}
-              </p>
-            </div>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Invitation Details
+            </h1>
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+              {invitation.inviteCode}
+            </p>
           </div>
           <Badge className={statusDisplay.className}>
             <StatusIcon className="mr-1 h-3 w-3" />
