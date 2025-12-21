@@ -114,7 +114,7 @@ export default function EditInventoryPage() {
   if (isLoading) {
     return (
       <AppLayout>
-        <div className="px-4 py-8">
+        <div className="space-y-4 sm:space-y-6">
           <div className="py-12 text-center">
             <Package className="text-muted-foreground mx-auto mb-4 h-12 w-12 animate-pulse" />
             <p className="text-muted-foreground">Loading...</p>
@@ -126,7 +126,7 @@ export default function EditInventoryPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">

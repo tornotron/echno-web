@@ -60,7 +60,7 @@ export default function EditOrganizationPage({
 
   return (
     <AppLayout>
-      <div className="container mx-auto max-w-3xl px-4 py-8">
+      <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
         {/* Form */}
         <OrganizationForm
           organization={organization}

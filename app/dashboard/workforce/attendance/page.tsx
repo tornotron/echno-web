@@ -198,7 +198,7 @@ export default function AttendancePage() {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
@@ -571,9 +571,9 @@ export default function AttendancePage() {
                         <div className="flex items-center space-x-1">
                           {attendance.morningClockIn?.isWithinGeofence ? (
                             <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                          ) : (attendance.morningClockIn ? (
+                          ) : attendance.morningClockIn ? (
                             <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                          ) : null)}
+                          ) : null}
                           {attendance.morningClockIn && (
                             <>
                               <MapPin className="h-4 w-4 text-zinc-400" />

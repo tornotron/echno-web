@@ -125,7 +125,7 @@ export default function StockAdjustmentDetailPage({
   if (!adjustment) {
     return (
       <AppLayout>
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
           <div className="flex h-96 flex-col items-center justify-center gap-4">
             <AlertCircle className="h-12 w-12 text-zinc-400 dark:text-zinc-600" />
             <div className="text-zinc-500 dark:text-zinc-400">
@@ -173,7 +173,7 @@ export default function StockAdjustmentDetailPage({
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
         {/* Header */}
         <div>
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">

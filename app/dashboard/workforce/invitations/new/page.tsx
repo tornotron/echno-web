@@ -371,7 +371,7 @@ export default function NewInvitationPage() {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">

@@ -66,7 +66,6 @@ const mockInvitation: Invitation & {
   phone: '+91-9876543210',
 };
 
- 
 export default function InvitationPage() {
   const [copied, setCopied] = useState(false);
   const invitation = mockInvitation; // In real app: fetch based on params.id
@@ -370,7 +369,7 @@ export default function InvitationPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-5xl px-4 py-8">
+      <div className="mx-auto max-w-5xl space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
