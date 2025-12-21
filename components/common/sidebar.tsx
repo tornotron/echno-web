@@ -253,7 +253,6 @@ const navItems: NavItem[] = [
   },
   { title: 'Reports', url: '/dashboard/reports', icon: BarChart3 },
   { title: 'Documents', url: '/dashboard/documents', icon: FileText },
-  { title: 'Settings', url: '/dashboard/settings', icon: Settings },
 ];
 
 export function AppSidebar() {
