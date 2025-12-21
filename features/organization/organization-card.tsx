@@ -3,6 +3,7 @@
 import { Organization } from '@/types/organization';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Building,
   Mail,
@@ -11,10 +12,12 @@ import {
   Users,
   Calendar,
   MapPin,
+  Star,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
+import { useOrganization } from '@/components/providers/organization-provider';
 
 interface OrganizationCardProps {
   organization: Organization;
@@ -23,6 +26,8 @@ interface OrganizationCardProps {
 export function OrganizationCard({ organization }: OrganizationCardProps) {
   const employeeCount = organization.employees?.length || 0;
   const projectCount = organization.projects?.length || 0;
+  const { selectedOrganization, setSelectedOrganization } = useOrganization();
+  const isDefault = selectedOrganization?.id === organization.id;
 
   return (
     <Card className="group hover:border-primary/50 h-full transition-all duration-200 hover:shadow-lg">
@@ -112,6 +117,25 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               </span>
             </div>
           )}
+
+          {/* Set as Default Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2 w-full"
+            onClick={(e) => {
+              e.preventDefault();
+              if (!isDefault) {
+                setSelectedOrganization(organization);
+              }
+            }}
+            disabled={isDefault}
+          >
+            <Star
+              className={`mr-2 h-4 w-4 ${isDefault ? 'fill-yellow-500 text-yellow-500' : ''}`}
+            />
+            {isDefault ? 'Default Organization' : 'Set as Default'}
+          </Button>
         </CardContent>
       </Link>
     </Card>
