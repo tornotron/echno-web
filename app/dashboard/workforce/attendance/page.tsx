@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -45,7 +45,6 @@ import {
 } from '@/components/ui/tooltip';
 import {
   Calendar,
-  Search,
   Download,
   UserCheck,
   Clock,
@@ -95,6 +94,15 @@ export default function AttendancePage() {
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const hasActiveFilters =
+    statusFilter !== 'all' || projectFilter !== 'all' || searchQuery !== '';
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setProjectFilter('all');
+    setSearchQuery('');
+  };
   const [selectedAttendance, setSelectedAttendance] = useState<number[]>([]);
 
   // Movement tracking dialog state
@@ -344,69 +352,54 @@ export default function AttendancePage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col gap-4 md:flex-row">
-              <div className="relative flex-1">
-                <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                <Input
-                  placeholder="Search by name or employee ID..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
+            <SearchAndFilter
+              variant="inline"
+              searchValue={searchQuery}
+              onSearchChange={(value) => {
+                setSearchQuery(value);
+                setCurrentPage(1);
+              }}
+              searchPlaceholder="Search by name or employee ID..."
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
+              filters={[
+                {
+                  placeholder: 'Status',
+                  options: [
+                    { value: 'all', label: 'All Status' },
+                    { value: AttendanceStatus.present, label: 'Present' },
+                    { value: AttendanceStatus.absent, label: 'Absent' },
+                    { value: AttendanceStatus.late, label: 'Late' },
+                    { value: AttendanceStatus.halfDay, label: 'Half Day' },
+                    { value: AttendanceStatus.overtime, label: 'Overtime' },
+                    {
+                      value: AttendanceStatus.pendingRegularization,
+                      label: 'Pending',
+                    },
+                  ],
+                  value: statusFilter,
+                  onChange: (value) => {
+                    setStatusFilter(value);
                     setCurrentPage(1);
-                  }}
-                  className="pl-10"
-                />
-              </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value={AttendanceStatus.present}>
-                    Present
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.absent}>
-                    Absent
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.late}>Late</SelectItem>
-                  <SelectItem value={AttendanceStatus.halfDay}>
-                    Half Day
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.overtime}>
-                    Overtime
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.pendingRegularization}>
-                    Pending
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={projectFilter}
-                onValueChange={(value) => {
-                  setProjectFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="All Projects" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {mockProjects.map((project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.projectName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                  },
+                },
+                {
+                  placeholder: 'Project',
+                  options: [
+                    { value: 'all', label: 'All Projects' },
+                    ...mockProjects.map((project) => ({
+                      value: project.id.toString(),
+                      label: project.projectName,
+                    })),
+                  ],
+                  value: projectFilter,
+                  onChange: (value) => {
+                    setProjectFilter(value);
+                    setCurrentPage(1);
+                  },
+                },
+              ]}
+            />
           </CardContent>
         </Card>
 

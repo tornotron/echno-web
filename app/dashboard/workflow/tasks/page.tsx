@@ -6,9 +6,8 @@ import {
   mockProjects,
   mockIssues,
 } from '@/components/shared/mock-data';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -38,15 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Search,
-  ListTodo,
-  Plus,
-  Filter,
-  Eye,
-  Calendar,
-  AlertCircle,
-} from 'lucide-react';
+import { ListTodo, Plus, Eye, Calendar, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { TaskStatus } from '@/types/task';
 import { format } from 'date-fns';
@@ -104,8 +95,9 @@ export default function TasksPage() {
     (t) => t.status === TaskStatus.completed
   ).length;
 
-  const hasActiveFilters =
-    searchQuery || statusFilter !== 'all' || projectFilter !== 'all';
+  const hasActiveFilters = Boolean(
+    searchQuery || statusFilter !== 'all' || projectFilter !== 'all'
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -243,68 +235,40 @@ export default function TasksPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                <CardTitle>Search & Filters</CardTitle>
-              </div>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              {/* Search */}
-              <div>
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                  <Input
-                    placeholder="Search tasks..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value={TaskStatus.upcoming}>Upcoming</SelectItem>
-                  <SelectItem value={TaskStatus.onGoing}>On Going</SelectItem>
-                  <SelectItem value={TaskStatus.completed}>
-                    Completed
-                  </SelectItem>
-                  <SelectItem value={TaskStatus.onHold}>On Hold</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Project Filter */}
-              <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {mockProjects.map((project) => (
-                    <SelectItem key={project.id} value={project.id!.toString()}>
-                      {project.projectName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Search tasks..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                { value: TaskStatus.upcoming, label: 'Upcoming' },
+                { value: TaskStatus.onGoing, label: 'On Going' },
+                { value: TaskStatus.completed, label: 'Completed' },
+                { value: TaskStatus.onHold, label: 'On Hold' },
+              ],
+              value: statusFilter,
+              onChange: setStatusFilter,
+            },
+            {
+              placeholder: 'Project',
+              options: [
+                { value: 'all', label: 'All Projects' },
+                ...mockProjects.map((project) => ({
+                  value: project.id!.toString(),
+                  label: project.projectName,
+                })),
+              ],
+              value: projectFilter,
+              onChange: setProjectFilter,
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="flex items-center justify-between">

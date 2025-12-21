@@ -6,9 +6,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/components/common/app-layout';
-import { FiltersCard } from '@/components/common/filters-card';
-import { Pagination } from '@/components/common/pagination';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -158,8 +156,9 @@ export default function EstimatesPage() {
     (e) => e.status === 'approved'
   ).length;
 
-  const hasActiveFilters =
-    searchQuery || statusFilter !== 'all' || categoryFilter !== 'all';
+  const hasActiveFilters = Boolean(
+    searchQuery || statusFilter !== 'all' || categoryFilter !== 'all'
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -251,76 +250,56 @@ export default function EstimatesPage() {
         </div>
 
         {/* Filters */}
-        <div>
-          <FiltersCard
-            title="Search & Filters"
-            searchPlaceholder="Search by estimate number, title, client..."
-            searchValue={searchQuery}
-            onSearchChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as EstimateStatus | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="pending">Pending Review</SelectItem>
-                    <SelectItem value="sent">Sent to Client</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="revised">Revised</SelectItem>
-                    <SelectItem value="converted">
-                      Converted to Project
-                    </SelectItem>
-                    <SelectItem value="expired">Expired</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={categoryFilter}
-                  onValueChange={(value) => {
-                    setCategoryFilter(value as EstimateCategory | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="construction">Construction</SelectItem>
-                    <SelectItem value="renovation">Renovation</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="consulting">Consulting</SelectItem>
-                    <SelectItem value="design">Design</SelectItem>
-                    <SelectItem value="mixed">Mixed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" onClick={clearFilters} className="mt-2">
-                Clear Filters
-              </Button>
-            )}
-          </FiltersCard>
-        </div>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by estimate number, title, client..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: 'draft', label: 'Draft' },
+                { value: 'pending', label: 'Pending Review' },
+                { value: 'sent', label: 'Sent to Client' },
+                { value: 'approved', label: 'Approved' },
+                { value: 'rejected', label: 'Rejected' },
+                { value: 'revised', label: 'Revised' },
+                { value: 'converted', label: 'Converted to Project' },
+                { value: 'expired', label: 'Expired' },
+                { value: 'cancelled', label: 'Cancelled' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value as EstimateStatus | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Category',
+              options: [
+                { value: 'all', label: 'All Categories' },
+                { value: 'construction', label: 'Construction' },
+                { value: 'renovation', label: 'Renovation' },
+                { value: 'maintenance', label: 'Maintenance' },
+                { value: 'consulting', label: 'Consulting' },
+                { value: 'design', label: 'Design' },
+                { value: 'mixed', label: 'Mixed' },
+              ],
+              value: categoryFilter,
+              onChange: (value) => {
+                setCategoryFilter(value as EstimateCategory | 'all');
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="flex items-center justify-between">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout, Pagination, FiltersCard } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -121,13 +121,14 @@ export default function AssetsPage() {
     (asset) => asset.status === 'repair' || asset.status === 'maintenance'
   ).length;
 
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     searchQuery ||
-    typeFilter !== 'all' ||
-    statusFilter !== 'all' ||
-    conditionFilter !== 'all' ||
-    locationFilter !== 'all' ||
-    maintenanceDueFilter;
+      typeFilter !== 'all' ||
+      statusFilter !== 'all' ||
+      conditionFilter !== 'all' ||
+      locationFilter !== 'all' ||
+      maintenanceDueFilter
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -237,132 +238,91 @@ export default function AssetsPage() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6">
-          <FiltersCard
-            title="Search & Filters"
-            searchPlaceholder="Search assets by name, ID, manufacturer..."
-            searchValue={searchQuery}
-            onSearchChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-          >
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) => {
-                    setTypeFilter(value as AssetType | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Asset Type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="heavy-equipment">
-                      Heavy Equipment
-                    </SelectItem>
-                    <SelectItem value="light-equipment">
-                      Light Equipment
-                    </SelectItem>
-                    <SelectItem value="vehicle">Vehicle</SelectItem>
-                    <SelectItem value="tool">Tool</SelectItem>
-                    <SelectItem value="machinery">Machinery</SelectItem>
-                    <SelectItem value="generator">Generator</SelectItem>
-                    <SelectItem value="computer">Computer & IT</SelectItem>
-                    <SelectItem value="furniture">Furniture</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) => {
-                    setStatusFilter(value as AssetStatus | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="available">Available</SelectItem>
-                    <SelectItem value="in-use">In Use</SelectItem>
-                    <SelectItem value="maintenance">Maintenance</SelectItem>
-                    <SelectItem value="repair">Under Repair</SelectItem>
-                    <SelectItem value="damaged">Damaged</SelectItem>
-                    <SelectItem value="retired">Retired</SelectItem>
-                    <SelectItem value="disposed">Disposed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={conditionFilter}
-                  onValueChange={(value) => {
-                    setConditionFilter(value as AssetCondition | 'all');
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Condition" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Conditions</SelectItem>
-                    <SelectItem value="excellent">Excellent</SelectItem>
-                    <SelectItem value="good">Good</SelectItem>
-                    <SelectItem value="fair">Fair</SelectItem>
-                    <SelectItem value="poor">Poor</SelectItem>
-                    <SelectItem value="damaged">Damaged</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="w-full sm:min-w-[200px] sm:flex-1">
-                <Select
-                  value={
-                    locationFilter === 'all' ? 'all' : locationFilter.toString()
-                  }
-                  onValueChange={(value) => {
-                    setLocationFilter(
-                      value === 'all' ? 'all' : Number.parseInt(value)
-                    );
-                    setCurrentPage(1);
-                  }}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue placeholder="Location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Locations</SelectItem>
-                    {mockLocations.map((location) => (
-                      <SelectItem
-                        key={location.id}
-                        value={location.id.toString()}
-                      >
-                        {location.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {hasActiveFilters && (
-              <div className="mt-3">
-                <Button variant="outline" size="sm" onClick={clearFilters}>
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-          </FiltersCard>
-        </div>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search assets by name, ID, manufacturer..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Asset Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: 'heavy-equipment', label: 'Heavy Equipment' },
+                { value: 'light-equipment', label: 'Light Equipment' },
+                { value: 'vehicle', label: 'Vehicle' },
+                { value: 'tool', label: 'Tool' },
+                { value: 'machinery', label: 'Machinery' },
+                { value: 'generator', label: 'Generator' },
+                { value: 'computer', label: 'Computer & IT' },
+                { value: 'furniture', label: 'Furniture' },
+                { value: 'other', label: 'Other' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value as AssetType | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                { value: 'available', label: 'Available' },
+                { value: 'in-use', label: 'In Use' },
+                { value: 'maintenance', label: 'Maintenance' },
+                { value: 'repair', label: 'Under Repair' },
+                { value: 'damaged', label: 'Damaged' },
+                { value: 'retired', label: 'Retired' },
+                { value: 'disposed', label: 'Disposed' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value as AssetStatus | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Condition',
+              options: [
+                { value: 'all', label: 'All Conditions' },
+                { value: 'excellent', label: 'Excellent' },
+                { value: 'good', label: 'Good' },
+                { value: 'fair', label: 'Fair' },
+                { value: 'poor', label: 'Poor' },
+                { value: 'damaged', label: 'Damaged' },
+              ],
+              value: conditionFilter,
+              onChange: (value) => {
+                setConditionFilter(value as AssetCondition | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Location',
+              options: [
+                { value: 'all', label: 'All Locations' },
+                ...mockLocations.map((location) => ({
+                  value: location.id.toString(),
+                  label: location.name,
+                })),
+              ],
+              value:
+                locationFilter === 'all' ? 'all' : locationFilter.toString(),
+              onChange: (value) => {
+                setLocationFilter(
+                  value === 'all' ? 'all' : Number.parseInt(value)
+                );
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="mb-6 flex items-center justify-between">

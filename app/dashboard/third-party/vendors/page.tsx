@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,7 +11,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -35,7 +34,6 @@ import {
 } from '@/components/ui/tooltip';
 import {
   Package,
-  Search,
   Plus,
   Eye,
   Edit,
@@ -45,7 +43,6 @@ import {
   DollarSign,
   ShoppingCart,
   Star,
-  Filter,
 } from 'lucide-react';
 import Link from 'next/link';
 import { mockVendors } from '@/components/shared/mock-data';
@@ -78,6 +75,15 @@ export default function VendorsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const hasActiveFilters =
+    statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== '';
+
+  const clearFilters = () => {
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setSearchQuery('');
+  };
 
   // Filter data
   const filteredVendors = mockVendors.filter((vendor) => {
@@ -221,74 +227,50 @@ export default function VendorsPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-              <CardTitle>Search & Filters</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {/* Search */}
-              <div className="lg:col-span-2">
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                  <Input
-                    placeholder="Search by company, ID, or contact..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="blacklisted">Blacklisted</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Type Filter */}
-              <Select
-                value={typeFilter}
-                onValueChange={(value) => {
-                  setTypeFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All Types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="material">Material</SelectItem>
-                  <SelectItem value="equipment">Equipment</SelectItem>
-                  <SelectItem value="service">Service</SelectItem>
-                  <SelectItem value="transport">Transport</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by company, ID, or contact..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: 'active', label: 'Active' },
+                { value: 'inactive', label: 'Inactive' },
+                { value: 'pending', label: 'Pending' },
+                { value: 'blacklisted', label: 'Blacklisted' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: 'material', label: 'Material' },
+                { value: 'equipment', label: 'Equipment' },
+                { value: 'service', label: 'Service' },
+                { value: 'transport', label: 'Transport' },
+                { value: 'mixed', label: 'Mixed' },
+              ],
+              value: typeFilter,
+              onChange: (value) => {
+                setTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Showing results and rows per page */}
         <div className="flex items-center justify-between">

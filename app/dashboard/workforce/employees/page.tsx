@@ -5,9 +5,8 @@ import {
   mockEmployees,
   mockOrganizations,
 } from '@/components/shared/mock-data';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -37,16 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Search,
-  Users,
-  UserPlus,
-  Filter,
-  Mail,
-  Phone,
-  User,
-  Eye,
-} from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, User, Eye } from 'lucide-react';
 import Link from 'next/link';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
@@ -165,12 +155,13 @@ export default function EmployeesPage() {
     (emp) => emp.status === EmployeeStatus.onLeave
   ).length;
 
-  const hasActiveFilters =
+  const hasActiveFilters = Boolean(
     searchQuery ||
-    statusFilter !== 'all' ||
-    organizationFilter !== 'all' ||
-    departmentFilter !== 'all' ||
-    designationFilter !== 'all';
+      statusFilter !== 'all' ||
+      organizationFilter !== 'all' ||
+      departmentFilter !== 'all' ||
+      designationFilter !== 'all'
+  );
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -262,154 +253,89 @@ export default function EmployeesPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                <CardTitle>Search & Filters</CardTitle>
-              </div>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
-              {/* Search */}
-              <div className="lg:col-span-2">
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                  <Input
-                    placeholder="Search by name, email, phone, or ID..."
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value={EmployeeStatus.active}>Active</SelectItem>
-                  <SelectItem value={EmployeeStatus.inactive}>
-                    Inactive
-                  </SelectItem>
-                  <SelectItem value={EmployeeStatus.onLeave}>
-                    On Leave
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Organization Filter */}
-              <Select
-                value={organizationFilter}
-                onValueChange={(value) => {
-                  setOrganizationFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Organization" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Organizations</SelectItem>
-                  {mockOrganizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id!.toString()}>
-                      {org.organizationName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Department Filter */}
-              <Select
-                value={departmentFilter}
-                onValueChange={(value) => {
-                  setDepartmentFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value={Department.engineering}>
-                    Engineering
-                  </SelectItem>
-                  <SelectItem value={Department.construction}>
-                    Construction
-                  </SelectItem>
-                  <SelectItem value={Department.safety}>Safety</SelectItem>
-                  <SelectItem value={Department.quality}>Quality</SelectItem>
-                  <SelectItem value={Department.administration}>
-                    Administration
-                  </SelectItem>
-                  <SelectItem value={Department.humanResources}>
-                    Human Resources
-                  </SelectItem>
-                  <SelectItem value={Department.finance}>Finance</SelectItem>
-                  <SelectItem value={Department.procurement}>
-                    Procurement
-                  </SelectItem>
-                  <SelectItem value={Department.planning}>Planning</SelectItem>
-                  <SelectItem value={Department.maintenance}>
-                    Maintenance
-                  </SelectItem>
-                  <SelectItem value={Department.security}>Security</SelectItem>
-                  <SelectItem value={Department.operations}>
-                    Operations
-                  </SelectItem>
-                  <SelectItem value={Department.it}>IT</SelectItem>
-                  <SelectItem value={Department.legal}>Legal</SelectItem>
-                  <SelectItem value={Department.marketing}>
-                    Marketing
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Designation Filter - Second Row */}
-            <div className="mt-4">
-              <Select
-                value={designationFilter}
-                onValueChange={(value) => {
-                  setDesignationFilter(value);
-                  setCurrentPage(1);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Designation" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Designations</SelectItem>
-                  {uniqueDesignations.map((designation) => (
-                    <SelectItem key={designation} value={designation}>
-                      {designation}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          searchPlaceholder="Search by name, email, phone, or ID..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Statuses' },
+                { value: EmployeeStatus.active, label: 'Active' },
+                { value: EmployeeStatus.inactive, label: 'Inactive' },
+                { value: EmployeeStatus.onLeave, label: 'On Leave' },
+              ],
+              value: statusFilter,
+              onChange: (value) => {
+                setStatusFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Organization',
+              options: [
+                { value: 'all', label: 'All Organizations' },
+                ...mockOrganizations.map((org) => ({
+                  value: org.id!.toString(),
+                  label: org.organizationName,
+                })),
+              ],
+              value: organizationFilter,
+              onChange: (value) => {
+                setOrganizationFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Department',
+              options: [
+                { value: 'all', label: 'All Departments' },
+                { value: Department.engineering, label: 'Engineering' },
+                { value: Department.construction, label: 'Construction' },
+                { value: Department.safety, label: 'Safety' },
+                { value: Department.quality, label: 'Quality' },
+                { value: Department.administration, label: 'Administration' },
+                { value: Department.humanResources, label: 'Human Resources' },
+                { value: Department.finance, label: 'Finance' },
+                { value: Department.procurement, label: 'Procurement' },
+                { value: Department.planning, label: 'Planning' },
+                { value: Department.maintenance, label: 'Maintenance' },
+                { value: Department.security, label: 'Security' },
+                { value: Department.operations, label: 'Operations' },
+                { value: Department.it, label: 'IT' },
+                { value: Department.legal, label: 'Legal' },
+                { value: Department.marketing, label: 'Marketing' },
+              ],
+              value: departmentFilter,
+              onChange: (value) => {
+                setDepartmentFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Designation',
+              options: [
+                { value: 'all', label: 'All Designations' },
+                ...uniqueDesignations.map((designation) => ({
+                  value: designation,
+                  label: designation,
+                })),
+              ],
+              value: designationFilter,
+              onChange: (value) => {
+                setDesignationFilter(value);
+                setCurrentPage(1);
+              },
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="mb-4 flex items-center justify-between">

@@ -6,9 +6,8 @@ import {
   mockProjects,
   mockTasks,
 } from '@/components/shared/mock-data';
-import { AppLayout, Pagination } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -17,6 +16,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -31,14 +37,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Search, AlertCircle, Plus, Filter, Eye, Calendar } from 'lucide-react';
+import { AlertCircle, Plus, Eye, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { IssueStatus, IssueType } from '@/types/issue';
 import { format } from 'date-fns';
@@ -108,7 +107,7 @@ export default function IssuesPage() {
   ).length;
 
   const hasActiveFilters =
-    searchQuery ||
+    !!searchQuery ||
     statusFilter !== 'all' ||
     typeFilter !== 'all' ||
     projectFilter !== 'all';
@@ -317,91 +316,59 @@ export default function IssuesPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Filter className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                <CardTitle>Search & Filters</CardTitle>
-              </div>
-              {hasActiveFilters && (
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {/* Search */}
-              <div>
-                <div className="relative">
-                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-zinc-400" />
-                  <Input
-                    placeholder="Search issues..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value={IssueStatus.open}>Open</SelectItem>
-                  <SelectItem value={IssueStatus.inProgress}>
-                    In Progress
-                  </SelectItem>
-                  <SelectItem value={IssueStatus.resolved}>Resolved</SelectItem>
-                  <SelectItem value={IssueStatus.closed}>Closed</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Type Filter */}
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value={IssueType.technical}>Technical</SelectItem>
-                  <SelectItem value={IssueType.design}>Design</SelectItem>
-                  <SelectItem value={IssueType.quality}>Quality</SelectItem>
-                  <SelectItem value={IssueType.safety}>Safety</SelectItem>
-                  <SelectItem value={IssueType.material}>Material</SelectItem>
-                  <SelectItem value={IssueType.equipment}>Equipment</SelectItem>
-                  <SelectItem value={IssueType.labour}>Labour</SelectItem>
-                  <SelectItem value={IssueType.weather}>Weather</SelectItem>
-                  <SelectItem value={IssueType.permit}>Permit</SelectItem>
-                  <SelectItem value={IssueType.coordination}>
-                    Coordination
-                  </SelectItem>
-                  <SelectItem value={IssueType.other}>Other</SelectItem>
-                </SelectContent>
-              </Select>
-
-              {/* Project Filter */}
-              <Select value={projectFilter} onValueChange={setProjectFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Project" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {mockProjects.map((project) => (
-                    <SelectItem key={project.id} value={project.id!.toString()}>
-                      {project.projectName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
+        <SearchAndFilter
+          variant="card"
+          searchValue={searchQuery}
+          onSearchChange={setSearchQuery}
+          searchPlaceholder="Search issues..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                { value: IssueStatus.open, label: 'Open' },
+                { value: IssueStatus.inProgress, label: 'In Progress' },
+                { value: IssueStatus.resolved, label: 'Resolved' },
+                { value: IssueStatus.closed, label: 'Closed' },
+              ],
+              value: statusFilter,
+              onChange: setStatusFilter,
+            },
+            {
+              placeholder: 'Type',
+              options: [
+                { value: 'all', label: 'All Types' },
+                { value: IssueType.technical, label: 'Technical' },
+                { value: IssueType.design, label: 'Design' },
+                { value: IssueType.quality, label: 'Quality' },
+                { value: IssueType.safety, label: 'Safety' },
+                { value: IssueType.material, label: 'Material' },
+                { value: IssueType.equipment, label: 'Equipment' },
+                { value: IssueType.labour, label: 'Labour' },
+                { value: IssueType.weather, label: 'Weather' },
+                { value: IssueType.permit, label: 'Permit' },
+                { value: IssueType.coordination, label: 'Coordination' },
+                { value: IssueType.other, label: 'Other' },
+              ],
+              value: typeFilter,
+              onChange: setTypeFilter,
+            },
+            {
+              placeholder: 'Project',
+              options: [
+                { value: 'all', label: 'All Projects' },
+                ...mockProjects.map((project) => ({
+                  value: project.id!.toString(),
+                  label: project.projectName,
+                })),
+              ],
+              value: projectFilter,
+              onChange: setProjectFilter,
+            },
+          ]}
+        />
 
         {/* Results Summary */}
         <div className="mb-4 flex items-center justify-between">
@@ -416,7 +383,7 @@ export default function IssuesPage() {
             </span>
             <Select
               value={itemsPerPage.toString()}
-              onValueChange={(value) => setItemsPerPage(Number(value))}
+              onValueChange={(value: string) => setItemsPerPage(Number(value))}
             >
               <SelectTrigger className="w-[70px]">
                 <SelectValue />

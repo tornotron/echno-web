@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout, Pagination, FiltersCard } from '@/components/common';
+import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -85,6 +85,13 @@ export default function ProjectsPage() {
     value: string | ProjectStatus
   ) => {
     setFilters({ ...filters, [key]: value });
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = Boolean(filters.search || filters.status !== 'all');
+
+  const clearFilters = () => {
+    setFilters({ search: '', status: 'all' });
     setCurrentPage(1);
   };
 
@@ -240,49 +247,53 @@ export default function ProjectsPage() {
         </div>
 
         {/* Filters */}
-        <FiltersCard
-          title="Search & Filters"
-          searchPlaceholder="Search projects..."
+        <SearchAndFilter
+          variant="card"
           searchValue={filters.search}
           onSearchChange={(value) => handleFilterChange('search', value)}
-        >
-          <div className="w-full sm:w-[200px]">
-            <Select
-              value={filters.status}
-              onValueChange={(value) =>
-                handleFilterChange('status', value as ProjectStatus | 'all')
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value={ProjectStatus.open}>
-                  {getProjectStatusLabel(ProjectStatus.open)}
-                </SelectItem>
-                <SelectItem value={ProjectStatus.upcoming}>
-                  {getProjectStatusLabel(ProjectStatus.upcoming)}
-                </SelectItem>
-                <SelectItem value={ProjectStatus.completed}>
-                  {getProjectStatusLabel(ProjectStatus.completed)}
-                </SelectItem>
-                <SelectItem value={ProjectStatus.closed}>
-                  {getProjectStatusLabel(ProjectStatus.closed)}
-                </SelectItem>
-                <SelectItem value={ProjectStatus.onHold}>
-                  {getProjectStatusLabel(ProjectStatus.onHold)}
-                </SelectItem>
-                <SelectItem value={ProjectStatus.cancelled}>
-                  {getProjectStatusLabel(ProjectStatus.cancelled)}
-                </SelectItem>
-                <SelectItem value={ProjectStatus.dropped}>
-                  {getProjectStatusLabel(ProjectStatus.dropped)}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </FiltersCard>
+          searchPlaceholder="Search projects..."
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
+          filters={[
+            {
+              placeholder: 'Status',
+              options: [
+                { value: 'all', label: 'All Status' },
+                {
+                  value: ProjectStatus.open,
+                  label: getProjectStatusLabel(ProjectStatus.open),
+                },
+                {
+                  value: ProjectStatus.upcoming,
+                  label: getProjectStatusLabel(ProjectStatus.upcoming),
+                },
+                {
+                  value: ProjectStatus.completed,
+                  label: getProjectStatusLabel(ProjectStatus.completed),
+                },
+                {
+                  value: ProjectStatus.closed,
+                  label: getProjectStatusLabel(ProjectStatus.closed),
+                },
+                {
+                  value: ProjectStatus.onHold,
+                  label: getProjectStatusLabel(ProjectStatus.onHold),
+                },
+                {
+                  value: ProjectStatus.cancelled,
+                  label: getProjectStatusLabel(ProjectStatus.cancelled),
+                },
+                {
+                  value: ProjectStatus.dropped,
+                  label: getProjectStatusLabel(ProjectStatus.dropped),
+                },
+              ],
+              value: filters.status,
+              onChange: (value) =>
+                handleFilterChange('status', value as ProjectStatus | 'all'),
+            },
+          ]}
+        />
 
         {/* Projects Grid */}
         <Card>
