@@ -127,7 +127,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         <div className="mx-auto max-w-5xl">
           <div className="mb-8">
             <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">

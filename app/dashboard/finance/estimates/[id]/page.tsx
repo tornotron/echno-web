@@ -245,7 +245,7 @@ export default function ViewEstimatePage() {
   if (!estimate) {
     return (
       <AppLayout>
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <FileText className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
@@ -270,7 +270,7 @@ export default function ViewEstimatePage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
           <div>

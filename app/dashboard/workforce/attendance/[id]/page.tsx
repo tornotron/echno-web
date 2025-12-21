@@ -60,7 +60,7 @@ export default function AttendanceDetailPage({ params }: PageProps) {
   if (!attendance) {
     return (
       <AppLayout>
-        <div className="px-4 py-8">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <AlertTriangle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
@@ -107,7 +107,7 @@ export default function AttendanceDetailPage({ params }: PageProps) {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

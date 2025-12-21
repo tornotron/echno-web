@@ -115,7 +115,7 @@ export default function VendorsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>

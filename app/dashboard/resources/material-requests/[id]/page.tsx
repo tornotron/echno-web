@@ -81,7 +81,7 @@ export default function MaterialRequestDetailPage() {
   if (!mr) {
     return (
       <AppLayout>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <FileText className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
@@ -110,7 +110,7 @@ export default function MaterialRequestDetailPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div className="space-y-1">

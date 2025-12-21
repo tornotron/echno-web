@@ -53,7 +53,7 @@ export default function InventoryDetailPage() {
   if (!item) {
     return (
       <AppLayout>
-        <div className="space-y-6 px-4 py-8">
+        <div className="space-y-4 sm:space-y-6">
           <div className="py-12 text-center">
             <Package className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
             <h3 className="mb-2 text-lg font-semibold">
@@ -79,7 +79,7 @@ export default function InventoryDetailPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -275,9 +275,9 @@ export default function InventoryDetailPage() {
                             <div className="font-medium">
                               {history.type === 'restock'
                                 ? 'Stock Replenishment'
-                                : (history.type === 'usage'
+                                : history.type === 'usage'
                                   ? 'Stock Usage'
-                                  : 'Stock Adjustment')}
+                                  : 'Stock Adjustment'}
                             </div>
                             <div className="text-muted-foreground text-sm">
                               {history.quantity > 0 ? '+' : ''}

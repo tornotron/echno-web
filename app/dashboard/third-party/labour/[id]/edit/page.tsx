@@ -86,7 +86,7 @@ export default function LabourFormPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 p-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center space-x-4">
           <div>

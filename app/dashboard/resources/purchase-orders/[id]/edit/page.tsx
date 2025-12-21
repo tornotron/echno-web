@@ -159,7 +159,7 @@ export default function EditPurchaseOrderPage() {
   if (!po) {
     return (
       <AppLayout>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
@@ -319,7 +319,7 @@ export default function EditPurchaseOrderPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Header */}
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">

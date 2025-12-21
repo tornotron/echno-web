@@ -156,9 +156,9 @@ export default function TasksPage() {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               Tasks
@@ -176,7 +176,7 @@ export default function TasksPage() {
         </div>
 
         {/* Statistics Cards */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Total Tasks</CardDescription>
@@ -243,7 +243,7 @@ export default function TasksPage() {
         </div>
 
         {/* Search and Filters */}
-        <Card className="mb-6">
+        <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
@@ -307,7 +307,7 @@ export default function TasksPage() {
         </Card>
 
         {/* Results Summary */}
-        <div className="mb-4 flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             Showing {startIndex + 1} to{' '}
             {Math.min(endIndex, filteredTasks.length)} of {filteredTasks.length}{' '}

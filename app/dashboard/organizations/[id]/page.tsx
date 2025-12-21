@@ -77,7 +77,7 @@ export default function OrganizationDetailPage({
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

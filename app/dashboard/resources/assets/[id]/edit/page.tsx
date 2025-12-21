@@ -113,7 +113,7 @@ export default function EditAssetPage() {
   if (!asset) {
     return (
       <AppLayout>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
@@ -165,7 +165,7 @@ export default function EditAssetPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="space-y-1">

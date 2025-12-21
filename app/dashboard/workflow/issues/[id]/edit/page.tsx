@@ -98,7 +98,7 @@ export default function EditIssuePage({ params }: PageProps) {
   if (!issueToEdit) {
     return (
       <AppLayout>
-        <div className="px-4 py-8">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
@@ -220,7 +220,7 @@ export default function EditIssuePage({ params }: PageProps) {
 
   return (
     <AppLayout>
-      <div className="px-4 py-8">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>

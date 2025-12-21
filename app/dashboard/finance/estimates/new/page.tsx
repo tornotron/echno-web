@@ -247,7 +247,7 @@ export default function CreateEstimatePage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
         {/* Header */}
         <div>
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">

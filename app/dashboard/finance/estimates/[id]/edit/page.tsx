@@ -418,7 +418,7 @@ export default function EditEstimatePage() {
   if (loading) {
     return (
       <AppLayout>
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
@@ -435,7 +435,7 @@ export default function EditEstimatePage() {
   if (!estimateToEdit) {
     return (
       <AppLayout>
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
           <Card>
             <CardContent className="py-12 text-center">
               <FileText className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
@@ -460,7 +460,7 @@ export default function EditEstimatePage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
         {/* Header */}
         <div>
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
