@@ -48,7 +48,7 @@ interface ProjectFilters {
 
 export default function ProjectsPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12; // 4 columns x 3 rows
+  const [itemsPerPage, setItemsPerPage] = useState(12); // 4 columns x 3 rows
 
   const [filters, setFilters] = useState<ProjectFilters>({
     search: '',
@@ -295,16 +295,39 @@ export default function ProjectsPage() {
           ]}
         />
 
+        {/* Results Summary */}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="text-muted-foreground text-sm">
+            Showing {paginatedProjects.length} of {filteredProjects.length}{' '}
+            projects
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-muted-foreground text-sm">
+              Rows per page:
+            </span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(value) => {
+                setItemsPerPage(Number.parseInt(value));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[70px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="8">8</SelectItem>
+                <SelectItem value="12">12</SelectItem>
+                <SelectItem value="16">16</SelectItem>
+                <SelectItem value="24">24</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         {/* Projects Grid */}
         <Card>
-          <CardHeader>
-            <CardTitle>Projects</CardTitle>
-            <CardDescription>
-              Showing {paginatedProjects.length} of {filteredProjects.length}{' '}
-              projects
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-6 p-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {paginatedProjects.map((project: Project) => {
                 const progress = getProjectProgress(project);
@@ -450,13 +473,11 @@ export default function ProjectsPage() {
           </CardContent>
 
           {/* Pagination */}
-          {filteredProjects.length > 0 && totalPages > 1 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </Card>
       </div>
     </AppLayout>
