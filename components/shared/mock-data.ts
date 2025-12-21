@@ -30,9 +30,25 @@ import {
 import { Location } from '@/types/resource/location';
 import { InventoryItem } from '@/types/resource/inventory';
 import { Asset, AssetLocationHistory } from '@/types/resource/asset';
-import { PurchaseOrder, PurchaseOrderType, PurchaseOrderStatus, DeliveryStatus } from '@/types/resource/purchase-order';
-import { MaterialRequest, MaterialRequestStatus, MaterialRequestPriority, MaterialRequestType, FulfillmentMethod } from '@/types/resource/material-request';
-import { Transfer, TransferType, TransferStatus, TransferPriority } from '@/types/resource/transfer';
+import {
+  PurchaseOrder,
+  PurchaseOrderType,
+  PurchaseOrderStatus,
+  DeliveryStatus,
+} from '@/types/resource/purchase-order';
+import {
+  MaterialRequest,
+  MaterialRequestStatus,
+  MaterialRequestPriority,
+  MaterialRequestType,
+  FulfillmentMethod,
+} from '@/types/resource/material-request';
+import {
+  Transfer,
+  TransferType,
+  TransferStatus,
+  TransferPriority,
+} from '@/types/resource/transfer';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1. USERS
@@ -2236,7 +2252,6 @@ export function getLeavesByDateRange(
 // RESOURCES - INVENTORY, LOCATIONS, ASSETS
 // ═════════════════════════════════════════════════════════════════════════════
 
-
 // Mock Locations
 export const mockLocations: Location[] = [
   {
@@ -3151,7 +3166,8 @@ export const mockAssetLocationHistory: AssetLocationHistory[] = [
     transferDate: new Date('2024-10-25'),
     transferredBy: 'Amit Sharma',
     reason: 'Equipment failure',
-    notes: 'Vibrating roller sent for major repairs - vibration system malfunction',
+    notes:
+      'Vibrating roller sent for major repairs - vibration system malfunction',
     previousAssignedTo: 'Mohan Lal',
     previousProject: 'Highway Expansion',
   },
@@ -3193,10 +3209,10 @@ export const mockAssets: Asset[] = [
       operatingWeight: '20,000 kg',
       enginePower: '121 HP',
       bucketCapacity: '1.2 m³',
-      maxDiggingDepth: '6.5 m'
+      maxDiggingDepth: '6.5 m',
     },
     notes: 'Regular maintenance required. Fuel consumption: 12L/hr average',
-    locationHistory: mockAssetLocationHistory.filter(h => h.assetId === 1),
+    locationHistory: mockAssetLocationHistory.filter((h) => h.assetId === 1),
     createdAt: new Date('2020-03-15'),
     updatedAt: new Date('2024-10-15'),
   },
@@ -3233,7 +3249,7 @@ export const mockAssets: Asset[] = [
       operatingWeight: '7,500 kg',
       enginePower: '74 HP',
       bucketCapacity: '1.0 m³',
-      maxDiggingDepth: '4.5 m'
+      maxDiggingDepth: '4.5 m',
     },
     notes: 'Excellent condition, recently serviced',
     createdAt: new Date('2021-08-20'),
@@ -3273,9 +3289,10 @@ export const mockAssets: Asset[] = [
       maxLoadCapacity: '8,000 kg',
       jibLength: '60 m',
       hookHeight: '45 m',
-      radius: '50 m'
+      radius: '50 m',
     },
-    notes: 'Critical equipment. Requires certified operator. Monthly safety checks mandatory.',
+    notes:
+      'Critical equipment. Requires certified operator. Monthly safety checks mandatory.',
     createdAt: new Date('2019-01-10'),
     updatedAt: new Date('2024-10-01'),
   },
@@ -3312,10 +3329,10 @@ export const mockAssets: Asset[] = [
       drumCapacity: '7 m³',
       enginePower: '210 HP',
       maxSpeed: '40 km/h',
-      waterTankCapacity: '500 L'
+      waterTankCapacity: '500 L',
     },
     notes: 'Under maintenance for hydraulic system repair',
-    locationHistory: mockAssetLocationHistory.filter(h => h.assetId === 4),
+    locationHistory: mockAssetLocationHistory.filter((h) => h.assetId === 4),
     createdAt: new Date('2018-06-15'),
     updatedAt: new Date('2024-10-20'),
   },
@@ -3350,7 +3367,7 @@ export const mockAssets: Asset[] = [
       power: '125 KVA / 100 KW',
       voltage: '415V',
       frequency: '50 Hz',
-      fuelTankCapacity: '200 L'
+      fuelTankCapacity: '200 L',
     },
     notes: 'Backup power for construction site. Low usage hours.',
     createdAt: new Date('2022-02-10'),
@@ -3386,7 +3403,7 @@ export const mockAssets: Asset[] = [
     specifications: {
       airFlow: '10.5 m³/min',
       workingPressure: '7 bar',
-      enginePower: '115 HP'
+      enginePower: '115 HP',
     },
     notes: 'Used for jackhammer operations',
     createdAt: new Date('2021-11-05'),
@@ -3427,7 +3444,7 @@ export const mockAssets: Asset[] = [
       payloadCapacity: '18 tons',
       enginePower: '180 HP',
       bodyLength: '5.5 m',
-      fuelTankCapacity: '200 L'
+      fuelTankCapacity: '200 L',
     },
     notes: 'Regular hauling duties. Good fuel efficiency.',
     createdAt: new Date('2020-09-25'),
@@ -3460,7 +3477,7 @@ export const mockAssets: Asset[] = [
     specifications: {
       outputCurrent: '350A',
       dutyCycle: '100%',
-      inputPower: '415V 3-phase'
+      inputPower: '415V 3-phase',
     },
     notes: 'TIG/MIG welding capable. Excellent condition.',
     createdAt: new Date('2023-03-12'),
@@ -3495,7 +3512,7 @@ export const mockAssets: Asset[] = [
       liftCapacity: '3 tons',
       liftHeight: '4.5 m',
       batteryVoltage: '48V',
-      batteryCapacity: '500 Ah'
+      batteryCapacity: '500 Ah',
     },
     notes: 'Battery recently replaced. Indoor use only.',
     createdAt: new Date('2021-07-18'),
@@ -3533,7 +3550,7 @@ export const mockAssets: Asset[] = [
       operatingWeight: '9 tons',
       workingWidth: '1.7 m',
       enginePower: '74 HP',
-      vibrationFrequency: '67 Hz'
+      vibrationFrequency: '67 Hz',
     },
     notes: 'Under repair - vibration system malfunction. High usage hours.',
     createdAt: new Date('2017-04-22'),
@@ -3544,7 +3561,6 @@ export const mockAssets: Asset[] = [
 // ═════════════════════════════════════════════════════════════════════════════
 // PURCHASE ORDERS
 // ═════════════════════════════════════════════════════════════════════════════
-
 
 export const mockPurchaseOrders: PurchaseOrder[] = [
   {
@@ -3962,7 +3978,7 @@ export const mockPurchaseOrders: PurchaseOrder[] = [
 ];
 
 export function getPurchaseOrderById(id: number) {
-  return mockPurchaseOrders.find(po => po.id === id);
+  return mockPurchaseOrders.find((po) => po.id === id);
 }
 
 // ============================================
@@ -4027,7 +4043,8 @@ export const mockMaterialRequests: MaterialRequest[] = [
     approvedBy: 2,
     approvedAt: new Date('2024-11-02'),
     purpose: 'Site A - Building Construction Phase 1',
-    justification: 'Required for foundation and structural work as per project schedule',
+    justification:
+      'Required for foundation and structural work as per project schedule',
     createdBy: 5,
     createdAt: new Date('2024-11-01'),
     updatedAt: new Date('2024-11-05'),
@@ -4174,7 +4191,8 @@ export const mockMaterialRequests: MaterialRequest[] = [
     contactEmail: 'procurement@example.com',
     rejectedBy: 2,
     rejectedAt: new Date('2024-11-04'),
-    rejectionReason: 'Sufficient stock available in Warehouse B. Request transfer instead.',
+    rejectionReason:
+      'Sufficient stock available in Warehouse B. Request transfer instead.',
     purpose: 'Warehouse A stock replenishment',
     createdBy: 7,
     createdAt: new Date('2024-11-03'),
@@ -4247,7 +4265,7 @@ export const mockMaterialRequests: MaterialRequest[] = [
 ];
 
 export function getMaterialRequestById(id: number) {
-  return mockMaterialRequests.find(mr => mr.id === id);
+  return mockMaterialRequests.find((mr) => mr.id === id);
 }
 
 // ============================================
@@ -4364,7 +4382,8 @@ export const mockTransfers: Transfer[] = [
     issuedAt: new Date('2024-11-08T09:00:00'),
     qualityCheckRequired: true,
     hasDiscrepancies: false,
-    purpose: 'Road project completed, transferring scaffolding to building project',
+    purpose:
+      'Road project completed, transferring scaffolding to building project',
     notes: 'In transit - ETA 3 hours',
     createdBy: 5,
     createdAt: new Date('2024-11-06'),
@@ -4491,7 +4510,8 @@ export const mockTransfers: Transfer[] = [
     requestedByDepartment: 'Procurement',
     rejectedBy: 3,
     rejectedAt: new Date('2024-11-05'),
-    rejectionReason: 'Stock levels at destination are sufficient. Transfer not required.',
+    rejectionReason:
+      'Stock levels at destination are sufficient. Transfer not required.',
     qualityCheckRequired: false,
     hasDiscrepancies: false,
     purpose: 'Stock balancing between warehouses',
@@ -4548,7 +4568,8 @@ export const mockTransfers: Transfer[] = [
     inspectedBy: 8,
     inspectedAt: new Date('2024-10-30T12:30:00'),
     hasDiscrepancies: true,
-    discrepancyNotes: 'Short delivery: 50kg missing. Possible measurement error or pilferage during transit.',
+    discrepancyNotes:
+      'Short delivery: 50kg missing. Possible measurement error or pilferage during transit.',
     discrepancyResolvedBy: 2,
     discrepancyResolvedAt: new Date('2024-10-31'),
     purpose: 'Site B material requirement',
@@ -4560,10 +4581,10 @@ export const mockTransfers: Transfer[] = [
 ];
 
 export function getTransferById(id: number) {
-  return mockTransfers.find(t => t.id === id);
+  return mockTransfers.find((t) => t.id === id);
 }
 export function getAssetById(id: number) {
-  return mockAssets.find(asset => asset.id === id);
+  return mockAssets.find((asset) => asset.id === id);
 }
 export function getLabourById(id: number) {
   return mockLabour.find((labour) => labour.id === id);
@@ -4580,3 +4601,307 @@ export function getContractById(id: number) {
 export { mockUsers } from './data/users';
 export { mockOrganizations } from './data/organizations';
 export { mockEmployees } from './data/employees';
+
+// ═════════════════════════════════════════════════════════════════════════════
+// DASHBOARD DATA
+// ═════════════════════════════════════════════════════════════════════════════
+
+export const dashboardData = {
+  // Attendance & Leave Tab
+  attendance: {
+    present: 245,
+    absent: 12,
+    leave: 18,
+    late: 8,
+  },
+
+  attendanceTrend: [
+    { month: 'Jan', present: 92, absent: 5, leave: 3 },
+    { month: 'Feb', present: 94, absent: 4, leave: 2 },
+    { month: 'Mar', present: 91, absent: 6, leave: 3 },
+    { month: 'Apr', present: 93, absent: 4, leave: 3 },
+    { month: 'May', present: 95, absent: 3, leave: 2 },
+    { month: 'Jun', present: 94, absent: 4, leave: 2 },
+  ],
+
+  leaveRequests: [
+    { type: 'Sick Leave', days: 245, fill: '#ef4444' },
+    { type: 'Casual Leave', days: 180, fill: '#3b82f6' },
+    { type: 'Annual Leave', days: 420, fill: '#10b981' },
+    { type: 'Maternity/Paternity', days: 90, fill: '#f59e0b' },
+    { type: 'Unpaid Leave', days: 65, fill: '#8b5cf6' },
+  ],
+
+  recentLeaveRequests: [
+    {
+      employeeName: 'Rajesh Kumar',
+      type: 'Annual Leave',
+      startDate: '2024-03-15',
+      endDate: '2024-03-20',
+      days: 5,
+      status: 'approved',
+    },
+    {
+      employeeName: 'Priya Sharma',
+      type: 'Sick Leave',
+      startDate: '2024-03-18',
+      endDate: '2024-03-19',
+      days: 2,
+      status: 'pending',
+    },
+    {
+      employeeName: 'Amit Patel',
+      type: 'Casual Leave',
+      startDate: '2024-03-20',
+      endDate: '2024-03-20',
+      days: 1,
+      status: 'approved',
+    },
+    {
+      employeeName: 'Sneha Reddy',
+      type: 'Maternity Leave',
+      startDate: '2024-04-01',
+      endDate: '2024-07-01',
+      days: 90,
+      status: 'pending',
+    },
+  ],
+
+  // Tasks & Issues Tab
+  tasksByPriority: [
+    { priority: 'Critical', count: 12, fill: '#dc2626' },
+    { priority: 'High', count: 28, fill: '#f59e0b' },
+    { priority: 'Medium', count: 45, fill: '#3b82f6' },
+    { priority: 'Low', count: 31, fill: '#10b981' },
+  ],
+
+  issuesResolutionTrend: [
+    { month: 'Jan', open: 15, resolved: 42, total: 57 },
+    { month: 'Feb', open: 12, resolved: 48, total: 60 },
+    { month: 'Mar', open: 18, resolved: 45, total: 63 },
+    { month: 'Apr', open: 10, resolved: 52, total: 62 },
+    { month: 'May', open: 8, resolved: 55, total: 63 },
+    { month: 'Jun', open: 14, resolved: 50, total: 64 },
+  ],
+
+  recentTasksIssues: [
+    {
+      title: 'Fix login authentication bug',
+      type: 'issue',
+      priority: 'critical',
+      assignee: 'Rajesh Kumar',
+      dueDate: '2024-03-20',
+      status: 'in-progress',
+    },
+    {
+      title: 'Update project documentation',
+      type: 'task',
+      priority: 'high',
+      assignee: 'Priya Sharma',
+      dueDate: '2024-03-22',
+      status: 'pending',
+    },
+    {
+      title: 'Database performance optimization',
+      type: 'issue',
+      priority: 'high',
+      assignee: 'Amit Patel',
+      dueDate: '2024-03-25',
+      status: 'in-progress',
+    },
+    {
+      title: 'Implement new dashboard features',
+      type: 'task',
+      priority: 'medium',
+      assignee: 'Sneha Reddy',
+      dueDate: '2024-03-28',
+      status: 'pending',
+    },
+    {
+      title: 'UI/UX improvements for mobile',
+      type: 'task',
+      priority: 'medium',
+      assignee: 'Vikram Singh',
+      dueDate: '2024-03-30',
+      status: 'in-progress',
+    },
+  ],
+
+  // Third Party Tab
+  vendorStatus: [
+    { status: 'Active', count: 45, fill: '#10b981' },
+    { status: 'Pending Review', count: 8, fill: '#f59e0b' },
+    { status: 'Inactive', count: 12, fill: '#6b7280' },
+    { status: 'Blacklisted', count: 3, fill: '#ef4444' },
+  ],
+
+  contractorPerformance: [
+    { name: 'Tech Solutions Inc', onTime: 85, delayed: 15 },
+    { name: 'BuildCo', onTime: 92, delayed: 8 },
+    { name: 'Design Studio', onTime: 78, delayed: 22 },
+    { name: 'Cloud Services', onTime: 88, delayed: 12 },
+    { name: 'Security Pro', onTime: 95, delayed: 5 },
+  ],
+
+  // Resources Tab
+  inventoryStatus: [
+    { status: 'In Stock', items: 450, fill: '#10b981' },
+    { status: 'Low Stock', items: 75, fill: '#f59e0b' },
+    { status: 'Out of Stock', items: 25, fill: '#ef4444' },
+    { status: 'On Order', items: 120, fill: '#3b82f6' },
+  ],
+
+  equipmentUtilization: [
+    { equipment: 'Laptops', utilized: 145, total: 150, percentage: 97 },
+    { equipment: 'Printers', utilized: 28, total: 35, percentage: 80 },
+    { equipment: 'Projectors', utilized: 18, total: 25, percentage: 72 },
+    { equipment: 'Cameras', utilized: 12, total: 15, percentage: 80 },
+    { equipment: 'Vehicles', utilized: 42, total: 50, percentage: 84 },
+  ],
+
+  // Finance Tab
+  cashFlow: [
+    { month: 'Jan', income: 450, expenses: 280, net: 170 },
+    { month: 'Feb', income: 520, expenses: 310, net: 210 },
+    { month: 'Mar', income: 480, expenses: 295, net: 185 },
+    { month: 'Apr', income: 550, expenses: 320, net: 230 },
+    { month: 'May', income: 590, expenses: 340, net: 250 },
+    { month: 'Jun', income: 620, expenses: 360, net: 260 },
+  ],
+
+  expenseBreakdown: [
+    { category: 'Salaries', value: 180_000, fill: '#3b82f6' },
+    { category: 'Operations', value: 95_000, fill: '#10b981' },
+    { category: 'Marketing', value: 45_000, fill: '#f59e0b' },
+    { category: 'Infrastructure', value: 65_000, fill: '#8b5cf6' },
+    { category: 'Training', value: 25_000, fill: '#ec4899' },
+  ],
+
+  profitMargin: [
+    { month: 'Jan', margin: 38, fill: '#3b82f6' },
+    { month: 'Feb', margin: 40, fill: '#3b82f6' },
+    { month: 'Mar', margin: 39, fill: '#3b82f6' },
+    { month: 'Apr', margin: 42, fill: '#10b981' },
+    { month: 'May', margin: 42, fill: '#10b981' },
+    { month: 'Jun', margin: 42, fill: '#10b981' },
+  ],
+
+  departmentBudget: [
+    { department: 'Engineering', allocated: 500, spent: 420, remaining: 80 },
+    { department: 'Marketing', allocated: 250, spent: 210, remaining: 40 },
+    { department: 'Operations', allocated: 350, spent: 305, remaining: 45 },
+    { department: 'HR', allocated: 150, spent: 125, remaining: 25 },
+    { department: 'Sales', allocated: 300, spent: 265, remaining: 35 },
+  ],
+
+  financialHealth: [
+    { metric: 'Liquidity', value: 85, fullMark: 100 },
+    { metric: 'Profitability', value: 78, fullMark: 100 },
+    { metric: 'Efficiency', value: 82, fullMark: 100 },
+    { metric: 'Solvency', value: 90, fullMark: 100 },
+    { metric: 'Growth', value: 75, fullMark: 100 },
+  ],
+
+  // Projects Tab
+  projectsByStatus: [
+    { status: 'Open', count: 8, fill: '#10b981' },
+    { status: 'Upcoming', count: 5, fill: '#3b82f6' },
+    { status: 'On Hold', count: 3, fill: '#f59e0b' },
+    { status: 'Completed', count: 12, fill: '#6b7280' },
+  ],
+
+  projectTimeline: [
+    {
+      name: 'Sunrise Tower',
+      progress: 65,
+      budget: 85,
+      startDate: 'Dec 2024',
+      endDate: 'Nov 2026',
+    },
+    {
+      name: 'Green Valley Complex',
+      progress: 25,
+      budget: 30,
+      startDate: 'Jan 2025',
+      endDate: 'Jan 2027',
+    },
+    {
+      name: 'Metro Station',
+      progress: 0,
+      budget: 10,
+      startDate: 'Mar 2025',
+      endDate: 'Feb 2027',
+    },
+    {
+      name: 'Shopping Mall Phoenix',
+      progress: 45,
+      budget: 55,
+      startDate: 'Aug 2024',
+      endDate: 'Jul 2026',
+    },
+  ],
+
+  projectBudgetUtilization: [
+    { month: 'Jan', allocated: 500, spent: 420 },
+    { month: 'Feb', allocated: 550, spent: 485 },
+    { month: 'Mar', allocated: 520, spent: 490 },
+    { month: 'Apr', allocated: 580, spent: 540 },
+    { month: 'May', allocated: 600, spent: 570 },
+    { month: 'Jun', allocated: 620, spent: 595 },
+  ],
+
+  recentProjects: [
+    {
+      name: 'Sunrise Tower',
+      location: 'Bandra West, Mumbai',
+      status: 'open',
+      progress: 65,
+      budget: 500_000_000,
+      spent: 325_000_000,
+      startDate: '2024-12-01',
+      endDate: '2026-11-30',
+      members: 15,
+    },
+    {
+      name: 'Green Valley Complex',
+      location: 'Whitefield, Bangalore',
+      status: 'open',
+      progress: 25,
+      budget: 750_000_000,
+      spent: 225_000_000,
+      startDate: '2025-01-15',
+      endDate: '2027-01-14',
+      members: 20,
+    },
+    {
+      name: 'Metro Station - Sector 18',
+      location: 'Noida, UP',
+      status: 'upcoming',
+      progress: 0,
+      budget: 1_200_000_000,
+      spent: 120_000_000,
+      startDate: '2025-03-01',
+      endDate: '2027-02-28',
+      members: 12,
+    },
+    {
+      name: 'Shopping Mall - Phoenix',
+      location: 'Viman Nagar, Pune',
+      status: 'on-hold',
+      progress: 45,
+      budget: 650_000_000,
+      spent: 357_500_000,
+      startDate: '2024-08-01',
+      endDate: '2026-07-31',
+      members: 18,
+    },
+  ],
+
+  projectPerformance: [
+    { metric: 'On Schedule', value: 75, fullMark: 100 },
+    { metric: 'Within Budget', value: 82, fullMark: 100 },
+    { metric: 'Quality Score', value: 88, fullMark: 100 },
+    { metric: 'Client Satisfaction', value: 90, fullMark: 100 },
+    { metric: 'Team Efficiency', value: 85, fullMark: 100 },
+  ],
+};
