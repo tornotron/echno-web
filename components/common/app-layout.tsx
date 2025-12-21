@@ -11,6 +11,9 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
+import Link from 'next/link';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -29,6 +32,11 @@ function AppLayoutContent({ children }: AppLayoutProps) {
             <Breadcrumbs />
             <div className="flex items-center gap-4">
               <OrganizationSelector />
+              <Button variant="ghost" size="icon" asChild>
+                <Link href="/dashboard/settings">
+                  <Settings className="h-5 w-5" />
+                </Link>
+              </Button>
               <UserMenu />
             </div>
           </div>
