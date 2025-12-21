@@ -202,24 +202,21 @@ export default function ProjectDashboardPage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row">
-          <div className="flex-1">
-            <div className="mb-2 flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                {project.projectName}
-              </h1>
-              <Badge className={getStatusBadgeColor(project.status)}>
-                {getProjectStatusLabel(project.status)}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
-              <MapPin className="h-4 w-4" />
-              <p>{project.projectAddress}</p>
-            </div>
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              {project.projectName}
+            </h1>
+            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+              <MapPin className="mr-1 inline h-4 w-4" />
+              {project.projectAddress}
+            </p>
+            <Badge className={`mt-2 ${getStatusBadgeColor(project.status)}`}>
+              {getProjectStatusLabel(project.status)}
+            </Badge>
           </div>
-
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
               <Link href={`/dashboard/projects/${project.id}/edit`}>
