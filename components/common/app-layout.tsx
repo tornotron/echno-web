@@ -4,7 +4,6 @@ import { OrganizationProvider } from '@/components/providers/organization-provid
 import { AppSidebar } from '@/components/common/sidebar';
 import { Footer } from '@/components/common/footer';
 import { UserMenu } from '@/components/common/user-menu';
-import { OrganizationSelector } from '@/features/organization/organization-selector';
 import { Breadcrumbs } from '@/components/common/breadcrumbs';
 import {
   SidebarProvider,
@@ -12,7 +11,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Settings } from 'lucide-react';
+import { Settings, Building } from 'lucide-react';
 import Link from 'next/link';
 
 interface AppLayoutProps {
@@ -31,7 +30,15 @@ function AppLayoutContent({ children }: AppLayoutProps) {
           <div className="flex flex-1 items-center justify-between">
             <Breadcrumbs />
             <div className="flex items-center gap-4">
-              <OrganizationSelector />
+              <Button variant="outline" asChild>
+                <Link
+                  href="/dashboard/organizations"
+                  className="flex items-center gap-2"
+                >
+                  <Building className="h-4 w-4" />
+                  Organizations
+                </Link>
+              </Button>
               <Button variant="ghost" size="icon" asChild>
                 <Link href="/dashboard/settings">
                   <Settings className="h-5 w-5" />

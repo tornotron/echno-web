@@ -80,7 +80,6 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
-  { title: 'Organizations', url: '/dashboard/organizations', icon: Building },
   {
     title: 'Projects',
     url: '/dashboard/projects',
