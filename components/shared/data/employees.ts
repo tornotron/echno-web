@@ -1,6 +1,55 @@
 import { Employee, EmployeeStatus, Department } from '@/types/employee';
 import { mockUsers } from './users';
 import { mockOrganizations } from './organizations';
+import { Project, ProjectStatus } from '@/types/project';
+
+// Define projects inline to avoid circular dependency
+const projectsForEmployees: Project[] = [
+  {
+    id: 1,
+    projectName: 'Sunrise Tower',
+    projectAddress: 'Plot No. 23, Bandra West, Mumbai, Maharashtra 400050',
+    status: ProjectStatus.open,
+    projectLongitude: 72.8347,
+    projectLatitude: 19.0607,
+    startDate: new Date('2024-12-01'),
+    endDate: new Date('2026-11-30'),
+    createdAt: new Date('2024-11-01'),
+  } as Project,
+  {
+    id: 2,
+    projectName: 'Green Valley Residential Complex',
+    projectAddress: 'Whitefield Main Road, Bangalore, Karnataka 560066',
+    status: ProjectStatus.open,
+    projectLongitude: 77.7499,
+    projectLatitude: 12.9698,
+    startDate: new Date('2025-01-15'),
+    endDate: new Date('2027-01-14'),
+    createdAt: new Date('2024-12-10'),
+  } as Project,
+  {
+    id: 3,
+    projectName: 'Metro Station - Sector 18',
+    projectAddress: 'Sector 18, Noida, Uttar Pradesh 201301',
+    status: ProjectStatus.upcoming,
+    projectLongitude: 77.326,
+    projectLatitude: 28.5688,
+    startDate: new Date('2025-03-01'),
+    endDate: new Date('2027-02-28'),
+    createdAt: new Date('2025-01-05'),
+  } as Project,
+  {
+    id: 5,
+    projectName: 'Shopping Mall - Phoenix',
+    projectAddress: 'Viman Nagar, Pune, Maharashtra 411014',
+    status: ProjectStatus.onHold,
+    projectLongitude: 73.919,
+    projectLatitude: 18.5679,
+    startDate: new Date('2024-08-01'),
+    endDate: new Date('2026-07-31'),
+    createdAt: new Date('2024-07-01'),
+  } as Project,
+];
 
 export const mockEmployees: Employee[] = [
   {
@@ -15,6 +64,11 @@ export const mockEmployees: Employee[] = [
     certifications: ['PMP', 'LEED Green Associate', 'OSHA Safety'],
     joiningDate: new Date('2020-02-01'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [
+      projectsForEmployees[0],
+      projectsForEmployees[1],
+      projectsForEmployees[2],
+    ],
   },
   {
     ...mockUsers[1],
@@ -28,6 +82,7 @@ export const mockEmployees: Employee[] = [
     certifications: ['Professional Engineer (PE)', 'LEED AP'],
     joiningDate: new Date('2020-04-15'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [projectsForEmployees[0], projectsForEmployees[1]],
   },
   {
     ...mockUsers[2],
@@ -41,6 +96,7 @@ export const mockEmployees: Employee[] = [
     certifications: ['Licensed Electrician', 'NFPA 70E'],
     joiningDate: new Date('2021-01-10'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [projectsForEmployees[0]],
   },
   {
     ...mockUsers[3],
@@ -54,6 +110,7 @@ export const mockEmployees: Employee[] = [
     certifications: ['SHRM-CP', 'PHR'],
     joiningDate: new Date('2020-03-01'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [],
   },
   {
     ...mockUsers[4],
@@ -67,6 +124,7 @@ export const mockEmployees: Employee[] = [
     certifications: ['Licensed Plumber', 'Backflow Prevention'],
     joiningDate: new Date('2021-06-01'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [projectsForEmployees[1], projectsForEmployees[2]],
   },
   {
     ...mockUsers[5],
@@ -80,6 +138,7 @@ export const mockEmployees: Employee[] = [
     certifications: ['OSHA 30-Hour', 'NEBOSH IGC', 'First Aid'],
     joiningDate: new Date('2020-07-15'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [projectsForEmployees[0], projectsForEmployees[1]],
   },
   {
     ...mockUsers[6],
@@ -93,6 +152,7 @@ export const mockEmployees: Employee[] = [
     certifications: ['Registered Architect', 'LEED AP BD+C'],
     joiningDate: new Date('2020-05-20'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [projectsForEmployees[2], projectsForEmployees[3]],
   },
   {
     ...mockUsers[7],
@@ -106,5 +166,6 @@ export const mockEmployees: Employee[] = [
     certifications: ['CPA', 'Tally Certified'],
     joiningDate: new Date('2021-02-10'),
     organizations: [mockOrganizations[0]],
+    currentProjects: [],
   },
 ];

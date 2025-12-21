@@ -1,10 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import {
-  mockEmployees,
-  mockOrganizations,
-} from '@/components/shared/mock-data';
+import { mockEmployees, mockProjects } from '@/components/shared/mock-data';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,19 +21,13 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, UserPlus, Mail, Phone, User, Eye } from 'lucide-react';
+import { Users, UserPlus, Mail, Phone, User, FolderKanban } from 'lucide-react';
 import Link from 'next/link';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
@@ -78,7 +69,7 @@ const getStatusLabel = (status: string) => {
 export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [organizationFilter, setOrganizationFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [designationFilter, setDesignationFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,11 +96,11 @@ export default function EmployeesPage() {
       const matchesStatus =
         statusFilter === 'all' || employee.status === statusFilter;
 
-      // Organization filter
-      const matchesOrganization =
-        organizationFilter === 'all' ||
-        employee.organizations?.some(
-          (org) => org.id === Number.parseInt(organizationFilter)
+      // Project filter
+      const matchesProject =
+        projectFilter === 'all' ||
+        employee.currentProjects?.some(
+          (proj) => proj.id === Number.parseInt(projectFilter)
         );
 
       // Department filter
@@ -124,7 +115,7 @@ export default function EmployeesPage() {
       return (
         matchesSearch &&
         matchesStatus &&
-        matchesOrganization &&
+        matchesProject &&
         matchesDepartment &&
         matchesDesignation
       );
@@ -132,7 +123,7 @@ export default function EmployeesPage() {
   }, [
     searchQuery,
     statusFilter,
-    organizationFilter,
+    projectFilter,
     departmentFilter,
     designationFilter,
   ]);
@@ -158,7 +149,7 @@ export default function EmployeesPage() {
   const hasActiveFilters = Boolean(
     searchQuery ||
       statusFilter !== 'all' ||
-      organizationFilter !== 'all' ||
+      projectFilter !== 'all' ||
       departmentFilter !== 'all' ||
       designationFilter !== 'all'
   );
@@ -166,7 +157,7 @@ export default function EmployeesPage() {
   const clearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
-    setOrganizationFilter('all');
+    setProjectFilter('all');
     setDepartmentFilter('all');
     setDesignationFilter('all');
     setCurrentPage(1);
@@ -279,17 +270,17 @@ export default function EmployeesPage() {
               },
             },
             {
-              placeholder: 'Organization',
+              placeholder: 'Project',
               options: [
-                { value: 'all', label: 'All Organizations' },
-                ...mockOrganizations.map((org) => ({
-                  value: org.id!.toString(),
-                  label: org.organizationName,
+                { value: 'all', label: 'All Projects' },
+                ...mockProjects.map((proj) => ({
+                  value: proj.id!.toString(),
+                  label: proj.projectName,
                 })),
               ],
-              value: organizationFilter,
+              value: projectFilter,
               onChange: (value) => {
-                setOrganizationFilter(value);
+                setProjectFilter(value);
                 setCurrentPage(1);
               },
             },
@@ -380,15 +371,20 @@ export default function EmployeesPage() {
                     <TableHead>Designation</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Organizations</TableHead>
+                    <TableHead>Projects</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedEmployees.map((employee) => {
                     return (
-                      <TableRow key={employee.id}>
+                      <TableRow
+                        key={employee.id}
+                        className="hover:bg-muted/50 cursor-pointer"
+                        onClick={() =>
+                          (globalThis.location.href = `/dashboard/workforce/employees/${employee.id}`)
+                        }
+                      >
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
@@ -433,54 +429,45 @@ export default function EmployeesPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {employee.organizations &&
-                          employee.organizations.length > 0 ? (
-                            <div className="flex flex-wrap gap-1">
-                              {employee.organizations.slice(0, 2).map((org) => (
-                                <Badge
-                                  key={org.id}
-                                  variant="secondary"
-                                  className="text-xs"
-                                >
-                                  {org.organizationName}
-                                </Badge>
-                              ))}
-                              {employee.organizations.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{employee.organizations.length - 2}
-                                </Badge>
+                          {employee.currentProjects &&
+                          employee.currentProjects.length > 0 ? (
+                            <div className="flex flex-col gap-1.5">
+                              {employee.currentProjects
+                                .slice(
+                                  0,
+                                  employee.currentProjects.length > 2 ? 1 : 2
+                                )
+                                .map((proj) => (
+                                  <div
+                                    key={proj.id}
+                                    className="flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 dark:bg-blue-900/20"
+                                  >
+                                    <FolderKanban className="h-3 w-3 shrink-0 text-blue-600 dark:text-blue-400" />
+                                    <span className="max-w-[180px] truncate text-xs font-medium text-blue-700 dark:text-blue-300">
+                                      {proj.projectName}
+                                    </span>
+                                  </div>
+                                ))}
+                              {employee.currentProjects.length > 2 && (
+                                <div className="flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">
+                                  <FolderKanban className="h-3 w-3 shrink-0 text-zinc-500 dark:text-zinc-400" />
+                                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                    +{employee.currentProjects.length - 1} more
+                                  </span>
+                                </div>
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-zinc-400">None</span>
+                            <div className="flex items-center gap-1.5 text-xs text-zinc-400">
+                              <FolderKanban className="h-3 w-3" />
+                              <span>No projects</span>
+                            </div>
                           )}
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(employee.status)}>
                             {getStatusLabel(employee.status)}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  href={`/dashboard/workforce/employees/${employee.id}`}
-                                >
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>View Employee Details</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     );
