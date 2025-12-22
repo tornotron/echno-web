@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
 import {
   Card,
@@ -33,41 +34,42 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { whatsappMessage, emailSubject, emailBody } from '@/types/invitation';
-import type { Invitation } from '@/types/invitation';
-import { EmployeeStatus } from '@/types/employee';
 import { format } from 'date-fns';
-
-// Mock invitation data (in real app, fetch from API)
-const mockInvitation: Invitation & {
-  employeeName: string;
-  email: string;
-  phone: string;
-  createdDate: Date;
-  sentVia: string[];
-} = {
-  inviteCode: 'INV-2025-001',
-  employeeId: 'EMP-2025-101',
-  employeeName: 'Arjun Mehta',
-  designation: 'Senior Engineer',
-  department: 'Engineering',
-  organizationId: 'ORG-001',
-  organizationName: 'Echno Construction',
-  status: EmployeeStatus.active,
-  joiningDate: new Date('2025-02-01'),
-  salary: 75_000,
-  reportingManager: 'Rajesh Kumar',
-  shiftTiming: '9:00 AM - 6:00 PM',
-  validityDays: 30,
-  expiryDate: new Date('2025-02-15'),
-  createdDate: new Date('2025-01-15'),
-  sentVia: ['email', 'whatsapp'],
-  email: 'arjun.mehta@email.com',
-  phone: '+91-9876543210',
-};
+import { mockInvitations } from '@/components/shared/mock-data';
 
 export default function InvitationPage() {
+  const params = useParams();
+  const router = useRouter();
   const [copied, setCopied] = useState(false);
-  const invitation = mockInvitation; // In real app: fetch based on params.id
+
+  // Find invitation by invite code from URL params
+  const inviteCode = params.id as string;
+  const foundInvitation = mockInvitations.find(
+    (inv) => inv.inviteCode === inviteCode
+  );
+
+  // If not found, show error
+  if (!foundInvitation) {
+    return (
+      <AppLayout>
+        <div className="flex min-h-[400px] flex-col items-center justify-center">
+          <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+          <h2 className="mb-2 text-xl font-semibold">Invitation Not Found</h2>
+          <p className="mb-4 text-zinc-500">
+            The invitation code &quot;{inviteCode}&quot; could not be found.
+          </p>
+          <Button
+            onClick={() => router.push('/dashboard/workforce/invitations')}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Invitations
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const invitation = foundInvitation;
 
   // Copy to clipboard
   const copyToClipboard = (text: string) => {
@@ -80,7 +82,7 @@ export default function InvitationPage() {
   // Send via WhatsApp
   const sendViaWhatsApp = () => {
     const message = whatsappMessage(invitation);
-    const phone = invitation.phone.replaceAll(/[^0-9]/g, '');
+    const phone = invitation.phone?.replaceAll(/[^0-9]/g, '') || '';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     toast.success('Opening WhatsApp...');
@@ -91,7 +93,9 @@ export default function InvitationPage() {
     const subject = emailSubject(invitation);
     const body = emailBody(invitation);
     const url = `mailto:${invitation.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    globalThis.location.href = url;
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.click();
     toast.success('Opening email client...');
   };
 
@@ -323,19 +327,6 @@ export default function InvitationPage() {
 
   // Determine status display
   const getStatusDisplay = () => {
-    const now = new Date();
-    const isExpired = invitation.expiryDate && now > invitation.expiryDate;
-
-    if (isExpired) {
-      return {
-        label: 'Expired',
-        icon: AlertCircle,
-        className:
-          'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-      };
-    }
-
-    // You can expand this with actual status from backend
     const statusMap: Record<
       string,
       { label: string; icon: LucideIcon; className: string }
@@ -358,9 +349,15 @@ export default function InvitationPage() {
         className:
           'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300',
       },
+      expired: {
+        label: 'Expired',
+        icon: AlertCircle,
+        className:
+          'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
+      },
     };
 
-    return statusMap.pending; // Default to pending for this mock
+    return statusMap[invitation.status] || statusMap.pending;
   };
 
   const statusDisplay = getStatusDisplay();
@@ -556,10 +553,12 @@ export default function InvitationPage() {
                         Created
                       </p>
                       <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {format(
-                          invitation.createdDate,
-                          "MMM dd, yyyy 'at' h:mm a"
-                        )}
+                        {invitation.createdDate
+                          ? format(
+                              invitation.createdDate,
+                              "MMM dd, yyyy 'at' h:mm a"
+                            )
+                          : 'N/A'}
                       </p>
                     </div>
                   </div>
@@ -592,7 +591,7 @@ export default function InvitationPage() {
                         Sent Via
                       </p>
                       <div className="mt-1 flex flex-wrap gap-2">
-                        {invitation.sentVia.map((method) => (
+                        {invitation.sentVia?.map((method) => (
                           <Badge
                             key={method}
                             variant="outline"
@@ -600,7 +599,9 @@ export default function InvitationPage() {
                           >
                             {method.charAt(0).toUpperCase() + method.slice(1)}
                           </Badge>
-                        ))}
+                        )) || (
+                          <span className="text-sm text-zinc-400">None</span>
+                        )}
                       </div>
                     </div>
                   </div>
