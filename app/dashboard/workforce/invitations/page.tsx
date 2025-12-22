@@ -7,7 +7,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,43 +26,21 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   Plus,
   Mail,
   Clock,
   CheckCircle,
   XCircle,
   AlertCircle,
-  Eye,
+  User,
   LucideIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { mockInvitations } from '@/components/shared/mock-data';
 
-// Extended mock data with additional fields for UI
-const mockInvitationsExtended = mockInvitations.map((inv, index) => ({
-  ...inv,
-  employeeName: `Employee ${inv.employeeId}`,
-  email: `${inv.employeeId.toLowerCase()}@echno.com`,
-  phone: `+91-98765432${10 + index}`,
-  createdDate: new Date(
-    new Date(inv.joiningDate || new Date()).getTime() - 15 * 24 * 60 * 60 * 1000
-  ),
-  sentVia: ['email', 'whatsapp'] as string[],
-  status: 'pending' as 'pending' | 'accepted' | 'rejected' | 'expired',
-}));
-
-// Update some to have different statuses for demo
-if (mockInvitationsExtended.length > 1)
-  mockInvitationsExtended[1].status = 'accepted';
-if (mockInvitationsExtended.length > 2)
-  mockInvitationsExtended[2].status = 'expired';
+// Use invitations directly from mock data
+const mockInvitationsExtended = mockInvitations;
 
 const getStatusBadge = (status: string) => {
   const config: Record<
@@ -115,10 +92,10 @@ export default function InvitationsPage() {
   const filteredInvitations = mockInvitationsExtended.filter((inv) => {
     const matchesSearch =
       searchQuery === '' ||
-      inv.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.employeeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.inviteCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
       inv.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.email.toLowerCase().includes(searchQuery.toLowerCase());
+      inv.email?.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
     const matchesDepartment =
@@ -332,7 +309,6 @@ export default function InvitationsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Expires</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -340,17 +316,27 @@ export default function InvitationsPage() {
                   currentInvitations.map((invitation) => (
                     <TableRow
                       key={invitation.inviteCode}
-                      className="border-b border-zinc-200 dark:border-zinc-800"
+                      className="hover:bg-muted/50 cursor-pointer border-b border-zinc-200 dark:border-zinc-800"
+                      onClick={() =>
+                        (globalThis.location.href = `/dashboard/workforce/invitations/${invitation.inviteCode}`)
+                      }
                     >
-                      <TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
                         <input type="checkbox" className="rounded" />
                       </TableCell>
                       <TableCell>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {invitation.employeeName}
-                        </div>
-                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                          {invitation.employeeId}
+                        <div className="flex items-center space-x-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                            <User className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {invitation.employeeName}
+                            </div>
+                            <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                              {invitation.employeeId}
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -360,46 +346,38 @@ export default function InvitationsPage() {
                       </TableCell>
                       <TableCell>{getStatusBadge(invitation.status)}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-zinc-900 dark:text-zinc-100">
-                          <Clock className="h-4 w-4 text-green-600" />
-                          {format(invitation.createdDate, 'HH:mm')}
-                        </div>
+                        {invitation.createdDate ? (
+                          <>
+                            <div className="text-sm text-zinc-900 dark:text-zinc-100">
+                              {format(invitation.createdDate, 'MMM dd, yyyy')}
+                            </div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {format(invitation.createdDate, 'h:mm a')}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-sm text-zinc-500">N/A</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1 text-sm text-zinc-900 dark:text-zinc-100">
-                          <Clock className="h-4 w-4 text-red-600" />
-                          {invitation.expiryDate
-                            ? format(invitation.expiryDate, 'HH:mm')
-                            : '—'}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Link
-                                href={`/dashboard/workforce/invitations/${invitation.inviteCode}`}
-                              >
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0 text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                                >
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>View Invitation</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        {invitation.expiryDate ? (
+                          <>
+                            <div className="text-sm text-zinc-900 dark:text-zinc-100">
+                              {format(invitation.expiryDate, 'MMM dd, yyyy')}
+                            </div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {format(invitation.expiryDate, 'h:mm a')}
+                            </div>
+                          </>
+                        ) : (
+                          <span className="text-sm text-zinc-400">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center">
+                    <TableCell colSpan={6} className="py-8 text-center">
                       <AlertCircle className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
                       <p className="text-sm text-zinc-600 dark:text-zinc-400">
                         No invitations found
