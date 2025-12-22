@@ -32,51 +32,12 @@ import {
   getProjectStatusLabel,
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
+import { mockProjects } from '@/components/shared/mock-data';
 
-// Mock function to fetch project - replace with actual API call
+// Fetch project by ID from mock data
 const fetchProject = async (id: string): Promise<Project | null> => {
-  // Simulate API call
-  const mockProjects: Project[] = [
-    {
-      id: 1,
-      projectName: 'Residential Tower Construction',
-      projectAddress: 'Plot 456, Andheri East, Mumbai, Maharashtra',
-      status: ProjectStatus.open,
-      projectLongitude: 72.8777,
-      projectLatitude: 19.076,
-      startDate: new Date('2024-01-15'),
-      endDate: new Date('2025-12-31'),
-      createdAt: new Date('2023-12-01'),
-      members: [
-        {
-          memberName: 'John Smith',
-          memberEmail: 'john@example.com',
-          memberPhone: '+91 98765 43210',
-          memberRole: 'manager',
-          department: 'Construction',
-          designation: 'Project Manager',
-        },
-        {
-          memberName: 'Sarah Johnson',
-          memberEmail: 'sarah@example.com',
-          memberPhone: '+91 98765 43211',
-          memberRole: 'engineer',
-          department: 'Engineering',
-          designation: 'Civil Engineer',
-        },
-        {
-          memberName: 'Mike Davis',
-          memberEmail: 'mike@example.com',
-          memberPhone: '+91 98765 43212',
-          memberRole: 'contractor',
-          department: 'Construction',
-          designation: 'Site Supervisor',
-        },
-      ],
-      tasks: [],
-    },
-  ];
-
+  // Simulate API call delay
+  await new Promise((resolve) => setTimeout(resolve, 100));
   return mockProjects.find((p) => p.id === Number.parseInt(id)) || null;
 };
 
