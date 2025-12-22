@@ -1,6 +1,7 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,37 +19,12 @@ import {
   Building2,
   Star,
   FileText,
+  AlertCircle,
+  ArrowLeft,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
-
-// Mock data - replace with actual API call
-const mockVendor = {
-  id: 1,
-  vendorId: 'VEN-001',
-  companyName: 'ABC Materials Pvt Ltd',
-  contactPerson: 'Rajesh Sharma',
-  phone: '+91 98765 43210',
-  email: 'contact@abcmaterials.com',
-  address: '456, Industrial Area, Phase 2, Gurgaon - 122001',
-  type: 'material',
-  status: 'active',
-  category: ['Cement', 'Steel', 'Aggregates'],
-  gstNumber: '27AABCU9603R1ZX',
-  panNumber: 'AABCU9603R',
-  rating: 4.5,
-  onTimeDeliveryRate: 92,
-  totalPurchaseValue: 5_500_000,
-  totalOrders: 45,
-  totalOutstanding: 125_000,
-  paymentTerms: 'net30',
-  bankAccount: '9876543210',
-  bankName: 'HDFC Bank',
-  ifscCode: 'HDFC0001234',
-  registrationDate: new Date('2023-06-15'),
-  website: 'www.abcmaterials.com',
-  notes: 'Reliable supplier with good quality materials. Competitive pricing.',
-};
+import { mockVendors } from '@/components/shared/mock-data';
 
 const typeLabels: Record<string, string> = {
   material: 'Material Supplier',
@@ -88,8 +64,29 @@ interface PageProps {
 }
 
 export default function VendorDetailPage({ params }: PageProps) {
-  use(params);
-  const [vendor] = useState(mockVendor);
+  const unwrappedParams = use(params);
+  const router = useRouter();
+  const vendorId = Number.parseInt(unwrappedParams.id);
+  const vendor = mockVendors.find((v) => v.id === vendorId);
+
+  if (!vendor) {
+    return (
+      <AppLayout>
+        <div className="flex min-h-[400px] flex-col items-center justify-center">
+          <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+          <h2 className="mb-2 text-xl font-semibold">Vendor Not Found</h2>
+          <p className="mb-4 text-zinc-500">
+            The vendor with ID &quot;{unwrappedParams.id}&quot; could not be
+            found.
+          </p>
+          <Button onClick={() => router.push('/dashboard/third-party/vendors')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Vendors
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
