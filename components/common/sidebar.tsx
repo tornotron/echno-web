@@ -369,7 +369,7 @@ export function AppSidebar() {
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton
                           tooltip={item.title}
-                          isActive={isActive || isChildActive}
+                          isActive={isActive}
                         >
                           <item.icon />
                           <span>{item.title}</span>
