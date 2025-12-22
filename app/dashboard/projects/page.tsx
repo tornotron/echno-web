@@ -31,8 +31,6 @@ import {
   XCircle,
   Pause,
   TrendingUp,
-  Eye,
-  Edit,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -332,121 +330,98 @@ export default function ProjectsPage() {
               {paginatedProjects.map((project: Project) => {
                 const progress = getProjectProgress(project);
                 return (
-                  <Card
+                  <Link
                     key={project.id}
-                    className="transition-shadow hover:shadow-md"
+                    href={`/dashboard/projects/${project.id}`}
                   >
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex flex-1 items-start gap-3">
-                          <div
-                            className={`rounded-lg p-2 ${getStatusBadgeColor(project.status)}`}
-                          >
-                            <FolderKanban className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <CardTitle className="line-clamp-2 text-base">
-                              {project.projectName}
-                            </CardTitle>
-                            <Badge variant="outline" className="mt-1">
-                              <span className="flex items-center gap-1">
-                                {getStatusIcon(project.status)}
-                                {getProjectStatusLabel(project.status)}
-                              </span>
-                            </Badge>
+                    <Card className="hover:border-primary/50 h-full cursor-pointer transition-all hover:shadow-md">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex flex-1 items-start gap-3">
+                            <div
+                              className={`rounded-lg p-2 ${getStatusBadgeColor(project.status)}`}
+                            >
+                              <FolderKanban className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <CardTitle className="line-clamp-2 text-base">
+                                {project.projectName}
+                              </CardTitle>
+                              <Badge variant="outline" className="mt-1">
+                                <span className="flex items-center gap-1">
+                                  {getStatusIcon(project.status)}
+                                  {getProjectStatusLabel(project.status)}
+                                </span>
+                              </Badge>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="text-muted-foreground line-clamp-2 text-sm">
-                        <MapPin className="mr-1 inline h-3 w-3" />
-                        {project.projectAddress}
-                      </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="text-muted-foreground line-clamp-2 text-sm">
+                          <MapPin className="mr-1 inline h-3 w-3" />
+                          {project.projectAddress}
+                        </div>
 
-                      {/* Progress Bar */}
-                      {project.status !== ProjectStatus.upcoming &&
-                        project.status !== ProjectStatus.cancelled && (
+                        {/* Progress Bar */}
+                        {project.status !== ProjectStatus.upcoming &&
+                          project.status !== ProjectStatus.cancelled && (
+                            <div>
+                              <div className="mb-1 flex justify-between text-xs">
+                                <span className="text-muted-foreground">
+                                  Progress
+                                </span>
+                                <span className="font-medium">{progress}%</span>
+                              </div>
+                              <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
+                                <div
+                                  className={`h-2 rounded-full transition-all ${
+                                    progress === 100
+                                      ? 'bg-purple-600'
+                                      : 'bg-green-600'
+                                  }`}
+                                  style={{ width: `${progress}%` }}
+                                />
+                              </div>
+                            </div>
+                          )}
+
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <div className="mb-1 flex justify-between text-xs">
-                              <span className="text-muted-foreground">
-                                Progress
-                              </span>
-                              <span className="font-medium">{progress}%</span>
+                            <div className="text-muted-foreground text-xs">
+                              Start Date
                             </div>
-                            <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
-                              <div
-                                className={`h-2 rounded-full transition-all ${
-                                  progress === 100
-                                    ? 'bg-purple-600'
-                                    : 'bg-green-600'
-                                }`}
-                                style={{ width: `${progress}%` }}
-                              />
+                            <div className="text-sm font-medium">
+                              {project.startDate
+                                ? format(project.startDate, 'MMM dd, yyyy')
+                                : 'Not set'}
                             </div>
                           </div>
-                        )}
+                          <div>
+                            <div className="text-muted-foreground text-xs">
+                              End Date
+                            </div>
+                            <div className="text-sm font-medium">
+                              {project.endDate
+                                ? format(project.endDate, 'MMM dd, yyyy')
+                                : 'Not set'}
+                            </div>
+                          </div>
+                        </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-muted-foreground text-xs">
-                            Start Date
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="text-muted-foreground flex items-center gap-1">
+                            <Users className="h-4 w-4" />
+                            <span>{project.members.length} members</span>
                           </div>
-                          <div className="text-sm font-medium">
-                            {project.startDate
-                              ? format(project.startDate, 'MMM dd, yyyy')
-                              : 'Not set'}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground text-xs">
-                            End Date
-                          </div>
-                          <div className="text-sm font-medium">
-                            {project.endDate
-                              ? format(project.endDate, 'MMM dd, yyyy')
-                              : 'Not set'}
+                          <div className="text-muted-foreground flex items-center gap-1">
+                            <ListTodo className="h-4 w-4" />
+                            <span>{project.tasks.length} tasks</span>
                           </div>
                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="text-muted-foreground flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          <span>{project.members.length} members</span>
-                        </div>
-                        <div className="text-muted-foreground flex items-center gap-1">
-                          <ListTodo className="h-4 w-4" />
-                          <span>{project.tasks.length} tasks</span>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button
-                          variant="default"
-                          size="sm"
-                          className="flex-1"
-                          asChild
-                        >
-                          <Link href={`/dashboard/projects/${project.id}`}>
-                            <Eye className="mr-1 h-4 w-4" />
-                            Dashboard
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1"
-                          asChild
-                        >
-                          <Link href={`/dashboard/projects/${project.id}/edit`}>
-                            <Edit className="mr-1 h-4 w-4" />
-                            Edit
-                          </Link>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 );
               })}
             </div>
