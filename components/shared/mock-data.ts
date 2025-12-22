@@ -1,5 +1,48 @@
 // lib/comprehensive-mock-data.ts
 // Comprehensive mock data for all types in the application
+//
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENTITY RELATIONSHIPS AND DATA FLOW
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// This file showcases how different entities are connected in the application:
+//
+// 1. USERS → EMPLOYEES → MEMBERS → PROJECTS
+//    - Users (basic user information)
+//    - Employees (extends Users with employment details, links to Organizations)
+//    - Members (project-specific roles, links to Users, Employees, and Organizations)
+//    - Projects (links to Organizations as owner/client, Members, and Tasks)
+//
+// 2. PROJECTS → TASKS → ISSUES
+//    - Projects contain multiple Tasks
+//    - Tasks are assigned to Members and belong to Work Categories
+//    - Issues are linked to Tasks and assigned to Employees
+//
+// 3. ORGANIZATIONS ↔ PROJECTS ↔ EMPLOYEES
+//    - Organizations create and manage Projects (organizationId on Projects)
+//    - Organizations can also be clients for Projects (clientId on Projects)
+//    - Employees belong to Organizations
+//
+// 4. ATTENDANCE → EMPLOYEES + PROJECTS
+//    - Attendance records link Employees to Projects with clock in/out events
+//    - Each clock event is geotagged to Project locations
+//
+// 5. LEAVE REQUESTS → EMPLOYEES
+//    - Leave requests are created by Employees
+//    - Approved by other Employees (HR Managers)
+//    - Can include delegation to other Employees
+//
+// 6. INVITATIONS → ORGANIZATIONS
+//    - Invitations are sent by Organizations to recruit new Employees
+//    - Link to future Employee IDs and reporting managers
+//
+// KEY ID RELATIONSHIPS:
+// - User.id → Employee.id → Member.userId → Member.employeeId
+// - Organization.id → Project.organizationId / Project.clientId
+// - Project.id → Task.projectId → Issue.projectId / Issue.taskId
+// - Employee.employeeId → Attendance.employeeId → LeaveRequest.employeeId
+//
+// ═══════════════════════════════════════════════════════════════════════════════
 
 import { Employee, EmployeeStatus, Department } from '@/types/employee';
 import { Organization } from '@/types/organization';
@@ -5133,3 +5176,148 @@ export const dashboardData = {
     { metric: 'Team Efficiency', value: 85, fullMark: 100 },
   ],
 };
+// ═══════════════════════════════════════════════════════════════════════════════
+// RELATIONSHIP HELPER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get all projects where an employee is a member (by email match)
+ */
+export function getProjectsByMember(userEmail: string): Project[] {
+  return mockProjects.filter((p) =>
+    p.members?.some((m) => m.memberEmail === userEmail)
+  );
+}
+
+/**
+ * Get all tasks assigned to a specific member
+ */
+export function getTasksByMember(memberId: number): Task[] {
+  return mockTasks.filter((t) => t.assignees?.some((a) => a.id === memberId));
+}
+
+/**
+ * Get all issues for a specific task
+ */
+export function getIssuesForSpecificTask(taskId: number): Issue[] {
+  const task = mockTasks.find((t) => t.id === taskId);
+  return task?.issues || [];
+}
+
+/**
+ * Get organization details for a project (owner and client)
+ * Note: Requires type extensions to fully implement
+ */
+export function getProjectOrganizations(projectId: number): {
+  project?: Project;
+  relatedOrganizations: Organization[];
+} {
+  const project = mockProjects.find((p) => p.id === projectId);
+  if (!project) return { relatedOrganizations: [] };
+
+  // Get organizations related through employees
+  const orgIds = new Set(
+    project.members?.flatMap((m) => {
+      const employee = mockEmployees.find((e) => e.email === m.memberEmail);
+      return employee?.organizations?.map((o) => o.id) || [];
+    })
+  );
+
+  const relatedOrganizations = mockOrganizations.filter((o) =>
+    orgIds.has(o.id)
+  );
+
+  return {
+    project,
+    relatedOrganizations,
+  };
+}
+
+/**
+ * Get a complete project hierarchy with all related data
+ */
+export function getProjectHierarchy(projectId: number) {
+  const project = mockProjects.find((p) => p.id === projectId);
+  if (!project) return null;
+
+  const tasks = mockTasks.filter((t) => t.projectId === projectId);
+  const allIssues = tasks.flatMap((t) => t.issues || []);
+  const organizations = getProjectOrganizations(projectId);
+
+  return {
+    project,
+    tasks,
+    issues: allIssues,
+    organizations: organizations.relatedOrganizations,
+    members: project.members || [],
+    taskCount: tasks.length,
+    issueCount: allIssues.length,
+    openIssueCount: allIssues.filter((i) => i.status === IssueStatus.open)
+      .length,
+    completedTaskCount: tasks.filter((t) => t.status === TaskStatus.completed)
+      .length,
+  };
+}
+
+/**
+ * Get employee's complete work summary
+ */
+export function getEmployeeWorkSummary(userId: number) {
+  const user = mockUsers.find((u) => u.id === userId);
+  const employee = mockEmployees.find((e) => e.id === userId);
+  const member = mockMembers.find((m) => m.memberEmail === user?.email);
+
+  if (!user || !employee) return null;
+
+  const projects = getProjectsByMember(user.email);
+  const tasks = member && member.id ? getTasksByMember(member.id) : [];
+
+  return {
+    user,
+    employee,
+    member,
+    projects,
+    tasks,
+    statistics: {
+      totalProjects: projects.length,
+      activeTasks: tasks.filter((t) => t.status === TaskStatus.onGoing).length,
+      completedTasks: tasks.filter((t) => t.status === TaskStatus.completed)
+        .length,
+    },
+  };
+}
+
+/**
+ * Get organization's complete overview
+ */
+export function getOrganizationOverview(organizationId: number) {
+  const organization = mockOrganizations.find((o) => o.id === organizationId);
+  if (!organization) return null;
+
+  const employees = mockEmployees.filter((e) =>
+    e.organizations?.some((o) => o.id === organizationId)
+  );
+
+  // Get projects where employees from this organization are members
+  const projects = mockProjects.filter((p) =>
+    p.members?.some((m) => {
+      const employee = mockEmployees.find((e) => e.email === m.memberEmail);
+      return employee?.organizations?.some((o) => o.id === organizationId);
+    })
+  );
+
+  return {
+    organization,
+    employees,
+    projects,
+    statistics: {
+      totalProjects: projects.length,
+      activeProjects: projects.filter((p) => p.status === ProjectStatus.open)
+        .length,
+      totalEmployees: employees.length,
+      activeEmployees: employees.filter(
+        (e) => e.status === EmployeeStatus.active
+      ).length,
+    },
+  };
+}
