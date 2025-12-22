@@ -1,21 +1,52 @@
 // types/invitation/invitation.ts
-import { EmployeeStatus, employeeStatusFromString } from '@/types/employee';
+
+export enum InvitationStatus {
+  pending = 'pending',
+  accepted = 'accepted',
+  rejected = 'rejected',
+  expired = 'expired',
+}
+
+export function invitationStatusFromString(str: string): InvitationStatus {
+  switch (str.toLowerCase()) {
+    case 'pending': {
+      return InvitationStatus.pending;
+    }
+    case 'accepted': {
+      return InvitationStatus.accepted;
+    }
+    case 'rejected': {
+      return InvitationStatus.rejected;
+    }
+    case 'expired': {
+      return InvitationStatus.expired;
+    }
+    default: {
+      return InvitationStatus.pending;
+    }
+  }
+}
 
 export interface Invitation {
   inviteCode: string;
   employeeId: string;
+  employeeName?: string;
+  email?: string;
+  phone?: string;
   designation: string;
   department: string;
   organizationId: string;
   organizationName: string;
-  status: EmployeeStatus;
+  status: InvitationStatus;
   joiningDate?: Date;
   salary?: number;
   reportingManager?: string;
   shiftTiming?: string;
   validityDays?: number;
   expiryDate?: Date;
+  createdDate?: Date;
   maxUses?: number;
+  sentVia?: string[];
 }
 
 /** JSON → Invitation */
@@ -24,6 +55,9 @@ export function parseInvitation(json: any): Invitation {
   return {
     inviteCode: json.inviteCode ?? '',
     employeeId: json.employeeId ?? '',
+    employeeName: json.employeeName ?? undefined,
+    email: json.email ?? undefined,
+    phone: json.phone ?? undefined,
     designation: json.designation ?? '',
     department: json.department ?? '',
     joiningDate: json.joiningDate ? new Date(json.joiningDate) : undefined,
@@ -32,10 +66,12 @@ export function parseInvitation(json: any): Invitation {
     shiftTiming: json.shiftTiming ?? undefined,
     organizationId: json.organizationId ?? '',
     organizationName: json.organizationName ?? '',
-    status: employeeStatusFromString(json.status ?? 'active'),
+    status: invitationStatusFromString(json.status ?? 'pending'),
     validityDays: json.validityDays ?? undefined,
     expiryDate: json.expiryDate ? new Date(json.expiryDate) : undefined,
+    createdDate: json.createdDate ? new Date(json.createdDate) : undefined,
     maxUses: json.maxUses ?? undefined,
+    sentVia: json.sentVia ?? undefined,
   };
 }
 
@@ -44,6 +80,9 @@ export function invitationToJson(inv: Invitation): Record<string, unknown> {
   return {
     inviteCode: inv.inviteCode,
     employeeId: inv.employeeId,
+    employeeName: inv.employeeName,
+    email: inv.email,
+    phone: inv.phone,
     designation: inv.designation,
     department: inv.department,
     joiningDate: inv.joiningDate?.toISOString(),
@@ -55,7 +94,9 @@ export function invitationToJson(inv: Invitation): Record<string, unknown> {
     status: inv.status,
     validityDays: inv.validityDays,
     expiryDate: inv.expiryDate?.toISOString(),
+    createdDate: inv.createdDate?.toISOString(),
     maxUses: inv.maxUses,
+    sentVia: inv.sentVia,
   };
 }
 
