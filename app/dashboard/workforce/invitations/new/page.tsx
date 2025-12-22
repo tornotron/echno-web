@@ -31,9 +31,13 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
-import { whatsappMessage, emailSubject, emailBody } from '@/types/invitation';
+import {
+  whatsappMessage,
+  emailSubject,
+  emailBody,
+  InvitationStatus,
+} from '@/types/invitation';
 import type { Invitation } from '@/types/invitation';
-import { EmployeeStatus } from '@/types/employee';
 
 // Generate invite code
 const generateInviteCode = () => {
@@ -100,7 +104,7 @@ export default function NewInvitationPage() {
       department: formData.department,
       organizationId: 'ORG-001',
       organizationName: 'Echno Construction',
-      status: EmployeeStatus.active,
+      status: InvitationStatus.pending,
       joiningDate: formData.joiningDate
         ? new Date(formData.joiningDate)
         : undefined,
