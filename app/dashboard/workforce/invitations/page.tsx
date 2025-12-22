@@ -87,6 +87,7 @@ export default function InvitationsPage() {
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedInvitations, setSelectedInvitations] = useState<string[]>([]);
 
   // Filter invitations
   const filteredInvitations = mockInvitationsExtended.filter((inv) => {
@@ -132,6 +133,32 @@ export default function InvitationsPage() {
     setDepartmentFilter('all');
     setCurrentPage(1);
   };
+
+  // Checkbox selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedInvitations(currentInvitations.map((inv) => inv.inviteCode));
+    } else {
+      setSelectedInvitations([]);
+    }
+  };
+
+  const handleSelectOne = (inviteCode: string, checked: boolean) => {
+    if (checked) {
+      setSelectedInvitations((prev) => [...prev, inviteCode]);
+    } else {
+      setSelectedInvitations((prev) =>
+        prev.filter((code) => code !== inviteCode)
+      );
+    }
+  };
+
+  const isAllSelected =
+    currentInvitations.length > 0 &&
+    currentInvitations.every((inv) =>
+      selectedInvitations.includes(inv.inviteCode)
+    );
+  const isSomeSelected = selectedInvitations.length > 0 && !isAllSelected;
 
   return (
     <AppLayout>
@@ -302,7 +329,15 @@ export default function InvitationsPage() {
               <TableHeader>
                 <TableRow className="border-b border-zinc-200 hover:bg-transparent dark:border-zinc-800">
                   <TableHead className="w-[50px]">
-                    <input type="checkbox" className="rounded" />
+                    <input
+                      type="checkbox"
+                      className="rounded"
+                      checked={isAllSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeSelected;
+                      }}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                    />
                   </TableHead>
                   <TableHead>Employee</TableHead>
                   <TableHead>Designation</TableHead>
@@ -322,7 +357,19 @@ export default function InvitationsPage() {
                       }
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <input type="checkbox" className="rounded" />
+                        <input
+                          type="checkbox"
+                          className="rounded"
+                          checked={selectedInvitations.includes(
+                            invitation.inviteCode
+                          )}
+                          onChange={(e) =>
+                            handleSelectOne(
+                              invitation.inviteCode,
+                              e.target.checked
+                            )
+                          }
+                        />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
