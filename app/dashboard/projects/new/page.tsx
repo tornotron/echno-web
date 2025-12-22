@@ -21,12 +21,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Save } from 'lucide-react';
+import { Plus, Save, X, UserPlus } from 'lucide-react';
 import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
 import { toast } from 'sonner';
+import { mockEmployees } from '@/components/shared/mock-data';
+import type { Employee } from '@/types/employee';
+import type { Member } from '@/types/member';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -43,6 +55,9 @@ export default function NewProjectPage() {
     description: '',
   });
 
+  const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -53,6 +68,42 @@ export default function NewProjectPage() {
   const handleStatusChange = (value: string) => {
     setFormData((prev) => ({ ...prev, status: value as ProjectStatus }));
   };
+
+  const handleAddMember = (employee: Employee) => {
+    const isAlreadyAdded = selectedMembers.some(
+      (m) => m.memberEmail === employee.email
+    );
+
+    if (isAlreadyAdded) {
+      toast.error('Member already added to the project');
+      return;
+    }
+
+    const newMember: Member = {
+      id: employee.id,
+      memberName: employee.name,
+      memberEmail: employee.email,
+      memberPhone: employee.phone,
+      memberRole: employee.role,
+      department: employee.department,
+      designation: (employee as Employee).designation,
+      memberImage: employee.profilePictureUrl,
+    };
+
+    setSelectedMembers((prev) => [...prev, newMember]);
+    toast.success(`${employee.name} added to the team`);
+  };
+
+  const handleRemoveMember = (memberEmail: string) => {
+    setSelectedMembers((prev) =>
+      prev.filter((m) => m.memberEmail !== memberEmail)
+    );
+    toast.success('Member removed from the team');
+  };
+
+  const availableEmployees = mockEmployees.filter(
+    (emp) => !selectedMembers.some((m) => m.memberEmail === emp.email)
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -225,6 +276,115 @@ export default function NewProjectPage() {
                     placeholder="e.g., 72.8777"
                   />
                 </div>
+              </div>
+
+              {/* Team Members */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Team Members</Label>
+                  <Dialog
+                    open={isAddMemberDialogOpen}
+                    onOpenChange={setIsAddMemberDialogOpen}
+                  >
+                    <DialogTrigger asChild>
+                      <Button type="button" variant="outline" size="sm">
+                        <UserPlus className="mr-2 h-4 w-4" />
+                        Add Member
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Add Team Members</DialogTitle>
+                        <DialogDescription>
+                          Select employees from your organization to add to this
+                          project
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-2">
+                        {availableEmployees.length === 0 ? (
+                          <p className="text-muted-foreground py-8 text-center">
+                            All employees have been added to the team
+                          </p>
+                        ) : (
+                          availableEmployees.map((employee) => (
+                            <div
+                              key={employee.id}
+                              className="hover:bg-accent flex items-center justify-between rounded-lg border p-3"
+                            >
+                              <div className="flex items-center gap-3">
+                                <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
+                                  {employee.name
+                                    .split(' ')
+                                    .map((n) => n[0])
+                                    .join('')
+                                    .toUpperCase()
+                                    .slice(0, 2)}
+                                </div>
+                                <div>
+                                  <p className="font-medium">{employee.name}</p>
+                                  <p className="text-muted-foreground text-sm">
+                                    {(employee as Employee).designation} •{' '}
+                                    {employee.department}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => {
+                                  handleAddMember(employee);
+                                  setIsAddMemberDialogOpen(false);
+                                }}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                Add
+                              </Button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+                {selectedMembers.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">
+                    No team members added yet
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedMembers.map((member) => (
+                      <div
+                        key={member.memberEmail}
+                        className="flex items-center justify-between rounded-lg border p-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
+                            {member.memberName
+                              .split(' ')
+                              .map((n) => n[0])
+                              .join('')
+                              .toUpperCase()
+                              .slice(0, 2)}
+                          </div>
+                          <div>
+                            <p className="font-medium">{member.memberName}</p>
+                            <p className="text-muted-foreground text-sm">
+                              {member.designation} • {member.department}
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveMember(member.memberEmail)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Description */}
