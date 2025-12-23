@@ -17,7 +17,6 @@ import {
 import {
   ClipboardCheck,
   Plus,
-  Eye,
   Calendar,
   Clock,
   AlertTriangle,
@@ -30,52 +29,7 @@ import {
   inspectionTypeLabels,
   inspectionResultLabels,
 } from '@/types/inspection';
-
-// Mock data - replace with actual API call
-const mockInspections = [
-  {
-    id: 1,
-    inspectionNumber: 'INS-2024-0001',
-    title: 'Foundation Quality Inspection',
-    type: 'quality' as InspectionType,
-    status: 'completed' as InspectionStatus,
-    result: 'passed' as InspectionResult,
-    scheduledDate: new Date('2024-11-08'),
-    location: 'Building A - Ground Floor',
-    inspectorName: 'John Smith',
-    compliancePercentage: 98,
-    defectsFound: 2,
-    criticalDefects: 0,
-  },
-  {
-    id: 2,
-    inspectionNumber: 'INS-2024-0002',
-    title: 'Electrical Safety Check',
-    type: 'electrical' as InspectionType,
-    status: 'in-progress' as InspectionStatus,
-    result: 'pending' as InspectionResult,
-    scheduledDate: new Date('2024-11-10'),
-    location: 'Building B - 2nd Floor',
-    inspectorName: 'Sarah Johnson',
-    compliancePercentage: 85,
-    defectsFound: 5,
-    criticalDefects: 1,
-  },
-  {
-    id: 3,
-    inspectionNumber: 'INS-2024-0003',
-    title: 'Structural Integrity Assessment',
-    type: 'structural' as InspectionType,
-    status: 'scheduled' as InspectionStatus,
-    result: 'pending' as InspectionResult,
-    scheduledDate: new Date('2024-11-12'),
-    location: 'Building C - 3rd Floor',
-    inspectorName: 'Mike Davis',
-    compliancePercentage: 0,
-    defectsFound: 0,
-    criticalDefects: 0,
-  },
-];
+import { mockInspections } from '@/components/shared/mock-data';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
   const colors = {
@@ -125,9 +79,10 @@ export default function InspectionsPage() {
           .includes(searchQuery.toLowerCase()) ||
         inspection.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         inspection.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        inspection.inspectorName
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase());
+        (inspection.inspectorName &&
+          inspection.inspectorName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()));
 
       const matchesStatus =
         statusFilter === 'all' || inspection.status === statusFilter;
@@ -151,10 +106,10 @@ export default function InspectionsPage() {
   // Calculate stats
   const totalInspections = mockInspections.length;
   const scheduledCount = mockInspections.filter(
-    (i) => i.status === 'scheduled'
+    (i) => i.status === InspectionStatus.scheduled
   ).length;
   const inProgressCount = mockInspections.filter(
-    (i) => i.status === 'in-progress'
+    (i) => i.status === InspectionStatus.inProgress
   ).length;
 
   const criticalDefectsCount = mockInspections.reduce(
@@ -275,13 +230,16 @@ export default function InspectionsPage() {
               placeholder: 'Status',
               options: [
                 { value: 'all', label: 'All Statuses' },
-                { value: 'scheduled', label: 'Scheduled' },
-                { value: 'in-progress', label: 'In Progress' },
-                { value: 'completed', label: 'Completed' },
-                { value: 'passed', label: 'Passed' },
-                { value: 'failed', label: 'Failed' },
-                { value: 'passed-with-remarks', label: 'Passed with Remarks' },
-                { value: 'cancelled', label: 'Cancelled' },
+                { value: InspectionStatus.scheduled, label: 'Scheduled' },
+                { value: InspectionStatus.inProgress, label: 'In Progress' },
+                { value: InspectionStatus.completed, label: 'Completed' },
+                { value: InspectionStatus.passed, label: 'Passed' },
+                { value: InspectionStatus.failed, label: 'Failed' },
+                {
+                  value: InspectionStatus.passedWithRemarks,
+                  label: 'Passed with Remarks',
+                },
+                { value: InspectionStatus.cancelled, label: 'Cancelled' },
               ],
               value: statusFilter,
               onChange: (value) => {
@@ -293,15 +251,15 @@ export default function InspectionsPage() {
               placeholder: 'Type',
               options: [
                 { value: 'all', label: 'All Types' },
-                { value: 'safety', label: 'Safety' },
-                { value: 'quality', label: 'Quality' },
-                { value: 'progress', label: 'Progress' },
-                { value: 'final', label: 'Final' },
-                { value: 'structural', label: 'Structural' },
-                { value: 'electrical', label: 'Electrical' },
-                { value: 'plumbing', label: 'Plumbing' },
-                { value: 'finishing', label: 'Finishing' },
-                { value: 'compliance', label: 'Compliance' },
+                { value: InspectionType.safety, label: 'Safety' },
+                { value: InspectionType.quality, label: 'Quality' },
+                { value: InspectionType.progress, label: 'Progress' },
+                { value: InspectionType.final, label: 'Final' },
+                { value: InspectionType.structural, label: 'Structural' },
+                { value: InspectionType.electrical, label: 'Electrical' },
+                { value: InspectionType.plumbing, label: 'Plumbing' },
+                { value: InspectionType.finishing, label: 'Finishing' },
+                { value: InspectionType.compliance, label: 'Compliance' },
               ],
               value: typeFilter,
               onChange: (value) => {
@@ -313,10 +271,13 @@ export default function InspectionsPage() {
               placeholder: 'Result',
               options: [
                 { value: 'all', label: 'All Results' },
-                { value: 'passed', label: 'Passed' },
-                { value: 'failed', label: 'Failed' },
-                { value: 'passed-with-remarks', label: 'Passed with Remarks' },
-                { value: 'pending', label: 'Pending' },
+                { value: InspectionResult.passed, label: 'Passed' },
+                { value: InspectionResult.failed, label: 'Failed' },
+                {
+                  value: InspectionResult.passedWithRemarks,
+                  label: 'Passed with Remarks',
+                },
+                { value: InspectionResult.pending, label: 'Pending' },
               ],
               value: resultFilter,
               onChange: (value) => {
@@ -364,9 +325,10 @@ export default function InspectionsPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {paginatedInspections.map((inspection) => (
-                  <div
+                  <Link
                     key={inspection.id}
-                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                    href={`/dashboard/workflow/inspections/${inspection.id}`}
+                    className="block rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                   >
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
                       {/* Left Section */}
@@ -374,12 +336,9 @@ export default function InspectionsPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1">
                             <div className="mb-1 flex flex-wrap items-center gap-2">
-                              <Link
-                                href={`/dashboard/workflow/inspections/${inspection.id}`}
-                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
-                              >
+                              <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
                                 {inspection.inspectionNumber}
-                              </Link>
+                              </span>
                               <Badge
                                 className={getStatusBadgeColor(
                                   inspection.status
@@ -390,15 +349,17 @@ export default function InspectionsPage() {
                               <Badge variant="outline">
                                 {inspectionTypeLabels[inspection.type]}
                               </Badge>
-                              {inspection.result !== 'pending' && (
-                                <Badge
-                                  className={getResultBadgeColor(
-                                    inspection.result
-                                  )}
-                                >
-                                  {inspectionResultLabels[inspection.result]}
-                                </Badge>
-                              )}
+                              {inspection.result &&
+                                inspection.result !==
+                                  InspectionResult.pending && (
+                                  <Badge
+                                    className={getResultBadgeColor(
+                                      inspection.result
+                                    )}
+                                  >
+                                    {inspectionResultLabels[inspection.result]}
+                                  </Badge>
+                                )}
                             </div>
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
                               {inspection.title}
@@ -420,7 +381,7 @@ export default function InspectionsPage() {
                               Inspector:
                             </span>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {inspection.inspectorName}
+                              {inspection.inspectorName || 'Not assigned'}
                             </p>
                           </div>
                           <div>
@@ -448,36 +409,29 @@ export default function InspectionsPage() {
                       </div>
 
                       {/* Right Section */}
-                      <div className="flex flex-col gap-2 lg:items-end">
-                        {inspection.status !== 'scheduled' && (
-                          <div className="text-right">
-                            <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                              Compliance
-                            </p>
-                            <p
-                              className={`text-xl font-bold ${
-                                inspection.compliancePercentage >= 95
-                                  ? 'text-green-600'
-                                  : inspection.compliancePercentage >= 80
-                                    ? 'text-orange-600'
-                                    : 'text-red-600'
-                              }`}
-                            >
-                              {inspection.compliancePercentage}%
-                            </p>
+                      {inspection.status !== InspectionStatus.scheduled &&
+                        inspection.compliancePercentage > 0 && (
+                          <div className="flex flex-col gap-2 lg:items-end">
+                            <div className="text-right">
+                              <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                                Compliance
+                              </p>
+                              <p
+                                className={`text-xl font-bold ${
+                                  inspection.compliancePercentage >= 95
+                                    ? 'text-green-600'
+                                    : inspection.compliancePercentage >= 80
+                                      ? 'text-orange-600'
+                                      : 'text-red-600'
+                                }`}
+                              >
+                                {inspection.compliancePercentage.toFixed(2)}%
+                              </p>
+                            </div>
                           </div>
                         )}
-                        <Link
-                          href={`/dashboard/workflow/inspections/${inspection.id}`}
-                        >
-                          <Button variant="outline" size="sm">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Button>
-                        </Link>
-                      </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
