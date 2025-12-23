@@ -384,7 +384,22 @@ export default function LeaveRequestsPage() {
                   </TableRow>
                 ) : (
                   currentLeaves.map((leave) => (
-                    <TableRow key={leave.id}>
+                    <TableRow
+                      key={leave.id}
+                      className="hover:bg-accent cursor-pointer"
+                      onClick={(e) => {
+                        // Don't navigate if clicking on checkbox or action buttons
+                        const target = e.target as HTMLElement;
+                        if (
+                          target.closest('input[type="checkbox"]') ||
+                          target.closest('button') ||
+                          target.closest('a')
+                        ) {
+                          return;
+                        }
+                        globalThis.location.href = `/dashboard/workforce/leaves/${leave.id}`;
+                      }}
+                    >
                       <TableCell>
                         <input
                           type="checkbox"
@@ -440,24 +455,6 @@ export default function LeaveRequestsPage() {
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  href={`/dashboard/workforce/leaves/${leave.id}`}
-                                >
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>View Details</p>
-                              </TooltipContent>
-                            </Tooltip>
                             {leave.status === LeaveStatus.pending && (
                               <>
                                 <Tooltip>
