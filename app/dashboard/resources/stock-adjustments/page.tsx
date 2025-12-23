@@ -17,100 +17,11 @@ import {
   Settings,
   Plus,
   Clock,
-  Eye,
   FileText,
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
-
-// Mock stock adjustments data (inline until we create proper types)
-const stockAdjustments = [
-  {
-    id: 1,
-    adjustmentId: 'SA-2024-001',
-    type: 'correction',
-    reason: 'stock-discrepancy',
-    material: 'Cement Bags (50kg)',
-    location: 'Warehouse A',
-    systemQuantity: 500,
-    physicalQuantity: 485,
-    variance: -15,
-    unit: 'bags',
-    status: 'approved',
-    requestedBy: 'Rajesh Kumar',
-    approvedBy: 'Suresh Patel',
-    adjustmentDate: '2024-03-01',
-    notes: 'Physical count revealed missing bags',
-  },
-  {
-    id: 2,
-    adjustmentId: 'SA-2024-002',
-    type: 'write-off',
-    reason: 'damage',
-    material: 'Steel Rods (12mm)',
-    location: 'Site A - Building Project',
-    systemQuantity: 1000,
-    physicalQuantity: 980,
-    variance: -20,
-    unit: 'pcs',
-    status: 'pending',
-    requestedBy: 'Amit Patel',
-    approvedBy: null,
-    adjustmentDate: '2024-03-05',
-    notes: 'Damaged during transport',
-  },
-  {
-    id: 3,
-    adjustmentId: 'SA-2024-003',
-    type: 'found',
-    reason: 'found-items',
-    material: 'Power Tools Set',
-    location: 'Warehouse B',
-    systemQuantity: 20,
-    physicalQuantity: 23,
-    variance: 3,
-    unit: 'sets',
-    status: 'approved',
-    requestedBy: 'Priya Singh',
-    approvedBy: 'Suresh Patel',
-    adjustmentDate: '2024-02-28',
-    notes: 'Found during inventory check',
-  },
-  {
-    id: 4,
-    adjustmentId: 'SA-2024-004',
-    type: 'correction',
-    reason: 'counting-error',
-    material: 'Paint Cans (20L)',
-    location: 'Warehouse A',
-    systemQuantity: 150,
-    physicalQuantity: 155,
-    variance: 5,
-    unit: 'cans',
-    status: 'rejected',
-    requestedBy: 'Neha Sharma',
-    approvedBy: 'Suresh Patel',
-    adjustmentDate: '2024-03-02',
-    notes: 'Recounting required',
-  },
-  {
-    id: 5,
-    adjustmentId: 'SA-2024-005',
-    type: 'write-off',
-    reason: 'expiry',
-    material: 'Adhesive Bottles (1L)',
-    location: 'Warehouse B',
-    systemQuantity: 80,
-    physicalQuantity: 70,
-    variance: -10,
-    unit: 'bottles',
-    status: 'draft',
-    requestedBy: 'Vikram Reddy',
-    approvedBy: null,
-    adjustmentDate: null,
-    notes: 'Expired stock to be written off',
-  },
-];
+import { mockStockAdjustments } from '@/components/shared/mock-data';
 
 // Helper functions for badge colors
 const getStatusBadgeColor = (status: string): string => {
@@ -136,7 +47,7 @@ export default function StockAdjustmentsPage() {
 
   // Filter adjustments
   const filteredAdjustments = useMemo(() => {
-    return stockAdjustments.filter((adjustment) => {
+    return mockStockAdjustments.filter((adjustment) => {
       const matchesSearch =
         adjustment.adjustmentId
           .toLowerCase()
@@ -162,15 +73,15 @@ export default function StockAdjustmentsPage() {
   const paginatedAdjustments = filteredAdjustments.slice(startIndex, endIndex);
 
   // Calculate stats
-  const totalAdjustments = stockAdjustments.length;
-  const pendingAdjustments = stockAdjustments.filter(
+  const totalAdjustments = mockStockAdjustments.length;
+  const pendingAdjustments = mockStockAdjustments.filter(
     (a) => a.status === 'pending'
   ).length;
-  const positiveVariance = stockAdjustments
+  const positiveVariance = mockStockAdjustments
     .filter((a) => a.variance > 0)
     .reduce((sum, a) => sum + a.variance, 0);
   const negativeVariance = Math.abs(
-    stockAdjustments
+    mockStockAdjustments
       .filter((a) => a.variance < 0)
       .reduce((sum, a) => sum + a.variance, 0)
   );
@@ -371,125 +282,117 @@ export default function StockAdjustmentsPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {paginatedAdjustments.map((adj) => (
-                  <div
+                  <Link
                     key={adj.id}
-                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                    href={`/dashboard/resources/stock-adjustments/${adj.id}`}
+                    className="block"
                   >
-                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-                      {/* Left Section */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="mb-1 flex items-center gap-2">
-                              <Link
-                                href={`/dashboard/resources/stock-adjustments/${adj.id}`}
-                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
-                              >
-                                {adj.adjustmentId}
-                              </Link>
+                    <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+                        {/* Left Section */}
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                                  {adj.adjustmentId}
+                                </span>
+                                <Badge
+                                  className={getStatusBadgeColor(adj.status)}
+                                >
+                                  {adj.status.charAt(0).toUpperCase() +
+                                    adj.status.slice(1)}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {adj.type
+                                    .split('-')
+                                    .map(
+                                      (w) =>
+                                        w.charAt(0).toUpperCase() + w.slice(1)
+                                    )
+                                    .join(' ')}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                Material:{' '}
+                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {adj.material}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Location:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {adj.location}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                System Qty:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {adj.systemQuantity} {adj.unit}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Physical Qty:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {adj.physicalQuantity} {adj.unit}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Variance:
+                              </span>
                               <Badge
-                                className={getStatusBadgeColor(adj.status)}
+                                variant="outline"
+                                className={
+                                  adj.variance > 0
+                                    ? 'text-green-600'
+                                    : adj.variance < 0
+                                      ? 'text-red-600'
+                                      : ''
+                                }
                               >
-                                {adj.status.charAt(0).toUpperCase() +
-                                  adj.status.slice(1)}
-                              </Badge>
-                              <Badge variant="outline">
-                                {adj.type
-                                  .split('-')
-                                  .map(
-                                    (w) =>
-                                      w.charAt(0).toUpperCase() + w.slice(1)
-                                  )
-                                  .join(' ')}
+                                {adj.variance > 0 ? '+' : ''}
+                                {adj.variance} {adj.unit}
                               </Badge>
                             </div>
+                          </div>
+
+                          {adj.notes && (
                             <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              Material:{' '}
-                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.material}
-                              </span>
+                              Note: {adj.notes}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Right Section */}
+                        <div className="flex flex-col gap-2 lg:items-end">
+                          <div className="text-right">
+                            <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                              Reason
+                            </p>
+                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              {adj.reason
+                                .split('-')
+                                .map(
+                                  (w) => w.charAt(0).toUpperCase() + w.slice(1)
+                                )
+                                .join(' ')}
                             </p>
                           </div>
                         </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Location:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {adj.location}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              System Qty:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {adj.systemQuantity} {adj.unit}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Physical Qty:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {adj.physicalQuantity} {adj.unit}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Variance:
-                            </span>
-                            <Badge
-                              variant="outline"
-                              className={
-                                adj.variance > 0
-                                  ? 'text-green-600'
-                                  : adj.variance < 0
-                                    ? 'text-red-600'
-                                    : ''
-                              }
-                            >
-                              {adj.variance > 0 ? '+' : ''}
-                              {adj.variance} {adj.unit}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {adj.notes && (
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            Note: {adj.notes}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Right Section */}
-                      <div className="flex flex-col gap-2 lg:items-end">
-                        <div className="text-right">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                            Reason
-                          </p>
-                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            {adj.reason
-                              .split('-')
-                              .map(
-                                (w) => w.charAt(0).toUpperCase() + w.slice(1)
-                              )
-                              .join(' ')}
-                          </p>
-                        </div>
-                        <Link
-                          href={`/dashboard/resources/stock-adjustments/${adj.id}`}
-                        >
-                          <Button variant="outline" size="sm">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Button>
-                        </Link>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
