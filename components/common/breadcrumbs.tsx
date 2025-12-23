@@ -22,6 +22,7 @@ import {
   mockIssues,
   mockMembers,
   mockInspections,
+  mockLabour,
 } from '@/components/shared/mock-data';
 
 interface BreadcrumbConfig {
@@ -101,6 +102,11 @@ function getNameForId(
   if (parentSegment === 'inspections') {
     const inspection = mockInspections.find((i) => i.id === numericId);
     if (inspection) return inspection.title;
+  }
+
+  if (parentSegment === 'labour') {
+    const labour = mockLabour.find((l) => l.id === numericId);
+    if (labour) return labour.name;
   }
 
   // Default fallback
