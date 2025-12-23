@@ -74,7 +74,11 @@ import {
   Wrench,
   FileText,
 } from 'lucide-react';
-import { mockAttendance, mockProjects } from '@/components/shared/mock-data';
+import {
+  mockAttendance,
+  mockProjects,
+  mockEmployees,
+} from '@/components/shared/mock-data';
 import {
   AttendanceStatus,
   getAttendanceStatusLabel,
@@ -107,6 +111,19 @@ export default function AttendancePage() {
 
   // Movement tracking dialog state
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
+
+  // Manual attendance dialog state
+  const [manualAttendanceDialogOpen, setManualAttendanceDialogOpen] =
+    useState(false);
+  const [manualAttendanceData, setManualAttendanceData] = useState({
+    employeeId: '',
+    date: format(selectedDate, 'yyyy-MM-dd'),
+    projectId: '',
+    status: AttendanceStatus.present,
+    clockInTime: '09:00',
+    clockOutTime: '18:00',
+    remarks: '',
+  });
 
   const [newMovement, setNewMovement] = useState({
     type: MovementType.siteTravel,
@@ -197,6 +214,33 @@ export default function AttendancePage() {
     setSelectedAttendance([]);
   };
 
+  const handleManualAttendance = () => {
+    if (!manualAttendanceData.employeeId) {
+      toast.error('Please select an employee');
+      return;
+    }
+    if (!manualAttendanceData.projectId) {
+      toast.error('Please select a project');
+      return;
+    }
+
+    // TODO: API call to create manual attendance
+    console.log('Creating manual attendance:', manualAttendanceData);
+    toast.success('Attendance marked successfully');
+
+    // Reset form and close dialog
+    setManualAttendanceData({
+      employeeId: '',
+      date: format(selectedDate, 'yyyy-MM-dd'),
+      projectId: '',
+      status: AttendanceStatus.present,
+      clockInTime: '09:00',
+      clockOutTime: '18:00',
+      remarks: '',
+    });
+    setManualAttendanceDialogOpen(false);
+  };
+
   const isAllSelected =
     paginatedAttendance.length > 0 &&
     selectedAttendance.length === paginatedAttendance.length;
@@ -241,6 +285,13 @@ export default function AttendancePage() {
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Export
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setManualAttendanceDialogOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Mark Attendance
             </Button>
             <Button>
               <Calendar className="mr-2 h-4 w-4" />
@@ -473,7 +524,22 @@ export default function AttendancePage() {
                   </TableRow>
                 ) : (
                   paginatedAttendance.map((attendance) => (
-                    <TableRow key={attendance.id}>
+                    <TableRow
+                      key={attendance.id}
+                      className="hover:bg-accent cursor-pointer"
+                      onClick={(e) => {
+                        // Don't navigate if clicking on checkbox or action buttons
+                        const target = e.target as HTMLElement;
+                        if (
+                          target.closest('input[type="checkbox"]') ||
+                          target.closest('button') ||
+                          target.closest('a')
+                        ) {
+                          return;
+                        }
+                        globalThis.location.href = `/dashboard/workforce/attendance/${attendance.id}`;
+                      }}
+                    >
                       <TableCell>
                         <input
                           type="checkbox"
@@ -643,24 +709,6 @@ export default function AttendancePage() {
                                     attendance.movements.length > 0 &&
                                     `(${attendance.movements.length})`}
                                 </p>
-                              </TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  href={`/dashboard/workforce/attendance/${attendance.id}`}
-                                >
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>View Details</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -907,6 +955,196 @@ export default function AttendancePage() {
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Add Movement
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Manual Attendance Dialog */}
+        <Dialog
+          open={manualAttendanceDialogOpen}
+          onOpenChange={setManualAttendanceDialogOpen}
+        >
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Mark Attendance Manually</DialogTitle>
+              <DialogDescription>
+                Manually mark attendance for an employee
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Employee Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="employeeId">Employee *</Label>
+                <Select
+                  value={manualAttendanceData.employeeId}
+                  onValueChange={(value) =>
+                    setManualAttendanceData((prev) => ({
+                      ...prev,
+                      employeeId: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockEmployees.map((employee) => (
+                      <SelectItem
+                        key={employee.employeeId}
+                        value={employee.employeeId}
+                      >
+                        {employee.name} ({employee.employeeId})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Date and Project */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Date *</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={manualAttendanceData.date}
+                    onChange={(e) =>
+                      setManualAttendanceData((prev) => ({
+                        ...prev,
+                        date: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="projectId">Project *</Label>
+                  <Select
+                    value={manualAttendanceData.projectId}
+                    onValueChange={(value) =>
+                      setManualAttendanceData((prev) => ({
+                        ...prev,
+                        projectId: value,
+                      }))
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockProjects.map((project) => (
+                        <SelectItem
+                          key={project.id}
+                          value={project.id.toString()}
+                        >
+                          {project.projectName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div className="space-y-2">
+                <Label htmlFor="status">Status *</Label>
+                <Select
+                  value={manualAttendanceData.status}
+                  onValueChange={(value) =>
+                    setManualAttendanceData((prev) => ({
+                      ...prev,
+                      status: value as AttendanceStatus,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={AttendanceStatus.present}>
+                      {getAttendanceStatusLabel(AttendanceStatus.present)}
+                    </SelectItem>
+                    <SelectItem value={AttendanceStatus.absent}>
+                      {getAttendanceStatusLabel(AttendanceStatus.absent)}
+                    </SelectItem>
+                    <SelectItem value={AttendanceStatus.late}>
+                      {getAttendanceStatusLabel(AttendanceStatus.late)}
+                    </SelectItem>
+                    <SelectItem value={AttendanceStatus.halfDay}>
+                      {getAttendanceStatusLabel(AttendanceStatus.halfDay)}
+                    </SelectItem>
+                    <SelectItem value={AttendanceStatus.overtime}>
+                      {getAttendanceStatusLabel(AttendanceStatus.overtime)}
+                    </SelectItem>
+                    <SelectItem value={AttendanceStatus.leave}>
+                      {getAttendanceStatusLabel(AttendanceStatus.leave)}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Clock In/Out Times (only for non-absent status) */}
+              {manualAttendanceData.status !== AttendanceStatus.absent &&
+                manualAttendanceData.status !== AttendanceStatus.leave && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="clockInTime">Clock In Time</Label>
+                      <Input
+                        id="clockInTime"
+                        type="time"
+                        value={manualAttendanceData.clockInTime}
+                        onChange={(e) =>
+                          setManualAttendanceData((prev) => ({
+                            ...prev,
+                            clockInTime: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="clockOutTime">Clock Out Time</Label>
+                      <Input
+                        id="clockOutTime"
+                        type="time"
+                        value={manualAttendanceData.clockOutTime}
+                        onChange={(e) =>
+                          setManualAttendanceData((prev) => ({
+                            ...prev,
+                            clockOutTime: e.target.value,
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
+
+              {/* Remarks */}
+              <div className="space-y-2">
+                <Label htmlFor="remarks">Remarks</Label>
+                <Textarea
+                  id="remarks"
+                  placeholder="Add any additional notes..."
+                  value={manualAttendanceData.remarks}
+                  onChange={(e) =>
+                    setManualAttendanceData((prev) => ({
+                      ...prev,
+                      remarks: e.target.value,
+                    }))
+                  }
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setManualAttendanceDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleManualAttendance}>
+                <Check className="mr-2 h-4 w-4" />
+                Mark Attendance
               </Button>
             </DialogFooter>
           </DialogContent>
