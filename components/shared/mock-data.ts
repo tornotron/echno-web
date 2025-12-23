@@ -249,19 +249,19 @@ const mockIssueComments: IssueComment[] = [
   {
     id: 1,
     comment: 'This needs immediate attention. The crack is spreading.',
-    author: 'Priya Sharma',
+    author: mockMembers[1], // Priya Sharma
     createdAt: new Date('2025-01-12T10:30:00'),
   },
   {
     id: 2,
     comment: 'I have inspected the site. It appears to be a structural issue.',
-    author: 'Rajesh Kumar',
+    author: mockMembers[0], // Rajesh Kumar
     createdAt: new Date('2025-01-12T14:15:00'),
   },
   {
     id: 3,
     comment: 'Contractor has been notified. Will fix by EOD tomorrow.',
-    author: 'Anjali Verma',
+    author: mockMembers[5], // Anjali Verma
     createdAt: new Date('2025-01-13T09:00:00'),
   },
 ];
@@ -280,7 +280,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.inProgress,
     createdAt: new Date('2025-01-12T08:00:00'),
     updatedAt: new Date('2025-01-13T09:00:00'),
-    creator: 'Priya Sharma',
+    creator: mockMembers[1], // Priya Sharma
     comments: mockIssueComments.slice(0, 3),
   },
   {
@@ -292,7 +292,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.open,
     createdAt: new Date('2025-01-10T11:30:00'),
     updatedAt: new Date('2025-01-10T11:30:00'),
-    creator: 'Amit Patel',
+    creator: mockMembers[2], // Amit Patel
     comments: [],
   },
   {
@@ -304,7 +304,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.pending,
     createdAt: new Date('2025-01-08T15:20:00'),
     updatedAt: new Date('2025-01-09T10:00:00'),
-    creator: 'Rajesh Kumar',
+    creator: mockMembers[0], // Rajesh Kumar
     comments: [],
   },
   {
@@ -316,7 +316,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.resolved,
     createdAt: new Date('2025-01-05T08:00:00'),
     updatedAt: new Date('2025-01-07T17:00:00'),
-    creator: 'Anjali Verma',
+    creator: mockMembers[5], // Anjali Verma
     comments: [],
   },
   {
@@ -328,7 +328,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.blocked,
     createdAt: new Date('2025-01-03T09:00:00'),
     updatedAt: new Date('2025-01-05T14:00:00'),
-    creator: 'Rajesh Kumar',
+    creator: mockMembers[0], // Rajesh Kumar
     comments: [],
   },
   {
@@ -340,7 +340,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.inReview,
     createdAt: new Date('2025-01-11T13:45:00'),
     updatedAt: new Date('2025-01-12T08:30:00'),
-    creator: 'Site Supervisor',
+    creator: undefined, // Site Supervisor (no member record)
     comments: [],
   },
 ];
