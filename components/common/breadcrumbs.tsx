@@ -47,7 +47,6 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   new: 'New',
   edit: 'Edit',
   workforce: 'Workforce',
-  workflow: 'Workflow',
   'third-party': 'Third Party',
   'sub-contracts': 'Sub-Contracts',
   labour: 'Labour',
@@ -140,7 +139,6 @@ export function Breadcrumbs() {
   // Segments that should not be clickable (category segments without their own pages)
   const nonInteractiveSegments = new Set([
     'workforce',
-    'workflow',
     'third-party',
     'resources',
   ]);

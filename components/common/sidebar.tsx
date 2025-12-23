@@ -12,7 +12,6 @@ import {
   Building,
   ListTodo,
   AlertCircle,
-  Workflow,
   Mail,
   Handshake,
   HardHat,
