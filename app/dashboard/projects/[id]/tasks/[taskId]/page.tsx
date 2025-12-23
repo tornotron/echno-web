@@ -1,11 +1,13 @@
 'use client';
 
 import { use } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   mockTasks,
   mockProjects,
   mockIssues,
 } from '@/components/shared/mock-data';
+import { getUserRoleLabel } from '@/types/user/user-role';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -25,12 +27,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   ArrowLeft,
   Calendar,
   Users,
@@ -38,7 +34,6 @@ import {
   Tag,
   AlertCircle,
   Plus,
-  Eye,
   Edit,
   Paperclip,
   Download,
@@ -47,6 +42,7 @@ import {
   Sheet,
   Box,
   File,
+  MessageSquare,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -55,12 +51,13 @@ import { getIssueTypeLabel } from '@/types/issue/issue-type';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; taskId: string }>;
 }
 
 export default function TaskDetailPage({ params }: PageProps) {
-  const { id } = use(params);
-  const taskId = Number.parseInt(id);
+  const router = useRouter();
+  const { id: projectId, taskId: taskIdParam } = use(params);
+  const taskId = Number.parseInt(taskIdParam);
 
   const task = mockTasks.find((t) => t.id === taskId);
   const project = task
@@ -85,7 +82,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 The task you&apos;re looking for doesn&apos;t exist.
               </p>
-              <Link href="/dashboard/workflow/tasks">
+              <Link href={`/dashboard/projects/${projectId}/tasks`}>
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Tasks
@@ -125,7 +122,9 @@ export default function TaskDetailPage({ params }: PageProps) {
                 )}
               </div>
             </div>
-            <Link href={`/dashboard/workflow/tasks/${task.id}/edit`}>
+            <Link
+              href={`/dashboard/projects/${projectId}/tasks/${task.id}/edit`}
+            >
               <Button className="mt-4 md:mt-0">
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Task
@@ -226,12 +225,20 @@ export default function TaskDetailPage({ params }: PageProps) {
                         <TableHead>Issue</TableHead>
                         <TableHead>Type</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>Comments</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {relatedIssues.map((issue) => (
-                        <TableRow key={issue.id}>
+                        <TableRow
+                          key={issue.id}
+                          className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/workflow/issues/${issue.id}`
+                            )
+                          }
+                        >
                           <TableCell>
                             <div>
                               <p className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -256,27 +263,11 @@ export default function TaskDetailPage({ params }: PageProps) {
                               {getIssueStatusLabel(issue.status)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-right">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Link
-                                    href={`/dashboard/workflow/issues/${issue.id}`}
-                                  >
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-8 w-8 p-0"
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Button>
-                                  </Link>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>View Issue Details</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
+                          <TableCell>
+                            <div className="flex items-center gap-1.5 text-sm text-zinc-600 dark:text-zinc-400">
+                              <MessageSquare className="h-4 w-4" />
+                              <span>{issue.comments?.length || 0}</span>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -426,21 +417,27 @@ export default function TaskDetailPage({ params }: PageProps) {
                 {task.assignees && task.assignees.length > 0 ? (
                   <div className="space-y-3">
                     {task.assignees.map((assignee, index) => (
-                      <div key={index} className="flex items-center space-x-3">
+                      <Link
+                        key={index}
+                        href={`/dashboard/workforce/employees/${assignee.id}`}
+                        className="flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
                           <span className="text-sm font-medium text-white">
                             {assignee.memberName?.charAt(0) || '?'}
                           </span>
                         </div>
-                        <div>
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                             {assignee.memberName}
                           </p>
                           <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            {assignee.memberRole}
+                            {assignee.memberRole
+                              ? getUserRoleLabel(assignee.memberRole)
+                              : 'Team Member'}
                           </p>
                         </div>
-                      </div>
+                      </Link>
                     ))}
                   </div>
                 ) : (
@@ -458,21 +455,26 @@ export default function TaskDetailPage({ params }: PageProps) {
                   <CardTitle className="text-base">Created By</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center space-x-3">
+                  <Link
+                    href={`/dashboard/workforce/employees/${task.creator.id}`}
+                    className="flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
                       <span className="text-sm font-medium text-white">
                         {task.creator.memberName?.charAt(0) || '?'}
                       </span>
                     </div>
-                    <div>
+                    <div className="flex-1">
                       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {task.creator.memberName}
                       </p>
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                        {task.creator.memberRole}
+                        {task.creator.memberRole
+                          ? getUserRoleLabel(task.creator.memberRole)
+                          : 'Project Manager'}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 </CardContent>
               </Card>
             )}

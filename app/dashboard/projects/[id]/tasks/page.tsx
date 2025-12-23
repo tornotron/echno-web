@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   mockTasks,
   mockProjects,
@@ -14,7 +15,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Table,
@@ -25,33 +25,36 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ListTodo, Plus, Eye, Calendar, AlertCircle } from 'lucide-react';
+import { ListTodo, Plus, Calendar, AlertCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { TaskStatus } from '@/types/task';
 import { format } from 'date-fns';
 
-export default function TasksPage() {
+export default function ProjectTasksPage() {
+  const params = useParams();
+  const router = useRouter();
+  const projectId = Number.parseInt(params.id as string);
+  const project = mockProjects.find((p) => p.id === projectId);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Filter tasks
+  // Filter tasks by project ID
+  const projectTasks = useMemo(() => {
+    return mockTasks.filter((task) => task.projectId === projectId);
+  }, [projectId]);
+
+  // Filter tasks by search and status
   const filteredTasks = useMemo(() => {
-    return mockTasks.filter((task) => {
+    return projectTasks.filter((task) => {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
@@ -60,49 +63,36 @@ export default function TasksPage() {
 
       const matchesStatus =
         statusFilter === 'all' || task.status === statusFilter;
-      const matchesProject =
-        projectFilter === 'all' ||
-        task.projectId === Number.parseInt(projectFilter);
 
-      return matchesSearch && matchesStatus && matchesProject;
+      return matchesSearch && matchesStatus;
     });
-  }, [searchQuery, statusFilter, projectFilter]);
+  }, [searchQuery, statusFilter, projectTasks]);
 
   // Pagination
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  // Clamp current page to valid range
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages || 1);
+  const startIndex = (validCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedTasks = filteredTasks.slice(startIndex, endIndex);
 
-  // Reset to page 1 when filters change
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    if (currentPage !== 1) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCurrentPage(1);
-    }
-  }, [searchQuery, statusFilter, projectFilter, itemsPerPage, currentPage]);
-
   // Statistics
-  const totalTasks = mockTasks.length;
-  const upcomingTasks = mockTasks.filter(
+  const totalTasks = projectTasks.length;
+  const upcomingTasks = projectTasks.filter(
     (t) => t.status === TaskStatus.upcoming
   ).length;
-  const onGoingTasks = mockTasks.filter(
+  const onGoingTasks = projectTasks.filter(
     (t) => t.status === TaskStatus.onGoing
   ).length;
-  const completedTasks = mockTasks.filter(
+  const completedTasks = projectTasks.filter(
     (t) => t.status === TaskStatus.completed
   ).length;
 
-  const hasActiveFilters = Boolean(
-    searchQuery || statusFilter !== 'all' || projectFilter !== 'all'
-  );
+  const hasActiveFilters = Boolean(searchQuery || statusFilter !== 'all');
 
   const clearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
-    setProjectFilter('all');
     setCurrentPage(1);
   };
 
@@ -146,6 +136,28 @@ export default function TasksPage() {
     }
   };
 
+  if (!project) {
+    return (
+      <AppLayout>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <p className="text-zinc-600 dark:text-zinc-400">
+                Project not found
+              </p>
+              <Link href="/dashboard/projects">
+                <Button className="mt-4">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Projects
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
   return (
     <AppLayout>
       <div className="space-y-4 sm:space-y-6">
@@ -153,13 +165,13 @@ export default function TasksPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              Tasks
+              Tasks - {project.projectName}
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
-              Manage and track project tasks
+              Manage and track tasks for this project
             </p>
           </div>
-          <Link href="/dashboard/workflow/tasks/new">
+          <Link href={`/dashboard/projects/${projectId}/tasks/new`}>
             <Button className="mt-4 md:mt-0">
               <Plus className="mr-2 h-4 w-4" />
               New Task
@@ -255,18 +267,6 @@ export default function TasksPage() {
               value: statusFilter,
               onChange: setStatusFilter,
             },
-            {
-              placeholder: 'Project',
-              options: [
-                { value: 'all', label: 'All Projects' },
-                ...mockProjects.map((project) => ({
-                  value: project.id!.toString(),
-                  label: project.projectName,
-                })),
-              ],
-              value: projectFilter,
-              onChange: setProjectFilter,
-            },
           ]}
         />
 
@@ -307,21 +307,16 @@ export default function TasksPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Task</TableHead>
-                    <TableHead>Project</TableHead>
                     <TableHead>Assignees</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Due Date</TableHead>
                     <TableHead>Progress</TableHead>
                     <TableHead>Issues</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedTasks.map((task) => {
-                    const project = mockProjects.find(
-                      (p) => p.id === task.projectId
-                    );
                     const taskIssues = mockIssues.filter((issue) =>
                       task.issues?.some((i) => i.id === issue.id)
                     );
@@ -330,7 +325,15 @@ export default function TasksPage() {
                     ).length;
 
                     return (
-                      <TableRow key={task.id}>
+                      <TableRow
+                        key={task.id}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/projects/${projectId}/tasks/${task.id}`
+                          )
+                        }
+                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                      >
                         <TableCell>
                           <div>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -355,11 +358,6 @@ export default function TasksPage() {
                               </div>
                             )}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                            {project?.projectName || 'N/A'}
-                          </span>
                         </TableCell>
                         <TableCell>
                           {task.assignees && task.assignees.length > 0 ? (
@@ -448,28 +446,6 @@ export default function TasksPage() {
                             {getStatusLabel(task.status)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  href={`/dashboard/workflow/tasks/${task.id}`}
-                                >
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>View Task Details</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -479,7 +455,7 @@ export default function TasksPage() {
 
             {/* Pagination Controls */}
             <Pagination
-              currentPage={currentPage}
+              currentPage={validCurrentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
@@ -494,10 +470,10 @@ export default function TasksPage() {
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 {hasActiveFilters
                   ? 'Try adjusting your search or filters'
-                  : 'Get started by creating your first task'}
+                  : 'Get started by creating your first task for this project'}
               </p>
               {!hasActiveFilters && (
-                <Link href="/dashboard/workflow/tasks/new">
+                <Link href={`/dashboard/projects/${projectId}/tasks/new`}>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
                     New Task
