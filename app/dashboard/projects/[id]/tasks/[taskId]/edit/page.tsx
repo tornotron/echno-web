@@ -247,7 +247,7 @@ export default function EditTaskPage({ params }: PageProps) {
       toast.success('Task Deleted', {
         description: 'The task has been deleted successfully',
       });
-      router.push('/dashboard/workflow/tasks');
+      router.push(`/dashboard/projects/${projectId}/tasks`);
     } catch {
       toast.error('Error', {
         description: 'Failed to delete task. Please try again.',

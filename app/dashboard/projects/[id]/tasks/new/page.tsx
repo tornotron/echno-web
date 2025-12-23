@@ -168,7 +168,7 @@ export default function NewTaskPage() {
       toast.success('Draft Saved', {
         description: 'Your task has been saved as draft',
       });
-      router.push('/dashboard/workflow/tasks');
+      router.push(`/dashboard/projects/${projectId}/tasks`);
     } catch {
       toast.error('Error', {
         description: 'Failed to save draft. Please try again.',
@@ -191,7 +191,7 @@ export default function NewTaskPage() {
       toast.success('Task Created', {
         description: `Task "${title}" has been created successfully`,
       });
-      router.push('/dashboard/workflow/tasks');
+      router.push(`/dashboard/projects/${projectId}/tasks`);
     } catch {
       toast.error('Error', {
         description: 'Failed to create task. Please try again.',

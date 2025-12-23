@@ -208,7 +208,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                     </CardDescription>
                   </div>
                   <Link
-                    href={`/dashboard/workflow/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`}
+                    href={`/dashboard/projects/${task.projectId}/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`}
                   >
                     <Button size="sm">
                       <Plus className="mr-2 h-4 w-4" />
@@ -235,7 +235,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                           className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                           onClick={() =>
                             router.push(
-                              `/dashboard/workflow/issues/${issue.id}`
+                              `/dashboard/projects/${task.projectId}/issues/${issue.id}`
                             )
                           }
                         >
