@@ -1,6 +1,8 @@
 'use client';
 
+import { use } from 'react';
 import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   mockIssues,
   mockProjects,
@@ -42,17 +44,37 @@ import Link from 'next/link';
 import { IssueStatus, IssueType } from '@/types/issue';
 import { format } from 'date-fns';
 
-export default function IssuesPage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function IssuesPage({ params }: PageProps) {
+  const router = useRouter();
+  const { id: projectId } = use(params);
+  const project = mockProjects.find((p) => p.id === Number.parseInt(projectId));
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   // Filter issues
   const filteredIssues = useMemo(() => {
+    // Get tasks for this project
+    const projectTasks = mockTasks.filter(
+      (task) => task.projectId === Number.parseInt(projectId)
+    );
+
+    // Get issues linked to these tasks
+    const projectIssueIds = new Set(
+      projectTasks.flatMap((task) => task.issues?.map((i) => i.id) || [])
+    );
+
     return mockIssues.filter((issue) => {
+      // Check if issue belongs to this project
+      if (!projectIssueIds.has(issue.id)) return false;
+
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
@@ -64,13 +86,9 @@ export default function IssuesPage() {
         statusFilter === 'all' || issue.status === statusFilter;
       const matchesType = typeFilter === 'all' || issue.type === typeFilter;
 
-      // For project filter, we would need a way to link issues to projects
-      // For now, we'll just show all issues when project filter is 'all'
-      const matchesProject = projectFilter === 'all';
-
-      return matchesSearch && matchesStatus && matchesType && matchesProject;
+      return matchesSearch && matchesStatus && matchesType;
     });
-  }, [searchQuery, statusFilter, typeFilter, projectFilter]);
+  }, [projectId, searchQuery, statusFilter, typeFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
@@ -79,44 +97,32 @@ export default function IssuesPage() {
   const paginatedIssues = filteredIssues.slice(startIndex, endIndex);
 
   // Reset to page 1 when filters change
-  // Reset to page 1 when filters change
   useEffect(() => {
     if (currentPage !== 1) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentPage(1);
     }
-  }, [
-    searchQuery,
-    statusFilter,
-    typeFilter,
-    projectFilter,
-    itemsPerPage,
-    currentPage,
-  ]);
+  }, [searchQuery, statusFilter, typeFilter, itemsPerPage, currentPage]);
 
-  // Statistics
-  const totalIssues = mockIssues.length;
-  const openIssues = mockIssues.filter(
+  // Statistics - use filteredIssues for project-specific counts
+  const totalIssues = filteredIssues.length;
+  const openIssues = filteredIssues.filter(
     (i) => i.status === IssueStatus.open
   ).length;
-  const inProgressIssues = mockIssues.filter(
+  const inProgressIssues = filteredIssues.filter(
     (i) => i.status === IssueStatus.inProgress
   ).length;
-  const resolvedIssues = mockIssues.filter(
+  const resolvedIssues = filteredIssues.filter(
     (i) => i.status === IssueStatus.resolved
   ).length;
 
   const hasActiveFilters =
-    !!searchQuery ||
-    statusFilter !== 'all' ||
-    typeFilter !== 'all' ||
-    projectFilter !== 'all';
+    !!searchQuery || statusFilter !== 'all' || typeFilter !== 'all';
 
   const clearFilters = () => {
     setSearchQuery('');
     setStatusFilter('all');
     setTypeFilter('all');
-    setProjectFilter('all');
     setCurrentPage(1);
   };
 
@@ -234,13 +240,13 @@ export default function IssuesPage() {
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              Issues
+              {project?.projectName} - Issues
             </h1>
             <p className="text-zinc-600 dark:text-zinc-400">
-              Track and manage project issues
+              Track and manage issues for this project
             </p>
           </div>
-          <Link href="/dashboard/workflow/issues/new">
+          <Link href={`/dashboard/projects/${projectId}/issues/new`}>
             <Button className="mt-4 md:mt-0">
               <Plus className="mr-2 h-4 w-4" />
               New Issue
@@ -355,18 +361,6 @@ export default function IssuesPage() {
               value: typeFilter,
               onChange: setTypeFilter,
             },
-            {
-              placeholder: 'Project',
-              options: [
-                { value: 'all', label: 'All Projects' },
-                ...mockProjects.map((project) => ({
-                  value: project.id!.toString(),
-                  label: project.projectName,
-                })),
-              ],
-              value: projectFilter,
-              onChange: setProjectFilter,
-            },
           ]}
         />
 
@@ -412,7 +406,6 @@ export default function IssuesPage() {
                     <TableHead>Creator</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -426,7 +419,15 @@ export default function IssuesPage() {
                     );
 
                     return (
-                      <TableRow key={issue.id}>
+                      <TableRow
+                        key={issue.id}
+                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/projects/${projectId}/issues/${issue.id}`
+                          )
+                        }
+                      >
                         <TableCell>
                           <div>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
@@ -446,20 +447,19 @@ export default function IssuesPage() {
                         </TableCell>
                         <TableCell>
                           {relatedTask ? (
-                            <Link
-                              href={`/dashboard/workflow/tasks/${relatedTask.id}`}
+                            <div
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(
+                                  `/dashboard/projects/${projectId}/tasks/${relatedTask.id}`
+                                );
+                              }}
+                              className="cursor-pointer hover:underline"
                             >
-                              <div className="hover:underline">
-                                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                  {relatedTask.title}
-                                </p>
-                                {project && (
-                                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                                    {project.projectName}
-                                  </p>
-                                )}
-                              </div>
-                            </Link>
+                              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                                {relatedTask.title}
+                              </p>
+                            </div>
                           ) : (
                             <span className="text-sm text-zinc-400">
                               No task
@@ -491,28 +491,6 @@ export default function IssuesPage() {
                             {getStatusLabel(issue.status)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Link
-                                  href={`/dashboard/workflow/issues/${issue.id}`}
-                                >
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </Link>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>View Issue Details</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -540,7 +518,7 @@ export default function IssuesPage() {
                   : 'Get started by creating your first issue'}
               </p>
               {!hasActiveFilters && (
-                <Link href="/dashboard/workflow/issues/new">
+                <Link href={`/dashboard/projects/${projectId}/issues/new`}>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
                     New Issue

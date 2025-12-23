@@ -37,50 +37,42 @@ import {
   getIssueTypeColor,
 } from '@/types/issue/issue-type';
 import { IssueStatus, getIssueStatusLabel } from '@/types/issue/issue-status';
-import { mockIssues } from '@/components/shared/mock-data';
+import {
+  mockIssues,
+  mockTasks as allMockTasks,
+  mockProjects,
+} from '@/components/shared/mock-data';
 import { toast } from '@/lib/styles/toast-styles';
 
-// Mock data for tasks
-const mockTasks = [
-  {
-    id: 1,
-    title: 'Foundation Work Phase 1',
-    projectName: 'Metro Station Construction',
-  },
-  {
-    id: 2,
-    title: 'Electrical Installation',
-    projectName: 'Highway Expansion Project',
-  },
-  {
-    id: 3,
-    title: 'Structural Assessment',
-    projectName: 'Bridge Reconstruction',
-  },
-  {
-    id: 4,
-    title: 'Safety Inspection',
-    projectName: 'Airport Terminal Development',
-  },
-  { id: 5, title: 'Quality Review', projectName: 'Metro Station Construction' },
-];
-
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; issueId: string }>;
 }
 
 export default function EditIssuePage({ params }: PageProps) {
-  const { id } = use(params);
+  const { id: projectId, issueId } = use(params);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Find the issue to edit
-  const issueToEdit = mockIssues.find((i) => i.id?.toString() === id);
+  const issueToEdit = mockIssues.find((i) => i.id?.toString() === issueId);
+
+  // Get project and filter tasks by projectId
+  const project = mockProjects.find((p) => p.id?.toString() === projectId);
+  const mockTasks = allMockTasks.filter(
+    (t) => t.projectId?.toString() === projectId
+  );
+
+  // Find the task that contains this issue
+  const relatedTask = issueToEdit
+    ? allMockTasks.find((task) =>
+        task.issues?.some((i) => i.id === issueToEdit.id)
+      )
+    : null;
 
   // Form state - initialize with existing issue data
   const [taskId, setTaskId] = useState<string>(
-    issueToEdit?.taskId?.toString() || ''
+    relatedTask?.id?.toString() || ''
   );
   const [title, setTitle] = useState(issueToEdit?.title || '');
   const [description, setDescription] = useState(
@@ -108,7 +100,11 @@ export default function EditIssuePage({ params }: PageProps) {
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 The issue you&apos;re looking for doesn&apos;t exist.
               </p>
-              <Button onClick={() => router.push('/dashboard/workflow/issues')}>
+              <Button
+                onClick={() =>
+                  router.push(`/dashboard/projects/${projectId}/issues`)
+                }
+              >
                 Back to Issues
               </Button>
             </CardContent>
@@ -185,7 +181,7 @@ export default function EditIssuePage({ params }: PageProps) {
       toast.success('Issue Deleted', {
         description: 'The issue has been deleted successfully',
       });
-      router.push('/dashboard/workflow/issues');
+      router.push(`/dashboard/projects/${projectId}/issues`);
     } catch {
       toast.error('Error', {
         description: 'Failed to delete issue. Please try again.',
@@ -208,7 +204,7 @@ export default function EditIssuePage({ params }: PageProps) {
       toast.success('Issue Updated', {
         description: `Issue "${title}" has been updated successfully`,
       });
-      router.push(`/dashboard/workflow/issues/${id}`);
+      router.push(`/dashboard/projects/${projectId}/issues/${issueId}`);
     } catch {
       toast.error('Error', {
         description: 'Failed to update issue. Please try again.',
@@ -258,11 +254,14 @@ export default function EditIssuePage({ params }: PageProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {mockTasks.map((task) => (
-                          <SelectItem key={task.id} value={task.id.toString()}>
+                          <SelectItem
+                            key={task.id}
+                            value={task.id?.toString() || ''}
+                          >
                             <div className="flex flex-col">
                               <span>{task.title}</span>
                               <span className="text-xs text-zinc-500">
-                                {task.projectName}
+                                {project?.projectName || 'Project'}
                               </span>
                             </div>
                           </SelectItem>
@@ -371,82 +370,6 @@ export default function EditIssuePage({ params }: PageProps) {
                 </CardContent>
               </Card>
 
-              {/* Attachments Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Add More Attachments
-                  </CardTitle>
-                  <CardDescription>
-                    Upload additional photos, documents, or supporting files
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* File Upload */}
-                  <div className="space-y-2">
-                    <Label htmlFor="attachments">Upload Files</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="attachments"
-                        type="file"
-                        onChange={handleFileChange}
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          (
-                            document.querySelector(
-                              '#attachments'
-                            ) as HTMLElement
-                          )?.click()
-                        }
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Choose Files
-                      </Button>
-                      <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Photos, Videos, PDFs (Max 10MB each)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Attachment List */}
-                  {attachments.length > 0 && (
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-zinc-500" />
-                            <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                              {file.name}
-                            </span>
-                            <span className="text-xs text-zinc-500">
-                              ({(file.size / 1024).toFixed(1)} KB)
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Action Buttons */}
               <div className="flex justify-between">
                 <Button
@@ -528,7 +451,7 @@ export default function EditIssuePage({ params }: PageProps) {
                       </p>
                       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {
-                          mockTasks.find((t) => t.id.toString() === taskId)
+                          mockTasks.find((t) => t.id?.toString() === taskId)
                             ?.title
                         }
                       </p>
@@ -537,51 +460,77 @@ export default function EditIssuePage({ params }: PageProps) {
                 </CardContent>
               </Card>
 
-              {/* Real-time Updates Info */}
-              <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                        Real-time Updates
-                      </p>
-                      <p className="text-xs text-green-700 dark:text-green-300">
-                        Status changes are saved immediately and relevant team
-                        members will be notified.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Guidelines */}
+              {/* Add More Attachments */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    Edit Guidelines
+                    <FileText className="h-4 w-4" />
+                    Add Attachments
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Changes are saved when you click Save Changes</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Status updates notify relevant stakeholders</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>All changes are logged in the issue history</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Deleting an issue cannot be undone</span>
-                    </li>
-                  </ul>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    <Input
+                      id="attachments-sidebar"
+                      type="file"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        (
+                          document.querySelector(
+                            '#attachments-sidebar'
+                          ) as HTMLElement
+                        )?.click()
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Files
+                    </Button>
+                  </div>
+
+                  {attachments.length > 0 ? (
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"
+                        >
+                          <div className="flex min-w-0 flex-1 items-center gap-2">
+                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-zinc-500">
+                                {(file.size / 1024).toFixed(1)} KB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 shrink-0 p-0"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                      No new attachments
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 
