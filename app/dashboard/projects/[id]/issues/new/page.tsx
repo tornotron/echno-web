@@ -1,5 +1,6 @@
 'use client';
 
+import { use } from 'react';
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/common';
 import {
@@ -64,7 +65,12 @@ const mockTasks = [
   { id: 5, title: 'Quality Review', projectName: 'Metro Station Construction' },
 ];
 
-export default function NewIssuePage() {
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+export default function NewIssuePage({ params }: PageProps) {
+  const { id: projectId } = use(params);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -153,7 +159,7 @@ export default function NewIssuePage() {
       toast.success('Draft Saved', {
         description: 'Your issue has been saved as draft',
       });
-      router.push('/dashboard/workflow/issues');
+      router.push(`/dashboard/projects/${projectId}/issues`);
     } catch {
       toast.error('Error', {
         description: 'Failed to save draft. Please try again.',
@@ -176,7 +182,7 @@ export default function NewIssuePage() {
       toast.success('Issue Created', {
         description: `Issue "${title}" has been created successfully`,
       });
-      router.push('/dashboard/workflow/issues');
+      router.push(`/dashboard/projects/${projectId}/issues`);
     } catch {
       toast.error('Error', {
         description: 'Failed to create issue. Please try again.',
@@ -359,82 +365,6 @@ export default function NewIssuePage() {
                 </CardContent>
               </Card>
 
-              {/* Attachments Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Attachments
-                  </CardTitle>
-                  <CardDescription>
-                    Upload photos, documents, or other supporting files
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* File Upload */}
-                  <div className="space-y-2">
-                    <Label htmlFor="attachments">Upload Files</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="attachments"
-                        type="file"
-                        onChange={handleFileChange}
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          (
-                            document.querySelector(
-                              '#attachments'
-                            ) as HTMLElement
-                          )?.click()
-                        }
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Choose Files
-                      </Button>
-                      <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                        Photos, Videos, PDFs (Max 10MB each)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Attachment List */}
-                  {attachments.length > 0 && (
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-zinc-500" />
-                            <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                              {file.name}
-                            </span>
-                            <span className="text-xs text-zinc-500">
-                              ({(file.size / 1024).toFixed(1)} KB)
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <Button
@@ -527,84 +457,74 @@ export default function NewIssuePage() {
                 </CardContent>
               </Card>
 
-              {/* Issue Types Guide */}
+              {/* Attachments */}
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm">Issue Types</CardTitle>
+                  <CardTitle className="text-sm">Attachments</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        Technical
-                      </p>
-                      <p className="text-zinc-600 dark:text-zinc-400">
-                        Engineering or technical problems
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        Safety
-                      </p>
-                      <p className="text-zinc-600 dark:text-zinc-400">
-                        Safety hazards or violations
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        Quality
-                      </p>
-                      <p className="text-zinc-600 dark:text-zinc-400">
-                        Quality control issues
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        Material
-                      </p>
-                      <p className="text-zinc-600 dark:text-zinc-400">
-                        Material shortages or defects
-                      </p>
-                    </div>
+                <CardContent className="space-y-3">
+                  <div className="space-y-2">
+                    <Input
+                      id="attachments-sidebar"
+                      type="file"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() =>
+                        (
+                          document.querySelector(
+                            '#attachments-sidebar'
+                          ) as HTMLElement
+                        )?.click()
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Files
+                    </Button>
                   </div>
-                </CardContent>
-              </Card>
 
-              {/* Guidelines */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    Reporting Guidelines
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Be specific and clear in your description</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Include all relevant details and context</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Attach photos or documentation when possible</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Select the appropriate issue type</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Set priority based on urgency and impact</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Link to related task if applicable</span>
-                    </li>
-                  </ul>
+                  {attachments.length > 0 ? (
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"
+                        >
+                          <div className="flex min-w-0 flex-1 items-center gap-2">
+                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-zinc-500">
+                                {(file.size / 1024).toFixed(1)} KB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 shrink-0 p-0"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                      No attachments yet
+                    </p>
+                  )}
                 </CardContent>
               </Card>
 

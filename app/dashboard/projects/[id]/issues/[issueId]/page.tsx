@@ -1,11 +1,12 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import {
   mockIssues,
   mockTasks,
   mockProjects,
 } from '@/components/shared/mock-data';
+import { getUserRoleLabel } from '@/types/user/user-role';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,6 +32,8 @@ import {
   Sheet,
   Box,
   File,
+  Upload,
+  X,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -40,7 +43,7 @@ import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { Plus } from 'lucide-react';
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; issueId: string }>;
 }
 
 // Helper function to get attachment icon based on file type
@@ -95,8 +98,12 @@ const getStatusLabel = (status: IssueStatus) => {
 };
 
 export default function IssueDetailPage({ params }: PageProps) {
-  const { id } = use(params);
-  const issue = mockIssues.find((i) => i.id === Number.parseInt(id));
+  const { id: projectId, issueId: issueIdParam } = use(params);
+  const issue = mockIssues.find((i) => i.id === Number.parseInt(issueIdParam));
+
+  // State for attachment uploads
+  const [newAttachments, setNewAttachments] = useState<File[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Find the task that contains this issue
   const relatedTask = issue
@@ -106,6 +113,38 @@ export default function IssueDetailPage({ params }: PageProps) {
   const project = relatedTask
     ? mockProjects.find((p) => p.id === relatedTask.projectId)
     : null;
+
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const files = [...e.target.files];
+      setNewAttachments([...newAttachments, ...files]);
+    }
+  };
+
+  // Remove attachment from new uploads
+  const removeNewAttachment = (index: number) => {
+    setNewAttachments(newAttachments.filter((_, i) => i !== index));
+  };
+
+  // Handle upload
+  const handleUpload = async () => {
+    if (newAttachments.length === 0) return;
+
+    setIsUploading(true);
+    try {
+      // TODO: Implement API call to upload attachments
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // After successful upload, clear the new attachments
+      setNewAttachments([]);
+      // Show success message (could use toast here)
+      alert('Attachments uploaded successfully!');
+    } catch {
+      alert('Failed to upload attachments. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   if (!issue) {
     return (
@@ -120,7 +159,7 @@ export default function IssueDetailPage({ params }: PageProps) {
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 The issue you&apos;re looking for doesn&apos;t exist.
               </p>
-              <Link href="/dashboard/workflow/issues">
+              <Link href={`/dashboard/projects/${projectId}/issues`}>
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Issues
@@ -159,7 +198,9 @@ export default function IssueDetailPage({ params }: PageProps) {
                 </Badge>
               </div>
             </div>
-            <Link href={`/dashboard/workflow/issues/${issue.id}/edit`}>
+            <Link
+              href={`/dashboard/projects/${projectId}/issues/${issue.id}/edit`}
+            >
               <Button className="mt-4 md:mt-0">
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Issue
@@ -202,7 +243,9 @@ export default function IssueDetailPage({ params }: PageProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Link href={`/dashboard/workflow/tasks/${relatedTask.id}`}>
+                  <Link
+                    href={`/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                  >
                     <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -235,96 +278,6 @@ export default function IssueDetailPage({ params }: PageProps) {
                 </CardContent>
               </Card>
             )}
-
-            {/* Attachments */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center space-x-2">
-                      <Paperclip className="h-5 w-5" />
-                      <span>Attachments</span>
-                      {issue.attachments && issue.attachments.length > 0 && (
-                        <Badge variant="outline">
-                          {issue.attachments.length}
-                        </Badge>
-                      )}
-                    </CardTitle>
-                    <CardDescription>
-                      Files attached to this issue
-                    </CardDescription>
-                  </div>
-                  <Button size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Upload File
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {issue.attachments && issue.attachments.length > 0 ? (
-                  <div className="space-y-3">
-                    {issue.attachments.map((attachment, index) => {
-                      const IconComponent = getAttachmentIcon(
-                        attachment.fileType
-                      );
-                      return (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
-                        >
-                          <div className="flex min-w-0 flex-1 items-center space-x-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                              <IconComponent className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                                {attachment.fileName}
-                              </p>
-                              <div className="flex items-center space-x-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                <span>
-                                  {formatFileSize(attachment.fileSize)}
-                                </span>
-                                <span>•</span>
-                                <span>
-                                  {format(attachment.uploadedAt, 'MMM d, yyyy')}
-                                </span>
-                                <span>•</span>
-                                <span>{attachment.uploadedBy}</span>
-                              </div>
-                              {attachment.description && (
-                                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                                  {attachment.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0"
-                            asChild
-                          >
-                            <a
-                              href={attachment.fileUrl}
-                              download={attachment.fileName}
-                            >
-                              <Download className="h-4 w-4" />
-                            </a>
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-8 text-center">
-                    <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      No attachments yet
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
 
             {/* Comments */}
             <Card>
@@ -415,6 +368,186 @@ export default function IssueDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
+            {/* Attachments */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Paperclip className="h-5 w-5" />
+                      Attachments
+                    </CardTitle>
+                    <CardDescription>
+                      Files attached to this issue
+                    </CardDescription>
+                  </div>
+                  <Button
+                    onClick={() =>
+                      document.querySelector('#attachment-upload')?.click()
+                    }
+                    disabled={isUploading}
+                  >
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload File
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <input
+                  id="attachment-upload"
+                  type="file"
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+
+                {/* Show existing attachments or new uploads */}
+                {issue.attachments && issue.attachments.length > 0 ? (
+                  <div className="space-y-2">
+                    {issue.attachments.map((attachment, index) => {
+                      const IconComponent = getAttachmentIcon(
+                        attachment.fileType
+                      );
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                        >
+                          <div className="flex min-w-0 flex-1 items-center space-x-2">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                              <IconComponent className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                                {attachment.fileName}
+                              </p>
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                {formatFileSize(attachment.fileSize)}
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 shrink-0 p-0"
+                            asChild
+                          >
+                            <a
+                              href={attachment.fileUrl}
+                              download={attachment.fileName}
+                            >
+                              <Download className="h-3 w-3" />
+                            </a>
+                          </Button>
+                        </div>
+                      );
+                    })}
+
+                    {/* Show pending uploads if any */}
+                    {newAttachments.length > 0 && (
+                      <div className="space-y-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
+                        <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                          Pending Uploads ({newAttachments.length})
+                        </p>
+                        {newAttachments.map((file, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800/50"
+                          >
+                            <div className="flex min-w-0 flex-1 items-center space-x-2">
+                              <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                                  {file.name}
+                                </p>
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                  {(file.size / 1024).toFixed(1)} KB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 shrink-0 p-0"
+                              onClick={() => removeNewAttachment(index)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="w-full"
+                          onClick={handleUpload}
+                          disabled={isUploading}
+                        >
+                          <Upload className="mr-2 h-4 w-4" />
+                          {isUploading
+                            ? 'Uploading...'
+                            : `Upload ${newAttachments.length} File${newAttachments.length > 1 ? 's' : ''}`}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ) : newAttachments.length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                      Pending Uploads ({newAttachments.length})
+                    </p>
+                    {newAttachments.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800/50"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center space-x-2">
+                          <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 shrink-0 p-0"
+                          onClick={() => removeNewAttachment(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-full"
+                      onClick={handleUpload}
+                      disabled={isUploading}
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      {isUploading
+                        ? 'Uploading...'
+                        : `Upload ${newAttachments.length} File${newAttachments.length > 1 ? 's' : ''}`}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="py-12 text-center">
+                    <Paperclip className="mx-auto mb-3 h-12 w-12 text-zinc-400 dark:text-zinc-600" />
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      No attachments yet
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Creator */}
             <Card>
               <CardHeader>
@@ -454,7 +587,7 @@ export default function IssueDetailPage({ params }: PageProps) {
                 </Button>
                 {relatedTask && (
                   <Link
-                    href={`/dashboard/workflow/tasks/${relatedTask.id}`}
+                    href={`/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
                     className="block"
                   >
                     <Button variant="outline" className="w-full justify-start">
