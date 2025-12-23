@@ -1,17 +1,14 @@
 'use client';
 
+import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   Home,
   Users,
   Calendar,
   BarChart3,
-  Settings,
   FileText,
   UserCheck,
-  Building,
-  ListTodo,
-  AlertCircle,
   Mail,
   Handshake,
   HardHat,
@@ -244,10 +241,47 @@ const navItems: NavItem[] = [
   { title: 'Documents', url: '/dashboard/documents', icon: FileText },
 ];
 
+// Helper function to check if a path is active
+// Returns true if pathname matches exactly or is a sub-route (with /)
+function isPathActive(itemUrl: string, currentPath: string) {
+  if (currentPath === itemUrl) return true;
+  // Check if it's a sub-route (must be followed by /)
+  return currentPath.startsWith(itemUrl + '/');
+}
+
 export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const { state } = useSidebar();
+
+  // Memoize navigation items rendering to prevent flickering
+  const navigationItems = useMemo(() => {
+    return navItems.map((item) => {
+      const hasChildren = item.items && item.items.length > 0;
+
+      let isChildActive = false;
+      let activeChildUrl = '';
+
+      if (hasChildren && item.items) {
+        // Find the most specific matching child (longest URL that matches)
+        const matchingChildren = item.items.filter((child) =>
+          isPathActive(child.url, pathname)
+        );
+
+        if (matchingChildren.length > 0) {
+          // Sort by URL length (descending) to get the most specific match
+          matchingChildren.sort((a, b) => b.url.length - a.url.length);
+          activeChildUrl = matchingChildren[0].url;
+          isChildActive = true;
+        }
+      }
+
+      // Parent is only active if current path matches exactly AND no child is active
+      const isActive = pathname === item.url && !isChildActive;
+
+      return { ...item, hasChildren, isChildActive, isActive, activeChildUrl };
+    });
+  }, [pathname]);
 
   // Only show sidebar for authenticated users
   if (!session) {
@@ -284,25 +318,13 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
-                const hasChildren = item.items && item.items.length > 0;
-
-                // Check if any child is active
-                const isChildActive = hasChildren
-                  ? item.items?.some((child) =>
-                      pathname.startsWith(child.url)
-                    ) || false
-                  : false;
-
-                // Parent is only active if current path matches exactly AND no child is active
-                const isActive = pathname === item.url && !isChildActive;
-
-                if (!hasChildren) {
+              {navigationItems.map((item) => {
+                if (!item.hasChildren) {
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
-                        isActive={isActive}
+                        isActive={item.isActive}
                         tooltip={item.title}
                       >
                         <Link href={item.url}>
@@ -325,7 +347,7 @@ export function AppSidebar() {
                               children: item.title,
                               side: 'right',
                             }}
-                            isActive={isActive}
+                            isActive={item.isActive}
                           >
                             <item.icon />
                             <span>{item.title}</span>
@@ -357,14 +379,14 @@ export function AppSidebar() {
                 return (
                   <Collapsible
                     key={item.title}
-                    defaultOpen={isChildActive}
+                    defaultOpen={item.isChildActive}
                     className="group/collapsible"
                   >
                     <SidebarMenuItem>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton
                           tooltip={item.title}
-                          isActive={isActive}
+                          isActive={item.isActive}
                         >
                           <item.icon />
                           <span>{item.title}</span>
@@ -377,7 +399,7 @@ export function AppSidebar() {
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
                                 asChild
-                                isActive={pathname === subItem.url}
+                                isActive={subItem.url === item.activeChildUrl}
                               >
                                 <Link href={subItem.url}>
                                   <subItem.icon />
