@@ -383,7 +383,11 @@ export default function IssueDetailPage({ params }: PageProps) {
                   </div>
                   <Button
                     onClick={() =>
-                      document.querySelector('#attachment-upload')?.click()
+                      (
+                        document.querySelector(
+                          '#attachment-upload'
+                        ) as HTMLInputElement
+                      )?.click()
                     }
                     disabled={isUploading}
                   >
