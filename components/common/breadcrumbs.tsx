@@ -109,6 +109,11 @@ function getNameForId(
     if (labour) return labour.name;
   }
 
+  if (parentSegment === 'attendance') {
+    const employee = mockMembers.find((m) => m.id === numericId);
+    if (employee) return employee.memberName || 'Employee';
+  }
+
   // Default fallback
   return id;
 }
