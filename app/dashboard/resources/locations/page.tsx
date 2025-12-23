@@ -27,8 +27,6 @@ import {
   Warehouse,
   Home,
   Box,
-  Eye,
-  Edit,
   BarChart3,
   CheckCircle2,
   XCircle,
@@ -280,101 +278,76 @@ export default function LocationsPage() {
                   const inventoryCount =
                     mockLocationInventory[location.id] || 0;
                   return (
-                    <Card
+                    <Link
                       key={location.id}
-                      className="transition-shadow hover:shadow-md"
+                      href={`/dashboard/resources/locations/${location.id}`}
+                      className="block"
                     >
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`rounded-lg p-2 ${getTypeColor(location.type)}`}
+                      <Card className="transition-shadow hover:shadow-md">
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start gap-3">
+                              <div
+                                className={`rounded-lg p-2 ${getTypeColor(location.type)}`}
+                              >
+                                {getLocationIcon(location.type)}
+                              </div>
+                              <div>
+                                <CardTitle className="text-base">
+                                  {location.name}
+                                </CardTitle>
+                                <Badge variant="outline" className="mt-1">
+                                  {locationTypeLabels[location.type]}
+                                </Badge>
+                              </div>
+                            </div>
+                            <Badge
+                              variant={
+                                location.isActive ? 'default' : 'secondary'
+                              }
                             >
-                              {getLocationIcon(location.type)}
+                              {location.isActive ? (
+                                <>
+                                  <CheckCircle2 className="mr-1 h-3 w-3" />{' '}
+                                  Active
+                                </>
+                              ) : (
+                                <>
+                                  <XCircle className="mr-1 h-3 w-3" /> Inactive
+                                </>
+                              )}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {location.address && (
+                            <div className="text-muted-foreground text-sm">
+                              <MapPin className="mr-1 inline h-3 w-3" />
+                              {location.address}
+                            </div>
+                          )}
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-muted-foreground text-xs">
+                                Capacity
+                              </div>
+                              <div className="text-lg font-bold">
+                                {location.capacity?.toLocaleString()}
+                              </div>
                             </div>
                             <div>
-                              <CardTitle className="text-base">
-                                {location.name}
-                              </CardTitle>
-                              <Badge variant="outline" className="mt-1">
-                                {locationTypeLabels[location.type]}
-                              </Badge>
+                              <div className="text-muted-foreground text-xs">
+                                Items Stored
+                              </div>
+                              <div className="text-lg font-bold text-blue-600">
+                                {inventoryCount}
+                              </div>
                             </div>
                           </div>
-                          <Badge
-                            variant={
-                              location.isActive ? 'default' : 'secondary'
-                            }
-                          >
-                            {location.isActive ? (
-                              <>
-                                <CheckCircle2 className="mr-1 h-3 w-3" /> Active
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="mr-1 h-3 w-3" /> Inactive
-                              </>
-                            )}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {location.address && (
-                          <div className="text-muted-foreground text-sm">
-                            <MapPin className="mr-1 inline h-3 w-3" />
-                            {location.address}
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-muted-foreground text-xs">
-                              Capacity
-                            </div>
-                            <div className="text-lg font-bold">
-                              {location.capacity?.toLocaleString()}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-xs">
-                              Items Stored
-                            </div>
-                            <div className="text-lg font-bold text-blue-600">
-                              {inventoryCount}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            asChild
-                          >
-                            <Link
-                              href={`/dashboard/resources/locations/${location.id}`}
-                            >
-                              <Eye className="mr-1 h-4 w-4" />
-                              View
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                            asChild
-                          >
-                            <Link
-                              href={`/dashboard/resources/locations/${location.id}/edit`}
-                            >
-                              <Edit className="mr-1 h-4 w-4" />
-                              Edit
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
+                        </CardContent>
+                      </Card>
+                    </Link>
                   );
                 })}
               </div>
