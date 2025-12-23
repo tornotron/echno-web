@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -35,7 +36,6 @@ import {
 import {
   HardHat,
   Plus,
-  Eye,
   User,
   Download,
   Users,
@@ -82,6 +82,7 @@ export default function LabourPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const hasActiveFilters = Boolean(
     statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== ''
@@ -112,6 +113,28 @@ export default function LabourPage() {
     startIndex,
     startIndex + itemsPerPage
   );
+
+  // Checkbox handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(paginatedLabour.map((l) => l.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  const isAllSelected =
+    paginatedLabour.length > 0 && selectedIds.length === paginatedLabour.length;
+  const isSomeSelected =
+    selectedIds.length > 0 && selectedIds.length < paginatedLabour.length;
 
   // Statistics
   const stats = {
@@ -312,6 +335,18 @@ export default function LabourPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                      className={
+                        isSomeSelected
+                          ? 'data-[state=checked]:bg-primary/50'
+                          : ''
+                      }
+                    />
+                  </TableHead>
                   <TableHead>Labour ID</TableHead>
                   <TableHead>Name & Contact</TableHead>
                   <TableHead>Trade</TableHead>
@@ -320,14 +355,14 @@ export default function LabourPage() {
                   <TableHead>Project</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Outstanding</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedLabour.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="py-8 text-center text-zinc-500"
                     >
                       No labour records found
@@ -335,7 +370,22 @@ export default function LabourPage() {
                   </TableRow>
                 ) : (
                   paginatedLabour.map((labour) => (
-                    <TableRow key={labour.id}>
+                    <TableRow
+                      key={labour.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      onClick={() =>
+                        (globalThis.location.href = `/dashboard/third-party/labour/${labour.id}`)
+                      }
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(labour.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectOne(labour.id, checked as boolean)
+                          }
+                          aria-label={`Select ${labour.name}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {labour.labourId}
                       </TableCell>
@@ -406,42 +456,24 @@ export default function LabourPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <TooltipProvider>
-                          <div className="flex justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  asChild
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                asChild
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Link
+                                  href={`/dashboard/third-party/labour/${labour.id}/edit`}
                                 >
-                                  <Link
-                                    href={`/dashboard/third-party/labour/${labour.id}`}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  asChild
-                                >
-                                  <Link
-                                    href={`/dashboard/third-party/labour/${labour.id}/edit`}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Edit Labour</TooltipContent>
-                            </Tooltip>
-                          </div>
+                                  <Edit className="h-4 w-4" />
+                                </Link>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Edit Labour</TooltipContent>
+                          </Tooltip>
                         </TooltipProvider>
                       </TableCell>
                     </TableRow>
