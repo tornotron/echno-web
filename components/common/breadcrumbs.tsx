@@ -21,6 +21,7 @@ import {
   mockTasks,
   mockIssues,
   mockMembers,
+  mockInspections,
 } from '@/components/shared/mock-data';
 
 interface BreadcrumbConfig {
@@ -42,6 +43,7 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   attendance: 'Attendance',
   leaves: 'Leave Requests',
   'time-tracking': 'Time Tracking',
+  inspections: 'Inspections',
   new: 'New',
   edit: 'Edit',
   workforce: 'Workforce',
@@ -95,6 +97,11 @@ function getNameForId(
   if (parentSegment === 'employees') {
     const employee = mockMembers.find((m) => m.id === numericId);
     if (employee) return employee.memberName || 'Employee';
+  }
+
+  if (parentSegment === 'inspections') {
+    const inspection = mockInspections.find((i) => i.id === numericId);
+    if (inspection) return inspection.title;
   }
 
   // Default fallback
