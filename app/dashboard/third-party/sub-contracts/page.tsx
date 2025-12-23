@@ -28,16 +28,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   ClipboardList,
   Plus,
-  Eye,
-  Edit,
   Download,
   FileText,
   TrendingUp,
@@ -368,7 +360,6 @@ export default function SubContractsPage() {
                       aria-label="Select all"
                     />
                   </TableHead>
-                  <TableHead>Contract ID</TableHead>
                   <TableHead>Contract Details</TableHead>
                   <TableHead>Contractor</TableHead>
                   <TableHead>Type</TableHead>
@@ -376,14 +367,13 @@ export default function SubContractsPage() {
                   <TableHead>Value</TableHead>
                   <TableHead>Outstanding</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedContracts.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={10}
+                      colSpan={8}
                       className="py-8 text-center text-zinc-500"
                     >
                       No contract records found
@@ -414,9 +404,6 @@ export default function SubContractsPage() {
                             }
                             aria-label={`Select ${contract.contractId}`}
                           />
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {contract.contractId}
                         </TableCell>
                         <TableCell>
                           <div>
@@ -521,46 +508,6 @@ export default function SubContractsPage() {
                               </Badge>
                             </div>
                           </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <TooltipProvider>
-                            <div className="flex justify-end gap-1">
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    asChild
-                                  >
-                                    <Link
-                                      href={`/dashboard/third-party/sub-contracts/${contract.id}`}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                    </Link>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>View Details</TooltipContent>
-                              </Tooltip>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    asChild
-                                  >
-                                    <Link
-                                      href={`/dashboard/third-party/sub-contracts/${contract.id}/edit`}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Link>
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>Edit Contract</TooltipContent>
-                              </Tooltip>
-                            </div>
-                          </TooltipProvider>
                         </TableCell>
                       </TableRow>
                     );
