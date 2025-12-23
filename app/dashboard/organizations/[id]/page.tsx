@@ -66,7 +66,7 @@ export default function OrganizationDetailPage({
     emp.organizations?.some((org) => org.id === organization.id)
   );
   const orgProjects = mockProjects.filter(
-    (proj) => proj.id === organization.id
+    (proj) => proj.organizationId === organization.id
   );
 
   const tabs = [
@@ -246,7 +246,10 @@ export default function OrganizationDetailPage({
                   <CardDescription>Quick overview</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <Link
+                    href={`/dashboard/workforce/employees?organizationId=${organization.id}`}
+                    className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
                     <div className="flex items-center space-x-2">
                       <Users className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -256,9 +259,12 @@ export default function OrganizationDetailPage({
                     <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                       {orgEmployees.length}
                     </span>
-                  </div>
+                  </Link>
                   <Separator />
-                  <div className="flex items-center justify-between">
+                  <Link
+                    href={`/dashboard/projects?organizationId=${organization.id}`}
+                    className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
                     <div className="flex items-center space-x-2">
                       <Briefcase className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
                       <span className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -268,7 +274,7 @@ export default function OrganizationDetailPage({
                     <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                       {orgProjects.length}
                     </span>
-                  </div>
+                  </Link>
                 </CardContent>
               </Card>
             </div>
