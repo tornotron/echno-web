@@ -22,7 +22,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Package,
-  Eye,
 } from 'lucide-react';
 import {
   PurchaseOrderType,
@@ -360,123 +359,118 @@ export default function PurchaseOrdersPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {paginatedPOs.map((po) => (
-                  <div
+                  <Link
                     key={po.id}
-                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                    href={`/dashboard/resources/purchase-orders/${po.id}`}
+                    className="block"
                   >
-                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-                      {/* Left Section */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="mb-1 flex items-center gap-2">
-                              <Link
-                                href={`/dashboard/resources/purchase-orders/${po.id}`}
-                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
-                              >
-                                {po.poNumber}
-                              </Link>
+                    <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+                        {/* Left Section */}
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                                  {po.poNumber}
+                                </span>
+                                <Badge
+                                  className={getPOStatusBadgeColor(po.status)}
+                                >
+                                  {purchaseOrderStatusLabels[po.status]}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {purchaseOrderTypeLabels[po.type]}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                Vendor:{' '}
+                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {po.vendorName}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                PO Date:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {format(po.poDate, 'MMM dd, yyyy')}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Delivery:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {po.expectedDeliveryDate
+                                  ? format(
+                                      po.expectedDeliveryDate,
+                                      'MMM dd, yyyy'
+                                    )
+                                  : 'TBD'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Items:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {po.lineItems.length} item
+                                {po.lineItems.length === 1 ? '' : 's'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Delivery Status:
+                              </span>
                               <Badge
-                                className={getPOStatusBadgeColor(po.status)}
+                                className={`${getDeliveryStatusBadgeColor(po.deliveryStatus)} mt-1`}
+                                variant="outline"
                               >
-                                {purchaseOrderStatusLabels[po.status]}
-                              </Badge>
-                              <Badge variant="outline">
-                                {purchaseOrderTypeLabels[po.type]}
+                                {deliveryStatusLabels[po.deliveryStatus]}
                               </Badge>
                             </div>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              Vendor:{' '}
-                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {po.vendorName}
+                          </div>
+
+                          {po.advancePaymentRequired && (
+                            <div className="flex items-center gap-2 text-sm">
+                              <AlertCircle className="h-4 w-4 text-orange-500" />
+                              <span className="text-orange-600 dark:text-orange-400">
+                                Advance Payment: {po.advancePaymentPercentage}%
+                                (₹
+                                {(po.advancePaymentAmount! / 100_000).toFixed(
+                                  2
+                                )}
+                                L)
                               </span>
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              PO Date:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {format(po.poDate, 'MMM dd, yyyy')}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Delivery:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {po.expectedDeliveryDate
-                                ? format(
-                                    po.expectedDeliveryDate,
-                                    'MMM dd, yyyy'
-                                  )
-                                : 'TBD'}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Items:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {po.lineItems.length} item
-                              {po.lineItems.length === 1 ? '' : 's'}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Delivery Status:
-                            </span>
-                            <Badge
-                              className={`${getDeliveryStatusBadgeColor(po.deliveryStatus)} mt-1`}
-                              variant="outline"
-                            >
-                              {deliveryStatusLabels[po.deliveryStatus]}
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {po.advancePaymentRequired && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <AlertCircle className="h-4 w-4 text-orange-500" />
-                            <span className="text-orange-600 dark:text-orange-400">
-                              Advance Payment: {po.advancePaymentPercentage}% (₹
-                              {(po.advancePaymentAmount! / 100_000).toFixed(2)}
-                              L)
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Right Section */}
-                      <div className="flex flex-col gap-2 lg:items-end">
-                        <div className="text-right">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                            Total Amount
-                          </p>
-                          <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            ₹{(po.totalAmount / 100_000).toFixed(2)}L
-                          </p>
-                          {po.discountAmount > 0 && (
-                            <p className="text-xs text-green-600 dark:text-green-400">
-                              Discount: ₹{(po.discountAmount / 1000).toFixed(1)}
-                              K
-                            </p>
+                            </div>
                           )}
                         </div>
-                        <Link
-                          href={`/dashboard/resources/purchase-orders/${po.id}`}
-                        >
-                          <Button variant="outline" size="sm">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Button>
-                        </Link>
+
+                        {/* Right Section */}
+                        <div className="flex flex-col gap-2 lg:items-end">
+                          <div className="text-right">
+                            <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                              Total Amount
+                            </p>
+                            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                              ₹{(po.totalAmount / 100_000).toFixed(2)}L
+                            </p>
+                            {po.discountAmount > 0 && (
+                              <p className="text-xs text-green-600 dark:text-green-400">
+                                Discount: ₹
+                                {(po.discountAmount / 1000).toFixed(1)}K
+                              </p>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
