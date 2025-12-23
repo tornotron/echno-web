@@ -308,12 +308,21 @@ export default function IssueDetailPage({ params }: PageProps) {
                         <div className="mb-2 flex items-center space-x-2">
                           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
                             <span className="text-xs font-medium text-white">
-                              {comment.author?.charAt(0) || '?'}
+                              {comment.author?.memberName?.charAt(0) || '?'}
                             </span>
                           </div>
-                          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            {comment.author}
-                          </span>
+                          {comment.author ? (
+                            <Link
+                              href={`/dashboard/workforce/employees/${comment.author.id}`}
+                              className="text-sm font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
+                            >
+                              {comment.author.memberName}
+                            </Link>
+                          ) : (
+                            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              Unknown
+                            </span>
+                          )}
                           <span className="text-xs text-zinc-500 dark:text-zinc-500">
                             {format(comment.createdAt, 'MMM d, yyyy HH:mm')}
                           </span>
@@ -561,21 +570,32 @@ export default function IssueDetailPage({ params }: PageProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
-                    <span className="text-sm font-medium text-white">
-                      {issue.creator?.charAt(0) || '?'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {issue.creator}
-                    </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      Issue Reporter
-                    </p>
-                  </div>
-                </div>
+                {issue.creator ? (
+                  <Link
+                    href={`/dashboard/workforce/employees/${issue.creator.id}`}
+                    className="block rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                        <span className="text-sm font-medium text-white">
+                          {issue.creator.memberName?.charAt(0) || '?'}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {issue.creator.memberName}
+                        </p>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                          Issue Reporter
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                ) : (
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    No creator information
+                  </p>
+                )}
               </CardContent>
             </Card>
 

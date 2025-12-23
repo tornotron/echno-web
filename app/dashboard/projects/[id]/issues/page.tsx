@@ -80,7 +80,7 @@ export default function IssuesPage({ params }: PageProps) {
         !searchQuery ||
         issue.title.toLowerCase().includes(searchLower) ||
         issue.description?.toLowerCase().includes(searchLower) ||
-        issue.creator?.toLowerCase().includes(searchLower);
+        issue.creator?.memberName?.toLowerCase().includes(searchLower);
 
       const matchesStatus =
         statusFilter === 'all' || issue.status === statusFilter;
@@ -470,12 +470,22 @@ export default function IssuesPage({ params }: PageProps) {
                           <div className="flex items-center space-x-2">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
                               <span className="text-xs font-medium text-white">
-                                {issue.creator?.charAt(0) || '?'}
+                                {issue.creator?.memberName?.charAt(0) || '?'}
                               </span>
                             </div>
-                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                              {issue.creator}
-                            </span>
+                            {issue.creator ? (
+                              <Link
+                                href={`/dashboard/workforce/employees/${issue.creator.id}`}
+                                className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {issue.creator.memberName}
+                              </Link>
+                            ) : (
+                              <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                                Unknown
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>
