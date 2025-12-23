@@ -18,7 +18,6 @@ import {
   ArrowRightLeft,
   Plus,
   Clock,
-  Eye,
   FileText,
   TrendingUp,
   CheckCircle2,
@@ -334,108 +333,102 @@ export default function TransfersPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {paginatedTransfers.map((transfer) => (
-                  <div
+                  <Link
                     key={transfer.id}
-                    className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                    href={`/dashboard/resources/transfers/${transfer.id}`}
+                    className="block"
                   >
-                    <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-                      {/* Left Section */}
-                      <div className="flex-1 space-y-3">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="mb-1 flex items-center gap-2">
-                              <Link
-                                href={`/dashboard/resources/transfers/${transfer.id}`}
-                                className="text-lg font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
-                              >
-                                {transfer.transferNumber}
-                              </Link>
+                    <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
+                      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+                        {/* Left Section */}
+                        <div className="flex-1 space-y-3">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="mb-1 flex items-center gap-2">
+                                <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                                  {transfer.transferNumber}
+                                </span>
+                                <Badge
+                                  className={getStatusBadgeColor(
+                                    transfer.status
+                                  )}
+                                >
+                                  {transferStatusLabels[transfer.status]}
+                                </Badge>
+                                <Badge variant="outline">
+                                  {transferTypeLabels[transfer.type]}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                                Transfer:{' '}
+                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {transfer.lineItems
+                                    .map((item) => item.description)
+                                    .join(', ')}
+                                </span>
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Request Date:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {format(transfer.requestDate, 'MMM dd, yyyy')}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Expected:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {transfer.expectedDeliveryDate
+                                  ? format(
+                                      transfer.expectedDeliveryDate,
+                                      'MMM dd, yyyy'
+                                    )
+                                  : 'TBD'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Items:
+                              </span>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {transfer.lineItems.length} item
+                                {transfer.lineItems.length === 1 ? '' : 's'}
+                              </p>
+                            </div>
+                            <div>
+                              <span className="text-zinc-500 dark:text-zinc-500">
+                                Priority:
+                              </span>
                               <Badge
-                                className={getStatusBadgeColor(transfer.status)}
+                                className={`${getPriorityBadgeColor(transfer.priority)} mt-1`}
+                                variant="outline"
                               >
-                                {transferStatusLabels[transfer.status]}
-                              </Badge>
-                              <Badge variant="outline">
-                                {transferTypeLabels[transfer.type]}
+                                {transferPriorityLabels[transfer.priority]}
                               </Badge>
                             </div>
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              Transfer:{' '}
-                              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {transfer.lineItems
-                                  .map((item) => item.description)
-                                  .join(', ')}
-                              </span>
-                            </p>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Request Date:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {format(transfer.requestDate, 'MMM dd, yyyy')}
+                        {/* Right Section */}
+                        <div className="flex flex-col gap-2 lg:items-end">
+                          <div className="text-right">
+                            <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                              Total Value
                             </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Expected:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {transfer.expectedDeliveryDate
-                                ? format(
-                                    transfer.expectedDeliveryDate,
-                                    'MMM dd, yyyy'
-                                  )
-                                : 'TBD'}
+                            <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                              ₹{(transfer.totalValue / 100_000).toFixed(2)}L
                             </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Items:
-                            </span>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {transfer.lineItems.length} item
-                              {transfer.lineItems.length === 1 ? '' : 's'}
-                            </p>
-                          </div>
-                          <div>
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              Priority:
-                            </span>
-                            <Badge
-                              className={`${getPriorityBadgeColor(transfer.priority)} mt-1`}
-                              variant="outline"
-                            >
-                              {transferPriorityLabels[transfer.priority]}
-                            </Badge>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Right Section */}
-                      <div className="flex flex-col gap-2 lg:items-end">
-                        <div className="text-right">
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                            Total Value
-                          </p>
-                          <p className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                            ₹{(transfer.totalValue / 100_000).toFixed(2)}L
-                          </p>
-                        </div>
-                        <Link
-                          href={`/dashboard/resources/transfers/${transfer.id}`}
-                        >
-                          <Button variant="outline" size="sm">
-                            <Eye className="mr-2 h-4 w-4" />
-                            View Details
-                          </Button>
-                        </Link>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </CardContent>
