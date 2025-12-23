@@ -33,16 +33,8 @@ import {
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
-import { mockTasks } from '@/components/shared/mock-data';
+import { mockTasks, mockProjects } from '@/components/shared/mock-data';
 import { toast } from '@/lib/styles/toast-styles';
-
-// Mock data for dropdowns
-const mockProjects = [
-  { id: 1, name: 'Metro Station Construction' },
-  { id: 2, name: 'Highway Expansion Project' },
-  { id: 3, name: 'Bridge Reconstruction' },
-  { id: 4, name: 'Airport Terminal Development' },
-];
 
 const mockCategories = [
   { id: 1, name: 'Civil Engineering', icon: 'CE' },
@@ -72,22 +64,22 @@ const availableTags = [
 ];
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ id: string; taskId: string }>;
 }
 
 export default function EditTaskPage({ params }: PageProps) {
-  const { id } = use(params);
+  const { id: projectId, taskId: taskIdParam } = use(params);
   const router = useRouter();
+  const taskId = Number.parseInt(taskIdParam);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Find the task to edit
-  const taskToEdit = mockTasks.find((t) => t.id?.toString() === id);
+  const taskToEdit = mockTasks.find((t) => t.id === taskId);
+  const projectIdNum = Number.parseInt(projectId);
+  const project = mockProjects.find((p) => p.id === projectIdNum);
 
   // Form state - initialize with existing task data
-  const [projectId, setProjectId] = useState<string>(
-    taskToEdit?.projectId?.toString() || ''
-  );
   const [title, setTitle] = useState(taskToEdit?.title || '');
   const [startDate, setStartDate] = useState(
     taskToEdit?.startDate
@@ -128,7 +120,11 @@ export default function EditTaskPage({ params }: PageProps) {
               <p className="mt-1 text-zinc-600 dark:text-zinc-400">
                 The task you&apos;re looking for doesn&apos;t exist.
               </p>
-              <Button onClick={() => router.push('/dashboard/workflow/tasks')}>
+              <Button
+                onClick={() =>
+                  router.push(`/dashboard/projects/${projectId}/tasks`)
+                }
+              >
                 Back to Tasks
               </Button>
             </CardContent>
@@ -189,9 +185,9 @@ export default function EditTaskPage({ params }: PageProps) {
 
   // Validate form
   const validateForm = () => {
-    if (!projectId) {
+    if (!project) {
       toast.error('Validation Error', {
-        description: 'Please select a project',
+        description: 'Project not found',
       });
       return false;
     }
@@ -274,7 +270,7 @@ export default function EditTaskPage({ params }: PageProps) {
       toast.success('Task Updated', {
         description: `Task "${title}" has been updated successfully`,
       });
-      router.push(`/dashboard/workflow/tasks/${id}`);
+      router.push(`/dashboard/projects/${projectId}/tasks/${taskId}`);
     } catch {
       toast.error('Error', {
         description: 'Failed to update task. Please try again.',
@@ -315,28 +311,6 @@ export default function EditTaskPage({ params }: PageProps) {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Project Selection */}
-                  <div className="space-y-2">
-                    <Label htmlFor="project">
-                      Project <span className="text-red-500">*</span>
-                    </Label>
-                    <Select value={projectId} onValueChange={setProjectId}>
-                      <SelectTrigger id="project">
-                        <SelectValue placeholder="Select a project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockProjects.map((project) => (
-                          <SelectItem
-                            key={project.id}
-                            value={project.id.toString()}
-                          >
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   {/* Task Title */}
                   <div className="space-y-2">
                     <Label htmlFor="title">
@@ -351,6 +325,19 @@ export default function EditTaskPage({ params }: PageProps) {
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
                       Minimum 5 characters ({title.length}/5)
                     </p>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Provide detailed information about the task..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={5}
+                      className="resize-none"
+                    />
                   </div>
 
                   {/* Date Range */}
@@ -428,11 +415,29 @@ export default function EditTaskPage({ params }: PageProps) {
 
                   {/* Progress */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="progress">Progress</Label>
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {progress}%
-                      </span>
+                    <div className="flex items-center justify-between gap-4">
+                      <Label htmlFor="progress" className="flex-shrink-0">
+                        Progress
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={progress}
+                          onChange={(e) => {
+                            const value = Math.min(
+                              100,
+                              Math.max(0, Number(e.target.value))
+                            );
+                            handleProgressChange(value.toString());
+                          }}
+                          className="w-20 text-center"
+                        />
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          %
+                        </span>
+                      </div>
                     </div>
                     <Input
                       id="progress"
@@ -443,19 +448,6 @@ export default function EditTaskPage({ params }: PageProps) {
                       value={progress}
                       onChange={(e) => handleProgressChange(e.target.value)}
                       className="w-full"
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Provide detailed information about the task..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={5}
-                      className="resize-none"
                     />
                   </div>
                 </CardContent>
@@ -506,114 +498,6 @@ export default function EditTaskPage({ params }: PageProps) {
                 </CardContent>
               </Card>
 
-              {/* Tags Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag className="h-5 w-5" />
-                    Tags
-                  </CardTitle>
-                  <CardDescription>
-                    Update tags to categorize this task
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant={
-                          selectedTags.includes(tag) ? 'default' : 'outline'
-                        }
-                        className="cursor-pointer"
-                        onClick={() => toggleTag(tag)}
-                      >
-                        {tag}
-                        {selectedTags.includes(tag) && (
-                          <X className="ml-1 h-3 w-3" />
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Attachments Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Add More Attachments
-                  </CardTitle>
-                  <CardDescription>
-                    Upload additional documents or files
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* File Upload */}
-                  <div className="space-y-2">
-                    <Label htmlFor="attachments">Upload Files</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="attachments"
-                        type="file"
-                        onChange={handleFileChange}
-                        multiple
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.dwg"
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          (
-                            document.querySelector(
-                              '#attachments'
-                            ) as HTMLElement
-                          )?.click()
-                        }
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Choose Files
-                      </Button>
-                      <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                        PDF, DOC, XLS, Images, CAD (Max 10MB each)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Attachment List */}
-                  {attachments.length > 0 && (
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-zinc-500" />
-                            <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                              {file.name}
-                            </span>
-                            <span className="text-xs text-zinc-500">
-                              ({(file.size / 1024).toFixed(1)} KB)
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Action Buttons */}
               <div className="flex justify-between">
                 <Button
@@ -655,11 +539,7 @@ export default function EditTaskPage({ params }: PageProps) {
                       Project
                     </span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {projectId
-                        ? mockProjects.find(
-                            (p) => p.id.toString() === projectId
-                          )?.name
-                        : 'Not selected'}
+                      {project?.projectName || 'Not found'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -706,51 +586,99 @@ export default function EditTaskPage({ params }: PageProps) {
                 </CardContent>
               </Card>
 
-              {/* Real-time Updates Info */}
-              <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-green-900 dark:text-green-100">
-                        Real-time Updates
-                      </p>
-                      <p className="text-xs text-green-700 dark:text-green-300">
-                        Status and progress changes are saved immediately and
-                        team members will be notified.
-                      </p>
-                    </div>
+              {/* Tags Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <Tag className="h-4 w-4" />
+                    Tags
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant={
+                          selectedTags.includes(tag) ? 'default' : 'outline'
+                        }
+                        className="cursor-pointer text-xs"
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                        {selectedTags.includes(tag) && (
+                          <X className="ml-1 h-3 w-3" />
+                        )}
+                      </Badge>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
 
-              {/* Guidelines */}
+              {/* Attachments Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    Edit Guidelines
+                    <FileText className="h-4 w-4" />
+                    Add Attachments
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Changes are saved when you click Save Changes</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Status updates notify assigned team members</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Progress updates are tracked in history</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Deleting a task cannot be undone</span>
-                    </li>
-                  </ul>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="attachments-sidebar"
+                        type="file"
+                        onChange={handleFileChange}
+                        multiple
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.dwg"
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() =>
+                          (
+                            document.querySelector(
+                              '#attachments-sidebar'
+                            ) as HTMLElement
+                          )?.click()
+                        }
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Files
+                      </Button>
+                    </div>
+                  </div>
+
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FileText className="h-3 w-3 shrink-0 text-zinc-500" />
+                            <span className="truncate text-xs text-zinc-900 dark:text-zinc-100">
+                              {file.name}
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
