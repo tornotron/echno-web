@@ -752,7 +752,7 @@ export default function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => router.push('/dashboard/workflow/tasks')}
+                      onClick={() => router.push('/dashboard/projects')}
                       className="text-xs sm:text-sm"
                     >
                       View All

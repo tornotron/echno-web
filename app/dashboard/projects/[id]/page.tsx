@@ -425,7 +425,7 @@ export default function ProjectDashboardPage() {
                   <ListTodo className="mx-auto mb-2 h-12 w-12 opacity-50" />
                   <p>No tasks yet. Create tasks to track project progress.</p>
                   <Button variant="outline" size="sm" className="mt-4" asChild>
-                    <Link href="/dashboard/workflow/tasks/new">
+                    <Link href={`/dashboard/projects/${project.id}/tasks`}>
                       <ListTodo className="mr-2 h-4 w-4" />
                       Create Task
                     </Link>
@@ -448,7 +448,7 @@ export default function ProjectDashboardPage() {
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link href="/dashboard/workflow/tasks/new">
+                  <Link href={`/dashboard/projects/${project.id}/tasks/new`}>
                     <ListTodo className="mr-2 h-4 w-4" />
                     Create Task
                   </Link>
@@ -458,7 +458,7 @@ export default function ProjectDashboardPage() {
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link href="/dashboard/workflow/inspections/new">
+                  <Link href="/dashboard/projects/inspections/new">
                     <ClipboardCheck className="mr-2 h-4 w-4" />
                     Schedule Inspection
                   </Link>
@@ -468,7 +468,7 @@ export default function ProjectDashboardPage() {
                   className="w-full justify-start"
                   asChild
                 >
-                  <Link href="/dashboard/workflow/issues/new">
+                  <Link href={`/dashboard/projects/${project.id}/issues/new`}>
                     <AlertCircle className="mr-2 h-4 w-4" />
                     Report Issue
                   </Link>
