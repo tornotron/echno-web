@@ -9,7 +9,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -94,18 +93,28 @@ export default function SubContractsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const hasActiveFilters =
-    statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== '';
+    statusFilter !== 'all' ||
+    typeFilter !== 'all' ||
+    projectFilter !== 'all' ||
+    searchQuery !== '';
 
   const clearFilters = () => {
     setStatusFilter('all');
     setTypeFilter('all');
+    setProjectFilter('all');
     setSearchQuery('');
   };
+
+  // Get unique projects for filter
+  const uniqueProjects = [
+    ...new Set(mockContracts.map((c) => c.projectName).filter(Boolean)),
+  ].toSorted();
 
   // Filter data
   const filteredContracts = mockContracts.filter((contract) => {
@@ -116,7 +125,9 @@ export default function SubContractsPage() {
     const matchesStatus =
       statusFilter === 'all' || contract.status === statusFilter;
     const matchesType = typeFilter === 'all' || contract.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesProject =
+      projectFilter === 'all' || contract.projectName === projectFilter;
+    return matchesSearch && matchesStatus && matchesType && matchesProject;
   });
 
   // Pagination
@@ -147,8 +158,6 @@ export default function SubContractsPage() {
   const isAllSelected =
     paginatedContracts.length > 0 &&
     selectedIds.length === paginatedContracts.length;
-  const isSomeSelected =
-    selectedIds.length > 0 && selectedIds.length < paginatedContracts.length;
 
   // Statistics
   const stats = {
@@ -307,6 +316,21 @@ export default function SubContractsPage() {
               value: typeFilter,
               onChange: (value) => {
                 setTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Project',
+              options: [
+                { value: 'all', label: 'All Projects' },
+                ...uniqueProjects.map((project) => ({
+                  value: project,
+                  label: project,
+                })),
+              ],
+              value: projectFilter,
+              onChange: (value) => {
+                setProjectFilter(value);
                 setCurrentPage(1);
               },
             },

@@ -8,7 +8,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -73,19 +72,29 @@ export default function LabourPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [projectFilter, setProjectFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const hasActiveFilters = Boolean(
-    statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== ''
+    statusFilter !== 'all' ||
+      typeFilter !== 'all' ||
+      projectFilter !== 'all' ||
+      searchQuery !== ''
   );
 
   const clearFilters = () => {
     setStatusFilter('all');
     setTypeFilter('all');
+    setProjectFilter('all');
     setSearchQuery('');
   };
+
+  // Get unique projects for filter
+  const uniqueProjects = [
+    ...new Set(mockLabour.map((l) => l.currentProject).filter(Boolean)),
+  ].toSorted();
 
   // Filter data
   const filteredLabour = mockLabour.filter((labour) => {
@@ -96,7 +105,9 @@ export default function LabourPage() {
     const matchesStatus =
       statusFilter === 'all' || labour.status === statusFilter;
     const matchesType = typeFilter === 'all' || labour.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    const matchesProject =
+      projectFilter === 'all' || labour.currentProject === projectFilter;
+    return matchesSearch && matchesStatus && matchesType && matchesProject;
   });
 
   // Pagination
@@ -283,6 +294,21 @@ export default function LabourPage() {
               value: typeFilter,
               onChange: (value) => {
                 setTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Project',
+              options: [
+                { value: 'all', label: 'All Projects' },
+                ...uniqueProjects.map((project) => ({
+                  value: project,
+                  label: project,
+                })),
+              ],
+              value: projectFilter,
+              onChange: (value) => {
+                setProjectFilter(value);
                 setCurrentPage(1);
               },
             },
