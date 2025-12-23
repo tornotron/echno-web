@@ -28,12 +28,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   HardHat,
   Plus,
   User,
@@ -42,7 +36,6 @@ import {
   UserCheck,
   DollarSign,
   TrendingUp,
-  Edit,
 } from 'lucide-react';
 
 import Link from 'next/link';
@@ -347,7 +340,6 @@ export default function LabourPage() {
                       }
                     />
                   </TableHead>
-                  <TableHead>Labour ID</TableHead>
                   <TableHead>Name & Contact</TableHead>
                   <TableHead>Trade</TableHead>
                   <TableHead>Type</TableHead>
@@ -355,14 +347,13 @@ export default function LabourPage() {
                   <TableHead>Project</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Outstanding</TableHead>
-                  <TableHead className="text-right">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedLabour.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={10}
+                      colSpan={8}
                       className="py-8 text-center text-zinc-500"
                     >
                       No labour records found
@@ -385,9 +376,6 @@ export default function LabourPage() {
                           }
                           aria-label={`Select ${labour.name}`}
                         />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {labour.labourId}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -453,28 +441,6 @@ export default function LabourPage() {
                         ) : (
                           <span className="text-zinc-500">-</span>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                asChild
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <Link
-                                  href={`/dashboard/third-party/labour/${labour.id}/edit`}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Edit Labour</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
                       </TableCell>
                     </TableRow>
                   ))
