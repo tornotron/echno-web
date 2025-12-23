@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Card,
   CardContent,
@@ -75,6 +76,7 @@ export default function VendorsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const hasActiveFilters =
     statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== '';
@@ -104,6 +106,29 @@ export default function VendorsPage() {
     startIndex,
     startIndex + itemsPerPage
   );
+
+  // Checkbox handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(paginatedVendors.map((v) => v.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  const isAllSelected =
+    paginatedVendors.length > 0 &&
+    selectedIds.length === paginatedVendors.length;
+  const isSomeSelected =
+    selectedIds.length > 0 && selectedIds.length < paginatedVendors.length;
 
   // Statistics
   const stats = {
@@ -311,6 +336,13 @@ export default function VendorsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Vendor ID</TableHead>
                   <TableHead>Company & Contact</TableHead>
                   <TableHead>Type</TableHead>
@@ -326,7 +358,7 @@ export default function VendorsPage() {
                 {paginatedVendors.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="py-8 text-center text-zinc-500"
                     >
                       No vendor records found
@@ -334,7 +366,22 @@ export default function VendorsPage() {
                   </TableRow>
                 ) : (
                   paginatedVendors.map((vendor) => (
-                    <TableRow key={vendor.id}>
+                    <TableRow
+                      key={vendor.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      onClick={() =>
+                        (globalThis.location.href = `/dashboard/third-party/vendors/${vendor.id}`)
+                      }
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(vendor.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectOne(vendor.id, checked as boolean)
+                          }
+                          aria-label={`Select ${vendor.companyName}`}
+                        />
+                      </TableCell>
                       <TableCell className="font-medium">
                         {vendor.vendorId}
                       </TableCell>

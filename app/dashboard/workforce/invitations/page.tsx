@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -329,14 +330,15 @@ export default function InvitationsPage() {
               <TableHeader>
                 <TableRow className="border-b border-zinc-200 hover:bg-transparent dark:border-zinc-800">
                   <TableHead className="w-[50px]">
-                    <input
-                      type="checkbox"
-                      className="rounded"
+                    <Checkbox
                       checked={isAllSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = isSomeSelected;
-                      }}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                      className={
+                        isSomeSelected
+                          ? 'data-[state=checked]:bg-primary/50'
+                          : ''
+                      }
                     />
                   </TableHead>
                   <TableHead>Employee</TableHead>
@@ -357,18 +359,17 @@ export default function InvitationsPage() {
                       }
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          className="rounded"
+                        <Checkbox
                           checked={selectedInvitations.includes(
                             invitation.inviteCode
                           )}
-                          onChange={(e) =>
+                          onCheckedChange={(checked) =>
                             handleSelectOne(
                               invitation.inviteCode,
-                              e.target.checked
+                              checked as boolean
                             )
                           }
+                          aria-label={`Select ${invitation.employeeName || 'invitation'}`}
                         />
                       </TableCell>
                       <TableCell>
