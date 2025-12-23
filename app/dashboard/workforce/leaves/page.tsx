@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -352,14 +353,13 @@ export default function LeaveRequestsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={allSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = someSelected;
-                      }}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="rounded border-zinc-300"
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                      className={
+                        someSelected ? 'data-[state=checked]:bg-primary/50' : ''
+                      }
                     />
                   </TableHead>
                   <TableHead>Employee</TableHead>
@@ -390,24 +390,19 @@ export default function LeaveRequestsPage() {
                       onClick={(e) => {
                         // Don't navigate if clicking on checkbox or action buttons
                         const target = e.target as HTMLElement;
-                        if (
-                          target.closest('input[type="checkbox"]') ||
-                          target.closest('button') ||
-                          target.closest('a')
-                        ) {
+                        if (target.closest('button') || target.closest('a')) {
                           return;
                         }
                         globalThis.location.href = `/dashboard/workforce/leaves/${leave.id}`;
                       }}
                     >
-                      <TableCell>
-                        <input
-                          type="checkbox"
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
                           checked={selectedLeaves.includes(leave.id)}
-                          onChange={(e) =>
-                            handleSelectOne(leave.id, e.target.checked)
+                          onCheckedChange={(checked) =>
+                            handleSelectOne(leave.id, checked as boolean)
                           }
-                          className="rounded border-zinc-300"
+                          aria-label={`Select ${leave.employeeName}`}
                         />
                       </TableCell>
                       <TableCell>

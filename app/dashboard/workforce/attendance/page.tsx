@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -492,14 +493,15 @@ export default function AttendancePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[50px]">
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={isAllSelected}
-                      ref={(el) => {
-                        if (el) el.indeterminate = isSomeSelected;
-                      }}
-                      onChange={handleSelectAll}
-                      className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                      className={
+                        isSomeSelected
+                          ? 'data-[state=checked]:bg-primary/50'
+                          : ''
+                      }
                     />
                   </TableHead>
                   <TableHead>Employee</TableHead>
@@ -530,22 +532,17 @@ export default function AttendancePage() {
                       onClick={(e) => {
                         // Don't navigate if clicking on checkbox or action buttons
                         const target = e.target as HTMLElement;
-                        if (
-                          target.closest('input[type="checkbox"]') ||
-                          target.closest('button') ||
-                          target.closest('a')
-                        ) {
+                        if (target.closest('button') || target.closest('a')) {
                           return;
                         }
                         globalThis.location.href = `/dashboard/workforce/attendance/${attendance.id}`;
                       }}
                     >
-                      <TableCell>
-                        <input
-                          type="checkbox"
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
                           checked={selectedAttendance.includes(attendance.id)}
-                          onChange={() => handleSelectOne(attendance.id)}
-                          className="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-500"
+                          onCheckedChange={() => handleSelectOne(attendance.id)}
+                          aria-label={`Select ${attendance.employeeName}`}
                         />
                       </TableCell>
                       <TableCell>

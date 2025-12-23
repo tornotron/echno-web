@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Card,
   CardContent,
@@ -103,6 +104,7 @@ export default function SubContractsPage() {
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const hasActiveFilters =
     statusFilter !== 'all' || typeFilter !== 'all' || searchQuery !== '';
@@ -132,6 +134,29 @@ export default function SubContractsPage() {
     startIndex,
     startIndex + itemsPerPage
   );
+
+  // Checkbox handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(paginatedContracts.map((c) => c.id));
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  const isAllSelected =
+    paginatedContracts.length > 0 &&
+    selectedIds.length === paginatedContracts.length;
+  const isSomeSelected =
+    selectedIds.length > 0 && selectedIds.length < paginatedContracts.length;
 
   // Statistics
   const stats = {
@@ -336,6 +361,13 @@ export default function SubContractsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
                   <TableHead>Contract ID</TableHead>
                   <TableHead>Contract Details</TableHead>
                   <TableHead>Contractor</TableHead>
@@ -351,7 +383,7 @@ export default function SubContractsPage() {
                 {paginatedContracts.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={9}
+                      colSpan={10}
                       className="py-8 text-center text-zinc-500"
                     >
                       No contract records found
@@ -367,7 +399,22 @@ export default function SubContractsPage() {
                       daysRemaining > 0 && daysRemaining <= 30;
 
                     return (
-                      <TableRow key={contract.id}>
+                      <TableRow
+                        key={contract.id}
+                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        onClick={() =>
+                          (globalThis.location.href = `/dashboard/third-party/sub-contracts/${contract.id}`)
+                        }
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.includes(contract.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOne(contract.id, checked as boolean)
+                            }
+                            aria-label={`Select ${contract.contractId}`}
+                          />
+                        </TableCell>
                         <TableCell className="font-medium">
                           {contract.contractId}
                         </TableCell>

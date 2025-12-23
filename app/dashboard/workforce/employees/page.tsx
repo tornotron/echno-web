@@ -5,6 +5,7 @@ import { mockEmployees, mockProjects } from '@/components/shared/mock-data';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Card,
   CardContent,
@@ -74,6 +75,7 @@ export default function EmployeesPage() {
   const [designationFilter, setDesignationFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // Get unique designations from employees
   const uniqueDesignations = [
@@ -133,6 +135,33 @@ export default function EmployeesPage() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedEmployees = filteredEmployees.slice(startIndex, endIndex);
+
+  // Checkbox handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(
+        paginatedEmployees
+          .map((e) => e.id)
+          .filter((id): id is number => id !== undefined)
+      );
+    } else {
+      setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    if (checked) {
+      setSelectedIds([...selectedIds, id]);
+    } else {
+      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
+    }
+  };
+
+  const isAllSelected =
+    paginatedEmployees.length > 0 &&
+    selectedIds.length === paginatedEmployees.length;
+  const isSomeSelected =
+    selectedIds.length > 0 && selectedIds.length < paginatedEmployees.length;
 
   // Statistics
   const totalEmployees = mockEmployees.length;
@@ -367,6 +396,13 @@ export default function EmployeesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
                     <TableHead>Employee</TableHead>
                     <TableHead>Designation</TableHead>
                     <TableHead>Department</TableHead>
@@ -385,6 +421,19 @@ export default function EmployeesPage() {
                           (globalThis.location.href = `/dashboard/workforce/employees/${employee.id}`)
                         }
                       >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={
+                              employee.id !== undefined &&
+                              selectedIds.includes(employee.id)
+                            }
+                            onCheckedChange={(checked) =>
+                              employee.id !== undefined &&
+                              handleSelectOne(employee.id, checked as boolean)
+                            }
+                            aria-label={`Select ${employee.name}`}
+                          />
+                        </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
