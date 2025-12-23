@@ -3,6 +3,7 @@ import { IssueType, issueTypeFromString } from './issue-type';
 import { IssueStatus, issueStatusFromString } from './issue-status';
 import { IssueComment } from './issue-comment';
 import { Attachment } from '@/types/attachment';
+import { Member, memberToJson, parseMember } from '@/types/member';
 
 export interface Issue {
   id?: number;
@@ -13,7 +14,7 @@ export interface Issue {
   status: IssueStatus;
   createdAt: Date;
   updatedAt?: Date;
-  creator: string;
+  creator?: Member;
   comments?: IssueComment[];
   attachments?: Attachment[];
 }
@@ -30,7 +31,7 @@ export function parseIssue(json: any): Issue {
     status: issueStatusFromString(json.status),
     createdAt: new Date(json.createdAt),
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
-    creator: json.creator ?? '',
+    creator: json.creator ? parseMember(json.creator) : undefined,
     comments: json.comments
       ? (json.comments as unknown[]).map((c) => parseIssueComment(c))
       : [],
@@ -49,7 +50,7 @@ export function issueToJson(issue: Issue): Record<string, unknown> {
     status: issue.status,
     createdAt: issue.createdAt.toISOString(),
     updatedAt: issue.updatedAt?.toISOString(),
-    creator: issue.creator,
+    creator: issue.creator ? memberToJson(issue.creator) : undefined,
     // comments are not sent on update
   };
 }
@@ -77,6 +78,6 @@ export function areIssuesEqual(a: Issue, b: Issue): boolean {
     a.status === b.status &&
     a.createdAt.getTime() === b.createdAt.getTime() &&
     a.updatedAt?.getTime() === b.updatedAt?.getTime() &&
-    a.creator === b.creator
+    a.creator?.id === b.creator?.id
   );
 }

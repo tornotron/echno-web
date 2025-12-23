@@ -1,12 +1,14 @@
 // types/issue/issue-comment.ts
 
+import { Member, memberToJson, parseMember } from '@/types/member';
+
 /**
  * IssueComment – shape only
  */
 export interface IssueComment {
   id?: number;
   comment: string;
-  author: string;
+  author?: Member;
   createdAt: Date;
 }
 
@@ -18,7 +20,7 @@ export function parseIssueComment(json: any): IssueComment {
   return {
     id: json.id ?? undefined,
     comment: json.comment ?? '',
-    author: json.author ?? '',
+    author: json.author ? parseMember(json.author) : undefined,
     createdAt: new Date(json.createdAt), // assumes ISO string
   };
 }
@@ -32,7 +34,7 @@ export function issueCommentToJson(
   return {
     id: comment.id,
     comment: comment.comment,
-    author: comment.author,
+    author: comment.author ? memberToJson(comment.author) : undefined,
     createdAt: comment.createdAt.toISOString(),
   };
 }
@@ -49,7 +51,7 @@ export function areIssueCommentsEqual(
   return (
     a.id === b.id &&
     a.comment === b.comment &&
-    a.author === b.author &&
+    a.author?.id === b.author?.id &&
     a.createdAt.getTime() === b.createdAt.getTime()
   );
 }
