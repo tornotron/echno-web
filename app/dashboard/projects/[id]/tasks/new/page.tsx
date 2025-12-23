@@ -21,28 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Upload,
-  X,
-  Save,
-  Send,
-  AlertCircle,
-  FileText,
-  Users,
-  Tag,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Upload, X, Save, Send, FileText, Users, Tag } from 'lucide-react';
+import { useRouter, useParams } from 'next/navigation';
+import { mockProjects } from '@/components/shared/mock-data';
 
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
 import { toast } from '@/lib/styles/toast-styles';
-
-// Mock data for dropdowns
-const mockProjects = [
-  { id: 1, name: 'Metro Station Construction' },
-  { id: 2, name: 'Highway Expansion Project' },
-  { id: 3, name: 'Bridge Reconstruction' },
-  { id: 4, name: 'Airport Terminal Development' },
-];
 
 const mockCategories = [
   { id: 1, name: 'Civil Engineering', icon: 'CE' },
@@ -73,10 +57,14 @@ const availableTags = [
 
 export default function NewTaskPage() {
   const router = useRouter();
+  const params = useParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Get project from URL
+  const projectId = Number.parseInt(params.id as string);
+  const project = mockProjects.find((p) => p.id === projectId);
+
   // Form state
-  const [projectId, setProjectId] = useState<string>('');
   const [title, setTitle] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -119,9 +107,9 @@ export default function NewTaskPage() {
 
   // Validate form
   const validateForm = () => {
-    if (!projectId) {
+    if (!project) {
       toast.error('Validation Error', {
-        description: 'Please select a project',
+        description: 'Project not found',
       });
       return false;
     }
@@ -244,28 +232,6 @@ export default function NewTaskPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Project Selection */}
-                  <div className="space-y-2">
-                    <Label htmlFor="project">
-                      Project <span className="text-red-500">*</span>
-                    </Label>
-                    <Select value={projectId} onValueChange={setProjectId}>
-                      <SelectTrigger id="project">
-                        <SelectValue placeholder="Select a project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockProjects.map((project) => (
-                          <SelectItem
-                            key={project.id}
-                            value={project.id.toString()}
-                          >
-                            {project.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   {/* Task Title */}
                   <div className="space-y-2">
                     <Label htmlFor="title">
@@ -280,6 +246,19 @@ export default function NewTaskPage() {
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
                       Minimum 5 characters ({title.length}/5)
                     </p>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Provide detailed information about the task..."
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      rows={5}
+                      className="resize-none"
+                    />
                   </div>
 
                   {/* Date Range */}
@@ -357,11 +336,29 @@ export default function NewTaskPage() {
 
                   {/* Progress */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="progress">Progress</Label>
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {progress}%
-                      </span>
+                    <div className="flex items-center justify-between gap-4">
+                      <Label htmlFor="progress" className="flex-shrink-0">
+                        Progress
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={progress}
+                          onChange={(e) => {
+                            const value = Math.min(
+                              100,
+                              Math.max(0, Number(e.target.value))
+                            );
+                            setProgress(value.toString());
+                          }}
+                          className="w-20 text-center"
+                        />
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          %
+                        </span>
+                      </div>
                     </div>
                     <Input
                       id="progress"
@@ -372,19 +369,6 @@ export default function NewTaskPage() {
                       value={progress}
                       onChange={(e) => setProgress(e.target.value)}
                       className="w-full"
-                    />
-                  </div>
-
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Provide detailed information about the task..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={5}
-                      className="resize-none"
                     />
                   </div>
                 </CardContent>
@@ -435,114 +419,6 @@ export default function NewTaskPage() {
                 </CardContent>
               </Card>
 
-              {/* Tags Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Tag className="h-5 w-5" />
-                    Tags
-                  </CardTitle>
-                  <CardDescription>
-                    Add tags to categorize and organize this task
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap gap-2">
-                    {availableTags.map((tag) => (
-                      <Badge
-                        key={tag}
-                        variant={
-                          selectedTags.includes(tag) ? 'default' : 'outline'
-                        }
-                        className="cursor-pointer"
-                        onClick={() => toggleTag(tag)}
-                      >
-                        {tag}
-                        {selectedTags.includes(tag) && (
-                          <X className="ml-1 h-3 w-3" />
-                        )}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Attachments Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Attachments
-                  </CardTitle>
-                  <CardDescription>
-                    Upload documents, images, or other files
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* File Upload */}
-                  <div className="space-y-2">
-                    <Label htmlFor="attachments">Upload Files</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        id="attachments"
-                        type="file"
-                        onChange={handleFileChange}
-                        multiple
-                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.dwg"
-                        className="hidden"
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() =>
-                          (
-                            document.querySelector(
-                              '#attachments'
-                            ) as HTMLElement
-                          )?.click()
-                        }
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        Choose Files
-                      </Button>
-                      <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                        PDF, DOC, XLS, Images, CAD (Max 10MB each)
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Attachment List */}
-                  {attachments.length > 0 && (
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4 text-zinc-500" />
-                            <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                              {file.name}
-                            </span>
-                            <span className="text-xs text-zinc-500">
-                              ({(file.size / 1024).toFixed(1)} KB)
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeAttachment(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Action Buttons */}
               <div className="flex gap-3">
                 <Button
@@ -586,11 +462,7 @@ export default function NewTaskPage() {
                       Project
                     </span>
                     <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {projectId
-                        ? mockProjects.find(
-                            (p) => p.id.toString() === projectId
-                          )?.name
-                        : 'Not selected'}
+                      {project?.projectName || 'Not found'}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -629,59 +501,99 @@ export default function NewTaskPage() {
                 </CardContent>
               </Card>
 
-              {/* Guidelines */}
+              {/* Tags Card */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    Task Guidelines
+                    <Tag className="h-4 w-4" />
+                    Tags
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Provide a clear and descriptive task title</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Set realistic start and end dates</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Assign team members based on their expertise</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Use tags to improve task organization</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Attach relevant documents and files</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-zinc-400">•</span>
-                      <span>Update task progress regularly</span>
-                    </li>
-                  </ul>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map((tag) => (
+                      <Badge
+                        key={tag}
+                        variant={
+                          selectedTags.includes(tag) ? 'default' : 'outline'
+                        }
+                        className="cursor-pointer text-xs"
+                        onClick={() => toggleTag(tag)}
+                      >
+                        {tag}
+                        {selectedTags.includes(tag) && (
+                          <X className="ml-1 h-3 w-3" />
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
-              {/* Help Card */}
-              <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
-                <CardContent className="pt-6">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                        Need Help?
-                      </p>
-                      <p className="text-xs text-blue-700 dark:text-blue-300">
-                        Contact your project manager if you need assistance with
-                        task creation.
-                      </p>
+              {/* Attachments Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-sm">
+                    <FileText className="h-4 w-4" />
+                    Attachments
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="attachments-sidebar"
+                        type="file"
+                        onChange={handleFileChange}
+                        multiple
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.dwg"
+                        className="hidden"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                        onClick={() =>
+                          (
+                            document.querySelector(
+                              '#attachments-sidebar'
+                            ) as HTMLElement
+                          )?.click()
+                        }
+                      >
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Files
+                      </Button>
                     </div>
                   </div>
+
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FileText className="h-3 w-3 shrink-0 text-zinc-500" />
+                            <span className="truncate text-xs text-zinc-900 dark:text-zinc-100">
+                              {file.name}
+                            </span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
