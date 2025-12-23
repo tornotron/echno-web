@@ -18,7 +18,6 @@ import {
   AlertCircle,
   Cog,
   DollarSign,
-  Eye,
   MapPin,
   Shield,
   Truck,
@@ -495,15 +494,6 @@ export default function AssetsPage() {
                               </div>
                             )}
                           </div>
-
-                          {/* View Button */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="shrink-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
                         </div>
 
                         {/* Utilization Bar (if applicable) */}
