@@ -86,6 +86,11 @@ const navItems: NavItem[] = [
     icon: FolderKanban,
     items: [
       { title: 'All Projects', url: '/dashboard/projects', icon: FolderKanban },
+      {
+        title: 'Inspections',
+        url: '/dashboard/projects/inspections',
+        icon: ClipboardCheck,
+      },
     ],
   },
   {
@@ -112,20 +117,6 @@ const navItems: NavItem[] = [
         title: 'Leave Requests',
         url: '/dashboard/workforce/leaves',
         icon: Calendar,
-      },
-    ],
-  },
-  {
-    title: 'Workflow',
-    url: '/dashboard/workflow',
-    icon: Workflow,
-    items: [
-      { title: 'Tasks', url: '/dashboard/workflow/tasks', icon: ListTodo },
-      { title: 'Issues', url: '/dashboard/workflow/issues', icon: AlertCircle },
-      {
-        title: 'Inspections',
-        url: '/dashboard/workflow/inspections',
-        icon: ClipboardCheck,
       },
     ],
   },
@@ -295,8 +286,17 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navItems.map((item) => {
-                const isActive = pathname === item.url;
                 const hasChildren = item.items && item.items.length > 0;
+
+                // Check if any child is active
+                const isChildActive = hasChildren
+                  ? item.items?.some((child) =>
+                      pathname.startsWith(child.url)
+                    ) || false
+                  : false;
+
+                // Parent is only active if current path matches exactly AND no child is active
+                const isActive = pathname === item.url && !isChildActive;
 
                 if (!hasChildren) {
                   return (
@@ -315,10 +315,6 @@ export function AppSidebar() {
                   );
                 }
 
-                const isChildActive =
-                  item.items?.some((child) => pathname.startsWith(child.url)) ||
-                  false;
-
                 // When collapsed, show dropdown menu
                 if (state === 'collapsed') {
                   return (
@@ -330,7 +326,7 @@ export function AppSidebar() {
                               children: item.title,
                               side: 'right',
                             }}
-                            isActive={isActive || isChildActive}
+                            isActive={isActive}
                           >
                             <item.icon />
                             <span>{item.title}</span>
