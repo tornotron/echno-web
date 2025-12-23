@@ -10,6 +10,7 @@ export interface Project {
   status: ProjectStatus;
   projectLongitude: number;
   projectLatitude: number;
+  organizationId?: number;
   startDate?: Date;
   endDate?: Date;
   createdAt?: Date;
@@ -44,6 +45,9 @@ export function parseProject(json: any): Project {
     projectName: json.projectName ?? '',
     projectAddress: json.projectAddress ?? '',
     status: getProjectStatus(json.status) ?? ProjectStatus.upcoming,
+    organizationId: json.organizationId
+      ? Number(json.organizationId)
+      : undefined,
     projectLongitude: Number(json.projectLongitude ?? 0),
     projectLatitude: Number(json.projectLatitude ?? 0),
     startDate: json.startDate ? new Date(json.startDate) : undefined,
@@ -60,6 +64,7 @@ export function parseProject(json: any): Project {
 export function projectToJson(project: Project): Record<string, unknown> {
   return {
     id: project.id,
+    organizationId: project.organizationId,
     projectName: project.projectName,
     projectAddress: project.projectAddress,
     status: project.status,

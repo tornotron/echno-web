@@ -487,6 +487,7 @@ const mockTasks: Task[] = [
 const mockProjects: Project[] = [
   {
     id: 1,
+    organizationId: 1,
     projectName: 'Sunrise Tower',
     projectAddress: 'Plot No. 23, Bandra West, Mumbai, Maharashtra 400050',
     status: ProjectStatus.open,
@@ -500,6 +501,7 @@ const mockProjects: Project[] = [
   },
   {
     id: 2,
+    organizationId: 1,
     projectName: 'Green Valley Residential Complex',
     projectAddress: 'Whitefield Main Road, Bangalore, Karnataka 560066',
     status: ProjectStatus.open,
@@ -513,6 +515,7 @@ const mockProjects: Project[] = [
   },
   {
     id: 3,
+    organizationId: 2,
     projectName: 'Metro Station - Sector 18',
     projectAddress: 'Sector 18, Noida, Uttar Pradesh 201301',
     status: ProjectStatus.upcoming,
@@ -526,6 +529,7 @@ const mockProjects: Project[] = [
   },
   {
     id: 4,
+    organizationId: 2,
     projectName: 'Tech Park Phase 2',
     projectAddress: 'Hitech City, Hyderabad, Telangana 500081',
     status: ProjectStatus.completed,
@@ -539,6 +543,7 @@ const mockProjects: Project[] = [
   },
   {
     id: 5,
+    organizationId: 3,
     projectName: 'Shopping Mall - Phoenix',
     projectAddress: 'Viman Nagar, Pune, Maharashtra 411014',
     status: ProjectStatus.onHold,
