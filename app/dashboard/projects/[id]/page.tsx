@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { format } from 'date-fns';
@@ -32,7 +32,15 @@ import {
   getProjectStatusLabel,
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
-import { mockProjects } from '@/components/shared/mock-data';
+import {
+  mockProjects,
+  mockTasks,
+  mockIssues,
+  mockBudgets,
+  mockInspections,
+} from '@/components/shared/mock-data';
+import { TaskStatus } from '@/types/task';
+import { IssueStatus } from '@/types/issue';
 
 // Fetch project by ID from mock data
 const fetchProject = async (id: string): Promise<Project | null> => {
@@ -68,7 +76,7 @@ export default function ProjectDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   // Load project data
-  useState(() => {
+  useEffect(() => {
     const loadProject = async () => {
       if (!params.id) return;
 
@@ -78,7 +86,7 @@ export default function ProjectDashboardPage() {
     };
 
     loadProject();
-  });
+  }, [params.id]);
 
   if (loading) {
     return (
@@ -149,16 +157,44 @@ export default function ProjectDashboardPage() {
   const progress = getProjectProgress();
   const daysRemaining = calculateDaysRemaining();
 
-  // Mock statistics - replace with actual data
+  // Calculate real statistics from project data
+  const projectTasks = mockTasks.filter(
+    (task) => task.projectId === project.id
+  );
+  const completedTasks = projectTasks.filter(
+    (task) => task.status === TaskStatus.completed
+  ).length;
+  const pendingTasks = projectTasks.filter(
+    (task) =>
+      task.status === TaskStatus.onHold || task.status === TaskStatus.onGoing
+  ).length;
+
+  // Count issues from all tasks in this project
+  const totalIssues = projectTasks.reduce(
+    (count, task) => count + (task.issues?.length || 0),
+    0
+  );
+
+  // Get budget data for this project
+  const projectBudget = mockBudgets.find(
+    (budget) => budget.projectId === project.id
+  );
+  const totalBudget = projectBudget?.totalAllocated || 0;
+  const spentBudget = projectBudget?.totalSpent || 0;
+
+  // Count inspections for this project
+  const projectInspections = mockInspections.filter(
+    (inspection) => inspection.projectId === project.id
+  );
+
   const stats = {
-    totalTasks: 45,
-    completedTasks: 28,
-    pendingTasks: 12,
-    overdueTasks: 5,
-    totalBudget: 15_000_000,
-    spentBudget: 8_500_000,
-    inspections: 12,
-    issues: 3,
+    totalTasks: projectTasks.length,
+    completedTasks,
+    pendingTasks,
+    totalBudget,
+    spentBudget,
+    inspections: projectInspections.length,
+    issues: totalIssues,
   };
 
   return (
@@ -263,35 +299,39 @@ export default function ProjectDashboardPage() {
 
         {/* Key Metrics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
-              <ListTodo className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalTasks}</div>
-              <p className="text-muted-foreground text-xs">
-                {stats.completedTasks} completed, {stats.pendingTasks} pending
-              </p>
-            </CardContent>
-          </Card>
+          <Link href={`/dashboard/projects/${project.id}/tasks`}>
+            <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Tasks
+                </CardTitle>
+                <ListTodo className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalTasks}</div>
+                <p className="text-muted-foreground text-xs">
+                  {stats.completedTasks} completed, {stats.pendingTasks} pending
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Overdue Tasks
-              </CardTitle>
-              <AlertCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {stats.overdueTasks}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                Need immediate attention
-              </p>
-            </CardContent>
-          </Card>
+          <Link href={`/dashboard/projects/${project.id}/issues`}>
+            <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Issues
+                </CardTitle>
+                <AlertCircle className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.issues}</div>
+                <p className="text-muted-foreground text-xs">
+                  Active project issues
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
