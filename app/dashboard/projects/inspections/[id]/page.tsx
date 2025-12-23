@@ -397,16 +397,14 @@ export default function InspectionDetailsPage() {
                             <div className="font-medium text-zinc-900 dark:text-zinc-100">
                               {item.checkPoint}
                             </div>
-                            {item.observations && (
+                            {item.remarks && (
                               <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                                {item.observations}
+                                {item.remarks}
                               </div>
                             )}
                           </div>
                           <Badge variant="outline">
-                            {checkItemStatusLabels[
-                              item.status as CheckItemStatus
-                            ] || 'Unknown'}
+                            {checkItemStatusLabels[item.status]}
                           </Badge>
                         </div>
                       )
@@ -446,10 +444,10 @@ export default function InspectionDetailsPage() {
                                   Location: {defect.location}
                                 </div>
                               )}
-                              {defect.recommendedAction && (
+                              {defect.correctiveAction && (
                                 <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                  <strong>Recommended Action:</strong>{' '}
-                                  {defect.recommendedAction}
+                                  <strong>Corrective Action:</strong>{' '}
+                                  {defect.correctiveAction}
                                 </div>
                               )}
                             </div>
