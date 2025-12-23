@@ -1,11 +1,28 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { AppLayout } from '@/components/common';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Calendar,
   User,
@@ -19,9 +36,13 @@ import {
   Phone,
   UserCheck,
   MessageSquare,
+  ArrowUpCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { mockLeaveRequests } from '@/components/shared/mock-data';
+import {
+  mockLeaveRequests,
+  mockEmployees,
+} from '@/components/shared/mock-data';
 import {
   getLeaveStatusLabel,
   getLeaveStatusColor,
@@ -30,6 +51,7 @@ import {
   LeaveStatus,
 } from '@/types/leave';
 import { notFound } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function LeaveDetailPage({
   params,
@@ -39,17 +61,61 @@ export default function LeaveDetailPage({
   const { id } = use(params);
   const leave = mockLeaveRequests.find((l) => l.id === id);
 
+  const [escalateDialogOpen, setEscalateDialogOpen] = useState(false);
+  const [escalateData, setEscalateData] = useState({
+    seniorAuthorityId: '',
+    reason: '',
+  });
+
   if (!leave) {
     notFound();
   }
 
+  // Get list of senior authorities (managers, directors, etc.)
+  const seniorAuthorities = mockEmployees.filter(
+    (emp) =>
+      emp.designation.toLowerCase().includes('manager') ||
+      emp.designation.toLowerCase().includes('director') ||
+      emp.designation.toLowerCase().includes('head')
+  );
+
   const handleApprove = () => {
     console.log('Approving leave:', id);
+    toast.success('Leave request approved successfully');
     // TODO: Implement API call
   };
 
   const handleReject = () => {
     console.log('Rejecting leave:', id);
+    toast.error('Leave request rejected');
+    // TODO: Implement API call
+  };
+
+  const handleEscalate = () => {
+    if (!escalateData.seniorAuthorityId) {
+      toast.error('Please select a senior authority');
+      return;
+    }
+    if (!escalateData.reason.trim()) {
+      toast.error('Please provide a reason for escalation');
+      return;
+    }
+
+    const selectedAuthority = seniorAuthorities.find(
+      (emp) => emp.employeeId === escalateData.seniorAuthorityId
+    );
+
+    console.log('Escalating leave to:', escalateData);
+    toast.success(
+      `Leave request escalated to ${selectedAuthority?.name || 'senior authority'}`
+    );
+
+    // Reset form and close dialog
+    setEscalateData({
+      seniorAuthorityId: '',
+      reason: '',
+    });
+    setEscalateDialogOpen(false);
     // TODO: Implement API call
   };
 
@@ -69,6 +135,13 @@ export default function LeaveDetailPage({
 
           {leave.status === LeaveStatus.pending && (
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setEscalateDialogOpen(true)}
+              >
+                <ArrowUpCircle className="mr-2 h-4 w-4" />
+                Escalate
+              </Button>
               <Button
                 variant="default"
                 onClick={handleApprove}
@@ -416,6 +489,81 @@ export default function LeaveDetailPage({
             </Card>
           </div>
         </div>
+
+        {/* Escalate Dialog */}
+        <Dialog open={escalateDialogOpen} onOpenChange={setEscalateDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Escalate Leave Request</DialogTitle>
+              <DialogDescription>
+                Forward this leave request to a senior authority for review and
+                decision.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Senior Authority Selection */}
+              <div className="space-y-2">
+                <Label htmlFor="seniorAuthority">
+                  Senior Authority <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={escalateData.seniorAuthorityId}
+                  onValueChange={(value) =>
+                    setEscalateData((prev) => ({
+                      ...prev,
+                      seniorAuthorityId: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select senior authority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {seniorAuthorities.map((authority) => (
+                      <SelectItem
+                        key={authority.employeeId}
+                        value={authority.employeeId}
+                      >
+                        {authority.name} - {authority.designation}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Escalation Reason */}
+              <div className="space-y-2">
+                <Label htmlFor="reason">
+                  Reason for Escalation <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="reason"
+                  placeholder="Explain why this request needs escalation..."
+                  value={escalateData.reason}
+                  onChange={(e) =>
+                    setEscalateData((prev) => ({
+                      ...prev,
+                      reason: e.target.value,
+                    }))
+                  }
+                  rows={4}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setEscalateDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleEscalate}>
+                <ArrowUpCircle className="mr-2 h-4 w-4" />
+                Escalate Request
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
