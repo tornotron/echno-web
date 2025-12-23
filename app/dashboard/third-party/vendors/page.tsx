@@ -28,16 +28,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
   Package,
   Plus,
-  Eye,
-  Edit,
   Download,
   Building2,
   TrendingUp,
@@ -343,7 +335,6 @@ export default function VendorsPage() {
                       aria-label="Select all"
                     />
                   </TableHead>
-                  <TableHead>Vendor ID</TableHead>
                   <TableHead>Company & Contact</TableHead>
                   <TableHead>Type</TableHead>
                   <TableHead>Categories</TableHead>
@@ -351,14 +342,13 @@ export default function VendorsPage() {
                   <TableHead>Purchase Value</TableHead>
                   <TableHead>Outstanding</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedVendors.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={10}
+                      colSpan={8}
                       className="py-8 text-center text-zinc-500"
                     >
                       No vendor records found
@@ -381,9 +371,6 @@ export default function VendorsPage() {
                           }
                           aria-label={`Select ${vendor.companyName}`}
                         />
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {vendor.vendorId}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
@@ -454,46 +441,6 @@ export default function VendorsPage() {
                             ]
                           }
                         </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <TooltipProvider>
-                          <div className="flex justify-end gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  asChild
-                                >
-                                  <Link
-                                    href={`/dashboard/third-party/vendors/${vendor.id}`}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>View Details</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  asChild
-                                >
-                                  <Link
-                                    href={`/dashboard/third-party/vendors/${vendor.id}/edit`}
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                  </Link>
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Edit Vendor</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </TooltipProvider>
                       </TableCell>
                     </TableRow>
                   ))
