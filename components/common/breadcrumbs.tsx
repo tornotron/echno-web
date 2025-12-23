@@ -23,6 +23,12 @@ import {
   mockMembers,
   mockInspections,
   mockLabour,
+  mockAssets,
+  mockLocations,
+  mockPurchaseOrders,
+  mockMaterialRequests,
+  mockTransfers,
+  mockStockAdjustments,
 } from '@/components/shared/mock-data';
 
 interface BreadcrumbConfig {
@@ -55,6 +61,10 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   resources: 'Resources',
   inventory: 'Inventory',
   locations: 'Locations',
+  'purchase-orders': 'Purchase-Orders',
+  'material-requests': 'Material Requests',
+  'stock-adjustments': 'Stock Adjustments',
+  transfers: 'Transfers',
 };
 
 // Helper function to check if a string is likely an ID
@@ -112,6 +122,37 @@ function getNameForId(
   if (parentSegment === 'attendance') {
     const employee = mockMembers.find((m) => m.id === numericId);
     if (employee) return employee.memberName || 'Employee';
+  }
+
+  if (parentSegment === 'assets') {
+    const asset = mockAssets.find((a) => a.id === numericId);
+    if (asset) return asset.name;
+  }
+
+  if (parentSegment === 'locations') {
+    const location = mockLocations.find((l) => l.id === numericId);
+    if (location) return location.name;
+  }
+
+  if (parentSegment === 'purchase-orders') {
+    const po = mockPurchaseOrders.find((p) => p.id === numericId);
+    if (po) return po.poNumber;
+  }
+
+  if (parentSegment === 'material-requests') {
+    const mr = mockMaterialRequests.find((m) => m.id === numericId);
+    if (mr) return mr.requestNumber;
+  }
+
+  if (parentSegment === 'transfers') {
+    const transfer = mockTransfers.find((t) => t.id === numericId);
+    if (transfer) return transfer.transferNumber;
+  }
+
+  // Stock adjustments
+  if (parentSegment === 'stock-adjustments') {
+    const sa = mockStockAdjustments.find((s) => s.id === numericId);
+    if (sa) return sa.adjustmentId;
   }
 
   // Default fallback
