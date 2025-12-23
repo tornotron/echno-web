@@ -29,7 +29,7 @@ import {
   inspectionTypeLabels,
   inspectionResultLabels,
 } from '@/types/inspection';
-import { mockInspections } from '@/components/shared/mock-data';
+import { mockInspections, mockProjects } from '@/components/shared/mock-data';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
   const colors = {
@@ -69,6 +69,7 @@ export default function InspectionsPage() {
   const [resultFilter, setResultFilter] = useState<InspectionResult | 'all'>(
     'all'
   );
+  const [projectFilter, setProjectFilter] = useState<number | 'all'>('all');
 
   // Filter inspections
   const filteredInspections = useMemo(() => {
@@ -90,10 +91,18 @@ export default function InspectionsPage() {
         typeFilter === 'all' || inspection.type === typeFilter;
       const matchesResult =
         resultFilter === 'all' || inspection.result === resultFilter;
+      const matchesProject =
+        projectFilter === 'all' || inspection.projectId === projectFilter;
 
-      return matchesSearch && matchesStatus && matchesType && matchesResult;
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesType &&
+        matchesResult &&
+        matchesProject
+      );
     });
-  }, [searchQuery, statusFilter, typeFilter, resultFilter]);
+  }, [searchQuery, statusFilter, typeFilter, resultFilter, projectFilter]);
 
   // Reset to page 1 when filters change
 
@@ -121,7 +130,8 @@ export default function InspectionsPage() {
     searchQuery ||
       statusFilter !== 'all' ||
       typeFilter !== 'all' ||
-      resultFilter !== 'all'
+      resultFilter !== 'all' ||
+      projectFilter !== 'all'
   );
 
   const clearFilters = () => {
@@ -129,6 +139,7 @@ export default function InspectionsPage() {
     setStatusFilter('all');
     setTypeFilter('all');
     setResultFilter('all');
+    setProjectFilter('all');
     setCurrentPage(1);
   };
 
@@ -282,6 +293,23 @@ export default function InspectionsPage() {
               value: resultFilter,
               onChange: (value) => {
                 setResultFilter(value as InspectionResult | 'all');
+                setCurrentPage(1);
+              },
+            },
+            {
+              placeholder: 'Project',
+              options: [
+                { value: 'all', label: 'All Projects' },
+                ...mockProjects.map((project) => ({
+                  value: project.id.toString(),
+                  label: project.projectName,
+                })),
+              ],
+              value: projectFilter.toString(),
+              onChange: (value) => {
+                setProjectFilter(
+                  value === 'all' ? 'all' : Number.parseInt(value)
+                );
                 setCurrentPage(1);
               },
             },
