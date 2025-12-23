@@ -18,7 +18,8 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsedState] = useState(() => {
     if (globalThis.window === undefined) return false;
     const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-    return savedState === 'true';
+    // Default to expanded (false) if no saved state exists
+    return savedState === null ? false : savedState === 'true';
   });
 
   const [mobileOpen, setMobileOpen] = useState(false);
