@@ -185,6 +185,34 @@ const mockMembers: Member[] = [
   },
 ];
 
+// Simple estimates mock (used by breadcrumbs and estimate listing)
+export const mockEstimates = [
+  {
+    id: 1,
+    estimateNumber: 'EST-2024-0001',
+    title: 'Residential Building Construction',
+    clientName: 'John Doe',
+    status: 'approved',
+    category: 'construction',
+    preparedDate: new Date('2024-11-01'),
+    expiryDate: new Date('2024-12-01'),
+    totalAmount: 5_500_000,
+    validityPeriod: 30,
+  },
+  {
+    id: 2,
+    estimateNumber: 'EST-2024-0002',
+    title: 'Office Renovation Project',
+    clientName: 'ABC Corp',
+    status: 'sent',
+    category: 'renovation',
+    preparedDate: new Date('2024-11-05'),
+    expiryDate: new Date('2024-12-05'),
+    totalAmount: 2_800_000,
+    validityPeriod: 30,
+  },
+];
+
 // ═════════════════════════════════════════════════════════════════════════════
 // 5. WORK CATEGORIES
 // ═════════════════════════════════════════════════════════════════════════════
