@@ -16,33 +16,7 @@ import {
 } from '@/components/ui/select';
 import { FileText, Plus, Clock, CheckCircle2, DollarSign } from 'lucide-react';
 
-// Mock data - replace with actual API call
-const mockEstimates = [
-  {
-    id: 1,
-    estimateNumber: 'EST-2024-0001',
-    title: 'Residential Building Construction',
-    clientName: 'John Doe',
-    status: 'approved',
-    category: 'construction',
-    preparedDate: new Date('2024-11-01'),
-    expiryDate: new Date('2024-12-01'),
-    totalAmount: 5_500_000,
-    validityPeriod: 30,
-  },
-  {
-    id: 2,
-    estimateNumber: 'EST-2024-0002',
-    title: 'Office Renovation Project',
-    clientName: 'ABC Corp',
-    status: 'sent',
-    category: 'renovation',
-    preparedDate: new Date('2024-11-05'),
-    expiryDate: new Date('2024-12-05'),
-    totalAmount: 2_800_000,
-    validityPeriod: 30,
-  },
-];
+import { mockEstimates } from '@/components/shared/mock-data';
 
 type EstimateStatus =
   | 'draft'
@@ -334,6 +308,7 @@ export default function EstimatesPage() {
                   <Link
                     key={estimate.id}
                     href={`/dashboard/finance/estimates/${estimate.id}`}
+                    className="block"
                   >
                     <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
                       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
