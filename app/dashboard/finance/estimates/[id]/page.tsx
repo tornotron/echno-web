@@ -32,6 +32,8 @@ import {
   EstimateStatus,
   EstimateCategory,
 } from '@/types/finance/estimate';
+import { mockMembers } from '@/components/shared/mock-data';
+import { getUserRoleLabel, UserRole } from '@/types/user/user-role';
 
 // Mock data - replace with actual API call
 const mockEstimate: Estimate = {
@@ -241,6 +243,14 @@ export default function ViewEstimatePage() {
       setIsDeleting(false);
     }
   }, [router]);
+
+  const preparedMember = mockMembers.find((m) => m.id === estimate.preparedBy);
+  const reviewedMember = estimate.reviewedBy
+    ? mockMembers.find((m) => m.id === estimate.reviewedBy)
+    : undefined;
+  const approvedMember = estimate.approvedBy
+    ? mockMembers.find((m) => m.id === estimate.approvedBy)
+    : undefined;
 
   if (!estimate) {
     return (
@@ -766,9 +776,34 @@ export default function ViewEstimatePage() {
                     <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                       Prepared By
                     </label>
-                    <p className="mt-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
-                      {estimate.preparedBy}
-                    </p>
+                    {preparedMember ? (
+                      <Link
+                        href={`/dashboard/workforce/employees/${preparedMember.id}`}
+                        className="mt-1 flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                          <span className="text-sm font-medium text-white">
+                            {preparedMember.memberName?.charAt(0) || '?'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {preparedMember.memberName}
+                          </p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {preparedMember.memberRole
+                              ? getUserRoleLabel(
+                                  preparedMember.memberRole as UserRole
+                                )
+                              : preparedMember.designation || 'Team Member'}
+                          </p>
+                        </div>
+                      </Link>
+                    ) : (
+                      <p className="mt-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
+                        {estimate.preparedBy}
+                      </p>
+                    )}
                   </div>
                 )}
                 {estimate.reviewedBy && (
@@ -776,9 +811,34 @@ export default function ViewEstimatePage() {
                     <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                       Reviewed By
                     </label>
-                    <p className="mt-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
-                      {estimate.reviewedBy}
-                    </p>
+                    {reviewedMember ? (
+                      <Link
+                        href={`/dashboard/workforce/employees/${reviewedMember.id}`}
+                        className="mt-1 flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                          <span className="text-sm font-medium text-white">
+                            {reviewedMember.memberName?.charAt(0) || '?'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {reviewedMember.memberName}
+                          </p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {reviewedMember.memberRole
+                              ? getUserRoleLabel(
+                                  reviewedMember.memberRole as UserRole
+                                )
+                              : reviewedMember.designation || 'Team Member'}
+                          </p>
+                        </div>
+                      </Link>
+                    ) : (
+                      <p className="mt-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
+                        {estimate.reviewedBy}
+                      </p>
+                    )}
                   </div>
                 )}
                 {estimate.approvedBy && (
@@ -786,9 +846,34 @@ export default function ViewEstimatePage() {
                     <label className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
                       Approved By
                     </label>
-                    <p className="mt-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
-                      {estimate.approvedBy}
-                    </p>
+                    {approvedMember ? (
+                      <Link
+                        href={`/dashboard/workforce/employees/${approvedMember.id}`}
+                        className="mt-1 flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                          <span className="text-sm font-medium text-white">
+                            {approvedMember.memberName?.charAt(0) || '?'}
+                          </span>
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {approvedMember.memberName}
+                          </p>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {approvedMember.memberRole
+                              ? getUserRoleLabel(
+                                  approvedMember.memberRole as UserRole
+                                )
+                              : approvedMember.designation || 'Team Member'}
+                          </p>
+                        </div>
+                      </Link>
+                    ) : (
+                      <p className="mt-1 text-base font-medium text-zinc-900 dark:text-zinc-100">
+                        {estimate.approvedBy}
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>
