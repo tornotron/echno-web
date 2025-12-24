@@ -114,8 +114,8 @@ export default function NewAssetPage() {
                 <CardContent className="space-y-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="name">
-                        Asset Name <span className="text-red-500">*</span>
+                      <Label htmlFor="name" required>
+                        Asset Name
                       </Label>
                       <Input
                         id="name"
@@ -142,8 +142,8 @@ export default function NewAssetPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="type">
-                        Asset Type <span className="text-red-500">*</span>
+                      <Label htmlFor="type" required>
+                        Asset Type
                       </Label>
                       <Select
                         value={formData.type}
