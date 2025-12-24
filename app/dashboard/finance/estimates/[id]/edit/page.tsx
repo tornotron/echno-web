@@ -509,7 +509,9 @@ export default function EditEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="preparedDate">Prepared Date *</Label>
+                    <Label htmlFor="preparedDate" required>
+                      Prepared Date
+                    </Label>
                     <Input
                       id="preparedDate"
                       type="date"
@@ -519,7 +521,9 @@ export default function EditEstimatePage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <Label htmlFor="title">Estimate Title *</Label>
+                    <Label htmlFor="title" required>
+                      Estimate Title
+                    </Label>
                     <Input
                       id="title"
                       value={title}
@@ -529,7 +533,9 @@ export default function EditEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="category">Category *</Label>
+                    <Label htmlFor="category" required>
+                      Category
+                    </Label>
                     <Select
                       value={category}
                       onValueChange={(value) =>
@@ -550,8 +556,8 @@ export default function EditEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="validityPeriod">
-                      Validity Period (Days) *
+                    <Label htmlFor="validityPeriod" required>
+                      Validity Period (Days)
                     </Label>
                     <Input
                       id="validityPeriod"
@@ -575,7 +581,9 @@ export default function EditEstimatePage() {
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <Label htmlFor="clientName">Client Name *</Label>
+                    <Label htmlFor="clientName" required>
+                      Client Name
+                    </Label>
                     <Input
                       id="clientName"
                       value={clientName}
@@ -629,7 +637,9 @@ export default function EditEstimatePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="projectLocation">Project Location *</Label>
+                  <Label htmlFor="projectLocation" required>
+                    Project Location
+                  </Label>
                   <Input
                     id="projectLocation"
                     value={projectLocation}
@@ -639,8 +649,8 @@ export default function EditEstimatePage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="projectDescription">
-                    Project Description *
+                  <Label htmlFor="projectDescription" required>
+                    Project Description
                   </Label>
                   <Textarea
                     id="projectDescription"
@@ -762,15 +772,17 @@ export default function EditEstimatePage() {
                       <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                         Item #{index + 1}
                       </h4>
-                      {lineItems.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLineItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      )}
+                      <div>
+                        <Label htmlFor="scope" required>
+                          Scope of Work
+                        </Label>
+                        <Textarea
+                          id="scope"
+                          value={scope}
+                          onChange={(e) => setScope(e.target.value)}
+                          placeholder="Detailed scope of work..."
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
