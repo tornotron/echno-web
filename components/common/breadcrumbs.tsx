@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   mockProjects,
+  mockEstimates,
   mockTasks,
   mockIssues,
   mockMembers,
@@ -153,6 +154,12 @@ function getNameForId(
   if (parentSegment === 'stock-adjustments') {
     const sa = mockStockAdjustments.find((s) => s.id === numericId);
     if (sa) return sa.adjustmentId;
+  }
+
+  // Estimates
+  if (parentSegment === 'estimates') {
+    const estimate = mockEstimates.find((e) => e.id === numericId);
+    if (estimate) return estimate.estimateNumber;
   }
 
   // Default fallback
