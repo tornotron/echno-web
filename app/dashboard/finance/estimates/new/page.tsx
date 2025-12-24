@@ -247,7 +247,7 @@ export default function CreateEstimatePage() {
 
   return (
     <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div>
           <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -296,7 +296,9 @@ export default function CreateEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="preparedDate">Prepared Date *</Label>
+                    <Label htmlFor="preparedDate" required>
+                      Prepared Date
+                    </Label>
                     <Input
                       id="preparedDate"
                       type="date"
@@ -306,7 +308,9 @@ export default function CreateEstimatePage() {
                   </div>
 
                   <div className="sm:col-span-2">
-                    <Label htmlFor="title">Estimate Title *</Label>
+                    <Label htmlFor="title" required>
+                      Estimate Title
+                    </Label>
                     <Input
                       id="title"
                       value={title}
@@ -316,7 +320,9 @@ export default function CreateEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="category">Category *</Label>
+                    <Label htmlFor="category" required>
+                      Category
+                    </Label>
                     <Select
                       value={category}
                       onValueChange={(value) =>
@@ -337,8 +343,8 @@ export default function CreateEstimatePage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="validityPeriod">
-                      Validity Period (Days) *
+                    <Label htmlFor="validityPeriod" required>
+                      Validity Period (Days)
                     </Label>
                     <Input
                       id="validityPeriod"
