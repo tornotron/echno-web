@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import Link from 'next/link';
-import { mockContracts } from '@/components/shared/mock-data';
+import { mockSubContracts } from '@/components/shared/mock-data';
 
 const typeLabels = {
   lumpsum: 'Lump Sum',
@@ -113,11 +113,11 @@ export default function SubContractsPage() {
 
   // Get unique projects for filter
   const uniqueProjects = [
-    ...new Set(mockContracts.map((c) => c.projectName).filter(Boolean)),
+    ...new Set(mockSubContracts.map((c) => c.projectName).filter(Boolean)),
   ].toSorted();
 
   // Filter data
-  const filteredContracts = mockContracts.filter((contract) => {
+  const filteredContracts = mockSubContracts.filter((contract) => {
     const matchesSearch =
       contract.contractName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contract.contractId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -161,10 +161,10 @@ export default function SubContractsPage() {
 
   // Statistics
   const stats = {
-    total: mockContracts.length,
-    active: mockContracts.filter((c) => c.status === 'active').length,
-    totalValue: mockContracts.reduce((sum, c) => sum + c.contractValue, 0),
-    totalOutstanding: mockContracts.reduce((sum, c) => sum + c.totalDue, 0),
+    total: mockSubContracts.length,
+    active: mockSubContracts.filter((c) => c.status === 'active').length,
+    totalValue: mockSubContracts.reduce((sum, c) => sum + c.contractValue, 0),
+    totalOutstanding: mockSubContracts.reduce((sum, c) => sum + c.totalDue, 0),
   };
 
   return (

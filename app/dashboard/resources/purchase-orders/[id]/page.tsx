@@ -25,6 +25,10 @@ import {
   Mail,
   DollarSign,
   AlertCircle,
+  Receipt,
+  CreditCard,
+  TrendingUp,
+  ArrowRight,
 } from 'lucide-react';
 import {
   PurchaseOrderStatus,
@@ -463,15 +467,148 @@ export default function PurchaseOrderDetailPage() {
               </CardContent>
             </Card>
 
+            {/* Goods Receipts (GRN) */}
+            {po.goodsReceiptIds && po.goodsReceiptIds.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <Receipt className="h-5 w-5" />
+                      Goods Receipts ({po.goodsReceiptIds.length})
+                    </span>
+                    <Badge
+                      className={
+                        po.receiptStatus === 'fully_received'
+                          ? 'bg-green-100 text-green-700'
+                          : 'bg-orange-100 text-orange-700'
+                      }
+                    >
+                      {po.receiptStatus?.replaceAll('_', ' ').toUpperCase()}
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {po.goodsReceiptIds.map((grnId, index) => (
+                      <div key={grnId} className="rounded-lg border p-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              GRN #{grnId}
+                            </p>
+                            <p className="text-sm text-zinc-500">
+                              Receipt {index + 1} of {po.goodsReceiptIds.length}
+                            </p>
+                          </div>
+                          <Link
+                            href={`/dashboard/resources/goods-receipts/${grnId}`}
+                          >
+                            <Button variant="ghost" size="sm">
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    ))}
+                    <Button variant="outline" className="w-full">
+                      <Receipt className="mr-2 h-4 w-4" />
+                      Record New Receipt
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stock Adjustments */}
+            {po.stockAdjustmentIds && po.stockAdjustmentIds.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Stock Adjustments ({po.stockAdjustmentIds.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {po.stockAdjustmentIds.map((adjId) => (
+                      <div
+                        key={adjId}
+                        className="flex items-center justify-between rounded-lg border p-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-zinc-500" />
+                          <span className="text-sm font-medium">
+                            Adjustment #{adjId}
+                          </span>
+                        </div>
+                        <Link
+                          href={`/dashboard/resources/stock-adjustments/${adjId}`}
+                        >
+                          <Button variant="ghost" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Payment Terms */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Payment Information
+                <CardTitle className="flex items-center justify-between">
+                  <span className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Payment Information
+                  </span>
+                  <Badge
+                    className={
+                      po.paymentStatus === 'fully_paid'
+                        ? 'bg-green-100 text-green-700'
+                        : po.paymentStatus === 'partially_paid'
+                          ? 'bg-orange-100 text-orange-700'
+                          : 'bg-zinc-100 text-zinc-700'
+                    }
+                  >
+                    {po.paymentStatus?.replaceAll('_', ' ').toUpperCase()}
+                  </Badge>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
+                {/* Payment Summary */}
+                <div className="rounded-lg bg-zinc-50 p-3 dark:bg-zinc-900">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-600 dark:text-zinc-400">
+                        Total Amount
+                      </span>
+                      <span className="font-medium">
+                        ₹{(po.totalAmount / 100_000).toFixed(2)}L
+                      </span>
+                    </div>
+                    {po.totalPaid > 0 && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-zinc-600 dark:text-zinc-400">
+                            Amount Paid
+                          </span>
+                          <span className="font-medium text-green-600">
+                            ₹{(po.totalPaid / 100_000).toFixed(2)}L
+                          </span>
+                        </div>
+                        <div className="flex justify-between border-t pt-2">
+                          <span className="font-medium">Balance Due</span>
+                          <span className="font-bold text-orange-600">
+                            ₹{(po.balanceAmount / 100_000).toFixed(2)}L
+                          </span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-zinc-500">Payment Terms</p>
@@ -501,6 +638,33 @@ export default function PurchaseOrderDetailPage() {
                         </p>
                       </div>
                     </div>
+                  </div>
+                )}
+
+                {/* Payment Records */}
+                {po.paymentIds && po.paymentIds.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Payment Records ({po.paymentIds.length})
+                    </p>
+                    {po.paymentIds.map((paymentId) => (
+                      <div
+                        key={paymentId}
+                        className="flex items-center justify-between rounded-lg border p-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="h-4 w-4 text-zinc-500" />
+                          <span className="text-sm font-medium">
+                            Payment #{paymentId}
+                          </span>
+                        </div>
+                        <Link href={`/dashboard/finance/payments/${paymentId}`}>
+                          <Button variant="ghost" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
