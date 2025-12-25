@@ -127,11 +127,11 @@ export default function VendorsPage() {
     total: mockVendors.length,
     active: mockVendors.filter((v) => v.status === 'active').length,
     totalPurchase: mockVendors.reduce(
-      (sum, v) => sum + v.totalPurchaseValue,
+      (sum, v) => sum + (v.totalPurchaseValue ?? 0),
       0
     ),
     totalOutstanding: mockVendors.reduce(
-      (sum, v) => sum + v.totalOutstanding,
+      (sum, v) => sum + (v.totalOutstanding ?? 0),
       0
     ),
   };
@@ -406,24 +406,33 @@ export default function VendorsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                          <span className="font-medium">{vendor.rating}</span>
-                        </div>
+                        {vendor.rating ? (
+                          <div className="flex items-center space-x-1">
+                            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            <span className="font-medium">{vendor.rating}</span>
+                          </div>
+                        ) : (
+                          <span className="text-zinc-500">-</span>
+                        )}
                         <div className="text-xs text-zinc-500">
-                          {vendor.onTimeDeliveryRate}% on-time
+                          {vendor.onTimeDeliveryRate ?? 0}% on-time
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="font-semibold text-blue-600 dark:text-blue-400">
-                          ₹{(vendor.totalPurchaseValue / 100_000).toFixed(1)}L
-                        </div>
+                        {vendor.totalPurchaseValue ? (
+                          <div className="font-semibold text-blue-600 dark:text-blue-400">
+                            ₹{(vendor.totalPurchaseValue / 100_000).toFixed(1)}L
+                          </div>
+                        ) : (
+                          <div className="text-zinc-500">-</div>
+                        )}
                         <div className="text-xs text-zinc-500">
-                          {vendor.totalOrders} orders
+                          {vendor.totalOrders ?? 0} orders
                         </div>
                       </TableCell>
                       <TableCell>
-                        {vendor.totalOutstanding > 0 ? (
+                        {vendor.totalOutstanding &&
+                        vendor.totalOutstanding > 0 ? (
                           <span className="font-semibold text-orange-600 dark:text-orange-400">
                             ₹{(vendor.totalOutstanding / 1000).toFixed(0)}K
                           </span>

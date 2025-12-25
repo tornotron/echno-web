@@ -228,10 +228,12 @@ export default function VendorDetailPage({ params }: PageProps) {
                   <div>
                     <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       <Calendar className="h-3 w-3" />
-                      <span>Registration Date</span>
+                      <span>Contract Start Date</span>
                     </label>
                     <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                      {format(vendor.registrationDate, 'MMM dd, yyyy')}
+                      {vendor.contractStartDate
+                        ? format(vendor.contractStartDate, 'MMM dd, yyyy')
+                        : 'Not available'}
                     </p>
                   </div>
                   <div>
@@ -273,7 +275,9 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Total Purchase Value
                     </label>
                     <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                      ₹{(vendor.totalPurchaseValue / 100_000).toFixed(2)}L
+                      {vendor.totalPurchaseValue
+                        ? `₹${(vendor.totalPurchaseValue / 100_000).toFixed(2)}L`
+                        : '-'}
                     </p>
                   </div>
                   <div>
@@ -281,7 +285,7 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Total Orders
                     </label>
                     <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                      {vendor.totalOrders}
+                      {vendor.totalOrders ?? 0}
                     </p>
                   </div>
                   <div>
@@ -289,7 +293,9 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Outstanding Amount
                     </label>
                     <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
-                      ₹{(vendor.totalOutstanding / 1000).toFixed(0)}K
+                      {vendor.totalOutstanding
+                        ? `₹${(vendor.totalOutstanding / 1000).toFixed(0)}K`
+                        : '-'}
                     </p>
                   </div>
                   <div>
@@ -297,13 +303,9 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Average Order Value
                     </label>
                     <p className="mt-1 text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                      ₹
-                      {(
-                        vendor.totalPurchaseValue /
-                        vendor.totalOrders /
-                        1000
-                      ).toFixed(0)}
-                      K
+                      {vendor.totalPurchaseValue && vendor.totalOrders
+                        ? `₹${(vendor.totalPurchaseValue / vendor.totalOrders / 1000).toFixed(0)}K`
+                        : '-'}
                     </p>
                   </div>
                 </div>
@@ -314,10 +316,10 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Bank Account
                     </label>
                     <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                      {vendor.bankAccount}
+                      {vendor.accountNumber || 'Not provided'}
                     </p>
                     <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                      {vendor.bankName}
+                      {vendor.bankName || '-'}
                     </p>
                   </div>
                   <div>
@@ -347,12 +349,14 @@ export default function VendorDetailPage({ params }: PageProps) {
                       <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                       <span>Rating</span>
                     </span>
-                    <span className="text-sm font-bold">{vendor.rating}/5</span>
+                    <span className="text-sm font-bold">
+                      {vendor.rating ?? 0}/5
+                    </span>
                   </div>
                   <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700">
                     <div
                       className="h-2 rounded-full bg-yellow-500"
-                      style={{ width: `${(vendor.rating / 5) * 100}%` }}
+                      style={{ width: `${((vendor.rating ?? 0) / 5) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -380,7 +384,7 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Total Orders
                     </span>
                     <span className="text-sm font-semibold">
-                      {vendor.totalOrders}
+                      {vendor.totalOrders ?? 0}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -388,7 +392,9 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Purchase Value
                     </span>
                     <span className="text-sm font-semibold">
-                      ₹{(vendor.totalPurchaseValue / 100_000).toFixed(2)}L
+                      {vendor.totalPurchaseValue
+                        ? `₹${(vendor.totalPurchaseValue / 100_000).toFixed(2)}L`
+                        : '-'}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -396,7 +402,9 @@ export default function VendorDetailPage({ params }: PageProps) {
                       Outstanding
                     </span>
                     <span className="text-sm font-semibold text-orange-600">
-                      ₹{(vendor.totalOutstanding / 1000).toFixed(0)}K
+                      {vendor.totalOutstanding
+                        ? `₹${(vendor.totalOutstanding / 1000).toFixed(0)}K`
+                        : '-'}
                     </span>
                   </div>
                 </div>
