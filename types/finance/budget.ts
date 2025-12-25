@@ -1,13 +1,13 @@
 // types/finance/budget.ts
 
 export enum BudgetType {
-  project = 'project',           // Project-specific budget
-  department = 'department',     // Department budget
-  category = 'category',         // Category-specific budget
+  project = 'project', // Project-specific budget
+  department = 'department', // Department budget
+  category = 'category', // Category-specific budget
   organization = 'organization', // Overall organization budget
-  annual = 'annual',             // Annual budget
-  quarterly = 'quarterly',       // Quarterly budget
-  monthly = 'monthly',           // Monthly budget
+  annual = 'annual', // Annual budget
+  quarterly = 'quarterly', // Quarterly budget
+  monthly = 'monthly', // Monthly budget
 }
 
 export enum BudgetStatus {
@@ -22,74 +22,78 @@ export enum BudgetStatus {
 
 export interface BudgetLineItem {
   id: number;
-  category: string;              // e.g., "Materials", "Labour", "Equipment"
-  subcategory?: string;          // e.g., "Cement", "Steel"
+  category: string; // e.g., "Materials", "Labour", "Equipment"
+  subcategory?: string; // e.g., "Cement", "Steel"
   description: string;
   allocatedAmount: number;
   spentAmount: number;
-  committedAmount: number;       // Amount committed but not yet spent
-  remainingAmount: number;       // allocatedAmount - spentAmount - committedAmount
-  percentageUsed: number;        // (spentAmount / allocatedAmount) * 100
+  committedAmount: number; // Amount committed but not yet spent
+  remainingAmount: number; // allocatedAmount - spentAmount - committedAmount
+  percentageUsed: number; // (spentAmount / allocatedAmount) * 100
   notes?: string;
 }
 
 export interface Budget {
   id: number;
-  budgetNumber: string;          // e.g., "BUD-2024-001"
+  budgetNumber: string; // e.g., "BUD-2024-001"
   name: string;
   type: BudgetType;
   status: BudgetStatus;
-  
+
   // Relationships
-  projectId?: number;            // Foreign key to Project
-  organizationId?: number;       // Foreign key to Organization
-  departmentId?: number;         // Foreign key to Department (if exists)
-  
+  projectId?: number; // Foreign key to Project
+  organizationId?: number; // Foreign key to Organization
+  departmentId?: number; // Foreign key to Department (if exists)
+
   // Budget Period
   startDate: Date;
   endDate: Date;
-  fiscalYear?: string;           // e.g., "2024-2025"
-  quarter?: number;              // 1, 2, 3, or 4
-  month?: number;                // 1-12
-  
+  fiscalYear?: string; // e.g., "2024-2025"
+  quarter?: number; // 1, 2, 3, or 4
+  month?: number; // 1-12
+
   // Budget Amounts
   totalAllocated: number;
   totalSpent: number;
-  totalCommitted: number;        // Purchase orders, contracts not yet invoiced
-  totalRemaining: number;        // totalAllocated - totalSpent - totalCommitted
-  percentageUsed: number;        // (totalSpent / totalAllocated) * 100
-  
+  totalCommitted: number; // Purchase orders, contracts not yet invoiced
+  totalRemaining: number; // totalAllocated - totalSpent - totalCommitted
+  percentageUsed: number; // (totalSpent / totalAllocated) * 100
+
   // Line Items
   lineItems: BudgetLineItem[];
-  
+
   // Thresholds & Alerts
-  warningThreshold: number;      // Percentage (e.g., 80%)
-  criticalThreshold: number;     // Percentage (e.g., 95%)
+  warningThreshold: number; // Percentage (e.g., 80%)
+  criticalThreshold: number; // Percentage (e.g., 95%)
   isOverBudget: boolean;
-  overBudgetAmount?: number;     // Amount exceeded
-  
+  overBudgetAmount?: number; // Amount exceeded
+  // Linked Transactions (track budget consumption)
+  linkedExpenseIds: number[]; // Foreign keys to Expense[] (expenses against this budget)
+  linkedPurchaseOrderIds: number[]; // Foreign keys to PurchaseOrder[] (POs against budget)
+  actualSpent: number; // Sum of all linked expenses/POs
+  remainingBudget: number; // totalAmount - actualSpent
   // Approval
-  preparedBy: number;            // Employee ID
+  preparedBy: number; // Employee ID
   preparedAt: Date;
-  approvedBy?: number;           // Employee ID
+  approvedBy?: number; // Employee ID
   approvedAt?: Date;
-  
+
   // Review
   lastReviewDate?: Date;
   nextReviewDate?: Date;
   reviewNotes?: string;
-  
+
   // Adjustments
   adjustments: BudgetAdjustment[];
-  
+
   // Additional Information
   description?: string;
   notes?: string;
-  attachments?: string[];        // Supporting documents
+  attachments?: string[]; // Supporting documents
   tags?: string[];
-  
+
   // Audit
-  createdBy: number;             // Employee ID
+  createdBy: number; // Employee ID
   createdAt: Date;
   updatedAt: Date;
 }
@@ -100,10 +104,10 @@ export interface BudgetAdjustment {
   adjustmentDate: Date;
   category: string;
   previousAmount: number;
-  adjustmentAmount: number;      // Positive for increase, negative for decrease
+  adjustmentAmount: number; // Positive for increase, negative for decrease
   newAmount: number;
   reason: string;
-  approvedBy: number;            // Employee ID
+  approvedBy: number; // Employee ID
   approvedAt: Date;
   notes?: string;
 }

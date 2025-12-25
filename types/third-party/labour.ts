@@ -28,48 +28,52 @@ export interface Labour {
   phone: string;
   email?: string;
   address: string;
-  
+
   // Labour Details
   type: LabourType;
   skillLevel: SkillLevel;
   trade: string; // e.g., Mason, Carpenter, Plumber
   status: LabourStatus;
-  
+
   // Rate Information
   dailyRate?: number;
   monthlyRate?: number;
   overtimeRate?: number;
-  
+
   // Contract Details
   contractorName?: string;
   contractorPhone?: string;
   contractStartDate?: Date;
   contractEndDate?: Date;
-  
+
   // Documents
   idProofUrl?: string;
   photoUrl?: string;
-  
+
   // Work History
   joiningDate: Date;
   exitDate?: Date;
   totalWorkDays?: number;
-  
+
   // Financial
   totalPaid?: number;
   totalDue?: number;
   lastPaymentDate?: Date;
   lastPaymentAmount?: number;
-  
+
   // Assignment
   currentProject?: string;
   currentSite?: string;
   supervisorName?: string;
-  
+
+  // Financial Tracking
+  paymentIds: number[]; // Foreign keys to Payment[] (wage payments)
+  expenseIds: number[]; // Foreign keys to Expense[] (labour-related expenses)
+
   // Emergency Contact
   emergencyContactName?: string;
   emergencyContactPhone?: string;
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;

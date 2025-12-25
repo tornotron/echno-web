@@ -1,12 +1,12 @@
 // types/finance/payment.ts
 
 export enum PaymentType {
-  invoice = 'invoice',          // Payment against invoice
-  advance = 'advance',          // Advance payment
-  refund = 'refund',            // Refund payment
-  expense = 'expense',          // Direct expense payment
-  salary = 'salary',            // Salary payment
-  other = 'other',              // Other payments
+  invoice = 'invoice', // Payment against invoice
+  advance = 'advance', // Advance payment
+  refund = 'refund', // Refund payment
+  expense = 'expense', // Direct expense payment
+  salary = 'salary', // Salary payment
+  other = 'other', // Other payments
 }
 
 export enum PaymentMethod {
@@ -32,41 +32,44 @@ export enum PaymentStatus {
 
 export interface Payment {
   id: number;
-  paymentNumber: string;     // e.g., "PAY-2024-001"
+  paymentNumber: string; // e.g., "PAY-2024-001"
   type: PaymentType;
   status: PaymentStatus;
   method: PaymentMethod;
-  
+
   // Relationships
-  invoiceId?: number;        // Foreign key to Invoice
-  vendorId?: number;         // Foreign key to Vendor (payment to vendor)
-  employeeId?: number;       // Foreign key to Employee (payment to employee)
-  projectId?: number;        // Foreign key to Project
-  organizationId?: number;   // Foreign key to Organization
-  
+  invoiceId?: number; // Foreign key to Invoice
+  purchaseOrderId?: number; // Foreign key to PurchaseOrder (direct PO payment)
+  vendorId?: number; // Foreign key to Vendor (payment to vendor)
+  employeeId?: number; // Foreign key to Employee (payment to employee)
+  subContractId?: number; // Foreign key to SubContract (payment to contractor)
+  labourId?: number; // Foreign key to Labour (wage payment)
+  projectId?: number; // Foreign key to Project
+  organizationId?: number; // Foreign key to Organization
+
   // Payment Details
   amount: number;
-  currency: string;          // e.g., "INR", "USD"
+  currency: string; // e.g., "INR", "USD"
   paymentDate: Date;
-  
+
   // Transaction Details
-  transactionId?: string;    // Bank transaction ID
-  referenceNumber?: string;  // Cheque number, UPI ref, etc.
+  transactionId?: string; // Bank transaction ID
+  referenceNumber?: string; // Cheque number, UPI ref, etc.
   bankName?: string;
   accountNumber?: string;
   ifscCode?: string;
-  
+
   // Verification
-  verifiedBy?: number;       // Employee ID
+  verifiedBy?: number; // Employee ID
   verifiedAt?: Date;
-  
+
   // Additional Information
   description?: string;
   notes?: string;
-  attachments?: string[];    // Receipt, proof of payment
-  
+  attachments?: string[]; // Receipt, proof of payment
+
   // Audit
-  createdBy: number;         // Employee ID
+  createdBy: number; // Employee ID
   createdAt: Date;
   updatedAt: Date;
 }

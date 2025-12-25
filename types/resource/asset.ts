@@ -37,6 +37,12 @@ export interface Asset {
   documents?: string[];
   notes?: string;
   locationHistory?: import('./asset').AssetLocationHistory[];
+
+  // Financial Tracking
+  purchaseOrderId?: number; // Foreign key to PurchaseOrder (original purchase)
+  invoiceId?: number; // Foreign key to Invoice (original purchase invoice)
+  maintenanceExpenseIds: number[]; // Foreign keys to Expense[] (maintenance costs)
+
   createdAt: Date;
   updatedAt: Date;
 }
