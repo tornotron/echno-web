@@ -49,18 +49,20 @@ export default function StockAdjustmentsPage() {
   const filteredAdjustments = useMemo(() => {
     return mockStockAdjustments.filter((adjustment) => {
       const matchesSearch =
-        adjustment.adjustmentId
+        adjustment.adjustmentNumber
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        adjustment.material.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        adjustment.location.toLowerCase().includes(searchQuery.toLowerCase());
+        adjustment.lineItems.some((item) =>
+          item.description.toLowerCase().includes(searchQuery.toLowerCase())
+        ) ||
+        adjustment.locationId?.toString().includes(searchQuery);
 
       const matchesType =
         typeFilter === 'all' || adjustment.type === typeFilter;
       const matchesStatus =
         statusFilter === 'all' || adjustment.status === statusFilter;
       const matchesReason =
-        reasonFilter === 'all' || adjustment.reason === reasonFilter;
+        reasonFilter === 'all' || adjustment.primaryReason === reasonFilter;
 
       return matchesSearch && matchesType && matchesStatus && matchesReason;
     });
@@ -78,12 +80,12 @@ export default function StockAdjustmentsPage() {
     (a) => a.status === 'pending'
   ).length;
   const positiveVariance = mockStockAdjustments
-    .filter((a) => a.variance > 0)
-    .reduce((sum, a) => sum + a.variance, 0);
+    .filter((a) => a.totalVarianceQuantity > 0)
+    .reduce((sum, a) => sum + a.totalVarianceQuantity, 0);
   const negativeVariance = Math.abs(
     mockStockAdjustments
-      .filter((a) => a.variance < 0)
-      .reduce((sum, a) => sum + a.variance, 0)
+      .filter((a) => a.totalVarianceQuantity < 0)
+      .reduce((sum, a) => sum + a.totalVarianceQuantity, 0)
   );
 
   const hasActiveFilters = Boolean(
@@ -295,7 +297,7 @@ export default function StockAdjustmentsPage() {
                             <div className="flex-1">
                               <div className="mb-1 flex items-center gap-2">
                                 <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                                  {adj.adjustmentId}
+                                  {adj.adjustmentNumber}
                                 </span>
                                 <Badge
                                   className={getStatusBadgeColor(adj.status)}
@@ -305,9 +307,9 @@ export default function StockAdjustmentsPage() {
                                 </Badge>
                                 <Badge variant="outline">
                                   {adj.type
-                                    .split('-')
+                                    .split('_')
                                     .map(
-                                      (w) =>
+                                      (w: string) =>
                                         w.charAt(0).toUpperCase() + w.slice(1)
                                     )
                                     .join(' ')}
@@ -316,8 +318,13 @@ export default function StockAdjustmentsPage() {
                               <p className="text-sm text-zinc-600 dark:text-zinc-400">
                                 Material:{' '}
                                 <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {adj.material}
+                                  {adj.lineItems[0]?.description || 'N/A'}
                                 </span>
+                                {adj.lineItems.length > 1 && (
+                                  <span className="ml-2 text-xs text-zinc-500">
+                                    +{adj.lineItems.length - 1} more items
+                                  </span>
+                                )}
                               </p>
                             </div>
                           </div>
@@ -325,10 +332,10 @@ export default function StockAdjustmentsPage() {
                           <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
                             <div>
                               <span className="text-zinc-500 dark:text-zinc-500">
-                                Location:
+                                Location ID:
                               </span>
                               <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.location}
+                                {adj.locationId || 'N/A'}
                               </p>
                             </div>
                             <div>
@@ -336,7 +343,8 @@ export default function StockAdjustmentsPage() {
                                 System Qty:
                               </span>
                               <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.systemQuantity} {adj.unit}
+                                {adj.lineItems[0]?.systemQuantity || 0}{' '}
+                                {adj.lineItems[0]?.unit || ''}
                               </p>
                             </div>
                             <div>
@@ -344,25 +352,26 @@ export default function StockAdjustmentsPage() {
                                 Physical Qty:
                               </span>
                               <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.physicalQuantity} {adj.unit}
+                                {adj.lineItems[0]?.physicalQuantity || 0}{' '}
+                                {adj.lineItems[0]?.unit || ''}
                               </p>
                             </div>
                             <div>
                               <span className="text-zinc-500 dark:text-zinc-500">
-                                Variance:
+                                Total Variance:
                               </span>
                               <Badge
                                 variant="outline"
                                 className={
-                                  adj.variance > 0
+                                  adj.totalVarianceQuantity > 0
                                     ? 'text-green-600'
-                                    : adj.variance < 0
+                                    : adj.totalVarianceQuantity < 0
                                       ? 'text-red-600'
                                       : ''
                                 }
                               >
-                                {adj.variance > 0 ? '+' : ''}
-                                {adj.variance} {adj.unit}
+                                {adj.totalVarianceQuantity > 0 ? '+' : ''}
+                                {adj.totalVarianceQuantity}
                               </Badge>
                             </div>
                           </div>
@@ -381,10 +390,11 @@ export default function StockAdjustmentsPage() {
                               Reason
                             </p>
                             <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                              {adj.reason
-                                .split('-')
+                              {adj.primaryReason
+                                .split('_')
                                 .map(
-                                  (w) => w.charAt(0).toUpperCase() + w.slice(1)
+                                  (w: string) =>
+                                    w.charAt(0).toUpperCase() + w.slice(1)
                                 )
                                 .join(' ')}
                             </p>
