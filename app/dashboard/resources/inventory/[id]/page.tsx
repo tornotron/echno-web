@@ -29,6 +29,10 @@ import {
   Activity,
   BarChart3,
   ArrowUpDown,
+  ShoppingCart,
+  Receipt,
+  TrendingUp,
+  Repeat,
 } from 'lucide-react';
 import {
   getStockStatus,
@@ -302,6 +306,138 @@ export default function InventoryDetailPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Purchase History */}
+            {item.purchaseOrderIds && item.purchaseOrderIds.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <ShoppingCart className="h-5 w-5" />
+                    Purchase History ({item.purchaseOrderIds.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Complete procurement history for this item
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {item.purchaseOrderIds.map((poId) => (
+                      <Link
+                        key={poId}
+                        href={`/dashboard/resources/purchase-orders/${poId}`}
+                        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ShoppingCart className="h-4 w-4 text-zinc-500" />
+                          <span className="font-medium">PO #{poId}</span>
+                        </div>
+                        <ArrowUpDown className="h-4 w-4 text-zinc-400" />
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Goods Receipts */}
+            {item.goodsReceiptIds && item.goodsReceiptIds.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Receipt className="h-5 w-5" />
+                    Goods Receipts ({item.goodsReceiptIds.length})
+                  </CardTitle>
+                  <CardDescription>
+                    All receipt records for this item
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {item.goodsReceiptIds.map((grnId) => (
+                      <Link
+                        key={grnId}
+                        href={`/dashboard/resources/goods-receipts/${grnId}`}
+                        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Receipt className="h-4 w-4 text-zinc-500" />
+                          <span className="font-medium">GRN #{grnId}</span>
+                        </div>
+                        <ArrowUpDown className="h-4 w-4 text-zinc-400" />
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stock Adjustments */}
+            {item.stockAdjustmentIds && item.stockAdjustmentIds.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Stock Adjustments ({item.stockAdjustmentIds.length})
+                  </CardTitle>
+                  <CardDescription>
+                    All quantity adjustments affecting this item
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {item.stockAdjustmentIds.map((adjId) => (
+                      <Link
+                        key={adjId}
+                        href={`/dashboard/resources/stock-adjustments/${adjId}`}
+                        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      >
+                        <div className="flex items-center gap-2">
+                          <TrendingUp className="h-4 w-4 text-zinc-500" />
+                          <span className="font-medium">
+                            Adjustment #{adjId}
+                          </span>
+                        </div>
+                        <ArrowUpDown className="h-4 w-4 text-zinc-400" />
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Transfers */}
+            {item.transferIds && item.transferIds.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Repeat className="h-5 w-5" />
+                    Transfer History ({item.transferIds.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Item movements between locations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {item.transferIds.map((transferId) => (
+                      <Link
+                        key={transferId}
+                        href={`/dashboard/resources/transfers/${transferId}`}
+                        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Repeat className="h-4 w-4 text-zinc-500" />
+                          <span className="font-medium">
+                            Transfer #{transferId}
+                          </span>
+                        </div>
+                        <ArrowUpDown className="h-4 w-4 text-zinc-400" />
+                      </Link>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Sidebar - Right Side (1 column) */}
