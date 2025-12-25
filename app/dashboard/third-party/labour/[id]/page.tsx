@@ -268,7 +268,7 @@ export default function LabourDetailPage({ params }: PageProps) {
                       Total Outstanding
                     </label>
                     <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
-                      ₹{labour.totalDue.toLocaleString()}
+                      ₹{(labour.totalDue ?? 0).toLocaleString()}
                     </p>
                   </div>
                   <div>
@@ -284,21 +284,18 @@ export default function LabourDetailPage({ params }: PageProps) {
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                      Bank Account
+                      Supervisor
                     </label>
                     <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                      {labour.bankAccount}
-                    </p>
-                    <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                      {labour.bankName}
+                      {labour.supervisorName || 'Not assigned'}
                     </p>
                   </div>
                   <div>
                     <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                      IFSC Code
+                      Current Site
                     </label>
                     <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                      {labour.ifscCode}
+                      {labour.currentSite || 'Not assigned'}
                     </p>
                   </div>
                 </div>
@@ -320,14 +317,14 @@ export default function LabourDetailPage({ params }: PageProps) {
                       Work Days
                     </span>
                     <span className="text-sm font-bold">
-                      {labour.totalWorkDays}
+                      {labour.totalWorkDays ?? 0}
                     </span>
                   </div>
                   <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700">
                     <div
                       className="h-2 rounded-full bg-blue-500"
                       style={{
-                        width: `${(labour.totalWorkDays / 365) * 100}%`,
+                        width: `${((labour.totalWorkDays ?? 0) / 365) * 100}%`,
                       }}
                     />
                   </div>
@@ -355,37 +352,9 @@ export default function LabourDetailPage({ params }: PageProps) {
                       Outstanding
                     </span>
                     <span className="text-sm font-semibold text-orange-600">
-                      ₹{labour.totalDue.toLocaleString()}
+                      ₹{(labour.totalDue ?? 0).toLocaleString()}
                     </span>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Documents & ID */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <FileText className="h-5 w-5" />
-                  <span>Documents & ID</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Aadhaar Number
-                  </label>
-                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {labour.aadhaarNumber}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    PAN Number
-                  </label>
-                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {labour.panNumber}
-                  </p>
                 </div>
               </CardContent>
             </Card>
@@ -402,7 +371,7 @@ export default function LabourDetailPage({ params }: PageProps) {
                       Name
                     </label>
                     <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                      {labour.emergencyContactName}
+                      {labour.emergencyContactName || 'Not provided'}
                     </p>
                   </div>
                   <div>
@@ -410,22 +379,10 @@ export default function LabourDetailPage({ params }: PageProps) {
                       Phone
                     </label>
                     <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                      {labour.emergencyContact}
+                      {labour.emergencyContactPhone || 'Not provided'}
                     </p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Notes */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                  {labour.notes}
-                </p>
               </CardContent>
             </Card>
           </div>
