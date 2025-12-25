@@ -31,6 +31,7 @@ import {
   mockTransfers,
   mockStockAdjustments,
   mockGoodsReceipts,
+  mockReceipts,
 } from '@/components/shared/mock-data';
 
 interface BreadcrumbConfig {
@@ -68,6 +69,8 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   'stock-adjustments': 'Stock Adjustments',
   transfers: 'Transfers',
   'goods-receipts': 'Goods-receipts',
+  finance: 'Finance',
+  receipts: 'Receipts',
 };
 
 // Helper function to check if a string is likely an ID
@@ -168,6 +171,12 @@ function getNameForId(
   if (parentSegment === 'estimates') {
     const estimate = mockEstimates.find((e) => e.id === numericId);
     if (estimate) return estimate.estimateNumber;
+  }
+
+  // Receipts
+  if (parentSegment === 'receipts') {
+    const receipt = mockReceipts.find((r) => r.id === numericId);
+    if (receipt) return receipt.receiptNumber;
   }
 
   // Default fallback
@@ -280,7 +289,7 @@ export function Breadcrumbs() {
           </BreadcrumbItem>
 
           {breadcrumbItems.map((item) => (
-            <div key={item.href} className="flex items-center gap-1.5">
+            <div key={item.href} className="flex items-center gap-2">
               <BreadcrumbSeparator />
               <BreadcrumbItem>
                 {item.isLast || item.isNonInteractive ? (
