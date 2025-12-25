@@ -10,7 +10,12 @@ export interface Location {
   isActive: boolean;
 }
 
-export type LocationType = 'godown' | 'head-office' | 'project-site' | 'warehouse' | 'other';
+export type LocationType =
+  | 'godown'
+  | 'head-office'
+  | 'project-site'
+  | 'warehouse'
+  | 'other';
 
 export const locationTypeLabels: Record<LocationType, string> = {
   godown: 'Godown',
@@ -27,3 +32,7 @@ export const locationTypeColors: Record<LocationType, string> = {
   warehouse: 'orange',
   other: 'zinc',
 };
+
+export function getLocationTypeLabel(type: LocationType): string {
+  return locationTypeLabels[type];
+}

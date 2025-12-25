@@ -1,28 +1,28 @@
 // types/resource/stock-adjustment.ts
 
 export enum StockAdjustmentType {
-  increase = 'increase',         // Add stock
-  decrease = 'decrease',         // Remove stock
-  correction = 'correction',     // Correct discrepancy
-  write_off = 'write_off',       // Write off damaged/obsolete
-  return = 'return',             // Vendor return
-  recount = 'recount',           // Physical count adjustment
+  increase = 'increase', // Add stock
+  decrease = 'decrease', // Remove stock
+  correction = 'correction', // Correct discrepancy
+  write_off = 'write_off', // Write off damaged/obsolete
+  return = 'return', // Vendor return
+  recount = 'recount', // Physical count adjustment
 }
 
 export enum StockAdjustmentReason {
-  physicalCount = 'physical_count',       // Physical inventory count
-  damaged = 'damaged',                    // Damaged items
-  expired = 'expired',                    // Expired items
-  lost = 'lost',                          // Lost/stolen items
-  found = 'found',                        // Found items
-  obsolete = 'obsolete',                  // Obsolete items
-  vendorReturn = 'vendor_return',         // Returned to vendor
-  qualityIssue = 'quality_issue',         // Quality issues
-  dataError = 'data_error',               // Data entry error
-  theft = 'theft',                        // Theft
-  donation = 'donation',                  // Donated items
-  sample = 'sample',                      // Sample/testing
-  other = 'other',                        // Other reasons
+  physicalCount = 'physical_count', // Physical inventory count
+  damaged = 'damaged', // Damaged items
+  expired = 'expired', // Expired items
+  lost = 'lost', // Lost/stolen items
+  found = 'found', // Found items
+  obsolete = 'obsolete', // Obsolete items
+  vendorReturn = 'vendor_return', // Returned to vendor
+  qualityIssue = 'quality_issue', // Quality issues
+  dataError = 'data_error', // Data entry error
+  theft = 'theft', // Theft
+  donation = 'donation', // Donated items
+  sample = 'sample', // Sample/testing
+  other = 'other', // Other reasons
 }
 
 export enum StockAdjustmentStatus {
@@ -36,96 +36,119 @@ export enum StockAdjustmentStatus {
 
 export interface StockAdjustmentLineItem {
   id: number;
-  inventoryItemId?: number;      // Foreign key to InventoryItem
-  assetId?: number;              // Foreign key to Asset
+  inventoryItemId?: number; // Foreign key to InventoryItem
+  assetId?: number; // Foreign key to Asset
   description: string;
-  
+
   // Quantities
-  systemQuantity: number;        // Quantity per system records
-  physicalQuantity: number;      // Actual physical quantity
-  adjustmentQuantity: number;    // Difference (physical - system)
+  systemQuantity: number; // Quantity per system records
+  physicalQuantity: number; // Actual physical quantity
+  adjustmentQuantity: number; // Difference (physical - system)
   unit: string;
-  
+
   // Values
   unitValue: number;
-  totalAdjustmentValue: number;  // adjustmentQuantity * unitValue
-  
+  totalAdjustmentValue: number; // adjustmentQuantity * unitValue
+
   // Reason
   reason: StockAdjustmentReason;
   reasonDetails?: string;
-  
+
   // Location
-  locationId: number;            // Foreign key to Location
-  binLocation?: string;          // Specific bin/rack location
-  
+  locationId: number; // Foreign key to Location
+  binLocation?: string; // Specific bin/rack location
+
   notes?: string;
 }
 
 export interface StockAdjustment {
   id: number;
-  adjustmentNumber: string;      // e.g., "ADJ-2024-001"
+  adjustmentNumber: string; // e.g., "ADJ-2024-001"
   type: StockAdjustmentType;
   status: StockAdjustmentStatus;
-  
+
   // Relationships
-  locationId?: number;           // Foreign key to Location (if applicable)
-  projectId?: number;            // Foreign key to Project (if applicable)
-  organizationId?: number;       // Foreign key to Organization
-  
+  locationId?: number; // Foreign key to Location (if applicable)
+  projectId?: number; // Foreign key to Project (if applicable)
+  organizationId?: number; // Foreign key to Organization
+
   // Adjustment Details
   adjustmentDate: Date;
-  effectiveDate: Date;           // When adjustment takes effect
-  
+  effectiveDate: Date; // When adjustment takes effect
+
   // Line Items
   lineItems: StockAdjustmentLineItem[];
-  
+
   // Value Impact
-  totalAdjustmentValue: number;  // Sum of all line item adjustment values
-  
+  totalAdjustmentValue: number; // Sum of all line item adjustment values
+
   // Reason & Justification
   primaryReason: StockAdjustmentReason;
   justification: string;
-  
+
   // Physical Count Reference (if applicable)
   physicalCountDate?: Date;
-  physicalCountBy?: number;      // Employee ID
-  countMethod?: string;          // e.g., "Full Count", "Cycle Count", "Spot Check"
-  
+  physicalCountBy?: number; // Employee ID
+  countMethod?: string; // e.g., "Full Count", "Cycle Count", "Spot Check"
+
   // Approval Workflow
-  submittedBy: number;           // Employee ID
+  submittedBy: number; // Employee ID
   submittedAt: Date;
-  approvedBy?: number;           // Employee ID (typically manager/supervisor)
+  approvedBy?: number; // Employee ID (typically manager/supervisor)
   approvedAt?: Date;
-  rejectedBy?: number;           // Employee ID
+  rejectedBy?: number; // Employee ID
   rejectedAt?: Date;
   rejectionReason?: string;
-  
+
   // Processing
-  processedBy?: number;          // Employee ID
+  processedBy?: number; // Employee ID
   processedAt?: Date;
-  
+
   // Variance Analysis
   totalVarianceQuantity: number; // Total quantity variance
-  totalVarianceValue: number;    // Total value variance
-  variancePercentage: number;    // Percentage variance
+  totalVarianceValue: number; // Total value variance
+  variancePercentage: number; // Percentage variance
   isSignificantVariance: boolean; // Flags if variance exceeds threshold
-  
+
+  // Origin Tracking (what created this adjustment)
+  originType?:
+    | 'transfer'
+    | 'purchase_order'
+    | 'goods_receipt'
+    | 'manual'
+    | 'physical_count'
+    | 'return'
+    | 'write_off';
+  originId?: number; // ID of originating transaction
+
+  // Related Transactions
+  transferId?: number; // Foreign key to Transfer (if from transfer)
+  purchaseOrderId?: number; // Foreign key to PurchaseOrder (if from PO)
+  goodsReceiptId?: number; // Foreign key to GoodsReceipt (if from receipt)
+  invoiceId?: number; // Foreign key to Invoice (if vendor return)
+  expenseId?: number; // Foreign key to Expense (if write-off/damage)
+
+  // Financial Impact
+  isFinanciallyProcessed: boolean;
+  costImpact: number; // Total cost impact (+ or -)
+  affectsCogsImmediately: boolean; // Whether this affects Cost of Goods Sold
+
   // Documentation
   requiresPhotos: boolean;
-  photos?: string[];             // Photos of damaged/expired items
+  photos?: string[]; // Photos of damaged/expired items
   supportingDocuments?: string[]; // Reports, receipts, etc.
-  
+
   // Financial Impact
   affectsFinancials: boolean;
-  accountingEntryId?: number;    // Reference to accounting entry
-  
+  accountingEntryId?: number; // Reference to accounting entry
+
   // Additional Information
   notes?: string;
-  internalNotes?: string;        // For internal use only
+  internalNotes?: string; // For internal use only
   tags?: string[];
-  
+
   // Audit Trail
-  createdBy: number;             // Employee ID
+  createdBy: number; // Employee ID
   createdAt: Date;
   updatedAt: Date;
 }
@@ -139,7 +162,10 @@ export const stockAdjustmentTypeLabels: Record<StockAdjustmentType, string> = {
   recount: 'Recount',
 };
 
-export const stockAdjustmentReasonLabels: Record<StockAdjustmentReason, string> = {
+export const stockAdjustmentReasonLabels: Record<
+  StockAdjustmentReason,
+  string
+> = {
   physical_count: 'Physical Inventory Count',
   damaged: 'Damaged Items',
   expired: 'Expired Items',
@@ -155,7 +181,10 @@ export const stockAdjustmentReasonLabels: Record<StockAdjustmentReason, string> 
   other: 'Other',
 };
 
-export const stockAdjustmentStatusLabels: Record<StockAdjustmentStatus, string> = {
+export const stockAdjustmentStatusLabels: Record<
+  StockAdjustmentStatus,
+  string
+> = {
   draft: 'Draft',
   pending: 'Pending Approval',
   approved: 'Approved',
