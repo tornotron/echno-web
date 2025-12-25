@@ -19,6 +19,9 @@ import {
   Download,
   Printer,
   AlertCircle,
+  TrendingUp,
+  ExternalLink,
+  DollarSign,
 } from 'lucide-react';
 import {
   TransferStatus,
@@ -449,6 +452,191 @@ export default function TransferViewPage({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Stock Adjustments */}
+            {(transfer.stockAdjustmentIds &&
+              transfer.stockAdjustmentIds.length > 0) ||
+            transfer.sourceStockAdjustmentId ||
+            transfer.destStockAdjustmentId ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="h-5 w-5" />
+                    Stock Adjustments ({' '}
+                    {(transfer.stockAdjustmentIds?.length || 0) +
+                      (transfer.sourceStockAdjustmentId ? 1 : 0) +
+                      (transfer.destStockAdjustmentId ? 1 : 0)}
+                    )
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Stock adjustments automatically created for this transfer:
+                  </p>
+
+                  {transfer.sourceStockAdjustmentId && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 p-3 dark:border-red-900/50 dark:bg-red-950/20">
+                      <div className="mb-2 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-red-600 dark:text-red-400" />
+                        <span className="font-semibold text-red-900 dark:text-red-100">
+                          Source Location Adjustment
+                        </span>
+                      </div>
+                      <p className="mb-2 text-sm text-red-700 dark:text-red-300">
+                        Stock reduction at source location ID:{' '}
+                        {transfer.sourceLocationId}
+                      </p>
+                      <Link
+                        href={`/dashboard/resources/stock-adjustments/${transfer.sourceStockAdjustmentId}`}
+                        className="inline-flex items-center gap-1 text-sm font-medium text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
+                      >
+                        View Adjustment #{transfer.sourceStockAdjustmentId}
+                        <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
+
+                  {transfer.destStockAdjustmentId && (
+                    <div className="rounded-lg border border-green-200 bg-green-50 p-3 dark:border-green-900/50 dark:bg-green-950/20">
+                      <div className="mb-2 flex items-center gap-2">
+                        <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                        <span className="font-semibold text-green-900 dark:text-green-100">
+                          Destination Location Adjustment
+                        </span>
+                      </div>
+                      <p className="mb-2 text-sm text-green-700 dark:text-green-300">
+                        Stock addition at destination location ID:{' '}
+                        {transfer.destinationLocationId}
+                      </p>
+                      <Link
+                        href={`/dashboard/resources/stock-adjustments/${transfer.destStockAdjustmentId}`}
+                        className="inline-flex items-center gap-1 text-sm font-medium text-green-700 hover:text-green-800 dark:text-green-300 dark:hover:text-green-200"
+                      >
+                        View Adjustment #{transfer.destStockAdjustmentId}
+                        <ExternalLink className="h-3 w-3" />
+                      </Link>
+                    </div>
+                  )}
+
+                  {transfer.stockAdjustmentIds &&
+                    transfer.stockAdjustmentIds.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="font-semibold text-zinc-900 dark:text-zinc-100">
+                          Additional Adjustments:
+                        </div>
+                        <div className="space-y-2">
+                          {transfer.stockAdjustmentIds.map((adjId) => (
+                            <Link
+                              key={adjId}
+                              href={`/dashboard/resources/stock-adjustments/${adjId}`}
+                              className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                            >
+                              <div className="flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  Stock Adjustment #{adjId}
+                                </span>
+                              </div>
+                              <ExternalLink className="h-4 w-4 text-zinc-400" />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {transfer.inventoryUpdated && (
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-900/50 dark:bg-blue-950/20">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                          Inventory Successfully Updated
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                        All stock adjustments have been processed and inventory
+                        records are up to date.
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : null}
+
+            {/* Financial Tracking */}
+            {(transfer.totalCostTransferred ||
+              transfer.totalTransportCost ||
+              transfer.transportExpenseId) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <DollarSign className="h-5 w-5" />
+                    Financial Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    {transfer.totalCostTransferred && (
+                      <div>
+                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                          Total Cost Transferred
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                          ₹{transfer.totalCostTransferred.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {transfer.totalTransportCost && (
+                      <div>
+                        <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                          Transport Cost
+                        </div>
+                        <div className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+                          ₹{transfer.totalTransportCost.toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {transfer.transportExpenseId && (
+                    <>
+                      <Separator />
+                      <div>
+                        <div className="mb-2 text-sm text-zinc-500 dark:text-zinc-400">
+                          Linked Transport Expense
+                        </div>
+                        <Link
+                          href={`/dashboard/finance/expenses/${transfer.transportExpenseId}`}
+                        >
+                          <Button variant="outline" className="w-full">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            View Expense #{transfer.transportExpenseId}
+                          </Button>
+                        </Link>
+                      </div>
+                    </>
+                  )}
+
+                  {transfer.totalCostTransferred &&
+                    transfer.totalTransportCost && (
+                      <>
+                        <Separator />
+                        <div className="flex items-center justify-between rounded-lg bg-zinc-100 p-3 dark:bg-zinc-800">
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                            Total Transfer Cost:
+                          </span>
+                          <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                            ₹
+                            {(
+                              transfer.totalCostTransferred +
+                              transfer.totalTransportCost
+                            ).toLocaleString()}
+                          </span>
+                        </div>
+                      </>
+                    )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Discrepancies Warning */}
             {transfer.hasDiscrepancies && (
