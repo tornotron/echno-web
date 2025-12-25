@@ -30,6 +30,7 @@ import {
   mockMaterialRequests,
   mockTransfers,
   mockStockAdjustments,
+  mockGoodsReceipts,
 } from '@/components/shared/mock-data';
 
 interface BreadcrumbConfig {
@@ -66,6 +67,7 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   'material-requests': 'Material Requests',
   'stock-adjustments': 'Stock Adjustments',
   transfers: 'Transfers',
+  'goods-receipts': 'Goods-receipts',
 };
 
 // Helper function to check if a string is likely an ID
@@ -153,7 +155,13 @@ function getNameForId(
   // Stock adjustments
   if (parentSegment === 'stock-adjustments') {
     const sa = mockStockAdjustments.find((s) => s.id === numericId);
-    if (sa) return sa.adjustmentId;
+    if (sa) return sa.adjustmentNumber;
+  }
+
+  // Goods receipts
+  if (parentSegment === 'goods-receipts') {
+    const grn = mockGoodsReceipts.find((g) => g.id === numericId);
+    if (grn) return grn.receiptNumber;
   }
 
   // Estimates
