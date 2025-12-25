@@ -1,10 +1,10 @@
 // types/finance/invoice.ts
 
 export enum InvoiceType {
-  purchase = 'purchase',      // Invoice from vendor for purchases
-  sales = 'sales',            // Invoice to client for work done
-  expense = 'expense',        // General expense invoice
-  service = 'service',        // Service-related invoice
+  purchase = 'purchase', // Invoice from vendor for purchases
+  sales = 'sales', // Invoice to client for work done
+  expense = 'expense', // General expense invoice
+  service = 'service', // Service-related invoice
 }
 
 export enum InvoiceStatus {
@@ -32,66 +32,67 @@ export interface InvoiceLineItem {
   quantity: number;
   unit: string;
   unitPrice: number;
-  taxRate: number;        // Percentage (e.g., 18 for 18%)
+  taxRate: number; // Percentage (e.g., 18 for 18%)
   taxAmount: number;
-  discountRate?: number;  // Percentage
+  discountRate?: number; // Percentage
   discountAmount?: number;
-  subtotal: number;       // quantity * unitPrice
-  total: number;          // subtotal + tax - discount
+  subtotal: number; // quantity * unitPrice
+  total: number; // subtotal + tax - discount
   // Optional references
-  inventoryItemId?: number;  // If related to inventory
-  assetId?: number;          // If related to asset
-  taskId?: number;           // If related to specific task
+  inventoryItemId?: number; // If related to inventory
+  assetId?: number; // If related to asset
+  taskId?: number; // If related to specific task
 }
 
 export interface Invoice {
   id: number;
-  invoiceNumber: string;    // e.g., "INV-2024-001"
+  invoiceNumber: string; // e.g., "INV-2024-001"
   type: InvoiceType;
   status: InvoiceStatus;
   paymentStatus: PaymentStatus;
-  
+
   // Relationships
-  vendorId?: number;        // Foreign key to Vendor (for purchase invoices)
-  projectId?: number;       // Foreign key to Project
-  organizationId?: number;  // Foreign key to Organization
+  vendorId?: number; // Foreign key to Vendor (for purchase invoices)
+  projectId?: number; // Foreign key to Project
+  organizationId?: number; // Foreign key to Organization
   purchaseOrderId?: number; // Foreign key to PurchaseOrder (if applicable)
-  
+  goodsReceiptId?: number; // Foreign key to GoodsReceipt (if applicable)
+
   // Invoice Details
   issueDate: Date;
   dueDate: Date;
   paymentDate?: Date;
-  
+
   // Line Items
   lineItems: InvoiceLineItem[];
-  
+
   // Calculations
-  subtotal: number;         // Sum of all line item subtotals
-  taxAmount: number;        // Sum of all line item taxes
-  discountAmount: number;   // Sum of all line item discounts
-  totalAmount: number;      // subtotal + tax - discount
-  paidAmount: number;       // Amount paid so far
-  balanceAmount: number;    // totalAmount - paidAmount
-  
+  subtotal: number; // Sum of all line item subtotals
+  taxAmount: number; // Sum of all line item taxes
+  discountAmount: number; // Sum of all line item discounts
+  totalAmount: number; // subtotal + tax - discount
+  paidAmount: number; // Amount paid so far
+  balanceAmount: number; // totalAmount - paidAmount
+
   // Payment Details
-  paymentTerms?: string;    // e.g., "Net 30"
-  paymentMethod?: string;   // e.g., "Bank Transfer", "Cheque"
-  
+  paymentTerms?: string; // e.g., "Net 30"
+  paymentMethod?: string; // e.g., "Bank Transfer", "Cheque"
+
   // Tax Information
   gstNumber?: string;
-  taxType?: string;         // e.g., "GST", "IGST", "VAT"
-  
+  taxType?: string; // e.g., "GST", "IGST", "VAT"
+
   // Additional Information
   notes?: string;
   termsAndConditions?: string;
-  attachments?: string[];   // URLs or file paths
-  
+  attachments?: string[]; // URLs or file paths
+
   // Approval
-  approvedBy?: number;      // Employee ID
+  approvedBy?: number; // Employee ID
   approvedAt?: Date;
-  
+
   // Audit
-  createdBy: number;        // Employee ID
+  createdBy: number; // Employee ID
   createdAt: Date;
   updatedAt: Date;
 }

@@ -1,11 +1,11 @@
 // types/resource/material-request.ts
 
 export enum MaterialRequestType {
-  project = 'project',           // For project use
-  maintenance = 'maintenance',   // For maintenance
-  emergency = 'emergency',       // Emergency request
+  project = 'project', // For project use
+  maintenance = 'maintenance', // For maintenance
+  emergency = 'emergency', // Emergency request
   replenishment = 'replenishment', // Stock replenishment
-  other = 'other',               // Other purposes
+  other = 'other', // Other purposes
 }
 
 export enum MaterialRequestStatus {
@@ -28,102 +28,103 @@ export enum MaterialRequestPriority {
 }
 
 export enum FulfillmentMethod {
-  fromStock = 'from_stock',      // Fulfill from existing stock
-  purchase = 'purchase',         // Need to purchase
-  transfer = 'transfer',         // Transfer from another location
-  rental = 'rental',             // Rent equipment
-  mixed = 'mixed',               // Combination of methods
+  fromStock = 'from_stock', // Fulfill from existing stock
+  purchase = 'purchase', // Need to purchase
+  transfer = 'transfer', // Transfer from another location
+  rental = 'rental', // Rent equipment
+  mixed = 'mixed', // Combination of methods
 }
 
 export interface MaterialRequestLineItem {
   id: number;
-  inventoryItemId?: number;      // Foreign key to InventoryItem (if existing)
-  assetId?: number;              // Foreign key to Asset (if existing)
+  inventoryItemId?: number; // Foreign key to InventoryItem (if existing)
+  assetId?: number; // Foreign key to Asset (if existing)
   description: string;
   specifications?: string;
   quantityRequested: number;
   quantityApproved: number;
   quantityFulfilled: number;
-  quantityPending: number;       // quantityApproved - quantityFulfilled
+  quantityPending: number; // quantityApproved - quantityFulfilled
   unit: string;
-  
+
   // Fulfillment details
   fulfillmentMethod?: FulfillmentMethod;
-  sourceLocationId?: number;     // Foreign key to Location (if transferring)
+  sourceLocationId?: number; // Foreign key to Location (if transferring)
   estimatedCost?: number;
   actualCost?: number;
-  
+
   // Dates
   requiredByDate?: Date;
   fulfilledDate?: Date;
-  
+
   // Purpose
-  taskId?: number;               // Foreign key to Task
+  taskId?: number; // Foreign key to Task
   purpose?: string;
-  
+
   notes?: string;
 }
 
 export interface MaterialRequest {
   id: number;
-  requestNumber: string;         // e.g., "MR-2024-001"
+  requestNumber: string; // e.g., "MR-2024-001"
   type: MaterialRequestType;
   status: MaterialRequestStatus;
   priority: MaterialRequestPriority;
-  
+
   // Relationships
-  projectId?: number;            // Foreign key to Project
-  taskId?: number;               // Foreign key to Task
-  locationId?: number;           // Foreign key to Location (destination)
-  organizationId?: number;       // Foreign key to Organization
-  
+  projectId?: number; // Foreign key to Project
+  taskId?: number; // Foreign key to Task
+  locationId?: number; // Foreign key to Location (destination)
+  organizationId?: number; // Foreign key to Organization
+
   // Request Details
   requestDate: Date;
   requiredByDate: Date;
-  
+
   // Line Items
   lineItems: MaterialRequestLineItem[];
-  
+
   // Costs (estimated)
   estimatedTotalCost: number;
   actualTotalCost: number;
-  
+
   // Fulfillment
   fulfillmentMethod?: FulfillmentMethod;
   partialFulfillmentAllowed: boolean;
-  
+
   // Related Documents
-  purchaseOrderIds: number[];    // Foreign keys to PurchaseOrder (if created)
-  transferIds: number[];         // Foreign keys to Transfer (if created)
-  
+  purchaseOrderIds: number[]; // Foreign keys to PurchaseOrder (if created)
+  transferIds: number[]; // Foreign keys to Transfer (if created)
+  expenseIds: number[]; // Foreign keys to Expense[] (direct purchases without PO)
+
   // Requestor
-  requestedBy: number;           // Employee ID
+  requestedBy: number; // Employee ID
   requestedByDepartment?: string;
   contactPhone?: string;
   contactEmail?: string;
-  
+
   // Approval Workflow
-  reviewedBy?: number;           // Employee ID
+  reviewedBy?: number; // Employee ID
   reviewedAt?: Date;
-  approvedBy?: number;           // Employee ID
+  approvedBy?: number; // Employee ID
   approvedAt?: Date;
-  rejectedBy?: number;           // Employee ID
+  rejectedBy?: number; // Employee ID
   rejectedAt?: Date;
   rejectionReason?: string;
-  
+
   // Fulfillment Tracking
-  fulfilledBy?: number;          // Employee ID
+  fulfilledBy?: number; // Employee ID
   fulfilledAt?: Date;
-  
+
   // Additional Information
   purpose: string;
   justification?: string;
   notes?: string;
-  attachments?: string[];        // Supporting documents
+  attachments?: string[]; // Supporting documents
   tags?: string[];
-  
+
   // Audit
-  createdBy: number;             // Employee ID
+  createdBy: number; // Employee ID
   createdAt: Date;
   updatedAt: Date;
 }
@@ -136,7 +137,10 @@ export const materialRequestTypeLabels: Record<MaterialRequestType, string> = {
   other: 'Other',
 };
 
-export const materialRequestStatusLabels: Record<MaterialRequestStatus, string> = {
+export const materialRequestStatusLabels: Record<
+  MaterialRequestStatus,
+  string
+> = {
   draft: 'Draft',
   submitted: 'Submitted',
   under_review: 'Under Review',
@@ -147,7 +151,10 @@ export const materialRequestStatusLabels: Record<MaterialRequestStatus, string> 
   cancelled: 'Cancelled',
 };
 
-export const materialRequestPriorityLabels: Record<MaterialRequestPriority, string> = {
+export const materialRequestPriorityLabels: Record<
+  MaterialRequestPriority,
+  string
+> = {
   low: 'Low',
   medium: 'Medium',
   high: 'High',

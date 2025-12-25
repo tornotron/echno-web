@@ -18,6 +18,21 @@ export interface InventoryItem {
   unitPrice: number;
   totalValue: number;
   vendorId?: number; // Foreign key to Vendor
+
+  // Purchase History
+  lastPurchaseOrderId?: number; // Foreign key to PurchaseOrder (last restock)
+  lastInvoiceId?: number; // Foreign key to Invoice (last purchase invoice)
+  purchaseOrderIds: number[]; // All purchase orders for this item
+  invoiceIds: number[]; // All invoices for this item
+  averageCostPerUnit: number; // Weighted average cost
+  totalPurchaseValue: number; // Lifetime purchase value
+  lastPurchasePrice?: number; // Most recent purchase price
+
+  // Stock Movement History
+  stockAdjustmentIds: number[]; // All adjustments affecting this item
+  transferIds: number[]; // All transfers involving this item
+  goodsReceiptIds: number[]; // All goods receipts for this item
+
   brand?: string;
   specifications?: Record<string, unknown>;
   batchNumber?: string;
