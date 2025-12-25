@@ -144,7 +144,7 @@ export default function LabourPage() {
   const stats = {
     total: mockLabour.length,
     active: mockLabour.filter((l) => l.status === 'active').length,
-    totalDue: mockLabour.reduce((sum, l) => sum + (l.totalDue || 0), 0),
+    totalDue: mockLabour.reduce((sum, l) => sum + (l.totalDue ?? 0), 0),
     onLeave: mockLabour.filter((l) => l.status === 'onLeave').length,
   };
 
@@ -460,7 +460,7 @@ export default function LabourPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {labour.totalDue ? (
+                        {labour.totalDue && labour.totalDue > 0 ? (
                           <span className="font-semibold text-orange-600 dark:text-orange-400">
                             ₹{labour.totalDue.toLocaleString()}
                           </span>

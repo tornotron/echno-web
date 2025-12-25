@@ -52,14 +52,8 @@ export default function LabourFormPage() {
       : '',
     contractorName: mockLabourData?.contractorName || '',
     contractorPhone: mockLabourData?.contractorPhone || '',
-    aadhaarNumber: mockLabourData?.aadhaarNumber || '',
-    panNumber: mockLabourData?.panNumber || '',
-    bankAccount: mockLabourData?.bankAccount || '',
-    bankName: mockLabourData?.bankName || '',
-    ifscCode: mockLabourData?.ifscCode || '',
-    emergencyContact: mockLabourData?.emergencyContact || '',
     emergencyContactName: mockLabourData?.emergencyContactName || '',
-    notes: mockLabourData?.notes || '',
+    emergencyContactPhone: mockLabourData?.emergencyContactPhone || '',
   });
 
   // No useEffect needed since we initialize state above
@@ -357,39 +351,6 @@ export default function LabourFormPage() {
                         placeholder="100"
                       />
                     </div>
-                    <div>
-                      <Label htmlFor="bankAccount">Bank Account Number</Label>
-                      <Input
-                        id="bankAccount"
-                        value={formData.bankAccount}
-                        onChange={(e) =>
-                          handleChange('bankAccount', e.target.value)
-                        }
-                        placeholder="1234567890"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="bankName">Bank Name</Label>
-                      <Input
-                        id="bankName"
-                        value={formData.bankName}
-                        onChange={(e) =>
-                          handleChange('bankName', e.target.value)
-                        }
-                        placeholder="State Bank of India"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="ifscCode">IFSC Code</Label>
-                      <Input
-                        id="ifscCode"
-                        value={formData.ifscCode}
-                        onChange={(e) =>
-                          handleChange('ifscCode', e.target.value)
-                        }
-                        placeholder="SBIN0001234"
-                      />
-                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -398,37 +359,6 @@ export default function LabourFormPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Documents & ID */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Documents & ID</CardTitle>
-                  <CardDescription>Government ID and documents</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="aadhaarNumber">Aadhaar Number</Label>
-                    <Input
-                      id="aadhaarNumber"
-                      value={formData.aadhaarNumber}
-                      onChange={(e) =>
-                        handleChange('aadhaarNumber', e.target.value)
-                      }
-                      placeholder="1234 5678 9012"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="panNumber">PAN Number</Label>
-                    <Input
-                      id="panNumber"
-                      value={formData.panNumber}
-                      onChange={(e) =>
-                        handleChange('panNumber', e.target.value)
-                      }
-                      placeholder="ABCDE1234F"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
               {/* Emergency Contact */}
               <Card>
                 <CardHeader>
@@ -450,34 +380,17 @@ export default function LabourFormPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="emergencyContact">Contact Phone</Label>
+                    <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
                     <Input
-                      id="emergencyContact"
+                      id="emergencyContactPhone"
                       type="tel"
-                      value={formData.emergencyContact}
+                      value={formData.emergencyContactPhone}
                       onChange={(e) =>
-                        handleChange('emergencyContact', e.target.value)
+                        handleChange('emergencyContactPhone', e.target.value)
                       }
                       placeholder="+91 98765 11111"
                     />
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Notes */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Additional Notes</CardTitle>
-                  <CardDescription>Any additional information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Textarea
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => handleChange('notes', e.target.value)}
-                    placeholder="Enter any additional notes..."
-                    rows={6}
-                  />
                 </CardContent>
               </Card>
 
