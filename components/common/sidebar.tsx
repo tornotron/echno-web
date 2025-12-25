@@ -160,6 +160,11 @@ const navItems: NavItem[] = [
         icon: ShoppingCart,
       },
       {
+        title: 'Goods Receipts',
+        url: '/dashboard/resources/goods-receipts',
+        icon: PackageCheck,
+      },
+      {
         title: 'Material Requests',
         url: '/dashboard/resources/material-requests',
         icon: ClipboardList,
@@ -347,7 +352,7 @@ export function AppSidebar() {
                               children: item.title,
                               side: 'right',
                             }}
-                            isActive={item.isActive}
+                            isActive={item.isActive || item.isChildActive}
                           >
                             <item.icon />
                             <span>{item.title}</span>
