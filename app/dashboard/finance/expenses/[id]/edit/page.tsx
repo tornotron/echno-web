@@ -130,14 +130,7 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/dashboard/finance/expenses">
-                  <ArrowLeft className="h-4 w-4" />
-                </Link>
-              </Button>
-              <h1 className="text-3xl font-bold">Edit Expense</h1>
-            </div>
+            <h1 className="text-3xl font-bold">Edit Expense</h1>
             <p className="mt-2 text-zinc-600 dark:text-zinc-400">
               Modify expense details and update information
             </p>
