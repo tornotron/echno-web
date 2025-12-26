@@ -3,7 +3,12 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ChevronLeft,
+  PanelRightOpen,
+  PanelLeftOpen,
+  Sidebar as SidebarIcon,
+} from 'lucide-react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils/index';
@@ -286,14 +291,21 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn('size-7', className)}
+      className={cn(
+        'size-7 transition-transform duration-200 ease-in-out',
+        className
+      )}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
       }}
       {...props}
     >
-      {state === 'expanded' ? <ChevronLeft /> : <ChevronRight />}
+      {state === 'collapsed' ? (
+        <PanelLeftOpen className="size-4 transition-transform duration-200" />
+      ) : (
+        <PanelRightOpen className="size-5 transition-transform duration-200" />
+      )}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   );
