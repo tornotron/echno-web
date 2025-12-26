@@ -49,6 +49,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import {
@@ -300,17 +301,22 @@ export function AppSidebar() {
       <SidebarHeader>
         {/* Expanded state */}
         <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:hidden">
-          <Image
-            src="/echno.png"
-            alt="Echno Logo"
-            width={32}
-            height={32}
-            className="dark:invert"
-          />
-          <span className="text-lg font-semibold">Echno</span>
+          <div className="flex items-center gap-2">
+            <Image
+              src="/echno.png"
+              alt="Echno Logo"
+              width={32}
+              height={32}
+              className="dark:invert"
+            />
+            <span className="text-lg font-semibold">Echno</span>
+          </div>
+          <div className="ml-auto">
+            <SidebarTrigger />
+          </div>
         </div>
         {/* Collapsed state - centered bigger logo */}
-        <div className="hidden items-center justify-center py-1 group-data-[collapsible=icon]:flex">
+        <div className="relative hidden items-center justify-center py-1 group-data-[collapsible=icon]:flex">
           <Image
             src="/echno.png"
             alt="Echno Logo"
@@ -325,6 +331,17 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
+              {state === 'collapsed' && (
+                <SidebarMenuItem key="sidebar-toggle">
+                  <SidebarMenuButton
+                    asChild
+                    tooltip={{ children: 'Toggle Sidebar' }}
+                    className="justify-center"
+                  >
+                    <SidebarTrigger aria-label="Toggle sidebar" />
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
               {navigationItems.map((item) => {
                 if (!item.hasChildren) {
                   return (
