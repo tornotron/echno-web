@@ -210,6 +210,7 @@ const navItems: NavItem[] = [
       { title: 'Budgets', url: '/dashboard/finance/budgets', icon: PiggyBank },
     ],
   },
+  /*
   {
     title: 'Compliance',
     url: '/dashboard/compliance',
@@ -244,6 +245,7 @@ const navItems: NavItem[] = [
   },
   { title: 'Reports', url: '/dashboard/reports', icon: BarChart3 },
   { title: 'Documents', url: '/dashboard/documents', icon: FileText },
+  */
 ];
 
 // Helper function to check if a path is active
