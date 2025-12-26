@@ -86,11 +86,7 @@ function isIdSegment(segment: string): boolean {
 }
 
 // Helper function to get the name for an ID based on context
-function getNameForId(
-  id: string,
-  context: string[],
-  allSegments: string[]
-): string {
+function getNameForId(id: string, context: string[]): string {
   const numericId = Number.parseInt(id, 10);
 
   // Get the immediate parent segment (the segment right before the ID)
@@ -255,7 +251,7 @@ export function Breadcrumbs() {
       let fullName: string;
       if (isIdSegment(segment)) {
         // If it's an ID, get the actual name
-        fullName = getNameForId(segment, context, pathSegments);
+        fullName = getNameForId(segment, context);
         label = truncateText(fullName);
       } else {
         // Use the mapping or capitalize
