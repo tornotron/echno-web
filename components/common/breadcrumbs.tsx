@@ -33,6 +33,7 @@ import {
   mockGoodsReceipts,
   mockReceipts,
   mockPayments,
+  mockInvoices,
 } from '@/components/shared/mock-data';
 
 interface BreadcrumbConfig {
@@ -73,6 +74,7 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   finance: 'Finance',
   receipts: 'Receipts',
   payments: 'Payments',
+  invoices: 'Invoices',
 };
 
 // Helper function to check if a string is likely an ID
@@ -181,6 +183,12 @@ function getNameForId(id: string, context: string[]): string {
   if (parentSegment === 'payments') {
     const payment = mockPayments.find((p) => p.id === numericId);
     if (payment) return payment.paymentNumber;
+  }
+
+  // Invoices
+  if (parentSegment === 'invoices') {
+    const invoice = mockInvoices.find((i) => i.id === numericId);
+    if (invoice) return invoice.invoiceNumber;
   }
 
   // Default fallback
