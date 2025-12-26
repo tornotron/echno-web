@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { Budget } from '@/types/finance/budget';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -25,6 +26,7 @@ import {
   mockInspections,
   mockLabour,
   mockAssets,
+  mockBudgets,
   mockLocations,
   mockPurchaseOrders,
   mockMaterialRequests,
@@ -77,6 +79,7 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   payments: 'Payments',
   invoices: 'Invoices',
   expenses: 'Expenses',
+  budgets: 'Budgets',
 };
 
 // Helper function to check if a string is likely an ID
@@ -135,6 +138,12 @@ function getNameForId(id: string, context: string[]): string {
   if (parentSegment === 'assets') {
     const asset = mockAssets.find((a) => a.id === numericId);
     if (asset) return asset.name;
+  }
+
+  // Budgets
+  if (parentSegment === 'budgets') {
+    const budget = mockBudgets.find((b: Budget) => b.id === numericId);
+    if (budget) return budget.budgetNumber;
   }
 
   if (parentSegment === 'locations') {
