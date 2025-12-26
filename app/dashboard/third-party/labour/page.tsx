@@ -93,7 +93,11 @@ export default function LabourPage() {
 
   // Get unique projects for filter
   const uniqueProjects = [
-    ...new Set(mockLabour.map((l) => l.currentProject).filter(Boolean)),
+    ...new Set(
+      mockLabour
+        .map((l) => l.currentProject)
+        .filter((p): p is string => p !== undefined && p !== null)
+    ),
   ].toSorted();
 
   // Filter data
