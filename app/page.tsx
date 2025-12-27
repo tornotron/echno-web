@@ -75,27 +75,17 @@ function HomeContent() {
       {/* Hero Section */}
       <section className="relative px-4 py-20 sm:py-32">
         <div className="mx-auto max-w-7xl text-center">
-          <div className="mb-8 flex justify-center">
-            <Image
-              src="/echno.png"
-              alt="Echno Logo"
-              width={80}
-              height={80}
-              className="dark:invert"
-            />
-          </div>
-
           <h1 className="mb-6 text-4xl font-bold tracking-tight text-zinc-900 sm:text-6xl lg:text-7xl dark:text-zinc-100">
             Modern
             <span className="block bg-gradient-to-r from-zinc-600 to-zinc-900 bg-clip-text text-transparent dark:from-zinc-400 dark:to-zinc-100">
-              Attendance Management
+              Construction Business Management
             </span>
           </h1>
 
           <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-zinc-600 sm:text-xl dark:text-zinc-400">
-            Streamline your organization&apos;s attendance tracking with our
-            comprehensive system. Real-time monitoring, automated reporting, and
-            seamless employee management.
+            Streamline your construction business operations with our
+            comprehensive system. Real-time project monitoring, automated
+            reporting, and seamless team management.
           </p>
 
           <div className="mb-16 flex flex-col justify-center gap-4 sm:flex-row">
@@ -135,11 +125,11 @@ function HomeContent() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <h2 className="mb-4 text-3xl font-bold text-zinc-900 sm:text-4xl dark:text-zinc-100">
-              Everything you need for attendance management
+              Everything you need for Construction Business Management
             </h2>
             <p className="mx-auto max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-              Powerful features designed to simplify attendance tracking and
-              improve workplace efficiency.
+              Powerful features designed to simplify construction management and
+              improve project efficiency.
             </p>
           </div>
 
@@ -236,7 +226,7 @@ function HomeContent() {
       <section className="bg-zinc-900 px-6 py-20 dark:bg-black">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">
-            Ready to transform your attendance management?
+            Ready to Transform your Construction Business Management?
           </h2>
           <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-300">
             Join thousands of organizations already using Echno to streamline
@@ -268,7 +258,8 @@ function HomeContent() {
             </span>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            © {currentYear} Echno. Modern attendance management for the future.
+            © {currentYear} Echno. Modern construction business management for
+            the future.
           </p>
         </div>
       </footer>
