@@ -76,176 +76,192 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { title: 'Dashboard', url: '/dashboard', icon: Home },
+  { title: 'Dashboard', url: '/users/dashboard', icon: Home },
   {
     title: 'Projects',
-    url: '/dashboard/projects',
+    url: '/users/dashboard/projects',
     icon: FolderKanban,
     items: [
-      { title: 'All Projects', url: '/dashboard/projects', icon: FolderKanban },
+      {
+        title: 'All Projects',
+        url: '/users/dashboard/projects',
+        icon: FolderKanban,
+      },
       {
         title: 'Inspections',
-        url: '/dashboard/projects/inspections',
+        url: '/users/dashboard/projects/inspections',
         icon: ClipboardCheck,
       },
     ],
   },
   {
     title: 'Workforce',
-    url: '/dashboard/workforce',
+    url: '/users/dashboard/workforce',
     icon: Users,
     items: [
       {
         title: 'Employees',
-        url: '/dashboard/workforce/employees',
+        url: '/users/dashboard/workforce/employees',
         icon: Users,
       },
       {
         title: 'Invitations',
-        url: '/dashboard/workforce/invitations',
+        url: '/users/dashboard/workforce/invitations',
         icon: Mail,
       },
       {
         title: 'Attendance',
-        url: '/dashboard/workforce/attendance',
+        url: '/users/dashboard/workforce/attendance',
         icon: UserCheck,
       },
       {
         title: 'Leave Requests',
-        url: '/dashboard/workforce/leaves',
+        url: '/users/dashboard/workforce/leaves',
         icon: Calendar,
       },
     ],
   },
   {
     title: 'Third Party',
-    url: '/dashboard/third-party',
+    url: '/users/dashboard/third-party',
     icon: Handshake,
     items: [
-      { title: 'Labour', url: '/dashboard/third-party/labour', icon: HardHat },
+      {
+        title: 'Labour',
+        url: '/users/dashboard/third-party/labour',
+        icon: HardHat,
+      },
       {
         title: 'Sub-Contracts',
-        url: '/dashboard/third-party/sub-contracts',
+        url: '/users/dashboard/third-party/sub-contracts',
         icon: ClipboardList,
       },
       {
         title: 'Vendors',
-        url: '/dashboard/third-party/vendors',
+        url: '/users/dashboard/third-party/vendors',
         icon: Package,
       },
     ],
   },
   {
     title: 'Resources',
-    url: '/dashboard/resources',
+    url: '/users/dashboard/resources',
     icon: Boxes,
     items: [
       {
         title: 'Inventory',
-        url: '/dashboard/resources/inventory',
+        url: '/users/dashboard/resources/inventory',
         icon: Warehouse,
       },
       {
         title: 'Assets',
-        url: '/dashboard/resources/assets',
+        url: '/users/dashboard/resources/assets',
         icon: PackageCheck,
       },
       {
         title: 'Locations',
-        url: '/dashboard/resources/locations',
+        url: '/users/dashboard/resources/locations',
         icon: MapPin,
       },
       {
         title: 'Purchase Orders',
-        url: '/dashboard/resources/purchase-orders',
+        url: '/users/dashboard/resources/purchase-orders',
         icon: ShoppingCart,
       },
       {
         title: 'Goods Receipts',
-        url: '/dashboard/resources/goods-receipts',
+        url: '/users/dashboard/resources/goods-receipts',
         icon: PackageCheck,
       },
       {
         title: 'Material Requests',
-        url: '/dashboard/resources/material-requests',
+        url: '/users/dashboard/resources/material-requests',
         icon: ClipboardList,
       },
       {
         title: 'Transfers',
-        url: '/dashboard/resources/transfers',
+        url: '/users/dashboard/resources/transfers',
         icon: ArrowLeftRight,
       },
       {
         title: 'Stock Adjustments',
-        url: '/dashboard/resources/stock-adjustments',
+        url: '/users/dashboard/resources/stock-adjustments',
         icon: TrendingUp,
       },
     ],
   },
   {
     title: 'Finance',
-    url: '/dashboard/finance',
+    url: '/users/dashboard/finance',
     icon: Wallet,
     items: [
       {
         title: 'Estimates',
-        url: '/dashboard/finance/estimates',
+        url: '/users/dashboard/finance/estimates',
         icon: FileText,
       },
-      { title: 'Receipts', url: '/dashboard/finance/receipts', icon: Receipt },
+      {
+        title: 'Receipts',
+        url: '/users/dashboard/finance/receipts',
+        icon: Receipt,
+      },
       {
         title: 'Payments',
-        url: '/dashboard/finance/payments',
+        url: '/users/dashboard/finance/payments',
         icon: CreditCard,
       },
       {
         title: 'Invoices',
-        url: '/dashboard/finance/invoices',
+        url: '/users/dashboard/finance/invoices',
         icon: FileSpreadsheet,
       },
       {
         title: 'Expenses',
-        url: '/dashboard/finance/expenses',
+        url: '/users/dashboard/finance/expenses',
         icon: TrendingDown,
       },
-      { title: 'Budgets', url: '/dashboard/finance/budgets', icon: PiggyBank },
+      {
+        title: 'Budgets',
+        url: '/users/dashboard/finance/budgets',
+        icon: PiggyBank,
+      },
     ],
   },
   /*
   {
     title: 'Compliance',
-    url: '/dashboard/compliance',
+    url: '/users/dashboard/compliance',
     icon: ShieldCheck,
     items: [
       {
         title: 'Permits & Licenses',
-        url: '/dashboard/compliance/permits',
+        url: '/users/dashboard/compliance/permits',
         icon: FileText,
       },
       {
         title: 'Certificates',
-        url: '/dashboard/compliance/certificates',
+        url: '/users/dashboard/compliance/certificates',
         icon: CheckCircle2,
       },
       {
         title: 'Regulations',
-        url: '/dashboard/compliance/regulations',
+        url: '/users/dashboard/compliance/regulations',
         icon: ClipboardList,
       },
       {
         title: 'Audits',
-        url: '/dashboard/compliance/audits',
+        url: '/users/dashboard/compliance/audits',
         icon: ClipboardCheck,
       },
       {
         title: 'Reports',
-        url: '/dashboard/compliance/reports',
+        url: '/users/dashboard/compliance/reports',
         icon: FileSpreadsheet,
       },
     ],
   },
-  { title: 'Reports', url: '/dashboard/reports', icon: BarChart3 },
-  { title: 'Documents', url: '/dashboard/documents', icon: FileText },
+  { title: 'Reports', url: '/users/dashboard/reports', icon: BarChart3 },
+  { title: 'Documents', url: '/users/dashboard/documents', icon: FileText },
   */
 ];
 

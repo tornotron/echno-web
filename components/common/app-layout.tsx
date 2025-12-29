@@ -27,7 +27,7 @@ function AppLayoutContent({ children }: AppLayoutProps) {
             <div className="flex items-center gap-4">
               <Button variant="outline" asChild>
                 <Link
-                  href="/dashboard/organizations"
+                  href="/users/dashboard/organizations"
                   className="flex items-center gap-2"
                 >
                   <Building className="h-4 w-4" />
@@ -35,7 +35,7 @@ function AppLayoutContent({ children }: AppLayoutProps) {
                 </Link>
               </Button>
               <Button variant="ghost" size="icon" asChild>
-                <Link href="/dashboard/settings">
+                <Link href="/users/dashboard/settings">
                   <Settings className="h-5 w-5" />
                 </Link>
               </Button>

@@ -49,7 +49,6 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   profile: 'Profile',
   login: 'Login',
   settings: 'Settings',
-  users: 'Users',
   admin: 'Admin',
   employees: 'Employees',
   organizations: 'Organizations',
@@ -69,11 +68,11 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   resources: 'Resources',
   inventory: 'Inventory',
   locations: 'Locations',
-  'purchase-orders': 'Purchase-Orders',
+  'purchase-orders': 'Purchase Orders',
   'material-requests': 'Material Requests',
   'stock-adjustments': 'Stock Adjustments',
   transfers: 'Transfers',
-  'goods-receipts': 'Goods-receipts',
+  'goods-receipts': 'Goods Receipts',
   finance: 'Finance',
   receipts: 'Receipts',
   payments: 'Payments',
@@ -81,6 +80,16 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   expenses: 'Expenses',
   budgets: 'Budgets',
 };
+
+// Segments that should NEVER appear in breadcrumbs
+const hiddenSegments = new Set(['users', 'dashboard']);
+
+// Segments that should appear but not be clickable
+const nonInteractiveSegments = new Set([
+  'workforce',
+  'third-party',
+  'resources',
+]);
 
 // Helper function to check if a string is likely an ID
 function isIdSegment(segment: string): boolean {
@@ -95,141 +104,93 @@ function isIdSegment(segment: string): boolean {
 // Helper function to get the name for an ID based on context
 function getNameForId(id: string, context: string[]): string {
   const numericId = Number.parseInt(id, 10);
-
-  // Get the immediate parent segment (the segment right before the ID)
   const parentSegment = context.at(-1);
 
-  // Determine the entity type based on the immediate parent
   if (parentSegment === 'projects') {
-    const project = mockProjects.find((p) => p.id === numericId);
-    if (project) return project.projectName;
+    return mockProjects.find((p) => p.id === numericId)?.projectName ?? id;
   }
-
   if (parentSegment === 'tasks') {
-    const task = mockTasks.find((t) => t.id === numericId);
-    if (task) return task.title;
+    return mockTasks.find((t) => t.id === numericId)?.title ?? id;
   }
-
   if (parentSegment === 'issues') {
-    const issue = mockIssues.find((i) => i.id === numericId);
-    if (issue) return issue.title;
+    return mockIssues.find((i) => i.id === numericId)?.title ?? id;
   }
-
-  if (parentSegment === 'employees') {
-    const employee = mockMembers.find((m) => m.id === numericId);
-    if (employee) return employee.memberName || 'Employee';
+  if (parentSegment === 'employees' || parentSegment === 'attendance') {
+    return (
+      mockMembers.find((m) => m.id === numericId)?.memberName ?? 'Employee'
+    );
   }
-
   if (parentSegment === 'inspections') {
-    const inspection = mockInspections.find((i) => i.id === numericId);
-    if (inspection) return inspection.title;
+    return mockInspections.find((i) => i.id === numericId)?.title ?? id;
   }
-
   if (parentSegment === 'labour') {
-    const labour = mockLabour.find((l) => l.id === numericId);
-    if (labour) return labour.name;
+    return mockLabour.find((l) => l.id === numericId)?.name ?? id;
   }
-
-  if (parentSegment === 'attendance') {
-    const employee = mockMembers.find((m) => m.id === numericId);
-    if (employee) return employee.memberName || 'Employee';
-  }
-
   if (parentSegment === 'assets') {
-    const asset = mockAssets.find((a) => a.id === numericId);
-    if (asset) return asset.name;
+    return mockAssets.find((a) => a.id === numericId)?.name ?? id;
   }
-
-  // Budgets
   if (parentSegment === 'budgets') {
-    const budget = mockBudgets.find((b: Budget) => b.id === numericId);
-    if (budget) return budget.budgetNumber;
+    return (
+      mockBudgets.find((b: Budget) => b.id === numericId)?.budgetNumber ?? id
+    );
   }
-
   if (parentSegment === 'locations') {
-    const location = mockLocations.find((l) => l.id === numericId);
-    if (location) return location.name;
+    return mockLocations.find((l) => l.id === numericId)?.name ?? id;
   }
-
   if (parentSegment === 'purchase-orders') {
-    const po = mockPurchaseOrders.find((p) => p.id === numericId);
-    if (po) return po.poNumber;
+    return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber ?? id;
   }
-
   if (parentSegment === 'material-requests') {
-    const mr = mockMaterialRequests.find((m) => m.id === numericId);
-    if (mr) return mr.requestNumber;
+    return (
+      mockMaterialRequests.find((m) => m.id === numericId)?.requestNumber ?? id
+    );
   }
-
   if (parentSegment === 'transfers') {
-    const transfer = mockTransfers.find((t) => t.id === numericId);
-    if (transfer) return transfer.transferNumber;
+    return mockTransfers.find((t) => t.id === numericId)?.transferNumber ?? id;
   }
-
-  // Stock adjustments
   if (parentSegment === 'stock-adjustments') {
-    const sa = mockStockAdjustments.find((s) => s.id === numericId);
-    if (sa) return sa.adjustmentNumber;
+    return (
+      mockStockAdjustments.find((s) => s.id === numericId)?.adjustmentNumber ??
+      id
+    );
   }
-
-  // Goods receipts
   if (parentSegment === 'goods-receipts') {
-    const grn = mockGoodsReceipts.find((g) => g.id === numericId);
-    if (grn) return grn.receiptNumber;
+    return (
+      mockGoodsReceipts.find((g) => g.id === numericId)?.receiptNumber ?? id
+    );
   }
-
-  // Estimates
   if (parentSegment === 'estimates') {
-    const estimate = mockEstimates.find((e) => e.id === numericId);
-    if (estimate) return estimate.estimateNumber;
+    return mockEstimates.find((e) => e.id === numericId)?.estimateNumber ?? id;
   }
-
-  // Receipts
   if (parentSegment === 'receipts') {
-    const receipt = mockReceipts.find((r) => r.id === numericId);
-    if (receipt) return receipt.receiptNumber;
+    return mockReceipts.find((r) => r.id === numericId)?.receiptNumber ?? id;
   }
-
-  // Payments
   if (parentSegment === 'payments') {
-    const payment = mockPayments.find((p) => p.id === numericId);
-    if (payment) return payment.paymentNumber;
+    return mockPayments.find((p) => p.id === numericId)?.paymentNumber ?? id;
   }
-
-  // Invoices
   if (parentSegment === 'invoices') {
-    const invoice = mockInvoices.find((i) => i.id === numericId);
-    if (invoice) return invoice.invoiceNumber;
+    return mockInvoices.find((i) => i.id === numericId)?.invoiceNumber ?? id;
   }
-
-  // Expenses
   if (parentSegment === 'expenses') {
-    const expense = mockExpenses.find((e) => e.id === numericId);
-    if (expense) return expense.expenseNumber;
+    return mockExpenses.find((e) => e.id === numericId)?.expenseNumber ?? id;
   }
 
-  // Default fallback
   return id;
 }
 
-// Helper function to truncate text with ellipsis
+// Helper function to truncate text
 function truncateText(text: string, maxLength: number = 30): string {
-  if (text.length <= maxLength) return text;
-  return text.slice(0, Math.max(0, maxLength)) + '...';
+  return text.length <= maxLength ? text : text.slice(0, maxLength) + '...';
 }
 
 export function Breadcrumbs() {
   const pathname = usePathname();
 
-  // Don't show breadcrumbs on home page or login page
-  if (pathname === '/' || pathname === '/login') {
-    return null;
-  }
+  if (pathname === '/' || pathname === '/login') return null;
 
-  const pathSegments = pathname.split('/').filter((segment) => segment !== '');
+  const pathSegments = pathname.split('/').filter(Boolean);
 
-  // If we're on dashboard, show just "Dashboard"
-  if (pathname === '/dashboard') {
+  if (pathname === '/users/dashboard') {
     return (
       <Breadcrumb className="text-base">
         <BreadcrumbList>
@@ -241,71 +202,44 @@ export function Breadcrumbs() {
     );
   }
 
-  // Segments that should not be clickable (category segments without their own pages)
-  const nonInteractiveSegments = new Set([
-    'workforce',
-    'third-party',
-    'resources',
-  ]);
-
-  // Build breadcrumb items, excluding "dashboard" since we add it separately
   const filteredSegments = pathSegments.filter(
-    (segment) => segment !== 'dashboard'
+    (segment) => !hiddenSegments.has(segment)
   );
 
   const breadcrumbItems = filteredSegments
     .map((segment, index) => {
-      // Calculate the actual position in the original pathSegments array
-      // We need to account for the 'dashboard' segment that was filtered out
       const actualIndex = pathSegments.findIndex((seg, idx) => {
-        // Count how many segments we've seen up to this point in filtered array
-        const filteredUpToNow = pathSegments
+        const visibleUpToNow = pathSegments
           .slice(0, idx + 1)
-          .filter((s) => s !== 'dashboard').length;
-        return seg === segment && filteredUpToNow === index + 1;
+          .filter((s) => !hiddenSegments.has(s)).length;
+        return seg === segment && visibleUpToNow === index + 1;
       });
 
       const href = '/' + pathSegments.slice(0, actualIndex + 1).join('/');
       const isLast = index === filteredSegments.length - 1;
-
-      // Get context (all segments before this one in the original path)
       const context = pathSegments.slice(0, actualIndex);
 
-      // Determine the label
-      let label: string;
-      let fullName: string;
-      if (isIdSegment(segment)) {
-        // If it's an ID, get the actual name
-        fullName = getNameForId(segment, context);
-        label = truncateText(fullName);
-      } else {
-        // Use the mapping or capitalize
-        fullName =
-          breadcrumbNameMap[segment] ||
-          segment.charAt(0).toUpperCase() + segment.slice(1);
-        label = fullName;
-      }
+      const fullName = isIdSegment(segment)
+        ? getNameForId(segment, context)
+        : (breadcrumbNameMap[segment] ??
+          segment.charAt(0).toUpperCase() + segment.slice(1));
 
-      const isNonInteractive = nonInteractiveSegments.has(segment);
-      const isTruncated = label !== fullName;
+      const label = truncateText(fullName);
 
       return {
         href,
         label,
         fullName,
         isLast,
-        segment, // Keep track of the segment name
-        isNonInteractive, // Mark if this should not be clickable
-        isTruncated, // Mark if the label is truncated
+        isNonInteractive: nonInteractiveSegments.has(segment),
+        isTruncated: label !== fullName,
       };
     })
-    // Remove consecutive duplicates (e.g., if both "workforce" segment and "Workforce" label exist)
-    .filter((item, index, array) => {
-      if (index === 0) return true;
-      const prevLabel = array[index - 1].label.toLowerCase();
-      const currLabel = item.label.toLowerCase();
-      return prevLabel !== currLabel;
-    });
+    .filter(
+      (item, index, arr) =>
+        index === 0 ||
+        arr[index - 1].label.toLowerCase() !== item.label.toLowerCase()
+    );
 
   return (
     <TooltipProvider>
@@ -313,7 +247,7 @@ export function Breadcrumbs() {
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/users/dashboard">Dashboard</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
 
@@ -329,9 +263,7 @@ export function Breadcrumbs() {
                           {item.label}
                         </BreadcrumbPage>
                       </TooltipTrigger>
-                      <TooltipContent>
-                        <p>{item.fullName}</p>
-                      </TooltipContent>
+                      <TooltipContent>{item.fullName}</TooltipContent>
                     </Tooltip>
                   ) : (
                     <BreadcrumbPage>{item.label}</BreadcrumbPage>
@@ -343,9 +275,7 @@ export function Breadcrumbs() {
                         <Link href={item.href}>{item.label}</Link>
                       </BreadcrumbLink>
                     </TooltipTrigger>
-                    <TooltipContent>
-                      <p>{item.fullName}</p>
-                    </TooltipContent>
+                    <TooltipContent>{item.fullName}</TooltipContent>
                   </Tooltip>
                 ) : (
                   <BreadcrumbLink asChild>
