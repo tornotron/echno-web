@@ -1,39 +1,40 @@
-import { DefaultSession, DefaultUser } from "next-auth"
-import { JWT as DefaultJWT } from "next-auth/jwt"
+import { DefaultSession, DefaultUser } from 'next-auth';
+import { JWT as DefaultJWT } from 'next-auth/jwt';
+import { Permission } from './rbac';
 
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session {
-    accessToken?: string
-    idToken?: string
-    refreshToken?: string
-    provider?: string
-    keycloakIssuer?: string
-    error?: string
-    lastRefresh?: number
+    provider?: string;
+    error?: string;
+    expiresAt?: number;
+    sessionId?: string;
     user: {
-      id: string
-      role?: string
-    } & DefaultSession["user"]
+      id: string;
+      roles: string[];
+    } & DefaultSession['user'];
   }
 
   interface User extends DefaultUser {
-    id: string
-    role?: string
-    accessToken?: string
+    id: string;
+    // NEW: Multiple roles support
+    roles: string[];
+    accessToken?: string;
   }
 }
 
-declare module "next-auth/jwt" {
+declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
-    userId?: string
-    role?: string
-    accessToken?: string
-    idToken?: string
-    refreshToken?: string
-    provider?: string
-    keycloakIssuer?: string
-    expiresAt?: number
-    lastRefresh?: number
-    error?: string
+    userId?: string;
+    roles?: string[];
+    permissions?: Permission[];
+    accessToken?: string;
+    idToken?: string;
+    refreshToken?: string;
+    provider?: string;
+    keycloakIssuer?: string;
+    expiresAt?: number;
+    lastRefresh?: number;
+    error?: string;
+    sessionId?: string;
   }
 }
