@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { parseUser } from '@/types/user/user';
 import { createErrorResponse, parseErrorResponse } from '@/lib/utils/api-utils';
+import { getAccessToken } from '@/lib/auth/get-session-tokens';
 
 /**
  * GET /api/user
@@ -10,10 +11,11 @@ import { createErrorResponse, parseErrorResponse } from '@/lib/utils/api-utils';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Get session with access token
+    // Get session and access token
     const session = await auth();
+    const accessToken = await getAccessToken();
 
-    if (!session || !session.accessToken) {
+    if (!session || !accessToken) {
       const errorResponse = createErrorResponse(
         'Unauthorized',
         'No valid session found',
@@ -33,7 +35,7 @@ export async function GET(request: NextRequest) {
     const response = await fetch(endpoint, {
       method: 'GET',
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       // Don't cache user data - always fetch fresh
@@ -86,8 +88,9 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     const session = await auth();
+    const accessToken = await getAccessToken();
 
-    if (!session || !session.accessToken) {
+    if (!session || !accessToken) {
       const errorResponse = createErrorResponse(
         'Unauthorized',
         'No valid session found',
@@ -139,7 +142,7 @@ export async function PATCH(request: NextRequest) {
     const response = await fetch(endpoint, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${session.accessToken}`,
+        Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
