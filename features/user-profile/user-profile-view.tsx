@@ -92,7 +92,7 @@ export function UserProfileView({
                 </div>
                 <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <Badge variant="default" className="text-xs">
-                    {getRoleDisplayName(user.role)}
+                    {getRoleDisplayName(user.roles?.[0] || '')}
                   </Badge>
                   {user.organizations && user.organizations.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
@@ -135,9 +135,9 @@ export function UserProfileView({
                     'h-full transition-all duration-500',
                     completionPercentage >= 80
                       ? 'bg-green-500'
-                      : (completionPercentage >= 50
+                      : completionPercentage >= 50
                         ? 'bg-yellow-500'
-                        : 'bg-red-500')
+                        : 'bg-red-500'
                   )}
                   style={{ width: `${completionPercentage}%` }}
                 />
@@ -236,7 +236,7 @@ export function UserProfileView({
             <InfoGrid columns={3}>
               <InfoField
                 label="Role"
-                value={getRoleDisplayName(user.role)}
+                value={getRoleDisplayName(user.roles?.[0] || '')}
                 icon={<Briefcase className="h-4 w-4" />}
               />
               <InfoField

@@ -98,7 +98,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
     salary: employee.salary?.toString() || '',
     reportingManager: employee.reportingManager || '',
     shiftTiming: employee.shiftTiming || '',
-    role: employee.role,
+    role: employee.roles?.[0] || '',
 
     // Additional
     certifications: employee.certifications?.join(', ') || '',
