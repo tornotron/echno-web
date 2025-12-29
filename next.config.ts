@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/dashboard/:path*',
+        destination: '/users/dashboard/:path*',
+        permanent: true,
+      },
+    ];
   },
 };
 
