@@ -22,7 +22,7 @@ function HomeContent() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      router.push('/dashboard');
+      router.push('/users/dashboard');
     }
   }, [status, router]);
 
@@ -52,7 +52,7 @@ function HomeContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black">
+    <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black">
       {/* Navigation */}
       <nav className="relative z-10 px-4 py-4">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
@@ -77,7 +77,7 @@ function HomeContent() {
         <div className="mx-auto max-w-7xl text-center">
           <h1 className="mb-6 text-4xl font-bold tracking-tight text-zinc-900 sm:text-6xl lg:text-7xl dark:text-zinc-100">
             Modern
-            <span className="block bg-gradient-to-r from-zinc-600 to-zinc-900 bg-clip-text text-transparent dark:from-zinc-400 dark:to-zinc-100">
+            <span className="block bg-linear-to-r from-zinc-600 to-zinc-900 bg-clip-text text-transparent dark:from-zinc-400 dark:to-zinc-100">
               Construction Business Management
             </span>
           </h1>
