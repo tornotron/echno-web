@@ -3,32 +3,80 @@
 import { signOut as nextAuthSignOut } from 'next-auth/react';
 import { Session } from 'next-auth';
 
+import { clearAllNextAuthCookies } from '../auth/cookie-cleanup';
+
+/**
+ * Enhanced sign out with Keycloak logout support
+ *
+ * This ensures:
+ * 1. Local NextAuth session is cleared
+ * 2. Keycloak SSO session is terminated (handled server-side)
+ * 3. User is logged out from all connected applications (via backchannel)
+ * 4. All cookies are properly cleaned up
+ * 5. Secure redirect back to login page
+ *
+ * Note: Keycloak logout is handled server-side in auth.ts events.signOut
+ * This avoids exposing tokens in the client session (reduces cookie size)
+ */
 export async function handleSignOut(session: Session | null) {
-  // Clear the login toast flag
-  localStorage.removeItem('loginToastShown');
+  try {
+    // Clear local storage
+    localStorage.removeItem('loginToastShown');
 
-  // If user is logged in via Keycloak, redirect to Keycloak logout
-  if (session?.provider === 'keycloak') {
-    const keycloakIssuer = session?.keycloakIssuer;
+    // Clear all NextAuth cookies immediately
+    clearAllNextAuthCookies();
 
-    if (keycloakIssuer && session?.idToken) {
-      const logoutUrl = `${keycloakIssuer}/protocol/openid-connect/logout`;
+    // Sign out from NextAuth (server will handle Keycloak logout)
+    // The events.signOut callback in auth.ts will:
+    // 1. Terminate Keycloak SSO session if provider is Keycloak
+    // 2. Clear refresh tokens
+    // 3. Trigger backchannel logout to other apps
+    await nextAuthSignOut({ callbackUrl: '/login?logout=success' });
+  } catch (error) {
+    console.error('[Logout] Error during sign out:', error);
 
-      // Build logout URL with parameters
-      const params = new URLSearchParams({
-        id_token_hint: session.idToken,
-        post_logout_redirect_uri: `${globalThis.location.origin}/login`,
-      });
-
-      // Sign out from NextAuth first
-      await nextAuthSignOut({ redirect: false });
-
-      // Redirect to Keycloak logout (this will terminate the SSO session)
-      globalThis.location.href = `${logoutUrl}?${params.toString()}`;
-      return;
-    }
+    // Fallback: force redirect to login
+    globalThis.location.href = '/login?error=logout_failed';
   }
+}
 
-  // For credentials login or if Keycloak logout fails, use regular NextAuth signOut
-  await nextAuthSignOut({ callbackUrl: '/login?logout=success' });
+/**
+ * Silent logout (no redirect, just clear session)
+ * Useful for session expiration or background logout
+ */
+export async function silentLogout() {
+  try {
+    localStorage.removeItem('loginToastShown');
+    await nextAuthSignOut({ redirect: false });
+  } catch (error) {
+    console.error('[Logout] Silent logout failed:', error);
+  }
+}
+
+/**
+ * Force logout with immediate redirect
+ * Use when session is invalid or compromised
+ */
+export async function forceLogout(reason = 'session_invalid') {
+  try {
+    // Clear all cookies
+    clearAllNextAuthCookies();
+
+    // Clear all local storage
+    localStorage.clear();
+
+    // Sign out from NextAuth
+    await nextAuthSignOut({ redirect: false });
+
+    // Small delay to ensure cleanup
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    // Redirect
+    globalThis.location.href = `/login?error=${reason}`;
+  } catch (error) {
+    console.error('[Logout] Force logout failed:', error);
+    // Fallback: force redirect
+    clearAllNextAuthCookies();
+    globalThis.location.href = '/login';
+  }
 }

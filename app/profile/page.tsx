@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { fetchUserProfileFromBackend } from '@/lib/api/user-api';
 import { AppLayout } from '@/components/common/app-layout';
 import { ProfilePageClient } from './profile-client';
+import { getAccessToken } from '@/lib/auth/get-session-tokens';
 
 /**
  * Server Component: Fetches user profile data from backend
@@ -18,13 +19,14 @@ import { ProfilePageClient } from './profile-client';
 async function getUserProfile(): Promise<User | null> {
   try {
     const session = await auth();
+    const accessToken = await getAccessToken();
 
-    if (!session || !session.accessToken) {
+    if (!session || !accessToken) {
       return null;
     }
 
     // Fetch directly from backend using the dedicated API service
-    const user = await fetchUserProfileFromBackend(session.accessToken);
+    const user = await fetchUserProfileFromBackend(accessToken);
     return user;
   } catch (error) {
     console.error('Error fetching user profile:', error);
