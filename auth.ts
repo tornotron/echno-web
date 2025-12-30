@@ -5,6 +5,7 @@ import Credentials from 'next-auth/providers/credentials';
 import { jwtDecode } from 'jwt-decode';
 import { getRolePermissions } from '@/lib/rbac/permissions';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
+import { normalizeRolesWithMapping } from '@/lib/rbac/role-normalizer';
 
 interface KeycloakToken {
   accessToken?: string;
@@ -143,11 +144,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null;
           }
 
+          // Normalize role names from backend (hyphenated) to app format (camelCase)
+          const backendRoles =
+            data.user.roles || [data.user.role].filter(Boolean);
+          const normalizedRoles = normalizeRolesWithMapping(backendRoles);
+
           return {
             id: String(data.user.id),
             email: data.user.email,
             name: data.user.name,
-            roles: data.user.roles || [data.user.role].filter(Boolean),
+            roles: normalizedRoles,
             role: data.user.role,
             accessToken: data.access_token,
           };
@@ -208,8 +214,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // Combine realm and resource roles
           const keycloakRoles = [...realmRoles, ...resourceRoles];
 
-          // Map Keycloak roles to your system roles (or use directly)
-          token.roles = keycloakRoles;
+          // Normalize role names from Keycloak (hyphenated) to app format (camelCase)
+          // e.g., "project-manager" → "projectManager", "super-admin" → "super_admin"
+          token.roles = normalizeRolesWithMapping(keycloakRoles);
 
           // Compute permissions from roles
           token.permissions = getRolePermissions(keycloakRoles);
