@@ -1,15 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { jwtDecode } from 'jwt-decode';
+import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { revokeSession } from '@/lib/auth/session-revocation';
 
 interface LogoutToken {
   sid?: string;
   sub?: string;
   iat?: number;
+  iss?: string;
   aud?: string | string[];
   events?: Record<string, unknown>;
   [key: string]: unknown;
 }
+
+// Cache JWKS remote set to avoid fetching on every request
+const JWKS = createRemoteJWKSet(
+  new URL(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/certs`)
+);
 
 /**
  * Keycloak Backchannel Logout Endpoint
@@ -37,19 +43,60 @@ export async function POST(req: NextRequest) {
       return new NextResponse('Bad Request', { status: 400 });
     }
 
-    // Decode the logout token
+    // Verify and decode the logout token with signature verification
     try {
-      const decoded = jwtDecode<LogoutToken>(logoutToken);
+      const expectedIssuer = process.env.KEYCLOAK_ISSUER;
+      const expectedAudience = process.env.KEYCLOAK_ID;
+
+      if (!expectedIssuer || !expectedAudience) {
+        console.error(
+          '[Backchannel Logout] Missing KEYCLOAK_ISSUER or KEYCLOAK_ID environment variables'
+        );
+        return new NextResponse('Server Configuration Error', { status: 500 });
+      }
+
+      // Verify JWT signature and validate claims
+      const { payload } = await jwtVerify(logoutToken, JWKS, {
+        issuer: expectedIssuer, // Validate issuer matches Keycloak realm
+        audience: expectedAudience, // Validate audience contains client ID
+        // clockTolerance allows for small time differences (5 minutes)
+        clockTolerance: 300,
+      });
+
+      const decoded = payload as LogoutToken;
 
       console.log('[Backchannel Logout] Received logout request:', {
         sid: decoded.sid, // Session ID
         sub: decoded.sub, // User ID (subject)
         iat: decoded.iat, // Issued at
+        iss: decoded.iss, // Issuer
         aud: decoded.aud, // Audience (client ID)
         events: decoded.events, // Logout event type
       });
 
-      // Validate the logout token
+      // Validate issued-at time is within acceptable bounds (not too old)
+      if (decoded.iat) {
+        const now = Math.floor(Date.now() / 1000);
+        const iatAge = now - decoded.iat;
+        const maxAge = 600; // 10 minutes max age
+
+        if (iatAge > maxAge) {
+          console.error(
+            `[Backchannel Logout] Token too old: issued ${iatAge}s ago (max ${maxAge}s)`
+          );
+          return new NextResponse('Token Expired', { status: 400 });
+        }
+
+        if (iatAge < -300) {
+          // Token issued more than 5 minutes in the future
+          console.error(
+            `[Backchannel Logout] Token issued in the future: ${iatAge}s`
+          );
+          return new NextResponse('Invalid Token Time', { status: 400 });
+        }
+      }
+
+      // Validate the logout event claim
       if (
         !decoded.events ||
         !decoded.events['http://schemas.openid.net/event/backchannel-logout']
@@ -77,9 +124,23 @@ export async function POST(req: NextRequest) {
       return new NextResponse('OK', { status: 200 });
     } catch (error) {
       console.error(
-        '[Backchannel Logout] Failed to decode logout token:',
+        '[Backchannel Logout] Failed to verify logout token:',
         error
       );
+
+      // Provide more specific error message
+      if (error instanceof Error) {
+        if (error.message.includes('signature')) {
+          return new NextResponse('Invalid Token Signature', { status: 400 });
+        }
+        if (error.message.includes('issuer')) {
+          return new NextResponse('Invalid Token Issuer', { status: 400 });
+        }
+        if (error.message.includes('audience')) {
+          return new NextResponse('Invalid Token Audience', { status: 400 });
+        }
+      }
+
       return new NextResponse('Invalid Token', { status: 400 });
     }
   } catch (error) {
