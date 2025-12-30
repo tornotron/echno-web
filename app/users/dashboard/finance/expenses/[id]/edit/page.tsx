@@ -462,9 +462,7 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
               Update Expense
             </Button>
             <Button variant="outline" asChild>
-              <Link
-                href={`/app/users/dashboard/finance/expenses/${expense.id}`}
-              >
+              <Link href={`/users/dashboard/finance/expenses/${expense.id}`}>
                 <X className="mr-2 h-4 w-4" />
                 Cancel
               </Link>

@@ -335,7 +335,7 @@ export default function TransfersPage() {
                 {paginatedTransfers.map((transfer) => (
                   <Link
                     key={transfer.id}
-                    href={`/app/users/dashboard/resources/transfers/${transfer.id}`}
+                    href={`/users/dashboard/resources/transfers/${transfer.id}`}
                     className="block"
                   >
                     <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">

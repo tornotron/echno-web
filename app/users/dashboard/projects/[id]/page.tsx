@@ -216,7 +216,7 @@ export default function ProjectDashboardPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" asChild>
-              <Link href={`/app/users/dashboard/projects/${project.id}/edit`}>
+              <Link href={`/users/dashboard/projects/${project.id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Project
               </Link>
@@ -299,7 +299,7 @@ export default function ProjectDashboardPage() {
 
         {/* Key Metrics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Link href={`/app/users/dashboard/projects/${project.id}/tasks`}>
+          <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
             <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -316,7 +316,7 @@ export default function ProjectDashboardPage() {
             </Card>
           </Link>
 
-          <Link href={`/app/users/dashboard/projects/${project.id}/issues`}>
+          <Link href={`/users/dashboard/projects/${project.id}/issues`}>
             <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -426,7 +426,7 @@ export default function ProjectDashboardPage() {
                   <p>No tasks yet. Create tasks to track project progress.</p>
                   <Button variant="outline" size="sm" className="mt-4" asChild>
                     <Link
-                      href={`/app/users/dashboard/projects/${project.id}/tasks`}
+                      href={`/users/dashboard/projects/${project.id}/tasks`}
                     >
                       <ListTodo className="mr-2 h-4 w-4" />
                       Create Task
@@ -451,7 +451,7 @@ export default function ProjectDashboardPage() {
                   asChild
                 >
                   <Link
-                    href={`/app/users/dashboard/projects/${project.id}/tasks/new`}
+                    href={`/users/dashboard/projects/${project.id}/tasks/new`}
                   >
                     <ListTodo className="mr-2 h-4 w-4" />
                     Create Task
@@ -473,7 +473,7 @@ export default function ProjectDashboardPage() {
                   asChild
                 >
                   <Link
-                    href={`/app/users/dashboard/projects/${project.id}/issues/new`}
+                    href={`/users/dashboard/projects/${project.id}/issues/new`}
                   >
                     <AlertCircle className="mr-2 h-4 w-4" />
                     Report Issue

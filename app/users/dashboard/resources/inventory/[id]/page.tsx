@@ -107,7 +107,7 @@ export default function InventoryDetailPage() {
           <div className="flex items-center gap-2">
             <Button variant="outline" asChild>
               <Link
-                href={`/app/users/dashboard/resources/inventory/${item.id}/edit`}
+                href={`/users/dashboard/resources/inventory/${item.id}/edit`}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -326,7 +326,7 @@ export default function InventoryDetailPage() {
                     {item.purchaseOrderIds.map((poId) => (
                       <Link
                         key={poId}
-                        href={`/app/users/dashboard/resources/purchase-orders/${poId}`}
+                        href={`/users/dashboard/resources/purchase-orders/${poId}`}
                         className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                       >
                         <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ export default function InventoryDetailPage() {
                     {item.goodsReceiptIds.map((grnId) => (
                       <Link
                         key={grnId}
-                        href={`/app/users/dashboard/resources/goods-receipts/${grnId}`}
+                        href={`/users/dashboard/resources/goods-receipts/${grnId}`}
                         className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                       >
                         <div className="flex items-center gap-2">
@@ -390,7 +390,7 @@ export default function InventoryDetailPage() {
                     {item.stockAdjustmentIds.map((adjId) => (
                       <Link
                         key={adjId}
-                        href={`/app/users/dashboard/resources/stock-adjustments/${adjId}`}
+                        href={`/users/dashboard/resources/stock-adjustments/${adjId}`}
                         className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                       >
                         <div className="flex items-center gap-2">
@@ -424,7 +424,7 @@ export default function InventoryDetailPage() {
                     {item.transferIds.map((transferId) => (
                       <Link
                         key={transferId}
-                        href={`/app/users/dashboard/resources/transfers/${transferId}`}
+                        href={`/users/dashboard/resources/transfers/${transferId}`}
                         className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                       >
                         <div className="flex items-center gap-2">
@@ -476,7 +476,7 @@ export default function InventoryDetailPage() {
                 )}
                 <Button variant="outline" size="sm" className="w-full" asChild>
                   <Link
-                    href={`/app/users/dashboard/resources/locations/${item.locationId}`}
+                    href={`/users/dashboard/resources/locations/${item.locationId}`}
                   >
                     <Building2 className="mr-2 h-4 w-4" />
                     View Location
@@ -577,7 +577,7 @@ export default function InventoryDetailPage() {
                         className="mt-2 w-full"
                       >
                         <Link
-                          href={`/app/users/dashboard/third-party/vendors/${vendor.id}`}
+                          href={`/users/dashboard/third-party/vendors/${vendor.id}`}
                         >
                           View Vendor Details
                         </Link>

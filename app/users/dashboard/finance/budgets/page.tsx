@@ -346,7 +346,7 @@ export default function BudgetsPage() {
                 {paginatedBudgets.map((budget, idx) => (
                   <Link
                     key={budget.id}
-                    href={`/app/users/dashboard/finance/budgets/${budget.id}`}
+                    href={`/users/dashboard/finance/budgets/${budget.id}`}
                     className={`block${idx === paginatedBudgets.length - 1 ? 'mb-2' : ''}`}
                   >
                     <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">

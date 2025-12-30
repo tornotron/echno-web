@@ -307,7 +307,7 @@ export default function EstimatesPage() {
                 {paginatedEstimates.map((estimate) => (
                   <Link
                     key={estimate.id}
-                    href={`/app/users/dashboard/finance/estimates/${estimate.id}`}
+                    href={`/users/dashboard/finance/estimates/${estimate.id}`}
                     className="block"
                   >
                     <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">

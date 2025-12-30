@@ -706,7 +706,7 @@ export default function EditAssetPage() {
                       {isSubmitting ? 'Saving...' : 'Save Changes'}
                     </Button>
                     <Link
-                      href={`/app/users/dashboard/resources/assets/${assetId}`}
+                      href={`/users/dashboard/resources/assets/${assetId}`}
                       className="block"
                     >
                       <Button

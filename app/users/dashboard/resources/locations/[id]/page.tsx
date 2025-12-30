@@ -122,7 +122,7 @@ export default function ViewLocationPage() {
             </div>
             <Button asChild>
               <Link
-                href={`/app/users/dashboard/resources/locations/${location.id}/edit`}
+                href={`/users/dashboard/resources/locations/${location.id}/edit`}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Location

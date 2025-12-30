@@ -171,9 +171,7 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
-              <Link
-                href={`/app/users/dashboard/finance/budgets/${budget.id}/edit`}
-              >
+              <Link href={`/users/dashboard/finance/budgets/${budget.id}/edit`}>
                 <Button>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
@@ -429,7 +427,7 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={`/app/users/dashboard/workforce/employees/${budget.preparedBy}`}
+                        href={`/users/dashboard/workforce/employees/${budget.preparedBy}`}
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {preparedByEmployee?.name ||
@@ -463,7 +461,7 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/app/users/dashboard/workforce/employees/${budget.approvedBy}`}
+                          href={`/users/dashboard/workforce/employees/${budget.approvedBy}`}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {approvedByEmployee?.name ||

@@ -143,7 +143,7 @@ export default function OrganizationDetailPage({
               </div>
             </div>
             <Link
-              href={`/app/users/dashboard/organizations/${organization.id}/edit`}
+              href={`/users/dashboard/organizations/${organization.id}/edit`}
             >
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
@@ -249,7 +249,7 @@ export default function OrganizationDetailPage({
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <Link
-                    href={`/app/users/dashboard/workforce/employees?organizationId=${organization.id}`}
+                    href={`/users/dashboard/workforce/employees?organizationId=${organization.id}`}
                     className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <div className="flex items-center space-x-2">
@@ -264,7 +264,7 @@ export default function OrganizationDetailPage({
                   </Link>
                   <Separator />
                   <Link
-                    href={`/app/users/dashboard/projects?organizationId=${organization.id}`}
+                    href={`/users/dashboard/projects?organizationId=${organization.id}`}
                     className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <div className="flex items-center space-x-2">
