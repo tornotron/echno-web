@@ -14,6 +14,9 @@ export default auth((req) => {
   }
 
   const isLoggedIn = !!req.auth;
+  const hasSessionError =
+    req.auth?.error === 'RefreshAccessTokenError' ||
+    req.auth?.error === 'SessionRevoked';
 
   // Log middleware execution
   if (isLoggedIn) {
@@ -26,21 +29,56 @@ export default auth((req) => {
     });
   }
 
-  const isProtected =
-    pathname.startsWith('/users/dashboard') ||
-    pathname.startsWith('/profile') ||
-    pathname.startsWith('/api/user') ||
-    pathname.startsWith('/admin');
+  // ========== TOKEN REFRESH ERROR ==========
+  // Handle token refresh errors FIRST (before any other checks)
+  // This prevents redirect loops when trying to access /login with an errored session
+  if (hasSessionError) {
+    console.log('[Middleware] Session error detected:', req.auth?.error);
 
-  // ========== AUTHENTICATION CHECK ==========
-  if (!isLoggedIn && isProtected) {
+    // Allow access to login page without redirect
+    if (pathname === '/login') {
+      // Create response that clears cookies but allows login page access
+      const response = NextResponse.next();
+
+      // Delete all NextAuth cookies
+      response.cookies.delete('next-auth.session-token');
+      response.cookies.delete('__Secure-next-auth.session-token');
+      response.cookies.delete('next-auth.csrf-token');
+      response.cookies.delete('__Host-next-auth.csrf-token');
+      response.cookies.delete('next-auth.callback-url');
+      response.cookies.delete('__Secure-next-auth.callback-url');
+
+      console.log(
+        '[Middleware] Cleared session cookies, allowing login page access'
+      );
+      return response;
+    }
+
+    // For other pages, redirect to login with error message
     const url = new URL('/login', req.url);
-    url.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(url);
-  }
+    url.searchParams.set(
+      'error',
+      req.auth?.error === 'SessionRevoked'
+        ? 'session_revoked'
+        : 'SessionExpired'
+    );
+    if (pathname !== '/') {
+      url.searchParams.set('callbackUrl', pathname);
+    }
 
-  if (isLoggedIn && pathname === '/login') {
-    return NextResponse.redirect(new URL('/users/dashboard', req.url));
+    // Create response with cookie cleanup
+    const response = NextResponse.redirect(url);
+
+    // Delete all NextAuth cookies
+    response.cookies.delete('next-auth.session-token');
+    response.cookies.delete('__Secure-next-auth.session-token');
+    response.cookies.delete('next-auth.csrf-token');
+    response.cookies.delete('__Host-next-auth.csrf-token');
+    response.cookies.delete('next-auth.callback-url');
+    response.cookies.delete('__Secure-next-auth.callback-url');
+
+    console.log('[Middleware] Redirecting to login due to session error');
+    return response;
   }
 
   // ========== SESSION REVOCATION CHECK ==========
@@ -55,6 +93,26 @@ export default auth((req) => {
       console.log(
         `[Middleware] Session revoked, forcing logout: ${req.auth.sessionId}`
       );
+
+      // Allow access to login page
+      if (pathname === '/login') {
+        const response = NextResponse.next();
+
+        // Delete NextAuth cookies
+        const cookiesToDelete = [
+          'next-auth.session-token',
+          '__Secure-next-auth.session-token',
+          'next-auth.csrf-token',
+          '__Host-next-auth.csrf-token',
+        ];
+
+        for (const cookie of cookiesToDelete) {
+          response.cookies.delete(cookie);
+          console.log(`[Middleware] 🗑️ Deleted cookie: ${cookie}`);
+        }
+
+        return response;
+      }
 
       // Clear cookies and redirect to login
       const response = NextResponse.redirect(
@@ -84,31 +142,21 @@ export default auth((req) => {
     );
   }
 
-  // ========== TOKEN REFRESH ERROR ==========
-  // Handle token refresh errors by forcing re-authentication
-  if (
-    req.auth?.error === 'RefreshAccessTokenError' ||
-    req.auth?.error === 'SessionRevoked'
-  ) {
+  const isProtected =
+    pathname.startsWith('/users/dashboard') ||
+    pathname.startsWith('/profile') ||
+    pathname.startsWith('/api/user') ||
+    pathname.startsWith('/admin');
+
+  // ========== AUTHENTICATION CHECK ==========
+  if (!isLoggedIn && isProtected) {
     const url = new URL('/login', req.url);
-    url.searchParams.set(
-      'error',
-      req.auth.error === 'SessionRevoked' ? 'session_revoked' : 'SessionExpired'
-    );
     url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
+  }
 
-    // Create response with cookie cleanup
-    const response = NextResponse.redirect(url);
-
-    // Delete all NextAuth cookies
-    response.cookies.delete('next-auth.session-token');
-    response.cookies.delete('__Secure-next-auth.session-token');
-    response.cookies.delete('next-auth.csrf-token');
-    response.cookies.delete('__Host-next-auth.csrf-token');
-    response.cookies.delete('next-auth.callback-url');
-    response.cookies.delete('__Secure-next-auth.callback-url');
-
-    return response;
+  if (isLoggedIn && pathname === '/login') {
+    return NextResponse.redirect(new URL('/users/dashboard', req.url));
   }
 
   // ========== SUPER ADMIN ROUTES ==========

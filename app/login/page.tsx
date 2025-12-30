@@ -27,7 +27,7 @@ export default function LoginPage() {
   const logoutToastShown = useRef(false);
   const [callbackUrl, setCallbackUrl] = useState('/dashboard');
 
-  // Get callback URL and check for logout param (client-side only)
+  // Get callback URL and check for logout/error params (client-side only)
   useEffect(() => {
     if (globalThis.window !== undefined) {
       const params = new URLSearchParams(globalThis.location.search);
@@ -46,6 +46,56 @@ export default function LoginPage() {
           toast.success('Logged out successfully', {
             description: 'You have been signed out of your account.',
           });
+        }, 100);
+
+        return () => clearTimeout(timer);
+      }
+
+      // Show error toast if redirected due to session error
+      const errorParam = params.get('error');
+      if (errorParam && !logoutToastShown.current) {
+        logoutToastShown.current = true;
+
+        const timer = setTimeout(() => {
+          switch (errorParam) {
+            case 'SessionExpired': {
+              toast.warning('Session expired', {
+                description: 'Your session has expired. Please sign in again.',
+              });
+
+              break;
+            }
+            case 'session_revoked': {
+              toast.warning('Session revoked', {
+                description:
+                  'Your session was terminated. Please sign in again.',
+              });
+
+              break;
+            }
+            case 'forbidden': {
+              toast.error('Access denied', {
+                description: 'You do not have permission to access that page.',
+              });
+
+              break;
+            }
+            case 'insufficient_permissions': {
+              const required = params.get('required');
+              toast.error('Insufficient permissions', {
+                description: required
+                  ? `You need ${required} permission to access that page.`
+                  : 'You do not have the required permissions.',
+              });
+
+              break;
+            }
+            // No default
+          }
+
+          // Clean up URL after showing toast
+          const cleanUrl = globalThis.location.pathname;
+          globalThis.history.replaceState({}, '', cleanUrl);
         }, 100);
 
         return () => clearTimeout(timer);
