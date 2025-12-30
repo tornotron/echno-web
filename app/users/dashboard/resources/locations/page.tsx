@@ -280,7 +280,7 @@ export default function LocationsPage() {
                   return (
                     <Link
                       key={location.id}
-                      href={`/app/users/dashboard/resources/locations/${location.id}`}
+                      href={`/users/dashboard/resources/locations/${location.id}`}
                       className="block"
                     >
                       <Card className="transition-shadow hover:shadow-md">

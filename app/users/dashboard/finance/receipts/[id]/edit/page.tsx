@@ -131,9 +131,7 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon" asChild>
-              <Link
-                href={`/app/users/dashboard/finance/receipts/${receipt.id}`}
-              >
+              <Link href={`/users/dashboard/finance/receipts/${receipt.id}`}>
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>

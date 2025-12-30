@@ -114,7 +114,7 @@ export default function EmployeeDetailPage({
               </div>
             </div>
             <Link
-              href={`/app/users/dashboard/workforce/employees/${employee.id}/edit`}
+              href={`/users/dashboard/workforce/employees/${employee.id}/edit`}
             >
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
@@ -340,7 +340,7 @@ export default function EmployeeDetailPage({
                     {employee.organizations.map((org) => (
                       <Link
                         key={org.id}
-                        href={`/app/users/dashboard/organizations/${org.id}`}
+                        href={`/users/dashboard/organizations/${org.id}`}
                         className="block rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                       >
                         <div className="flex items-center space-x-3">

@@ -181,7 +181,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                 Download PDF
               </Button>
               <Link
-                href={`/app/users/dashboard/finance/expenses/${expense.id}/edit`}
+                href={`/users/dashboard/finance/expenses/${expense.id}/edit`}
               >
                 <Button>
                   <Edit className="mr-2 h-4 w-4" />
@@ -389,7 +389,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={`/app/users/dashboard/workforce/employees/${expense.submittedBy}`}
+                        href={`/users/dashboard/workforce/employees/${expense.submittedBy}`}
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {submittedByEmployee?.name ||
@@ -419,7 +419,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           By{' '}
                           <Link
-                            href={`/app/users/dashboard/workforce/employees/${expense.approvedBy}`}
+                            href={`/users/dashboard/workforce/employees/${expense.approvedBy}`}
                             className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                           >
                             {approvedByEmployee?.name ||
@@ -443,7 +443,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           By{' '}
                           <Link
-                            href={`/app/users/dashboard/workforce/employees/${expense.rejectedBy}`}
+                            href={`/users/dashboard/workforce/employees/${expense.rejectedBy}`}
                             className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                           >
                             Employee #{expense.rejectedBy}

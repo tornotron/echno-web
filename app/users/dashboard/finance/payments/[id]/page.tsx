@@ -148,7 +148,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                 Download PDF
               </Button>
               <Link
-                href={`/app/users/dashboard/finance/payments/${payment.id}/edit`}
+                href={`/users/dashboard/finance/payments/${payment.id}/edit`}
               >
                 <Button>
                   <Edit className="mr-2 h-4 w-4" />
@@ -398,7 +398,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
               <CardContent className="space-y-3">
                 {payment.invoiceId && (
                   <Link
-                    href={`/app/users/dashboard/finance/invoices/${payment.invoiceId}`}
+                    href={`/users/dashboard/finance/invoices/${payment.invoiceId}`}
                     className="block"
                   >
                     <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -416,7 +416,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                 )}
                 {payment.projectId && (
                   <Link
-                    href={`/app/users/dashboard/projects/${payment.projectId}`}
+                    href={`/users/dashboard/projects/${payment.projectId}`}
                     className="block"
                   >
                     <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -489,7 +489,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/app/users/dashboard/workforce/employees/${payment.verifiedBy}`}
+                          href={`/users/dashboard/workforce/employees/${payment.verifiedBy}`}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {getUserName(payment.verifiedBy)}
@@ -521,7 +521,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/app/users/dashboard/workforce/employees/${payment.createdBy}`}
+                          href={`/users/dashboard/workforce/employees/${payment.createdBy}`}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {getUserName(payment.createdBy)}

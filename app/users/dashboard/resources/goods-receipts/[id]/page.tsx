@@ -186,7 +186,7 @@ export default function GoodsReceiptDetailPage() {
                   <div>
                     <p className="text-sm text-zinc-500">Purchase Order</p>
                     <Link
-                      href={`/app/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
+                      href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
                       className="font-medium text-blue-600 hover:underline"
                     >
                       PO-{grn.purchaseOrderId}
@@ -196,7 +196,7 @@ export default function GoodsReceiptDetailPage() {
                     <div>
                       <p className="text-sm text-zinc-500">Invoice</p>
                       <Link
-                        href={`/app/users/dashboard/finance/invoices/${grn.invoiceId}`}
+                        href={`/users/dashboard/finance/invoices/${grn.invoiceId}`}
                         className="font-medium text-blue-600 hover:underline"
                       >
                         Invoice #{grn.invoiceId}
@@ -415,7 +415,7 @@ export default function GoodsReceiptDetailPage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-2">
                 <Link
-                  href={`/app/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
+                  href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
                 >
                   <Button variant="outline" className="w-full justify-start">
                     <ShoppingCart className="mr-2 h-4 w-4" />
@@ -424,7 +424,7 @@ export default function GoodsReceiptDetailPage() {
                 </Link>
                 {grn.stockAdjustmentId && (
                   <Link
-                    href={`/app/users/dashboard/resources/stock-adjustments/${grn.stockAdjustmentId}`}
+                    href={`/users/dashboard/resources/stock-adjustments/${grn.stockAdjustmentId}`}
                   >
                     <Button variant="outline" className="w-full justify-start">
                       <TrendingUp className="mr-2 h-4 w-4" />
@@ -450,7 +450,7 @@ export default function GoodsReceiptDetailPage() {
               <CardContent>
                 {vendor ? (
                   <Link
-                    href={`/app/users/dashboard/third-party/vendors/${vendor.id}`}
+                    href={`/users/dashboard/third-party/vendors/${vendor.id}`}
                     className="flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
@@ -490,7 +490,7 @@ export default function GoodsReceiptDetailPage() {
               <CardContent>
                 {location ? (
                   <Link
-                    href={`/app/users/dashboard/resources/locations/${location.id}`}
+                    href={`/users/dashboard/resources/locations/${location.id}`}
                     className="flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-green-500 to-green-600">

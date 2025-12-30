@@ -110,7 +110,7 @@ export default function TransferViewPage({
 
             <div className="flex gap-2">
               <Link
-                href={`/app/users/dashboard/resources/transfers/${transfer.id}/edit`}
+                href={`/users/dashboard/resources/transfers/${transfer.id}/edit`}
               >
                 <Button variant="outline" size="sm">
                   <Edit className="mr-2 h-4 w-4" />
@@ -489,7 +489,7 @@ export default function TransferViewPage({
                         {transfer.sourceLocationId}
                       </p>
                       <Link
-                        href={`/app/users/dashboard/resources/stock-adjustments/${transfer.sourceStockAdjustmentId}`}
+                        href={`/users/dashboard/resources/stock-adjustments/${transfer.sourceStockAdjustmentId}`}
                         className="inline-flex items-center gap-1 text-sm font-medium text-red-700 hover:text-red-800 dark:text-red-300 dark:hover:text-red-200"
                       >
                         View Adjustment #{transfer.sourceStockAdjustmentId}
@@ -511,7 +511,7 @@ export default function TransferViewPage({
                         {transfer.destinationLocationId}
                       </p>
                       <Link
-                        href={`/app/users/dashboard/resources/stock-adjustments/${transfer.destStockAdjustmentId}`}
+                        href={`/users/dashboard/resources/stock-adjustments/${transfer.destStockAdjustmentId}`}
                         className="inline-flex items-center gap-1 text-sm font-medium text-green-700 hover:text-green-800 dark:text-green-300 dark:hover:text-green-200"
                       >
                         View Adjustment #{transfer.destStockAdjustmentId}
@@ -530,7 +530,7 @@ export default function TransferViewPage({
                           {transfer.stockAdjustmentIds.map((adjId) => (
                             <Link
                               key={adjId}
-                              href={`/app/users/dashboard/resources/stock-adjustments/${adjId}`}
+                              href={`/users/dashboard/resources/stock-adjustments/${adjId}`}
                               className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
                             >
                               <div className="flex items-center gap-2">
@@ -607,7 +607,7 @@ export default function TransferViewPage({
                           Linked Transport Expense
                         </div>
                         <Link
-                          href={`/app/users/dashboard/finance/expenses/${transfer.transportExpenseId}`}
+                          href={`/users/dashboard/finance/expenses/${transfer.transportExpenseId}`}
                         >
                           <Button variant="outline" className="w-full">
                             <ExternalLink className="mr-2 h-4 w-4" />

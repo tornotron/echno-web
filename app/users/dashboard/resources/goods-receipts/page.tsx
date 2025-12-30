@@ -395,7 +395,7 @@ export default function GoodsReceiptsPage() {
                       </TableCell>
                       <TableCell>
                         <Link
-                          href={`/app/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
+                          href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
                           className="text-blue-600 hover:underline dark:text-blue-400"
                           onClick={(e) => e.stopPropagation()}
                         >

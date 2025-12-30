@@ -305,7 +305,7 @@ export default function InventoryPage() {
                   return (
                     <Link
                       key={item.id}
-                      href={`/app/users/dashboard/resources/inventory/${item.id}`}
+                      href={`/users/dashboard/resources/inventory/${item.id}`}
                       className="block"
                     >
                       <div className="hover:bg-accent/50 flex items-start gap-4 rounded-lg border p-4 transition-colors">

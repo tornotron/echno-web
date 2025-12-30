@@ -286,7 +286,7 @@ export default function StockAdjustmentsPage() {
                 {paginatedAdjustments.map((adj) => (
                   <Link
                     key={adj.id}
-                    href={`/app/users/dashboard/resources/stock-adjustments/${adj.id}`}
+                    href={`/users/dashboard/resources/stock-adjustments/${adj.id}`}
                     className="block"
                   >
                     <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">

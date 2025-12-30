@@ -335,7 +335,7 @@ export default function ViewEstimatePage() {
             )}
             <Button variant="outline" size="sm" asChild>
               <Link
-                href={`/app/users/dashboard/finance/estimates/${params.id}/edit`}
+                href={`/users/dashboard/finance/estimates/${params.id}/edit`}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -780,7 +780,7 @@ export default function ViewEstimatePage() {
                     </label>
                     {preparedMember ? (
                       <Link
-                        href={`/app/users/dashboard/workforce/employees/${preparedMember.id}`}
+                        href={`/users/dashboard/workforce/employees/${preparedMember.id}`}
                         className="mt-1 flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
@@ -815,7 +815,7 @@ export default function ViewEstimatePage() {
                     </label>
                     {reviewedMember ? (
                       <Link
-                        href={`/app/users/dashboard/workforce/employees/${reviewedMember.id}`}
+                        href={`/users/dashboard/workforce/employees/${reviewedMember.id}`}
                         className="mt-1 flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
@@ -850,7 +850,7 @@ export default function ViewEstimatePage() {
                     </label>
                     {approvedMember ? (
                       <Link
-                        href={`/app/users/dashboard/workforce/employees/${approvedMember.id}`}
+                        href={`/users/dashboard/workforce/employees/${approvedMember.id}`}
                         className="mt-1 flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">

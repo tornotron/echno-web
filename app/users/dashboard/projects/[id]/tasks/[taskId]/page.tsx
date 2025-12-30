@@ -82,7 +82,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 The task you&apos;re looking for doesn&apos;t exist.
               </p>
-              <Link href={`/app/users/dashboard/projects/${projectId}/tasks`}>
+              <Link href={`/users/dashboard/projects/${projectId}/tasks`}>
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Tasks
@@ -110,9 +110,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                   {getTaskStatusLabel(task.status)}
                 </Badge>
                 {project && (
-                  <Link
-                    href={`/app/users/dashboard/organizations/${project.id}`}
-                  >
+                  <Link href={`/users/dashboard/organizations/${project.id}`}>
                     <Badge
                       variant="outline"
                       className="hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -125,7 +123,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               </div>
             </div>
             <Link
-              href={`/app/users/dashboard/projects/${projectId}/tasks/${task.id}/edit`}
+              href={`/users/dashboard/projects/${projectId}/tasks/${task.id}/edit`}
             >
               <Button className="mt-4 md:mt-0">
                 <Edit className="mr-2 h-4 w-4" />
@@ -210,7 +208,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                     </CardDescription>
                   </div>
                   <Link
-                    href={`/app/users/dashboard/projects/${task.projectId}/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`}
+                    href={`/users/dashboard/projects/${task.projectId}/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`}
                   >
                     <Button size="sm">
                       <Plus className="mr-2 h-4 w-4" />
@@ -421,7 +419,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                     {task.assignees.map((assignee, index) => (
                       <Link
                         key={index}
-                        href={`/app/users/dashboard/workforce/employees/${assignee.id}`}
+                        href={`/users/dashboard/workforce/employees/${assignee.id}`}
                         className="flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                       >
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
@@ -460,7 +458,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <Link
-                    href={`/app/users/dashboard/workforce/employees/${task.creator.id}`}
+                    href={`/users/dashboard/workforce/employees/${task.creator.id}`}
                     className="flex items-center space-x-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">

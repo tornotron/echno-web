@@ -332,7 +332,7 @@ export default function ProjectsPage() {
                 return (
                   <Link
                     key={project.id}
-                    href={`/app/users/dashboard/projects/${project.id}`}
+                    href={`/users/dashboard/projects/${project.id}`}
                   >
                     <Card className="hover:border-primary/50 h-full cursor-pointer transition-all hover:shadow-md">
                       <CardHeader>

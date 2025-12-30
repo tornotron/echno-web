@@ -246,7 +246,7 @@ export default function IssuesPage({ params }: PageProps) {
               Track and manage issues for this project
             </p>
           </div>
-          <Link href={`/app/users/dashboard/projects/${projectId}/issues/new`}>
+          <Link href={`/users/dashboard/projects/${projectId}/issues/new`}>
             <Button className="mt-4 md:mt-0">
               <Plus className="mr-2 h-4 w-4" />
               New Issue
@@ -475,7 +475,7 @@ export default function IssuesPage({ params }: PageProps) {
                             </div>
                             {issue.creator ? (
                               <Link
-                                href={`/app/users/dashboard/workforce/employees/${issue.creator.id}`}
+                                href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
                                 className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
                                 onClick={(e) => e.stopPropagation()}
                               >
@@ -529,7 +529,7 @@ export default function IssuesPage({ params }: PageProps) {
               </p>
               {!hasActiveFilters && (
                 <Link
-                  href={`/app/users/dashboard/projects/${projectId}/issues/new`}
+                  href={`/users/dashboard/projects/${projectId}/issues/new`}
                 >
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />

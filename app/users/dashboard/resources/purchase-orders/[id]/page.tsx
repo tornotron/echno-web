@@ -144,7 +144,7 @@ export default function PurchaseOrderDetailPage() {
           </div>
           <div className="flex gap-2">
             <Link
-              href={`/app/users/dashboard/resources/purchase-orders/${po.id}/edit`}
+              href={`/users/dashboard/resources/purchase-orders/${po.id}/edit`}
             >
               <Button variant="outline">
                 <Edit className="mr-2 h-4 w-4" />
@@ -503,7 +503,7 @@ export default function PurchaseOrderDetailPage() {
                             </p>
                           </div>
                           <Link
-                            href={`/app/users/dashboard/resources/goods-receipts/${grnId}`}
+                            href={`/users/dashboard/resources/goods-receipts/${grnId}`}
                           >
                             <Button variant="ghost" size="sm">
                               <ArrowRight className="h-4 w-4" />
@@ -544,7 +544,7 @@ export default function PurchaseOrderDetailPage() {
                           </span>
                         </div>
                         <Link
-                          href={`/app/users/dashboard/resources/stock-adjustments/${adjId}`}
+                          href={`/users/dashboard/resources/stock-adjustments/${adjId}`}
                         >
                           <Button variant="ghost" size="sm">
                             View
@@ -661,7 +661,7 @@ export default function PurchaseOrderDetailPage() {
                           </span>
                         </div>
                         <Link
-                          href={`/app/users/dashboard/finance/payments/${paymentId}`}
+                          href={`/users/dashboard/finance/payments/${paymentId}`}
                         >
                           <Button variant="ghost" size="sm">
                             View
