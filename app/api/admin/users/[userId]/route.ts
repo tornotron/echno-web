@@ -1,5 +1,6 @@
 import { requireSuperAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
+import { normalizeRolesWithMapping } from '@/lib/rbac/role-normalizer';
 
 /**
  * GET /api/admin/users/[userId]
@@ -39,6 +40,12 @@ export async function GET(
     }
 
     const data = await response.json();
+
+    // Normalize role names from backend (hyphenated) to app format (camelCase)
+    if (data.roles && Array.isArray(data.roles)) {
+      data.roles = normalizeRolesWithMapping(data.roles);
+    }
+
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof Error && error.message.includes('Forbidden')) {
@@ -91,6 +98,12 @@ export async function PATCH(
     }
 
     const data = await response.json();
+
+    // Normalize role names from backend (hyphenated) to app format (camelCase)
+    if (data.roles && Array.isArray(data.roles)) {
+      data.roles = normalizeRolesWithMapping(data.roles);
+    }
+
     return NextResponse.json({
       success: true,
       message: 'User updated successfully',
