@@ -1,0 +1,13 @@
+reviews:
+  auto_review:
+    enabled: true
+    branches:
+      include:
+        - development
+
+  review_status: true
+  pull_request_comment:
+    enabled: true
+    branches:
+      include:
+        - development
