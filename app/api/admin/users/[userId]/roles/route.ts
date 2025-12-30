@@ -1,5 +1,9 @@
 import { requireSuperAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  denormalizeRoles,
+  normalizeRolesWithMapping,
+} from '@/lib/rbac/role-normalizer';
 
 /**
  * GET /api/admin/users/[userId]/roles
@@ -36,6 +40,12 @@ export async function GET(
     }
 
     const data = await response.json();
+
+    // Normalize role names from backend (hyphenated) to app format (camelCase)
+    if (data.roles && Array.isArray(data.roles)) {
+      data.roles = normalizeRolesWithMapping(data.roles);
+    }
+
     return NextResponse.json(data);
   } catch (error) {
     if (error instanceof Error && error.message.includes('Forbidden')) {
@@ -78,6 +88,10 @@ export async function POST(
       );
     }
 
+    // Denormalize role IDs from app format (camelCase) to backend format (hyphenated)
+    // e.g., "projectManager" → "project-manager", "super_admin" → "super-admin"
+    const denormalizedRoleIds = denormalizeRoles(roleIds);
+
     // Call your backend API to assign roles
     const response = await fetch(`${apiUrl}/users/${userId}/roles`, {
       method: 'POST',
@@ -85,7 +99,7 @@ export async function POST(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        roleIds,
+        roleIds: denormalizedRoleIds,
         assignedBy: session.user.id,
       }),
     });
@@ -146,13 +160,16 @@ export async function DELETE(
       );
     }
 
+    // Denormalize role IDs from app format (camelCase) to backend format (hyphenated)
+    const denormalizedRoleIds = denormalizeRoles(roleIds);
+
     // Call your backend API to remove roles
     const response = await fetch(`${apiUrl}/users/${userId}/roles`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ roleIds }),
+      body: JSON.stringify({ roleIds: denormalizedRoleIds }),
     });
 
     if (!response.ok) {
