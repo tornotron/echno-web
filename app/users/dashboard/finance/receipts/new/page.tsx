@@ -63,12 +63,12 @@ export default function NewReceiptPage() {
     setTimeout(() => {
       toast.success('Receipt created successfully');
       setIsSubmitting(false);
-      router.push('users/dashboard/finance/receipts');
+      router.push('/users/dashboard/finance/receipts');
     }, 800);
   };
 
   const handleCancel = () => {
-    router.push('users/dashboard/finance/receipts');
+    router.push('/users/dashboard/finance/receipts');
   };
 
   return (
