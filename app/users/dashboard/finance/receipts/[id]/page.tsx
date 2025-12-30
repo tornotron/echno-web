@@ -131,7 +131,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
                 Download PDF
               </Button>
               <Link
-                href={`/app/users/dashboard/finance/receipts/${receipt.id}/edit`}
+                href={`/users/dashboard/finance/receipts/${receipt.id}/edit`}
               >
                 <Button>
                   <Edit className="mr-2 h-4 w-4" />
@@ -367,7 +367,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
               <CardContent className="space-y-3">
                 {receipt.invoiceId && (
                   <Link
-                    href={`/app/users/dashboard/finance/invoices/${receipt.invoiceId}`}
+                    href={`/users/dashboard/finance/invoices/${receipt.invoiceId}`}
                     className="block"
                   >
                     <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -385,7 +385,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
                 )}
                 {receipt.paymentId && (
                   <Link
-                    href={`/app/users/dashboard/finance/payments/${receipt.paymentId}`}
+                    href={`/users/dashboard/finance/payments/${receipt.paymentId}`}
                     className="block"
                   >
                     <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -403,7 +403,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
                 )}
                 {receipt.projectId && (
                   <Link
-                    href={`/app/users/dashboard/projects/${receipt.projectId}`}
+                    href={`/users/dashboard/projects/${receipt.projectId}`}
                     className="block"
                   >
                     <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">

@@ -127,9 +127,7 @@ export default function AssetDetailPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Link
-              href={`/app/users/dashboard/resources/assets/${asset.id}/edit`}
-            >
+            <Link href={`/users/dashboard/resources/assets/${asset.id}/edit`}>
               <Button variant="outline">
                 <Edit className="mr-2 h-4 w-4" />
                 Edit

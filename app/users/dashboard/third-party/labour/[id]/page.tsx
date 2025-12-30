@@ -75,7 +75,7 @@ export default function LabourDetailPage({ params }: PageProps) {
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" asChild>
               <Link
-                href={`/app/users/dashboard/third-party/labour/${labour.id}/edit`}
+                href={`/users/dashboard/third-party/labour/${labour.id}/edit`}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit

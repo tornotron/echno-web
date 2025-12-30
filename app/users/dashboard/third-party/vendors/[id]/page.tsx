@@ -104,7 +104,7 @@ export default function VendorDetailPage({ params }: PageProps) {
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" asChild>
               <Link
-                href={`/app/users/dashboard/third-party/vendors/${vendor.id}/edit`}
+                href={`/users/dashboard/third-party/vendors/${vendor.id}/edit`}
               >
                 <Edit className="mr-2 h-4 w-4" />
                 Edit

@@ -159,7 +159,7 @@ export default function IssueDetailPage({ params }: PageProps) {
               <p className="mb-4 text-zinc-600 dark:text-zinc-400">
                 The issue you&apos;re looking for doesn&apos;t exist.
               </p>
-              <Link href={`/app/users/dashboard/projects/${projectId}/issues`}>
+              <Link href={`/users/dashboard/projects/${projectId}/issues`}>
                 <Button>
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Issues
@@ -199,7 +199,7 @@ export default function IssueDetailPage({ params }: PageProps) {
               </div>
             </div>
             <Link
-              href={`/app/users/dashboard/projects/${projectId}/issues/${issue.id}/edit`}
+              href={`/users/dashboard/projects/${projectId}/issues/${issue.id}/edit`}
             >
               <Button className="mt-4 md:mt-0">
                 <Edit className="mr-2 h-4 w-4" />
@@ -244,7 +244,7 @@ export default function IssueDetailPage({ params }: PageProps) {
                 </CardHeader>
                 <CardContent>
                   <Link
-                    href={`/app/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                    href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
                   >
                     <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                       <div className="flex items-start justify-between">
@@ -313,7 +313,7 @@ export default function IssueDetailPage({ params }: PageProps) {
                           </div>
                           {comment.author ? (
                             <Link
-                              href={`/app/users/dashboard/workforce/employees/${comment.author.id}`}
+                              href={`/users/dashboard/workforce/employees/${comment.author.id}`}
                               className="text-sm font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
                             >
                               {comment.author.memberName}
@@ -572,7 +572,7 @@ export default function IssueDetailPage({ params }: PageProps) {
               <CardContent>
                 {issue.creator ? (
                   <Link
-                    href={`/app/users/dashboard/workforce/employees/${issue.creator.id}`}
+                    href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
                     className="block rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <div className="flex items-center space-x-3">
@@ -611,7 +611,7 @@ export default function IssueDetailPage({ params }: PageProps) {
                 </Button>
                 {relatedTask && (
                   <Link
-                    href={`/app/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                    href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
                     className="block"
                   >
                     <Button variant="outline" className="w-full justify-start">

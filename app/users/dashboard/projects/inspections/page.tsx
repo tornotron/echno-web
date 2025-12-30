@@ -355,7 +355,7 @@ export default function InspectionsPage() {
                 {paginatedInspections.map((inspection) => (
                   <Link
                     key={inspection.id}
-                    href={`/app/users/dashboard/projects/inspections/${inspection.id}`}
+                    href={`/users/dashboard/projects/inspections/${inspection.id}`}
                     className="block rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                   >
                     <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">

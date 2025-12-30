@@ -332,7 +332,7 @@ export default function MaterialRequestsPage() {
                 {paginatedRequests.map((mr) => (
                   <Link
                     key={mr.id}
-                    href={`/app/users/dashboard/resources/material-requests/${mr.id}`}
+                    href={`/users/dashboard/resources/material-requests/${mr.id}`}
                     className="block"
                   >
                     <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">

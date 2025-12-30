@@ -171,7 +171,7 @@ export default function ProjectTasksPage() {
               Manage and track tasks for this project
             </p>
           </div>
-          <Link href={`/app/users/dashboard/projects/${projectId}/tasks/new`}>
+          <Link href={`/users/dashboard/projects/${projectId}/tasks/new`}>
             <Button className="mt-4 md:mt-0">
               <Plus className="mr-2 h-4 w-4" />
               New Task
@@ -473,9 +473,7 @@ export default function ProjectTasksPage() {
                   : 'Get started by creating your first task for this project'}
               </p>
               {!hasActiveFilters && (
-                <Link
-                  href={`/app/users/dashboard/projects/${projectId}/tasks/new`}
-                >
+                <Link href={`/users/dashboard/projects/${projectId}/tasks/new`}>
                   <Button>
                     <Plus className="mr-2 h-4 w-4" />
                     New Task

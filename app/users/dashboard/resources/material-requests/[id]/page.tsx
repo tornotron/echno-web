@@ -123,7 +123,7 @@ export default function MaterialRequestDetailPage() {
           </div>
           <div className="flex gap-2">
             <Link
-              href={`/app/users/dashboard/resources/material-requests/${mr.id}/edit`}
+              href={`/users/dashboard/resources/material-requests/${mr.id}/edit`}
             >
               <Button variant="outline">
                 <Edit className="mr-2 h-4 w-4" />
@@ -570,7 +570,7 @@ export default function MaterialRequestDetailPage() {
                       {mr.purchaseOrderIds.map((poId) => (
                         <Link
                           key={poId}
-                          href={`/app/users/dashboard/resources/purchase-orders/${poId}`}
+                          href={`/users/dashboard/resources/purchase-orders/${poId}`}
                         >
                           <Button
                             variant="outline"
@@ -590,7 +590,7 @@ export default function MaterialRequestDetailPage() {
                       {mr.transferIds.map((transferId) => (
                         <Link
                           key={transferId}
-                          href={`/app/users/dashboard/resources/transfers/${transferId}`}
+                          href={`/users/dashboard/resources/transfers/${transferId}`}
                         >
                           <Button
                             variant="outline"

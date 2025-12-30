@@ -158,7 +158,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                 Download PDF
               </Button>
               <Link
-                href={`/app/users/dashboard/finance/invoices/${invoice.id}/edit`}
+                href={`/users/dashboard/finance/invoices/${invoice.id}/edit`}
               >
                 <Button>
                   <Edit className="mr-2 h-4 w-4" />
@@ -490,7 +490,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               <CardContent className="space-y-3">
                 {invoice.projectId && (
                   <Link
-                    href={`/app/users/dashboard/projects/${invoice.projectId}`}
+                    href={`/users/dashboard/projects/${invoice.projectId}`}
                     className="block"
                   >
                     <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -562,7 +562,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/app/users/dashboard/workforce/employees/${invoice.approvedBy}`}
+                          href={`/users/dashboard/workforce/employees/${invoice.approvedBy}`}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {getUserName(invoice.approvedBy)}
@@ -594,7 +594,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/app/users/dashboard/workforce/employees/${invoice.createdBy}`}
+                          href={`/users/dashboard/workforce/employees/${invoice.createdBy}`}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {getUserName(invoice.createdBy)}

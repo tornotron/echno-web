@@ -132,9 +132,7 @@ export default function EditInventoryPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="sm" asChild>
-                <Link
-                  href={`/app/users/dashboard/resources/inventory/${itemId}`}
-                >
+                <Link href={`/users/dashboard/resources/inventory/${itemId}`}>
                   <ArrowLeft className="mr-1 h-4 w-4" />
                   Back
                 </Link>

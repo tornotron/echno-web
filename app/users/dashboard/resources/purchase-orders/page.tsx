@@ -361,7 +361,7 @@ export default function PurchaseOrdersPage() {
                 {paginatedPOs.map((po) => (
                   <Link
                     key={po.id}
-                    href={`/app/users/dashboard/resources/purchase-orders/${po.id}`}
+                    href={`/users/dashboard/resources/purchase-orders/${po.id}`}
                     className="block"
                   >
                     <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
