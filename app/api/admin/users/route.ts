@@ -1,6 +1,5 @@
 import { requireSuperAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
-import { normalizeRolesWithMapping } from '@/lib/rbac/role-normalizer';
 
 /**
  * GET /api/admin/users
@@ -46,22 +45,6 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
-
-    // Normalize role names from backend (hyphenated) to app format (camelCase)
-    if (Array.isArray(data)) {
-      for (const user of data) {
-        if (user.roles && Array.isArray(user.roles)) {
-          user.roles = normalizeRolesWithMapping(user.roles);
-        }
-      }
-    } else if (data.users && Array.isArray(data.users)) {
-      // Handle paginated response
-      for (const user of data.users as Array<{ roles?: string[] }>) {
-        if (user.roles && Array.isArray(user.roles)) {
-          user.roles = normalizeRolesWithMapping(user.roles);
-        }
-      }
-    }
 
     return NextResponse.json(data);
   } catch (error) {
