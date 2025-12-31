@@ -3,6 +3,10 @@ import './globals.css';
 import { Providers } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
+import { validateAuthConfig } from '@/config/auth-config';
+
+// Validate environment variables at application startup
+validateAuthConfig();
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
