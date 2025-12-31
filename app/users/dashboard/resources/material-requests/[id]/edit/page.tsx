@@ -60,9 +60,6 @@ export default function EditMaterialRequestPage() {
   const [type, setType] = useState<MaterialRequestType>(
     MaterialRequestType.project
   );
-  const [status, setStatus] = useState<MaterialRequestStatus>(
-    MaterialRequestStatus.draft
-  );
   const [priority, setPriority] = useState<MaterialRequestPriority>(
     MaterialRequestPriority.medium
   );
@@ -84,7 +81,6 @@ export default function EditMaterialRequestPage() {
       setTimeout(() => {
         setRequestNumber(mr.requestNumber);
         setType(mr.type);
-        setStatus(mr.status);
         setPriority(mr.priority);
         setRequestDate(format(mr.requestDate, 'yyyy-MM-dd'));
         setRequiredByDate(format(mr.requiredByDate, 'yyyy-MM-dd'));
