@@ -5,10 +5,10 @@ import { QueryProvider } from './query-provider';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
+import { SESSION_WARNINGS } from '@/lib/auth/constants';
 
 // Warning thresholds (in minutes before expiration)
-const WARNING_TIME = 5; // Show warning 5 minutes before expiration
-const FINAL_WARNING_TIME = 1; // Final warning 1 minute before
+const { INITIAL_WARNING_MINUTES, FINAL_WARNING_MINUTES } = SESSION_WARNINGS;
 
 /**
  * Monitors session for token refresh errors and forces logout
@@ -58,16 +58,22 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Final warning at 1 minute
-      if (minutesRemaining <= FINAL_WARNING_TIME && !hasShownFinalWarning) {
+      // Final warning at configured threshold
+      if (minutesRemaining <= FINAL_WARNING_MINUTES && !hasShownFinalWarning) {
         setHasShownFinalWarning(true);
-        toast.warning('Your session will expire in 1 minute', {
-          description:
-            'Any page navigation will refresh your session automatically.',
-        });
+        toast.warning(
+          `Your session will expire in ${FINAL_WARNING_MINUTES} minute`,
+          {
+            description:
+              'Any page navigation will refresh your session automatically.',
+          }
+        );
       }
-      // Initial warning at 5 minutes
-      else if (minutesRemaining <= WARNING_TIME && !hasShownWarning) {
+      // Initial warning at configured threshold
+      else if (
+        minutesRemaining <= INITIAL_WARNING_MINUTES &&
+        !hasShownWarning
+      ) {
         setHasShownWarning(true);
         toast.info(`Your session will expire in ${minutesRemaining} minutes`, {
           description: 'Navigate to any page to keep your session active.',
