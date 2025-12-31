@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { logger } from '@/lib/logger';
 import { format } from 'date-fns';
 import {
   Card,
@@ -256,7 +257,7 @@ export default function EditEstimatePage() {
 
         setLoading(false);
       } catch (error) {
-        console.error('Failed to load estimate:', error);
+        logger.error('Failed to load estimate:', error);
         toast.error('Failed to load estimate');
         router.push('/dashboard/finance/estimates');
       }
@@ -375,7 +376,7 @@ export default function EditEstimatePage() {
     }
 
     // TODO: Implement actual API call to update estimate
-    console.log('Updating estimate...', {
+    logger.debug('Updating estimate...', {
       id: params.id,
       estimateNumber,
       title,

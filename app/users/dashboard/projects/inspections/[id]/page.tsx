@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/common';
 import {
   Card,
@@ -122,7 +123,7 @@ export default function InspectionDetailsPage() {
         setInspection(foundInspection);
         setLoading(false);
       } catch (error) {
-        console.error('Error loading inspection:', error);
+        logger.error('Error loading inspection:', error);
         toast.error('Failed to load inspection');
         router.push('/dashboard/projects/inspections');
       }

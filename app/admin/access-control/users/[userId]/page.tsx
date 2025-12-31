@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
+import { logger } from '@/lib/logger';
 import { redirect, useRouter } from 'next/navigation';
 import {
   Card,
@@ -111,7 +112,7 @@ export default function UserAccessControlPage({
       setUserRoles(data.roles || []);
     } catch (error) {
       toast.error('Failed to load user');
-      console.error(error);
+      logger.error(`${error}`);
     } finally {
       setLoading(false);
     }
@@ -153,7 +154,7 @@ export default function UserAccessControlPage({
       toast.success(`Role "${getRoleDisplayName(selectedRole)}" assigned`);
     } catch (error) {
       toast.error('Failed to add role');
-      console.error(error);
+      logger.error(`${error}`);
     } finally {
       setSaving(false);
     }
@@ -181,7 +182,7 @@ export default function UserAccessControlPage({
       toast.success(`Role "${getRoleDisplayName(roleId)}" removed`);
     } catch (error) {
       toast.error('Failed to remove role');
-      console.error(error);
+      logger.error(`${error}`);
     } finally {
       setSaving(false);
     }

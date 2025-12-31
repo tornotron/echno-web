@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { AppLayout } from '@/components/common';
+import { logger } from '@/lib/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -80,13 +81,13 @@ export default function LeaveDetailPage({
   );
 
   const handleApprove = () => {
-    console.log('Approving leave:', id);
+    logger.debug(`Approving leave: ${id}`);
     toast.success('Leave request approved successfully');
     // TODO: Implement API call
   };
 
   const handleReject = () => {
-    console.log('Rejecting leave:', id);
+    logger.debug(`Rejecting leave: ${id}`);
     toast.error('Leave request rejected');
     // TODO: Implement API call
   };
@@ -105,7 +106,7 @@ export default function LeaveDetailPage({
       (emp) => emp.employeeId === escalateData.seniorAuthorityId
     );
 
-    console.log('Escalating leave to:', escalateData);
+    logger.debug('Escalating leave to:', escalateData);
     toast.success(
       `Leave request escalated to ${selectedAuthority?.name || 'senior authority'}`
     );

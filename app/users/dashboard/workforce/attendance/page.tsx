@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
@@ -204,13 +205,13 @@ export default function AttendancePage() {
   // Approval/Rejection handlers
   const handleApprove = (ids: number[]) => {
     // TODO: Implement API call to approve attendance
-    console.log('Approving attendance:', ids);
+    logger.debug(`Approving attendance: ${ids}`);
     setSelectedAttendance([]);
   };
 
   const handleReject = (ids: number[]) => {
     // TODO: Implement API call to reject attendance
-    console.log('Rejecting attendance:', ids);
+    logger.debug(`Rejecting attendance: ${ids}`);
     setSelectedAttendance([]);
   };
 
@@ -225,7 +226,7 @@ export default function AttendancePage() {
     }
 
     // TODO: API call to create manual attendance
-    console.log('Creating manual attendance:', manualAttendanceData);
+    logger.debug('Creating manual attendance:', manualAttendanceData);
     toast.success('Attendance marked successfully');
 
     // Reset form and close dialog

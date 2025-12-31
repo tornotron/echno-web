@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/common';
 import {
   Card,
@@ -107,7 +108,7 @@ export default function EditInspectionPage() {
 
         setLoading(false);
       } catch (error) {
-        console.error('Error loading inspection:', error);
+        logger.error('Error loading inspection:', error);
         toast.error('Failed to load inspection');
         router.push('/dashboard/projects/inspections');
       }
@@ -152,7 +153,7 @@ export default function EditInspectionPage() {
         (emp) => emp.id === Number.parseInt(inspectorId)
       );
 
-      console.log('Updating inspection:', {
+      logger.debug('Updating inspection:', {
         id: Number.parseInt(params.id as string),
         title,
         type,
@@ -184,7 +185,7 @@ export default function EditInspectionPage() {
       toast.success('Inspection updated successfully!');
       router.push(`/dashboard/projects/inspections/${params.id}`);
     } catch (error) {
-      console.error('Error updating inspection:', error);
+      logger.error('Error updating inspection:', error);
       toast.error('Failed to update inspection');
     } finally {
       setIsSubmitting(false);

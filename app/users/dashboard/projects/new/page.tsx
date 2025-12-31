@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/common';
 import {
   Card,
@@ -126,12 +127,12 @@ export default function NewProjectPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // TODO: Replace with actual API call
-      console.log('Creating project:', formData);
+      logger.debug('Creating project:', formData);
 
       toast.success('Project created successfully!');
       router.push('/dashboard/projects');
     } catch (error) {
-      console.error('Error creating project:', error);
+      logger.error('Error creating project:', error);
       toast.error('Failed to create project. Please try again.');
       setIsSubmitting(false);
     }

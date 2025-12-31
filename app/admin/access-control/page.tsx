@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
 import { redirect, useRouter } from 'next/navigation';
+import { logger } from '@/lib/logger';
 import {
   Card,
   CardContent,
@@ -122,7 +123,7 @@ export default function AccessControlDashboard() {
       setStats(stats);
     } catch (error) {
       toast.error('Failed to load users');
-      console.error(error);
+      logger.error(`${error}`);
     } finally {
       setLoading(false);
     }

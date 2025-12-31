@@ -1,6 +1,7 @@
 'use client';
 
 import { signOut as nextAuthSignOut } from 'next-auth/react';
+import { logger } from '@/lib/logger';
 
 /**
  * Simple sign out (NextAuth + Keycloak)
@@ -19,7 +20,7 @@ export async function handleSignOut() {
     // The events.signOut callback in auth.ts will handle Keycloak logout
     await nextAuthSignOut({ callbackUrl: '/login?logout=success' });
   } catch (error) {
-    console.error('[Logout] Error during sign out:', error);
+    logger.error('Logout: Error during sign out', error);
     // Fallback: force redirect to login
     if (globalThis.window !== undefined) {
       globalThis.location.href = '/login?error=logout_failed';
@@ -38,7 +39,7 @@ export async function silentLogout() {
     }
     await nextAuthSignOut({ redirect: false });
   } catch (error) {
-    console.error('[Logout] Silent logout failed:', error);
+    logger.error('Logout: Silent logout failed', error);
   }
 }
 
@@ -64,7 +65,7 @@ export async function forceLogout(reason = 'session_invalid') {
       globalThis.location.href = `/login?error=${reason}`;
     }
   } catch (error) {
-    console.error('[Logout] Force logout failed:', error);
+    logger.error('Logout: Force logout failed', error);
     // Fallback: force redirect
     if (globalThis.window !== undefined) {
       globalThis.location.href = '/login';
