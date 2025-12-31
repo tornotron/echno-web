@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { revokeSession } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/security/rate-limit';
 
 interface LogoutToken {
   sid?: string;
@@ -36,6 +37,31 @@ const JWKS = createRemoteJWKSet(
  */
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting - prevent abuse
+    const clientIp =
+      req.headers.get('x-forwarded-for') ||
+      req.headers.get('x-real-ip') ||
+      'unknown';
+    const rateLimitResult = checkRateLimit(clientIp, RATE_LIMITS.BACKCHANNEL);
+
+    if (!rateLimitResult.allowed) {
+      logger.warn('Backchannel logout rate limit exceeded', {
+        ip: clientIp.slice(0, 20),
+        current: rateLimitResult.current,
+        limit: rateLimitResult.limit,
+      });
+
+      return new NextResponse('Too Many Requests', {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil(rateLimitResult.resetIn / 1000)),
+          'X-RateLimit-Limit': String(rateLimitResult.limit),
+          'X-RateLimit-Remaining': String(rateLimitResult.remaining),
+          'X-RateLimit-Reset': String(Date.now() + rateLimitResult.resetIn),
+        },
+      });
+    }
+
     const formData = await req.formData();
     const logoutToken = formData.get('logout_token') as string;
 
