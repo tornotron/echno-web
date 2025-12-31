@@ -14,6 +14,10 @@ import { User, LogOut } from 'lucide-react';
 import { handleSignOut } from '@/lib/utils/auth-utils';
 import Link from 'next/link';
 
+const onSignOut = () => {
+  handleSignOut();
+};
+
 export function UserMenu() {
   const { data: session } = useSession();
 
@@ -24,11 +28,6 @@ export function UserMenu() {
   const userName = session.user?.name || 'User';
   const userEmail = session.user?.email || '';
   const userInitial = userName.charAt(0).toUpperCase();
-
-  const onSignOut = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    handleSignOut(session as any);
-  };
 
   return (
     <DropdownMenu>
