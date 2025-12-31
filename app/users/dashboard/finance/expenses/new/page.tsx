@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, X, Plus, Trash2 } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {
@@ -31,24 +31,15 @@ import {
   Expense,
 } from '@/types/finance/expense';
 
-const expenseTypeOptions = Object.entries(ExpenseType).map(([key, value]) => ({
+const expenseTypeOptions = Object.entries(ExpenseType).map(([key]) => ({
   value: key,
   label: key.charAt(0).toUpperCase() + key.slice(1),
 }));
 
-const expenseStatusOptions = Object.entries(ExpenseStatus).map(
-  ([key, value]) => ({
-    value: key,
-    label: key.charAt(0).toUpperCase() + key.slice(1),
-  })
-);
-
-const expenseCategoryOptions = Object.entries(ExpenseCategory).map(
-  ([key, value]) => ({
-    value: key,
-    label: key.charAt(0).toUpperCase() + key.slice(1).replaceAll('_', ' '),
-  })
-);
+const expenseCategoryOptions = Object.entries(ExpenseCategory).map(([key]) => ({
+  value: key,
+  label: key.charAt(0).toUpperCase() + key.slice(1).replaceAll('_', ' '),
+}));
 
 const getDateString = (date: Date) => {
   const year = date.getFullYear();
@@ -58,12 +49,6 @@ const getDateString = (date: Date) => {
 };
 
 export default function NewExpensePage() {
-  const getDueDateDefault = () => {
-    const date = new Date();
-    date.setDate(date.getDate() + 30);
-    return date;
-  };
-
   const [formData, setFormData] = useState<Partial<Expense>>({
     expenseNumber: '',
     type: ExpenseType.direct,

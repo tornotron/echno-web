@@ -2,13 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
@@ -21,7 +15,6 @@ import {
 } from '@/components/ui/select';
 import {
   MapPin,
-  Search,
   Plus,
   Building2,
   Warehouse,

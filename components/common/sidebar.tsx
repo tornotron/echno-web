@@ -6,7 +6,6 @@ import {
   Home,
   Users,
   Calendar,
-  BarChart3,
   FileText,
   UserCheck,
   Mail,
@@ -30,8 +29,6 @@ import {
   ChevronRight,
   ClipboardCheck,
   FolderKanban,
-  ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';

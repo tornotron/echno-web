@@ -30,7 +30,6 @@ import { toast } from 'sonner';
 import { mockEmployees } from '@/components/shared/mock-data';
 import type { Employee } from '@/types/employee';
 import type { Member } from '@/types/member';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,

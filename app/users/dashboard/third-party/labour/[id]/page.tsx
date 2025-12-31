@@ -14,7 +14,6 @@ import {
   Calendar,
   Clock,
   DollarSign,
-  FileText,
   User,
   HardHat,
 } from 'lucide-react';

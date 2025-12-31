@@ -37,7 +37,6 @@ import {
   FileText,
   Calendar,
   Building,
-  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';

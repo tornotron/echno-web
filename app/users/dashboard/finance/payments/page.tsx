@@ -29,12 +29,10 @@ import {
 } from '@/components/ui/select';
 import {
   CreditCard,
-  Download,
   DollarSign,
   Calendar,
   CheckCircle,
   Clock,
-  XCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
