@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { signIn, useSession } from 'next-auth/react';
+import { logger } from '@/lib/logger';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -125,7 +126,7 @@ export default function LoginPage() {
         toast.error('Login failed', {
           description: 'Invalid email or password. Please try again.',
         });
-        console.error('Login failed:', result.error);
+        logger.error('Login failed:', result.error);
       } else if (result?.ok) {
         // Navigate with login success parameter
         const redirectUrl = `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}login=success`;
@@ -135,7 +136,7 @@ export default function LoginPage() {
       toast.error('Login error', {
         description: 'An unexpected error occurred. Please try again.',
       });
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
     } finally {
       setIsLoading(false);
     }

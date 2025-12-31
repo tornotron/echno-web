@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import {
   Card,
@@ -60,12 +61,12 @@ import {
 
 // Individual action handlers
 const handleApprove = (leaveId: string) => {
-  console.log('Approving leave:', leaveId);
+  logger.debug(`Approving leave: ${leaveId}`);
   // TODO: Implement API call
 };
 
 const handleReject = (leaveId: string) => {
-  console.log('Rejecting leave:', leaveId);
+  logger.debug(`Rejecting leave: ${leaveId}`);
   // TODO: Implement API call
 };
 
@@ -135,13 +136,13 @@ export default function LeaveRequestsPage() {
 
   // Bulk action handlers
   const handleBulkApprove = (ids: string[]) => {
-    console.log('Bulk approving leaves:', ids);
+    logger.debug(`Bulk approving leaves: ${ids}`);
     // TODO: Implement API call
     setSelectedLeaves([]);
   };
 
   const handleBulkReject = (ids: string[]) => {
-    console.log('Bulk rejecting leaves:', ids);
+    logger.debug(`Bulk rejecting leaves: ${ids}`);
     // TODO: Implement API call
     setSelectedLeaves([]);
   };

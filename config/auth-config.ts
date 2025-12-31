@@ -7,6 +7,8 @@
  * Call validateAuthConfig() at app initialization
  */
 
+import { logger } from '@/lib/logger';
+
 /**
  * Required environment variables for authentication
  */
@@ -114,7 +116,7 @@ function validateNextAuthSecret(): void {
 
   // NextAuth recommends at least 32 characters
   if (secret.length < 32) {
-    console.warn(
+    logger.warn(
       `[Auth Config] Warning: NEXTAUTH_SECRET should be at least 32 characters long for security.\n` +
         `Current length: ${secret.length} characters.\n` +
         `Generate a secure secret: openssl rand -base64 32`

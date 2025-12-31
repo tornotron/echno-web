@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/common';
 import {
   Card,
@@ -86,7 +87,7 @@ export default function NewInspectionPage() {
       // Generate inspection number (in real app, this would be from backend)
       const inspectionNumber = `INS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
 
-      console.log('Creating inspection:', {
+      logger.debug('Creating inspection:', {
         inspectionNumber,
         title,
         type,
@@ -122,7 +123,7 @@ export default function NewInspectionPage() {
       toast.success('Inspection scheduled successfully!');
       router.push('/dashboard/projects/inspections');
     } catch (error) {
-      console.error('Error creating inspection:', error);
+      logger.error('Error creating inspection:', error);
       toast.error('Failed to create inspection');
     } finally {
       setIsSubmitting(false);

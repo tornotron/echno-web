@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Organization } from '@/types/organization';
+import { logger } from '@/lib/logger';
 
 interface OrganizationContextType {
   selectedOrganization: Organization | null;
@@ -32,7 +33,7 @@ export function OrganizationProvider({
           // eslint-disable-next-line react-hooks/set-state-in-effect
           setSelectedOrganizationState(JSON.parse(stored));
         } catch (error) {
-          console.error('Failed to parse stored organization:', error);
+          logger.error('Failed to parse stored organization:', error);
         }
       }
     }

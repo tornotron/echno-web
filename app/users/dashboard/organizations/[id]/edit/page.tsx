@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter, notFound } from 'next/navigation';
+import { logger } from '@/lib/logger';
 import { useState, use } from 'react';
 import { AppLayout } from '@/components/common/app-layout';
 import { OrganizationForm } from '@/features/organization/organization-form';
@@ -37,7 +38,7 @@ export default function EditOrganizationPage({
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Here you would make an API call to update the organization
-      console.log('Updating organization:', { id: organization.id, ...data });
+      logger.debug('Updating organization:', { id: organization.id, ...data });
 
       toast.success('Organization updated!', {
         description: `${data.organizationName} has been successfully updated.`,

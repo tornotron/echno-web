@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { User } from '@/types/user/user';
 import { updateUserProfile } from '@/lib/api/user-api';
 import { Button } from '@/components/ui/button';
@@ -105,7 +106,7 @@ export function ProfileEditForm({
       // Refresh the page to show updated data
       router.refresh();
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
       toast.error('Failed to update profile', {
         description:
           error instanceof Error ? error.message : 'Please try again later.',

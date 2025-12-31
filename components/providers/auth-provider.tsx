@@ -4,6 +4,7 @@ import { SessionProvider, signOut, useSession } from 'next-auth/react';
 import { QueryProvider } from './query-provider';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
+import { logger } from '@/lib/logger';
 
 // Warning thresholds (in minutes before expiration)
 const WARNING_TIME = 5; // Show warning 5 minutes before expiration
@@ -24,10 +25,10 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
       isLoggingOut.current = true;
 
       if (session.error === 'RefreshAccessTokenError') {
-        console.warn('[Session] Token refresh failed. Forcing logout...');
+        logger.warn('Session: Token refresh failed, forcing logout');
         toast.error('Session expired. Please login again.');
       } else if (session.error === 'SessionRevoked') {
-        console.warn('[Session] Session revoked. Forcing logout...');
+        logger.warn('Session: Session revoked, forcing logout');
         toast.error('Your session was terminated. Please login again.');
       }
 
