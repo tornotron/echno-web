@@ -25,7 +25,6 @@ import { Separator } from '@/components/ui/separator';
 import { AppLayout } from '@/components/common/app-layout';
 import {
   Plus,
-  Trash2,
   Save,
   AlertCircle,
   Calculator,
@@ -283,12 +282,6 @@ export default function EditEstimatePage() {
         notes: '',
       },
     ]);
-  };
-
-  const removeLineItem = (id: number) => {
-    if (lineItems.length > 1) {
-      setLineItems(lineItems.filter((item) => item.id !== id));
-    }
   };
 
   const updateLineItem = (
