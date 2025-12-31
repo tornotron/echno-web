@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, Save, X, AlertCircle } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import {

@@ -19,18 +19,13 @@ import {
   Download,
   DollarSign,
   Calendar,
-  Building,
   Hash,
   CheckCircle,
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import {
-  ExpenseType,
-  ExpenseStatus,
-  ExpenseCategory,
-} from '@/types/finance/expense';
+import { ExpenseType, ExpenseStatus } from '@/types/finance/expense';
 
 const expenseTypeLabels: Record<string, string> = {
   direct: 'Direct',
@@ -136,11 +131,6 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const approvedByEmployee = mockEmployees.find(
     (e) => e.id === expense.approvedBy
   );
-
-  const paymentStatusColor =
-    expense.paymentStatus === 'paid' || expense.paymentStatus === 'reimbursed'
-      ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-      : 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
 
   return (
     <AppLayout>

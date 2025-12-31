@@ -18,7 +18,6 @@ import {
   Receipt as ReceiptIcon,
   Edit,
   Download,
-  Mail,
   DollarSign,
   Calendar,
   CreditCard,

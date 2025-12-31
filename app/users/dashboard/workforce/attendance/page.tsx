@@ -89,7 +89,6 @@ import {
   getMovementTypeIcon,
 } from '@/types/attendance';
 import { format } from 'date-fns';
-import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
 
 export default function AttendancePage() {

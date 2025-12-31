@@ -33,7 +33,6 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import type { Employee } from '@/types/employee';
 import type { Member } from '@/types/member';
-import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,

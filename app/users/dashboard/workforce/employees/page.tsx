@@ -11,7 +11,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Table,
@@ -160,8 +159,6 @@ export default function EmployeesPage() {
   const isAllSelected =
     paginatedEmployees.length > 0 &&
     selectedIds.length === paginatedEmployees.length;
-  const isSomeSelected =
-    selectedIds.length > 0 && selectedIds.length < paginatedEmployees.length;
 
   // Statistics
   const totalEmployees = mockEmployees.length;

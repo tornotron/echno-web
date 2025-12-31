@@ -1,5 +1,4 @@
 // types/user/user.ts
-import { UserRole, userRoleFromString } from './user-role';
 import { Organization } from '@/types/organization';
 import { Permission } from '@/types/rbac';
 
