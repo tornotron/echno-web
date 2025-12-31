@@ -23,8 +23,7 @@ export function AuthButton() {
     const onSignOut = async () => {
       setIsSigningOut(true);
       try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await handleSignOut(session as any);
+        await handleSignOut();
         // Toast will be shown on the login page after redirect
       } catch (error) {
         console.error('Sign out error:', error);
