@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { parseUser } from '@/types/user/user';
 import { createErrorResponse, parseErrorResponse } from '@/lib/utils/api-utils';
 import { getAccessToken } from '@/lib/auth/get-session-tokens';
+import { logger } from '@/lib/logger';
 
 /**
  * GET /api/user
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
     if (!response.ok) {
       const backendError = await parseErrorResponse(response);
 
-      console.error('Backend API error:', {
+      logger.error('Backend API error', undefined, {
         status: response.status,
         error: backendError,
       });
@@ -64,7 +65,7 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error in user API route:', error);
+    logger.error('Error in user API route', error);
 
     const errorResponse = createErrorResponse(
       'Internal Server Error',
@@ -151,7 +152,7 @@ export async function PATCH(request: NextRequest) {
     if (!response.ok) {
       const backendError = await parseErrorResponse(response);
 
-      console.error('Backend API error during update:', {
+      logger.error('Backend API error during update:', {
         status: response.status,
         error: backendError,
         requestBody: body,
@@ -165,7 +166,7 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(user);
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    logger.error('Error updating user profile:', error);
 
     const errorResponse = createErrorResponse(
       'Internal Server Error',

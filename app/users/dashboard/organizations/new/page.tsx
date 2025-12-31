@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/common/app-layout';
 import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
@@ -19,7 +20,7 @@ export default function NewOrganizationPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Here you would make an API call to create the organization
-      console.log('Creating organization:', data);
+      logger.debug('Creating organization:', data);
 
       toast.success('Organization created!', {
         description: `${data.organizationName} has been successfully created.`,

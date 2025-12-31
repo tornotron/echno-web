@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { logger } from '@/lib/logger';
 import { AppLayout } from '@/components/common';
 import {
   Card,
@@ -101,7 +102,7 @@ export default function EditProjectPage() {
         // Populate members
         setSelectedMembers(foundProject.members || []);
       } catch (error) {
-        console.error('Error loading project:', error);
+        logger.error('Error loading project:', error);
         toast.error('Failed to load project');
       } finally {
         setIsLoading(false);
@@ -180,12 +181,12 @@ export default function EditProjectPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // TODO: Replace with actual API call
-      console.log('Updating project:', { projectId, ...formData });
+      logger.debug('Updating project:', { projectId, ...formData });
 
       toast.success('Project updated successfully!');
       router.push('/dashboard/projects');
     } catch (error) {
-      console.error('Error updating project:', error);
+      logger.error('Error updating project:', error);
       toast.error('Failed to update project. Please try again.');
       setIsSubmitting(false);
     }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '@/lib/logger';
 import { auth } from '@/auth';
 import { getRevokedSessionCount } from '@/lib/auth/session-revocation';
 
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[Debug] Session debug error:', error);
+    logger.error('[Debug] Session debug error:', error);
     return NextResponse.json(
       {
         error: 'Failed to get debug info',

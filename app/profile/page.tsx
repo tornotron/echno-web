@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { auth } from '@/auth';
+import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
@@ -29,7 +30,7 @@ async function getUserProfile(): Promise<User | null> {
     const user = await fetchUserProfileFromBackend(accessToken);
     return user;
   } catch (error) {
-    console.error('Error fetching user profile:', error);
+    logger.error('Error fetching user profile:', error);
     return null;
   }
 }
