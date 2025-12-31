@@ -218,8 +218,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // e.g., "project-manager" → "projectManager", "super-admin" → "super_admin"
           token.roles = normalizeRolesWithMapping(keycloakRoles);
 
-          // Compute permissions from roles
-          token.permissions = getRolePermissions(keycloakRoles);
+          // Compute permissions from normalized roles
+          token.permissions = getRolePermissions(token.roles || []);
 
           // Extract session ID for backchannel logout
           // Keycloak sends 'sid' in the access token
@@ -247,11 +247,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.accessToken = user.accessToken;
         token.expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
 
-        // Extract roles from credentials response
+        // Extract roles from credentials response (already normalized in authorize)
         token.roles = user.roles || [];
 
-        // Compute permissions from roles
-        token.permissions = getRolePermissions(user.roles || []);
+        // Compute permissions from normalized roles
+        token.permissions = getRolePermissions(token.roles);
       }
 
       // ========== USER INFO ==========
@@ -311,8 +311,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const resourceRoles =
               decodedToken?.resource_access?.[process.env.KEYCLOAK_ID!]
                 ?.roles || [];
-            refreshed.roles = [...realmRoles, ...resourceRoles];
-            refreshed.permissions = getRolePermissions(refreshed.roles);
+            const keycloakRoles = [...realmRoles, ...resourceRoles];
+
+            // Normalize role names from Keycloak to app format
+            refreshed.roles = normalizeRolesWithMapping(keycloakRoles);
+            // Compute permissions from normalized roles
+            refreshed.permissions = getRolePermissions(refreshed.roles || []);
           } catch (error) {
             console.error('Failed to extract roles after refresh:', error);
           }
