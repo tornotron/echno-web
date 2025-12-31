@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createRemoteJWKSet, jwtVerify } from 'jose';
 import { revokeSession } from '@/lib/auth/session-revocation';
+import { logger } from '@/lib/logger';
 
 interface LogoutToken {
   sid?: string;
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     const logoutToken = formData.get('logout_token') as string;
 
     if (!logoutToken) {
-      console.error('[Backchannel Logout] No logout token provided');
+      logger.auth.backchannel('No logout token provided');
       return new NextResponse('Bad Request', { status: 400 });
     }
 
@@ -49,8 +50,8 @@ export async function POST(req: NextRequest) {
       const expectedAudience = process.env.KEYCLOAK_ID;
 
       if (!expectedIssuer || !expectedAudience) {
-        console.error(
-          '[Backchannel Logout] Missing KEYCLOAK_ISSUER or KEYCLOAK_ID environment variables'
+        logger.error(
+          'Backchannel logout: Missing KEYCLOAK_ISSUER or KEYCLOAK_ID environment variables'
         );
         return new NextResponse('Server Configuration Error', { status: 500 });
       }
@@ -65,9 +66,9 @@ export async function POST(req: NextRequest) {
 
       const decoded = payload as LogoutToken;
 
-      console.log('[Backchannel Logout] Received logout request:', {
-        sid: decoded.sid, // Session ID
-        sub: decoded.sub, // User ID (subject)
+      logger.auth.backchannel('Received logout request', {
+        hasSid: !!decoded.sid, // Session ID present
+        hasSub: !!decoded.sub, // User ID present
         iat: decoded.iat, // Issued at
         iss: decoded.iss, // Issuer
         aud: decoded.aud, // Audience (client ID)
@@ -81,16 +82,16 @@ export async function POST(req: NextRequest) {
         const maxAge = 600; // 10 minutes max age
 
         if (iatAge > maxAge) {
-          console.error(
-            `[Backchannel Logout] Token too old: issued ${iatAge}s ago (max ${maxAge}s)`
+          logger.warn(
+            `Backchannel logout: Token too old: issued ${iatAge}s ago (max ${maxAge}s)`
           );
           return new NextResponse('Token Expired', { status: 400 });
         }
 
         if (iatAge < -300) {
           // Token issued more than 5 minutes in the future
-          console.error(
-            `[Backchannel Logout] Token issued in the future: ${iatAge}s`
+          logger.warn(
+            `Backchannel logout: Token issued in the future: ${iatAge}s`
           );
           return new NextResponse('Invalid Token Time', { status: 400 });
         }
@@ -101,32 +102,27 @@ export async function POST(req: NextRequest) {
         !decoded.events ||
         !decoded.events['http://schemas.openid.net/event/backchannel-logout']
       ) {
-        console.error('[Backchannel Logout] Invalid logout event');
+        logger.warn('Backchannel logout: Invalid logout event');
         return new NextResponse('Invalid logout event', { status: 400 });
       }
 
       // Revoke session by session ID (sid)
       if (decoded.sid) {
         revokeSession(decoded.sid);
-        console.log(`[Backchannel Logout] Session revoked: ${decoded.sid}`);
+        logger.auth.backchannel('Session revoked by session ID');
       }
 
       // Alternatively, revoke by user ID (sub) - revokes all sessions for the user
       // This is more aggressive and will log out the user from all devices
       if (decoded.sub && !decoded.sid) {
         revokeSession(decoded.sub);
-        console.log(
-          `[Backchannel Logout] All sessions revoked for user: ${decoded.sub}`
-        );
+        logger.auth.backchannel('All sessions revoked by user ID');
       }
 
       // Return 200 OK to Keycloak
       return new NextResponse('OK', { status: 200 });
     } catch (error) {
-      console.error(
-        '[Backchannel Logout] Failed to verify logout token:',
-        error
-      );
+      logger.error('Backchannel logout: Failed to verify logout token', error);
 
       // Provide more specific error message
       if (error instanceof Error) {
@@ -144,7 +140,7 @@ export async function POST(req: NextRequest) {
       return new NextResponse('Invalid Token', { status: 400 });
     }
   } catch (error) {
-    console.error('[Backchannel Logout] Error:', error);
+    logger.error('Backchannel logout error', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
