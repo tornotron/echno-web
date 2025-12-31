@@ -4,6 +4,7 @@ import { hasPermission, getRolePermissions } from '@/lib/rbac/permissions';
 import { Permission } from '@/types/rbac/permission';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { isSuperAdmin } from '@/lib/rbac/role-utils';
+import { logger } from '@/lib/logger';
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -20,9 +21,9 @@ export default auth((req) => {
 
   // Log middleware execution
   if (isLoggedIn) {
-    console.log('[Middleware] Executing for authenticated user:', {
+    logger.debug('Middleware executing for authenticated user', {
       pathname,
-      sessionId: req.auth?.sessionId,
+      hasSessionId: !!req.auth?.sessionId,
       hasError: !!req.auth?.error,
       error: req.auth?.error,
       timestamp: new Date().toISOString(),
@@ -33,7 +34,9 @@ export default auth((req) => {
   // Handle token refresh errors FIRST (before any other checks)
   // This prevents redirect loops when trying to access /login with an errored session
   if (hasSessionError) {
-    console.log('[Middleware] Session error detected:', req.auth?.error);
+    logger.debug('Middleware: Session error detected', {
+      error: req.auth?.error,
+    });
 
     // Allow access to login page without redirect
     if (pathname === '/login') {
@@ -48,8 +51,8 @@ export default auth((req) => {
       response.cookies.delete('next-auth.callback-url');
       response.cookies.delete('__Secure-next-auth.callback-url');
 
-      console.log(
-        '[Middleware] Cleared session cookies, allowing login page access'
+      logger.debug(
+        'Middleware: Cleared session cookies, allowing login page access'
       );
       return response;
     }
@@ -77,22 +80,20 @@ export default auth((req) => {
     response.cookies.delete('next-auth.callback-url');
     response.cookies.delete('__Secure-next-auth.callback-url');
 
-    console.log('[Middleware] Redirecting to login due to session error');
+    logger.debug('Middleware: Redirecting to login due to session error');
     return response;
   }
 
   // ========== SESSION REVOCATION CHECK ==========
   // Check if session was revoked via backchannel logout
   if (isLoggedIn && req.auth?.sessionId) {
-    console.log('[Middleware] Checking session revocation:', {
-      sessionId: req.auth.sessionId,
+    logger.debug('Middleware: Checking session revocation', {
+      hasSessionId: true,
       pathname,
     });
 
     if (isSessionRevoked(req.auth.sessionId as string)) {
-      console.log(
-        `[Middleware] Session revoked, forcing logout: ${req.auth.sessionId}`
-      );
+      logger.warn('Middleware: Session revoked, forcing logout');
 
       // Allow access to login page
       if (pathname === '/login') {
@@ -108,9 +109,9 @@ export default auth((req) => {
 
         for (const cookie of cookiesToDelete) {
           response.cookies.delete(cookie);
-          console.log(`[Middleware] 🗑️ Deleted cookie: ${cookie}`);
         }
 
+        logger.debug('Middleware: Cleared cookies for revoked session');
         return response;
       }
 
@@ -129,16 +130,16 @@ export default auth((req) => {
 
       for (const cookie of cookiesToDelete) {
         response.cookies.delete(cookie);
-        console.log(`[Middleware] 🗑️ Deleted cookie: ${cookie}`);
       }
 
+      logger.debug('Middleware: Redirecting to login for revoked session');
       return response;
     } else {
-      console.log('[Middleware] Session is active (not revoked)');
+      logger.debug('Middleware: Session is active (not revoked)');
     }
   } else if (isLoggedIn && !req.auth?.sessionId) {
-    console.log(
-      '[Middleware] No sessionId in auth object for revocation check'
+    logger.debug(
+      'Middleware: No sessionId in auth object for revocation check'
     );
   }
 

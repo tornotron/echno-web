@@ -4,6 +4,7 @@ import KeycloakProvider from 'next-auth/providers/keycloak';
 import { jwtDecode } from 'jwt-decode';
 import { getRolePermissions } from '@/lib/rbac/permissions';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
+import { logger } from '@/lib/logger';
 
 interface KeycloakToken {
   accessToken?: string;
@@ -64,7 +65,7 @@ async function refreshAccessToken(
       lastRefresh: Date.now(),
     };
   } catch (error) {
-    console.error('Token refresh failed:', error);
+    logger.error('Token refresh failed', error);
     return { ...token, error: 'RefreshAccessTokenError' };
   }
 }
@@ -111,8 +112,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   callbacks: {
     async jwt({ token, user, account }) {
-      // DEBUG: Track JWT callback execution
-      console.log('[Auth] JWT Callback Executed:', {
+      // Track JWT callback execution (development only)
+      logger.debug('JWT Callback Executed', {
         hasAccount: !!account,
         hasUser: !!user,
         provider: account?.provider || token.provider,
@@ -136,8 +137,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             account.access_token!
           );
 
-          // DEBUG: Log the full decoded token to see what's available
-          console.log('[Auth] Keycloak Token Content:', {
+          // Log token metadata (sensitive fields auto-sanitized by logger)
+          logger.debug('Keycloak Token Content', {
             sid: decodedToken?.sid,
             session_state: decodedToken?.session_state,
             sub: decodedToken?.sub,
@@ -168,16 +169,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.sessionId =
             decodedToken?.sid || decodedToken?.session_state || token.sub;
 
-          // Log extracted session ID
-          console.log('[Auth] Extracted Session ID:', token.sessionId);
-          console.log('[Auth] Token Expiry:', {
+          // Log token metadata (session ID is not logged for security)
+          logger.debug('Token metadata extracted', {
+            hasSessionId: !!token.sessionId,
             expiresAt: new Date(
               Date.now() + (account.expires_in ?? 300) * 1000
             ),
             expiresInSeconds: account.expires_in,
           });
         } catch (error) {
-          console.error('Failed to extract roles from Keycloak token:', error);
+          logger.error('Failed to extract roles from Keycloak token', error);
           token.roles = [];
           token.permissions = [];
         }
@@ -193,20 +194,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Session revoked via backchannel logout
       if (token.sessionId) {
         const revoked = isSessionRevoked(token.sessionId as string);
-        console.log(`[Auth] Session Revocation Check:`, {
-          sessionId: token.sessionId,
+        logger.debug('Session Revocation Check', {
+          hasSessionId: true,
           isRevoked: revoked,
           timestamp: new Date().toISOString(),
         });
 
         if (revoked) {
-          console.log(
-            `[Auth] Session revoked via backchannel logout: ${token.sessionId}`
-          );
+          logger.auth.sessionRevoked(token.sessionId as string);
           return { ...token, error: 'SessionRevoked' };
         }
       } else {
-        console.log('[Auth] No sessionId found in token for revocation check');
+        logger.debug('No sessionId found in token for revocation check');
       }
 
       // STOP refresh if already failed (check BEFORE expiration)
@@ -217,7 +216,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Token still valid
       if (token.expiresAt && Date.now() < token.expiresAt) {
         const timeUntilExpiry = token.expiresAt - Date.now();
-        console.log('[Auth] Token still valid:', {
+        logger.debug('Token still valid', {
           expiresAt: new Date(token.expiresAt),
           timeUntilExpiry: `${Math.floor(timeUntilExpiry / 60_000)} minutes ${Math.floor((timeUntilExpiry % 60_000) / 1000)} seconds`,
         });
@@ -226,7 +225,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       // ========== REFRESH TOKEN ==========
       // Refresh only once
-      console.log('[Auth] Token expired, attempting refresh...');
+      logger.debug('Token expired, attempting refresh...');
       if (token.provider === 'keycloak' && token.refreshToken) {
         const refreshed = await refreshAccessToken(token);
 
@@ -247,7 +246,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             // Compute permissions from Keycloak roles
             refreshed.permissions = getRolePermissions(keycloakRoles);
           } catch (error) {
-            console.error('Failed to extract roles after refresh:', error);
+            logger.error('Failed to extract roles after refresh', error);
           }
         }
 
@@ -289,9 +288,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if ('token' in message && message.token) {
         const token = message.token;
 
-        console.log('[Auth] Signing out user:', {
-          provider: token.provider,
-          sessionId: token.sessionId,
+        logger.auth.logout(token.provider as string, {
+          hasSessionId: !!token.sessionId,
         });
 
         // Logout from Keycloak if this is a Keycloak session
@@ -300,7 +298,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             const issuer = token.keycloakIssuer || process.env.KEYCLOAK_ISSUER;
             const logoutUrl = `${issuer}/protocol/openid-connect/logout`;
 
-            console.log('[Auth] Logging out from Keycloak');
+            logger.debug('Logging out from Keycloak');
 
             await fetch(logoutUrl, {
               method: 'POST',
@@ -312,9 +310,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               }),
             });
 
-            console.log('[Auth] Keycloak logout successful');
+            logger.debug('Keycloak logout successful');
           } catch (error) {
-            console.error('[Auth] Keycloak logout error:', error);
+            logger.error('Keycloak logout error', error);
             // Don't throw - allow NextAuth logout to proceed
           }
         }
