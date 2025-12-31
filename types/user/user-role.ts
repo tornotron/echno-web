@@ -22,6 +22,7 @@ export enum UserRole {
   documentController = 'documentController',
   itSupport = 'itSupport',
   officeAssistant = 'officeAssistant',
+  director = 'director',
 
   civilEngineer = 'civilEngineer',
   siteEngineer = 'siteEngineer',
@@ -73,6 +74,7 @@ export function getUserRoleLabel(role: UserRole): string {
     [UserRole.documentController]: 'Document Controller',
     [UserRole.itSupport]: 'IT Support',
     [UserRole.officeAssistant]: 'Office Assistant',
+    [UserRole.director]: 'Director',
     [UserRole.civilEngineer]: 'Civil Engineer',
     [UserRole.siteEngineer]: 'Site Engineer',
     [UserRole.structuralEngineer]: 'Structural Engineer',

@@ -24,6 +24,7 @@ export const SYSTEM_ROLES = {
   PROJECT_MANAGER: 'project-manager',
   SITE_MANAGER: 'site-manager',
   HR_MANAGER: 'hr-manager',
+  DIRECTOR: 'director',
 
   // ==================== Engineering & Technical ====================
   CIVIL_ENGINEER: 'civil-engineer',
@@ -113,6 +114,7 @@ export function getRoleDisplayName(roleId: string): string {
     [SYSTEM_ROLES.PROJECT_MANAGER]: 'Project Manager',
     [SYSTEM_ROLES.SITE_MANAGER]: 'Site Manager',
     [SYSTEM_ROLES.HR_MANAGER]: 'HR Manager',
+    [SYSTEM_ROLES.DIRECTOR]: 'Director',
 
     // Engineering
     [SYSTEM_ROLES.CIVIL_ENGINEER]: 'Civil Engineer',
