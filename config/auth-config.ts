@@ -8,6 +8,7 @@
  */
 
 import { logger } from '@/lib/logger';
+import { NEXTAUTH } from '@/lib/auth/constants';
 
 /**
  * Required environment variables for authentication
@@ -114,10 +115,10 @@ function validateNextAuthSecret(): void {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret) return;
 
-  // NextAuth recommends at least 32 characters
-  if (secret.length < 32) {
+  // NextAuth recommends at least MIN_SECRET_LENGTH characters
+  if (secret.length < NEXTAUTH.MIN_SECRET_LENGTH) {
     logger.warn(
-      `[Auth Config] Warning: NEXTAUTH_SECRET should be at least 32 characters long for security.\n` +
+      `[Auth Config] Warning: NEXTAUTH_SECRET should be at least ${NEXTAUTH.MIN_SECRET_LENGTH} characters long for security.\n` +
         `Current length: ${secret.length} characters.\n` +
         `Generate a secure secret: openssl rand -base64 32`
     );

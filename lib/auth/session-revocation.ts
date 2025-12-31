@@ -13,11 +13,11 @@
  */
 
 import { logger } from '@/lib/logger';
+import { SESSION_REVOCATION, msToSeconds } from './constants';
 
-// Cleanup old revocations every hour
-const CLEANUP_INTERVAL = 60 * 60 * 1000; // 1 hour
-const REDIS_SYNC_INTERVAL = 30 * 1000; // Sync from Redis every 30 seconds
-const REVOCATION_TTL = 24 * 60 * 60 * 1000; // 24 hours
+// Import constants for better maintainability
+const { TTL_MS, CLEANUP_INTERVAL_MS, REDIS_SYNC_INTERVAL_MS } =
+  SESSION_REVOCATION;
 
 // In-memory store (always used for fast synchronous access)
 const revokedSessionsWithTimestamp = new Map<string, number>();
@@ -103,7 +103,7 @@ function pushToRedis(sessionId: string, timestamp: number): void {
   if (!redisAvailable || !redis) return;
 
   const key = `session:revoked:${sessionId}`;
-  const ttlSeconds = Math.floor(REVOCATION_TTL / 1000);
+  const ttlSeconds = msToSeconds(TTL_MS);
 
   redis.setex(key, ttlSeconds, timestamp.toString()).catch((error: Error) => {
     logger.error('Failed to push revocation to Redis', error);
@@ -118,7 +118,7 @@ function startRedisSyncInterval(): void {
     syncFromRedis().catch((error) => {
       logger.error('Redis sync interval error', error);
     });
-  }, REDIS_SYNC_INTERVAL);
+  }, REDIS_SYNC_INTERVAL_MS);
 }
 
 /**
@@ -160,7 +160,7 @@ export function isSessionRevoked(sessionId: string): boolean {
 
   // Check if revocation has expired
   const age = Date.now() - revokedAt;
-  if (age > REVOCATION_TTL) {
+  if (age > TTL_MS) {
     revokedSessionsWithTimestamp.delete(sessionId);
     logger.debug('Session revocation expired');
     return false;
@@ -178,7 +178,7 @@ function cleanupExpiredRevocations(): void {
 
   for (const [sessionId, revokedAt] of revokedSessionsWithTimestamp.entries()) {
     const age = now - revokedAt;
-    if (age > REVOCATION_TTL) {
+    if (age > TTL_MS) {
       revokedSessionsWithTimestamp.delete(sessionId);
       cleaned++;
     }
@@ -191,7 +191,7 @@ function cleanupExpiredRevocations(): void {
 
 // Start cleanup interval and initialize Redis
 if (typeof globalThis !== 'undefined') {
-  setInterval(cleanupExpiredRevocations, CLEANUP_INTERVAL);
+  setInterval(cleanupExpiredRevocations, CLEANUP_INTERVAL_MS);
 
   // Initialize Redis in background (non-blocking)
   // eslint-disable-next-line unicorn/prefer-top-level-await

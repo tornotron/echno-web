@@ -5,6 +5,7 @@ import { Permission } from '@/types/rbac/permission';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { isSuperAdmin } from '@/lib/rbac/role-utils';
 import { logger } from '@/lib/logger';
+import { deleteNextAuthCookies } from '@/lib/auth/cookie-utils';
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -41,15 +42,7 @@ export default auth((req) => {
     // Allow access to login page without redirect
     if (pathname === '/login') {
       // Create response that clears cookies but allows login page access
-      const response = NextResponse.next();
-
-      // Delete all NextAuth cookies
-      response.cookies.delete('next-auth.session-token');
-      response.cookies.delete('__Secure-next-auth.session-token');
-      response.cookies.delete('next-auth.csrf-token');
-      response.cookies.delete('__Host-next-auth.csrf-token');
-      response.cookies.delete('next-auth.callback-url');
-      response.cookies.delete('__Secure-next-auth.callback-url');
+      const response = deleteNextAuthCookies(NextResponse.next());
 
       logger.debug(
         'Middleware: Cleared session cookies, allowing login page access'
@@ -70,15 +63,7 @@ export default auth((req) => {
     }
 
     // Create response with cookie cleanup
-    const response = NextResponse.redirect(url);
-
-    // Delete all NextAuth cookies
-    response.cookies.delete('next-auth.session-token');
-    response.cookies.delete('__Secure-next-auth.session-token');
-    response.cookies.delete('next-auth.csrf-token');
-    response.cookies.delete('__Host-next-auth.csrf-token');
-    response.cookies.delete('next-auth.callback-url');
-    response.cookies.delete('__Secure-next-auth.callback-url');
+    const response = deleteNextAuthCookies(NextResponse.redirect(url));
 
     logger.debug('Middleware: Redirecting to login due to session error');
     return response;
@@ -97,40 +82,15 @@ export default auth((req) => {
 
       // Allow access to login page
       if (pathname === '/login') {
-        const response = NextResponse.next();
-
-        // Delete NextAuth cookies
-        const cookiesToDelete = [
-          'next-auth.session-token',
-          '__Secure-next-auth.session-token',
-          'next-auth.csrf-token',
-          '__Host-next-auth.csrf-token',
-        ];
-
-        for (const cookie of cookiesToDelete) {
-          response.cookies.delete(cookie);
-        }
-
+        const response = deleteNextAuthCookies(NextResponse.next());
         logger.debug('Middleware: Cleared cookies for revoked session');
         return response;
       }
 
       // Clear cookies and redirect to login
-      const response = NextResponse.redirect(
-        new URL('/login?error=session_revoked', req.url)
+      const response = deleteNextAuthCookies(
+        NextResponse.redirect(new URL('/login?error=session_revoked', req.url))
       );
-
-      // Delete NextAuth cookies
-      const cookiesToDelete = [
-        'next-auth.session-token',
-        '__Secure-next-auth.session-token',
-        'next-auth.csrf-token',
-        '__Host-next-auth.csrf-token',
-      ];
-
-      for (const cookie of cookiesToDelete) {
-        response.cookies.delete(cookie);
-      }
 
       logger.debug('Middleware: Redirecting to login for revoked session');
       return response;
