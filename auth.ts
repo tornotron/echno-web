@@ -1,11 +1,9 @@
 import NextAuth from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import KeycloakProvider from 'next-auth/providers/keycloak';
-import Credentials from 'next-auth/providers/credentials';
 import { jwtDecode } from 'jwt-decode';
 import { getRolePermissions } from '@/lib/rbac/permissions';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
-import { normalizeRolesWithMapping } from '@/lib/rbac/role-normalizer';
 
 interface KeycloakToken {
   accessToken?: string;
@@ -109,60 +107,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token_endpoint_auth_method: 'client_secret_post',
       },
     }),
-
-    Credentials({
-      name: 'Credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        if (!apiUrl) {
-          console.error('NEXT_PUBLIC_API_URL is not configured');
-          return null;
-        }
-
-        try {
-          const res = await fetch(`${apiUrl}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(credentials),
-          });
-
-          if (!res.ok) {
-            console.error(`Login failed: ${res.status} ${res.statusText}`);
-            return null;
-          }
-
-          const data = await res.json();
-
-          if (!data?.user || !data?.access_token) {
-            console.error('Invalid response from auth API');
-            return null;
-          }
-
-          // Normalize role names from backend (hyphenated) to app format (camelCase)
-          const backendRoles =
-            data.user.roles || [data.user.role].filter(Boolean);
-          const normalizedRoles = normalizeRolesWithMapping(backendRoles);
-
-          return {
-            id: String(data.user.id),
-            email: data.user.email,
-            name: data.user.name,
-            roles: normalizedRoles,
-            role: data.user.role,
-            accessToken: data.access_token,
-          };
-        } catch (error) {
-          console.error('Auth API error:', error);
-          return null;
-        }
-      },
-    }),
   ],
 
   callbacks: {
@@ -214,12 +158,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // Combine realm and resource roles
           const keycloakRoles = [...realmRoles, ...resourceRoles];
 
-          // Normalize role names from Keycloak (hyphenated) to app format (camelCase)
-          // e.g., "project-manager" → "projectManager", "super-admin" → "super_admin"
-          token.roles = normalizeRolesWithMapping(keycloakRoles);
+          token.roles = keycloakRoles;
 
-          // Compute permissions from normalized roles
-          token.permissions = getRolePermissions(token.roles || []);
+          // Compute permissions from Keycloak roles
+          token.permissions = getRolePermissions(keycloakRoles);
 
           // Extract session ID for backchannel logout
           // Keycloak sends 'sid' in the access token
@@ -239,19 +181,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           token.roles = [];
           token.permissions = [];
         }
-      }
-
-      // ========== CREDENTIALS LOGIN ==========
-      if (account?.provider === 'credentials' && user) {
-        token.provider = 'credentials';
-        token.accessToken = user.accessToken;
-        token.expiresAt = Date.now() + 30 * 24 * 60 * 60 * 1000;
-
-        // Extract roles from credentials response (already normalized in authorize)
-        token.roles = user.roles || [];
-
-        // Compute permissions from normalized roles
-        token.permissions = getRolePermissions(token.roles);
       }
 
       // ========== USER INFO ==========
@@ -313,10 +242,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 ?.roles || [];
             const keycloakRoles = [...realmRoles, ...resourceRoles];
 
-            // Normalize role names from Keycloak to app format
-            refreshed.roles = normalizeRolesWithMapping(keycloakRoles);
-            // Compute permissions from normalized roles
-            refreshed.permissions = getRolePermissions(refreshed.roles || []);
+            // Use Keycloak roles
+            refreshed.roles = keycloakRoles;
+            // Compute permissions from Keycloak roles
+            refreshed.permissions = getRolePermissions(keycloakRoles);
           } catch (error) {
             console.error('Failed to extract roles after refresh:', error);
           }
@@ -356,13 +285,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   events: {
     async signOut(message) {
-      // Keycloak backchannel logout
+      // Keycloak logout
       if ('token' in message && message.token) {
         const token = message.token;
-        if (token.provider === 'keycloak' && token.idToken) {
+
+        console.log('[Auth] Signing out user:', {
+          provider: token.provider,
+          sessionId: token.sessionId,
+        });
+
+        // Logout from Keycloak if this is a Keycloak session
+        if (token.provider === 'keycloak' && token.refreshToken) {
           try {
             const issuer = token.keycloakIssuer || process.env.KEYCLOAK_ISSUER;
             const logoutUrl = `${issuer}/protocol/openid-connect/logout`;
+
+            console.log('[Auth] Logging out from Keycloak');
 
             await fetch(logoutUrl, {
               method: 'POST',
@@ -373,8 +311,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 refresh_token: token.refreshToken as string,
               }),
             });
+
+            console.log('[Auth] Keycloak logout successful');
           } catch (error) {
-            console.error('Keycloak logout error:', error);
+            console.error('[Auth] Keycloak logout error:', error);
             // Don't throw - allow NextAuth logout to proceed
           }
         }
