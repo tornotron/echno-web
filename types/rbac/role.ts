@@ -15,36 +15,35 @@ export interface Role {
 
 /**
  * System role identifiers
- * These map to your existing UserRole enum for backward compatibility
  */
 export const SYSTEM_ROLES = {
   // ==================== Administration ====================
-  SUPER_ADMIN: 'super_admin',
+  SUPER_ADMIN: 'super-admin',
 
   // ==================== Management Roles ====================
-  PROJECT_MANAGER: 'projectManager',
-  SITE_MANAGER: 'siteManager',
-  HR_MANAGER: 'hrManager',
+  PROJECT_MANAGER: 'project-manager',
+  SITE_MANAGER: 'site-manager',
+  HR_MANAGER: 'hr-manager',
 
   // ==================== Engineering & Technical ====================
-  CIVIL_ENGINEER: 'civilEngineer',
-  SITE_ENGINEER: 'siteEngineer',
-  STRUCTURAL_ENGINEER: 'structuralEngineer',
+  CIVIL_ENGINEER: 'civil-engineer',
+  SITE_ENGINEER: 'site-engineer',
+  STRUCTURAL_ENGINEER: 'structural-engineer',
   ARCHITECT: 'architect',
-  PLANNING_ENGINEER: 'planningEngineer',
-  TECHNICAL_COORDINATOR: 'technicalCoordinator',
+  PLANNING_ENGINEER: 'planning-engineer',
+  TECHNICAL_COORDINATOR: 'technical-coordinator',
 
   // ==================== Finance & Admin ====================
   ACCOUNTANT: 'accountant',
-  QUANTITY_SURVEYOR: 'quantitySurveyor',
-  PROCUREMENT_OFFICER: 'procurementOfficer',
-  ADMIN_STAFF: 'adminStaff',
-  DOCUMENT_CONTROLLER: 'documentController',
+  QUANTITY_SURVEYOR: 'quantity-surveyor',
+  PROCUREMENT_OFFICER: 'procurement-officer',
+  ADMIN_STAFF: 'admin-staff',
+  DOCUMENT_CONTROLLER: 'document-controller',
 
   // ==================== Supervisory ====================
   SUPERVISOR: 'supervisor',
   FOREMAN: 'foreman',
-  SAFETY_OFFICER: 'safetyOfficer',
+  SAFETY_OFFICER: 'safety-officer',
 
   // ==================== Skilled Workers ====================
   ELECTRICIAN: 'electrician',
@@ -56,29 +55,29 @@ export const SYSTEM_ROLES = {
   SCAFFOLDER: 'scaffolder',
 
   // ==================== Equipment Operators ====================
-  EQUIPMENT_OPERATOR: 'equipmentOperator',
-  CRANE_OPERATOR: 'craneOperator',
+  EQUIPMENT_OPERATOR: 'equipment-operator',
+  CRANE_OPERATOR: 'crane-operator',
   DRIVER: 'driver',
 
   // ==================== General Workers ====================
   LABORER: 'laborer',
   HELPER: 'helper',
-  SITE_CLEANER: 'siteCleaner',
-  SECURITY_GUARD: 'securityGuard',
+  SITE_CLEANER: 'site-cleaner',
+  SECURITY_GUARD: 'security-guard',
 
   // ==================== Third Party ====================
   CONTRACTOR: 'contractor',
   SUBCONTRACTOR: 'subcontractor',
-  MATERIAL_SUPPLIER: 'materialSupplier',
+  MATERIAL_SUPPLIER: 'material-supplier',
   VENDOR: 'vendor',
   CONSULTANT: 'consultant',
-  OWNER_REPRESENTATIVE: 'ownerRepresentative',
+  OWNER_REPRESENTATIVE: 'owner-representative',
   CLIENT: 'client',
 
   // ==================== Office Support ====================
   RECEPTIONIST: 'receptionist',
-  IT_SUPPORT: 'itSupport',
-  OFFICE_ASSISTANT: 'officeAssistant',
+  IT_SUPPORT: 'it-support',
+  OFFICE_ASSISTANT: 'office-assistant',
 
   // ==================== Trainees ====================
   STUDENT: 'student',
