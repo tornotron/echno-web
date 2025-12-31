@@ -9,7 +9,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -119,8 +118,6 @@ export default function VendorsPage() {
   const isAllSelected =
     paginatedVendors.length > 0 &&
     selectedIds.length === paginatedVendors.length;
-  const isSomeSelected =
-    selectedIds.length > 0 && selectedIds.length < paginatedVendors.length;
 
   // Statistics
   const stats = {

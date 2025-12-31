@@ -35,12 +35,10 @@ import type { Project } from '@/types/project/project';
 import {
   mockProjects,
   mockTasks,
-  mockIssues,
   mockBudgets,
   mockInspections,
 } from '@/components/shared/mock-data';
 import { TaskStatus } from '@/types/task';
-import { IssueStatus } from '@/types/issue';
 
 // Fetch project by ID from mock data
 const fetchProject = async (id: string): Promise<Project | null> => {

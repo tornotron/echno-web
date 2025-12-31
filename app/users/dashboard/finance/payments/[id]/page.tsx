@@ -18,8 +18,6 @@ import {
   CreditCard,
   Edit,
   Download,
-  Mail,
-  DollarSign,
   Calendar,
   Building,
   FileText,

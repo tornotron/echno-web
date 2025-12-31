@@ -29,11 +29,9 @@ import {
 } from '@/components/ui/select';
 import {
   Receipt as ReceiptIcon,
-  Download,
   DollarSign,
   Calendar,
   FileText,
-  User,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';

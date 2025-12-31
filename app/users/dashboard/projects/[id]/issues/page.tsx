@@ -16,7 +16,6 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import {
   Select,
@@ -33,13 +32,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { AlertCircle, Plus, Eye, Calendar } from 'lucide-react';
+import { AlertCircle, Plus, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { IssueStatus, IssueType } from '@/types/issue';
 import { format } from 'date-fns';
@@ -413,9 +406,6 @@ export default function IssuesPage({ params }: PageProps) {
                     // Find the task that contains this issue
                     const relatedTask = mockTasks.find((task) =>
                       task.issues?.some((i) => i.id === issue.id)
-                    );
-                    const project = mockProjects.find(
-                      (p) => p.id === relatedTask?.projectId
                     );
 
                     return (

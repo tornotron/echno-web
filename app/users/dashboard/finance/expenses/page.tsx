@@ -29,12 +29,7 @@ import {
 } from '@/components/ui/select';
 import { DollarSign, Calendar, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { format } from 'date-fns';
-import {
-  ExpenseType,
-  ExpenseStatus,
-  ExpenseCategory,
-} from '@/types/finance/expense';
+import { ExpenseType, ExpenseStatus } from '@/types/finance/expense';
 
 const expenseTypeLabels: Record<string, string> = {
   direct: 'Direct',

@@ -6,7 +6,6 @@ import {
   mockTasks,
   mockProjects,
 } from '@/components/shared/mock-data';
-import { getUserRoleLabel } from '@/types/user/user-role';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -40,7 +39,6 @@ import { format } from 'date-fns';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
 import { IssueStatus } from '@/types/issue';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
-import { Plus } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string; issueId: string }>;
