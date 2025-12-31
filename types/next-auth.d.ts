@@ -1,6 +1,7 @@
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { JWT as DefaultJWT } from 'next-auth/jwt';
 import { Permission } from './rbac';
+import { UserModuleEntitlement } from './rbac/module';
 
 declare module 'next-auth' {
   interface Session {
@@ -11,6 +12,8 @@ declare module 'next-auth' {
     user: {
       id: string;
       roles: string[];
+      organizationId: string;
+      entitlements?: UserModuleEntitlement[];
     } & DefaultSession['user'];
   }
 
@@ -18,6 +21,7 @@ declare module 'next-auth' {
     id: string;
     // NEW: Multiple roles support
     roles: string[];
+    organizationId?: string;
     accessToken?: string;
   }
 }
@@ -27,6 +31,8 @@ declare module 'next-auth/jwt' {
     userId?: string;
     roles?: string[];
     permissions?: Permission[];
+    organizationId?: string;
+    entitlements?: UserModuleEntitlement[];
     accessToken?: string;
     idToken?: string;
     refreshToken?: string;
