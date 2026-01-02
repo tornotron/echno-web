@@ -1,5 +1,11 @@
 import { Permission } from '@/types/rbac/permission';
 import { SYSTEM_ROLES } from '@/types/rbac/role';
+import {
+  UserPermissionGrant,
+  PermissionCheckContext,
+  grantMatchesContext,
+  isGrantValid,
+} from '@/types/rbac/user-permission';
 
 /**
  * Role-to-Permission Mapping
@@ -647,4 +653,172 @@ export function hasAllRoles(userRoles: string[], required: string[]): boolean {
  */
 export function isSuperAdmin(userRoles: string[]): boolean {
   return userRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+}
+
+// ==================== USER PERMISSION GRANTS ====================
+// Functions for handling user-specific permission grants that work
+// additively with role-based permissions
+
+/**
+ * Get all permissions from user-specific grants
+ * Filters grants based on validity and optional context
+ */
+export function getPermissionsFromGrants(
+  grants: UserPermissionGrant[],
+  context?: PermissionCheckContext
+): Permission[] {
+  const permissionSet = new Set<Permission>();
+
+  for (const grant of grants) {
+    // If context provided, check if grant matches context
+    // If no context, we just check validity
+    if (context) {
+      // Check for each permission in context
+      if (grantMatchesContext(grant, grant.permission, context)) {
+        permissionSet.add(grant.permission);
+      }
+    } else {
+      // No context - just check if grant is valid
+      if (isGrantValid(grant)) {
+        permissionSet.add(grant.permission);
+      }
+    }
+  }
+
+  return [...permissionSet];
+}
+
+/**
+ * Get all permissions for a user including both role-based and user-specific grants
+ * This is the primary function for getting a user's complete permission set
+ *
+ * @param userRoles - Array of role IDs the user has
+ * @param permissionGrants - User-specific permission grants
+ * @param context - Optional context for scoped grant checking
+ * @returns Combined array of all permissions (deduplicated)
+ */
+export function getUserPermissionsWithGrants(
+  userRoles: string[],
+  permissionGrants: UserPermissionGrant[] = [],
+  context?: PermissionCheckContext
+): Permission[] {
+  // Get role-based permissions
+  const rolePermissions = getRolePermissions(userRoles);
+
+  // Get permissions from user-specific grants
+  const grantPermissions = getPermissionsFromGrants(permissionGrants, context);
+
+  // Combine and deduplicate
+  const allPermissions = new Set<Permission>([
+    ...rolePermissions,
+    ...grantPermissions,
+  ]);
+
+  return [...allPermissions];
+}
+
+/**
+ * Check if user has a specific permission (considering both roles and grants)
+ * Supports checking for single permission or array of permissions (AND logic)
+ *
+ * @param userRoles - Array of role IDs the user has
+ * @param permissionGrants - User-specific permission grants
+ * @param required - Permission(s) to check for
+ * @param context - Optional context for scoped grant checking
+ * @returns true if user has all required permissions
+ */
+export function hasPermissionWithGrants(
+  userRoles: string[],
+  permissionGrants: UserPermissionGrant[] = [],
+  required: Permission | Permission[],
+  context?: PermissionCheckContext
+): boolean {
+  const userPermissions = getUserPermissionsWithGrants(
+    userRoles,
+    permissionGrants,
+    context
+  );
+  return hasPermission(userPermissions, required);
+}
+
+/**
+ * Check if user has ANY of the specified permissions (OR logic)
+ * Considers both role-based permissions and user-specific grants
+ *
+ * @param userRoles - Array of role IDs the user has
+ * @param permissionGrants - User-specific permission grants
+ * @param required - Array of permissions to check (OR logic)
+ * @param context - Optional context for scoped grant checking
+ * @returns true if user has at least one of the required permissions
+ */
+export function hasAnyPermissionWithGrants(
+  userRoles: string[],
+  permissionGrants: UserPermissionGrant[] = [],
+  required: Permission[],
+  context?: PermissionCheckContext
+): boolean {
+  const userPermissions = getUserPermissionsWithGrants(
+    userRoles,
+    permissionGrants,
+    context
+  );
+  return hasAnyPermission(userPermissions, required);
+}
+
+/**
+ * Check if a specific permission comes from a user grant (not role)
+ * Useful for UI to indicate which permissions are granted beyond role
+ *
+ * @param permissionGrants - User-specific permission grants
+ * @param permission - Permission to check
+ * @param context - Optional context for scoped grant checking
+ * @returns true if permission is granted via user-specific grant
+ */
+export function isPermissionFromGrant(
+  permissionGrants: UserPermissionGrant[],
+  permission: Permission,
+  context?: PermissionCheckContext
+): boolean {
+  const grantPermissions = getPermissionsFromGrants(permissionGrants, context);
+  return grantPermissions.includes(permission);
+}
+
+/**
+ * Get breakdown of where each permission comes from
+ * Useful for admin UI showing permission sources
+ *
+ * @param userRoles - Array of role IDs the user has
+ * @param permissionGrants - User-specific permission grants
+ * @param context - Optional context for scoped grant checking
+ * @returns Object mapping permissions to their sources
+ */
+export function getPermissionSources(
+  userRoles: string[],
+  permissionGrants: UserPermissionGrant[] = [],
+  context?: PermissionCheckContext
+): Record<Permission, { fromRoles: boolean; fromGrants: boolean }> {
+  const rolePermissions = getRolePermissions(userRoles);
+  const grantPermissions = getPermissionsFromGrants(permissionGrants, context);
+
+  const sources: Record<string, { fromRoles: boolean; fromGrants: boolean }> =
+    {};
+
+  // Mark role permissions
+  for (const perm of rolePermissions) {
+    sources[perm] = { fromRoles: true, fromGrants: false };
+  }
+
+  // Mark grant permissions
+  for (const perm of grantPermissions) {
+    if (sources[perm]) {
+      sources[perm].fromGrants = true;
+    } else {
+      sources[perm] = { fromRoles: false, fromGrants: true };
+    }
+  }
+
+  return sources as Record<
+    Permission,
+    { fromRoles: boolean; fromGrants: boolean }
+  >;
 }

@@ -37,6 +37,30 @@ import {
 } from '@/lib/rbac';
 
 /**
+ * Helper to load mock entitlements for development
+ * In production, entitlements should come from the session/database
+ */
+async function loadMockEntitlementsIfNeeded(
+  entitlements: UserModuleEntitlement[],
+  organizationId: string = '1'
+): Promise<UserModuleEntitlement[]> {
+  if (entitlements.length > 0) return entitlements;
+
+  // Use organizationId from session, or default to '1' for development
+  const orgId = organizationId;
+
+  try {
+    const { getEntitlementsForOrganization } = await import(
+      '@/components/shared/data/module-entitlements'
+    );
+    return getEntitlementsForOrganization(orgId);
+  } catch (error) {
+    console.warn('Could not load mock entitlements:', error);
+    return [];
+  }
+}
+
+/**
  * Hook to check if user can perform a specific action on a module
  *
  * @param module - Module to check
@@ -74,6 +98,11 @@ export function useCanPerform(
         entitlements?: UserModuleEntitlement[];
       };
 
+      const entitlements = await loadMockEntitlementsIfNeeded(
+        user.entitlements || [],
+        user.organizationId
+      );
+
       const result = await canUserPerformAction(
         {
           userId: user.id,
@@ -83,7 +112,7 @@ export function useCanPerform(
           action,
           resource,
         },
-        user.entitlements || []
+        entitlements
       );
 
       setAllowed(result.allowed);
@@ -122,11 +151,16 @@ export function useModuleAccess(module: Module): boolean {
         entitlements?: UserModuleEntitlement[];
       };
 
+      const entitlements = await loadMockEntitlementsIfNeeded(
+        user.entitlements || [],
+        user.organizationId
+      );
+
       const access = await hasModuleAccess(
         user.id,
-        user.organizationId || '',
+        user.organizationId || '1',
         module,
-        user.entitlements || []
+        entitlements
       );
 
       setHasAccess(access);
@@ -195,15 +229,20 @@ export function useCanPerformMultiple(
         entitlements?: UserModuleEntitlement[];
       };
 
+      const entitlements = await loadMockEntitlementsIfNeeded(
+        user.entitlements || [],
+        user.organizationId
+      );
+
       const batchResults = await canUserPerformActions(
         {
           userId: user.id,
           userRoles: user.roles || [],
-          organizationId: user.organizationId || '',
+          organizationId: user.organizationId || '1',
           module,
         },
         actions,
-        user.entitlements || []
+        entitlements
       );
 
       setResults(batchResults);
@@ -241,10 +280,15 @@ export function useUserModules(): Module[] {
         entitlements?: UserModuleEntitlement[];
       };
 
+      const entitlements = await loadMockEntitlementsIfNeeded(
+        user.entitlements || [],
+        user.organizationId
+      );
+
       const userModules = await getUserModules(
         user.id,
-        user.organizationId || '',
-        user.entitlements || []
+        user.organizationId || '1',
+        entitlements
       );
 
       setModules(userModules);
@@ -320,11 +364,16 @@ export function useRBAC(module: Module) {
         entitlements?: UserModuleEntitlement[];
       };
 
+      const entitlements = await loadMockEntitlementsIfNeeded(
+        user.entitlements || [],
+        user.organizationId
+      );
+
       const hasAccess = await hasModuleAccess(
         user.id,
-        user.organizationId || '',
+        user.organizationId || '1',
         module,
-        user.entitlements || []
+        entitlements
       );
 
       const allowedActions = getUserAllowedActions(user.roles || [], module);
