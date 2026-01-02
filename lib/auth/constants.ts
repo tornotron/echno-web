@@ -20,13 +20,14 @@ export const SESSION_REVOCATION = {
 
 /**
  * Session Warning Thresholds (in minutes before expiration)
+ * Based on Keycloak SSO session timeout (typically 30 minutes)
  */
 export const SESSION_WARNINGS = {
-  /** Show initial warning this many minutes before session expires */
-  INITIAL_WARNING_MINUTES: 5,
+  /** Show initial warning this many minutes before session expires (after 20 min of inactivity) */
+  INITIAL_WARNING_MINUTES: 10,
 
-  /** Show final warning this many minutes before session expires */
-  FINAL_WARNING_MINUTES: 1,
+  /** Show final warning this many minutes before session expires (after 25 min of inactivity) */
+  FINAL_WARNING_MINUTES: 5,
 } as const;
 
 /**
@@ -41,6 +42,9 @@ export const TOKEN_REFRESH = {
 
   /** Future token tolerance in seconds (5 minutes) */
   FUTURE_TOKEN_TOLERANCE_SECONDS: 300,
+
+  /** Buffer before token expiry to trigger refresh in milliseconds (60 seconds) */
+  REFRESH_BUFFER_MS: 60 * 1000,
 } as const;
 
 /**
