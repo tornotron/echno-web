@@ -8329,3 +8329,16 @@ export const mockBudgets: Budget[] = [
     updatedAt: new Date('2024-12-20'),
   },
 ];
+
+// ═════════════════════════════════════════════════════════════════════════════
+// MODULE ENTITLEMENTS
+// ═════════════════════════════════════════════════════════════════════════════
+
+export {
+  mockModuleEntitlements,
+  mockOrg1Entitlements,
+  mockOrg2Entitlements,
+  mockOrg3Entitlements,
+  getEntitlementsForOrganization,
+  hasModuleAccess,
+} from './data/module-entitlements';

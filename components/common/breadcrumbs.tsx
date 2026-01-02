@@ -38,6 +38,11 @@ import {
   mockInvoices,
   mockExpenses,
 } from '@/components/shared/mock-data';
+import { mockUsers } from '@/components/shared/data/users';
+import { mockModuleEntitlements } from '@/components/shared/data/module-entitlements';
+import { mockOrganizations } from '@/components/shared/mock-data';
+import { getRoleDisplayName } from '@/types/rbac/role';
+import { Module } from '@/types/rbac/module';
 
 interface BreadcrumbConfig {
   [key: string]: string;
@@ -49,7 +54,7 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   profile: 'Profile',
   login: 'Login',
   settings: 'Settings',
-  admin: 'Admin',
+  admin: 'Administrator',
   employees: 'Employees',
   organizations: 'Organizations',
   tasks: 'Tasks',
@@ -79,6 +84,10 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   invoices: 'Invoices',
   expenses: 'Expenses',
   budgets: 'Budgets',
+  'access-control': 'Access Control',
+  users: 'Users',
+  roles: 'Roles',
+  modules: 'Modules',
 };
 
 // Segments that should NEVER appear in breadcrumbs
@@ -175,6 +184,33 @@ function getNameForId(id: string, context: string[]): string {
     return mockExpenses.find((e) => e.id === numericId)?.expenseNumber ?? id;
   }
 
+  // Admin Access Control pages
+  if (parentSegment === 'users' && context.includes('access-control')) {
+    const user = mockUsers.find((u) => u.id === numericId);
+    return user?.name ?? `User ${id}`;
+  }
+  if (parentSegment === 'roles') {
+    return getRoleDisplayName(id);
+  }
+  if (parentSegment === 'modules') {
+    // Convert module ID to display name
+    const moduleNames: Record<string, string> = {
+      [Module.PROJECT]: 'Project Management',
+      [Module.TASK]: 'Task Management',
+      [Module.FINANCE]: 'Finance',
+      [Module.WORKFORCE]: 'Workforce',
+      [Module.INVENTORY]: 'Inventory',
+      [Module.VENDOR]: 'Vendor Management',
+      [Module.INSPECTION]: 'Inspection',
+      [Module.ISSUE]: 'Issue Tracking',
+    };
+    return moduleNames[id as Module] ?? id;
+  }
+  if (parentSegment === 'organizations' && context.includes('modules')) {
+    const org = mockOrganizations.find((o) => o.id === numericId);
+    return org?.organizationName ?? `Organization ${id}`;
+  }
+
   return id;
 }
 
@@ -202,16 +238,42 @@ export function Breadcrumbs() {
     );
   }
 
-  const filteredSegments = pathSegments.filter(
-    (segment) => !hiddenSegments.has(segment)
-  );
+  const filteredSegments = pathSegments.filter((segment, index) => {
+    // Hide standard segments
+    if (hiddenSegments.has(segment)) return false;
+
+    // Hide 'organizations' only when it's in admin access-control modules path
+    if (
+      segment === 'organizations' &&
+      pathSegments.includes('admin') &&
+      pathSegments.includes('access-control') &&
+      pathSegments.includes('modules')
+    ) {
+      return false;
+    }
+
+    return true;
+  });
 
   const breadcrumbItems = filteredSegments
     .map((segment, index) => {
       const actualIndex = pathSegments.findIndex((seg, idx) => {
-        const visibleUpToNow = pathSegments
-          .slice(0, idx + 1)
-          .filter((s) => !hiddenSegments.has(s)).length;
+        const visibleUpToNow = pathSegments.slice(0, idx + 1).filter((s, i) => {
+          // Hide standard segments
+          if (hiddenSegments.has(s)) return false;
+
+          // Hide 'organizations' only in admin access-control modules path
+          if (
+            s === 'organizations' &&
+            pathSegments.includes('admin') &&
+            pathSegments.includes('access-control') &&
+            pathSegments.includes('modules')
+          ) {
+            return false;
+          }
+
+          return true;
+        }).length;
         return seg === segment && visibleUpToNow === index + 1;
       });
 
