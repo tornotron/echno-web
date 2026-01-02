@@ -23,6 +23,8 @@ export const metadata: Metadata = {
   description: 'Build by Tornotron E-Commerce Private Limited',
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function RootLayout({
   children,
 }: Readonly<{

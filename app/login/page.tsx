@@ -144,9 +144,8 @@ export default function LoginPage() {
 
   const handleSSOLogin = () => {
     setIsLoading(true);
-    // Add login=success parameter to callbackUrl for SSO login
-    const ssoCallbackUrl = `${callbackUrl}${callbackUrl.includes('?') ? '&' : '?'}login=success`;
-    signIn('keycloak', { callbackUrl: ssoCallbackUrl });
+    // Don't pass callbackUrl - let auth.ts redirect callback handle role-based routing
+    signIn('keycloak');
   };
 
   // Show loading state while checking session
@@ -167,10 +166,10 @@ export default function LoginPage() {
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex justify-center">
             <Image
-              src="/echno.png"
+              src="/e-ai-logo.png"
               alt="Echno Logo"
-              width={60}
-              height={60}
+              width={110}
+              height={40}
               className="dark:invert"
             />
           </div>
