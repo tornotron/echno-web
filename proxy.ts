@@ -5,7 +5,6 @@ import { Permission } from '@/types/rbac/permission';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { isSuperAdmin } from '@/lib/rbac/role-utils';
 import { logger } from '@/lib/logger';
-import { deleteNextAuthCookies } from '@/lib/auth/cookie-utils';
 
 export default auth((req) => {
   const { pathname } = req.nextUrl;
@@ -41,13 +40,10 @@ export default auth((req) => {
 
     // Allow access to login page without redirect
     if (pathname === '/login') {
-      // Create response that clears cookies but allows login page access
-      const response = deleteNextAuthCookies(NextResponse.next());
-
       logger.debug(
-        'Middleware: Cleared session cookies, allowing login page access'
+        'Middleware: Allowing login page access for errored session'
       );
-      return response;
+      return NextResponse.next();
     }
 
     // For other pages, redirect to login with error message
@@ -62,11 +58,8 @@ export default auth((req) => {
       url.searchParams.set('callbackUrl', pathname);
     }
 
-    // Create response with cookie cleanup
-    const response = deleteNextAuthCookies(NextResponse.redirect(url));
-
     logger.debug('Middleware: Redirecting to login due to session error');
-    return response;
+    return NextResponse.redirect(url);
   }
 
   // ========== SESSION REVOCATION CHECK ==========
@@ -82,18 +75,15 @@ export default auth((req) => {
 
       // Allow access to login page
       if (pathname === '/login') {
-        const response = deleteNextAuthCookies(NextResponse.next());
-        logger.debug('Middleware: Cleared cookies for revoked session');
-        return response;
+        logger.debug('Middleware: Allowing login page for revoked session');
+        return NextResponse.next();
       }
 
-      // Clear cookies and redirect to login
-      const response = deleteNextAuthCookies(
-        NextResponse.redirect(new URL('/login?error=session_revoked', req.url))
-      );
-
+      // Redirect to login
       logger.debug('Middleware: Redirecting to login for revoked session');
-      return response;
+      return NextResponse.redirect(
+        new URL('/login?error=session_revoked', req.url)
+      );
     } else {
       logger.debug('Middleware: Session is active (not revoked)');
     }
@@ -116,8 +106,17 @@ export default auth((req) => {
     return NextResponse.redirect(url);
   }
 
+  // ========== REDIRECT AFTER LOGIN ==========
   if (isLoggedIn && pathname === '/login') {
-    return NextResponse.redirect(new URL('/users/dashboard', req.url));
+    // All users redirect to dashboard (role-based UI is handled within pages)
+    const redirectUrl = '/users/dashboard';
+
+    logger.debug('Middleware: Redirecting authenticated user from login', {
+      userRoles: req.auth?.user.roles,
+      redirectTo: redirectUrl,
+    });
+
+    return NextResponse.redirect(new URL(redirectUrl, req.url));
   }
 
   // ========== SUPER ADMIN ROUTES ==========

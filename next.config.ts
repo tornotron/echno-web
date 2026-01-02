@@ -3,6 +3,7 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   output: 'standalone',
   // Disable typed routes to fix /dev/lrt path corruption bug
+  // TODO: Create security headers configuration
   typedRoutes: false,
   images: {
     remotePatterns: [
