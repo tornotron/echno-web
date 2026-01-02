@@ -44,13 +44,15 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
     // Only for Keycloak sessions (credentials sessions are long-lived)
     if (session.provider !== 'keycloak') return;
 
-    // ✅ FIXED: Use actual expiresAt from session
-    const expiresAt = session.expiresAt;
-    if (!expiresAt) return; // No expiration time available
+    // Use sessionExpiresAt (Keycloak session timeout) instead of expiresAt (access token expiration)
+    // sessionExpiresAt tracks when the refresh token expires (~30 minutes)
+    // expiresAt tracks when the access token expires (~5 minutes, auto-refreshed)
+    const sessionExpiresAt = session.sessionExpiresAt;
+    if (!sessionExpiresAt) return; // No session expiration time available
 
     const checkExpiration = () => {
       const now = Date.now();
-      const timeUntilExpiry = expiresAt - now;
+      const timeUntilExpiry = sessionExpiresAt - now;
       const minutesRemaining = Math.floor(timeUntilExpiry / 60_000);
 
       // Session already expired
@@ -62,7 +64,7 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
       if (minutesRemaining <= FINAL_WARNING_MINUTES && !hasShownFinalWarning) {
         setHasShownFinalWarning(true);
         toast.warning(
-          `Your session will expire in ${FINAL_WARNING_MINUTES} minute`,
+          `Your session will expire in ${minutesRemaining} ${minutesRemaining === 1 ? 'minute' : 'minutes'}`,
           {
             description:
               'Any page navigation will refresh your session automatically.',

@@ -5,11 +5,13 @@ import { jwtDecode } from 'jwt-decode';
 import { getRolePermissions } from '@/lib/rbac/permissions';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
+import { TOKEN_REFRESH } from '@/lib/auth/constants';
 
 interface KeycloakToken {
   accessToken?: string;
   refreshToken?: string;
   expiresAt?: number;
+  sessionExpiresAt?: number; // When the Keycloak session (refresh token) expires
   error?: string;
   roles?: string[];
   permissions?: unknown[];
@@ -61,8 +63,13 @@ async function refreshAccessToken(
       accessToken: refreshed.access_token,
       idToken: refreshed.id_token,
       refreshToken: refreshed.refresh_token ?? token.refreshToken,
-      expiresAt: Date.now() + refreshed.expires_in * 1000,
+      // Use expires_at if available, otherwise calculate from expires_in
+      expiresAt: refreshed.expires_at
+        ? refreshed.expires_at * 1000
+        : Date.now() + refreshed.expires_in * 1000,
+      sessionExpiresAt: token.sessionExpiresAt,
       lastRefresh: Date.now(),
+      error: undefined, // Clear any previous errors
     };
   } catch (error) {
     logger.error('Token refresh failed', error);
@@ -126,7 +133,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.accessToken = account.access_token;
         token.refreshToken = account.refresh_token;
         token.idToken = account.id_token;
-        token.expiresAt = Date.now() + (account.expires_in ?? 300) * 1000;
+        // Use expires_at from NextAuth if available, otherwise calculate
+        token.expiresAt = account.expires_at
+          ? account.expires_at * 1000
+          : Date.now() + (account.expires_in ?? 300) * 1000;
+        // Track when the Keycloak session (refresh token) expires
+        // refresh_expires_in is the SSO session timeout (typically 30 minutes)
+        token.sessionExpiresAt =
+          Date.now() + ((account.refresh_expires_in as number) ?? 1800) * 1000;
         token.lastRefresh = Date.now();
         token.keycloakIssuer = process.env.KEYCLOAK_ISSUER;
         token.error = undefined;
@@ -161,6 +175,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           token.roles = keycloakRoles;
 
+          // Log extracted roles for debugging
+          logger.debug('Roles extracted from Keycloak token', {
+            realmRoles,
+            resourceRoles,
+            combinedRoles: keycloakRoles,
+          });
+
           // Compute permissions from Keycloak roles
           token.permissions = getRolePermissions(keycloakRoles);
 
@@ -172,10 +193,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // Log token metadata (session ID is not logged for security)
           logger.debug('Token metadata extracted', {
             hasSessionId: !!token.sessionId,
-            expiresAt: new Date(
+            accessTokenExpiresAt: new Date(
               Date.now() + (account.expires_in ?? 300) * 1000
             ),
-            expiresInSeconds: account.expires_in,
+            accessTokenExpiresInSeconds: account.expires_in,
+            sessionExpiresAt: token.sessionExpiresAt
+              ? new Date(token.sessionExpiresAt)
+              : undefined,
+            sessionExpiresInSeconds: account.refresh_expires_in,
           });
         } catch (error) {
           logger.error('Failed to extract roles from Keycloak token', error);
@@ -213,21 +238,45 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
 
-      // Token still valid
-      if (token.expiresAt && Date.now() < token.expiresAt) {
-        const timeUntilExpiry = token.expiresAt - Date.now();
+      // Check if Keycloak session has expired (refresh token expiry)
+      if (
+        token.sessionExpiresAt &&
+        Date.now() > (token.sessionExpiresAt as number)
+      ) {
+        logger.warn('Keycloak session expired, invalidating session', {
+          sessionExpiresAt: new Date(token.sessionExpiresAt as number),
+        });
+        return null; // Invalidate session immediately
+      }
+
+      // Token still valid (with buffer to prevent race conditions)
+      if (
+        token.expiresAt &&
+        Date.now() <
+          (token.expiresAt as number) - TOKEN_REFRESH.REFRESH_BUFFER_MS
+      ) {
+        const timeUntilExpiry = (token.expiresAt as number) - Date.now();
         logger.debug('Token still valid', {
-          expiresAt: new Date(token.expiresAt),
+          expiresAt: new Date(token.expiresAt as number),
           timeUntilExpiry: `${Math.floor(timeUntilExpiry / 60_000)} minutes ${Math.floor((timeUntilExpiry % 60_000) / 1000)} seconds`,
+          refreshBuffer: `${TOKEN_REFRESH.REFRESH_BUFFER_MS / 1000} seconds`,
         });
         return token;
       }
 
       // ========== REFRESH TOKEN ==========
       // Refresh only once
-      logger.debug('Token expired, attempting refresh...');
+      logger.debug('Token expiring soon, attempting refresh...');
       if (token.provider === 'keycloak' && token.refreshToken) {
         const refreshed = await refreshAccessToken(token);
+
+        // If refresh failed, invalidate session immediately
+        if (refreshed.error) {
+          logger.error('Token refresh failed, invalidating session', {
+            error: refreshed.error,
+          });
+          return null; // Invalidate session immediately
+        }
 
         // Re-extract roles after refresh
         if (refreshed.accessToken && !refreshed.error) {
@@ -253,7 +302,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return refreshed as JWT;
       }
 
-      return token;
+      // No refresh token available, invalidate session
+      logger.warn('No refresh token available, invalidating session');
+      return null;
     },
 
     async session({ session, token }) {
@@ -264,16 +315,66 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Roles (permissions and super admin status computed on-demand from roles)
       session.user.roles = token.roles || [];
 
+      // Log session roles for debugging
+      logger.debug('Session callback - user roles', {
+        userId: token.userId,
+        email: token.email,
+        roles: session.user.roles,
+      });
+
+      // DEVELOPMENT: Set organizationId for testing
+      // In production, this would come from the user's profile in your database
+      // For now, map based on user email or default to '1'
+      const email = token.email as string;
+      if (email?.includes('org2')) {
+        session.user.organizationId = '2'; // Limited access
+      } else if (email?.includes('org3')) {
+        session.user.organizationId = '3'; // Minimal access
+      } else {
+        session.user.organizationId = '1'; // Full access (default)
+      }
+
       // Minimal session data to reduce cookie size
       session.provider = token.provider;
       session.expiresAt = token.expiresAt;
+      session.sessionExpiresAt = token.sessionExpiresAt as number | undefined; // When Keycloak session expires
       session.sessionId = token.sessionId;
+      session.accessToken = token.accessToken as string; // Include access token for backend API calls
 
       if (token.error) {
         session.error = token.error;
       }
 
       return session;
+    },
+
+    // Role-based redirect after sign-in
+    async redirect({ url, baseUrl }) {
+      // Allow relative callback URLs
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      // Allow callback URLs on the same origin
+      if (new URL(url).origin === baseUrl) return url;
+
+      // Redirect to /login - middleware will handle role-based redirect
+      // This allows the middleware to check roles and redirect appropriately
+      logger.debug(
+        'Redirect callback - sending to /login for role-based redirect'
+      );
+      return `${baseUrl}/login`;
+    },
+
+    // Handle sign-in authorization
+    async signIn({ user, account }) {
+      // Allow all sign-ins from Keycloak
+      if (account?.provider === 'keycloak') {
+        logger.auth.login('keycloak', {
+          userId: user.id,
+          email: user.email,
+        });
+        return true;
+      }
+
+      return true;
     },
   },
 
@@ -293,24 +394,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         });
 
         // Logout from Keycloak if this is a Keycloak session
-        if (token.provider === 'keycloak' && token.refreshToken) {
+        // Use standard OIDC logout flow with id_token_hint
+        if (token.provider === 'keycloak' && token.idToken) {
           try {
             const issuer = token.keycloakIssuer || process.env.KEYCLOAK_ISSUER;
-            const logoutUrl = `${issuer}/protocol/openid-connect/logout`;
+            const logoutUrl = new URL(
+              `${issuer}/protocol/openid-connect/logout`
+            );
 
-            logger.debug('Logging out from Keycloak');
+            // Standard OIDC logout parameters
+            logoutUrl.searchParams.set(
+              'id_token_hint',
+              token.idToken as string
+            );
+            logoutUrl.searchParams.set('client_id', process.env.KEYCLOAK_ID!);
 
-            await fetch(logoutUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: new URLSearchParams({
-                client_id: process.env.KEYCLOAK_ID!,
-                client_secret: process.env.KEYCLOAK_SECRET!,
-                refresh_token: token.refreshToken as string,
-              }),
+            // Optional: Add post_logout_redirect_uri if needed
+            // logoutUrl.searchParams.set('post_logout_redirect_uri', `${process.env.NEXTAUTH_URL}/login`);
+
+            logger.debug('Logging out from Keycloak', {
+              hasIdToken: !!token.idToken,
             });
 
-            logger.debug('Keycloak logout successful');
+            const response = await fetch(logoutUrl, { method: 'GET' });
+
+            if (response.ok) {
+              logger.debug('Keycloak session terminated successfully');
+            } else {
+              logger.error('Keycloak logout failed', {
+                status: response.status,
+                statusText: response.statusText,
+              });
+            }
           } catch (error) {
             logger.error('Keycloak logout error', error);
             // Don't throw - allow NextAuth logout to proceed
