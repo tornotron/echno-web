@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
  */
 export async function GET(req: NextRequest) {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
@@ -34,6 +34,9 @@ export async function GET(req: NextRequest) {
     const response = await fetch(`${apiUrl}/users?${queryParams}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
     });
 

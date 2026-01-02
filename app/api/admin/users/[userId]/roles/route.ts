@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const { userId } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -25,6 +25,9 @@ export async function GET(
     const response = await fetch(`${apiUrl}/users/${userId}/roles`, {
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
     });
 
@@ -84,6 +87,9 @@ export async function POST(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
       body: JSON.stringify({
         roleIds,
@@ -126,7 +132,7 @@ export async function DELETE(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const { userId } = await params;
 
     const body = await req.json();
@@ -152,6 +158,9 @@ export async function DELETE(
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
       body: JSON.stringify({ roleIds }),
     });
