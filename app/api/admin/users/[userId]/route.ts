@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const { userId } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -25,6 +25,9 @@ export async function GET(
     const response = await fetch(`${apiUrl}/users/${userId}`, {
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
     });
 
@@ -61,7 +64,7 @@ export async function PATCH(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const { userId } = await params;
 
     const body = await req.json();
@@ -79,6 +82,9 @@ export async function PATCH(
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
       body: JSON.stringify(body),
     });
@@ -120,7 +126,7 @@ export async function DELETE(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    await requireSuperAdmin();
+    const session = await requireSuperAdmin();
     const { userId } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -136,6 +142,9 @@ export async function DELETE(
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
+        ...(session.accessToken && {
+          Authorization: `Bearer ${session.accessToken}`,
+        }),
       },
     });
 
