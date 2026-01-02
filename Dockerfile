@@ -23,9 +23,23 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Accept build arguments for environment variables
+ARG KEYCLOAK_ISSUER
+ARG KEYCLOAK_ID
+ARG KEYCLOAK_SECRET
+ARG NEXTAUTH_SECRET
+ARG NEXTAUTH_URL
+ARG NEXT_PUBLIC_API_URL
+
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV KEYCLOAK_ISSUER=${KEYCLOAK_ISSUER}
+ENV KEYCLOAK_ID=${KEYCLOAK_ID}
+ENV KEYCLOAK_SECRET=${KEYCLOAK_SECRET}
+ENV NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+ENV NEXTAUTH_URL=${NEXTAUTH_URL}
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
 # Build the application
 RUN pnpm build
