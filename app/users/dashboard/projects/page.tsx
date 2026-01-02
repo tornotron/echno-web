@@ -1,3 +1,21 @@
+/**
+ * Projects Page - Role-Based Access Control (RBAC) Example
+ *
+ * This page demonstrates the correct RBAC implementation pattern:
+ * - ONE page for ALL users (no separate admin/user copies)
+ * - Conditional rendering based on permissions/roles
+ * - Uses RBAC hooks to check permissions
+ *
+ * RBAC Hooks Used:
+ * - useIsSuperAdmin(): Check if user is super admin
+ * - useCanPerform(module, action): Check if user can perform specific action
+ * - useModuleAccess(module): Check if user has access to module
+ *
+ * Example Conditional Rendering:
+ * {canCreate && <CreateButton />}      // Only users with create permission
+ * {canDelete && <DeleteButton />}      // Only users with delete permission
+ * {isSuperAdmin && <AdminControls />}  // Only super admins
+ */
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -25,6 +43,8 @@ import {
   XCircle,
   Pause,
   TrendingUp,
+  Shield,
+  Settings,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -32,6 +52,8 @@ import {
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
 import { mockProjects } from '@/components/shared/mock-data';
+import { useCanPerform, useIsSuperAdmin } from '@/hooks/use-rbac';
+import { Module } from '@/types/rbac/module';
 
 interface ProjectFilters {
   search: string;
@@ -39,6 +61,13 @@ interface ProjectFilters {
 }
 
 export default function ProjectsPage() {
+  // RBAC: Role-based access control hooks
+  const isSuperAdmin = useIsSuperAdmin();
+  const canCreate = useCanPerform(Module.PROJECT, 'create');
+  // canUpdate and canDelete can be used for edit/delete buttons in project cards
+  // const canUpdate = useCanPerform(Module.PROJECT, 'update');
+  // const canDelete = useCanPerform(Module.PROJECT, 'delete');
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12); // 4 columns x 3 rows
 
@@ -166,17 +195,40 @@ export default function ProjectsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Projects</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-3xl font-bold">Projects</h1>
+              {/* Super Admin Badge - Only visible to super admins */}
+              {isSuperAdmin && (
+                <Badge variant="destructive" className="gap-1">
+                  <Shield className="h-3 w-3" />
+                  Admin
+                </Badge>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Manage and monitor all construction projects
             </p>
           </div>
-          <Button asChild>
-            <Link href="/users/dashboard/projects/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Project
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Admin Controls - Only visible to super admins */}
+            {isSuperAdmin && (
+              <Button variant="outline" asChild>
+                <Link href="/admin/access-control">
+                  <Settings className="mr-2 h-4 w-4" />
+                  Admin Panel
+                </Link>
+              </Button>
+            )}
+            {/* Add Project Button - Only visible to users with create permission */}
+            {canCreate && (
+              <Button asChild>
+                <Link href="/users/dashboard/projects/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Project
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Stats Cards */}
