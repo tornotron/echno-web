@@ -3,10 +3,9 @@ import './globals.css';
 import { Providers } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
-import { validateAuthConfig } from '@/config/auth-config';
 
-// Validate environment variables at application startup
-validateAuthConfig();
+// Auth config validation moved to runtime in middleware
+// Build-time validation skipped to allow Docker builds without env vars
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
