@@ -5,9 +5,14 @@ import { AppSidebar } from '@/components/common/sidebar';
 import { Footer } from '@/components/common/footer';
 import { UserMenu } from '@/components/common/user-menu';
 import { Breadcrumbs } from '@/components/common/breadcrumbs';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import {
+  SidebarProvider,
+  SidebarInset,
+  useSidebar,
+  SidebarTrigger,
+} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { Settings, Building } from 'lucide-react';
+import { Settings, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 interface AppLayoutProps {
@@ -16,12 +21,39 @@ interface AppLayoutProps {
 }
 
 function AppLayoutContent({ children }: AppLayoutProps) {
+  const { state, toggleSidebar, isMobile } = useSidebar();
+
   return (
     <>
       <AppSidebar />
+
+      {/* Floating Toggle Button - Fixed to Sidebar Border - Desktop Only */}
+      {!isMobile && (
+        <button
+          onClick={toggleSidebar}
+          className="fixed top-16 z-50 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-gray-300 bg-gray-400 shadow-md transition-all duration-300 hover:scale-110 hover:bg-gray-500 active:scale-95"
+          aria-label="Toggle sidebar"
+          style={{
+            left:
+              state === 'expanded'
+                ? 'var(--sidebar-width)'
+                : 'var(--sidebar-width-icon)',
+          }}
+        >
+          {state === 'expanded' ? (
+            <ChevronLeft className="h-3 w-3 text-white" />
+          ) : (
+            <ChevronRight className="h-3 w-3 text-white" />
+          )}
+        </button>
+      )}
+
       <SidebarInset>
         {/* Header */}
         <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          {/* Mobile Sidebar Toggle */}
+          {isMobile && <SidebarTrigger />}
+
           <div className="flex flex-1 items-center justify-between">
             <Breadcrumbs />
             <div className="flex items-center gap-4">

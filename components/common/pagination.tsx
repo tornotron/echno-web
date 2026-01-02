@@ -1,5 +1,12 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
-import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-react';
+import {
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+} from 'lucide-react';
 
 interface PaginationProps {
   currentPage: number;
@@ -8,11 +15,16 @@ interface PaginationProps {
   className?: string;
 }
 
-export function Pagination({ currentPage, totalPages, onPageChange, className = '' }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  className = '',
+}: PaginationProps) {
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    
+
     if (totalPages <= 7) {
       // Show all pages if 7 or fewer
       for (let i = 1; i <= totalPages; i++) {
@@ -21,34 +33,36 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
     } else {
       // Always show first page
       pages.push(1);
-      
+
       if (currentPage > 3) {
         pages.push('...');
       }
-      
+
       // Show pages around current page
       const startPage = Math.max(2, currentPage - 1);
       const endPage = Math.min(totalPages - 1, currentPage + 1);
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
-      
+
       if (currentPage < totalPages - 2) {
         pages.push('...');
       }
-      
+
       // Always show last page
       pages.push(totalPages);
     }
-    
+
     return pages;
   };
 
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className={`flex items-center justify-between px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 ${className}`}>
+    <div
+      className={`flex items-center justify-between border-t border-zinc-200 px-6 py-4 dark:border-zinc-800 ${className}`}
+    >
       <div className="text-sm text-zinc-600 dark:text-zinc-400">
         Page {currentPage} of {totalPages}
       </div>
@@ -63,7 +77,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
         >
           <ChevronsLeft className="h-4 w-4" />
         </Button>
-        
+
         {/* Previous Page */}
         <Button
           variant="outline"
@@ -74,7 +88,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        
+
         {/* Page Numbers */}
         {pageNumbers.map((page, index) => {
           if (page === '...') {
@@ -87,7 +101,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
               </span>
             );
           }
-          
+
           return (
             <Button
               key={page}
@@ -100,7 +114,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
             </Button>
           );
         })}
-        
+
         {/* Next Page */}
         <Button
           variant="outline"
@@ -111,7 +125,7 @@ export function Pagination({ currentPage, totalPages, onPageChange, className = 
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
-        
+
         {/* Last Page */}
         <Button
           variant="outline"
