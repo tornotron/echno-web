@@ -1,7 +1,10 @@
 'use client';
 
-import { use } from 'react';
+import { use, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
+import { useModuleAccess } from '@/hooks/use-rbac';
+import { Module } from '@/types/rbac/module';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -54,8 +57,17 @@ interface PageProps {
 }
 
 export default function AttendanceDetailPage({ params }: PageProps) {
+  const router = useRouter();
+  const hasAttendanceAccess = useModuleAccess(Module.ATTENDANCE);
   const { id } = use(params);
   const attendance = mockAttendance.find((a) => a.id === Number.parseInt(id));
+
+  // Redirect to 403 Forbidden if user doesn't have attendance module access
+  useEffect(() => {
+    if (hasAttendanceAccess === false) {
+      router.push('/errors/403');
+    }
+  }, [hasAttendanceAccess, router]);
 
   if (!attendance) {
     return (

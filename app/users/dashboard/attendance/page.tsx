@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
+import { useModuleAccess } from '@/hooks/use-rbac';
+import { Module } from '@/types/rbac/module';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
@@ -93,11 +96,21 @@ import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 
 export default function AttendancePage() {
+  const router = useRouter();
+  const hasAttendanceAccess = useModuleAccess(Module.ATTENDANCE);
+
   const [selectedDate, setSelectedDate] = useState(new Date('2025-01-13'));
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Redirect to 403 Forbidden if user doesn't have attendance module access
+  useEffect(() => {
+    if (hasAttendanceAccess === false) {
+      router.push('/errors/403');
+    }
+  }, [hasAttendanceAccess, router]);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
   const hasActiveFilters =
@@ -535,7 +548,7 @@ export default function AttendancePage() {
                         if (target.closest('button') || target.closest('a')) {
                           return;
                         }
-                        globalThis.location.href = `/dashboard/workforce/attendance/${attendance.id}`;
+                        globalThis.location.href = `/dashboard/attendance/${attendance.id}`;
                       }}
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
