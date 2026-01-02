@@ -4,8 +4,8 @@ import { Providers } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 
-// Auth config validation happens at build/startup in auth.ts module initialization
-// validateAuthConfig() is called when auth.ts is imported, ensuring env vars are validated early
+// Auth validation handled by Keycloak provider at runtime
+// Missing/invalid env vars will produce descriptive errors when authentication is attempted
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
