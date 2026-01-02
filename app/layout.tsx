@@ -4,8 +4,8 @@ import { Providers } from '@/components/providers/auth-provider';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 
-// Auth config validation moved to runtime in middleware
-// Build-time validation skipped to allow Docker builds without env vars
+// Auth config validation happens at build/startup in auth.ts module initialization
+// validateAuthConfig() is called when auth.ts is imported, ensuring env vars are validated early
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",

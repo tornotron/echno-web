@@ -6,6 +6,9 @@ import { getRolePermissions } from '@/lib/rbac/permissions';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 import { TOKEN_REFRESH } from '@/lib/auth/constants';
+import { validateAuthConfig } from '@/config/auth-config';
+
+validateAuthConfig();
 
 interface KeycloakToken {
   accessToken?: string;
