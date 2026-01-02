@@ -4,6 +4,8 @@ reviews:
     branches:
       include:
         - development
+        - staging
+        - production
 
   review_status: true
   pull_request_comment:
@@ -11,3 +13,5 @@ reviews:
     branches:
       include:
         - development
+        - staging
+        - production
