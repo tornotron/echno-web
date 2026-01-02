@@ -2,6 +2,8 @@
 
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
+import { Module } from '@/types/rbac/module';
+import { useModuleAccess, useIsSuperAdmin } from '@/hooks/use-rbac';
 import {
   Home,
   Users,
@@ -27,8 +29,13 @@ import {
   PiggyBank,
   MapPin,
   ChevronRight,
+  ChevronLeft,
   ClipboardCheck,
   FolderKanban,
+  Shield,
+  UserCog,
+  Blocks,
+  Settings,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -46,7 +53,6 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
-  SidebarTrigger,
   useSidebar,
 } from '@/components/ui/sidebar';
 import {
@@ -65,19 +71,53 @@ interface NavItem {
   title: string;
   url: string;
   icon: React.ComponentType<{ className?: string }>;
+  module?: Module;
+  requiredRoles?: string[]; // Roles required to see this item (empty/undefined = all roles can see)
   items?: {
     title: string;
     url: string;
     icon: React.ComponentType<{ className?: string }>;
+    module?: Module;
+    requiredRoles?: string[]; // Roles required to see this sub-item
   }[];
 }
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', url: '/users/dashboard', icon: Home },
+  // ==================== ADMIN SECTION ====================
+  // Only visible to super admins
+  {
+    title: 'Administrator',
+    url: '/admin/access-control/users',
+    icon: Shield,
+    requiredRoles: ['super-admin'],
+    items: [
+      {
+        title: 'Users',
+        url: '/admin/access-control/users',
+        icon: Users,
+        requiredRoles: ['super-admin'],
+      },
+      {
+        title: 'Roles',
+        url: '/admin/access-control/roles',
+        icon: UserCog,
+        requiredRoles: ['super-admin'],
+      },
+      {
+        title: 'Modules',
+        url: '/admin/access-control/modules',
+        icon: Blocks,
+        requiredRoles: ['super-admin'],
+      },
+    ],
+  },
+  // ==================== PROJECT SECTION ====================
   {
     title: 'Projects',
     url: '/users/dashboard/projects',
     icon: FolderKanban,
+    module: Module.PROJECT,
     items: [
       {
         title: 'All Projects',
@@ -91,10 +131,12 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  // ==================== WORKFORCE SECTION ====================
   {
     title: 'Workforce',
     url: '/users/dashboard/workforce',
     icon: Users,
+    module: Module.WORKFORCE,
     items: [
       {
         title: 'Employees',
@@ -107,21 +149,37 @@ const navItems: NavItem[] = [
         icon: Mail,
       },
       {
-        title: 'Attendance',
-        url: '/users/dashboard/workforce/attendance',
-        icon: UserCheck,
-      },
-      {
         title: 'Leave Requests',
         url: '/users/dashboard/workforce/leaves',
         icon: Calendar,
       },
     ],
   },
+  // ==================== ATTENDANCE SECTION ====================
+  {
+    title: 'Attendance',
+    url: '/users/dashboard/attendance',
+    icon: UserCheck,
+    module: Module.ATTENDANCE,
+    items: [
+      {
+        title: 'All Attendance',
+        url: '/users/dashboard/attendance',
+        icon: ClipboardCheck,
+      },
+      {
+        title: 'Mark Attendance',
+        url: '/users/dashboard/attendance/mark',
+        icon: UserCheck,
+      },
+    ],
+  },
+  // ==================== THIRD PARTY SECTION ====================
   {
     title: 'Third Party',
     url: '/users/dashboard/third-party',
     icon: Handshake,
+    module: Module.VENDOR,
     items: [
       {
         title: 'Labour',
@@ -140,10 +198,12 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  // ==================== RESOURCES SECTION ====================
   {
     title: 'Resources',
     url: '/users/dashboard/resources',
     icon: Boxes,
+    module: Module.INVENTORY,
     items: [
       {
         title: 'Inventory',
@@ -187,10 +247,12 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  // ==================== FINANCE SECTION ====================
   {
     title: 'Finance',
     url: '/users/dashboard/finance',
     icon: Wallet,
+    module: Module.FINANCE,
     items: [
       {
         title: 'Estimates',
@@ -224,6 +286,7 @@ const navItems: NavItem[] = [
       },
     ],
   },
+  // ==================== EXTRA SECTIONS (COMMENTED OUT) ====================
   /*
   {
     title: 'Compliance',
@@ -273,36 +336,115 @@ function isPathActive(itemUrl: string, currentPath: string) {
 export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, toggleSidebar } = useSidebar();
+
+  // Get module access for all modules used in navigation
+  const hasProjectAccess = useModuleAccess(Module.PROJECT);
+  const hasWorkforceAccess = useModuleAccess(Module.WORKFORCE);
+  const hasAttendanceAccess = useModuleAccess(Module.ATTENDANCE);
+  const hasVendorAccess = useModuleAccess(Module.VENDOR);
+  const hasInventoryAccess = useModuleAccess(Module.INVENTORY);
+  const hasFinanceAccess = useModuleAccess(Module.FINANCE);
+  const isSuperAdmin = useIsSuperAdmin();
+
+  // Helper to check if user has module access
+  const hasModuleAccess = (module?: Module): boolean => {
+    if (!module) return true; // No module requirement - always visible
+
+    switch (module) {
+      case Module.PROJECT: {
+        return hasProjectAccess;
+      }
+      case Module.WORKFORCE: {
+        return hasWorkforceAccess;
+      }
+      case Module.ATTENDANCE: {
+        return hasAttendanceAccess;
+      }
+      case Module.VENDOR: {
+        return hasVendorAccess;
+      }
+      case Module.INVENTORY: {
+        return hasInventoryAccess;
+      }
+      case Module.FINANCE: {
+        return hasFinanceAccess;
+      }
+      default: {
+        return false;
+      }
+    }
+  };
+
+  // Helper to check if user can see item (module access + role check)
+  const canSeeItem = (item: {
+    module?: Module;
+    requiredRoles?: string[];
+  }): boolean => {
+    // Check role requirement first
+    // If requiredRoles is undefined or empty, all users can see the item
+    if (item.requiredRoles && item.requiredRoles.length > 0) {
+      const userRoles = session?.user?.roles || [];
+      // User must have at least one of the required roles
+      const hasRequiredRole = item.requiredRoles.some((role) =>
+        userRoles.includes(role)
+      );
+      if (!hasRequiredRole) return false;
+    }
+    // Then check module access
+    return hasModuleAccess(item.module);
+  };
 
   // Memoize navigation items rendering to prevent flickering
   const navigationItems = useMemo(() => {
-    return navItems.map((item) => {
-      const hasChildren = item.items && item.items.length > 0;
+    return navItems
+      .filter((item) => canSeeItem(item))
+      .map((item) => {
+        // Filter child items by module access and role
+        const filteredItems = item.items?.filter((child) => canSeeItem(child));
+        const hasChildren = filteredItems && filteredItems.length > 0;
 
-      let isChildActive = false;
-      let activeChildUrl = '';
+        let isChildActive = false;
+        let activeChildUrl = '';
 
-      if (hasChildren && item.items) {
-        // Find the most specific matching child (longest URL that matches)
-        const matchingChildren = item.items.filter((child) =>
-          isPathActive(child.url, pathname)
-        );
+        if (hasChildren && filteredItems) {
+          // Find the most specific matching child (longest URL that matches)
+          const matchingChildren = filteredItems.filter((child) =>
+            isPathActive(child.url, pathname)
+          );
 
-        if (matchingChildren.length > 0) {
-          // Sort by URL length (descending) to get the most specific match
-          matchingChildren.sort((a, b) => b.url.length - a.url.length);
-          activeChildUrl = matchingChildren[0].url;
-          isChildActive = true;
+          if (matchingChildren.length > 0) {
+            // Sort by URL length (descending) to get the most specific match
+            matchingChildren.sort((a, b) => b.url.length - a.url.length);
+            activeChildUrl = matchingChildren[0].url;
+            isChildActive = true;
+          }
         }
-      }
 
-      // Parent is only active if current path matches exactly AND no child is active
-      const isActive = pathname === item.url && !isChildActive;
+        // Parent is only active if current path matches exactly AND no child is active
+        const isActive = pathname === item.url && !isChildActive;
 
-      return { ...item, hasChildren, isChildActive, isActive, activeChildUrl };
-    });
-  }, [pathname]);
+        return {
+          ...item,
+          items: filteredItems,
+          hasChildren,
+          isChildActive,
+          isActive,
+          activeChildUrl,
+        };
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    pathname,
+    hasProjectAccess,
+    hasWorkforceAccess,
+    hasAttendanceAccess,
+    hasVendorAccess,
+    hasInventoryAccess,
+    hasFinanceAccess,
+    isSuperAdmin,
+    session?.user?.roles,
+  ]);
 
   // Only show sidebar for authenticated users
   if (!session) {
@@ -316,22 +458,18 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-2 py-1 group-data-[collapsible=icon]:hidden">
           <div className="flex items-center gap-2">
             <Image
-              src="/echno.png"
+              src="/e-ai-logo.png"
               alt="Echno Logo"
-              width={32}
-              height={32}
+              width={110}
+              height={40}
               className="dark:invert"
             />
-            <span className="text-lg font-semibold">Echno</span>
-          </div>
-          <div className="ml-auto">
-            <SidebarTrigger />
           </div>
         </div>
         {/* Collapsed state - centered bigger logo */}
         <div className="relative hidden items-center justify-center py-1 group-data-[collapsible=icon]:flex">
           <Image
-            src="/echno.png"
+            src="/e-logo.png"
             alt="Echno Logo"
             width={40}
             height={40}
@@ -344,17 +482,6 @@ export function AppSidebar() {
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {state === 'collapsed' && (
-                <SidebarMenuItem key="sidebar-toggle">
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={{ children: 'Toggle Sidebar' }}
-                    className="justify-center"
-                  >
-                    <SidebarTrigger aria-label="Toggle sidebar" />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
               {navigationItems.map((item) => {
                 if (!item.hasChildren) {
                   return (
