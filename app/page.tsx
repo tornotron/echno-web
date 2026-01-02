@@ -58,15 +58,12 @@ function HomeContent() {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div className="flex items-center space-x-2">
             <Image
-              src="/echno.png"
+              src="/e-ai-logo.png"
               alt="Echno Logo"
-              width={32}
-              height={32}
+              width={110}
+              height={40}
               className="dark:invert"
             />
-            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-              Echno
-            </span>
           </div>
           <AuthButton />
         </div>
@@ -247,15 +244,12 @@ function HomeContent() {
         <div className="mx-auto max-w-7xl text-center">
           <div className="mb-4 flex items-center justify-center space-x-2">
             <Image
-              src="/echno.png"
+              src="/e-ai-logo.png"
               alt="Echno Logo"
-              width={24}
-              height={24}
+              width={60}
+              height={40}
               className="dark:invert"
             />
-            <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              Echno
-            </span>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400">
             © {currentYear} Echno. Modern construction business management for
