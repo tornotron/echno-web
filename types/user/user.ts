@@ -1,6 +1,7 @@
 // types/user/user.ts
 import { Organization } from '@/types/organization';
 import { Permission } from '@/types/rbac';
+import { UserPermissionGrant } from '@/types/rbac/user-permission';
 
 export interface User {
   id?: number;
@@ -19,6 +20,9 @@ export interface User {
   organizations?: Organization[];
   roles?: string[];
   permissions?: Permission[];
+
+  // User-specific permission grants (beyond role-based permissions)
+  permissionGrants?: UserPermissionGrant[];
 
   profilePictureUrl?: string;
   createdAt?: Date;
@@ -90,6 +94,9 @@ export function parseUser(json: any): User {
     permissions: json.permissions
       ? (json.permissions as Permission[])
       : undefined,
+    permissionGrants: json.permissionGrants
+      ? (json.permissionGrants as UserPermissionGrant[])
+      : undefined,
     profilePictureUrl: json.profilePictureUrl ?? undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
@@ -114,6 +121,7 @@ export function userToJson(user: User): Record<string, unknown> {
     organizations: user.organizations?.map((o) => o.id),
     roles: user.roles,
     permissions: user.permissions,
+    permissionGrants: user.permissionGrants,
     profilePictureUrl: user.profilePictureUrl,
     createdAt: user.createdAt?.toISOString(),
     updatedAt: user.updatedAt?.toISOString(),

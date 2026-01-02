@@ -8,7 +8,9 @@ declare module 'next-auth' {
     provider?: string;
     error?: string;
     expiresAt?: number;
+    sessionExpiresAt?: number; // When Keycloak session (refresh token) expires
     sessionId?: string;
+    accessToken?: string;
     user: {
       id: string;
       roles: string[];
@@ -39,6 +41,7 @@ declare module 'next-auth/jwt' {
     provider?: string;
     keycloakIssuer?: string;
     expiresAt?: number;
+    sessionExpiresAt?: number; // When Keycloak session (refresh token) expires
     lastRefresh?: number;
     error?: string;
     sessionId?: string;
