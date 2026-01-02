@@ -14,10 +14,22 @@ interface LogoutToken {
   [key: string]: unknown;
 }
 
-// Cache JWKS remote set to avoid fetching on every request
-const JWKS = createRemoteJWKSet(
-  new URL(`${process.env.KEYCLOAK_ISSUER}/protocol/openid-connect/certs`)
-);
+// Lazy-load JWKS to avoid URL construction at build time
+// Cache is maintained across requests for performance
+let jwksCache: ReturnType<typeof createRemoteJWKSet> | null = null;
+
+function getJWKS() {
+  if (!jwksCache) {
+    const issuer = process.env.KEYCLOAK_ISSUER;
+    if (!issuer) {
+      throw new Error('KEYCLOAK_ISSUER environment variable is not set');
+    }
+    jwksCache = createRemoteJWKSet(
+      new URL(`${issuer}/protocol/openid-connect/certs`)
+    );
+  }
+  return jwksCache;
+}
 
 /**
  * Keycloak Backchannel Logout Endpoint
@@ -83,7 +95,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Verify JWT signature and validate claims
-      const { payload } = await jwtVerify(logoutToken, JWKS, {
+      const { payload } = await jwtVerify(logoutToken, getJWKS(), {
         issuer: expectedIssuer, // Validate issuer matches Keycloak realm
         audience: expectedAudience, // Validate audience contains client ID
         // clockTolerance allows for small time differences (5 minutes)
