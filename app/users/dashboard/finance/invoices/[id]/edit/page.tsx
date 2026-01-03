@@ -42,7 +42,6 @@ import {
   FileText,
   Plus,
   Trash2,
-  DollarSign,
   Hash,
   Calendar,
 } from 'lucide-react';
