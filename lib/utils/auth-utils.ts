@@ -18,12 +18,12 @@ export async function handleSignOut() {
 
     // Sign out from NextAuth
     // The events.signOut callback in auth.ts will handle Keycloak logout
-    await nextAuthSignOut({ callbackUrl: '/login?logout=success' });
+    await nextAuthSignOut({ callbackUrl: '/?logout=success' });
   } catch (error) {
     logger.error('Logout: Error during sign out', error);
-    // Fallback: force redirect to login
+    // Fallback: force redirect to home
     if (globalThis.window !== undefined) {
-      globalThis.location.href = '/login?error=logout_failed';
+      globalThis.location.href = '/?error=logout_failed';
     }
   }
 }
@@ -62,13 +62,13 @@ export async function forceLogout(reason = 'session_invalid') {
 
     // Redirect
     if (globalThis.window !== undefined) {
-      globalThis.location.href = `/login?error=${reason}`;
+      globalThis.location.href = `/?error=${reason}`;
     }
   } catch (error) {
     logger.error('Logout: Force logout failed', error);
     // Fallback: force redirect
     if (globalThis.window !== undefined) {
-      globalThis.location.href = '/login';
+      globalThis.location.href = '/';
     }
   }
 }

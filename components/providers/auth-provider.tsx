@@ -33,7 +33,7 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
       }
 
       // Force logout with cookie cleanup
-      signOut({ callbackUrl: '/login?error=session_expired' });
+      signOut({ callbackUrl: '/?error=session_expired' });
     }
   }, [session, status]);
 
