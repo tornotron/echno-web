@@ -1,4 +1,4 @@
-import { requireSuperAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
+import { requireSystemAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
@@ -10,7 +10,7 @@ export async function GET(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
     const { userId } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -61,7 +61,7 @@ export async function POST(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
     const { userId } = await params;
 
     const body = await req.json();
@@ -132,7 +132,7 @@ export async function DELETE(
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
     const { userId } = await params;
 
     const body = await req.json();

@@ -266,7 +266,7 @@ export function getPermissionLabel(permission: Permission): string {
     [Permission.ANALYTICS_VIEW]: 'View Analytics',
 
     // Admin
-    [Permission.ADMIN_SUPER]: 'Super Admin Access',
+    [Permission.ADMIN_SUPER]: 'System Admin Access',
     [Permission.ADMIN_SETTINGS]: 'System Settings',
     [Permission.ADMIN_USERS]: 'Administer Users',
     [Permission.ADMIN_ROLES]: 'Administer Roles',

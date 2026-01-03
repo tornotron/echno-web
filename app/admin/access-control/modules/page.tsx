@@ -49,15 +49,15 @@ function getModuleDisplayName(module: Module): string {
 }
 
 export default function ModulesPage() {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 

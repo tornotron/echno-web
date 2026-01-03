@@ -191,7 +191,7 @@ export async function migrateUserPermissionsToRoles(userData: {
 
   // Check for admin permissions
   if (permissions.includes(Permission.ADMIN_SUPER)) {
-    roles.push('super-admin');
+    roles.push('system-admin');
   }
 
   // Check for management permissions

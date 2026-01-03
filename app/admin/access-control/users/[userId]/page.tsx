@@ -103,7 +103,7 @@ export default function UserAccessControlPage({
 }: {
   params: Promise<{ userId: string }>;
 }) {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
   const router = useRouter();
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -131,8 +131,8 @@ export default function UserAccessControlPage({
     params.then((p) => setUserId(p.userId));
   }, [params]);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 
@@ -192,8 +192,8 @@ export default function UserAccessControlPage({
   }, [directPermissions, originalDirectPermissions]);
 
   const handlePermissionToggle = (permission: Permission) => {
-    if (isSuperAdminUser) {
-      toast.error('Cannot modify Super Admin permissions');
+    if (isSystemAdminUser) {
+      toast.error('Cannot modify System Admin permissions');
       return;
     }
 
@@ -237,8 +237,8 @@ export default function UserAccessControlPage({
   };
 
   const handleSelectAllPermissions = (permissions: Permission[]) => {
-    if (isSuperAdminUser) {
-      toast.error('Cannot modify Super Admin permissions');
+    if (isSystemAdminUser) {
+      toast.error('Cannot modify System Admin permissions');
       return;
     }
 
@@ -290,9 +290,9 @@ export default function UserAccessControlPage({
   const handleRemoveRole = async (roleId: string) => {
     if (!userId) return;
 
-    if (roleId === 'super_admin') {
+    if (roleId === 'system_admin') {
       const confirm = globalThis.confirm(
-        'Are you sure you want to remove Super Admin access? This will revoke all permissions.'
+        'Are you sure you want to remove System Admin access? This will revoke all permissions.'
       );
       if (!confirm) return;
     }
@@ -321,7 +321,7 @@ export default function UserAccessControlPage({
     (role) => !userRoles.includes(role)
   );
   const groupedPermissions = groupPermissionsByCategory();
-  const isSuperAdminUser = userRoles.includes('super_admin');
+  const isSystemAdminUser = userRoles.includes('system_admin');
 
   if (isLoading || loading) {
     return (
@@ -373,10 +373,10 @@ export default function UserAccessControlPage({
             </h1>
             <p className="text-muted-foreground">{user.email}</p>
           </div>
-          {isSuperAdminUser && (
+          {isSystemAdminUser && (
             <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
               <Shield className="mr-1 h-4 w-4" />
-              Super Admin
+              System Admin
             </Badge>
           )}
         </div>
@@ -465,7 +465,7 @@ export default function UserAccessControlPage({
                               <Badge className={getRoleLevelColor(level)}>
                                 {getRoleDisplayName(role)}
                               </Badge>
-                              {role === 'super_admin' && (
+                              {role === 'system_admin' && (
                                 <Shield className="h-4 w-4 text-red-600" />
                               )}
                             </div>
@@ -491,13 +491,13 @@ export default function UserAccessControlPage({
           </TabsContent>
           {/* Permissions Tab */}
           <TabsContent value="permissions" className="space-y-4">
-            {isSuperAdminUser && (
+            {isSystemAdminUser && (
               <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
                 <CardContent className="py-4">
                   <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
                     <Shield className="h-5 w-5" />
                     <p className="font-medium">
-                      Super Admin has full access to all permissions
+                      System Admin has full access to all permissions
                     </p>
                   </div>
                 </CardContent>
@@ -595,7 +595,7 @@ export default function UserAccessControlPage({
           {/* Direct Permissions Tab */}
           <TabsContent value="direct-permissions" className="space-y-4">
             {/* Action Buttons */}
-            {!isSuperAdminUser && hasPermissionChanges && (
+            {!isSystemAdminUser && hasPermissionChanges && (
               <div className="flex gap-2">
                 <Button
                   onClick={handleSavePermissions}
@@ -615,13 +615,13 @@ export default function UserAccessControlPage({
               </div>
             )}
 
-            {isSuperAdminUser && (
+            {isSystemAdminUser && (
               <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
                 <CardContent className="py-4">
                   <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
                     <Shield className="h-5 w-5" />
                     <p className="font-medium">
-                      Super Admin has full access to all permissions. Direct
+                      System Admin has full access to all permissions. Direct
                       permissions cannot be modified.
                     </p>
                   </div>
@@ -629,7 +629,7 @@ export default function UserAccessControlPage({
               </Card>
             )}
 
-            {!isSuperAdminUser && (
+            {!isSystemAdminUser && (
               <Card>
                 <CardHeader>
                   <CardTitle>Direct Permission Management</CardTitle>

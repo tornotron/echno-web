@@ -326,9 +326,9 @@ export async function canUserPerformActions(
 }
 
 /**
- * Check if user is super admin
- * Super admins bypass most checks (but still need entitlements)
+ * Check if user is system admin
+ * System admins bypass most checks (but still need entitlements)
  */
-export function isSuperAdmin(userRoles: string[]): boolean {
-  return userRoles.includes('super-admin');
+export function isSystemAdmin(userRoles: string[]): boolean {
+  return userRoles.includes('system-admin');
 }

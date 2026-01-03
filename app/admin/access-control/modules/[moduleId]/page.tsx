@@ -110,7 +110,7 @@ export default function ModuleDetailsPage({
 }: {
   params: Promise<{ moduleId: string }>;
 }) {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
   const router = useRouter();
 
   const [moduleId, setModuleId] = useState<string | null>(null);
@@ -132,8 +132,8 @@ export default function ModuleDetailsPage({
     params.then((p) => setModuleId(p.moduleId));
   }, [params]);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 

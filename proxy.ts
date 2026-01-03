@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { hasPermission, getRolePermissions } from '@/lib/rbac/permissions';
 import { Permission } from '@/types/rbac/permission';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
-import { isSuperAdmin } from '@/lib/rbac/role-utils';
+import { isSystemAdmin } from '@/lib/rbac/role-utils';
 import { logger } from '@/lib/logger';
 
 export default auth((req) => {
@@ -119,12 +119,12 @@ export default auth((req) => {
     return NextResponse.redirect(new URL(redirectUrl, req.url));
   }
 
-  // ========== SUPER ADMIN ROUTES ==========
-  // Admin routes require super admin access
-  if (pathname.startsWith('/admin') && !isSuperAdmin(req.auth?.user.roles)) {
+  // ========== SYSTEM ADMIN ROUTES ==========
+  // Admin routes require system admin access
+  if (pathname.startsWith('/admin') && !isSystemAdmin(req.auth?.user.roles)) {
     const url = new URL('/users/dashboard', req.url);
     url.searchParams.set('error', 'forbidden');
-    url.searchParams.set('message', 'Super admin access required');
+    url.searchParams.set('message', 'System admin access required');
     return NextResponse.redirect(url);
   }
 
@@ -143,10 +143,10 @@ export default auth((req) => {
     if (pathname.startsWith(route) && isLoggedIn) {
       const userRoles = req.auth?.user.roles || [];
       const userPermissions = getRolePermissions(userRoles);
-      const userIsSuperAdmin = isSuperAdmin(userRoles);
+      const userIsSystemAdmin = isSystemAdmin(userRoles);
 
-      // Super admin bypasses permission checks
-      if (!userIsSuperAdmin && !hasPermission(userPermissions, permission)) {
+      // System admin bypasses permission checks
+      if (!userIsSystemAdmin && !hasPermission(userPermissions, permission)) {
         const url = new URL('/users/dashboard', req.url);
         url.searchParams.set('error', 'insufficient_permissions');
         url.searchParams.set('required', permission);

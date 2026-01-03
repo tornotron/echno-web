@@ -7,14 +7,14 @@
  * - Uses RBAC hooks to check permissions
  *
  * RBAC Hooks Used:
- * - useIsSuperAdmin(): Check if user is super admin
+ * - useIsSystemAdmin(): Check if user is system admin
  * - useCanPerform(module, action): Check if user can perform specific action
  * - useModuleAccess(module): Check if user has access to module
  *
  * Example Conditional Rendering:
  * {canCreate && <CreateButton />}      // Only users with create permission
  * {canDelete && <DeleteButton />}      // Only users with delete permission
- * {isSuperAdmin && <AdminControls />}  // Only super admins
+ * {isSystemAdmin && <AdminControls />}  // Only system admins
  */
 'use client';
 
@@ -52,7 +52,7 @@ import {
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
 import { mockProjects } from '@/components/shared/mock-data';
-import { useCanPerform, useIsSuperAdmin } from '@/hooks/use-rbac';
+import { useCanPerform, useIsSystemAdmin } from '@/hooks/use-rbac';
 import { Module } from '@/types/rbac/module';
 
 interface ProjectFilters {
@@ -62,7 +62,7 @@ interface ProjectFilters {
 
 export default function ProjectsPage() {
   // RBAC: Role-based access control hooks
-  const isSuperAdmin = useIsSuperAdmin();
+  const isSystemAdmin = useIsSystemAdmin();
   const canCreate = useCanPerform(Module.PROJECT, 'create');
   // canUpdate and canDelete can be used for edit/delete buttons in project cards
   // const canUpdate = useCanPerform(Module.PROJECT, 'update');
@@ -197,8 +197,8 @@ export default function ProjectsPage() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold">Projects</h1>
-              {/* Super Admin Badge - Only visible to super admins */}
-              {isSuperAdmin && (
+              {/* System Admin Badge - Only visible to system admins */}
+              {isSystemAdmin && (
                 <Badge variant="destructive" className="gap-1">
                   <Shield className="h-3 w-3" />
                   Admin
@@ -210,8 +210,8 @@ export default function ProjectsPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {/* Admin Controls - Only visible to super admins */}
-            {isSuperAdmin && (
+            {/* Admin Controls - Only visible to system admins */}
+            {isSystemAdmin && (
               <Button variant="outline" asChild>
                 <Link href="/admin/access-control">
                   <Settings className="mr-2 h-4 w-4" />
