@@ -6,32 +6,7 @@ import { getRolePermissions } from '@/lib/rbac/permissions';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 import { TOKEN_REFRESH } from '@/lib/auth/constants';
-
-interface KeycloakToken {
-  accessToken?: string;
-  refreshToken?: string;
-  expiresAt?: number;
-  sessionExpiresAt?: number; // When the Keycloak session (refresh token) expires
-  error?: string;
-  roles?: string[];
-  permissions?: unknown[];
-  [key: string]: unknown;
-}
-
-interface DecodedKeycloakToken {
-  sid?: string;
-  session_state?: string;
-  sub?: string;
-  exp?: number;
-  iat?: number;
-  azp?: string;
-  realm_access?: {
-    roles?: string[];
-  };
-  resource_access?: Record<string, { roles?: string[] }>;
-  [key: string]: unknown;
-}
-
+import type { DecodedKeycloakToken, KeycloakToken } from '@/types/keycloak';
 /**
  * Refresh Keycloak access token using refresh token
  */
