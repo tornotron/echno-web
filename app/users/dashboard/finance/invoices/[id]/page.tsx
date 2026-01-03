@@ -19,6 +19,14 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
   FileText,
   Edit,
   Download,
@@ -261,41 +269,64 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-zinc-200 dark:border-zinc-800">
-                        <th className="pb-3 text-left font-medium">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[250px]">
                           Description
-                        </th>
-                        <th className="pb-3 text-center font-medium">Qty</th>
-                        <th className="pb-3 text-right font-medium">
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          Quantity
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">Unit</TableHead>
+                        <TableHead className="min-w-[120px]">
                           Unit Price
-                        </th>
-                        <th className="pb-3 text-right font-medium">Amount</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          Tax Rate
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Subtotal
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Tax Amount
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {invoice.lineItems.map((item, index) => (
-                        <tr
-                          key={index}
-                          className="border-b border-zinc-200 dark:border-zinc-800"
-                        >
-                          <td className="py-3 text-zinc-900 dark:text-zinc-100">
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">
                             {item.description}
-                          </td>
-                          <td className="py-3 text-center text-zinc-600 dark:text-zinc-400">
-                            {item.quantity} {item.unit}
-                          </td>
-                          <td className="py-3 text-right text-zinc-600 dark:text-zinc-400">
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {item.quantity}
+                          </TableCell>
+                          <TableCell>{item.unit}</TableCell>
+                          <TableCell className="text-right">
                             ₹{item.unitPrice.toLocaleString('en-IN')}
-                          </td>
-                          <td className="py-3 text-right font-medium text-zinc-900 dark:text-zinc-100">
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {item.taxRate}%
+                          </TableCell>
+                          <TableCell className="text-right">
+                            ₹{item.subtotal.toLocaleString('en-IN')}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            ₹{item.taxAmount.toLocaleString('en-IN')}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-zinc-900 dark:text-zinc-100">
                             ₹{item.total.toLocaleString('en-IN')}
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
