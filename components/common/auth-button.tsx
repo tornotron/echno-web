@@ -1,15 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession, signIn } from 'next-auth/react';
 import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { handleSignOut } from '@/lib/utils/auth-utils';
 
 export function AuthButton() {
   const { data: session, status } = useSession();
-  const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   if (status === 'loading') {
@@ -53,7 +51,7 @@ export function AuthButton() {
   }
 
   return (
-    <Button onClick={() => router.push('/login')} size="sm">
+    <Button onClick={() => signIn('keycloak')} size="sm">
       Sign In
     </Button>
   );

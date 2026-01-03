@@ -32,33 +32,30 @@ export default auth((req) => {
 
   // ========== TOKEN REFRESH ERROR ==========
   // Handle token refresh errors FIRST (before any other checks)
-  // This prevents redirect loops when trying to access /login with an errored session
+  // This prevents redirect loops when trying to access home page with an errored session
   if (hasSessionError) {
     logger.debug('Middleware: Session error detected', {
       error: req.auth?.error,
     });
 
-    // Allow access to login page without redirect
-    if (pathname === '/login') {
+    // Allow access to home page and login page without redirect
+    if (pathname === '/' || pathname === '/login') {
       logger.debug(
-        'Middleware: Allowing login page access for errored session'
+        'Middleware: Allowing home/login page access for errored session'
       );
       return NextResponse.next();
     }
 
-    // For other pages, redirect to login with error message
-    const url = new URL('/login', req.url);
+    // For other pages, redirect to home with error message
+    const url = new URL('/', req.url);
     url.searchParams.set(
       'error',
       req.auth?.error === 'SessionRevoked'
         ? 'session_revoked'
         : 'SessionExpired'
     );
-    if (pathname !== '/') {
-      url.searchParams.set('callbackUrl', pathname);
-    }
 
-    logger.debug('Middleware: Redirecting to login due to session error');
+    logger.debug('Middleware: Redirecting to home due to session error');
     return NextResponse.redirect(url);
   }
 
@@ -73,17 +70,17 @@ export default auth((req) => {
     if (isSessionRevoked(req.auth.sessionId as string)) {
       logger.warn('Middleware: Session revoked, forcing logout');
 
-      // Allow access to login page
-      if (pathname === '/login') {
-        logger.debug('Middleware: Allowing login page for revoked session');
+      // Allow access to home page and login page
+      if (pathname === '/' || pathname === '/login') {
+        logger.debug(
+          'Middleware: Allowing home/login page for revoked session'
+        );
         return NextResponse.next();
       }
 
-      // Redirect to login
-      logger.debug('Middleware: Redirecting to login for revoked session');
-      return NextResponse.redirect(
-        new URL('/login?error=session_revoked', req.url)
-      );
+      // Redirect to home page
+      logger.debug('Middleware: Redirecting to home for revoked session');
+      return NextResponse.redirect(new URL('/?error=session_revoked', req.url));
     } else {
       logger.debug('Middleware: Session is active (not revoked)');
     }
