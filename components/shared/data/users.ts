@@ -2,7 +2,7 @@ import { User } from '@/types/user';
 import { SYSTEM_ROLES } from '@/types/rbac/role';
 
 export const mockUsers: User[] = [
-  // Super Admin - Full system access
+  // System Admin - Full system access
   {
     id: 1,
     name: 'Admin User',
@@ -16,7 +16,7 @@ export const mockUsers: User[] = [
     experience: 20,
     cvUrl: '/cv/admin.pdf',
     emergencyContact: '+91 99999 00001',
-    roles: [SYSTEM_ROLES.SUPER_ADMIN],
+    roles: [SYSTEM_ROLES.SYSTEM_ADMIN],
     profilePictureUrl: '/avatars/admin.jpg',
     bloodGroup: 'O+',
     createdAt: new Date('2022-01-01'),

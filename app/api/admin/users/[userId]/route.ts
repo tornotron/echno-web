@@ -1,16 +1,16 @@
-import { requireSuperAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
+import { requireSystemAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * GET /api/admin/users/[userId]
- * Get detailed user information (super admin only)
+ * Get detailed user information (system admin only)
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
     const { userId } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -57,14 +57,14 @@ export async function GET(
 
 /**
  * PATCH /api/admin/users/[userId]
- * Update user information (super admin only)
+ * Update user information (system admin only)
  */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
     const { userId } = await params;
 
     const body = await req.json();
@@ -119,14 +119,14 @@ export async function PATCH(
 
 /**
  * DELETE /api/admin/users/[userId]
- * Delete user (super admin only)
+ * Delete user (system admin only)
  */
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
     const { userId } = await params;
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;

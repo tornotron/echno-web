@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { Module } from '@/types/rbac/module';
-import { useModuleAccess, useIsSuperAdmin } from '@/hooks/use-rbac';
+import { useModuleAccess, useIsSystemAdmin } from '@/hooks/use-rbac';
 import {
   Home,
   Users,
@@ -85,30 +85,30 @@ interface NavItem {
 const navItems: NavItem[] = [
   { title: 'Dashboard', url: '/users/dashboard', icon: Home },
   // ==================== ADMIN SECTION ====================
-  // Only visible to super admins
+  // Only visible to system admins
   {
     title: 'Administrator',
     url: '/admin/access-control/users',
     icon: Shield,
-    requiredRoles: ['super-admin'],
+    requiredRoles: ['system-admin'],
     items: [
       {
         title: 'Users',
         url: '/admin/access-control/users',
         icon: Users,
-        requiredRoles: ['super-admin'],
+        requiredRoles: ['system-admin'],
       },
       {
         title: 'Roles',
         url: '/admin/access-control/roles',
         icon: UserCog,
-        requiredRoles: ['super-admin'],
+        requiredRoles: ['system-admin'],
       },
       {
         title: 'Modules',
         url: '/admin/access-control/modules',
         icon: Blocks,
-        requiredRoles: ['super-admin'],
+        requiredRoles: ['system-admin'],
       },
     ],
   },
@@ -345,7 +345,7 @@ export function AppSidebar() {
   const hasVendorAccess = useModuleAccess(Module.VENDOR);
   const hasInventoryAccess = useModuleAccess(Module.INVENTORY);
   const hasFinanceAccess = useModuleAccess(Module.FINANCE);
-  const isSuperAdmin = useIsSuperAdmin();
+  const isSystemAdmin = useIsSystemAdmin();
 
   // Helper to check if user has module access
   const hasModuleAccess = (module?: Module): boolean => {
@@ -442,7 +442,7 @@ export function AppSidebar() {
     hasVendorAccess,
     hasInventoryAccess,
     hasFinanceAccess,
-    isSuperAdmin,
+    isSystemAdmin,
     session?.user?.roles,
   ]);
 

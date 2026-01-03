@@ -1,13 +1,13 @@
-import { requireSuperAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
+import { requireSystemAdmin, forbiddenResponse } from '@/lib/rbac/server-auth';
 import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * GET /api/admin/users
- * Get all users (super admin only)
+ * Get all users (system admin only)
  */
 export async function GET(req: NextRequest) {
   try {
-    const session = await requireSuperAdmin();
+    const session = await requireSystemAdmin();
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {

@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { getToken } from 'next-auth/jwt';
 import { cookies } from 'next/headers';
-import { isSuperAdmin } from '@/lib/rbac/role-utils';
+import { isSystemAdmin } from '@/lib/rbac/role-utils';
 
 /**
  * Server-side helper to get full session with tokens and permissions
@@ -44,7 +44,7 @@ export async function getSessionTokens() {
     email: session.user?.email,
     name: session.user?.name,
     roles: userRoles,
-    isSuperAdmin: isSuperAdmin(userRoles),
+    isSystemAdmin: isSystemAdmin(userRoles),
     provider: session.provider,
     sessionId: session.sessionId,
     expiresAt: session.expiresAt,

@@ -13,10 +13,10 @@ import { Module, ModuleAction, RoleModulePolicy } from '@/types/rbac/module';
  * Defines what actions each role can perform on each module
  */
 export const ROLE_MODULE_POLICIES: RoleModulePolicy[] = [
-  // ==================== SUPER ADMIN ====================
+  // ==================== SYSTEM ADMIN ====================
   // Has ALL actions on ALL modules
   ...Object.values(Module).flatMap((module) => ({
-    roleId: SYSTEM_ROLES.SUPER_ADMIN,
+    roleId: SYSTEM_ROLES.SYSTEM_ADMIN,
     module,
     allowedActions: [
       'view',

@@ -59,15 +59,15 @@ const getRoleLevelColor = (level: RoleLevel): string => {
 };
 
 export default function RolesPage() {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 
@@ -237,7 +237,7 @@ export default function RolesPage() {
                 {paginatedRoles.map((roleId) => {
                   const level = getRoleLevel(roleId);
                   const permissions = getRolePermissions([roleId]);
-                  const isSuperAdmin = roleId === 'super_admin';
+                  const isSystemAdmin = roleId === 'system_admin';
 
                   return (
                     <TableRow
@@ -253,7 +253,7 @@ export default function RolesPage() {
                           <span className="font-medium">
                             {getRoleDisplayName(roleId)}
                           </span>
-                          {isSuperAdmin && (
+                          {isSystemAdmin && (
                             <Badge className="bg-red-600 text-white">
                               Full Access
                             </Badge>
@@ -267,14 +267,14 @@ export default function RolesPage() {
                       </TableCell>
                       <TableCell>
                         <span className="text-sm">
-                          {isSuperAdmin
+                          {isSystemAdmin
                             ? 'All Permissions'
                             : `${permissions.length} permissions`}
                         </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-muted-foreground text-sm">
-                          {isSuperAdmin
+                          {isSystemAdmin
                             ? 'Unrestricted system access'
                             : `${level.charAt(0).toUpperCase() + level.slice(1)}-level access`}
                         </span>

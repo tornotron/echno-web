@@ -18,7 +18,7 @@ export interface Role {
  */
 export const SYSTEM_ROLES = {
   // ==================== Administration ====================
-  SUPER_ADMIN: 'super-admin',
+  SYSTEM_ADMIN: 'system-admin',
 
   // ==================== Management Roles ====================
   PROJECT_MANAGER: 'project-manager',
@@ -108,7 +108,7 @@ export interface UserRoleAssignment {
 export function getRoleDisplayName(roleId: string): string {
   const names: Record<string, string> = {
     // Admin
-    [SYSTEM_ROLES.SUPER_ADMIN]: 'Super Administrator',
+    [SYSTEM_ROLES.SYSTEM_ADMIN]: 'System Administrator',
 
     // Management
     [SYSTEM_ROLES.PROJECT_MANAGER]: 'Project Manager',
@@ -211,7 +211,7 @@ export enum RoleLevel {
  * Get role level
  */
 export function getRoleLevel(roleId: string): RoleLevel {
-  if (roleId === SYSTEM_ROLES.SUPER_ADMIN) return RoleLevel.ADMIN;
+  if (roleId === SYSTEM_ROLES.SYSTEM_ADMIN) return RoleLevel.ADMIN;
 
   const managementRoles: string[] = [
     SYSTEM_ROLES.PROJECT_MANAGER,
