@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useSession } from 'next-auth/react';
+import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, Suspense } from 'react';
 import { AuthButton } from '@/components/common/auth-button';
@@ -30,6 +30,8 @@ function HomeContent() {
     // Check if user just logged out (client-side only)
     if (globalThis.window !== undefined) {
       const params = new URLSearchParams(globalThis.location.search);
+
+      // Handle logout success
       if (params.get('logout') === 'success') {
         toast.success('Signed out successfully', {
           description: 'You have been logged out.',
@@ -37,15 +39,58 @@ function HomeContent() {
         // Clean up the URL parameter
         router.replace('/', { scroll: false });
       }
+
+      // Handle logout/session errors
+      const errorParam = params.get('error');
+      if (errorParam) {
+        switch (errorParam) {
+          case 'logout_failed': {
+            toast.error('Logout error', {
+              description:
+                'There was an issue signing you out. Please try again.',
+            });
+            break;
+          }
+          case 'session_invalid': {
+            toast.warning('Session invalid', {
+              description: 'Your session was invalid and has been cleared.',
+            });
+            break;
+          }
+          case 'session_expired':
+          case 'SessionExpired': {
+            toast.warning('Session expired', {
+              description: 'Your session has expired. Please sign in again.',
+            });
+            break;
+          }
+          case 'session_revoked': {
+            toast.warning('Session revoked', {
+              description: 'Your session was terminated. Please sign in again.',
+            });
+            break;
+          }
+          default: {
+            toast.info('Notice', {
+              description: 'You have been signed out.',
+            });
+          }
+        }
+        // Clean up the URL parameter
+        router.replace('/', { scroll: false });
+      }
     }
   }, [router]);
 
-  if (status === 'loading') {
+  // Show loading state while checking auth or redirecting authenticated users
+  if (status === 'loading' || status === 'authenticated') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
         <div className="text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-zinc-900 dark:border-zinc-100"></div>
-          <p className="mt-4 text-zinc-600 dark:text-zinc-400">Loading...</p>
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+            {status === 'authenticated' ? 'Redirecting...' : 'Loading...'}
+          </p>
         </div>
       </div>
     );
@@ -87,7 +132,7 @@ function HomeContent() {
 
           <div className="mb-16 flex flex-col justify-center gap-4 sm:flex-row">
             <Button
-              onClick={() => router.push('/login')}
+              onClick={() => signIn('keycloak')}
               size="lg"
               className="bg-zinc-900 px-8 py-3 text-lg text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
             >
@@ -230,7 +275,7 @@ function HomeContent() {
             their workforce management.
           </p>
           <Button
-            onClick={() => router.push('/login')}
+            onClick={() => signIn('keycloak')}
             size="lg"
             className="bg-white px-8 py-3 text-lg text-zinc-900 hover:bg-zinc-100"
           >
