@@ -59,7 +59,7 @@ export default function RoleDetailsPage({
 }: {
   params: Promise<{ roleId: string }>;
 }) {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
   const router = useRouter();
 
   const [roleId, setRoleId] = useState<string | null>(null);
@@ -78,8 +78,8 @@ export default function RoleDetailsPage({
     params.then((p) => setRoleId(p.roleId));
   }, [params]);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 
@@ -121,8 +121,8 @@ export default function RoleDetailsPage({
   }, [selectedPermissions, originalPermissions]);
 
   const handlePermissionToggle = (permission: Permission) => {
-    if (roleId === 'super_admin') {
-      toast.error('Cannot modify Super Admin permissions');
+    if (roleId === 'system_admin') {
+      toast.error('Cannot modify System Admin permissions');
       return;
     }
 
@@ -164,8 +164,8 @@ export default function RoleDetailsPage({
   };
 
   const handleSelectAll = (permissions: Permission[]) => {
-    if (roleId === 'super_admin') {
-      toast.error('Cannot modify Super Admin permissions');
+    if (roleId === 'system_admin') {
+      toast.error('Cannot modify System Admin permissions');
       return;
     }
 
@@ -226,7 +226,7 @@ export default function RoleDetailsPage({
 
   const roleName = getRoleDisplayName(roleId);
   const level = getRoleLevel(roleId);
-  const isSuperAdminRole = roleId === 'super_admin';
+  const isSystemAdminRole = roleId === 'system_admin';
   const groupedPermissions = groupPermissionsByCategory();
 
   return (
@@ -240,7 +240,7 @@ export default function RoleDetailsPage({
               {roleName}
             </h1>
             <p className="text-muted-foreground mt-1">
-              {isSuperAdminRole
+              {isSystemAdminRole
                 ? 'Full system access - Cannot be modified'
                 : 'Manage role permissions and access levels'}
             </p>
@@ -249,7 +249,7 @@ export default function RoleDetailsPage({
             <Badge className={getRoleLevelColor(level)}>
               {level.charAt(0).toUpperCase() + level.slice(1)}
             </Badge>
-            {isSuperAdminRole && (
+            {isSystemAdminRole && (
               <Badge className="bg-red-600 text-white">
                 <Shield className="mr-1 h-4 w-4" />
                 Full Access
@@ -259,7 +259,7 @@ export default function RoleDetailsPage({
         </div>
 
         {/* Action Buttons */}
-        {!isSuperAdminRole && hasChanges && (
+        {!isSystemAdminRole && hasChanges && (
           <div className="flex gap-2">
             <Button onClick={handleSave} disabled={saving}>
               <Save className="mr-2 h-4 w-4" />
@@ -287,7 +287,7 @@ export default function RoleDetailsPage({
                   Total Permissions
                 </p>
                 <p className="text-2xl font-bold">
-                  {isSuperAdminRole ? 'All' : selectedPermissions.length}
+                  {isSystemAdminRole ? 'All' : selectedPermissions.length}
                 </p>
               </div>
               {hasChanges && (
@@ -321,12 +321,12 @@ export default function RoleDetailsPage({
         </Card>
 
         {/* Permissions */}
-        {isSuperAdminRole ? (
+        {isSystemAdminRole ? (
           <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
             <CardContent className="py-12 text-center">
               <Shield className="mx-auto mb-4 h-16 w-16 text-red-600" />
               <h3 className="mb-2 text-xl font-semibold text-red-800 dark:text-red-200">
-                Super Administrator
+                System Administrator
               </h3>
               <p className="text-muted-foreground">
                 This role has unrestricted access to all system functions and

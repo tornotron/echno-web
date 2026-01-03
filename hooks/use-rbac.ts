@@ -302,16 +302,16 @@ export function useUserModules(): Module[] {
 }
 
 /**
- * Hook to check if user is super admin
+ * Hook to check if user is system admin
  *
- * @returns Boolean indicating if user is super admin
+ * @returns Boolean indicating if user is system admin
  */
-export function useIsSuperAdmin(): boolean {
+export function useIsSystemAdmin(): boolean {
   const { data: session } = useSession();
 
   return (
-    session?.user?.roles?.includes('super-admin') ||
-    session?.user?.roles?.includes('SUPER_ADMIN') ||
+    session?.user?.roles?.includes('system-admin') ||
+    session?.user?.roles?.includes('SYSTEM_ADMIN') ||
     false
   );
 }
@@ -334,7 +334,7 @@ export function useRBAC(module: Module) {
     canDelete: false,
     canAssign: false,
     canApprove: false,
-    isSuperAdmin: false,
+    isSystemAdmin: false,
     loading: true,
   });
 
@@ -350,7 +350,7 @@ export function useRBAC(module: Module) {
           canDelete: false,
           canAssign: false,
           canApprove: false,
-          isSuperAdmin: false,
+          isSystemAdmin: false,
           loading: false,
         });
         return;
@@ -378,9 +378,9 @@ export function useRBAC(module: Module) {
 
       const allowedActions = getUserAllowedActions(user.roles || [], module);
 
-      const isSuperAdmin =
-        user.roles?.includes('super-admin') ||
-        user.roles?.includes('SUPER_ADMIN') ||
+      const isSystemAdmin =
+        user.roles?.includes('system-admin') ||
+        user.roles?.includes('SYSTEM_ADMIN') ||
         false;
 
       setState({
@@ -392,7 +392,7 @@ export function useRBAC(module: Module) {
         canDelete: allowedActions.includes('delete'),
         canAssign: allowedActions.includes('assign'),
         canApprove: allowedActions.includes('approve'),
-        isSuperAdmin,
+        isSystemAdmin,
         loading: false,
       });
     }

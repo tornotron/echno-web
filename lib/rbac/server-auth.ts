@@ -7,7 +7,7 @@ import {
   hasAllRoles,
   getRolePermissions,
 } from './permissions';
-import { isSuperAdmin } from './role-utils';
+import { isSystemAdmin } from './role-utils';
 import { redirect } from 'next/navigation';
 
 /**
@@ -40,7 +40,7 @@ export async function requireAuth() {
 
 /**
  * Require specific permission(s)
- * Super admin bypasses this check
+ * System admin bypasses this check
  *
  * @param permission - Single permission or array of permissions (AND logic)
  * @throws Error if user doesn't have required permission
@@ -48,8 +48,8 @@ export async function requireAuth() {
 export async function requirePermission(permission: Permission | Permission[]) {
   const session = await requireAuth();
 
-  // Super admin has all permissions
-  if (isSuperAdmin(session.user.roles)) {
+  // System admin has all permissions
+  if (isSystemAdmin(session.user.roles)) {
     return session;
   }
 
@@ -66,7 +66,7 @@ export async function requirePermission(permission: Permission | Permission[]) {
 
 /**
  * Require ANY of the specified permissions (OR logic)
- * Super admin bypasses this check
+ * System admin bypasses this check
  *
  * @param permissions - Array of permissions
  * @throws Error if user doesn't have any of the required permissions
@@ -74,8 +74,8 @@ export async function requirePermission(permission: Permission | Permission[]) {
 export async function requireAnyPermission(permissions: Permission[]) {
   const session = await requireAuth();
 
-  // Super admin has all permissions
-  if (isSuperAdmin(session.user.roles)) {
+  // System admin has all permissions
+  if (isSystemAdmin(session.user.roles)) {
     return session;
   }
 
@@ -89,7 +89,7 @@ export async function requireAnyPermission(permissions: Permission[]) {
 
 /**
  * Require specific role(s)
- * Super admin bypasses this check
+ * System admin bypasses this check
  *
  * @param role - Single role or array of roles (OR logic)
  * @throws Error if user doesn't have required role
@@ -97,8 +97,8 @@ export async function requireAnyPermission(permissions: Permission[]) {
 export async function requireRole(role: string | string[]) {
   const session = await requireAuth();
 
-  // Super admin bypasses role checks
-  if (isSuperAdmin(session.user.roles)) {
+  // System admin bypasses role checks
+  if (isSystemAdmin(session.user.roles)) {
     return session;
   }
 
@@ -112,7 +112,7 @@ export async function requireRole(role: string | string[]) {
 
 /**
  * Require ALL specified roles (AND logic)
- * Super admin bypasses this check
+ * System admin bypasses this check
  *
  * @param roles - Array of roles
  * @throws Error if user doesn't have all required roles
@@ -120,8 +120,8 @@ export async function requireRole(role: string | string[]) {
 export async function requireAllRoles(roles: string[]) {
   const session = await requireAuth();
 
-  // Super admin bypasses role checks
-  if (isSuperAdmin(session.user.roles)) {
+  // System admin bypasses role checks
+  if (isSystemAdmin(session.user.roles)) {
     return session;
   }
 
@@ -133,14 +133,14 @@ export async function requireAllRoles(roles: string[]) {
 }
 
 /**
- * Require super admin access
- * @throws Error if user is not a super admin
+ * Require system admin access
+ * @throws Error if user is not a system admin
  */
-export async function requireSuperAdmin() {
+export async function requireSystemAdmin() {
   const session = await requireAuth();
 
-  if (!isSuperAdmin(session.user.roles)) {
-    throw new Error('Forbidden - Super admin access required');
+  if (!isSystemAdmin(session.user.roles)) {
+    throw new Error('Forbidden - System admin access required');
   }
 
   return session;
@@ -156,7 +156,7 @@ export async function canUser(
   try {
     const session = await auth();
     if (!session?.user) return false;
-    if (isSuperAdmin(session.user.roles)) return true;
+    if (isSystemAdmin(session.user.roles)) return true;
     const permissions = getUserPermissions(session.user.roles);
     return hasPermission(permissions, permission);
   } catch {
@@ -172,7 +172,7 @@ export async function userHasRole(role: string | string[]): Promise<boolean> {
   try {
     const session = await auth();
     if (!session?.user) return false;
-    if (isSuperAdmin(session.user.roles)) return true;
+    if (isSystemAdmin(session.user.roles)) return true;
     return hasRole(session.user.roles, role);
   } catch {
     return false;
@@ -180,13 +180,13 @@ export async function userHasRole(role: string | string[]): Promise<boolean> {
 }
 
 /**
- * Check if current user is super admin (without throwing)
+ * Check if current user is system admin (without throwing)
  * Returns true/false
  */
-export async function isUserSuperAdmin(): Promise<boolean> {
+export async function isUserSystemAdmin(): Promise<boolean> {
   try {
     const session = await auth();
-    return isSuperAdmin(session?.user.roles);
+    return isSystemAdmin(session?.user.roles);
   } catch {
     return false;
   }
@@ -200,7 +200,7 @@ export async function isUserSuperAdmin(): Promise<boolean> {
 export async function requireAuthPage(options?: {
   permission?: Permission | Permission[];
   role?: string | string[];
-  requireSuperAdmin?: boolean;
+  requireSystemAdmin?: boolean;
 }) {
   const session = await auth();
 
@@ -209,15 +209,15 @@ export async function requireAuthPage(options?: {
     redirect('/login');
   }
 
-  const userIsSuperAdmin = isSuperAdmin(session.user.roles);
+  const userIsSystemAdmin = isSystemAdmin(session.user.roles);
 
-  // Super admin check
-  if (options?.requireSuperAdmin && !userIsSuperAdmin) {
+  // System admin check
+  if (options?.requireSystemAdmin && !userIsSystemAdmin) {
     redirect('/users/dashboard?error=forbidden');
   }
 
   // Permission check
-  if (options?.permission && !userIsSuperAdmin) {
+  if (options?.permission && !userIsSystemAdmin) {
     const permissions = getUserPermissions(session.user.roles);
     if (!hasPermission(permissions, options.permission)) {
       redirect('/users/dashboard?error=forbidden');
@@ -227,7 +227,7 @@ export async function requireAuthPage(options?: {
   // Role check
   if (
     options?.role &&
-    !userIsSuperAdmin &&
+    !userIsSystemAdmin &&
     !hasRole(session.user.roles, options.role)
   ) {
     redirect('/users/dashboard?error=forbidden');

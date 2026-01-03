@@ -55,15 +55,15 @@ function getRoleLevelColor(level: RoleLevel): string {
 }
 
 export default function AdminUsersPage() {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 
@@ -175,7 +175,7 @@ export default function AdminUsersPage() {
                 {totalAdmins}
               </div>
               <p className="text-muted-foreground text-xs">
-                Super admin & admin
+                System admin & admin
               </p>
             </CardContent>
           </Card>
@@ -327,7 +327,7 @@ export default function AdminUsersPage() {
                                 key={role}
                                 className={getRoleLevelColor(level)}
                               >
-                                {role.includes('super-admin') && (
+                                {role.includes('system-admin') && (
                                   <Shield className="mr-1 h-3 w-3" />
                                 )}
                                 {getRoleDisplayName(role)}

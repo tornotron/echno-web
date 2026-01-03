@@ -1,1 +1,1 @@
-export { Protected, RequireAuth, SuperAdminOnly } from './protected';
+export { Protected, RequireAuth, SystemAdminOnly } from './protected';

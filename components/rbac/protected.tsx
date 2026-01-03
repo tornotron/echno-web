@@ -31,9 +31,9 @@ interface ProtectedProps {
   allRoles?: string[];
 
   /**
-   * Require super admin access
+   * Require system admin access
    */
-  requireSuperAdmin?: boolean;
+  requireSystemAdmin?: boolean;
 
   /**
    * Combination logic when both permission and role are provided
@@ -90,8 +90,8 @@ interface ProtectedProps {
  *   <DeleteButton />
  * </Protected>
  *
- * // Show only to super admin
- * <Protected requireSuperAdmin>
+ * // Show only to system admin
+ * <Protected requireSystemAdmin>
  *   <AdminPanel />
  * </Protected>
  *
@@ -109,7 +109,7 @@ export function Protected({
   anyPermission,
   role,
   allRoles,
-  requireSuperAdmin = false,
+  requireSystemAdmin = false,
   requireAll = false,
   fallback = null,
   loading = null,
@@ -120,7 +120,7 @@ export function Protected({
     canAny,
     hasRoles,
     hasEveryRole,
-    isSuperAdmin,
+    isSystemAdmin,
     isLoading,
     isAuthenticated,
   } = useAuthorization();
@@ -135,18 +135,18 @@ export function Protected({
     return <>{fallback}</>;
   }
 
-  // Super admin always has access (unless specifically checking for super admin role)
-  if (isSuperAdmin && !requireSuperAdmin) {
+  // System admin always has access (unless specifically checking for system admin role)
+  if (isSystemAdmin && !requireSystemAdmin) {
     return <>{children}</>;
   }
 
-  // Check super admin requirement
-  if (requireSuperAdmin && !isSuperAdmin) {
+  // Check system admin requirement
+  if (requireSystemAdmin && !isSystemAdmin) {
     return <>{fallback}</>;
   }
 
-  // If only super admin check, and user is super admin, show content
-  if (requireSuperAdmin && isSuperAdmin) {
+  // If only system admin check, and user is system admin, show content
+  if (requireSystemAdmin && isSystemAdmin) {
     return <>{children}</>;
   }
 
@@ -182,7 +182,7 @@ export function Protected({
   } else if (role !== undefined || allRoles !== undefined) {
     // Only role check
     hasAccess = hasRoleAccess;
-  } else if (!requireSuperAdmin) {
+  } else if (!requireSystemAdmin) {
     // No checks specified, allow if authenticated
     hasAccess = true;
   }
@@ -210,9 +210,9 @@ export function RequireAuth({
 }
 
 /**
- * SuperAdminOnly component - shows children only to super admins
+ * SystemAdminOnly component - shows children only to system admins
  */
-export function SuperAdminOnly({
+export function SystemAdminOnly({
   children,
   fallback = null,
 }: {
@@ -220,7 +220,7 @@ export function SuperAdminOnly({
   fallback?: ReactNode;
 }) {
   return (
-    <Protected requireSuperAdmin fallback={fallback}>
+    <Protected requireSystemAdmin fallback={fallback}>
       {children}
     </Protected>
   );

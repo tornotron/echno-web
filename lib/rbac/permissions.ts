@@ -12,9 +12,9 @@ import {
  * Defines what permissions each role has
  */
 export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
-  // ==================== SUPER ADMIN ====================
+  // ==================== SYSTEM ADMIN ====================
   // Has ALL permissions
-  [SYSTEM_ROLES.SUPER_ADMIN]: Object.values(Permission),
+  [SYSTEM_ROLES.SYSTEM_ADMIN]: Object.values(Permission),
 
   // ==================== PROJECT MANAGER ====================
   [SYSTEM_ROLES.PROJECT_MANAGER]: [
@@ -649,10 +649,10 @@ export function hasAllRoles(userRoles: string[], required: string[]): boolean {
 }
 
 /**
- * Check if user is super admin
+ * Check if user is system admin
  */
-export function isSuperAdmin(userRoles: string[]): boolean {
-  return userRoles.includes(SYSTEM_ROLES.SUPER_ADMIN);
+export function isSystemAdmin(userRoles: string[]): boolean {
+  return userRoles.includes(SYSTEM_ROLES.SYSTEM_ADMIN);
 }
 
 // ==================== USER PERMISSION GRANTS ====================

@@ -287,7 +287,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       session.user.email = token.email ?? '';
       session.user.name = token.name ?? '';
 
-      // Roles (permissions and super admin status computed on-demand from roles)
+      // Roles (permissions and system admin status computed on-demand from roles)
       session.user.roles = token.roles || [];
 
       // Log session roles for debugging

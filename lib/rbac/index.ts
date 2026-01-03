@@ -76,7 +76,7 @@ export {
   getUserModules,
   getUserAllowedActions,
   canUserPerformActions,
-  isSuperAdmin,
+  isSystemAdmin,
 } from './policy-engine';
 
 // ==================== Role-Module Policies ====================

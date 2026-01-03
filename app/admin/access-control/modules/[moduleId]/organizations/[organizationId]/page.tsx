@@ -85,7 +85,7 @@ export default function ManageOrganizationEntitlementPage({
 }: {
   params: Promise<{ moduleId: string; organizationId: string }>;
 }) {
-  const { isSuperAdmin, isLoading } = useAuthorization();
+  const { isSystemAdmin, isLoading } = useAuthorization();
   const router = useRouter();
 
   const [moduleId, setModuleId] = useState<string | null>(null);
@@ -128,8 +128,8 @@ export default function ManageOrganizationEntitlementPage({
     });
   }, [params]);
 
-  // Redirect if not super admin
-  if (!isLoading && !isSuperAdmin) {
+  // Redirect if not system admin
+  if (!isLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
   }
 
