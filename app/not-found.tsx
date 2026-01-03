@@ -47,16 +47,6 @@ export default function NotFound() {
                 Go to Dashboard
               </Link>
             </Button>
-
-            <Button variant="outline" asChild className="w-full">
-              <Link
-                href="javascript:history.back()"
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Go Back
-              </Link>
-            </Button>
           </div>
 
           <div className="text-muted-foreground pt-4 text-center text-xs">
@@ -66,7 +56,7 @@ export default function NotFound() {
                 href="mailto:support@echno.com"
                 className="text-primary hover:underline"
               >
-                support@echno.com
+                support@echnoai.com
               </a>
             </p>
           </div>

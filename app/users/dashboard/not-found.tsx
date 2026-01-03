@@ -55,15 +55,6 @@ export default function DashboardNotFound() {
                   Go to Dashboard Home
                 </Link>
               </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => globalThis.history.back()}
-                className="flex w-full items-center gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Go Back
-              </Button>
             </div>
 
             <div className="text-muted-foreground pt-4 text-center text-xs">
