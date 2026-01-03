@@ -109,7 +109,7 @@ export default function DashboardError({
                   href="mailto:support@echno.com"
                   className="text-primary hover:underline"
                 >
-                  support@echno.com
+                  support@echnoai.com
                 </a>
               </p>
               {error.digest && (

@@ -50,11 +50,6 @@ export function ErrorLayout({
       href: '/users/dashboard',
       variant: 'default' as const,
     },
-    {
-      label: 'Go Back',
-      onClick: () => globalThis.history.back(),
-      variant: 'outline' as const,
-    },
   ];
 
   const displayActions = actions.length > 0 ? actions : defaultActions;
@@ -92,27 +87,16 @@ export function ErrorLayout({
           )}
 
           <div className="flex flex-col gap-2 pt-4">
-            {displayActions.map((action, index) =>
-              action.href ? (
-                <Button
-                  key={index}
-                  variant={action.variant}
-                  asChild
-                  className="w-full"
-                >
-                  <Link href={action.href}>{action.label}</Link>
-                </Button>
-              ) : (
-                <Button
-                  key={index}
-                  variant={action.variant}
-                  onClick={action.onClick}
-                  className="w-full"
-                >
-                  {action.label}
-                </Button>
-              )
-            )}
+            {displayActions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant}
+                asChild
+                className="w-full"
+              >
+                <Link href={action.href!}>{action.label}</Link>
+              </Button>
+            ))}
           </div>
 
           {showSupport && (
@@ -123,7 +107,7 @@ export function ErrorLayout({
                   href="mailto:support@echno.com"
                   className="text-primary hover:underline"
                 >
-                  support@echno.com
+                  support@echnoai.com
                 </a>
               </p>
             </div>
