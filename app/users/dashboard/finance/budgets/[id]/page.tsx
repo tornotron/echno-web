@@ -304,26 +304,39 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                   <Table>
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
-                        <TableHead>Category</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Allocated</TableHead>
-                        <TableHead className="text-right">Spent</TableHead>
-                        <TableHead className="text-right">Remaining</TableHead>
-                        <TableHead className="text-right">Usage %</TableHead>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[150px]">
+                          Category
+                        </TableHead>
+                        <TableHead className="min-w-[150px]">
+                          Subcategory
+                        </TableHead>
+                        <TableHead className="min-w-[200px]">
+                          Description
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Allocated (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Spent (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Remaining (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">Usage %</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {budget.lineItems.map((item) => (
+                      {budget.lineItems.map((item, index) => (
                         <TableRow key={item.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{item.category}</p>
-                              {item.subcategory && (
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                                  {item.subcategory}
-                                </p>
-                              )}
-                            </div>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {item.category}
+                          </TableCell>
+                          <TableCell className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {item.subcategory || '-'}
                           </TableCell>
                           <TableCell className="text-sm">
                             {item.description}
@@ -334,18 +347,18 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                           <TableCell className="text-right">
                             ₹{item.spentAmount.toLocaleString('en-IN')}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right font-semibold">
                             ₹{item.remainingAmount.toLocaleString('en-IN')}
                           </TableCell>
                           <TableCell className="text-right">
                             <span
                               className={
                                 item.spentAmount / item.allocatedAmount >= 0.95
-                                  ? 'text-red-600 dark:text-red-400'
+                                  ? 'font-semibold text-red-600 dark:text-red-400'
                                   : item.spentAmount / item.allocatedAmount >=
                                       0.8
-                                    ? 'text-yellow-600 dark:text-yellow-400'
-                                    : 'text-green-600 dark:text-green-400'
+                                    ? 'font-semibold text-yellow-600 dark:text-yellow-400'
+                                    : 'font-semibold text-green-600 dark:text-green-400'
                               }
                             >
                               {(

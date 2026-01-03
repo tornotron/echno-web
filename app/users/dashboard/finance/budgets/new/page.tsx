@@ -20,6 +20,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 // Separator not used in this file
 import { Save, X, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -393,104 +401,136 @@ export default function NewBudgetPage() {
             </CardHeader>
             <CardContent>
               {lineItems.length > 0 ? (
-                <div className="space-y-4">
-                  {lineItems.map((item, index) => (
-                    <div
-                      key={index}
-                      className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
-                    >
-                      <div className="mb-4 flex items-start justify-between">
-                        <h4 className="font-medium">Line Item {index + 1}</h4>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveLineItem(index)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                          <Label>Category</Label>
-                          <Input
-                            placeholder="e.g., Labour"
-                            value={item.category}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'category',
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Subcategory</Label>
-                          <Input
-                            placeholder="e.g., Skilled"
-                            value={item.subcategory}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'subcategory',
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2 md:col-span-2">
-                          <Label>Description</Label>
-                          <Input
-                            placeholder="e.g., Skilled labour costs"
-                            value={item.description}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'description',
-                                e.target.value
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Allocated Amount (₹)</Label>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            value={item.allocatedAmount}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'allocatedAmount',
-                                Number.parseFloat(e.target.value) || 0
-                              )
-                            }
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label>Spent Amount (₹)</Label>
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            value={item.spentAmount}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'spentAmount',
-                                Number.parseFloat(e.target.value) || 0
-                              )
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[150px]">
+                          Category
+                        </TableHead>
+                        <TableHead className="min-w-[150px]">
+                          Subcategory
+                        </TableHead>
+                        <TableHead className="min-w-[200px]">
+                          Description
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Allocated Amount (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Spent Amount (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Remaining (₹)
+                        </TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {lineItems.map((item, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              placeholder="e.g., Labour"
+                              value={item.category}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'category',
+                                  e.target.value
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              placeholder="e.g., Skilled"
+                              value={item.subcategory}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'subcategory',
+                                  e.target.value
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              placeholder="e.g., Skilled labour costs"
+                              value={item.description}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'description',
+                                  e.target.value
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              value={item.allocatedAmount}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'allocatedAmount',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              value={item.spentAmount}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'spentAmount',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-semibold whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                              ₹
+                              {(
+                                (item.allocatedAmount || 0) -
+                                (item.spentAmount || 0)
+                              ).toLocaleString('en-IN', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveLineItem(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               ) : (
                 <div className="py-8 text-center">
