@@ -20,6 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { mockInvoices } from '@/components/shared/mock-data';
 import {
   Invoice,
@@ -414,95 +422,91 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                   </Button>
                 </div>
 
-                <div className="space-y-4">
-                  {lineItems.map((item, index) => (
-                    <div
-                      key={item.id}
-                      className="space-y-4 rounded-lg border border-zinc-200 p-4 dark:border-zinc-800"
-                    >
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium">Item {index + 1}</p>
-                        {lineItems.length > 1 && (
-                          <Button
-                            type="button"
-                            onClick={() => removeLineItem(index)}
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        {/* Description */}
-                        <div className="space-y-2 md:col-span-2">
-                          <Label>
-                            Description{' '}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <Textarea
-                            value={item.description}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'description',
-                                e.target.value
-                              )
-                            }
-                            placeholder="Enter item description"
-                            rows={2}
-                            required
-                          />
-                        </div>
-
-                        {/* Quantity */}
-                        <div className="space-y-2">
-                          <Label>
-                            Quantity <span className="text-destructive">*</span>
-                          </Label>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'quantity',
-                                Number.parseFloat(e.target.value) || 0
-                              )
-                            }
-                            placeholder="1"
-                            min="0"
-                            step="0.01"
-                            required
-                          />
-                        </div>
-
-                        {/* Unit */}
-                        <div className="space-y-2">
-                          <Label>Unit</Label>
-                          <Input
-                            value={item.unit}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'unit',
-                                e.target.value
-                              )
-                            }
-                            placeholder="LS"
-                          />
-                        </div>
-
-                        {/* Unit Price */}
-                        <div className="space-y-2">
-                          <Label>
-                            Unit Price{' '}
-                            <span className="text-destructive">*</span>
-                          </Label>
-                          <div className="relative">
-                            <DollarSign className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[250px]">
+                          Description *
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          Quantity *
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">Unit</TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Unit Price (₹) *
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          Tax Rate (%)
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Subtotal (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Tax Amount (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Total (₹)
+                        </TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {lineItems.map((item, index) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <Textarea
+                              value={item.description}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'description',
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Enter item description"
+                              rows={2}
+                              required
+                              className="min-h-[60px] text-xs"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'quantity',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="1"
+                              min="0"
+                              step="0.01"
+                              required
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={item.unit}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'unit',
+                                  e.target.value
+                                )
+                              }
+                              placeholder="LS"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
                             <Input
                               type="number"
                               value={item.unitPrice}
@@ -516,75 +520,65 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
                               placeholder="0.00"
                               min="0"
                               step="0.01"
-                              className="pl-10"
                               required
+                              className="h-9"
                             />
-                          </div>
-                        </div>
-
-                        {/* Tax Rate */}
-                        <div className="space-y-2">
-                          <Label>Tax Rate (%)</Label>
-                          <Input
-                            type="number"
-                            value={item.taxRate}
-                            onChange={(e) =>
-                              handleLineItemChange(
-                                index,
-                                'taxRate',
-                                Number.parseFloat(e.target.value) || 0
-                              )
-                            }
-                            placeholder="18"
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-
-                        {/* Subtotal (read-only) */}
-                        <div className="space-y-2">
-                          <Label>Subtotal</Label>
-                          <div className="relative">
-                            <DollarSign className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.taxRate}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'taxRate',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="18"
+                              min="0"
+                              step="0.01"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
                             <Input
                               type="number"
                               value={item.subtotal.toFixed(2)}
                               disabled
-                              className="pl-10"
+                              className="h-9"
                             />
-                          </div>
-                        </div>
-
-                        {/* Tax Amount (read-only) */}
-                        <div className="space-y-2">
-                          <Label>Tax Amount</Label>
-                          <div className="relative">
-                            <DollarSign className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                          </TableCell>
+                          <TableCell>
                             <Input
                               type="number"
                               value={item.taxAmount.toFixed(2)}
                               disabled
-                              className="pl-10"
+                              className="h-9"
                             />
-                          </div>
-                        </div>
-
-                        {/* Total (read-only) */}
-                        <div className="space-y-2">
-                          <Label>Total</Label>
-                          <div className="relative">
-                            <DollarSign className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                            <Input
-                              type="number"
-                              value={item.total.toFixed(2)}
-                              disabled
-                              className="pl-10"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-semibold whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                              ₹{item.total.toFixed(2)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {lineItems.length > 1 && (
+                              <Button
+                                type="button"
+                                onClick={() => removeLineItem(index)}
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
 
                 {/* Summary */}
