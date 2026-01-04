@@ -8,6 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { AppLayout } from '@/components/common/app-layout';
 import {
   FileText,
@@ -508,58 +516,77 @@ export default function ViewEstimatePage() {
                 <CardTitle>Cost Breakdown</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {estimate.lineItems.map((item) => (
-                    <div key={item.id} className="rounded-lg border p-4">
-                      <div className="mb-3 flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="mb-1 flex items-center gap-2">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Category
+                        </TableHead>
+                        <TableHead className="min-w-[180px]">
+                          Description
+                        </TableHead>
+                        <TableHead className="min-w-[180px]">
+                          Specifications
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          Quantity
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">Unit</TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Unit Rate
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Labor Cost
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Material Cost
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Equipment Cost
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">Total</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {estimate.lineItems.map((item, index) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
                             <Badge variant="outline">{item.category}</Badge>
-                            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                              {item.description}
-                            </span>
-                          </div>
-                          {item.specifications && (
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              {item.specifications}
-                            </p>
-                          )}
-                        </div>
-                        <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                          {formatCurrency(item.total)}
-                        </p>
-                      </div>
-
-                      <Separator className="my-3" />
-
-                      <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-                        <div>
-                          <span className="text-zinc-500">Quantity:</span>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {item.quantity} {item.unit}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-zinc-500">Unit Rate:</span>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {item.description}
+                          </TableCell>
+                          <TableCell className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {item.specifications || '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {item.quantity}
+                          </TableCell>
+                          <TableCell>{item.unit}</TableCell>
+                          <TableCell className="text-right">
                             {formatCurrency(item.unitRate)}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-zinc-500">Labor:</span>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          </TableCell>
+                          <TableCell className="text-right">
                             {formatCurrency(item.laborCost || 0)}
-                          </p>
-                        </div>
-                        <div>
-                          <span className="text-zinc-500">Material:</span>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          </TableCell>
+                          <TableCell className="text-right">
                             {formatCurrency(item.materialCost || 0)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {formatCurrency(item.equipmentCost || 0)}
+                          </TableCell>
+                          <TableCell className="text-right font-bold text-zinc-900 dark:text-zinc-100">
+                            {formatCurrency(item.total)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               </CardContent>
             </Card>
