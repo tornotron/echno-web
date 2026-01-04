@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockReceipts } from '@/components/shared/mock-data';
+import { mockReceipts, mockProjects } from '@/components/shared/mock-data';
 import { Receipt, ReceiptType, ReceiptStatus } from '@/types/finance/receipt';
 import {
   ArrowLeft,
@@ -55,6 +55,7 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
     receiptNumber: receipt?.receiptNumber || '',
     type: receipt?.type || ReceiptType.payment,
     status: receipt?.status || ReceiptStatus.draft,
+    projectId: receipt?.projectId || mockProjects[0]?.id || 1,
     receivedFrom: receipt?.receivedFrom || '',
     receivedFromAddress: receipt?.receivedFromAddress || '',
     amount: receipt?.amount || 0,
@@ -221,6 +222,33 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
                             </SelectItem>
                           )
                         )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Project */}
+                  <div className="space-y-2">
+                    <Label htmlFor="projectId">
+                      Project <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.projectId?.toString()}
+                      onValueChange={(value) =>
+                        handleInputChange('projectId', Number(value))
+                      }
+                    >
+                      <SelectTrigger id="projectId">
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockProjects.map((project) => (
+                          <SelectItem
+                            key={project.id}
+                            value={project.id.toString()}
+                          >
+                            {project.projectName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

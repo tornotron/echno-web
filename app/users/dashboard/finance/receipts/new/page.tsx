@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
+import { mockProjects } from '@/components/shared/mock-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -32,6 +33,7 @@ export default function NewReceiptPage() {
     receiptNumber: '',
     type: 'payment',
     status: 'draft',
+    projectId: mockProjects[0]?.id || 1, // Default to first project
     receiptDate: new Date(),
     receivedFrom: '',
     amount: 0,
@@ -124,6 +126,32 @@ export default function NewReceiptPage() {
                             </SelectItem>
                           )
                         )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="projectId">
+                      Project <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={formData.projectId.toString()}
+                      onValueChange={(value) =>
+                        handleInputChange('projectId', Number(value))
+                      }
+                    >
+                      <SelectTrigger id="projectId">
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockProjects.map((project) => (
+                          <SelectItem
+                            key={project.id}
+                            value={project.id.toString()}
+                          >
+                            {project.projectName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
