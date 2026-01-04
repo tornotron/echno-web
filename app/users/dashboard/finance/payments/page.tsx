@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { mockPayments } from '@/components/shared/mock-data';
+import { mockPayments, mockProjects } from '@/components/shared/mock-data';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -445,6 +445,7 @@ export default function PaymentsPage() {
                     </TableHead>
                     <TableHead>Payment Number</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Project</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Method</TableHead>
@@ -492,6 +493,13 @@ export default function PaymentsPage() {
                           <Badge className={getTypeColor(payment.type)}>
                             {paymentTypeLabels[payment.type]}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            {mockProjects.find(
+                              (p) => p.id === payment.projectId
+                            )?.projectName || 'Unknown Project'}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <span className="font-semibold text-zinc-900 dark:text-zinc-100">
