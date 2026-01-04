@@ -43,7 +43,13 @@ import {
   paymentTypeLabels,
   paymentStatusLabels,
   paymentMethodLabels,
+  payeeTypeLabels,
 } from '@/types/finance/payment';
+import {
+  getPayeeInfo,
+  formatPayeeName,
+  matchesAmountSearch,
+} from '@/lib/utils/payment-utils';
 
 const getStatusColor = (status: PaymentStatus) => {
   switch (status) {
@@ -99,6 +105,7 @@ export default function PaymentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [methodFilter, setMethodFilter] = useState<string>('all');
+  const [payeeTypeFilter, setPayeeTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -106,15 +113,20 @@ export default function PaymentsPage() {
   // Filter payments based on search and filters
   const filteredPayments = useMemo(() => {
     return mockPayments.filter((payment) => {
-      // Search filter
+      // Search filter - includes payee name and flexible amount search
       const searchLower = searchQuery.toLowerCase();
+      const payeeInfo = getPayeeInfo(payment);
+      const payeeName = formatPayeeName(payeeInfo).toLowerCase();
+
       const matchesSearch =
         !searchQuery ||
         payment.paymentNumber.toLowerCase().includes(searchLower) ||
         payment.transactionId?.toLowerCase().includes(searchLower) ||
         payment.referenceNumber?.toLowerCase().includes(searchLower) ||
         payment.description?.toLowerCase().includes(searchLower) ||
-        payment.bankName?.toLowerCase().includes(searchLower);
+        payment.bankName?.toLowerCase().includes(searchLower) ||
+        payeeName.includes(searchLower) ||
+        matchesAmountSearch(payment.amount, searchQuery);
 
       // Status filter
       const matchesStatus =
@@ -127,9 +139,20 @@ export default function PaymentsPage() {
       const matchesMethod =
         methodFilter === 'all' || payment.method === methodFilter;
 
-      return matchesSearch && matchesStatus && matchesType && matchesMethod;
+      // Payee type filter
+      const matchesPayeeType =
+        payeeTypeFilter === 'all' ||
+        getPayeeInfo(payment).type === payeeTypeFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesType &&
+        matchesMethod &&
+        matchesPayeeType
+      );
     });
-  }, [searchQuery, statusFilter, typeFilter, methodFilter]);
+  }, [searchQuery, statusFilter, typeFilter, methodFilter, payeeTypeFilter]);
 
   // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -174,7 +197,8 @@ export default function PaymentsPage() {
     searchQuery ||
       statusFilter !== 'all' ||
       typeFilter !== 'all' ||
-      methodFilter !== 'all'
+      methodFilter !== 'all' ||
+      payeeTypeFilter !== 'all'
   );
 
   const clearFilters = () => {
@@ -182,6 +206,7 @@ export default function PaymentsPage() {
     setStatusFilter('all');
     setTypeFilter('all');
     setMethodFilter('all');
+    setPayeeTypeFilter('all');
     setCurrentPage(1);
   };
 
@@ -281,7 +306,7 @@ export default function PaymentsPage() {
             setSearchQuery(value);
             setCurrentPage(1);
           }}
-          searchPlaceholder="Search by payment number, transaction, reference..."
+          searchPlaceholder="Search by payment #, payee name, amount, transaction..."
           hasActiveFilters={hasActiveFilters}
           onClearFilters={clearFilters}
           filters={[
@@ -394,6 +419,21 @@ export default function PaymentsPage() {
                 setCurrentPage(1);
               },
             },
+            {
+              placeholder: 'Payee Type',
+              options: [
+                { value: 'all', label: 'All Payee Types' },
+                ...Object.entries(payeeTypeLabels).map(([value, label]) => ({
+                  value,
+                  label,
+                })),
+              ],
+              value: payeeTypeFilter,
+              onChange: (value) => {
+                setPayeeTypeFilter(value);
+                setCurrentPage(1);
+              },
+            },
           ]}
         />
 
@@ -444,17 +484,20 @@ export default function PaymentsPage() {
                       />
                     </TableHead>
                     <TableHead>Payment Number</TableHead>
+                    <TableHead>Payee Name</TableHead>
+                    <TableHead>Payee Type</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Project</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Method</TableHead>
-                    <TableHead>Transaction</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedPayments.map((payment) => {
+                    const payeeInfo = getPayeeInfo(payment);
+
                     return (
                       <TableRow
                         key={payment.id}
@@ -490,6 +533,23 @@ export default function PaymentsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {formatPayeeName(payeeInfo)}
+                            </p>
+                            {payeeInfo.details && (
+                              <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                                {payeeInfo.details}
+                              </p>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
+                            {payeeTypeLabels[payeeInfo.type]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
                           <Badge className={getTypeColor(payment.type)}>
                             {paymentTypeLabels[payment.type]}
                           </Badge>
@@ -518,24 +578,6 @@ export default function PaymentsPage() {
                           <span className="text-zinc-700 dark:text-zinc-300">
                             {paymentMethodLabels[payment.method]}
                           </span>
-                        </TableCell>
-                        <TableCell>
-                          {payment.transactionId ? (
-                            <div>
-                              <p className="font-medium text-zinc-700 dark:text-zinc-300">
-                                {payment.transactionId}
-                              </p>
-                              {payment.bankName && (
-                                <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                                  {payment.bankName}
-                                </p>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-zinc-500 dark:text-zinc-500">
-                              —
-                            </span>
-                          )}
                         </TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(payment.status)}>

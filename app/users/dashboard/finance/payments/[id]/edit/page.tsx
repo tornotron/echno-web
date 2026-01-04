@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
@@ -26,7 +26,10 @@ import {
   PaymentType,
   PaymentStatus,
   PaymentMethod,
+  PayeeType,
+  payeeTypeLabels,
 } from '@/types/finance/payment';
+import { getPayeesByType, getPayeeInfo } from '@/lib/utils/payment-utils';
 import {
   ArrowLeft,
   Save,
@@ -37,6 +40,7 @@ import {
   FileText,
   Calendar,
   Building,
+  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
@@ -54,7 +58,28 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     (p) => p.id === Number.parseInt(resolvedParams.id)
   );
 
+  // Initialize payee info from payment data
+  const initialPayeeInfo = payment ? getPayeeInfo(payment) : null;
+  const needsManualEntry = initialPayeeInfo
+    ? [
+        PayeeType.consultant,
+        PayeeType.utility,
+        PayeeType.government,
+        PayeeType.insurance,
+        PayeeType.bank,
+        PayeeType.legal,
+        PayeeType.rental,
+        PayeeType.other,
+      ].includes(initialPayeeInfo.type)
+    : false;
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPayeeType, setSelectedPayeeType] = useState<
+    PayeeType | undefined
+  >(initialPayeeInfo?.type);
+  const [showManualPayeeEntry, setShowManualPayeeEntry] =
+    useState(needsManualEntry);
+
   const [formData, setFormData] = useState<Partial<Payment>>({
     paymentNumber: payment?.paymentNumber || '',
     type: payment?.type || PaymentType.invoice,
@@ -71,6 +96,14 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     ifscCode: payment?.ifscCode || '',
     description: payment?.description || '',
     notes: payment?.notes || '',
+    // Payee fields
+    payeeType: payment?.payeeType,
+    payeeName: payment?.payeeName || '',
+    payeeDetails: payment?.payeeDetails || '',
+    vendorId: payment?.vendorId,
+    employeeId: payment?.employeeId,
+    subContractId: payment?.subContractId,
+    labourId: payment?.labourId,
   });
 
   if (!payment) {
@@ -114,6 +147,68 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     value: string | number | Date
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePayeeTypeChange = (type: PayeeType) => {
+    setSelectedPayeeType(type);
+
+    // Determine if manual entry is needed
+    const needsManualEntry = [
+      PayeeType.consultant,
+      PayeeType.utility,
+      PayeeType.government,
+      PayeeType.insurance,
+      PayeeType.bank,
+      PayeeType.legal,
+      PayeeType.rental,
+      PayeeType.other,
+    ].includes(type);
+
+    setShowManualPayeeEntry(needsManualEntry);
+
+    // Clear existing payee data
+    setFormData((prev) => ({
+      ...prev,
+      payeeType: needsManualEntry ? type : undefined,
+      payeeName: '',
+      payeeDetails: '',
+      vendorId: undefined,
+      employeeId: undefined,
+      subContractId: undefined,
+      labourId: undefined,
+    }));
+  };
+
+  const handlePayeeEntityChange = (entityId: number) => {
+    const updates: Partial<Payment> = {
+      vendorId: undefined,
+      employeeId: undefined,
+      subContractId: undefined,
+      labourId: undefined,
+      payeeType: undefined,
+      payeeName: '',
+    };
+
+    switch (selectedPayeeType) {
+      case PayeeType.vendor: {
+        updates.vendorId = entityId;
+        break;
+      }
+      case PayeeType.employee: {
+        updates.employeeId = entityId;
+        break;
+      }
+      case PayeeType.subContractor: {
+        updates.subContractId = entityId;
+        break;
+      }
+      case PayeeType.labour: {
+        updates.labourId = entityId;
+        break;
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, ...updates }));
   };
 
   const paymentTypeLabels: Record<PaymentType, string> = {
@@ -328,6 +423,120 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
                       />
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payee Information Card */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="mb-6">
+                  <CardTitle>Payee Information</CardTitle>
+                  <CardDescription>
+                    Who is receiving this payment?
+                  </CardDescription>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {/* Payee Type */}
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="payeeType">
+                      Payee Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={selectedPayeeType}
+                      onValueChange={(value) =>
+                        handlePayeeTypeChange(value as PayeeType)
+                      }
+                    >
+                      <SelectTrigger id="payeeType">
+                        <SelectValue placeholder="Select payee type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(payeeTypeLabels).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Entity Selector (for employee/vendor/labour/subContractor) */}
+                  {selectedPayeeType && !showManualPayeeEntry && (
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="payeeEntity">
+                        Select {payeeTypeLabels[selectedPayeeType]}{' '}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={
+                          formData.vendorId?.toString() ||
+                          formData.employeeId?.toString() ||
+                          formData.subContractId?.toString() ||
+                          formData.labourId?.toString() ||
+                          ''
+                        }
+                        onValueChange={(value) =>
+                          handlePayeeEntityChange(Number(value))
+                        }
+                      >
+                        <SelectTrigger id="payeeEntity">
+                          <SelectValue
+                            placeholder={`Select ${payeeTypeLabels[selectedPayeeType]}`}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getPayeesByType(selectedPayeeType).map((payee) => (
+                            <SelectItem
+                              key={payee.id}
+                              value={payee.id.toString()}
+                            >
+                              {payee.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Manual Payee Entry (for utility/government/insurance/etc.) */}
+                  {showManualPayeeEntry && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="payeeName">
+                          Payee Name <span className="text-destructive">*</span>
+                        </Label>
+                        <div className="relative">
+                          <Users className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                          <Input
+                            id="payeeName"
+                            value={formData.payeeName}
+                            onChange={(e) =>
+                              handleInputChange('payeeName', e.target.value)
+                            }
+                            placeholder="e.g., MSEB (Electricity Board)"
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="payeeDetails">Additional Details</Label>
+                        <Input
+                          id="payeeDetails"
+                          value={formData.payeeDetails}
+                          onChange={(e) =>
+                            handleInputChange('payeeDetails', e.target.value)
+                          }
+                          placeholder="e.g., Consumer No: 123456"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
