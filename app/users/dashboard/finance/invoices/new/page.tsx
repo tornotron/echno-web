@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
+import { mockProjects } from '@/components/shared/mock-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -66,6 +67,7 @@ export default function NewInvoicePage() {
     invoiceNumber: '',
     type: InvoiceType.purchase,
     status: InvoiceStatus.draft,
+    projectId: mockProjects[0]?.id || 1, // Default to first project
     issueDate: new Date(),
     dueDate: getDueDateDefault(),
     subtotal: 0,
@@ -285,6 +287,33 @@ export default function NewInvoicePage() {
                             </SelectItem>
                           )
                         )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Project */}
+                  <div className="space-y-2">
+                    <Label htmlFor="projectId">
+                      Project <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.projectId?.toString()}
+                      onValueChange={(value) =>
+                        handleInputChange('projectId', Number(value))
+                      }
+                    >
+                      <SelectTrigger id="projectId">
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockProjects.map((project) => (
+                          <SelectItem
+                            key={project.id}
+                            value={project.id.toString()}
+                          >
+                            {project.projectName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
