@@ -181,9 +181,9 @@ class Logger {
       });
     },
 
-    backchannel: (action: string, meta?: LogMeta) => {
+    frontchannel: (action: string, meta?: LogMeta) => {
       this.info(
-        `Backchannel logout: ${action}`,
+        `Frontchannel logout: ${action}`,
         sanitizeLogData(meta) as LogMeta
       );
     },

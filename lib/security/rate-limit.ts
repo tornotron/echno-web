@@ -49,7 +49,7 @@ export const RATE_LIMITS = {
     windowMs: 15 * 60 * 1000,
   },
 
-  /** Backchannel logout: 100 per minute */
+  /** Frontchannel/Backchannel logout: 100 per minute */
   BACKCHANNEL: {
     maxRequests: 100,
     windowMs: 60 * 1000,
