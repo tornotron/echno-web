@@ -26,7 +26,10 @@ import {
   PaymentType,
   PaymentStatus,
   PaymentMethod,
+  PayeeType,
+  payeeTypeLabels,
 } from '@/types/finance/payment';
+import { getPayeesByType } from '@/lib/utils/payment-utils';
 import {
   Save,
   X,
@@ -35,6 +38,7 @@ import {
   FileText,
   Calendar,
   Building,
+  Users,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -43,6 +47,11 @@ export default function NewPaymentPage() {
   const router = useRouter();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPayeeType, setSelectedPayeeType] = useState<
+    PayeeType | undefined
+  >();
+  const [showManualPayeeEntry, setShowManualPayeeEntry] = useState(false);
+
   const [formData, setFormData] = useState<Partial<Payment>>({
     paymentNumber: '',
     type: PaymentType.invoice,
@@ -59,6 +68,14 @@ export default function NewPaymentPage() {
     ifscCode: '',
     description: '',
     notes: '',
+    // Payee fields
+    payeeType: undefined,
+    payeeName: '',
+    payeeDetails: '',
+    vendorId: undefined,
+    employeeId: undefined,
+    subContractId: undefined,
+    labourId: undefined,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -82,6 +99,68 @@ export default function NewPaymentPage() {
     value: string | number | Date
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePayeeTypeChange = (type: PayeeType) => {
+    setSelectedPayeeType(type);
+
+    // Determine if manual entry is needed
+    const needsManualEntry = [
+      PayeeType.consultant,
+      PayeeType.utility,
+      PayeeType.government,
+      PayeeType.insurance,
+      PayeeType.bank,
+      PayeeType.legal,
+      PayeeType.rental,
+      PayeeType.other,
+    ].includes(type);
+
+    setShowManualPayeeEntry(needsManualEntry);
+
+    // Clear existing payee data
+    setFormData((prev) => ({
+      ...prev,
+      payeeType: needsManualEntry ? type : undefined,
+      payeeName: '',
+      payeeDetails: '',
+      vendorId: undefined,
+      employeeId: undefined,
+      subContractId: undefined,
+      labourId: undefined,
+    }));
+  };
+
+  const handlePayeeEntityChange = (entityId: number) => {
+    const updates: Partial<Payment> = {
+      vendorId: undefined,
+      employeeId: undefined,
+      subContractId: undefined,
+      labourId: undefined,
+      payeeType: undefined,
+      payeeName: '',
+    };
+
+    switch (selectedPayeeType) {
+      case PayeeType.vendor: {
+        updates.vendorId = entityId;
+        break;
+      }
+      case PayeeType.employee: {
+        updates.employeeId = entityId;
+        break;
+      }
+      case PayeeType.subContractor: {
+        updates.subContractId = entityId;
+        break;
+      }
+      case PayeeType.labour: {
+        updates.labourId = entityId;
+        break;
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, ...updates }));
   };
 
   const paymentTypeLabels: Record<PaymentType, string> = {
@@ -298,6 +377,120 @@ export default function NewPaymentPage() {
                       />
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payee Information Card */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="mb-6">
+                  <CardTitle>Payee Information</CardTitle>
+                  <CardDescription>
+                    Who is receiving this payment?
+                  </CardDescription>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  {/* Payee Type */}
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="payeeType">
+                      Payee Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={selectedPayeeType}
+                      onValueChange={(value) =>
+                        handlePayeeTypeChange(value as PayeeType)
+                      }
+                    >
+                      <SelectTrigger id="payeeType">
+                        <SelectValue placeholder="Select payee type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(payeeTypeLabels).map(
+                          ([value, label]) => (
+                            <SelectItem key={value} value={value}>
+                              {label}
+                            </SelectItem>
+                          )
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Entity Selector (for employee/vendor/labour/subContractor) */}
+                  {selectedPayeeType && !showManualPayeeEntry && (
+                    <div className="space-y-2 md:col-span-2">
+                      <Label htmlFor="payeeEntity">
+                        Select {payeeTypeLabels[selectedPayeeType]}{' '}
+                        <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={
+                          formData.vendorId?.toString() ||
+                          formData.employeeId?.toString() ||
+                          formData.subContractId?.toString() ||
+                          formData.labourId?.toString() ||
+                          ''
+                        }
+                        onValueChange={(value) =>
+                          handlePayeeEntityChange(Number(value))
+                        }
+                      >
+                        <SelectTrigger id="payeeEntity">
+                          <SelectValue
+                            placeholder={`Select ${payeeTypeLabels[selectedPayeeType]}`}
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {getPayeesByType(selectedPayeeType).map((payee) => (
+                            <SelectItem
+                              key={payee.id}
+                              value={payee.id.toString()}
+                            >
+                              {payee.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {/* Manual Payee Entry (for utility/government/insurance/etc.) */}
+                  {showManualPayeeEntry && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="payeeName">
+                          Payee Name <span className="text-destructive">*</span>
+                        </Label>
+                        <div className="relative">
+                          <Users className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                          <Input
+                            id="payeeName"
+                            value={formData.payeeName}
+                            onChange={(e) =>
+                              handleInputChange('payeeName', e.target.value)
+                            }
+                            placeholder="e.g., MSEB (Electricity Board)"
+                            className="pl-10"
+                            required
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="payeeDetails">Additional Details</Label>
+                        <Input
+                          id="payeeDetails"
+                          value={formData.payeeDetails}
+                          onChange={(e) =>
+                            handleInputChange('payeeDetails', e.target.value)
+                          }
+                          placeholder="e.g., Consumer No: 123456"
+                        />
+                      </div>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
