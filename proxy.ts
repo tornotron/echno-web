@@ -60,7 +60,7 @@ export default auth((req) => {
   }
 
   // ========== SESSION REVOCATION CHECK ==========
-  // Check if session was revoked via backchannel logout
+  // Check if session was revoked via frontchannel logout
   if (isLoggedIn && req.auth?.sessionId) {
     logger.debug('Middleware: Checking session revocation', {
       hasSessionId: true,
