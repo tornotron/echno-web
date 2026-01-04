@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { MapPin, Save, X } from 'lucide-react';
 import { LocationType, locationTypeLabels } from '@/types/resource/location';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LocationFormData {
   name: string;

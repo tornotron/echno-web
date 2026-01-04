@@ -24,7 +24,7 @@ import {
   materialRequestTypeLabels,
   materialRequestPriorityLabels,
 } from '@/types/resource/material-request';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LineItem {
   id: string;

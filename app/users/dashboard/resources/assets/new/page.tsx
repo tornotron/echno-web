@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/select';
 import { Save, X } from 'lucide-react';
 import { AssetType, AssetStatus, AssetCondition } from '@/types/resource';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { mockLocations } from '@/components/shared/mock-data';
 
 export default function NewAssetPage() {

@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Save } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { getLabourById } from '@/components/shared/mock-data';
 import { format } from 'date-fns';
 

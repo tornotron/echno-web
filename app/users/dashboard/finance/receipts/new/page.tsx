@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { Save, X, Calendar, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewReceiptPage() {
   const router = useRouter();

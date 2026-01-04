@@ -27,7 +27,7 @@ import {
   InventoryCategory,
   inventoryCategoryLabels,
 } from '@/types/resource/inventory';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   mockLocations,
   mockInventoryItems,

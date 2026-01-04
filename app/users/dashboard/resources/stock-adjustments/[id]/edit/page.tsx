@@ -32,7 +32,7 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface AdjustmentItem {
   id: number;

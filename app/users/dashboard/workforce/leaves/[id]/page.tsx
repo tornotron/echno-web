@@ -52,7 +52,7 @@ import {
   LeaveStatus,
 } from '@/types/leave';
 import { notFound } from 'next/navigation';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 export default function LeaveDetailPage({
   params,

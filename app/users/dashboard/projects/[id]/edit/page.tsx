@@ -30,7 +30,7 @@ import {
 } from '@/types/project/project-status';
 import { mockProjects, mockEmployees } from '@/components/shared/mock-data';
 import type { Project } from '@/types/project/project';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
 import type { Employee } from '@/types/employee';
 import type { Member } from '@/types/member';
