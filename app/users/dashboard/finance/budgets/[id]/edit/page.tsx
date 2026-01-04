@@ -37,6 +37,10 @@ import {
   BudgetStatus,
   Budget,
   BudgetLineItem,
+  BudgetLineItemType,
+  BudgetPaymentMilestone,
+  PaymentMilestoneStatus,
+  budgetLineItemTypeLabels,
 } from '@/types/finance/budget';
 import { mockBudgets } from '@/components/shared/mock-data';
 
@@ -48,6 +52,11 @@ const budgetTypeOptions = Object.entries(BudgetType).map(([key]) => ({
 const budgetStatusOptions = Object.entries(BudgetStatus).map(([key]) => ({
   value: key,
   label: key.charAt(0).toUpperCase() + key.slice(1).replaceAll('_', ' '),
+}));
+
+const itemTypeOptions = Object.entries(BudgetLineItemType).map(([key]) => ({
+  value: key,
+  label: budgetLineItemTypeLabels[key as BudgetLineItemType],
 }));
 
 const getDateString = (date: Date | string) => {
@@ -74,6 +83,9 @@ export default function EditBudgetPage({
   const [lineItems, setLineItems] = useState<Partial<BudgetLineItem>[]>(
     budget.lineItems || []
   );
+  const [paymentMilestones, setPaymentMilestones] = useState<
+    Partial<BudgetPaymentMilestone>[]
+  >(budget.paymentMilestones || []);
 
   const handleInputChange = (field: string, value: string | number | Date) => {
     let newData: Partial<Budget> = { ...formData, [field]: value };
@@ -100,8 +112,12 @@ export default function EditBudgetPage({
     setLineItems([
       ...lineItems,
       {
+        itemType: BudgetLineItemType.material,
         category: '',
         description: '',
+        quantity: 0,
+        unit: '',
+        unitRate: 0,
         allocatedAmount: 0,
         spentAmount: 0,
         committedAmount: 0,
@@ -109,6 +125,44 @@ export default function EditBudgetPage({
         percentageUsed: 0,
       },
     ]);
+  };
+
+  const handleAddMilestone = () => {
+    setPaymentMilestones([
+      ...paymentMilestones,
+      {
+        name: '',
+        description: '',
+        dueDate: new Date(),
+        amount: 0,
+        percentage: 0,
+        status: PaymentMilestoneStatus.pending,
+      },
+    ]);
+  };
+
+  const handleRemoveMilestone = (index: number) => {
+    setPaymentMilestones(paymentMilestones.filter((_, i) => i !== index));
+  };
+
+  const handleMilestoneChange = (
+    index: number,
+    field: string,
+    value: string | number | Date
+  ) => {
+    const newMilestones = [...paymentMilestones];
+    newMilestones[index] = { ...newMilestones[index], [field]: value };
+
+    // Auto-calculate percentage from amount if totalAllocated is set
+    if (field === 'amount' && formData.totalAllocated) {
+      const percentage = ((value as number) / formData.totalAllocated) * 100;
+      newMilestones[index] = {
+        ...newMilestones[index],
+        percentage: Math.round(percentage * 10) / 10,
+      };
+    }
+
+    setPaymentMilestones(newMilestones);
   };
 
   const handleRemoveLineItem = (index: number) => {
@@ -123,7 +177,31 @@ export default function EditBudgetPage({
     const newItems = [...lineItems];
     newItems[index] = { ...newItems[index], [field]: value };
 
-    if (field === 'allocatedAmount' || field === 'spentAmount') {
+    // Auto-calculate allocated amount based on quantity * unitRate
+    if (field === 'quantity' || field === 'unitRate') {
+      const quantity = (newItems[index].quantity as number) || 0;
+      const unitRate = (newItems[index].unitRate as number) || 0;
+      const baseAmount = quantity * unitRate;
+
+      // Add specific cost based on item type
+      const materialCost = (newItems[index].materialCost as number) || 0;
+      const laborCost = (newItems[index].laborCost as number) || 0;
+      const equipmentCost = (newItems[index].equipmentCost as number) || 0;
+
+      newItems[index] = {
+        ...newItems[index],
+        allocatedAmount: baseAmount + materialCost + laborCost + equipmentCost,
+      };
+    }
+
+    // Recalculate remaining and percentage
+    if (
+      field === 'allocatedAmount' ||
+      field === 'spentAmount' ||
+      field === 'committedAmount' ||
+      field === 'quantity' ||
+      field === 'unitRate'
+    ) {
       const allocated = (newItems[index].allocatedAmount as number) || 0;
       const spent = (newItems[index].spentAmount as number) || 0;
       const committed = (newItems[index].committedAmount as number) || 0;
@@ -374,7 +452,9 @@ export default function EditBudgetPage({
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
               <div>
                 <CardTitle>Budget Line Items</CardTitle>
-                <CardDescription>Break down budget by category</CardDescription>
+                <CardDescription>
+                  Detailed cost breakdown with quantities and rates
+                </CardDescription>
               </div>
               <Button
                 type="button"
@@ -393,23 +473,22 @@ export default function EditBudgetPage({
                     <TableHeader>
                       <TableRow>
                         <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[120px]">Type</TableHead>
                         <TableHead className="min-w-[150px]">
                           Category
-                        </TableHead>
-                        <TableHead className="min-w-[150px]">
-                          Subcategory
                         </TableHead>
                         <TableHead className="min-w-[200px]">
                           Description
                         </TableHead>
-                        <TableHead className="min-w-[140px]">
-                          Allocated Amount (₹)
+                        <TableHead className="min-w-[100px]">
+                          Quantity
                         </TableHead>
-                        <TableHead className="min-w-[140px]">
-                          Spent Amount (₹)
-                        </TableHead>
+                        <TableHead className="min-w-[80px]">Unit</TableHead>
                         <TableHead className="min-w-[120px]">
-                          Remaining (₹)
+                          Rate (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Allocated (₹)
                         </TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
@@ -421,8 +500,34 @@ export default function EditBudgetPage({
                             {index + 1}
                           </TableCell>
                           <TableCell>
+                            <Select
+                              value={item.itemType}
+                              onValueChange={(value) =>
+                                handleLineItemChange(
+                                  index,
+                                  'itemType',
+                                  value as BudgetLineItemType
+                                )
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {itemTypeOptions.map((option) => (
+                                  <SelectItem
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
                             <Input
-                              placeholder="e.g., Labour"
+                              placeholder="e.g., Materials"
                               value={item.category}
                               onChange={(e) =>
                                 handleLineItemChange(
@@ -436,21 +541,7 @@ export default function EditBudgetPage({
                           </TableCell>
                           <TableCell>
                             <Input
-                              placeholder="e.g., Skilled"
-                              value={item.subcategory}
-                              onChange={(e) =>
-                                handleLineItemChange(
-                                  index,
-                                  'subcategory',
-                                  e.target.value
-                                )
-                              }
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              placeholder="e.g., Skilled labour costs"
+                              placeholder="e.g., Cement and concrete"
                               value={item.description}
                               onChange={(e) =>
                                 handleLineItemChange(
@@ -466,12 +557,26 @@ export default function EditBudgetPage({
                             <Input
                               type="number"
                               placeholder="0"
-                              value={item.allocatedAmount}
+                              value={item.quantity || ''}
                               onChange={(e) =>
                                 handleLineItemChange(
                                   index,
-                                  'allocatedAmount',
+                                  'quantity',
                                   Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              placeholder="e.g., m3"
+                              value={item.unit || ''}
+                              onChange={(e) =>
+                                handleLineItemChange(
+                                  index,
+                                  'unit',
+                                  e.target.value
                                 )
                               }
                               className="h-9"
@@ -481,11 +586,11 @@ export default function EditBudgetPage({
                             <Input
                               type="number"
                               placeholder="0"
-                              value={item.spentAmount}
+                              value={item.unitRate || ''}
                               onChange={(e) =>
                                 handleLineItemChange(
                                   index,
-                                  'spentAmount',
+                                  'unitRate',
                                   Number.parseFloat(e.target.value) || 0
                                 )
                               }
@@ -493,15 +598,11 @@ export default function EditBudgetPage({
                             />
                           </TableCell>
                           <TableCell>
-                            <div className="font-semibold whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                            <div className="font-medium whitespace-nowrap text-zinc-900 dark:text-zinc-100">
                               ₹
-                              {(
-                                (item.allocatedAmount || 0) -
-                                (item.spentAmount || 0)
-                              ).toLocaleString('en-IN', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
+                              {(item.allocatedAmount || 0).toLocaleString(
+                                'en-IN'
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -527,6 +628,210 @@ export default function EditBudgetPage({
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Project Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Details</CardTitle>
+              <CardDescription>
+                Define scope, assumptions, and exclusions
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="projectScope">Project Scope</Label>
+                <Textarea
+                  id="projectScope"
+                  placeholder="Describe the scope of work covered by this budget..."
+                  value={formData.projectScope}
+                  onChange={(e) =>
+                    handleInputChange('projectScope', e.target.value)
+                  }
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="assumptions">Assumptions</Label>
+                <Textarea
+                  id="assumptions"
+                  placeholder="List key assumptions (e.g., material prices, weather conditions)..."
+                  value={formData.assumptions}
+                  onChange={(e) =>
+                    handleInputChange('assumptions', e.target.value)
+                  }
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="exclusions">Exclusions</Label>
+                <Textarea
+                  id="exclusions"
+                  placeholder="List items excluded from this budget..."
+                  value={formData.exclusions}
+                  onChange={(e) =>
+                    handleInputChange('exclusions', e.target.value)
+                  }
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Milestones */}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0">
+              <div>
+                <CardTitle>Payment Milestones</CardTitle>
+                <CardDescription>
+                  Schedule payment milestones for this budget
+                </CardDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddMilestone}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Milestone
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {paymentMilestones.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[150px]">Name</TableHead>
+                        <TableHead className="min-w-[200px]">
+                          Description
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Due Date
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Amount (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[80px]">%</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {paymentMilestones.map((milestone, index) => (
+                        <TableRow key={index}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              placeholder="e.g., Initial Payment"
+                              value={milestone.name}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'name',
+                                  e.target.value
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              placeholder="e.g., Payment upon project start"
+                              value={milestone.description}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'description',
+                                  e.target.value
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="date"
+                              value={getDateString(milestone.dueDate as Date)}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'dueDate',
+                                  new Date(e.target.value)
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              value={milestone.amount || ''}
+                              onChange={(e) =>
+                                handleMilestoneChange(
+                                  index,
+                                  'amount',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm whitespace-nowrap text-zinc-600 dark:text-zinc-400">
+                              {milestone.percentage || 0}%
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveMilestone(index)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    No payment milestones added yet. Click &quot;Add
+                    Milestone&quot; to schedule payments.
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Terms & Conditions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Terms & Conditions</CardTitle>
+              <CardDescription>Payment and budget terms</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="termsAndConditions">Terms</Label>
+                <Textarea
+                  id="termsAndConditions"
+                  placeholder="Enter payment terms, conditions, and any special clauses..."
+                  value={formData.termsAndConditions}
+                  onChange={(e) =>
+                    handleInputChange('termsAndConditions', e.target.value)
+                  }
+                  rows={4}
+                />
+              </div>
             </CardContent>
           </Card>
 

@@ -20,16 +20,62 @@ export enum BudgetStatus {
   cancelled = 'cancelled',
 }
 
+export enum BudgetLineItemType {
+  material = 'material',
+  labor = 'labor',
+  equipment = 'equipment',
+  other = 'other',
+}
+
 export interface BudgetLineItem {
   id: number;
+  itemType: BudgetLineItemType; // Type of line item
   category: string; // e.g., "Materials", "Labour", "Equipment"
   subcategory?: string; // e.g., "Cement", "Steel"
   description: string;
-  allocatedAmount: number;
-  spentAmount: number;
-  committedAmount: number; // Amount committed but not yet spent
+
+  // Task linkage
+  taskId?: number; // Link to specific project task
+
+  // Quantity and pricing (for materials/equipment)
+  quantity?: number; // Quantity needed
+  unit?: string; // Unit of measurement (e.g., "m3", "kg", "hours")
+  unitRate?: number; // Cost per unit
+
+  // Cost breakdown
+  materialCost?: number; // For material items
+  equipmentCost?: number; // For equipment items
+  laborCost?: number; // For labor items (hours * rate)
+
+  // Budget tracking
+  allocatedAmount: number; // Planned/budgeted amount
+  spentAmount: number; // Actual amount spent (from payments/receipts)
+  committedAmount: number; // Amount committed but not yet spent (from material requests/POs)
   remainingAmount: number; // allocatedAmount - spentAmount - committedAmount
   percentageUsed: number; // (spentAmount / allocatedAmount) * 100
+
+  notes?: string;
+}
+
+export enum PaymentMilestoneStatus {
+  pending = 'pending',
+  due = 'due',
+  paid = 'paid',
+  overdue = 'overdue',
+  cancelled = 'cancelled',
+}
+
+export interface BudgetPaymentMilestone {
+  id: number;
+  name: string; // e.g., "Initial Payment", "50% Completion"
+  description?: string;
+  dueDate: Date;
+  amount: number;
+  percentage: number; // Percentage of total budget
+  status: PaymentMilestoneStatus;
+  linkedInvoiceId?: number; // Link to actual invoice
+  linkedPaymentId?: number; // Link to actual payment
+  paidDate?: Date;
   notes?: string;
 }
 
@@ -86,6 +132,15 @@ export interface Budget {
   // Adjustments
   adjustments: BudgetAdjustment[];
 
+  // Project Details (from estimates)
+  projectScope?: string; // Detailed scope of work
+  assumptions?: string; // Budget assumptions
+  exclusions?: string; // Items excluded from budget
+
+  // Payment Planning
+  paymentMilestones: BudgetPaymentMilestone[];
+  termsAndConditions?: string;
+
   // Additional Information
   description?: string;
   notes?: string;
@@ -132,6 +187,24 @@ export const budgetStatusLabels: Record<BudgetStatus, string> = {
   cancelled: 'Cancelled',
 };
 
+export const budgetLineItemTypeLabels: Record<BudgetLineItemType, string> = {
+  material: 'Material',
+  labor: 'Labor',
+  equipment: 'Equipment',
+  other: 'Other',
+};
+
+export const paymentMilestoneStatusLabels: Record<
+  PaymentMilestoneStatus,
+  string
+> = {
+  pending: 'Pending',
+  due: 'Due',
+  paid: 'Paid',
+  overdue: 'Overdue',
+  cancelled: 'Cancelled',
+};
+
 // Helper function to calculate budget health
 export function getBudgetHealth(percentageUsed: number): {
   status: 'healthy' | 'warning' | 'critical' | 'exceeded';
@@ -147,4 +220,14 @@ export function getBudgetHealth(percentageUsed: number): {
   } else {
     return { status: 'healthy', color: 'green', label: 'Healthy' };
   }
+}
+
+// Helper function to calculate line item total
+export function calculateLineItemTotal(item: BudgetLineItem): number {
+  const baseAmount = (item.quantity || 0) * (item.unitRate || 0);
+  const materialCost = item.materialCost || 0;
+  const equipmentCost = item.equipmentCost || 0;
+  const laborCost = item.laborCost || 0;
+
+  return baseAmount + materialCost + equipmentCost + laborCost;
 }
