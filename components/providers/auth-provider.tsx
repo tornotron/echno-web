@@ -32,8 +32,8 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
         toast.error('Your session was terminated. Please login again.');
       }
 
-      // Force logout with cookie cleanup
-      signOut({ callbackUrl: '/?error=session_expired' });
+      // Force logout and redirect to home page
+      signOut({ callbackUrl: '/' });
     }
   }, [session, status]);
 
