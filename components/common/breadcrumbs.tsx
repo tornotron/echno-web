@@ -19,7 +19,6 @@ import {
 } from '@/components/ui/tooltip';
 import {
   mockProjects,
-  mockEstimates,
   mockTasks,
   mockIssues,
   mockMembers,
@@ -167,9 +166,6 @@ function getNameForId(id: string, context: string[]): string {
     return (
       mockGoodsReceipts.find((g) => g.id === numericId)?.receiptNumber ?? id
     );
-  }
-  if (parentSegment === 'estimates') {
-    return mockEstimates.find((e) => e.id === numericId)?.estimateNumber ?? id;
   }
   if (parentSegment === 'receipts') {
     return mockReceipts.find((r) => r.id === numericId)?.receiptNumber ?? id;

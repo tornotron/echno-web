@@ -41,6 +41,9 @@ import {
   budgetStatusLabels,
   budgetTypeLabels,
   getBudgetHealth,
+  budgetLineItemTypeLabels,
+  PaymentMilestoneStatus,
+  paymentMilestoneStatusLabels,
 } from '@/types/finance/budget';
 
 const getStatusColor = (status: BudgetStatus) => {
@@ -94,6 +97,29 @@ const getTypeColor = (type: BudgetType) => {
     }
     case BudgetType.monthly: {
       return 'bg-teal-100 text-teal-800 dark:bg-teal-900/20 dark:text-teal-400';
+    }
+    default: {
+      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+    }
+  }
+};
+
+const getMilestoneStatusColor = (status: PaymentMilestoneStatus) => {
+  switch (status) {
+    case PaymentMilestoneStatus.paid: {
+      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+    }
+    case PaymentMilestoneStatus.due: {
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+    }
+    case PaymentMilestoneStatus.overdue: {
+      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+    }
+    case PaymentMilestoneStatus.pending: {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+    }
+    case PaymentMilestoneStatus.cancelled: {
+      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
     }
     default: {
       return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
@@ -297,7 +323,9 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
             <Card>
               <CardHeader>
                 <CardTitle>Budget Line Items</CardTitle>
-                <CardDescription>Breakdown by category</CardDescription>
+                <CardDescription>
+                  Detailed cost breakdown with quantities and rates
+                </CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
@@ -305,25 +333,34 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                     <TableHeader>
                       <TableRow className="hover:bg-transparent">
                         <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[100px]">Type</TableHead>
                         <TableHead className="min-w-[150px]">
                           Category
-                        </TableHead>
-                        <TableHead className="min-w-[150px]">
-                          Subcategory
                         </TableHead>
                         <TableHead className="min-w-[200px]">
                           Description
                         </TableHead>
-                        <TableHead className="min-w-[140px]">
+                        <TableHead className="min-w-[100px] text-right">
+                          Qty
+                        </TableHead>
+                        <TableHead className="min-w-[100px] text-right">
+                          Rate (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[140px] text-right">
                           Allocated (₹)
                         </TableHead>
-                        <TableHead className="min-w-[140px]">
+                        <TableHead className="min-w-[140px] text-right">
+                          Committed (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[140px] text-right">
                           Spent (₹)
                         </TableHead>
-                        <TableHead className="min-w-[140px]">
+                        <TableHead className="min-w-[140px] text-right">
                           Remaining (₹)
                         </TableHead>
-                        <TableHead className="min-w-[100px]">Usage %</TableHead>
+                        <TableHead className="min-w-[100px] text-right">
+                          Usage %
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -332,19 +369,41 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                           <TableCell className="font-medium">
                             {index + 1}
                           </TableCell>
-                          <TableCell className="font-medium">
-                            {item.category}
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {budgetLineItemTypeLabels[item.itemType]}
+                            </Badge>
                           </TableCell>
-                          <TableCell className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {item.subcategory || '-'}
+                          <TableCell className="font-medium">
+                            <div>{item.category}</div>
+                            {item.subcategory && (
+                              <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                                {item.subcategory}
+                              </div>
+                            )}
                           </TableCell>
                           <TableCell className="text-sm">
                             {item.description}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right text-sm">
+                            {item.quantity
+                              ? `${item.quantity.toLocaleString()} ${item.unit || ''}`
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-sm">
+                            {item.unitRate
+                              ? `₹${item.unitRate.toLocaleString('en-IN')}`
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="text-right font-medium">
                             ₹{item.allocatedAmount.toLocaleString('en-IN')}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right text-sm text-blue-600 dark:text-blue-400">
+                            {item.committedAmount > 0
+                              ? `₹${item.committedAmount.toLocaleString('en-IN')}`
+                              : '-'}
+                          </TableCell>
+                          <TableCell className="text-right text-sm">
                             ₹{item.spentAmount.toLocaleString('en-IN')}
                           </TableCell>
                           <TableCell className="text-right font-semibold">
@@ -353,19 +412,14 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                           <TableCell className="text-right">
                             <span
                               className={
-                                item.spentAmount / item.allocatedAmount >= 0.95
+                                item.percentageUsed >= 95
                                   ? 'font-semibold text-red-600 dark:text-red-400'
-                                  : item.spentAmount / item.allocatedAmount >=
-                                      0.8
+                                  : item.percentageUsed >= 80
                                     ? 'font-semibold text-yellow-600 dark:text-yellow-400'
                                     : 'font-semibold text-green-600 dark:text-green-400'
                               }
                             >
-                              {(
-                                (item.spentAmount / item.allocatedAmount) *
-                                100
-                              ).toFixed(1)}
-                              %
+                              {item.percentageUsed.toFixed(1)}%
                             </span>
                           </TableCell>
                         </TableRow>
@@ -375,6 +429,156 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Project Details */}
+            {(budget.projectScope ||
+              budget.assumptions ||
+              budget.exclusions) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Project Details</CardTitle>
+                  <CardDescription>
+                    Scope, assumptions, and exclusions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {budget.projectScope && (
+                    <>
+                      <div>
+                        <h4 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          Project Scope
+                        </h4>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {budget.projectScope}
+                        </p>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {budget.assumptions && (
+                    <>
+                      <div>
+                        <h4 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                          Assumptions
+                        </h4>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {budget.assumptions}
+                        </p>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
+                  {budget.exclusions && (
+                    <div>
+                      <h4 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                        Exclusions
+                      </h4>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {budget.exclusions}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment Milestones */}
+            {budget.paymentMilestones &&
+              budget.paymentMilestones.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Milestones</CardTitle>
+                    <CardDescription>
+                      Scheduled payments and progress tracking
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="hover:bg-transparent">
+                            <TableHead className="min-w-[150px]">
+                              Milestone
+                            </TableHead>
+                            <TableHead className="min-w-[120px]">
+                              Due Date
+                            </TableHead>
+                            <TableHead className="min-w-[120px] text-right">
+                              Amount (₹)
+                            </TableHead>
+                            <TableHead className="min-w-[80px] text-right">
+                              %
+                            </TableHead>
+                            <TableHead className="min-w-[100px]">
+                              Status
+                            </TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {budget.paymentMilestones.map((milestone) => (
+                            <TableRow key={milestone.id}>
+                              <TableCell>
+                                <div className="font-medium">
+                                  {milestone.name}
+                                </div>
+                                {milestone.description && (
+                                  <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                                    {milestone.description}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-sm">
+                                {format(milestone.dueDate, 'dd MMM yyyy')}
+                                {milestone.paidDate && (
+                                  <div className="text-xs text-green-600 dark:text-green-400">
+                                    Paid:{' '}
+                                    {format(milestone.paidDate, 'dd MMM yyyy')}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right font-medium">
+                                ₹{milestone.amount.toLocaleString('en-IN')}
+                              </TableCell>
+                              <TableCell className="text-right text-sm">
+                                {milestone.percentage}%
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  className={getMilestoneStatusColor(
+                                    milestone.status
+                                  )}
+                                >
+                                  {
+                                    paymentMilestoneStatusLabels[
+                                      milestone.status
+                                    ]
+                                  }
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+            {/* Terms and Conditions */}
+            {budget.termsAndConditions && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Terms & Conditions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    {budget.termsAndConditions}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Budget Information */}
             <Card>
