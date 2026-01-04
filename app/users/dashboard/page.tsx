@@ -73,6 +73,7 @@ export default function DashboardPage() {
 
   // Import data from mock-data
   const {
+    stats,
     attendance,
     attendanceTrend,
     leaveRequests,
@@ -241,10 +242,13 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                92%
+                {stats.attendance.percentage}%
               </div>
               <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-                <span className="text-green-600">764</span> present today
+                <span className="text-green-600">
+                  {stats.attendance.present}
+                </span>{' '}
+                present today
               </p>
             </CardContent>
           </Card>
@@ -260,10 +264,11 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                115
+                {stats.tasks.active}
               </div>
               <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-                <span className="text-orange-600">12</span> critical priority
+                <span className="text-orange-600">{stats.tasks.critical}</span>{' '}
+                critical priority
               </p>
             </CardContent>
           </Card>
@@ -279,10 +284,13 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                45
+                {stats.vendors.total}
               </div>
               <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-                <span className="text-green-600">95%</span> on-time delivery
+                <span className="text-green-600">
+                  {stats.vendors.onTimeDeliveryPercentage}%
+                </span>{' '}
+                on-time delivery
               </p>
             </CardContent>
           </Card>
@@ -298,10 +306,13 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                550
+                {stats.inventory.total}
               </div>
               <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-                <span className="text-red-600">25</span> out of stock
+                <span className="text-red-600">
+                  {stats.inventory.outOfStock}
+                </span>{' '}
+                out of stock
               </p>
             </CardContent>
           </Card>
@@ -317,10 +328,13 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                $580K
+                {stats.revenue.formatted}
               </div>
               <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-                <span className="text-green-600">+8.5%</span> from last month
+                <span className="text-green-600">
+                  +{stats.revenue.growthPercentage}%
+                </span>{' '}
+                from last month
               </p>
             </CardContent>
           </Card>
@@ -926,7 +940,9 @@ export default function DashboardPage() {
                         <CheckCircle2 className="h-5 w-5 text-green-600" />
                         <span className="text-sm font-medium">Completed</span>
                       </div>
-                      <div className="text-2xl font-bold">85</div>
+                      <div className="text-2xl font-bold">
+                        {stats.taskMetrics.completed}
+                      </div>
                       <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                         This month
                       </div>
@@ -936,7 +952,9 @@ export default function DashboardPage() {
                         <Activity className="h-5 w-5 text-blue-600" />
                         <span className="text-sm font-medium">In Progress</span>
                       </div>
-                      <div className="text-2xl font-bold">30</div>
+                      <div className="text-2xl font-bold">
+                        {stats.taskMetrics.inProgress}
+                      </div>
                       <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                         Active now
                       </div>
@@ -946,7 +964,9 @@ export default function DashboardPage() {
                         <AlertCircle className="h-5 w-5 text-orange-600" />
                         <span className="text-sm font-medium">Critical</span>
                       </div>
-                      <div className="text-2xl font-bold">12</div>
+                      <div className="text-2xl font-bold">
+                        {stats.taskMetrics.critical}
+                      </div>
                       <div className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                         Need attention
                       </div>
@@ -958,9 +978,11 @@ export default function DashboardPage() {
                           Resolution Rate
                         </span>
                       </div>
-                      <div className="text-2xl font-bold">84%</div>
+                      <div className="text-2xl font-bold">
+                        {stats.taskMetrics.resolutionRate}%
+                      </div>
                       <div className="mt-1 text-xs text-green-600">
-                        +5% vs last month
+                        +{stats.taskMetrics.resolutionRateChange}% vs last month
                       </div>
                     </div>
                   </div>
