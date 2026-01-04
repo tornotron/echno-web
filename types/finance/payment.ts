@@ -38,13 +38,13 @@ export interface Payment {
   method: PaymentMethod;
 
   // Relationships
+  projectId: number; // Foreign key to Project (required for tracking)
   invoiceId?: number; // Foreign key to Invoice
   purchaseOrderId?: number; // Foreign key to PurchaseOrder (direct PO payment)
   vendorId?: number; // Foreign key to Vendor (payment to vendor)
   employeeId?: number; // Foreign key to Employee (payment to employee)
   subContractId?: number; // Foreign key to SubContract (payment to contractor)
   labourId?: number; // Foreign key to Labour (wage payment)
-  projectId?: number; // Foreign key to Project
   organizationId?: number; // Foreign key to Organization
 
   // Payment Details
