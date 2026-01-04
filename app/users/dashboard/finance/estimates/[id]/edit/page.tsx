@@ -23,9 +23,18 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { AppLayout } from '@/components/common/app-layout';
 import {
   Plus,
+  Trash2,
   Save,
   AlertCircle,
   Calculator,
@@ -283,6 +292,12 @@ export default function EditEstimatePage() {
         notes: '',
       },
     ]);
+  };
+
+  const removeLineItem = (id: number) => {
+    if (lineItems.length > 1) {
+      setLineItems(lineItems.filter((item) => item.id !== id));
+    }
   };
 
   const updateLineItem = (
@@ -756,232 +771,261 @@ export default function EditEstimatePage() {
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                {lineItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="space-y-4 rounded-lg border p-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        Item #{index + 1}
-                      </h4>
-                      <div>
-                        <Label htmlFor="scope" required>
-                          Scope of Work
-                        </Label>
-                        <Textarea
-                          id="scope"
-                          value={scope}
-                          onChange={(e) => setScope(e.target.value)}
-                          placeholder="Detailed scope of work..."
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div>
-                        <Label>Category</Label>
-                        <Select
-                          value={item.category}
-                          onValueChange={(value) =>
-                            updateLineItem(item.id, 'category', value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Materials">Materials</SelectItem>
-                            <SelectItem value="Labor">Labor</SelectItem>
-                            <SelectItem value="Equipment">Equipment</SelectItem>
-                            <SelectItem value="Subcontractor">
-                              Subcontractor
-                            </SelectItem>
-                            <SelectItem value="Permits & Fees">
-                              Permits & Fees
-                            </SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div>
-                        <Label>Unit</Label>
-                        <Select
-                          value={item.unit}
-                          onValueChange={(value) =>
-                            updateLineItem(item.id, 'unit', value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="sqft">Square Feet</SelectItem>
-                            <SelectItem value="sqm">Square Meters</SelectItem>
-                            <SelectItem value="cft">Cubic Feet</SelectItem>
-                            <SelectItem value="cum">Cubic Meters</SelectItem>
-                            <SelectItem value="rmt">Running Meter</SelectItem>
-                            <SelectItem value="kg">Kilograms</SelectItem>
-                            <SelectItem value="ton">Tons</SelectItem>
-                            <SelectItem value="pcs">Pieces</SelectItem>
-                            <SelectItem value="nos">Numbers</SelectItem>
-                            <SelectItem value="ls">Lump Sum</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Label>Description *</Label>
-                        <Input
-                          value={item.description}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'description',
-                              e.target.value
-                            )
-                          }
-                          placeholder="Item description"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Label>Specifications</Label>
-                        <Textarea
-                          value={item.specifications}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'specifications',
-                              e.target.value
-                            )
-                          }
-                          placeholder="Technical specifications, materials, standards, etc."
-                          rows={2}
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Quantity *</Label>
-                        <Input
-                          type="number"
-                          value={item.quantity || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'quantity',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Unit Rate (₹) *</Label>
-                        <Input
-                          type="number"
-                          value={item.unitRate || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'unitRate',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Labor Cost (₹)</Label>
-                        <Input
-                          type="number"
-                          value={item.laborCost || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'laborCost',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Material Cost (₹)</Label>
-                        <Input
-                          type="number"
-                          value={item.materialCost || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'materialCost',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Equipment Cost (₹)</Label>
-                        <Input
-                          type="number"
-                          value={item.equipmentCost || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'equipmentCost',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                          step="0.01"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Label>Notes</Label>
-                        <Textarea
-                          value={item.notes}
-                          onChange={(e) =>
-                            updateLineItem(item.id, 'notes', e.target.value)
-                          }
-                          placeholder="Any additional notes for this item..."
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-500 dark:text-zinc-400">
-                        Item Total:
-                      </span>
-                      <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                        ₹
-                        {calculateItemTotal(item).toLocaleString('en-IN', {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">#</TableHead>
+                        <TableHead className="min-w-[140px]">
+                          Category
+                        </TableHead>
+                        <TableHead className="min-w-[200px]">
+                          Description *
+                        </TableHead>
+                        <TableHead className="min-w-[200px]">
+                          Specifications
+                        </TableHead>
+                        <TableHead className="min-w-[100px]">
+                          Quantity *
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">Unit</TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Unit Rate (₹) *
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Labor Cost (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Material Cost (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[120px]">
+                          Equipment Cost (₹)
+                        </TableHead>
+                        <TableHead className="min-w-[150px]">Notes</TableHead>
+                        <TableHead className="min-w-[120px]">Total</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {lineItems.map((item, index) => (
+                        <TableRow key={item.id}>
+                          <TableCell className="font-medium">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={item.category}
+                              onValueChange={(value) =>
+                                updateLineItem(item.id, 'category', value)
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Materials">
+                                  Materials
+                                </SelectItem>
+                                <SelectItem value="Labor">Labor</SelectItem>
+                                <SelectItem value="Equipment">
+                                  Equipment
+                                </SelectItem>
+                                <SelectItem value="Subcontractor">
+                                  Subcontractor
+                                </SelectItem>
+                                <SelectItem value="Permits & Fees">
+                                  Permits & Fees
+                                </SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              value={item.description}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'description',
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Item description"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Textarea
+                              value={item.specifications}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'specifications',
+                                  e.target.value
+                                )
+                              }
+                              placeholder="Specifications..."
+                              rows={2}
+                              className="min-h-[60px] text-xs"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.quantity || ''}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'quantity',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="0"
+                              min="0"
+                              step="0.01"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Select
+                              value={item.unit}
+                              onValueChange={(value) =>
+                                updateLineItem(item.id, 'unit', value)
+                              }
+                            >
+                              <SelectTrigger className="h-9">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="sqft">
+                                  Square Feet
+                                </SelectItem>
+                                <SelectItem value="sqm">
+                                  Square Meters
+                                </SelectItem>
+                                <SelectItem value="cft">Cubic Feet</SelectItem>
+                                <SelectItem value="cum">
+                                  Cubic Meters
+                                </SelectItem>
+                                <SelectItem value="rmt">
+                                  Running Meter
+                                </SelectItem>
+                                <SelectItem value="kg">Kilograms</SelectItem>
+                                <SelectItem value="ton">Tons</SelectItem>
+                                <SelectItem value="pcs">Pieces</SelectItem>
+                                <SelectItem value="nos">Numbers</SelectItem>
+                                <SelectItem value="ls">Lump Sum</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.unitRate || ''}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'unitRate',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="0"
+                              min="0"
+                              step="0.01"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.laborCost || ''}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'laborCost',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="0"
+                              min="0"
+                              step="0.01"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.materialCost || ''}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'materialCost',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="0"
+                              min="0"
+                              step="0.01"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Input
+                              type="number"
+                              value={item.equipmentCost || ''}
+                              onChange={(e) =>
+                                updateLineItem(
+                                  item.id,
+                                  'equipmentCost',
+                                  Number.parseFloat(e.target.value) || 0
+                                )
+                              }
+                              placeholder="0"
+                              min="0"
+                              step="0.01"
+                              className="h-9"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Textarea
+                              value={item.notes}
+                              onChange={(e) =>
+                                updateLineItem(item.id, 'notes', e.target.value)
+                              }
+                              placeholder="Notes..."
+                              rows={2}
+                              className="min-h-[60px] text-xs"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-semibold whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                              ₹
+                              {calculateItemTotal(item).toLocaleString(
+                                'en-IN',
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {lineItems.length > 1 && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeLineItem(item.id)}
+                              >
+                                <Trash2 className="h-4 w-4 text-red-500" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
 
