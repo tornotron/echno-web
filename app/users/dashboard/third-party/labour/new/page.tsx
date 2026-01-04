@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { ArrowLeft, Save } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewLabourPage() {
   const router = useRouter();

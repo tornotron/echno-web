@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,7 +23,7 @@ import {
 import { X, MapPin } from 'lucide-react';
 import { Asset } from '@/types/resource';
 import { mockLocations } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface AssetTransferModalProps {
   asset: Asset;
@@ -25,7 +31,11 @@ interface AssetTransferModalProps {
   onTransfer: () => void;
 }
 
-export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransferModalProps) {
+export function AssetTransferModal({
+  asset,
+  onClose,
+  onTransfer,
+}: AssetTransferModalProps) {
   const [formData, setFormData] = useState({
     toLocationId: '',
     transferDate: format(new Date(), 'yyyy-MM-dd'),
@@ -38,7 +48,7 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.toLocationId || !formData.transferredBy || !formData.reason) {
       toast.error('Please fill in all required fields');
       return;
@@ -51,12 +61,12 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <Card className="max-h-[90vh] w-full max-w-2xl overflow-y-auto">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div>
@@ -73,8 +83,8 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Current Location */}
-            <div className="rounded-lg bg-zinc-50 dark:bg-zinc-900 p-4 border">
-              <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+            <div className="rounded-lg border bg-zinc-50 p-4 dark:bg-zinc-900">
+              <div className="mb-1 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <MapPin className="h-4 w-4" />
                 Current Location
               </div>
@@ -82,7 +92,7 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                 {asset.location.name}
               </p>
               {asset.location.address && (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">
+                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                   {asset.location.address}
                 </p>
               )}
@@ -96,7 +106,9 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                 </Label>
                 <Select
                   value={formData.toLocationId}
-                  onValueChange={(value) => handleInputChange('toLocationId', value)}
+                  onValueChange={(value) =>
+                    handleInputChange('toLocationId', value)
+                  }
                   required
                 >
                   <SelectTrigger id="toLocationId">
@@ -104,9 +116,12 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                   </SelectTrigger>
                   <SelectContent>
                     {mockLocations
-                      .filter(loc => loc.id !== asset.locationId)
+                      .filter((loc) => loc.id !== asset.locationId)
                       .map((location) => (
-                        <SelectItem key={location.id} value={location.id.toString()}>
+                        <SelectItem
+                          key={location.id}
+                          value={location.id.toString()}
+                        >
                           {location.name}
                           {location.address && ` - ${location.address}`}
                         </SelectItem>
@@ -123,7 +138,9 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                   id="transferDate"
                   type="date"
                   value={formData.transferDate}
-                  onChange={(e) => handleInputChange('transferDate', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('transferDate', e.target.value)
+                  }
                   required
                 />
               </div>
@@ -136,7 +153,9 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                   id="transferredBy"
                   placeholder="e.g., Amit Sharma"
                   value={formData.transferredBy}
-                  onChange={(e) => handleInputChange('transferredBy', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('transferredBy', e.target.value)
+                  }
                   required
                 />
               </div>
@@ -154,25 +173,41 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                     <SelectValue placeholder="Select reason" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Project reassignment">Project Reassignment</SelectItem>
-                    <SelectItem value="Maintenance completion">Maintenance Completion</SelectItem>
-                    <SelectItem value="New project deployment">New Project Deployment</SelectItem>
-                    <SelectItem value="Equipment pooling">Equipment Pooling</SelectItem>
-                    <SelectItem value="Equipment failure">Equipment Failure</SelectItem>
+                    <SelectItem value="Project reassignment">
+                      Project Reassignment
+                    </SelectItem>
+                    <SelectItem value="Maintenance completion">
+                      Maintenance Completion
+                    </SelectItem>
+                    <SelectItem value="New project deployment">
+                      New Project Deployment
+                    </SelectItem>
+                    <SelectItem value="Equipment pooling">
+                      Equipment Pooling
+                    </SelectItem>
+                    <SelectItem value="Equipment failure">
+                      Equipment Failure
+                    </SelectItem>
                     <SelectItem value="Relocation">Relocation</SelectItem>
-                    <SelectItem value="Return to warehouse">Return to Warehouse</SelectItem>
+                    <SelectItem value="Return to warehouse">
+                      Return to Warehouse
+                    </SelectItem>
                     <SelectItem value="Other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="newAssignedTo">New Assigned To (Optional)</Label>
+                <Label htmlFor="newAssignedTo">
+                  New Assigned To (Optional)
+                </Label>
                 <Input
                   id="newAssignedTo"
                   placeholder="e.g., John Doe"
                   value={formData.newAssignedTo}
-                  onChange={(e) => handleInputChange('newAssignedTo', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('newAssignedTo', e.target.value)
+                  }
                 />
               </div>
 
@@ -182,7 +217,9 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
                   id="newProject"
                   placeholder="e.g., Highway Expansion"
                   value={formData.newProject}
-                  onChange={(e) => handleInputChange('newProject', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange('newProject', e.target.value)
+                  }
                 />
               </div>
 
@@ -202,7 +239,12 @@ export function AssetTransferModal({ asset, onClose, onTransfer }: AssetTransfer
               <Button type="submit" className="flex-1">
                 Confirm Transfer
               </Button>
-              <Button type="button" variant="outline" onClick={onClose} className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="flex-1"
+              >
                 Cancel
               </Button>
             </div>

@@ -33,7 +33,7 @@ import {
   transferPriorityLabels,
 } from '@/types/resource/transfer';
 import { mockTransfers } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LineItem {
   id: number;

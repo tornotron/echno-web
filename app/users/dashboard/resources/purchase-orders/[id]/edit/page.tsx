@@ -28,7 +28,7 @@ import {
   deliveryStatusLabels,
 } from '@/types/resource/purchase-order';
 import { mockPurchaseOrders } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LineItem {
   id: string;

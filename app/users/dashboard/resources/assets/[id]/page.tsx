@@ -42,7 +42,7 @@ import {
   isMaintenanceDue,
 } from '@/types/resource';
 import { mockAssets } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { AssetTransferModal } from '@/features/assets/asset-transfer-modal';
 
 // The original getStatusColor function was not used.

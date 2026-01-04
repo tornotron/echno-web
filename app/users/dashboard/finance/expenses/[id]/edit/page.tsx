@@ -26,7 +26,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Save, X } from 'lucide-react';
 import Link from 'next/link';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   ExpenseType,
   ExpenseStatus,

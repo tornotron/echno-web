@@ -31,7 +31,7 @@ import {
 } from '@/components/ui/table';
 // Separator not used in this file
 import { Save, X, Plus, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   BudgetType,
   BudgetStatus,

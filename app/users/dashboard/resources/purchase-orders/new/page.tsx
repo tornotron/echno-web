@@ -28,7 +28,7 @@ import {
   purchaseOrderStatusLabels,
   deliveryStatusLabels,
 } from '@/types/resource/purchase-order';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LineItem {
   id: string;

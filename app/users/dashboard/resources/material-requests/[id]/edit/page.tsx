@@ -28,7 +28,7 @@ import {
   materialRequestPriorityLabels,
 } from '@/types/resource/material-request';
 import { mockMaterialRequests } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LineItem {
   id: string;

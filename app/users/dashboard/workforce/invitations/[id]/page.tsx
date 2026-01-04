@@ -32,7 +32,7 @@ import {
   AtSign,
   LucideIcon,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { whatsappMessage, emailSubject, emailBody } from '@/types/invitation';
 import { format } from 'date-fns';
 import { mockInvitations } from '@/components/shared/mock-data';
