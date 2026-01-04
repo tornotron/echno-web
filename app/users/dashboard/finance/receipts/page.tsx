@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { mockReceipts } from '@/components/shared/mock-data';
+import { mockReceipts, mockProjects } from '@/components/shared/mock-data';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -366,6 +366,7 @@ export default function ReceiptsPage() {
                     </TableHead>
                     <TableHead>Receipt Number</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Project</TableHead>
                     <TableHead>Received From</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Date</TableHead>
@@ -413,6 +414,13 @@ export default function ReceiptsPage() {
                           <Badge className={getTypeColor(receipt.type)}>
                             {receiptTypeLabels[receipt.type]}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                            {mockProjects.find(
+                              (p) => p.id === receipt.projectId
+                            )?.projectName || 'Unknown Project'}
+                          </span>
                         </TableCell>
                         <TableCell>
                           <div>
