@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface EditReceiptPageProps {
   params: Promise<{ id: string }>;

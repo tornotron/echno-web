@@ -26,7 +26,7 @@ import {
   inventoryCategoryLabels,
   InventoryCategory,
 } from '@/types/resource/inventory';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { mockLocations, mockVendors } from '@/components/shared/mock-data';
 
 export default function NewInventoryPage() {

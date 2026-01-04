@@ -37,7 +37,7 @@ import {
 } from '@/types/finance/invoice';
 import { Save, X, Plus, Trash2, Hash, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewInvoicePage() {
   const router = useRouter();

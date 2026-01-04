@@ -28,7 +28,7 @@ import {
   FileSpreadsheet,
   Wallet,
 } from 'lucide-react';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
 import { mockStockAdjustments } from '@/components/shared/mock-data';
 

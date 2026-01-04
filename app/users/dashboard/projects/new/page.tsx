@@ -27,7 +27,7 @@ import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { mockEmployees } from '@/components/shared/mock-data';
 import type { Employee } from '@/types/employee';
 import type { Member } from '@/types/member';

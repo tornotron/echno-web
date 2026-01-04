@@ -25,7 +25,7 @@ import {
 import { MapPin, Save, X, ArrowLeft, Trash2 } from 'lucide-react';
 import { LocationType, locationTypeLabels } from '@/types/resource/location';
 import { mockLocations } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface LocationFormData {
   name: string;

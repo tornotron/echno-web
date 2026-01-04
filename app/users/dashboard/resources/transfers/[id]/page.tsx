@@ -31,7 +31,7 @@ import {
   transferTypeLabels,
 } from '@/types/resource/transfer';
 import { mockTransfers } from '@/components/shared/mock-data';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 
 // Helper functions for badge colors
 const getStatusBadgeColor = (status: TransferStatus): string => {
