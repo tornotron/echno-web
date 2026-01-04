@@ -30,6 +30,21 @@ export enum PaymentStatus {
   refunded = 'refunded',
 }
 
+export enum PayeeType {
+  employee = 'employee',
+  vendor = 'vendor',
+  subContractor = 'sub_contractor',
+  labour = 'labour',
+  consultant = 'consultant',
+  utility = 'utility',
+  government = 'government',
+  insurance = 'insurance',
+  bank = 'bank',
+  legal = 'legal',
+  rental = 'rental',
+  other = 'other',
+}
+
 export interface Payment {
   id: number;
   paymentNumber: string; // e.g., "PAY-2024-001"
@@ -46,6 +61,11 @@ export interface Payment {
   subContractId?: number; // Foreign key to SubContract (payment to contractor)
   labourId?: number; // Foreign key to Labour (wage payment)
   organizationId?: number; // Foreign key to Organization
+
+  // Payee Information (for types without entity relationships)
+  payeeType?: PayeeType; // Type of payee when not using foreign key
+  payeeName?: string; // Manual payee name (for utility, government, etc.)
+  payeeDetails?: string; // Additional payee context (e.g., "Consumer No: 123456")
 
   // Payment Details
   amount: number;
@@ -102,4 +122,19 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
   failed: 'Failed',
   cancelled: 'Cancelled',
   refunded: 'Refunded',
+};
+
+export const payeeTypeLabels: Record<PayeeType, string> = {
+  [PayeeType.employee]: 'Employee',
+  [PayeeType.vendor]: 'Vendor',
+  [PayeeType.subContractor]: 'Sub-Contractor',
+  [PayeeType.labour]: 'Labour',
+  [PayeeType.consultant]: 'Consultant',
+  [PayeeType.utility]: 'Utility Provider',
+  [PayeeType.government]: 'Government/Tax',
+  [PayeeType.insurance]: 'Insurance',
+  [PayeeType.bank]: 'Bank/Financial',
+  [PayeeType.legal]: 'Legal Services',
+  [PayeeType.rental]: 'Equipment Rental',
+  [PayeeType.other]: 'Other',
 };
