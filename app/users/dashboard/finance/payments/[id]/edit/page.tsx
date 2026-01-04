@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockPayments } from '@/components/shared/mock-data';
+import { mockPayments, mockProjects } from '@/components/shared/mock-data';
 import {
   Payment,
   PaymentType,
@@ -60,6 +60,7 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     type: payment?.type || PaymentType.invoice,
     status: payment?.status || PaymentStatus.pending,
     method: payment?.method || PaymentMethod.bankTransfer,
+    projectId: payment?.projectId || mockProjects[0]?.id || 1,
     amount: payment?.amount || 0,
     currency: payment?.currency || 'INR',
     paymentDate: payment?.paymentDate || new Date(),
@@ -232,6 +233,33 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
                             </SelectItem>
                           )
                         )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Project */}
+                  <div className="space-y-2">
+                    <Label htmlFor="projectId">
+                      Project <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.projectId?.toString()}
+                      onValueChange={(value) =>
+                        handleInputChange('projectId', Number(value))
+                      }
+                    >
+                      <SelectTrigger id="projectId">
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockProjects.map((project) => (
+                          <SelectItem
+                            key={project.id}
+                            value={project.id.toString()}
+                          >
+                            {project.projectName}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
