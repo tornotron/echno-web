@@ -25,7 +25,7 @@ export interface SessionMetadata {
   /** Session expiration timestamp (milliseconds since epoch) */
   expiresAt?: number;
 
-  /** Keycloak session ID for backchannel logout */
+  /** Keycloak session ID for frontchannel logout */
   sessionId?: string | unknown;
 
   /** Session error if any */

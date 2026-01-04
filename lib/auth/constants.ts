@@ -37,8 +37,8 @@ export const TOKEN_REFRESH = {
   /** Clock tolerance for token validation in seconds (5 minutes) */
   CLOCK_TOLERANCE_SECONDS: 300,
 
-  /** Maximum age for backchannel logout tokens in seconds (10 minutes) */
-  BACKCHANNEL_MAX_AGE_SECONDS: 600,
+  /** Maximum age for frontchannel logout requests in seconds (10 minutes) */
+  FRONTCHANNEL_MAX_AGE_SECONDS: 600,
 
   /** Future token tolerance in seconds (5 minutes) */
   FUTURE_TOKEN_TOLERANCE_SECONDS: 300,

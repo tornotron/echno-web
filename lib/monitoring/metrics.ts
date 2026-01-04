@@ -23,7 +23,7 @@ export enum MetricType {
   SESSION_REVOKED = 'auth.session.revoked',
   SESSION_EXPIRED = 'auth.session.expired',
   RATE_LIMIT_HIT = 'auth.ratelimit.hit',
-  BACKCHANNEL_LOGOUT = 'auth.backchannel.logout',
+  FRONTCHANNEL_LOGOUT = 'auth.frontchannel.logout',
 }
 
 /**
