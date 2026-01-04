@@ -6548,6 +6548,43 @@ export { mockEmployees } from './data/employees';
 // ═════════════════════════════════════════════════════════════════════════════
 
 export const dashboardData = {
+  // Quick Stats Overview
+  stats: {
+    attendance: {
+      percentage: 87,
+      present: 245,
+      total: 283,
+    },
+    tasks: {
+      active: 116,
+      critical: 12,
+    },
+    vendors: {
+      total: 68,
+      active: 45,
+      onTimeDeliveryPercentage: 88,
+    },
+    inventory: {
+      total: 670,
+      inStock: 450,
+      outOfStock: 25,
+    },
+    revenue: {
+      current: 620_000,
+      currencySymbol: '₹',
+      formatted: '₹620K',
+      growthPercentage: 5.1,
+      previousMonth: 590_000,
+    },
+    taskMetrics: {
+      completed: 85,
+      inProgress: 30,
+      critical: 12,
+      resolutionRate: 84,
+      resolutionRateChange: 5,
+    },
+  },
+
   // Attendance & Leave Tab
   attendance: {
     present: 245,
