@@ -21,7 +21,6 @@ async function refreshAccessToken(
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({
         client_id: process.env.KEYCLOAK_ID!,
-        client_secret: process.env.KEYCLOAK_SECRET!,
         grant_type: 'refresh_token',
         refresh_token: token.refreshToken || '',
       }),
@@ -77,17 +76,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     KeycloakProvider({
       clientId: process.env.KEYCLOAK_ID!,
-      clientSecret: process.env.KEYCLOAK_SECRET!,
       issuer: process.env.KEYCLOAK_ISSUER!,
       authorization: {
         params: {
           scope: 'openid email profile',
+          code_challenge_method: 'S256',
         },
       },
-      checks: ['state'],
-      // Enable backchannel logout
+      checks: ['pkce', 'state'],
+      // Public client configuration
       client: {
-        token_endpoint_auth_method: 'client_secret_post',
+        token_endpoint_auth_method: 'none',
       },
     }),
   ],
@@ -160,7 +159,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           // Compute permissions from Keycloak roles
           token.permissions = getRolePermissions(keycloakRoles);
 
-          // Extract session ID for backchannel logout
+          // Extract session ID for frontchannel logout
           // Keycloak sends 'sid' in the access token
           token.sessionId =
             decodedToken?.sid || decodedToken?.session_state || token.sub;
@@ -191,7 +190,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.name = user.name;
       }
 
-      // Session revoked via backchannel logout
+      // Session revoked via frontchannel logout
       if (token.sessionId) {
         const revoked = isSessionRevoked(token.sessionId as string);
         logger.debug('Session Revocation Check', {
