@@ -52,8 +52,8 @@ export interface Invoice {
   paymentStatus: PaymentStatus;
 
   // Relationships
+  projectId: number; // Foreign key to Project (required for tracking)
   vendorId?: number; // Foreign key to Vendor (for purchase invoices)
-  projectId?: number; // Foreign key to Project
   organizationId?: number; // Foreign key to Organization
   purchaseOrderId?: number; // Foreign key to PurchaseOrder (if applicable)
   goodsReceiptId?: number; // Foreign key to GoodsReceipt (if applicable)
