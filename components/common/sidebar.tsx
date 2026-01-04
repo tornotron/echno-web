@@ -255,11 +255,6 @@ const navItems: NavItem[] = [
     module: Module.FINANCE,
     items: [
       {
-        title: 'Estimates',
-        url: '/users/dashboard/finance/estimates',
-        icon: FileText,
-      },
-      {
         title: 'Receipts',
         url: '/users/dashboard/finance/receipts',
         icon: Receipt,
