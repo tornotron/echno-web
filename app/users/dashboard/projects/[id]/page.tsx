@@ -48,6 +48,40 @@ import { TaskStatus } from '@/types/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { format } from 'date-fns';
 
+// Helper function to validate attachment URLs
+function isValidAttachmentUrl(url: string): boolean {
+  if (!url) return false;
+
+  try {
+    const parsedUrl = new URL(url);
+    const scheme = parsedUrl.protocol.toLowerCase();
+
+    // Only allow http, https protocols
+    // Reject dangerous schemes like javascript:, data:, vbscript:, etc.
+    const allowedSchemes = ['http:', 'https:'];
+    return allowedSchemes.includes(scheme);
+  } catch {
+    // If URL parsing fails, reject it
+    return false;
+  }
+}
+
+// Helper function to get safe download URL
+function getSafeDownloadUrl(attachment: {
+  id?: number;
+  fileUrl: string;
+}): string {
+  // Validate the URL
+  if (!isValidAttachmentUrl(attachment.fileUrl)) {
+    return '#'; // Return a safe fallback
+  }
+
+  // In a real application, you would return a proxy endpoint like:
+  // return `/api/attachments/${attachment.id}/download`;
+  // For now, return the validated URL
+  return attachment.fileUrl;
+}
+
 // Fetch project by ID from mock data
 const fetchProject = async (id: string): Promise<Project | null> => {
   // Simulate API call delay
@@ -487,11 +521,19 @@ export default function ProjectDashboardPage() {
               <CardContent>
                 {project.attachments && project.attachments.length > 0 ? (
                   <div className="space-y-2">
-                    {project.attachments.map((attachment, index) => {
+                    {project.attachments.map((attachment) => {
                       const Icon = getAttachmentIcon(attachment.fileType);
+                      const attachmentKey =
+                        attachment.id ||
+                        `${attachment.fileUrl}-${attachment.uploadedAt.getTime()}`;
+                      const safeDownloadUrl = getSafeDownloadUrl(attachment);
+                      const isValidUrl = isValidAttachmentUrl(
+                        attachment.fileUrl
+                      );
+
                       return (
                         <div
-                          key={index}
+                          key={attachmentKey}
                           className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                         >
                           <div className="flex min-w-0 flex-1 items-center space-x-3">
@@ -521,10 +563,25 @@ export default function ProjectDashboardPage() {
                               )}
                             </div>
                           </div>
-                          <Button variant="ghost" size="sm" asChild>
-                            <a href={attachment.fileUrl} download>
-                              <Download className="h-4 w-4" />
-                            </a>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild={isValidUrl}
+                            disabled={!isValidUrl}
+                          >
+                            {isValidUrl ? (
+                              <a
+                                href={safeDownloadUrl}
+                                download
+                                aria-label={`Download ${attachment.fileName}`}
+                              >
+                                <Download className="h-4 w-4" />
+                              </a>
+                            ) : (
+                              <span>
+                                <Download className="h-4 w-4" />
+                              </span>
+                            )}
                           </Button>
                         </div>
                       );

@@ -105,8 +105,35 @@ export default function NewProjectPage() {
   // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = [...e.target.files];
-      setAttachments([...attachments, ...newFiles]);
+      const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+      const selectedFiles = [...e.target.files];
+      const validFiles: File[] = [];
+      const invalidFiles: string[] = [];
+
+      for (const file of selectedFiles) {
+        if (file.size > MAX_FILE_SIZE) {
+          invalidFiles.push(file.name);
+        } else {
+          validFiles.push(file);
+        }
+      }
+
+      // Show error for oversized files
+      if (invalidFiles.length > 0) {
+        toast.error(
+          `The following files exceed 10MB and were not added: ${invalidFiles.join(', ')}`
+        );
+      }
+
+      // Add only valid files
+      if (validFiles.length > 0) {
+        setAttachments([...attachments, ...validFiles]);
+      }
+
+      // Reset the input value so the same file can be selected again
+      if (e.target) {
+        e.target.value = '';
+      }
     }
   };
 
