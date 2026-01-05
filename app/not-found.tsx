@@ -53,7 +53,7 @@ export default function NotFound() {
             <p>
               Need help? Contact{' '}
               <a
-                href="mailto:support@echno.com"
+                href="mailto:support@echnoai.com"
                 className="text-primary hover:underline"
               >
                 support@echnoai.com
