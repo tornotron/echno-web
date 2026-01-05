@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockPayments, mockProjects } from '@/components/shared/mock-data';
+import {
+  mockPayments,
+  mockProjects,
+  mockVendors,
+  mockEmployees,
+  mockSubContracts,
+  mockLabour,
+} from '@/components/shared/mock-data';
 import {
   Payment,
   PaymentType,
@@ -54,12 +61,22 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
 
+  // Create datasets object for utility functions
+  const payeeDatasets = {
+    vendors: mockVendors,
+    employees: mockEmployees,
+    subContracts: mockSubContracts,
+    labour: mockLabour,
+  };
+
   const payment = mockPayments.find(
     (p) => p.id === Number.parseInt(resolvedParams.id)
   );
 
   // Initialize payee info from payment data
-  const initialPayeeInfo = payment ? getPayeeInfo(payment) : null;
+  const initialPayeeInfo = payment
+    ? getPayeeInfo(payment, payeeDatasets)
+    : null;
   const needsManualEntry = initialPayeeInfo
     ? [
         PayeeType.consultant,
@@ -489,7 +506,10 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {getPayeesByType(selectedPayeeType).map((payee) => (
+                          {getPayeesByType(
+                            selectedPayeeType,
+                            payeeDatasets
+                          ).map((payee) => (
                             <SelectItem
                               key={payee.id}
                               value={payee.id.toString()}

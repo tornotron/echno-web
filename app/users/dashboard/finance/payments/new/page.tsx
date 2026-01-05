@@ -3,7 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
-import { mockProjects } from '@/components/shared/mock-data';
+import {
+  mockProjects,
+  mockVendors,
+  mockEmployees,
+  mockSubContracts,
+  mockLabour,
+} from '@/components/shared/mock-data';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -45,6 +51,14 @@ import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewPaymentPage() {
   const router = useRouter();
+
+  // Create datasets object for utility functions
+  const payeeDatasets = {
+    vendors: mockVendors,
+    employees: mockEmployees,
+    subContracts: mockSubContracts,
+    labour: mockLabour,
+  };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPayeeType, setSelectedPayeeType] = useState<
@@ -137,7 +151,7 @@ export default function NewPaymentPage() {
       employeeId: undefined,
       subContractId: undefined,
       labourId: undefined,
-      payeeType: undefined,
+      payeeType: selectedPayeeType,
       payeeName: '',
     };
 
@@ -443,7 +457,10 @@ export default function NewPaymentPage() {
                           />
                         </SelectTrigger>
                         <SelectContent>
-                          {getPayeesByType(selectedPayeeType).map((payee) => (
+                          {getPayeesByType(
+                            selectedPayeeType,
+                            payeeDatasets
+                          ).map((payee) => (
                             <SelectItem
                               key={payee.id}
                               value={payee.id.toString()}
