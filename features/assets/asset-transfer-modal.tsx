@@ -173,26 +173,26 @@ export function AssetTransferModal({
                     <SelectValue placeholder="Select reason" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Project reassignment">
+                    <SelectItem value="project_reassignment">
                       Project Reassignment
                     </SelectItem>
-                    <SelectItem value="Maintenance completion">
+                    <SelectItem value="maintenance_completion">
                       Maintenance Completion
                     </SelectItem>
-                    <SelectItem value="New project deployment">
+                    <SelectItem value="new_project_deployment">
                       New Project Deployment
                     </SelectItem>
-                    <SelectItem value="Equipment pooling">
+                    <SelectItem value="equipment_pooling">
                       Equipment Pooling
                     </SelectItem>
-                    <SelectItem value="Equipment failure">
+                    <SelectItem value="equipment_failure">
                       Equipment Failure
                     </SelectItem>
-                    <SelectItem value="Relocation">Relocation</SelectItem>
-                    <SelectItem value="Return to warehouse">
+                    <SelectItem value="relocation">Relocation</SelectItem>
+                    <SelectItem value="return_to_warehouse">
                       Return to Warehouse
                     </SelectItem>
-                    <SelectItem value="Other">Other</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -168,7 +168,7 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
 
   const isAllSelected =
     paginatedInvoices.length > 0 &&
-    selectedIds.length === paginatedInvoices.length;
+    paginatedInvoices.every((invoice) => selectedIds.includes(invoice.id));
 
   const hasActiveFilters = Boolean(
     searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
