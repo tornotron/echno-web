@@ -525,7 +525,7 @@ export default function ProjectDashboardPage() {
                       const Icon = getAttachmentIcon(attachment.fileType);
                       const attachmentKey =
                         attachment.id ||
-                        `${attachment.fileUrl}-${attachment.uploadedAt.getTime()}`;
+                        `${attachment.fileUrl}-${attachment.uploadedAt?.getTime() || 'noDate'}`;
                       const safeDownloadUrl = getSafeDownloadUrl(attachment);
                       const isValidUrl = isValidAttachmentUrl(
                         attachment.fileUrl
