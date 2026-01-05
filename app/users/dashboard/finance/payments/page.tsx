@@ -1,7 +1,14 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { mockPayments, mockProjects } from '@/components/shared/mock-data';
+import {
+  mockPayments,
+  mockProjects,
+  mockVendors,
+  mockEmployees,
+  mockSubContracts,
+  mockLabour,
+} from '@/components/shared/mock-data';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -101,6 +108,14 @@ const getTypeColor = (type: PaymentType) => {
 };
 
 export default function PaymentsPage() {
+  // Create datasets object for utility functions
+  const payeeDatasets = {
+    vendors: mockVendors,
+    employees: mockEmployees,
+    subContracts: mockSubContracts,
+    labour: mockLabour,
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -111,48 +126,46 @@ export default function PaymentsPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   // Filter payments based on search and filters
-  const filteredPayments = useMemo(() => {
-    return mockPayments.filter((payment) => {
-      // Search filter - includes payee name and flexible amount search
-      const searchLower = searchQuery.toLowerCase();
-      const payeeInfo = getPayeeInfo(payment);
-      const payeeName = formatPayeeName(payeeInfo).toLowerCase();
+  const filteredPayments = mockPayments.filter((payment) => {
+    // Search filter - includes payee name and flexible amount search
+    const searchLower = searchQuery.toLowerCase();
+    const payeeInfo = getPayeeInfo(payment, payeeDatasets);
+    const payeeName = formatPayeeName(payeeInfo).toLowerCase();
 
-      const matchesSearch =
-        !searchQuery ||
-        payment.paymentNumber.toLowerCase().includes(searchLower) ||
-        payment.transactionId?.toLowerCase().includes(searchLower) ||
-        payment.referenceNumber?.toLowerCase().includes(searchLower) ||
-        payment.description?.toLowerCase().includes(searchLower) ||
-        payment.bankName?.toLowerCase().includes(searchLower) ||
-        payeeName.includes(searchLower) ||
-        matchesAmountSearch(payment.amount, searchQuery);
+    const matchesSearch =
+      !searchQuery ||
+      payment.paymentNumber.toLowerCase().includes(searchLower) ||
+      payment.transactionId?.toLowerCase().includes(searchLower) ||
+      payment.referenceNumber?.toLowerCase().includes(searchLower) ||
+      payment.description?.toLowerCase().includes(searchLower) ||
+      payment.bankName?.toLowerCase().includes(searchLower) ||
+      payeeName.includes(searchLower) ||
+      matchesAmountSearch(payment.amount, searchQuery);
 
-      // Status filter
-      const matchesStatus =
-        statusFilter === 'all' || payment.status === statusFilter;
+    // Status filter
+    const matchesStatus =
+      statusFilter === 'all' || payment.status === statusFilter;
 
-      // Type filter
-      const matchesType = typeFilter === 'all' || payment.type === typeFilter;
+    // Type filter
+    const matchesType = typeFilter === 'all' || payment.type === typeFilter;
 
-      // Method filter
-      const matchesMethod =
-        methodFilter === 'all' || payment.method === methodFilter;
+    // Method filter
+    const matchesMethod =
+      methodFilter === 'all' || payment.method === methodFilter;
 
-      // Payee type filter
-      const matchesPayeeType =
-        payeeTypeFilter === 'all' ||
-        getPayeeInfo(payment).type === payeeTypeFilter;
+    // Payee type filter
+    const matchesPayeeType =
+      payeeTypeFilter === 'all' ||
+      getPayeeInfo(payment, payeeDatasets).type === payeeTypeFilter;
 
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesType &&
-        matchesMethod &&
-        matchesPayeeType
-      );
-    });
-  }, [searchQuery, statusFilter, typeFilter, methodFilter, payeeTypeFilter]);
+    return (
+      matchesSearch &&
+      matchesStatus &&
+      matchesType &&
+      matchesMethod &&
+      matchesPayeeType
+    );
+  });
 
   // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -496,7 +509,7 @@ export default function PaymentsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginatedPayments.map((payment) => {
-                    const payeeInfo = getPayeeInfo(payment);
+                    const payeeInfo = getPayeeInfo(payment, payeeDatasets);
 
                     return (
                       <TableRow
