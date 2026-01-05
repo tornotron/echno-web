@@ -21,8 +21,22 @@ function HomeContent() {
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/users/dashboard');
+    // Check if user just logged out or has session errors (client-side only)
+    if (globalThis.window !== undefined) {
+      const params = new URLSearchParams(globalThis.location.search);
+
+      // Don't redirect authenticated users if they have session errors
+      const hasErrorParam = params.has('error');
+      if (hasErrorParam && status === 'authenticated') {
+        // Session error detected but user still shows as authenticated
+        // Let NextAuth handle the logout, don't redirect yet
+        return;
+      }
+
+      // Normal redirect for authenticated users without errors
+      if (status === 'authenticated' && !hasErrorParam) {
+        router.push('/users/dashboard');
+      }
     }
   }, [status, router]);
 

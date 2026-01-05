@@ -19,6 +19,13 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
   const [hasShownWarning, setHasShownWarning] = useState(false);
   const [hasShownFinalWarning, setHasShownFinalWarning] = useState(false);
 
+  // Reset logout flag when session becomes authenticated again
+  useEffect(() => {
+    if (status === 'authenticated' && !session?.error) {
+      isLoggingOut.current = false;
+    }
+  }, [status, session]);
+
   // Handle token refresh errors and session revocation
   useEffect(() => {
     if (status === 'authenticated' && session?.error && !isLoggingOut.current) {
@@ -55,8 +62,12 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
       const timeUntilExpiry = sessionExpiresAt - now;
       const minutesRemaining = Math.floor(timeUntilExpiry / 60_000);
 
-      // Session already expired
-      if (timeUntilExpiry <= 0) {
+      // Session already expired - force logout
+      if (timeUntilExpiry <= 0 && !isLoggingOut.current) {
+        isLoggingOut.current = true;
+        logger.warn('Session: Session expired, forcing logout');
+        toast.error('Session expired. Please login again.');
+        signOut({ callbackUrl: '/' });
         return;
       }
 
