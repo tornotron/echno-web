@@ -60,7 +60,7 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
     receivedFromAddress: receipt?.receivedFromAddress || '',
     amount: receipt?.amount || 0,
     currency: receipt?.currency || 'INR',
-    receiptDate: receipt?.receiptDate || new Date(),
+    receiptDate: receipt?.receiptDate || new Date().toISOString(),
     paymentMethod: receipt?.paymentMethod || '',
     transactionId: receipt?.transactionId || '',
     referenceNumber: receipt?.referenceNumber || '',
