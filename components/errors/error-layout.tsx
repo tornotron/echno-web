@@ -87,16 +87,27 @@ export function ErrorLayout({
           )}
 
           <div className="flex flex-col gap-2 pt-4">
-            {displayActions.map((action, index) => (
-              <Button
-                key={index}
-                variant={action.variant}
-                asChild
-                className="w-full"
-              >
-                <Link href={action.href!}>{action.label}</Link>
-              </Button>
-            ))}
+            {displayActions.map((action, index) =>
+              action.href ? (
+                <Button
+                  key={index}
+                  variant={action.variant}
+                  asChild
+                  className="w-full"
+                >
+                  <Link href={action.href}>{action.label}</Link>
+                </Button>
+              ) : (
+                <Button
+                  key={index}
+                  variant={action.variant}
+                  onClick={'onClick' in action ? action.onClick : undefined}
+                  className="w-full"
+                >
+                  {action.label}
+                </Button>
+              )
+            )}
           </div>
 
           {showSupport && (
