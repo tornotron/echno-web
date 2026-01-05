@@ -30,7 +30,7 @@ export interface Receipt {
   // Receipt Details
   amount: number;
   currency: string; // e.g., "INR", "USD"
-  receiptDate: Date;
+  receiptDate: string; // ISO date string
   paymentMethod: string; // e.g., "Cash", "Cheque", "Bank Transfer"
 
   // Transaction Details
