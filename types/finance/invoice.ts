@@ -59,9 +59,9 @@ export interface Invoice {
   goodsReceiptId?: number; // Foreign key to GoodsReceipt (if applicable)
 
   // Invoice Details
-  issueDate: Date;
-  dueDate: Date;
-  paymentDate?: Date;
+  issueDate: string; // ISO date string
+  dueDate: string; // ISO date string
+  paymentDate?: string; // ISO date string
 
   // Line Items
   lineItems: InvoiceLineItem[];

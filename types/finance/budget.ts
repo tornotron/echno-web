@@ -69,13 +69,13 @@ export interface BudgetPaymentMilestone {
   id: number;
   name: string; // e.g., "Initial Payment", "50% Completion"
   description?: string;
-  dueDate: Date;
+  dueDate: string; // ISO date string
   amount: number;
   percentage: number; // Percentage of total budget
   status: PaymentMilestoneStatus;
   linkedInvoiceId?: number; // Link to actual invoice
   linkedPaymentId?: number; // Link to actual payment
-  paidDate?: Date;
+  paidDate?: string; // ISO date string
   notes?: string;
 }
 
@@ -92,8 +92,8 @@ export interface Budget {
   departmentId?: number; // Foreign key to Department (if exists)
 
   // Budget Period
-  startDate: Date;
-  endDate: Date;
+  startDate: string; // ISO date string
+  endDate: string; // ISO date string
   fiscalYear?: string; // e.g., "2024-2025"
   quarter?: number; // 1, 2, 3, or 4
   month?: number; // 1-12
@@ -223,6 +223,9 @@ export function getBudgetHealth(percentageUsed: number): {
 }
 
 // Helper function to calculate line item total
+// Note: unitRate is treated as separate from component costs (materialCost, equipmentCost, laborCost)
+// Total = (quantity * unitRate) + materialCost + equipmentCost + laborCost
+// If your use case requires unitRate to already include components, adjust logic accordingly
 export function calculateLineItemTotal(item: BudgetLineItem): number {
   const baseAmount = (item.quantity || 0) * (item.unitRate || 0);
   const materialCost = item.materialCost || 0;

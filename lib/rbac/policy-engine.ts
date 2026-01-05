@@ -328,7 +328,6 @@ export async function canUserPerformActions(
 /**
  * Check if user is system admin
  * System admins bypass most checks (but still need entitlements)
+ * Re-exported from role-utils for backwards compatibility
  */
-export function isSystemAdmin(userRoles: string[]): boolean {
-  return userRoles.includes('system-admin');
-}
+export { isSystemAdmin } from './role-utils';
