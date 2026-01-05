@@ -290,7 +290,7 @@ export default function UserAccessControlPage({
   const handleRemoveRole = async (roleId: string) => {
     if (!userId) return;
 
-    if (roleId === 'system_admin') {
+    if (roleId === 'system-admin') {
       const confirm = globalThis.confirm(
         'Are you sure you want to remove System Admin access? This will revoke all permissions.'
       );
@@ -321,7 +321,7 @@ export default function UserAccessControlPage({
     (role) => !userRoles.includes(role)
   );
   const groupedPermissions = groupPermissionsByCategory();
-  const isSystemAdminUser = userRoles.includes('system_admin');
+  const isSystemAdminUser = userRoles.includes('system-admin');
 
   if (isLoading || loading) {
     return (
@@ -465,7 +465,7 @@ export default function UserAccessControlPage({
                               <Badge className={getRoleLevelColor(level)}>
                                 {getRoleDisplayName(role)}
                               </Badge>
-                              {role === 'system_admin' && (
+                              {role === 'system-admin' && (
                                 <Shield className="h-4 w-4 text-red-600" />
                               )}
                             </div>

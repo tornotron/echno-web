@@ -237,7 +237,7 @@ export default function RolesPage() {
                 {paginatedRoles.map((roleId) => {
                   const level = getRoleLevel(roleId);
                   const permissions = getRolePermissions([roleId]);
-                  const isSystemAdmin = roleId === 'system_admin';
+                  const isSystemAdmin = roleId === 'system-admin';
 
                   return (
                     <TableRow

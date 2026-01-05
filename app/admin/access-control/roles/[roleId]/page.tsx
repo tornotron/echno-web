@@ -121,7 +121,7 @@ export default function RoleDetailsPage({
   }, [selectedPermissions, originalPermissions]);
 
   const handlePermissionToggle = (permission: Permission) => {
-    if (roleId === 'system_admin') {
+    if (roleId === 'system-admin') {
       toast.error('Cannot modify System Admin permissions');
       return;
     }
@@ -164,7 +164,7 @@ export default function RoleDetailsPage({
   };
 
   const handleSelectAll = (permissions: Permission[]) => {
-    if (roleId === 'system_admin') {
+    if (roleId === 'system-admin') {
       toast.error('Cannot modify System Admin permissions');
       return;
     }
@@ -226,7 +226,7 @@ export default function RoleDetailsPage({
 
   const roleName = getRoleDisplayName(roleId);
   const level = getRoleLevel(roleId);
-  const isSystemAdminRole = roleId === 'system_admin';
+  const isSystemAdminRole = roleId === 'system-admin';
   const groupedPermissions = groupPermissionsByCategory();
 
   return (
