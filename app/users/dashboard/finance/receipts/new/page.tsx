@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/common';
-import { mockProjects } from '@/components/shared/mock-data';
+import { useProjects } from '@/lib/hooks/use-projects';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -27,13 +27,18 @@ import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewReceiptPage() {
   const router = useRouter();
+  const {
+    data: projects,
+    isLoading: projectsLoading,
+    error: projectsError,
+  } = useProjects();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     receiptNumber: '',
     type: 'payment',
     status: 'draft',
-    projectId: mockProjects[0]?.id || 1, // Default to first project
+    projectId: projects?.[0]?.id || 0,
     receiptDate: new Date(),
     receivedFrom: '',
     amount: 0,
@@ -134,26 +139,38 @@ export default function NewReceiptPage() {
                     <Label htmlFor="projectId">
                       Project <span className="text-red-500">*</span>
                     </Label>
-                    <Select
-                      value={formData.projectId.toString()}
-                      onValueChange={(value) =>
-                        handleInputChange('projectId', Number(value))
-                      }
-                    >
-                      <SelectTrigger id="projectId">
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockProjects.map((project) => (
-                          <SelectItem
-                            key={project.id}
-                            value={project.id.toString()}
-                          >
-                            {project.projectName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {projectsLoading ? (
+                      <Select disabled>
+                        <SelectTrigger id="projectId">
+                          <SelectValue placeholder="Loading projects..." />
+                        </SelectTrigger>
+                      </Select>
+                    ) : projectsError ? (
+                      <div className="text-sm text-red-500">
+                        Failed to load projects
+                      </div>
+                    ) : (
+                      <Select
+                        value={formData.projectId.toString()}
+                        onValueChange={(value) =>
+                          handleInputChange('projectId', Number(value))
+                        }
+                      >
+                        <SelectTrigger id="projectId">
+                          <SelectValue placeholder="Select project" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {projects?.map((project) => (
+                            <SelectItem
+                              key={project.id}
+                              value={project.id.toString()}
+                            >
+                              {project.projectName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
 
                   <div className="space-y-2">

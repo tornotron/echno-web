@@ -87,6 +87,13 @@ export default function ReceiptsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  // Memoized project lookup map for O(1) access
+  const projectById = useMemo(() => {
+    const m = new Map();
+    for (const p of mockProjects) m.set(p.id, p);
+    return m;
+  }, []);
+
   // Filter receipts based on search and filters
   const filteredReceipts = useMemo(() => {
     return mockReceipts.filter((receipt) => {
@@ -417,9 +424,8 @@ export default function ReceiptsPage() {
                         </TableCell>
                         <TableCell>
                           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                            {mockProjects.find(
-                              (p) => p.id === receipt.projectId
-                            )?.projectName || 'Unknown Project'}
+                            {projectById.get(receipt.projectId)?.projectName ||
+                              'Unknown Project'}
                           </span>
                         </TableCell>
                         <TableCell>
