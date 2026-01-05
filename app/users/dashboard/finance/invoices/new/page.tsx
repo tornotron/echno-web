@@ -60,7 +60,7 @@ export default function NewInvoicePage() {
   const getDueDateDefault = () => {
     const date = new Date();
     date.setDate(date.getDate() + 30);
-    return date;
+    return date.toISOString();
   };
 
   const [formData, setFormData] = useState<Partial<Invoice>>({
@@ -68,7 +68,7 @@ export default function NewInvoicePage() {
     type: InvoiceType.purchase,
     status: InvoiceStatus.draft,
     projectId: mockProjects[0]?.id || 1, // Default to first project
-    issueDate: new Date(),
+    issueDate: new Date().toISOString(),
     dueDate: getDueDateDefault(),
     subtotal: 0,
     taxAmount: 0,

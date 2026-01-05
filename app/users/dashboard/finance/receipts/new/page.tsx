@@ -64,6 +64,13 @@ export default function NewReceiptPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate required projectId
+    if (!formData.projectId) {
+      toast.error('Please select a project');
+      return;
+    }
+
     setIsSubmitting(true);
 
     // Simulate API call
