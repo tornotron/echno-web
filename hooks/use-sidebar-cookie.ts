@@ -25,8 +25,13 @@ export function useSidebarCookie() {
     return true; // Default to open if no cookie exists
   }, []);
 
-  // Initialize state from cookie
-  const [open, setOpenState] = useState(() => getSidebarStateFromCookie());
+  // Initialize with stable default to avoid hydration mismatch
+  const [open, setOpenState] = useState(true);
+
+  // Sync from cookie after mount
+  useEffect(() => {
+    setOpenState(getSidebarStateFromCookie());
+  }, [getSidebarStateFromCookie]);
 
   // Wrapper for setOpen that also updates the cookie
   const setOpen = useCallback(

@@ -16,7 +16,7 @@ export function isSystemAdmin(roles: string[] | undefined): boolean {
   // Check case-insensitive
   const normalizedRoles = new Set(roles.map((r) => r.toLowerCase()));
   return (
-    normalizedRoles.has('system-admin') || normalizedRoles.has('system-admin')
+    normalizedRoles.has('system-admin') || normalizedRoles.has('system_admin')
   );
 }
 
