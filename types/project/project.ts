@@ -3,6 +3,7 @@ import { Member, parseMember, memberToJson } from '@/types/member';
 import { Task, parseTask } from '@/types/task';
 import { ProjectStatus, getProjectStatus } from './project-status';
 import type { Attachment } from '../attachment';
+import { parseAttachment, attachmentToJson } from '../attachment/attachment';
 
 export interface Project {
   id: number;
@@ -59,6 +60,9 @@ export function parseProject(json: any): Project {
       ? (json.teamMembers as unknown[]).map((m) => parseMember(m))
       : [],
     tasks: json.tasks ? (json.tasks as unknown[]).map((t) => parseTask(t)) : [],
+    attachments: json.attachments
+      ? (json.attachments as unknown[]).map((a) => parseAttachment(a))
+      : undefined,
   };
 }
 
@@ -76,6 +80,9 @@ export function projectToJson(project: Project): Record<string, unknown> {
     endDate: project.endDate?.toISOString(),
     teamMembers: project.members.map((m) => memberToJson(m)),
     createdAt: project.createdAt?.toISOString(),
+    attachments: project.attachments
+      ? project.attachments.map((a) => attachmentToJson(a))
+      : undefined,
     // tasks are not sent in update
   };
 }
