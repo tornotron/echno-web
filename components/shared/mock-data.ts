@@ -111,6 +111,7 @@ import {
   InspectionType,
   InspectionResult,
 } from '@/types/inspection/inspection';
+import { Attachment, AttachmentType } from '@/types/attachment';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1. USERS
@@ -510,6 +511,41 @@ const mockProjects: Project[] = [
     createdAt: new Date('2024-11-01'),
     members: mockMembers.slice(0, 4),
     tasks: mockTasks.filter((t) => t.projectId === 1),
+    attachments: [
+      {
+        id: 1,
+        fileName: 'architectural-blueprint.pdf',
+        fileUrl: '/projects/sunrise-tower/architectural-blueprint.pdf',
+        fileSize: 5_242_880, // 5 MB
+        fileType: AttachmentType.pdf,
+        mimeType: 'application/pdf',
+        uploadedAt: new Date('2024-11-05'),
+        uploadedBy: 'Rajesh Kumar',
+        description: 'Main architectural blueprint for Sunrise Tower',
+      },
+      {
+        id: 2,
+        fileName: 'structural-plans.pdf',
+        fileUrl: '/projects/sunrise-tower/structural-plans.pdf',
+        fileSize: 8_388_608, // 8 MB
+        fileType: AttachmentType.pdf,
+        mimeType: 'application/pdf',
+        uploadedAt: new Date('2024-11-10'),
+        uploadedBy: 'Priya Sharma',
+        description: 'Detailed structural engineering plans',
+      },
+      {
+        id: 3,
+        fileName: 'site-photo-1.jpg',
+        fileUrl: '/projects/sunrise-tower/site-photo-1.jpg',
+        fileSize: 2_097_152, // 2 MB
+        fileType: AttachmentType.image,
+        mimeType: 'image/jpeg',
+        uploadedAt: new Date('2024-12-01'),
+        uploadedBy: 'Amit Patel',
+        description: 'Site photo - Foundation work',
+      },
+    ],
   },
   {
     id: 2,
@@ -524,6 +560,31 @@ const mockProjects: Project[] = [
     createdAt: new Date('2024-12-10'),
     members: mockMembers,
     tasks: mockTasks.filter((t) => t.projectId === 2),
+    attachments: [
+      {
+        id: 4,
+        fileName: 'project-proposal.pdf',
+        fileUrl: '/projects/green-valley/project-proposal.pdf',
+        fileSize: 3_145_728, // 3 MB
+        fileType: AttachmentType.pdf,
+        mimeType: 'application/pdf',
+        uploadedAt: new Date('2024-12-12'),
+        uploadedBy: 'Rajesh Kumar',
+        description: 'Complete project proposal and scope',
+      },
+      {
+        id: 5,
+        fileName: 'cost-estimation.xlsx',
+        fileUrl: '/projects/green-valley/cost-estimation.xlsx',
+        fileSize: 1_048_576, // 1 MB
+        fileType: AttachmentType.spreadsheet,
+        mimeType:
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        uploadedAt: new Date('2024-12-15'),
+        uploadedBy: 'Sneha Reddy',
+        description: 'Detailed cost estimation spreadsheet',
+      },
+    ],
   },
   {
     id: 3,
@@ -538,6 +599,19 @@ const mockProjects: Project[] = [
     createdAt: new Date('2025-01-05'),
     members: [mockMembers[0], mockMembers[1], mockMembers[4]],
     tasks: [],
+    attachments: [
+      {
+        id: 6,
+        fileName: 'metro-station-design.dwg',
+        fileUrl: '/projects/metro-station/metro-station-design.dwg',
+        fileSize: 10_485_760, // 10 MB
+        fileType: AttachmentType.cad,
+        mimeType: 'application/acad',
+        uploadedAt: new Date('2025-01-08'),
+        uploadedBy: 'Vikram Singh',
+        description: 'CAD design file for metro station structure',
+      },
+    ],
   },
   {
     id: 4,
@@ -552,6 +626,41 @@ const mockProjects: Project[] = [
     createdAt: new Date('2023-05-01'),
     members: [mockMembers[0], mockMembers[5]],
     tasks: [],
+    attachments: [
+      {
+        id: 7,
+        fileName: 'completion-certificate.pdf',
+        fileUrl: '/projects/tech-park/completion-certificate.pdf',
+        fileSize: 1_572_864, // 1.5 MB
+        fileType: AttachmentType.pdf,
+        mimeType: 'application/pdf',
+        uploadedAt: new Date('2024-12-31'),
+        uploadedBy: 'Rajesh Kumar',
+        description: 'Official project completion certificate',
+      },
+      {
+        id: 8,
+        fileName: 'final-inspection-report.pdf',
+        fileUrl: '/projects/tech-park/final-inspection-report.pdf',
+        fileSize: 2_621_440, // 2.5 MB
+        fileType: AttachmentType.pdf,
+        mimeType: 'application/pdf',
+        uploadedAt: new Date('2024-12-30'),
+        uploadedBy: 'Karan Mehta',
+        description: 'Final inspection and quality assurance report',
+      },
+      {
+        id: 9,
+        fileName: 'project-photos.zip',
+        fileUrl: '/projects/tech-park/project-photos.zip',
+        fileSize: 25_165_824, // 24 MB
+        fileType: AttachmentType.other,
+        mimeType: 'application/zip',
+        uploadedAt: new Date('2025-01-02'),
+        uploadedBy: 'Amit Patel',
+        description: 'Collection of project completion photos',
+      },
+    ],
   },
   {
     id: 5,
@@ -566,6 +675,7 @@ const mockProjects: Project[] = [
     createdAt: new Date('2024-07-01'),
     members: [mockMembers[0], mockMembers[1]],
     tasks: [],
+    attachments: [],
   },
 ];
 

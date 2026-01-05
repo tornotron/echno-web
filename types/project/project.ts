@@ -2,6 +2,7 @@
 import { Member, parseMember, memberToJson } from '@/types/member';
 import { Task, parseTask } from '@/types/task';
 import { ProjectStatus, getProjectStatus } from './project-status';
+import type { Attachment } from '../attachment';
 
 export interface Project {
   id: number;
@@ -16,6 +17,7 @@ export interface Project {
   createdAt?: Date;
   members: Member[];
   tasks: Task[];
+  attachments?: Attachment[];
 }
 
 /** Add member (immutable) */
