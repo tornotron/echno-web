@@ -528,7 +528,10 @@ export default function DashboardPage() {
                         <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {request.startDate} - {request.endDate}
+                            {new Date(
+                              request.startDate
+                            ).toLocaleDateString()} -{' '}
+                            {new Date(request.endDate).toLocaleDateString()}
                           </span>
                           <span>{request.days} days</span>
                         </div>
