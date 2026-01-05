@@ -25,7 +25,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-const SIDEBAR_COOKIE_NAME = 'sidebar_state';
+const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '16rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
@@ -33,8 +33,8 @@ const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
 // Helper function to read sidebar state from cookie
-function getSidebarStateFromCookie(): boolean {
-  if (typeof document === 'undefined') return true;
+function getSidebarStateFromCookie(): boolean | undefined {
+  if (typeof document === 'undefined') return undefined;
 
   const cookies = document.cookie.split('; ');
   const sidebarCookie = cookies.find((cookie) =>
@@ -44,7 +44,7 @@ function getSidebarStateFromCookie(): boolean {
     const value = sidebarCookie.split('=')[1];
     return value === 'true';
   }
-  return true; // Default to open if no cookie exists
+  return undefined; // Return undefined when no cookie exists
 }
 
 type SidebarContextProps = {
@@ -86,10 +86,10 @@ function SidebarProvider({
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  // Initialize from cookie if available, otherwise use defaultOpen
+  // Cookie takes precedence, but defaultOpen is used when no cookie exists
   const [_open, _setOpen] = React.useState(() => {
     const cookieState = getSidebarStateFromCookie();
-    return cookieState;
+    return cookieState === undefined ? defaultOpen : cookieState;
   });
   const open = openProp ?? _open;
   const setOpen = React.useCallback(
