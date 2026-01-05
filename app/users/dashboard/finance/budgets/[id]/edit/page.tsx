@@ -756,7 +756,11 @@ export default function EditBudgetPage({
                           <TableCell>
                             <Input
                               type="date"
-                              value={getDateString(milestone.dueDate as Date)}
+                              value={
+                                milestone.dueDate
+                                  ? getDateString(milestone.dueDate as Date)
+                                  : ''
+                              }
                               onChange={(e) =>
                                 handleMilestoneChange(
                                   index,
