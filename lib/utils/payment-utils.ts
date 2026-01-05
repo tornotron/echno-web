@@ -1,10 +1,8 @@
 import { Payment, PayeeType } from '@/types/finance/payment';
-import {
-  mockVendors,
-  mockEmployees,
-  mockSubContracts,
-  mockLabour,
-} from '@/components/shared/mock-data';
+import type { Employee } from '@/types/employee/employee';
+import type { Vendor } from '@/types/third-party/vendor';
+import type { SubContract } from '@/types/third-party/sub-contract';
+import type { Labour } from '@/types/third-party/labour';
 
 export interface PayeeInfo {
   type: PayeeType;
@@ -13,14 +11,24 @@ export interface PayeeInfo {
   details?: string;
 }
 
+export interface PayeeDatasets {
+  vendors: Vendor[];
+  employees: Employee[];
+  subContracts: SubContract[];
+  labour: Labour[];
+}
+
 /**
  * Derives payee information from a Payment object
  * Priority: labourId > subContractId > vendorId > employeeId > payeeType
  */
-export function getPayeeInfo(payment: Payment): PayeeInfo {
+export function getPayeeInfo(
+  payment: Payment,
+  datasets: PayeeDatasets
+): PayeeInfo {
   // Check labour
   if (payment.labourId) {
-    const labour = mockLabour.find((l) => l.id === payment.labourId);
+    const labour = datasets.labour.find((l) => l.id === payment.labourId);
     if (labour) {
       return {
         type: PayeeType.labour,
@@ -32,7 +40,7 @@ export function getPayeeInfo(payment: Payment): PayeeInfo {
 
   // Check sub-contractor
   if (payment.subContractId) {
-    const contract = mockSubContracts.find(
+    const contract = datasets.subContracts.find(
       (c) => c.id === payment.subContractId
     );
     if (contract) {
@@ -47,7 +55,7 @@ export function getPayeeInfo(payment: Payment): PayeeInfo {
 
   // Check vendor
   if (payment.vendorId) {
-    const vendor = mockVendors.find((v) => v.id === payment.vendorId);
+    const vendor = datasets.vendors.find((v) => v.id === payment.vendorId);
     if (vendor) {
       return {
         type: PayeeType.vendor,
@@ -60,7 +68,9 @@ export function getPayeeInfo(payment: Payment): PayeeInfo {
 
   // Check employee
   if (payment.employeeId) {
-    const employee = mockEmployees.find((e) => e.id === payment.employeeId);
+    const employee = datasets.employees.find(
+      (e) => e.id === payment.employeeId
+    );
     if (employee) {
       return {
         type: PayeeType.employee,
@@ -115,18 +125,20 @@ export function matchesAmountSearch(
 /**
  * Gets all payees of a specific type
  */
-export function getPayeesByType(type: PayeeType) {
+export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
   switch (type) {
     case PayeeType.employee: {
-      return mockEmployees.map((e) => ({
-        id: e.id!,
-        name: e.name,
-        label: `${e.name} (${e.employeeId})`,
-      }));
+      return datasets.employees
+        .filter((e): e is Employee & { id: number } => e.id != null)
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          label: `${e.name} (${e.employeeId})`,
+        }));
     }
 
     case PayeeType.vendor: {
-      return mockVendors.map((v) => ({
+      return datasets.vendors.map((v) => ({
         id: v.id,
         name: v.companyName,
         label: `${v.companyName} - ${v.contactPerson}`,
@@ -134,7 +146,7 @@ export function getPayeesByType(type: PayeeType) {
     }
 
     case PayeeType.labour: {
-      return mockLabour.map((l) => ({
+      return datasets.labour.map((l) => ({
         id: l.id,
         name: l.name,
         label: `${l.name} - ${l.trade}`,
@@ -142,7 +154,7 @@ export function getPayeesByType(type: PayeeType) {
     }
 
     case PayeeType.subContractor: {
-      return mockSubContracts.map((c) => ({
+      return datasets.subContracts.map((c) => ({
         id: c.id,
         name: c.contractorName,
         label: `${c.contractorName} (${c.contractorCompany})`,
