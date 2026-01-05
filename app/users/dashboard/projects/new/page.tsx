@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Save, X, UserPlus } from 'lucide-react';
+import { Plus, Save, X, UserPlus, Upload, FileText } from 'lucide-react';
 import {
   ProjectStatus,
   getProjectStatusLabel,
@@ -43,6 +43,7 @@ import {
 export default function NewProjectPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
 
   const [formData, setFormData] = useState({
     projectName: '',
@@ -99,6 +100,19 @@ export default function NewProjectPage() {
       prev.filter((m) => m.memberEmail !== memberEmail)
     );
     toast.success('Member removed from the team');
+  };
+
+  // Handle file upload
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = [...e.target.files];
+      setAttachments([...attachments, ...newFiles]);
+    }
+  };
+
+  // Remove attachment
+  const removeAttachment = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
   };
 
   const availableEmployees = mockEmployees.filter(
@@ -398,6 +412,74 @@ export default function NewProjectPage() {
                   placeholder="Enter project description (optional)"
                   rows={4}
                 />
+              </div>
+
+              {/* Attachments */}
+              <div className="space-y-2">
+                <Label>Attachments</Label>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Input
+                      id="attachments"
+                      type="file"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() =>
+                        (
+                          document.querySelector('#attachments') as HTMLElement
+                        )?.click()
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload Files
+                    </Button>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      PDF, DOC, DOCX, JPG, PNG, XLSX, DWG, DXF (Max 10MB each)
+                    </p>
+                  </div>
+
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Selected Files ({attachments.length})
+                      </p>
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Form Actions */}
