@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -102,6 +103,7 @@ interface InvoicesFeatureProps {
 }
 
 export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -422,7 +424,9 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
                         key={invoice.id}
                         className="hover:bg-muted/50 cursor-pointer"
                         onClick={() =>
-                          (globalThis.location.href = `/dashboard/finance/invoices/${invoice.id}`)
+                          router.push(
+                            `/users/dashboard/finance/invoices/${invoice.id}`
+                          )
                         }
                       >
                         <TableCell onClick={(e) => e.stopPropagation()}>
@@ -436,7 +440,7 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center space-x-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
                               <FileText className="h-5 w-5 text-white" />
                             </div>
                             <div>

@@ -38,7 +38,7 @@ export default function NewReceiptPage() {
     receiptNumber: '',
     type: 'payment',
     status: 'draft',
-    projectId: projects?.[0]?.id || 0,
+    projectId: undefined as number | undefined,
     receiptDate: new Date(),
     receivedFrom: '',
     amount: 0,
@@ -151,7 +151,7 @@ export default function NewReceiptPage() {
                       </div>
                     ) : (
                       <Select
-                        value={formData.projectId.toString()}
+                        value={formData.projectId?.toString() ?? ''}
                         onValueChange={(value) =>
                           handleInputChange('projectId', Number(value))
                         }
