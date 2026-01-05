@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { format } from 'date-fns';
 import {
   Card,
   CardContent,
@@ -26,6 +25,13 @@ import {
   Activity,
   Briefcase,
   ClipboardCheck,
+  Paperclip,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  Sheet,
+  Box,
+  File,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -39,6 +45,8 @@ import {
   mockInspections,
 } from '@/components/shared/mock-data';
 import { TaskStatus } from '@/types/task';
+import { AttachmentType, formatFileSize } from '@/types/attachment';
+import { format } from 'date-fns';
 
 // Fetch project by ID from mock data
 const fetchProject = async (id: string): Promise<Project | null> => {
@@ -65,6 +73,27 @@ const getStatusBadgeColor = (status: ProjectStatus): string => {
       'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
   };
   return colors[status];
+};
+
+const getAttachmentIcon = (type: AttachmentType) => {
+  switch (type) {
+    case AttachmentType.image: {
+      return ImageIcon;
+    }
+    case AttachmentType.pdf:
+    case AttachmentType.document: {
+      return FileText;
+    }
+    case AttachmentType.spreadsheet: {
+      return Sheet;
+    }
+    case AttachmentType.cad: {
+      return Box;
+    }
+    default: {
+      return File;
+    }
+  }
 };
 
 export default function ProjectDashboardPage() {
@@ -431,6 +460,84 @@ export default function ProjectDashboardPage() {
                     </Link>
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Attachments */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Paperclip className="h-5 w-5" />
+                      Attachments
+                      {project.attachments &&
+                        project.attachments.length > 0 && (
+                          <Badge variant="outline">
+                            {project.attachments.length}
+                          </Badge>
+                        )}
+                    </CardTitle>
+                    <CardDescription>
+                      Files attached to this project
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {project.attachments && project.attachments.length > 0 ? (
+                  <div className="space-y-2">
+                    {project.attachments.map((attachment, index) => {
+                      const Icon = getAttachmentIcon(attachment.fileType);
+                      return (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                        >
+                          <div className="flex min-w-0 flex-1 items-center space-x-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                              <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
+                                {attachment.fileName}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                                <span>
+                                  {formatFileSize(attachment.fileSize)}
+                                </span>
+                                <span>•</span>
+                                <span>
+                                  Uploaded{' '}
+                                  {format(attachment.uploadedAt, 'MMM d, yyyy')}
+                                </span>
+                                <span>•</span>
+                                <span>{attachment.uploadedBy}</span>
+                              </div>
+                              {attachment.description && (
+                                <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">
+                                  {attachment.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="sm" asChild>
+                            <a href={attachment.fileUrl} download>
+                              <Download className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center">
+                    <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      No attachments yet
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

@@ -22,7 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Save, Loader2, X, UserPlus, Plus } from 'lucide-react';
+import {
+  Save,
+  Loader2,
+  X,
+  UserPlus,
+  Plus,
+  Upload,
+  FileText,
+} from 'lucide-react';
 import Link from 'next/link';
 import {
   ProjectStatus,
@@ -52,6 +60,7 @@ export default function EditProjectPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
+  const [attachments, setAttachments] = useState<File[]>([]);
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -153,6 +162,19 @@ export default function EditProjectPage() {
       prev.filter((m) => m.memberEmail !== memberEmail)
     );
     toast.success('Member removed from the team');
+  };
+
+  // Handle file upload
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = [...e.target.files];
+      setAttachments([...attachments, ...newFiles]);
+    }
+  };
+
+  // Remove attachment
+  const removeAttachment = (index: number) => {
+    setAttachments(attachments.filter((_, i) => i !== index));
   };
 
   const availableEmployees = mockEmployees.filter(
@@ -483,6 +505,104 @@ export default function EditProjectPage() {
                   placeholder="Enter project description (optional)"
                   rows={4}
                 />
+              </div>
+
+              {/* Attachments */}
+              <div className="space-y-2">
+                <Label>Attachments</Label>
+                <div className="space-y-4">
+                  {/* Existing Attachments */}
+                  {project.attachments && project.attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Current Attachments ({project.attachments.length})
+                      </p>
+                      {project.attachments.map((attachment, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
+                                {attachment.fileName}
+                              </p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {(attachment.fileSize / 1024 / 1024).toFixed(2)}{' '}
+                                MB
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* New Attachments Upload */}
+                  <div className="space-y-2">
+                    <Input
+                      id="attachments"
+                      type="file"
+                      onChange={handleFileChange}
+                      multiple
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() =>
+                        (
+                          document.querySelector('#attachments') as HTMLElement
+                        )?.click()
+                      }
+                    >
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload New Files
+                    </Button>
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      PDF, DOC, DOCX, JPG, PNG, XLSX, DWG, DXF (Max 10MB each)
+                    </p>
+                  </div>
+
+                  {/* New Files to Upload */}
+                  {attachments.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        New Files to Upload ({attachments.length})
+                      </p>
+                      {attachments.map((file, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20"
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden">
+                            <FileText className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                {(file.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={() => removeAttachment(index)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Form Actions */}
