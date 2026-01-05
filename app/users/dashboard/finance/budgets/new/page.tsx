@@ -70,8 +70,8 @@ export default function NewBudgetPage() {
     name: '',
     type: BudgetType.project,
     status: BudgetStatus.draft,
-    startDate: new Date(),
-    endDate: new Date(),
+    startDate: new Date().toISOString(),
+    endDate: new Date().toISOString(),
     totalAllocated: 0,
     totalSpent: 0,
     totalCommitted: 0,
@@ -146,12 +146,19 @@ export default function NewBudgetPage() {
   };
 
   const handleAddMilestone = () => {
+    // Generate unique ID: find max existing ID and add 1, or use timestamp
+    const maxId =
+      paymentMilestones.length > 0
+        ? Math.max(...paymentMilestones.map((m) => m.id || 0))
+        : 0;
+
     setPaymentMilestones([
       ...paymentMilestones,
       {
+        id: maxId + 1,
         name: '',
         description: '',
-        dueDate: new Date(),
+        dueDate: new Date().toISOString(),
         amount: 0,
         percentage: 0,
         status: PaymentMilestoneStatus.pending,
@@ -360,9 +367,14 @@ export default function NewBudgetPage() {
                   <Input
                     id="startDate"
                     type="date"
-                    value={getDateString(formData.startDate as Date)}
+                    value={
+                      formData.startDate ? formData.startDate.split('T')[0] : ''
+                    }
                     onChange={(e) =>
-                      handleInputChange('startDate', new Date(e.target.value))
+                      handleInputChange(
+                        'startDate',
+                        new Date(e.target.value).toISOString()
+                      )
                     }
                   />
                 </div>
@@ -374,9 +386,14 @@ export default function NewBudgetPage() {
                   <Input
                     id="endDate"
                     type="date"
-                    value={getDateString(formData.endDate as Date)}
+                    value={
+                      formData.endDate ? formData.endDate.split('T')[0] : ''
+                    }
                     onChange={(e) =>
-                      handleInputChange('endDate', new Date(e.target.value))
+                      handleInputChange(
+                        'endDate',
+                        new Date(e.target.value).toISOString()
+                      )
                     }
                   />
                 </div>
@@ -501,7 +518,7 @@ export default function NewBudgetPage() {
                         <TableHead className="min-w-[100px]">
                           Quantity
                         </TableHead>
-                        <TableHead className="min-w-[80px]">Unit</TableHead>
+                        <TableHead className="min-w-20">Unit</TableHead>
                         <TableHead className="min-w-[120px]">
                           Rate (₹)
                         </TableHead>
@@ -733,7 +750,7 @@ export default function NewBudgetPage() {
                         <TableHead className="min-w-[120px]">
                           Amount (₹)
                         </TableHead>
-                        <TableHead className="min-w-[80px]">%</TableHead>
+                        <TableHead className="min-w-20">%</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -774,12 +791,18 @@ export default function NewBudgetPage() {
                           <TableCell>
                             <Input
                               type="date"
-                              value={getDateString(milestone.dueDate as Date)}
+                              value={
+                                milestone.dueDate
+                                  ? typeof milestone.dueDate === 'string'
+                                    ? milestone.dueDate.split('T')[0]
+                                    : getDateString(milestone.dueDate)
+                                  : ''
+                              }
                               onChange={(e) =>
                                 handleMilestoneChange(
                                   index,
                                   'dueDate',
-                                  new Date(e.target.value)
+                                  new Date(e.target.value).toISOString()
                                 )
                               }
                               className="h-9"

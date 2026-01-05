@@ -128,12 +128,19 @@ export default function EditBudgetPage({
   };
 
   const handleAddMilestone = () => {
+    // Generate unique ID: find max existing ID and add 1
+    const maxId =
+      paymentMilestones.length > 0
+        ? Math.max(...paymentMilestones.map((m) => m.id || 0))
+        : 0;
+
     setPaymentMilestones([
       ...paymentMilestones,
       {
+        id: maxId + 1,
         name: '',
         description: '',
-        dueDate: new Date(),
+        dueDate: new Date().toISOString(),
         amount: 0,
         percentage: 0,
         status: PaymentMilestoneStatus.pending,
@@ -483,7 +490,7 @@ export default function EditBudgetPage({
                         <TableHead className="min-w-[100px]">
                           Quantity
                         </TableHead>
-                        <TableHead className="min-w-[80px]">Unit</TableHead>
+                        <TableHead className="min-w-20">Unit</TableHead>
                         <TableHead className="min-w-[120px]">
                           Rate (₹)
                         </TableHead>
@@ -715,7 +722,7 @@ export default function EditBudgetPage({
                         <TableHead className="min-w-[120px]">
                           Amount (₹)
                         </TableHead>
-                        <TableHead className="min-w-[80px]">%</TableHead>
+                        <TableHead className="min-w-20">%</TableHead>
                         <TableHead className="w-12"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -758,14 +765,16 @@ export default function EditBudgetPage({
                               type="date"
                               value={
                                 milestone.dueDate
-                                  ? getDateString(milestone.dueDate as Date)
+                                  ? typeof milestone.dueDate === 'string'
+                                    ? milestone.dueDate.split('T')[0]
+                                    : getDateString(milestone.dueDate)
                                   : ''
                               }
                               onChange={(e) =>
                                 handleMilestoneChange(
                                   index,
                                   'dueDate',
-                                  new Date(e.target.value)
+                                  new Date(e.target.value).toISOString()
                                 )
                               }
                               className="h-9"
