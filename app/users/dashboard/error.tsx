@@ -106,7 +106,7 @@ export default function DashboardError({
               <p>
                 Still having issues? Email{' '}
                 <a
-                  href="mailto:support@echno.com"
+                  href="mailto:support@echnoai.com"
                   className="text-primary hover:underline"
                 >
                   support@echnoai.com
