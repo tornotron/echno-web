@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+import { signIn, useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MarketingNav } from '@/components/home/marketing-nav';
 import { MarketingFooter } from '@/components/home/marketing-footer';
