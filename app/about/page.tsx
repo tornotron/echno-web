@@ -48,74 +48,74 @@ const values = [
 
 const milestones = [
   {
-    year: '2018',
-    title: 'Company Founded',
+    year: '2021',
+    title: 'Tornotron Technologies Founded',
     description:
-      'Echno was founded with a mission to modernize construction business management.',
-  },
-  {
-    year: '2019',
-    title: 'First Major Client',
-    description:
-      'Secured our first enterprise client and began scaling our platform.',
-  },
-  {
-    year: '2020',
-    title: 'Platform 2.0',
-    description:
-      'Launched major platform update with mobile apps and advanced analytics.',
+      'Founded by IITM students with a vision to offer simplified digital solutions for small and medium businesses.',
   },
   {
     year: '2022',
-    title: 'Series A Funding',
+    title: 'Digital Solutions Launch',
     description:
-      'Raised $15M in Series A to accelerate product development and expansion.',
+      'Started offering website development, e-commerce, and marketing solutions to help businesses build their digital identity.',
+  },
+  {
+    year: '2023',
+    title: 'Echno Project Initiated',
+    description:
+      'Identified the challenges faced by construction businesses and began development of the Echno platform.',
   },
   {
     year: '2024',
-    title: '50+ Enterprise Clients',
+    title: 'Platform Development',
     description:
-      'Reached milestone of serving over 50 construction companies worldwide.',
+      'Focused development on core features including project management, attendance tracking, and team collaboration.',
   },
   {
     year: '2025',
-    title: 'AI-Powered Features',
+    title: 'MVP Launch',
     description:
-      'Introduced AI-powered project forecasting and resource optimization.',
+      'Successfully launched the Echno MVP, bringing construction business management to the next level.',
   },
 ];
 
 const team = [
   {
-    name: 'Sarah Chen',
-    role: 'CEO & Co-Founder',
-    bio: 'Former construction project manager with 15 years of industry experience.',
-    image: '/team/sarah.jpg',
+    name: 'Aneesh K Johny',
+    role: 'Co-Founder & CFO',
+    bio: 'IITM alumnus driving financial strategy and business growth.',
+    image: '/team/cfo.jpg',
   },
   {
-    name: 'Michael Rodriguez',
-    role: 'CTO & Co-Founder',
-    bio: 'Tech veteran with experience building enterprise SaaS platforms.',
-    image: '/team/michael.jpg',
+    name: 'Abhijith A',
+    role: 'Co-Founder & CTO',
+    bio: 'IITM alumnus leading technology vision and platform architecture.',
+    image: '/team/cto.jpg',
   },
   {
-    name: 'Emily Thompson',
-    role: 'VP of Product',
-    bio: 'Product leader focused on creating intuitive user experiences.',
-    image: '/team/emily.jpg',
+    name: 'Anand Rajasekhar',
+    role: 'Chief Executive Officer',
+    bio: 'Driving company vision, strategy, and market expansion.',
+    image: '/team/ceo.png',
   },
   {
-    name: 'David Kim',
-    role: 'VP of Engineering',
-    bio: 'Engineering leader with expertise in scalable cloud architectures.',
-    image: '/team/david.jpg',
+    name: 'Abin K Johny',
+    role: 'Frontend Developer',
+    bio: 'Crafting intuitive and responsive user interfaces.',
+    image: '/team/frontend.jpg',
+  },
+  {
+    name: 'Hrishikesh A',
+    role: 'Backend Developer',
+    bio: 'Building robust and scalable server-side solutions.',
+    image: '/team/backend.jpg',
   },
 ];
 
 const stats = [
-  { value: '50+', label: 'Enterprise Clients' },
-  { value: '10,000+', label: 'Active Users' },
-  { value: '500+', label: 'Projects Managed' },
+  { value: '2021', label: 'Founded' },
+  { value: 'IITM', label: 'Alumni Founded' },
+  { value: '2025', label: 'MVP Launched' },
   { value: '99.9%', label: 'Platform Uptime' },
 ];
 
@@ -134,20 +134,23 @@ export default function AboutPage() {
                 About Echno
               </div>
               <h1 className="mb-6 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl dark:text-zinc-100">
-                Building the Future of
+                Empowering Businesses with
                 <span className="block bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text pb-1 text-transparent dark:from-green-400 dark:to-emerald-400">
-                  Construction Management
+                  Digital Solutions
                 </span>
               </h1>
               <p className="mb-6 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Founded in 2018, Echno was born from a simple observation: the
-                construction industry was ready for a digital transformation,
-                but lacked the right tools to make it happen.
+                Tornotron Technologies Private Limited was founded in 2021 by
+                IITM students with a mission to offer simplified digital
+                solutions for small and medium businesses to build their digital
+                identity.
               </p>
               <p className="text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-                Our founders, combining decades of construction and technology
-                expertise, set out to build a platform that would revolutionize
-                how construction companies manage their operations.
+                Starting with website development, e-commerce, and marketing
+                solutions, we later identified the unique challenges faced by
+                the construction industry. This led to the creation of Echno - a
+                comprehensive platform designed to streamline construction
+                business operations and workflows.
               </p>
             </div>
             <div className="relative">
@@ -186,15 +189,15 @@ export default function AboutPage() {
                 Our Mission
               </h2>
               <p className="mb-6 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-                To empower construction companies with technology that
-                simplifies operations, improves efficiency, and enables them to
-                focus on what they do best: building the world around us.
+                To provide simplified digital solutions that empower small and
+                medium businesses to build their digital identity and streamline
+                their operations with ease.
               </p>
               <p className="mb-8 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
-                We believe that construction professionals deserve tools as
-                sophisticated and user-friendly as those in any other industry.
-                Our platform is designed to be powerful yet intuitive,
-                comprehensive yet easy to adopt.
+                With Echno, we&apos;re bringing the same commitment to the
+                construction industry - offering powerful yet intuitive tools
+                that help construction businesses manage projects, teams, and
+                workflows efficiently.
               </p>
               <ul className="space-y-4">
                 {[
@@ -299,14 +302,20 @@ export default function AboutPage() {
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-5">
             {team.map((member) => (
               <Card
                 key={member.name}
                 className="border-zinc-200 bg-white p-6 text-center transition-shadow hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-800"
               >
-                <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700">
-                  <Users className="h-10 w-10 text-zinc-400 dark:text-zinc-500" />
+                <div className="mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-700">
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    width={96}
+                    height={96}
+                    className="h-full w-full object-cover"
+                  />
                 </div>
                 <h3 className="mb-1 font-semibold text-zinc-900 dark:text-zinc-100">
                   {member.name}
