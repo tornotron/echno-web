@@ -31,9 +31,7 @@ export async function GET() {
 
     // Check environment configuration
     const hasKeycloakConfig = !!(
-      process.env.KEYCLOAK_ISSUER &&
-      process.env.KEYCLOAK_ID &&
-      process.env.KEYCLOAK_SECRET
+      process.env.KEYCLOAK_ISSUER && process.env.KEYCLOAK_ID
     );
 
     const hasNextAuthConfig = !!(
