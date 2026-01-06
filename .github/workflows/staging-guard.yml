@@ -1,0 +1,17 @@
+name: Enforce PR source branch
+
+on:
+  pull_request:
+    branches:
+      - staging
+
+jobs:
+  check-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source branch
+        run: |
+          if [[ "${{ github.head_ref }}" != "development" ]]; then
+            echo "Only PRs from development are allowed into staging"
+            exit 1
+          fi
