@@ -258,20 +258,6 @@ export default function RoleDetailsPage({
           </div>
         </div>
 
-        {/* Action Buttons */}
-        {!isSystemAdminRole && hasChanges && (
-          <div className="flex gap-2">
-            <Button onClick={handleSave} disabled={saving}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Changes
-            </Button>
-            <Button variant="outline" onClick={handleReset} disabled={saving}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Reset
-            </Button>
-          </div>
-        )}
-
         {/* Stats Card */}
         <Card>
           <CardHeader>
@@ -360,13 +346,36 @@ export default function RoleDetailsPage({
                             {categorySelected.length} / {permissions.length}
                           </Badge>
                         </h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSelectAll(permissions)}
-                        >
-                          {allSelected ? 'Deselect All' : 'Select All'}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          {hasChanges && (
+                            <>
+                              <Button
+                                size="sm"
+                                onClick={handleSave}
+                                disabled={saving}
+                              >
+                                <Save className="mr-1 h-3 w-3" />
+                                Save Changes
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleReset}
+                                disabled={saving}
+                              >
+                                <RotateCcw className="mr-1 h-3 w-3" />
+                                Reset
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSelectAll(permissions)}
+                          >
+                            {allSelected ? 'Deselect All' : 'Select All'}
+                          </Button>
+                        </div>
                       </div>
                       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                         {permissions.map((permission) => {
