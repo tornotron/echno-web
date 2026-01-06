@@ -155,19 +155,61 @@ export default function ContactPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formState),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Contact form submission failed:', data.error);
+        // Could add error state here if needed
+        setIsSubmitting(false);
+        return;
+      }
+
+      setIsSubmitting(false);
+      setIsSubmitted(true);
+    } catch (error) {
+      console.error('Contact form submission error:', error);
+      setIsSubmitting(false);
+    }
   };
 
   const handleDemoSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsDemoSubmitting(true);
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsDemoSubmitting(false);
-    setIsDemoSubmitted(true);
+
+    try {
+      const response = await fetch('/api/demo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(demoFormState),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error('Demo request submission failed:', data.error);
+        // Could add error state here if needed
+        setIsDemoSubmitting(false);
+        return;
+      }
+
+      setIsDemoSubmitting(false);
+      setIsDemoSubmitted(true);
+    } catch (error) {
+      console.error('Demo request submission error:', error);
+      setIsDemoSubmitting(false);
+    }
   };
 
   return (
