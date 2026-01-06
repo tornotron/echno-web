@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { MarketingNav } from '@/components/home/marketing-nav';
 import { MarketingFooter } from '@/components/home/marketing-footer';
 import { Button } from '@/components/ui/button';
@@ -117,6 +119,8 @@ const colorClasses: Record<string, { bg: string; icon: string }> = {
 };
 
 export default function ContactPage() {
+  const { status } = useSession();
+  const router = useRouter();
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -136,6 +140,13 @@ export default function ContactPage() {
   });
   const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
   const [isDemoSubmitted, setIsDemoSubmitted] = useState(false);
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/users/dashboard');
+    }
+  }, [status, router]);
 
   // Scroll to demo section if hash is present
   useEffect(() => {
@@ -211,6 +222,19 @@ export default function ContactPage() {
       setIsDemoSubmitting(false);
     }
   };
+
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-zinc-900 dark:border-zinc-100"></div>
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+            {status === 'authenticated' ? 'Redirecting...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black">

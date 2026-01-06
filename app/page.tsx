@@ -19,20 +19,14 @@ import {
   BarChart2,
   Lock,
   Users,
-  Building2,
   FileText,
-  Shield,
   Zap,
   Globe,
   CheckCircle2,
   ArrowRight,
-  Mail,
-  Phone,
-  MapPin,
   Menu,
   X,
   Play,
-  Calendar,
   HardHat,
   ClipboardList,
   TrendingUp,
@@ -43,16 +37,6 @@ function HomeContent() {
   const router = useRouter();
   const currentYear = new Date().getFullYear();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // Demo form state
-  const [demoFormData, setDemoFormData] = useState({
-    fullName: '',
-    email: '',
-    company: '',
-    teamSize: '',
-  });
-  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
-  const [isDemoSubmitted, setIsDemoSubmitted] = useState(false);
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -73,48 +57,6 @@ function HomeContent() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
     setMobileMenuOpen(false);
-  };
-
-  const handleDemoSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsDemoSubmitting(true);
-
-    try {
-      const response = await fetch('/api/demo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: demoFormData.fullName,
-          email: demoFormData.email,
-          company: demoFormData.company,
-          teamSize: demoFormData.teamSize,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        toast.error('Submission failed', {
-          description: data.error || 'Please try again later.',
-        });
-        setIsDemoSubmitting(false);
-        return;
-      }
-
-      setIsDemoSubmitting(false);
-      setIsDemoSubmitted(true);
-      toast.success('Demo request submitted!', {
-        description: 'Our team will contact you shortly.',
-      });
-    } catch (error) {
-      console.error('Demo request submission error:', error);
-      toast.error('Submission failed', {
-        description: 'Please try again later.',
-      });
-      setIsDemoSubmitting(false);
-    }
   };
 
   useEffect(() => {
@@ -539,6 +481,19 @@ function HomeContent() {
               </CardHeader>
             </Card>
           </div>
+
+          {/* View All Features Button */}
+          <div className="mt-12 text-center">
+            <Button
+              onClick={() => router.push('/features')}
+              size="lg"
+              variant="outline"
+              className="border-zinc-300 px-8 py-3 text-lg text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
+            >
+              View All Features
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -653,377 +608,8 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="px-4 py-24">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <div className="mb-4 inline-flex items-center rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-              Pricing
-            </div>
-            <h2 className="mb-4 text-3xl font-bold text-zinc-900 sm:text-4xl dark:text-zinc-100">
-              Simple, Transparent Pricing
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-              Choose the plan that fits your business. All plans include core
-              features with no hidden fees.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            {/* Starter Plan */}
-            <Card className="relative border-zinc-200 bg-white transition-shadow hover:shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
-              <CardHeader className="pb-4 text-center">
-                <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">
-                  Starter
-                </CardTitle>
-                <CardDescription className="text-zinc-600 dark:text-zinc-400">
-                  Perfect for small teams
-                </CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-                    $29
-                  </span>
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    /month
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                <ul className="space-y-3">
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Up to 10 team members
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    3 active projects
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Basic analytics
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Email support
-                  </li>
-                </ul>
-                <Button
-                  variant="outline"
-                  className="mt-6 w-full border-zinc-300 dark:border-zinc-600"
-                  onClick={() => signIn('keycloak')}
-                >
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Professional Plan */}
-            <Card className="relative border-blue-500 bg-white ring-2 ring-blue-500 transition-shadow hover:shadow-xl dark:border-blue-400 dark:bg-zinc-800 dark:ring-blue-400">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 transform">
-                <span className="rounded-full bg-blue-600 px-4 py-1 text-xs font-semibold text-white">
-                  Most Popular
-                </span>
-              </div>
-              <CardHeader className="pt-8 pb-4 text-center">
-                <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">
-                  Professional
-                </CardTitle>
-                <CardDescription className="text-zinc-600 dark:text-zinc-400">
-                  Best for growing businesses
-                </CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-                    $79
-                  </span>
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    /month
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                <ul className="space-y-3">
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Up to 50 team members
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Unlimited projects
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Advanced analytics
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Priority support
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Custom integrations
-                  </li>
-                </ul>
-                <Button
-                  className="mt-6 w-full bg-blue-600 text-white hover:bg-blue-700"
-                  onClick={() => signIn('keycloak')}
-                >
-                  Get Started
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Enterprise Plan */}
-            <Card className="relative border-zinc-200 bg-white transition-shadow hover:shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
-              <CardHeader className="pb-4 text-center">
-                <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">
-                  Enterprise
-                </CardTitle>
-                <CardDescription className="text-zinc-600 dark:text-zinc-400">
-                  For large organizations
-                </CardDescription>
-                <div className="mt-4">
-                  <span className="text-4xl font-bold text-zinc-900 dark:text-zinc-100">
-                    Custom
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="border-t border-zinc-200 pt-4 dark:border-zinc-700">
-                <ul className="space-y-3">
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Unlimited team members
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Unlimited projects
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Custom analytics
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    Dedicated account manager
-                  </li>
-                  <li className="flex items-center text-sm text-zinc-600 dark:text-zinc-400">
-                    <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
-                    On-premise deployment option
-                  </li>
-                </ul>
-                <Button
-                  variant="outline"
-                  className="mt-6 w-full border-zinc-300 dark:border-zinc-600"
-                  onClick={() => scrollToSection('#contact')}
-                >
-                  Contact Sales
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Request Demo Section */}
-      <section
-        id="demo"
-        className="bg-linear-to-br from-blue-600 to-indigo-700 px-4 py-24 dark:from-blue-900 dark:to-indigo-900"
-      >
-        <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-4 inline-flex items-center rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
-            <Calendar className="mr-2 h-4 w-4" />
-            Request a Demo
-          </div>
-          <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">
-            See Echno in Action
-          </h2>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-blue-100">
-            Schedule a personalized demo with our team and discover how Echno
-            can transform your construction business operations.
-          </p>
-
-          <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 text-left shadow-2xl dark:bg-zinc-800">
-            {isDemoSubmitted ? (
-              <div className="py-8 text-center">
-                <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-600 dark:text-green-400" />
-                <h3 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                  Demo Request Submitted!
-                </h3>
-                <p className="text-zinc-600 dark:text-zinc-400">
-                  Our team will contact you shortly to schedule your
-                  personalized demo.
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleDemoSubmit} className="grid gap-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="John Doe"
-                    required
-                    value={demoFormData.fullName}
-                    onChange={(e) =>
-                      setDemoFormData({
-                        ...demoFormData,
-                        fullName: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Work Email
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="john@company.com"
-                    required
-                    value={demoFormData.email}
-                    onChange={(e) =>
-                      setDemoFormData({
-                        ...demoFormData,
-                        email: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Your Company"
-                    required
-                    value={demoFormData.company}
-                    onChange={(e) =>
-                      setDemoFormData({
-                        ...demoFormData,
-                        company: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Team Size
-                  </label>
-                  <select
-                    value={demoFormData.teamSize}
-                    onChange={(e) =>
-                      setDemoFormData({
-                        ...demoFormData,
-                        teamSize: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                  >
-                    <option value="">Select team size</option>
-                    <option value="1-10">1-10 employees</option>
-                    <option value="11-50">11-50 employees</option>
-                    <option value="51-200">51-200 employees</option>
-                    <option value="200+">200+ employees</option>
-                  </select>
-                </div>
-                <Button
-                  type="submit"
-                  size="lg"
-                  disabled={isDemoSubmitting}
-                  className="mt-4 w-full bg-blue-600 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
-                >
-                  {isDemoSubmitting ? (
-                    <>
-                      <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      Schedule Demo
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </>
-                  )}
-                </Button>
-              </form>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Contact Us Section */}
-      <section
-        id="contact"
-        className="bg-zinc-50 px-4 py-24 dark:bg-zinc-900/50"
-      >
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <div className="mb-4 inline-flex items-center rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-              Contact Us
-            </div>
-            <h2 className="mb-4 text-3xl font-bold text-zinc-900 sm:text-4xl dark:text-zinc-100">
-              Get in Touch
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-              Have questions? We&apos;d love to hear from you. Send us a message
-              and we&apos;ll respond as soon as possible.
-            </p>
-          </div>
-
-          <div className="grid gap-8 lg:grid-cols-3">
-            <Card className="border-zinc-200 bg-white p-6 text-center transition-shadow hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                <Mail className="h-7 w-7 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                Email Us
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                support@echno.com
-              </p>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                sales@echno.com
-              </p>
-            </Card>
-
-            <Card className="border-zinc-200 bg-white p-6 text-center transition-shadow hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-green-100 dark:bg-green-900/30">
-                <Phone className="h-7 w-7 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                Call Us
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                +1 (555) 123-4567
-              </p>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Mon-Fri 9am-6pm EST
-              </p>
-            </Card>
-
-            <Card className="border-zinc-200 bg-white p-6 text-center transition-shadow hover:shadow-lg dark:border-zinc-700 dark:bg-zinc-800">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-purple-100 dark:bg-purple-900/30">
-                <MapPin className="h-7 w-7 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                Visit Us
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                123 Business Ave
-              </p>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                San Francisco, CA 94107
-              </p>
-            </Card>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
-      <section className="bg-zinc-900 px-6 py-20 dark:bg-black">
+      <section className="bg-linear-to-br from-blue-600 to-indigo-700 px-6 py-20 dark:from-blue-900 dark:to-indigo-900">
         <div className="mx-auto max-w-4xl text-center">
           <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">
             Ready to Transform Your Construction Business?
@@ -1036,7 +622,7 @@ function HomeContent() {
             <Button
               onClick={() => signIn('keycloak')}
               size="lg"
-              className="bg-white px-8 py-3 text-lg text-zinc-900 hover:bg-zinc-100"
+              className="bg-white px-8 py-3 text-lg text-blue-700 hover:bg-zinc-100"
             >
               Start Your Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -1045,7 +631,7 @@ function HomeContent() {
               variant="outline"
               size="lg"
               className="border-white/70 bg-transparent px-8 py-3 text-lg text-white hover:bg-white/10 hover:text-white"
-              onClick={() => scrollToSection('#contact')}
+              onClick={() => router.push('/contact')}
             >
               Talk to Sales
             </Button>
@@ -1077,7 +663,7 @@ function HomeContent() {
               <ul className="space-y-2">
                 <li>
                   <button
-                    onClick={() => scrollToSection('#features')}
+                    onClick={() => router.push('/features')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     Features
@@ -1085,7 +671,7 @@ function HomeContent() {
                 </li>
                 <li>
                   <button
-                    onClick={() => scrollToSection('#pricing')}
+                    onClick={() => router.push('/pricing')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     Pricing
@@ -1093,7 +679,7 @@ function HomeContent() {
                 </li>
                 <li>
                   <button
-                    onClick={() => scrollToSection('#demo')}
+                    onClick={() => router.push('/contact#demo')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     Request Demo
@@ -1109,7 +695,7 @@ function HomeContent() {
               <ul className="space-y-2">
                 <li>
                   <button
-                    onClick={() => scrollToSection('#about')}
+                    onClick={() => router.push('/about')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     About Us
@@ -1117,7 +703,7 @@ function HomeContent() {
                 </li>
                 <li>
                   <button
-                    onClick={() => scrollToSection('#contact')}
+                    onClick={() => router.push('/contact')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     Contact

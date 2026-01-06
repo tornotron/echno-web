@@ -1,6 +1,8 @@
 'use client';
 
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { MarketingNav } from '@/components/home/marketing-nav';
 import { MarketingFooter } from '@/components/home/marketing-footer';
 import { Button } from '@/components/ui/button';
@@ -17,7 +19,7 @@ import {
   Linkedin,
   Twitter,
 } from 'lucide-react';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
 
 const values = [
   {
@@ -120,6 +122,28 @@ const stats = [
 ];
 
 export default function AboutPage() {
+  const { status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      router.push('/users/dashboard');
+    }
+  }, [status, router]);
+
+  if (status === 'loading' || status === 'authenticated') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+        <div className="text-center">
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-zinc-900 dark:border-zinc-100"></div>
+          <p className="mt-4 text-zinc-600 dark:text-zinc-400">
+            {status === 'authenticated' ? 'Redirecting...' : 'Loading...'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black">
       <MarketingNav currentPage="About Us" />
