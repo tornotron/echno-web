@@ -10,8 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Validate source branch
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
-          if [[ "${{ github.head_ref }}" != "development" ]]; then
+          if [[ "$HEAD_REF" != "development" ]]; then
             echo "Only PRs from development are allowed into staging"
             exit 1
           fi
