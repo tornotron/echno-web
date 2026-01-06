@@ -15,6 +15,7 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
+    { name: 'Home', href: '/' },
     { name: 'Features', href: '/features' },
     { name: 'About Us', href: '/about' },
     { name: 'Pricing', href: '/pricing' },
