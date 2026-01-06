@@ -388,12 +388,12 @@ export default function FeaturesPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-zinc-900 px-4 py-24 dark:bg-black">
+      <section className="bg-sky-100 px-4 py-24 dark:bg-sky-950">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-6 text-3xl font-bold text-white sm:text-4xl">
+          <h2 className="mb-6 text-3xl font-bold text-zinc-900 sm:text-4xl dark:text-white">
             Ready to Experience These Features?
           </h2>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-300">
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
             Start your free trial today and see how Echno can transform your
             construction business operations.
           </p>
@@ -401,7 +401,7 @@ export default function FeaturesPage() {
             <Button
               onClick={() => signIn('keycloak')}
               size="lg"
-              className="bg-white px-8 text-zinc-900 hover:bg-zinc-100"
+              className="bg-zinc-900 px-8 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
               Start Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -409,7 +409,7 @@ export default function FeaturesPage() {
             <Button
               variant="outline"
               size="lg"
-              className="border-white/70 bg-transparent px-8 text-white hover:bg-white/10 hover:text-white"
+              className="border-zinc-900 bg-transparent px-8 text-zinc-900 hover:bg-zinc-900/10 dark:border-white/70 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
               asChild
             >
               <a href="/contact#demo">Request a Demo</a>
