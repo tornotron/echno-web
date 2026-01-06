@@ -26,7 +26,6 @@ import {
   ArrowRight,
   Menu,
   X,
-  Play,
   HardHat,
   ClipboardList,
   TrendingUp,
@@ -181,14 +180,6 @@ function HomeContent() {
 
             {/* Desktop CTA */}
             <div className="hidden items-center space-x-4 md:flex">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => router.push('/contact#demo')}
-                className="border-zinc-300 text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
-              >
-                Request Demo
-              </Button>
               <AuthButton />
             </div>
 
@@ -222,13 +213,6 @@ function HomeContent() {
                   {link.name}
                 </button>
               ))}
-              <Button
-                onClick={() => router.push('/contact#demo')}
-                className="mt-2 w-full"
-                variant="outline"
-              >
-                Request Demo
-              </Button>
             </div>
           </div>
         )}
@@ -270,10 +254,10 @@ function HomeContent() {
                   variant="outline"
                   size="lg"
                   className="border-zinc-300 px-8 py-3 text-lg text-zinc-700 hover:bg-zinc-50 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
-                  onClick={() => scrollToSection('#demo')}
+                  onClick={() => router.push('/contact#demo')}
                 >
-                  <Play className="mr-2 h-5 w-5" />
-                  Watch Demo
+                  Request Demo
+                  <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
             </div>
