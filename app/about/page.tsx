@@ -327,18 +327,18 @@ export default function AboutPage() {
                   {member.bio}
                 </p>
                 <div className="flex justify-center space-x-3">
-                  <a
-                    href="#"
-                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none text-zinc-400"
                   >
                     <Linkedin className="h-5 w-5" />
-                  </a>
-                  <a
-                    href="#"
-                    className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none text-zinc-400"
                   >
                     <Twitter className="h-5 w-5" />
-                  </a>
+                  </span>
                 </div>
               </Card>
             ))}

@@ -44,7 +44,18 @@ function HomeContent() {
   const currentYear = new Date().getFullYear();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  // Demo form state
+  const [demoFormData, setDemoFormData] = useState({
+    fullName: '',
+    email: '',
+    company: '',
+    teamSize: '',
+  });
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState(false);
+  const [isDemoSubmitted, setIsDemoSubmitted] = useState(false);
+
   const navLinks = [
+    { name: 'Home', href: '/' },
     { name: 'Features', href: '/features' },
     { name: 'About Us', href: '/about' },
     { name: 'Pricing', href: '/pricing' },
@@ -62,6 +73,48 @@ function HomeContent() {
       element.scrollIntoView({ behavior: 'smooth' });
     }
     setMobileMenuOpen(false);
+  };
+
+  const handleDemoSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsDemoSubmitting(true);
+
+    try {
+      const response = await fetch('/api/demo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: demoFormData.fullName,
+          email: demoFormData.email,
+          company: demoFormData.company,
+          teamSize: demoFormData.teamSize,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error('Submission failed', {
+          description: data.error || 'Please try again later.',
+        });
+        setIsDemoSubmitting(false);
+        return;
+      }
+
+      setIsDemoSubmitting(false);
+      setIsDemoSubmitted(true);
+      toast.success('Demo request submitted!', {
+        description: 'Our team will contact you shortly.',
+      });
+    } catch (error) {
+      console.error('Demo request submission error:', error);
+      toast.error('Submission failed', {
+        description: 'Please try again later.',
+      });
+      setIsDemoSubmitting(false);
+    }
   };
 
   useEffect(() => {
@@ -789,57 +842,114 @@ function HomeContent() {
           </p>
 
           <div className="mx-auto max-w-xl rounded-2xl bg-white p-8 text-left shadow-2xl dark:bg-zinc-800">
-            <div className="grid gap-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="John Doe"
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                />
+            {isDemoSubmitted ? (
+              <div className="py-8 text-center">
+                <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-green-600 dark:text-green-400" />
+                <h3 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+                  Demo Request Submitted!
+                </h3>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  Our team will contact you shortly to schedule your
+                  personalized demo.
+                </p>
               </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Work Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="john@company.com"
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Your Company"
-                  className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Team Size
-                </label>
-                <select className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100">
-                  <option value="">Select team size</option>
-                  <option value="1-10">1-10 employees</option>
-                  <option value="11-50">11-50 employees</option>
-                  <option value="51-200">51-200 employees</option>
-                  <option value="200+">200+ employees</option>
-                </select>
-              </div>
-              <Button
-                size="lg"
-                className="mt-4 w-full bg-blue-600 py-3 text-white hover:bg-blue-700"
-              >
-                Schedule Demo
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </div>
+            ) : (
+              <form onSubmit={handleDemoSubmit} className="grid gap-4">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="John Doe"
+                    required
+                    value={demoFormData.fullName}
+                    onChange={(e) =>
+                      setDemoFormData({
+                        ...demoFormData,
+                        fullName: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Work Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="john@company.com"
+                    required
+                    value={demoFormData.email}
+                    onChange={(e) =>
+                      setDemoFormData({
+                        ...demoFormData,
+                        email: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Company Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Your Company"
+                    required
+                    value={demoFormData.company}
+                    onChange={(e) =>
+                      setDemoFormData({
+                        ...demoFormData,
+                        company: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    Team Size
+                  </label>
+                  <select
+                    value={demoFormData.teamSize}
+                    onChange={(e) =>
+                      setDemoFormData({
+                        ...demoFormData,
+                        teamSize: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-blue-500 dark:border-zinc-600 dark:bg-zinc-700 dark:text-zinc-100"
+                  >
+                    <option value="">Select team size</option>
+                    <option value="1-10">1-10 employees</option>
+                    <option value="11-50">11-50 employees</option>
+                    <option value="51-200">51-200 employees</option>
+                    <option value="200+">200+ employees</option>
+                  </select>
+                </div>
+                <Button
+                  type="submit"
+                  size="lg"
+                  disabled={isDemoSubmitting}
+                  className="mt-4 w-full bg-blue-600 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isDemoSubmitting ? (
+                    <>
+                      <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
+                      Submitting...
+                    </>
+                  ) : (
+                    <>
+                      Schedule Demo
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </form>
+            )}
           </div>
         </div>
       </section>
