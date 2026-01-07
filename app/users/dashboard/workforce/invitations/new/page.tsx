@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -374,414 +373,404 @@ export default function NewInvitationPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Create New Invitation
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Generate an invitation code for a new employee
-          </p>
-        </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+          Create New Invitation
+        </h1>
+        <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+          Generate an invitation code for a new employee
+        </p>
+      </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Form Section */}
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Employee Information</CardTitle>
-                <CardDescription>
-                  Fill in the employee details to generate an invitation
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleGenerate} className="space-y-6">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="employeeId">
-                        Employee ID <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="employeeId"
-                        placeholder="e.g., EMP-2025-001"
-                        value={formData.employeeId}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            employeeId: e.target.value,
-                          })
-                        }
-                        disabled={isGenerated}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="employeeName">Full Name</Label>
-                      <Input
-                        id="employeeName"
-                        placeholder="e.g., John Doe"
-                        value={formData.employeeName}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            employeeName: e.target.value,
-                          })
-                        }
-                        disabled={isGenerated}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Contact Info */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        placeholder="john.doe@email.com"
-                        value={formData.email}
-                        onChange={(e) =>
-                          setFormData({ ...formData, email: e.target.value })
-                        }
-                        disabled={isGenerated}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        placeholder="+91-9876543210"
-                        value={formData.phone}
-                        onChange={(e) =>
-                          setFormData({ ...formData, phone: e.target.value })
-                        }
-                        disabled={isGenerated}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Position Info */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="designation">
-                        Designation <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="designation"
-                        placeholder="e.g., Senior Engineer"
-                        value={formData.designation}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            designation: e.target.value,
-                          })
-                        }
-                        disabled={isGenerated}
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="department">
-                        Department <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={formData.department}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, department: value })
-                        }
-                        disabled={isGenerated}
-                        required
-                      >
-                        <SelectTrigger id="department">
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Engineering">
-                            Engineering
-                          </SelectItem>
-                          <SelectItem value="Quality">Quality</SelectItem>
-                          <SelectItem value="Safety">Safety</SelectItem>
-                          <SelectItem value="Human Resources">
-                            Human Resources
-                          </SelectItem>
-                          <SelectItem value="Operations">Operations</SelectItem>
-                          <SelectItem value="Finance">Finance</SelectItem>
-                          <SelectItem value="Administration">
-                            Administration
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Employment Details */}
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="joiningDate">Joining Date</Label>
-                      <Input
-                        id="joiningDate"
-                        type="date"
-                        value={formData.joiningDate}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            joiningDate: e.target.value,
-                          })
-                        }
-                        disabled={isGenerated}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="salary">Salary (₹)</Label>
-                      <Input
-                        id="salary"
-                        type="number"
-                        placeholder="e.g., 50000"
-                        value={formData.salary}
-                        onChange={(e) =>
-                          setFormData({ ...formData, salary: e.target.value })
-                        }
-                        disabled={isGenerated}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="reportingManager">
-                        Reporting Manager
-                      </Label>
-                      <Input
-                        id="reportingManager"
-                        placeholder="e.g., Jane Smith"
-                        value={formData.reportingManager}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            reportingManager: e.target.value,
-                          })
-                        }
-                        disabled={isGenerated}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="shiftTiming">Shift Timing</Label>
-                      <Select
-                        value={formData.shiftTiming}
-                        onValueChange={(value) =>
-                          setFormData({ ...formData, shiftTiming: value })
-                        }
-                        disabled={isGenerated}
-                      >
-                        <SelectTrigger id="shiftTiming">
-                          <SelectValue placeholder="Select shift" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="9:00 AM - 6:00 PM">
-                            9:00 AM - 6:00 PM
-                          </SelectItem>
-                          <SelectItem value="10:00 AM - 7:00 PM">
-                            10:00 AM - 7:00 PM
-                          </SelectItem>
-                          <SelectItem value="6:00 AM - 3:00 PM">
-                            6:00 AM - 3:00 PM
-                          </SelectItem>
-                          <SelectItem value="2:00 PM - 11:00 PM">
-                            2:00 PM - 11:00 PM
-                          </SelectItem>
-                          <SelectItem value="Flexible">Flexible</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Validity */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Form Section */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Employee Information</CardTitle>
+              <CardDescription>
+                Fill in the employee details to generate an invitation
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleGenerate} className="space-y-6">
+                {/* Basic Info */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="validityDays">
-                      Invitation Validity (Days)
+                    <Label htmlFor="employeeId">
+                      Employee ID <span className="text-red-500">*</span>
                     </Label>
-                    <Select
-                      value={formData.validityDays}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, validityDays: value })
+                    <Input
+                      id="employeeId"
+                      placeholder="e.g., EMP-2025-001"
+                      value={formData.employeeId}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          employeeId: e.target.value,
+                        })
                       }
                       disabled={isGenerated}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="employeeName">Full Name</Label>
+                    <Input
+                      id="employeeName"
+                      placeholder="e.g., John Doe"
+                      value={formData.employeeName}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          employeeName: e.target.value,
+                        })
+                      }
+                      disabled={isGenerated}
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Info */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email Address</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="john.doe@email.com"
+                      value={formData.email}
+                      onChange={(e) =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      disabled={isGenerated}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+91-9876543210"
+                      value={formData.phone}
+                      onChange={(e) =>
+                        setFormData({ ...formData, phone: e.target.value })
+                      }
+                      disabled={isGenerated}
+                    />
+                  </div>
+                </div>
+
+                {/* Position Info */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="designation">
+                      Designation <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="designation"
+                      placeholder="e.g., Senior Engineer"
+                      value={formData.designation}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          designation: e.target.value,
+                        })
+                      }
+                      disabled={isGenerated}
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="department">
+                      Department <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={formData.department}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, department: value })
+                      }
+                      disabled={isGenerated}
+                      required
                     >
-                      <SelectTrigger id="validityDays">
-                        <SelectValue />
+                      <SelectTrigger id="department">
+                        <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="7">7 days</SelectItem>
-                        <SelectItem value="15">15 days</SelectItem>
-                        <SelectItem value="30">
-                          30 days (Recommended)
+                        <SelectItem value="Engineering">Engineering</SelectItem>
+                        <SelectItem value="Quality">Quality</SelectItem>
+                        <SelectItem value="Safety">Safety</SelectItem>
+                        <SelectItem value="Human Resources">
+                          Human Resources
                         </SelectItem>
-                        <SelectItem value="60">60 days</SelectItem>
-                        <SelectItem value="90">90 days</SelectItem>
+                        <SelectItem value="Operations">Operations</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Administration">
+                          Administration
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
 
-                  {/* Submit Button */}
-                  {!isGenerated && (
-                    <Button type="submit" className="w-full">
-                      <QrCode className="mr-2 h-4 w-4" />
-                      Generate Invitation
-                    </Button>
-                  )}
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+                {/* Employment Details */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="joiningDate">Joining Date</Label>
+                    <Input
+                      id="joiningDate"
+                      type="date"
+                      value={formData.joiningDate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          joiningDate: e.target.value,
+                        })
+                      }
+                      disabled={isGenerated}
+                    />
+                  </div>
 
-          {/* Preview/Actions Section */}
-          <div className="lg:col-span-1">
-            {isGenerated ? (
-              <>
-                {/* Invite Code Card */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle className="text-center">
-                      Invitation Code
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-lg bg-zinc-100 p-6 text-center dark:bg-zinc-800">
-                      <div className="mb-4 font-mono text-2xl font-bold tracking-wider text-blue-600 dark:text-blue-400">
-                        {inviteCode}
-                      </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => copyToClipboard(inviteCode)}
-                        className="w-full"
-                      >
-                        {copied ? (
-                          <>
-                            <Check className="mr-2 h-4 w-4" />
-                            Copied!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="mr-2 h-4 w-4" />
-                            Copy Code
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="salary">Salary (₹)</Label>
+                    <Input
+                      id="salary"
+                      type="number"
+                      placeholder="e.g., 50000"
+                      value={formData.salary}
+                      onChange={(e) =>
+                        setFormData({ ...formData, salary: e.target.value })
+                      }
+                      disabled={isGenerated}
+                    />
+                  </div>
+                </div>
 
-                    {/* QR Code Placeholder */}
-                    <div className="mt-4 rounded-lg border-2 border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                      <div className="flex aspect-square items-center justify-center">
-                        <QrCode className="h-32 w-32 text-zinc-400 dark:text-zinc-600" />
-                      </div>
-                      <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                        QR Code (Scan with mobile app)
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="reportingManager">Reporting Manager</Label>
+                    <Input
+                      id="reportingManager"
+                      placeholder="e.g., Jane Smith"
+                      value={formData.reportingManager}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          reportingManager: e.target.value,
+                        })
+                      }
+                      disabled={isGenerated}
+                    />
+                  </div>
 
-                {/* Share Options Card */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Share Invitation</CardTitle>
-                    <CardDescription>
-                      Send the invitation to the employee
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    {formData.phone && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={sendViaWhatsApp}
-                      >
-                        <MessageSquare className="mr-2 h-4 w-4 text-green-600" />
-                        Send via WhatsApp
-                      </Button>
-                    )}
-
-                    {formData.email && (
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={sendViaEmail}
-                      >
-                        <Mail className="mr-2 h-4 w-4 text-blue-600" />
-                        Send via Email
-                      </Button>
-                    )}
-
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={sendViaSlack}
+                  <div className="space-y-2">
+                    <Label htmlFor="shiftTiming">Shift Timing</Label>
+                    <Select
+                      value={formData.shiftTiming}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, shiftTiming: value })
+                      }
+                      disabled={isGenerated}
                     >
-                      <MessageSquare className="mr-2 h-4 w-4 text-purple-600" />
-                      Copy for Slack
-                    </Button>
+                      <SelectTrigger id="shiftTiming">
+                        <SelectValue placeholder="Select shift" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="9:00 AM - 6:00 PM">
+                          9:00 AM - 6:00 PM
+                        </SelectItem>
+                        <SelectItem value="10:00 AM - 7:00 PM">
+                          10:00 AM - 7:00 PM
+                        </SelectItem>
+                        <SelectItem value="6:00 AM - 3:00 PM">
+                          6:00 AM - 3:00 PM
+                        </SelectItem>
+                        <SelectItem value="2:00 PM - 11:00 PM">
+                          2:00 PM - 11:00 PM
+                        </SelectItem>
+                        <SelectItem value="Flexible">Flexible</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={sendViaDiscord}
-                    >
-                      <MessageSquare className="mr-2 h-4 w-4 text-indigo-600" />
-                      Copy for Discord
-                    </Button>
+                {/* Validity */}
+                <div className="space-y-2">
+                  <Label htmlFor="validityDays">
+                    Invitation Validity (Days)
+                  </Label>
+                  <Select
+                    value={formData.validityDays}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, validityDays: value })
+                    }
+                    disabled={isGenerated}
+                  >
+                    <SelectTrigger id="validityDays">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">7 days</SelectItem>
+                      <SelectItem value="15">15 days</SelectItem>
+                      <SelectItem value="30">30 days (Recommended)</SelectItem>
+                      <SelectItem value="60">60 days</SelectItem>
+                      <SelectItem value="90">90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                    <Button
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={printInvitation}
-                    >
-                      <Printer className="mr-2 h-4 w-4 text-zinc-600" />
-                      Print Invitation Letter
-                    </Button>
+                {/* Submit Button */}
+                {!isGenerated && (
+                  <Button type="submit" className="w-full">
+                    <QrCode className="mr-2 h-4 w-4" />
+                    Generate Invitation
+                  </Button>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+        </div>
 
-                    <div className="border-t pt-4">
-                      <Link href="/users/dashboard/workforce/invitations">
-                        <Button variant="default" className="w-full">
-                          <Save className="mr-2 h-4 w-4" />
-                          Save & Go to Invitations
-                        </Button>
-                      </Link>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <Card>
+        {/* Preview/Actions Section */}
+        <div className="lg:col-span-1">
+          {isGenerated ? (
+            <>
+              {/* Invite Code Card */}
+              <Card className="mb-6">
                 <CardHeader>
-                  <CardTitle>Preview</CardTitle>
-                  <CardDescription>
-                    Fill the form to generate invitation
-                  </CardDescription>
+                  <CardTitle className="text-center">Invitation Code</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="py-8 text-center">
-                    <QrCode className="mx-auto mb-4 h-16 w-16 text-zinc-300 dark:text-zinc-700" />
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Invitation code will appear here
+                  <div className="rounded-lg bg-zinc-100 p-6 text-center dark:bg-zinc-800">
+                    <div className="mb-4 font-mono text-2xl font-bold tracking-wider text-blue-600 dark:text-blue-400">
+                      {inviteCode}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(inviteCode)}
+                      className="w-full"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="mr-2 h-4 w-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Code
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* QR Code Placeholder */}
+                  <div className="mt-4 rounded-lg border-2 border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                    <div className="flex aspect-square items-center justify-center">
+                      <QrCode className="h-32 w-32 text-zinc-400 dark:text-zinc-600" />
+                    </div>
+                    <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                      QR Code (Scan with mobile app)
                     </p>
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
+
+              {/* Share Options Card */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Share Invitation</CardTitle>
+                  <CardDescription>
+                    Send the invitation to the employee
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {formData.phone && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={sendViaWhatsApp}
+                    >
+                      <MessageSquare className="mr-2 h-4 w-4 text-green-600" />
+                      Send via WhatsApp
+                    </Button>
+                  )}
+
+                  {formData.email && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={sendViaEmail}
+                    >
+                      <Mail className="mr-2 h-4 w-4 text-blue-600" />
+                      Send via Email
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={sendViaSlack}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4 text-purple-600" />
+                    Copy for Slack
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={sendViaDiscord}
+                  >
+                    <MessageSquare className="mr-2 h-4 w-4 text-indigo-600" />
+                    Copy for Discord
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={printInvitation}
+                  >
+                    <Printer className="mr-2 h-4 w-4 text-zinc-600" />
+                    Print Invitation Letter
+                  </Button>
+
+                  <div className="border-t pt-4">
+                    <Link href="/users/dashboard/workforce/invitations">
+                      <Button variant="default" className="w-full">
+                        <Save className="mr-2 h-4 w-4" />
+                        Save & Go to Invitations
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardHeader>
+                <CardTitle>Preview</CardTitle>
+                <CardDescription>
+                  Fill the form to generate invitation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="py-8 text-center">
+                  <QrCode className="mx-auto mb-4 h-16 w-16 text-zinc-300 dark:text-zinc-700" />
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Invitation code will appear here
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }
