@@ -41,7 +41,11 @@ async function refreshAccessToken(
       expiresAt: refreshed.expires_at
         ? refreshed.expires_at * 1000
         : Date.now() + refreshed.expires_in * 1000,
-      sessionExpiresAt: token.sessionExpiresAt,
+      // Update sessionExpiresAt when refresh token is used
+      // Keycloak extends the SSO session when refresh token is used
+      sessionExpiresAt: refreshed.refresh_expires_in
+        ? Date.now() + refreshed.refresh_expires_in * 1000
+        : token.sessionExpiresAt,
       lastRefresh: Date.now(),
       error: undefined, // Clear any previous errors
     };
