@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { AppLayout } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -128,289 +127,277 @@ export default function NewExpensePage() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Create New Expense</h1>
-            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-              Record a new expense for tracking and approval
-            </p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Create New Expense</h1>
+          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+            Record a new expense for tracking and approval
+          </p>
         </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Basic Information</CardTitle>
-              <CardDescription>
-                Enter the basic details of the expense
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="expenseNumber">Expense Number</Label>
-                  <Input
-                    id="expenseNumber"
-                    placeholder="e.g., EXP-2024-001"
-                    value={formData.expenseNumber || ''}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'expenseNumber',
-                        e.target.value as never
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="expenseDate">Expense Date</Label>
-                  <Input
-                    id="expenseDate"
-                    type="date"
-                    value={getDateString(formData.expenseDate || new Date())}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'expenseDate',
-                        new Date(e.target.value) as never
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <Select
-                    value={formData.type || ExpenseType.direct}
-                    onValueChange={(value) =>
-                      handleInputChange('type', value as never)
-                    }
-                  >
-                    <SelectTrigger id="type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {expenseTypeOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category || ExpenseCategory.materials}
-                    onValueChange={(value) =>
-                      handleInputChange('category', value as never)
-                    }
-                  >
-                    <SelectTrigger id="category">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {expenseCategoryOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe the expense..."
-                  value={formData.description || ''}
-                  onChange={(e) =>
-                    handleInputChange('description', e.target.value as never)
-                  }
-                  className="min-h-24"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Amount & Tax */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Amount & Tax</CardTitle>
-              <CardDescription>
-                Enter the amount and applicable tax details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="amount">Amount (₹)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="0"
-                    value={formData.amount || 0}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'amount',
-                        Number(e.target.value) as never
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="taxRate">Tax Rate (%)</Label>
-                  <Input
-                    id="taxRate"
-                    type="number"
-                    placeholder="0"
-                    step="0.01"
-                    value={formData.taxRate || 0}
-                    onChange={(e) =>
-                      handleInputChange(
-                        'taxRate',
-                        Number(e.target.value) as never
-                      )
-                    }
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
-                  <Select
-                    value={formData.currency || 'INR'}
-                    onValueChange={(value) =>
-                      handleInputChange('currency', value as never)
-                    }
-                  >
-                    <SelectTrigger id="currency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="INR">INR (₹)</SelectItem>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
-                      <SelectItem value="GBP">GBP (£)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Summary */}
-              <div className="grid grid-cols-1 gap-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3 dark:border-zinc-800 dark:bg-zinc-900/50">
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Subtotal
-                  </p>
-                  <p className="mt-1 text-xl font-bold">
-                    ₹{(formData.amount || 0).toLocaleString('en-IN')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Tax
-                  </p>
-                  <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
-                    ₹{(formData.taxAmount || 0).toLocaleString('en-IN')}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Total
-                  </p>
-                  <p className="mt-1 text-xl font-bold text-blue-600 dark:text-blue-400">
-                    ₹{(formData.totalAmount || 0).toLocaleString('en-IN')}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Additional Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Additional Details</CardTitle>
-              <CardDescription>
-                Add payment method, bill details, and notes
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="paymentMethod">Payment Method</Label>
-                  <Select
-                    value={formData.paymentMethod || ''}
-                    onValueChange={(value) =>
-                      handleInputChange('paymentMethod', value as never)
-                    }
-                  >
-                    <SelectTrigger id="paymentMethod">
-                      <SelectValue placeholder="Select payment method" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Cash">Cash</SelectItem>
-                      <SelectItem value="Check">Check</SelectItem>
-                      <SelectItem value="Bank Transfer">
-                        Bank Transfer
-                      </SelectItem>
-                      <SelectItem value="Credit Card">Credit Card</SelectItem>
-                      <SelectItem value="Debit Card">Debit Card</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="billNumber">Bill Number (Optional)</Label>
-                  <Input
-                    id="billNumber"
-                    placeholder="Bill/Invoice number"
-                    value={formData.billNumber || ''}
-                    onChange={(e) =>
-                      handleInputChange('billNumber', e.target.value as never)
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Add any additional notes..."
-                  value={formData.notes || ''}
-                  onChange={(e) =>
-                    handleInputChange('notes', e.target.value as never)
-                  }
-                  className="min-h-20"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3">
-            <Button type="submit" className="gap-2">
-              <Save className="h-4 w-4" />
-              Create Expense
-            </Button>
-            <Button variant="outline" asChild>
-              <Link href="/users/dashboard/finance/expenses">
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Link>
-            </Button>
-          </div>
-        </form>
       </div>
-    </AppLayout>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Basic Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Basic Information</CardTitle>
+            <CardDescription>
+              Enter the basic details of the expense
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="expenseNumber">Expense Number</Label>
+                <Input
+                  id="expenseNumber"
+                  placeholder="e.g., EXP-2024-001"
+                  value={formData.expenseNumber || ''}
+                  onChange={(e) =>
+                    handleInputChange('expenseNumber', e.target.value as never)
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expenseDate">Expense Date</Label>
+                <Input
+                  id="expenseDate"
+                  type="date"
+                  value={getDateString(formData.expenseDate || new Date())}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'expenseDate',
+                      new Date(e.target.value) as never
+                    )
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select
+                  value={formData.type || ExpenseType.direct}
+                  onValueChange={(value) =>
+                    handleInputChange('type', value as never)
+                  }
+                >
+                  <SelectTrigger id="type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {expenseTypeOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  value={formData.category || ExpenseCategory.materials}
+                  onValueChange={(value) =>
+                    handleInputChange('category', value as never)
+                  }
+                >
+                  <SelectTrigger id="category">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {expenseCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Describe the expense..."
+                value={formData.description || ''}
+                onChange={(e) =>
+                  handleInputChange('description', e.target.value as never)
+                }
+                className="min-h-24"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Amount & Tax */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Amount & Tax</CardTitle>
+            <CardDescription>
+              Enter the amount and applicable tax details
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount (₹)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  placeholder="0"
+                  value={formData.amount || 0}
+                  onChange={(e) =>
+                    handleInputChange('amount', Number(e.target.value) as never)
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                <Input
+                  id="taxRate"
+                  type="number"
+                  placeholder="0"
+                  step="0.01"
+                  value={formData.taxRate || 0}
+                  onChange={(e) =>
+                    handleInputChange(
+                      'taxRate',
+                      Number(e.target.value) as never
+                    )
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="currency">Currency</Label>
+                <Select
+                  value={formData.currency || 'INR'}
+                  onValueChange={(value) =>
+                    handleInputChange('currency', value as never)
+                  }
+                >
+                  <SelectTrigger id="currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="INR">INR (₹)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Summary */}
+            <div className="grid grid-cols-1 gap-4 rounded-lg border border-zinc-200 bg-zinc-50 p-4 md:grid-cols-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+              <div>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Subtotal
+                </p>
+                <p className="mt-1 text-xl font-bold">
+                  ₹{(formData.amount || 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">Tax</p>
+                <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
+                  ₹{(formData.taxAmount || 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Total
+                </p>
+                <p className="mt-1 text-xl font-bold text-blue-600 dark:text-blue-400">
+                  ₹{(formData.totalAmount || 0).toLocaleString('en-IN')}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Additional Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Additional Details</CardTitle>
+            <CardDescription>
+              Add payment method, bill details, and notes
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Payment Method</Label>
+                <Select
+                  value={formData.paymentMethod || ''}
+                  onValueChange={(value) =>
+                    handleInputChange('paymentMethod', value as never)
+                  }
+                >
+                  <SelectTrigger id="paymentMethod">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cash">Cash</SelectItem>
+                    <SelectItem value="Check">Check</SelectItem>
+                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="Credit Card">Credit Card</SelectItem>
+                    <SelectItem value="Debit Card">Debit Card</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="billNumber">Bill Number (Optional)</Label>
+                <Input
+                  id="billNumber"
+                  placeholder="Bill/Invoice number"
+                  value={formData.billNumber || ''}
+                  onChange={(e) =>
+                    handleInputChange('billNumber', e.target.value as never)
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                placeholder="Add any additional notes..."
+                value={formData.notes || ''}
+                onChange={(e) =>
+                  handleInputChange('notes', e.target.value as never)
+                }
+                className="min-h-20"
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button type="submit" className="gap-2">
+            <Save className="h-4 w-4" />
+            Create Expense
+          </Button>
+          <Button variant="outline" asChild>
+            <Link href="/users/dashboard/finance/expenses">
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Link>
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 }
