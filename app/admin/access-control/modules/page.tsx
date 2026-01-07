@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
 import { redirect } from 'next/navigation';
-import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -271,255 +271,247 @@ export default function ModulesPage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-            <p className="text-muted-foreground">Loading modules...</p>
-          </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
+          <p className="text-muted-foreground">Loading modules...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Module Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage module entitlements and licenses
-            </p>
-          </div>
-          <Button>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Module
-          </Button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Total Modules</CardDescription>
-              <Blocks className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalModules}</div>
-              <p className="text-muted-foreground text-xs">Available modules</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Active</CardDescription>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {totalActiveEntitlements}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                Active entitlements
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Trial</CardDescription>
-              <Clock className="h-4 w-4 text-yellow-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {totalTrialEntitlements}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                Trial entitlements
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Suspended</CardDescription>
-              <XCircle className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {totalSuspendedEntitlements}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                Suspended entitlements
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filters */}
-        <SearchAndFilter
-          variant="card"
-          searchValue={searchQuery}
-          onSearchChange={(value) => {
-            setSearchQuery(value);
-            setCurrentPage(1);
-          }}
-          searchPlaceholder="Search modules..."
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
-          filters={[
-            {
-              placeholder: 'Status',
-              options: [
-                { value: 'all', label: 'All Status' },
-                { value: 'active', label: 'Active' },
-                { value: 'trial', label: 'Trial' },
-                { value: 'suspended', label: 'Suspended' },
-                { value: 'expired', label: 'Expired' },
-              ],
-              value: statusFilter,
-              onChange: (value) => {
-                setStatusFilter(value);
-                setCurrentPage(1);
-              },
-            },
-          ]}
-        />
-
-        {/* Results Summary */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to{' '}
-            {Math.min(endIndex, filteredModules.length)} of{' '}
-            {filteredModules.length} modules
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Module Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage module entitlements and licenses
           </p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Rows per page:
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => {
-                setItemsPerPage(Number(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
-
-        {/* Modules Table */}
-        {filteredModules.length > 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Module</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>License Types</TableHead>
-                    <TableHead>Organizations</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedModules.map((mod) => (
-                    <TableRow
-                      key={mod.module}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (globalThis.location.href = `/admin/access-control/modules/${mod.module}`)
-                      }
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
-                            <Blocks className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <div className="font-medium">
-                              {getModuleDisplayName(mod.module)}
-                            </div>
-                            <div className="text-muted-foreground text-sm">
-                              {mod.module}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {getStatusBadge(
-                            mod.activeCount,
-                            mod.trialCount,
-                            mod.suspendedCount,
-                            mod.expiredCount
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {getLicenseTypeBadges(
-                            mod.paidLicenses,
-                            mod.freeLicenses,
-                            mod.trialLicenses
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="text-muted-foreground h-4 w-4" />
-                          <span className="font-medium">{mod.totalOrgs}</span>
-                          <span className="text-muted-foreground text-sm">
-                            organizations
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-
-            {/* Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Blocks className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                No modules found
-              </h3>
-              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-                {hasActiveFilters
-                  ? 'Try adjusting your search or filters'
-                  : 'Get started by adding your first module'}
-              </p>
-              {!hasActiveFilters && (
-                <Button>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add Module
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <Button>
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Module
+        </Button>
       </div>
-    </AppLayout>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Total Modules</CardDescription>
+            <Blocks className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalModules}</div>
+            <p className="text-muted-foreground text-xs">Available modules</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Active</CardDescription>
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {totalActiveEntitlements}
+            </div>
+            <p className="text-muted-foreground text-xs">Active entitlements</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Trial</CardDescription>
+            <Clock className="h-4 w-4 text-yellow-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-yellow-600">
+              {totalTrialEntitlements}
+            </div>
+            <p className="text-muted-foreground text-xs">Trial entitlements</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Suspended</CardDescription>
+            <XCircle className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {totalSuspendedEntitlements}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Suspended entitlements
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filters */}
+      <SearchAndFilter
+        variant="card"
+        searchValue={searchQuery}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          setCurrentPage(1);
+        }}
+        searchPlaceholder="Search modules..."
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        filters={[
+          {
+            placeholder: 'Status',
+            options: [
+              { value: 'all', label: 'All Status' },
+              { value: 'active', label: 'Active' },
+              { value: 'trial', label: 'Trial' },
+              { value: 'suspended', label: 'Suspended' },
+              { value: 'expired', label: 'Expired' },
+            ],
+            value: statusFilter,
+            onChange: (value) => {
+              setStatusFilter(value);
+              setCurrentPage(1);
+            },
+          },
+        ]}
+      />
+
+      {/* Results Summary */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Showing {startIndex + 1} to{' '}
+          {Math.min(endIndex, filteredModules.length)} of{' '}
+          {filteredModules.length} modules
+        </p>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Rows per page:
+          </span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Modules Table */}
+      {filteredModules.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Module</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>License Types</TableHead>
+                  <TableHead>Organizations</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedModules.map((mod) => (
+                  <TableRow
+                    key={mod.module}
+                    className="hover:bg-muted/50 cursor-pointer"
+                    onClick={() =>
+                      (globalThis.location.href = `/admin/access-control/modules/${mod.module}`)
+                    }
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
+                          <Blocks className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium">
+                            {getModuleDisplayName(mod.module)}
+                          </div>
+                          <div className="text-muted-foreground text-sm">
+                            {mod.module}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {getStatusBadge(
+                          mod.activeCount,
+                          mod.trialCount,
+                          mod.suspendedCount,
+                          mod.expiredCount
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {getLicenseTypeBadges(
+                          mod.paidLicenses,
+                          mod.freeLicenses,
+                          mod.trialLicenses
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="text-muted-foreground h-4 w-4" />
+                        <span className="font-medium">{mod.totalOrgs}</span>
+                        <span className="text-muted-foreground text-sm">
+                          organizations
+                        </span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Blocks className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              No modules found
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              {hasActiveFilters
+                ? 'Try adjusting your search or filters'
+                : 'Get started by adding your first module'}
+            </p>
+            {!hasActiveFilters && (
+              <Button>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Module
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

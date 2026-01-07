@@ -51,7 +51,6 @@ import {
   getUserPermissionsWithGrants,
   getPermissionSources,
 } from '@/lib/rbac/permissions';
-import { AppLayout } from '@/components/common/app-layout';
 import {
   UserPermissionGrant,
   GrantStatus,
@@ -338,386 +337,240 @@ export default function UserAccessControlPage({
 
   if (!user) {
     return (
-      <AppLayout>
-        <div className="container mx-auto max-w-4xl p-6">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertCircle className="text-destructive mx-auto mb-4 h-12 w-12" />
-              <h2 className="mb-2 text-xl font-semibold">User Not Found</h2>
-              <p className="text-muted-foreground mb-4">
-                The user you&apos;re looking for doesn&apos;t exist or has been
-                deleted.
-              </p>
-              <Button
-                onClick={() => router.push('/admin/access-control/users')}
-              >
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Users
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
+      <div className="container mx-auto max-w-4xl p-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="text-destructive mx-auto mb-4 h-12 w-12" />
+            <h2 className="mb-2 text-xl font-semibold">User Not Found</h2>
+            <p className="text-muted-foreground mb-4">
+              The user you&apos;re looking for doesn&apos;t exist or has been
+              deleted.
+            </p>
+            <Button onClick={() => router.push('/admin/access-control/users')}>
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Users
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-3xl font-bold">
-              <User className="text-primary h-8 w-8" />
-              {user.name}
-            </h1>
-            <p className="text-muted-foreground">{user.email}</p>
-          </div>
-          {isSystemAdminUser && (
-            <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-              <Shield className="mr-1 h-4 w-4" />
-              System Admin
-            </Badge>
-          )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="flex items-center gap-2 text-3xl font-bold">
+            <User className="text-primary h-8 w-8" />
+            {user.name}
+          </h1>
+          <p className="text-muted-foreground">{user.email}</p>
         </div>
-        <Tabs defaultValue="roles" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="roles">Roles ({userRoles.length})</TabsTrigger>
-            <TabsTrigger value="permissions">
-              All Permissions ({allPermissions.length})
-            </TabsTrigger>
-            <TabsTrigger value="direct-permissions">
-              Direct Permissions
-            </TabsTrigger>
-            <TabsTrigger value="grants">
-              Special Permissions ({permissionGrants.length})
-            </TabsTrigger>
-          </TabsList>
-          {/* Roles Tab */}
-          <TabsContent value="roles" className="space-y-4">
-            {/* Add Role Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Assign New Role</CardTitle>
-                <CardDescription>
-                  Add roles to grant this user specific permissions
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex gap-2">
-                  <Select value={selectedRole} onValueChange={setSelectedRole}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select a role to assign" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoles.length === 0 ? (
-                        <SelectItem value="none" disabled>
-                          All roles assigned
+        {isSystemAdminUser && (
+          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+            <Shield className="mr-1 h-4 w-4" />
+            System Admin
+          </Badge>
+        )}
+      </div>
+      <Tabs defaultValue="roles" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="roles">Roles ({userRoles.length})</TabsTrigger>
+          <TabsTrigger value="permissions">
+            All Permissions ({allPermissions.length})
+          </TabsTrigger>
+          <TabsTrigger value="direct-permissions">
+            Direct Permissions
+          </TabsTrigger>
+          <TabsTrigger value="grants">
+            Special Permissions ({permissionGrants.length})
+          </TabsTrigger>
+        </TabsList>
+        {/* Roles Tab */}
+        <TabsContent value="roles" className="space-y-4">
+          {/* Add Role Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Assign New Role</CardTitle>
+              <CardDescription>
+                Add roles to grant this user specific permissions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2">
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Select a role to assign" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableRoles.length === 0 ? (
+                      <SelectItem value="none" disabled>
+                        All roles assigned
+                      </SelectItem>
+                    ) : (
+                      availableRoles.map((role) => (
+                        <SelectItem key={role} value={role}>
+                          {getRoleDisplayName(role)}
                         </SelectItem>
-                      ) : (
-                        availableRoles.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {getRoleDisplayName(role)}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleAddRole}
-                    disabled={!selectedRole || saving}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Role
-                  </Button>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={handleAddRole}
+                  disabled={!selectedRole || saving}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Role
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Current Roles */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Roles ({userRoles.length})</CardTitle>
+              <CardDescription>
+                Roles currently assigned to this user
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {userRoles.length === 0 ? (
+                <div className="text-muted-foreground py-8 text-center">
+                  <Shield className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                  <p>No roles assigned</p>
+                  <p className="mt-1 text-sm">
+                    Assign roles to grant permissions
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {userRoles.map((role) => {
+                    const level = getRoleLevel(role);
+                    const rolePermissions = getRolePermissions([role]);
+                    return (
+                      <div
+                        key={role}
+                        className="hover:bg-accent/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <div className="mb-1 flex items-center gap-2">
+                            <Badge className={getRoleLevelColor(level)}>
+                              {getRoleDisplayName(role)}
+                            </Badge>
+                            {role === 'system-admin' && (
+                              <Shield className="h-4 w-4 text-red-600" />
+                            )}
+                          </div>
+                          <p className="text-muted-foreground text-sm">
+                            {rolePermissions.length} permissions granted
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveRole(role)}
+                          disabled={saving}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        {/* Permissions Tab */}
+        <TabsContent value="permissions" className="space-y-4">
+          {isSystemAdminUser && (
+            <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                  <Shield className="h-5 w-5" />
+                  <p className="font-medium">
+                    System Admin has full access to all permissions
+                  </p>
                 </div>
               </CardContent>
             </Card>
-            {/* Current Roles */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Roles ({userRoles.length})</CardTitle>
-                <CardDescription>
-                  Roles currently assigned to this user
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {userRoles.length === 0 ? (
-                  <div className="text-muted-foreground py-8 text-center">
-                    <Shield className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p>No roles assigned</p>
-                    <p className="mt-1 text-sm">
-                      Assign roles to grant permissions
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {userRoles.map((role) => {
-                      const level = getRoleLevel(role);
-                      const rolePermissions = getRolePermissions([role]);
-                      return (
-                        <div
-                          key={role}
-                          className="hover:bg-accent/50 flex items-center justify-between rounded-lg border p-4 transition-colors"
-                        >
-                          <div className="flex-1">
-                            <div className="mb-1 flex items-center gap-2">
-                              <Badge className={getRoleLevelColor(level)}>
-                                {getRoleDisplayName(role)}
-                              </Badge>
-                              {role === 'system-admin' && (
-                                <Shield className="h-4 w-4 text-red-600" />
-                              )}
-                            </div>
-                            <p className="text-muted-foreground text-sm">
-                              {rolePermissions.length} permissions granted
-                            </p>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRemoveRole(role)}
-                            disabled={saving}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          {/* Permissions Tab */}
-          <TabsContent value="permissions" className="space-y-4">
-            {isSystemAdminUser && (
-              <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-                <CardContent className="py-4">
-                  <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                    <Shield className="h-5 w-5" />
-                    <p className="font-medium">
-                      System Admin has full access to all permissions
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            <Card>
-              <CardHeader>
-                <CardTitle>All Permissions ({allPermissions.length})</CardTitle>
-                <CardDescription>
-                  Combined permissions from roles and special grants
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {allPermissions.length === 0 ? (
-                  <div className="text-muted-foreground py-8 text-center">
-                    <AlertCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p>No permissions</p>
-                    <p className="mt-1 text-sm">
-                      Assign roles or grants to enable permissions
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-6">
-                    {Object.entries(groupedPermissions).map(
-                      ([category, permissions]) => {
-                        const userCategoryPerms = permissions.filter((p) =>
-                          allPermissions.includes(p)
-                        );
-                        if (userCategoryPerms.length === 0) return null;
-
-                        // Get permission sources
-                        const sources = getPermissionSources(
-                          userRoles,
-                          permissionGrants
-                        );
-
-                        return (
-                          <div key={category}>
-                            <h3 className="mb-3 flex items-center gap-2 font-semibold">
-                              {category}
-                              <Badge variant="secondary">
-                                {userCategoryPerms.length}
-                              </Badge>
-                            </h3>
-                            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
-                              {userCategoryPerms.map((permission) => {
-                                const source = sources[permission];
-                                const isFromGrant = source?.fromGrants;
-                                const isFromRole = source?.fromRoles;
-
-                                return (
-                                  <div
-                                    key={permission}
-                                    className="flex items-center justify-between gap-2 rounded border p-2"
-                                  >
-                                    <div className="flex items-center gap-2">
-                                      <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
-                                      <span className="text-sm">
-                                        {getPermissionLabel(permission)}
-                                      </span>
-                                    </div>
-                                    <div className="flex gap-1">
-                                      {isFromRole && (
-                                        <Badge
-                                          variant="outline"
-                                          className="text-xs"
-                                        >
-                                          Role
-                                        </Badge>
-                                      )}
-                                      {isFromGrant && (
-                                        <Badge
-                                          variant="default"
-                                          className="bg-purple-100 text-xs text-purple-800 dark:bg-purple-900 dark:text-purple-200"
-                                        >
-                                          Grant
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            <Separator className="mt-4" />
-                          </div>
-                        );
-                      }
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Direct Permissions Tab */}
-          <TabsContent value="direct-permissions" className="space-y-4">
-            {/* Action Buttons */}
-            {!isSystemAdminUser && hasPermissionChanges && (
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleSavePermissions}
-                  disabled={savingPermissions}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleResetPermissions}
-                  disabled={savingPermissions}
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Reset
-                </Button>
-              </div>
-            )}
-
-            {isSystemAdminUser && (
-              <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
-                <CardContent className="py-4">
-                  <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
-                    <Shield className="h-5 w-5" />
-                    <p className="font-medium">
-                      System Admin has full access to all permissions. Direct
-                      permissions cannot be modified.
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {!isSystemAdminUser && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Direct Permission Management</CardTitle>
-                  <CardDescription>
-                    Assign specific permissions to this user independently of
-                    their roles
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
+          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>All Permissions ({allPermissions.length})</CardTitle>
+              <CardDescription>
+                Combined permissions from roles and special grants
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {allPermissions.length === 0 ? (
+                <div className="text-muted-foreground py-8 text-center">
+                  <AlertCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                  <p>No permissions</p>
+                  <p className="mt-1 text-sm">
+                    Assign roles or grants to enable permissions
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
                   {Object.entries(groupedPermissions).map(
                     ([category, permissions]) => {
-                      const categorySelected = permissions.filter((p) =>
-                        directPermissions.includes(p)
+                      const userCategoryPerms = permissions.filter((p) =>
+                        allPermissions.includes(p)
                       );
-                      const allSelected =
-                        categorySelected.length === permissions.length;
+                      if (userCategoryPerms.length === 0) return null;
+
+                      // Get permission sources
+                      const sources = getPermissionSources(
+                        userRoles,
+                        permissionGrants
+                      );
 
                       return (
                         <div key={category}>
-                          <div className="mb-3 flex items-center justify-between">
-                            <h3 className="flex items-center gap-2 font-semibold">
-                              {category}
-                              <Badge variant="secondary">
-                                {categorySelected.length} / {permissions.length}
-                              </Badge>
-                            </h3>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() =>
-                                handleSelectAllPermissions(permissions)
-                              }
-                            >
-                              {allSelected ? 'Deselect All' : 'Select All'}
-                            </Button>
-                          </div>
-                          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                            {permissions.map((permission) => {
-                              const isSelected =
-                                directPermissions.includes(permission);
-                              const isChanged =
-                                isSelected !==
-                                originalDirectPermissions.includes(permission);
-                              const fromRole =
-                                userPermissions.includes(permission);
+                          <h3 className="mb-3 flex items-center gap-2 font-semibold">
+                            {category}
+                            <Badge variant="secondary">
+                              {userCategoryPerms.length}
+                            </Badge>
+                          </h3>
+                          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+                            {userCategoryPerms.map((permission) => {
+                              const source = sources[permission];
+                              const isFromGrant = source?.fromGrants;
+                              const isFromRole = source?.fromRoles;
 
                               return (
                                 <div
                                   key={permission}
-                                  className={`flex items-center space-x-3 rounded-lg border p-3 transition-colors ${
-                                    isChanged
-                                      ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950'
-                                      : fromRole
-                                        ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
-                                        : 'hover:bg-accent'
-                                  }`}
+                                  className="flex items-center justify-between gap-2 rounded border p-2"
                                 >
-                                  <Checkbox
-                                    id={`direct-${permission}`}
-                                    checked={isSelected}
-                                    onCheckedChange={() =>
-                                      handlePermissionToggle(permission)
-                                    }
-                                  />
-                                  <label
-                                    htmlFor={`direct-${permission}`}
-                                    className="flex-1 cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                  >
-                                    <div className="flex items-center gap-2">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-4 w-4 shrink-0 text-green-600" />
+                                    <span className="text-sm">
                                       {getPermissionLabel(permission)}
-                                      {fromRole && (
-                                        <Badge
-                                          variant="outline"
-                                          className="text-xs"
-                                        >
-                                          From Role
-                                        </Badge>
-                                      )}
-                                      {isChanged && (
-                                        <Badge
-                                          variant="outline"
-                                          className="text-xs"
-                                        >
-                                          {isSelected ? 'Added' : 'Removed'}
-                                        </Badge>
-                                      )}
-                                    </div>
-                                  </label>
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-1">
+                                    {isFromRole && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        Role
+                                      </Badge>
+                                    )}
+                                    {isFromGrant && (
+                                      <Badge
+                                        variant="default"
+                                        className="bg-purple-100 text-xs text-purple-800 dark:bg-purple-900 dark:text-purple-200"
+                                      >
+                                        Grant
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
                               );
                             })}
@@ -727,249 +580,374 @@ export default function UserAccessControlPage({
                       );
                     }
                   )}
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-          {/* Permission Grants Tab */}
-          <TabsContent value="grants" className="space-y-4">
-            {/* Summary Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Active Grants</CardDescription>
-                  <Shield className="text-muted-foreground h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {
-                      permissionGrants.filter(
-                        (g) => g.status === GrantStatus.ACTIVE
-                      ).length
-                    }
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    Currently effective
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Expiring Soon</CardDescription>
-                  <AlertCircle className="h-4 w-4 text-orange-600" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {
-                      getExpiringGrants().filter((g) => g.userId === userId)
-                        .length
-                    }
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    Within 30 days
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardDescription>Total Grants</CardDescription>
-                  <Shield className="text-muted-foreground h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">
-                    {permissionGrants.length}
-                  </div>
-                  <p className="text-muted-foreground text-xs">
-                    All time grants
-                  </p>
-                </CardContent>
-              </Card>
+        {/* Direct Permissions Tab */}
+        <TabsContent value="direct-permissions" className="space-y-4">
+          {/* Action Buttons */}
+          {!isSystemAdminUser && hasPermissionChanges && (
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSavePermissions}
+                disabled={savingPermissions}
+              >
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleResetPermissions}
+                disabled={savingPermissions}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
             </div>
+          )}
 
-            {/* Grants List */}
+          {isSystemAdminUser && (
+            <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
+              <CardContent className="py-4">
+                <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
+                  <Shield className="h-5 w-5" />
+                  <p className="font-medium">
+                    System Admin has full access to all permissions. Direct
+                    permissions cannot be modified.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!isSystemAdminUser && (
             <Card>
               <CardHeader>
-                <CardTitle>Permission Grants</CardTitle>
+                <CardTitle>Direct Permission Management</CardTitle>
                 <CardDescription>
-                  Special permissions granted to this user beyond their role
+                  Assign specific permissions to this user independently of
+                  their roles
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                {permissionGrants.length === 0 ? (
-                  <div className="text-muted-foreground py-12 text-center">
-                    <Shield className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                    <p className="font-medium">No special permissions</p>
-                    <p className="mt-1 text-sm">
-                      This user only has permissions from their assigned roles
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {permissionGrants.map((grant) => {
-                      const isExpired =
-                        grant.expiresAt && grant.expiresAt < new Date();
-                      const isExpiringSoon =
-                        grant.expiresAt &&
-                        grant.expiresAt > new Date() &&
-                        grant.expiresAt <=
-                          new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+              <CardContent className="space-y-6">
+                {Object.entries(groupedPermissions).map(
+                  ([category, permissions]) => {
+                    const categorySelected = permissions.filter((p) =>
+                      directPermissions.includes(p)
+                    );
+                    const allSelected =
+                      categorySelected.length === permissions.length;
 
-                      return (
-                        <div
-                          key={grant.id}
-                          className="hover:bg-accent/50 rounded-lg border p-4 transition-colors"
-                        >
-                          {/* Grant Header */}
-                          <div className="mb-3 flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="mb-2 flex items-center gap-2">
-                                <h4 className="font-semibold">
-                                  {getPermissionLabel(grant.permission)}
-                                </h4>
-                                <Badge
-                                  className={getGrantStatusColor(grant.status)}
-                                >
-                                  {getGrantStatusLabel(grant.status)}
-                                </Badge>
-                                {isExpiringSoon && (
-                                  <Badge
-                                    variant="outline"
-                                    className="border-orange-300 text-orange-600"
-                                  >
-                                    Expiring Soon
-                                  </Badge>
-                                )}
-                                {isExpired && (
-                                  <Badge
-                                    variant="outline"
-                                    className="border-gray-300 text-gray-600"
-                                  >
-                                    Expired
-                                  </Badge>
-                                )}
-                              </div>
-                              {grant.reason && (
-                                <p className="text-muted-foreground text-sm">
-                                  {grant.reason}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Grant Details */}
-                          <div className="grid gap-3 sm:grid-cols-2">
-                            {/* Granted Date */}
-                            <div>
-                              <p className="text-muted-foreground mb-1 text-xs font-medium">
-                                Granted
-                              </p>
-                              <p className="text-sm">
-                                {new Date(grant.grantedAt).toLocaleDateString()}
-                              </p>
-                            </div>
-
-                            {/* Expiration */}
-                            {grant.expiresAt && (
-                              <div>
-                                <p className="text-muted-foreground mb-1 text-xs font-medium">
-                                  Expires
-                                </p>
-                                <p
-                                  className={`text-sm ${
-                                    isExpired
-                                      ? 'text-gray-600'
-                                      : isExpiringSoon
-                                        ? 'text-orange-600'
-                                        : ''
-                                  }`}
-                                >
-                                  {new Date(
-                                    grant.expiresAt
-                                  ).toLocaleDateString()}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Module */}
-                            {grant.module && (
-                              <div>
-                                <p className="text-muted-foreground mb-1 text-xs font-medium">
-                                  Module
-                                </p>
-                                <Badge variant="outline">{grant.module}</Badge>
-                              </div>
-                            )}
-
-                            {/* Scope */}
-                            {grant.scope && (
-                              <div>
-                                <p className="text-muted-foreground mb-1 text-xs font-medium">
-                                  Scope
-                                </p>
-                                <div className="flex flex-wrap gap-1">
-                                  {grant.scope.projectIds && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {grant.scope.projectIds.length} Projects
-                                    </Badge>
-                                  )}
-                                  {grant.scope.organizationIds && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {grant.scope.organizationIds.length} Orgs
-                                    </Badge>
-                                  )}
-                                  {grant.scope.resourceIds && (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-xs"
-                                    >
-                                      {grant.scope.resourceIds.length} Resources
-                                    </Badge>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Metadata */}
-                          {grant.metadata &&
-                            Object.keys(grant.metadata).length > 0 && (
-                              <div className="bg-muted mt-3 rounded p-2">
-                                <p className="text-muted-foreground mb-1 text-xs font-medium">
-                                  Additional Info
-                                </p>
-                                <div className="text-xs">
-                                  {Object.entries(grant.metadata).map(
-                                    ([key, value]) => (
-                                      <div key={key} className="flex gap-2">
-                                        <span className="text-muted-foreground">
-                                          {key}:
-                                        </span>
-                                        <span>{String(value)}</span>
-                                      </div>
-                                    )
-                                  )}
-                                </div>
-                              </div>
-                            )}
+                    return (
+                      <div key={category}>
+                        <div className="mb-3 flex items-center justify-between">
+                          <h3 className="flex items-center gap-2 font-semibold">
+                            {category}
+                            <Badge variant="secondary">
+                              {categorySelected.length} / {permissions.length}
+                            </Badge>
+                          </h3>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              handleSelectAllPermissions(permissions)
+                            }
+                          >
+                            {allSelected ? 'Deselect All' : 'Select All'}
+                          </Button>
                         </div>
-                      );
-                    })}
-                  </div>
+                        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                          {permissions.map((permission) => {
+                            const isSelected =
+                              directPermissions.includes(permission);
+                            const isChanged =
+                              isSelected !==
+                              originalDirectPermissions.includes(permission);
+                            const fromRole =
+                              userPermissions.includes(permission);
+
+                            return (
+                              <div
+                                key={permission}
+                                className={`flex items-center space-x-3 rounded-lg border p-3 transition-colors ${
+                                  isChanged
+                                    ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950'
+                                    : fromRole
+                                      ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950'
+                                      : 'hover:bg-accent'
+                                }`}
+                              >
+                                <Checkbox
+                                  id={`direct-${permission}`}
+                                  checked={isSelected}
+                                  onCheckedChange={() =>
+                                    handlePermissionToggle(permission)
+                                  }
+                                />
+                                <label
+                                  htmlFor={`direct-${permission}`}
+                                  className="flex-1 cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    {getPermissionLabel(permission)}
+                                    {fromRole && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        From Role
+                                      </Badge>
+                                    )}
+                                    {isChanged && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs"
+                                      >
+                                        {isSelected ? 'Added' : 'Removed'}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                </label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <Separator className="mt-4" />
+                      </div>
+                    );
+                  }
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </AppLayout>
+          )}
+        </TabsContent>
+
+        {/* Permission Grants Tab */}
+        <TabsContent value="grants" className="space-y-4">
+          {/* Summary Cards */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardDescription>Active Grants</CardDescription>
+                <Shield className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {
+                    permissionGrants.filter(
+                      (g) => g.status === GrantStatus.ACTIVE
+                    ).length
+                  }
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  Currently effective
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardDescription>Expiring Soon</CardDescription>
+                <AlertCircle className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-orange-600">
+                  {
+                    getExpiringGrants().filter((g) => g.userId === userId)
+                      .length
+                  }
+                </div>
+                <p className="text-muted-foreground text-xs">Within 30 days</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardDescription>Total Grants</CardDescription>
+                <Shield className="text-muted-foreground h-4 w-4" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {permissionGrants.length}
+                </div>
+                <p className="text-muted-foreground text-xs">All time grants</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Grants List */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Permission Grants</CardTitle>
+              <CardDescription>
+                Special permissions granted to this user beyond their role
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {permissionGrants.length === 0 ? (
+                <div className="text-muted-foreground py-12 text-center">
+                  <Shield className="mx-auto mb-4 h-12 w-12 opacity-50" />
+                  <p className="font-medium">No special permissions</p>
+                  <p className="mt-1 text-sm">
+                    This user only has permissions from their assigned roles
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {permissionGrants.map((grant) => {
+                    const isExpired =
+                      grant.expiresAt && grant.expiresAt < new Date();
+                    const isExpiringSoon =
+                      grant.expiresAt &&
+                      grant.expiresAt > new Date() &&
+                      grant.expiresAt <=
+                        new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
+                    return (
+                      <div
+                        key={grant.id}
+                        className="hover:bg-accent/50 rounded-lg border p-4 transition-colors"
+                      >
+                        {/* Grant Header */}
+                        <div className="mb-3 flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="mb-2 flex items-center gap-2">
+                              <h4 className="font-semibold">
+                                {getPermissionLabel(grant.permission)}
+                              </h4>
+                              <Badge
+                                className={getGrantStatusColor(grant.status)}
+                              >
+                                {getGrantStatusLabel(grant.status)}
+                              </Badge>
+                              {isExpiringSoon && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-orange-300 text-orange-600"
+                                >
+                                  Expiring Soon
+                                </Badge>
+                              )}
+                              {isExpired && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-gray-300 text-gray-600"
+                                >
+                                  Expired
+                                </Badge>
+                              )}
+                            </div>
+                            {grant.reason && (
+                              <p className="text-muted-foreground text-sm">
+                                {grant.reason}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Grant Details */}
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          {/* Granted Date */}
+                          <div>
+                            <p className="text-muted-foreground mb-1 text-xs font-medium">
+                              Granted
+                            </p>
+                            <p className="text-sm">
+                              {new Date(grant.grantedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+
+                          {/* Expiration */}
+                          {grant.expiresAt && (
+                            <div>
+                              <p className="text-muted-foreground mb-1 text-xs font-medium">
+                                Expires
+                              </p>
+                              <p
+                                className={`text-sm ${
+                                  isExpired
+                                    ? 'text-gray-600'
+                                    : isExpiringSoon
+                                      ? 'text-orange-600'
+                                      : ''
+                                }`}
+                              >
+                                {new Date(grant.expiresAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Module */}
+                          {grant.module && (
+                            <div>
+                              <p className="text-muted-foreground mb-1 text-xs font-medium">
+                                Module
+                              </p>
+                              <Badge variant="outline">{grant.module}</Badge>
+                            </div>
+                          )}
+
+                          {/* Scope */}
+                          {grant.scope && (
+                            <div>
+                              <p className="text-muted-foreground mb-1 text-xs font-medium">
+                                Scope
+                              </p>
+                              <div className="flex flex-wrap gap-1">
+                                {grant.scope.projectIds && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {grant.scope.projectIds.length} Projects
+                                  </Badge>
+                                )}
+                                {grant.scope.organizationIds && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {grant.scope.organizationIds.length} Orgs
+                                  </Badge>
+                                )}
+                                {grant.scope.resourceIds && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {grant.scope.resourceIds.length} Resources
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Metadata */}
+                        {grant.metadata &&
+                          Object.keys(grant.metadata).length > 0 && (
+                            <div className="bg-muted mt-3 rounded p-2">
+                              <p className="text-muted-foreground mb-1 text-xs font-medium">
+                                Additional Info
+                              </p>
+                              <div className="text-xs">
+                                {Object.entries(grant.metadata).map(
+                                  ([key, value]) => (
+                                    <div key={key} className="flex gap-2">
+                                      <span className="text-muted-foreground">
+                                        {key}:
+                                      </span>
+                                      <span>{String(value)}</span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

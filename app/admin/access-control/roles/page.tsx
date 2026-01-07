@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
 import { redirect } from 'next/navigation';
-import { AppLayout, SearchAndFilter, Pagination } from '@/components/common';
+import { SearchAndFilter, Pagination } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -100,200 +100,195 @@ export default function RolesPage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-            <p className="text-muted-foreground">Loading roles...</p>
-          </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
+          <p className="text-muted-foreground">Loading roles...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Role Browser</h1>
-            <p className="text-muted-foreground mt-1">
-              Explore all system roles and their permissions
-            </p>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Total Roles</CardDescription>
-              <Shield className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{systemRoles.length}</div>
-              <p className="text-muted-foreground text-xs">
-                System-defined roles
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Role Categories</CardDescription>
-              <Shield className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">8</div>
-              <p className="text-muted-foreground text-xs">
-                Admin, Management, Professional, etc.
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Total Permissions</CardDescription>
-              <Shield className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">120+</div>
-              <p className="text-muted-foreground text-xs">
-                Granular access controls
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filters */}
-        <SearchAndFilter
-          variant="card"
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchPlaceholder="Search roles..."
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
-          filters={[
-            {
-              placeholder: 'Filter by level',
-              options: [
-                { value: 'all', label: 'All Levels' },
-                ...Object.values(RoleLevel).map((level) => ({
-                  value: level,
-                  label: level.charAt(0).toUpperCase() + level.slice(1),
-                })),
-              ],
-              value: levelFilter,
-              onChange: setLevelFilter,
-            },
-          ]}
-        />
-
-        {/* Results Summary */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to{' '}
-            {Math.min(endIndex, filteredRoles.length)} of {filteredRoles.length}{' '}
-            roles
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">Role Browser</h1>
+          <p className="text-muted-foreground mt-1">
+            Explore all system roles and their permissions
           </p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Rows per page:
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => {
-                setItemsPerPage(Number(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
+      </div>
 
-        {/* Roles Table */}
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Role Name</TableHead>
-                  <TableHead>Level</TableHead>
-                  <TableHead>Permissions</TableHead>
-                  <TableHead>Description</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedRoles.map((roleId) => {
-                  const level = getRoleLevel(roleId);
-                  const permissions = getRolePermissions([roleId]);
-                  const isSystemAdmin = roleId === 'system-admin';
-
-                  return (
-                    <TableRow
-                      key={roleId}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (globalThis.location.href = `/admin/access-control/roles/${roleId}`)
-                      }
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Shield className="text-muted-foreground h-4 w-4" />
-                          <span className="font-medium">
-                            {getRoleDisplayName(roleId)}
-                          </span>
-                          {isSystemAdmin && (
-                            <Badge className="bg-red-600 text-white">
-                              Full Access
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getRoleLevelColor(level)}>
-                          {level.charAt(0).toUpperCase() + level.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {isSystemAdmin
-                            ? 'All Permissions'
-                            : `${permissions.length} permissions`}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-muted-foreground text-sm">
-                          {isSystemAdmin
-                            ? 'Unrestricted system access'
-                            : `${level.charAt(0).toUpperCase() + level.slice(1)}-level access`}
-                        </span>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Total Roles</CardDescription>
+            <Shield className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{systemRoles.length}</div>
+            <p className="text-muted-foreground text-xs">
+              System-defined roles
+            </p>
           </CardContent>
+        </Card>
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Role Categories</CardDescription>
+            <Shield className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">8</div>
+            <p className="text-muted-foreground text-xs">
+              Admin, Management, Professional, etc.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Total Permissions</CardDescription>
+            <Shield className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">120+</div>
+            <p className="text-muted-foreground text-xs">
+              Granular access controls
+            </p>
+          </CardContent>
         </Card>
       </div>
-    </AppLayout>
+
+      {/* Search and Filters */}
+      <SearchAndFilter
+        variant="card"
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search roles..."
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        filters={[
+          {
+            placeholder: 'Filter by level',
+            options: [
+              { value: 'all', label: 'All Levels' },
+              ...Object.values(RoleLevel).map((level) => ({
+                value: level,
+                label: level.charAt(0).toUpperCase() + level.slice(1),
+              })),
+            ],
+            value: levelFilter,
+            onChange: setLevelFilter,
+          },
+        ]}
+      />
+
+      {/* Results Summary */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Showing {startIndex + 1} to {Math.min(endIndex, filteredRoles.length)}{' '}
+          of {filteredRoles.length} roles
+        </p>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Rows per page:
+          </span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Roles Table */}
+      <Card>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Role Name</TableHead>
+                <TableHead>Level</TableHead>
+                <TableHead>Permissions</TableHead>
+                <TableHead>Description</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedRoles.map((roleId) => {
+                const level = getRoleLevel(roleId);
+                const permissions = getRolePermissions([roleId]);
+                const isSystemAdmin = roleId === 'system-admin';
+
+                return (
+                  <TableRow
+                    key={roleId}
+                    className="hover:bg-muted/50 cursor-pointer"
+                    onClick={() =>
+                      (globalThis.location.href = `/admin/access-control/roles/${roleId}`)
+                    }
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Shield className="text-muted-foreground h-4 w-4" />
+                        <span className="font-medium">
+                          {getRoleDisplayName(roleId)}
+                        </span>
+                        {isSystemAdmin && (
+                          <Badge className="bg-red-600 text-white">
+                            Full Access
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getRoleLevelColor(level)}>
+                        {level.charAt(0).toUpperCase() + level.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm">
+                        {isSystemAdmin
+                          ? 'All Permissions'
+                          : `${permissions.length} permissions`}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-muted-foreground text-sm">
+                        {isSystemAdmin
+                          ? 'Unrestricted system access'
+                          : `${level.charAt(0).toUpperCase() + level.slice(1)}-level access`}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+
+        {/* Pagination */}
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      </Card>
+    </div>
   );
 }
