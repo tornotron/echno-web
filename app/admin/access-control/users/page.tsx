@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
 import { redirect } from 'next/navigation';
-import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -124,261 +124,252 @@ export default function AdminUsersPage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex min-h-screen items-center justify-center">
-          <div className="text-center">
-            <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-            <p className="text-muted-foreground">Loading users...</p>
-          </div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
+          <p className="text-muted-foreground">Loading users...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">User Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage system users and their roles
-            </p>
-          </div>
-          <Button>
-            <UserPlus className="mr-2 h-4 w-4" />
-            Add User
-          </Button>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Total Users</CardDescription>
-              <Users className="text-muted-foreground h-4 w-4" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalUsers}</div>
-              <p className="text-muted-foreground text-xs">Active accounts</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Admins</CardDescription>
-              <Shield className="h-4 w-4 text-red-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">
-                {totalAdmins}
-              </div>
-              <p className="text-muted-foreground text-xs">
-                System admin & admin
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Managers</CardDescription>
-              <Users className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {totalManagers}
-              </div>
-              <p className="text-muted-foreground text-xs">Management level</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardDescription>Staff</CardDescription>
-              <Users className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {totalStaff}
-              </div>
-              <p className="text-muted-foreground text-xs">Regular users</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filters */}
-        <SearchAndFilter
-          variant="card"
-          searchValue={searchQuery}
-          onSearchChange={(value) => {
-            setSearchQuery(value);
-            setCurrentPage(1);
-          }}
-          searchPlaceholder="Search by name or email..."
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
-          filters={[
-            {
-              placeholder: 'Role',
-              options: [
-                { value: 'all', label: 'All Roles' },
-                ...allRoles.map((role) => ({
-                  value: role,
-                  label: getRoleDisplayName(role),
-                })),
-              ],
-              value: roleFilter,
-              onChange: (value) => {
-                setRoleFilter(value);
-                setCurrentPage(1);
-              },
-            },
-          ]}
-        />
-
-        {/* Results Summary */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to{' '}
-            {Math.min(endIndex, filteredUsers.length)} of {filteredUsers.length}{' '}
-            users
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">User Management</h1>
+          <p className="text-muted-foreground mt-1">
+            Manage system users and their roles
           </p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Rows per page:
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => {
-                setItemsPerPage(Number(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
-
-        {/* Users Table */}
-        {filteredUsers.length > 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>User</TableHead>
-                    <TableHead>Contact</TableHead>
-                    <TableHead>Role(s)</TableHead>
-                    <TableHead>Experience</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedUsers.map((user) => (
-                    <TableRow
-                      key={user.id}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (globalThis.location.href = `/admin/access-control/users/${user.id}`)
-                      }
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-zinc-400 to-zinc-600">
-                            <span className="text-sm font-medium text-white">
-                              {user.name.charAt(0).toUpperCase()}
-                            </span>
-                          </div>
-                          <div>
-                            <div className="font-medium">{user.name}</div>
-                            <div className="text-muted-foreground text-sm">
-                              ID: {user.id}
-                            </div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Mail className="text-muted-foreground h-3 w-3" />
-                            {user.email}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Phone className="text-muted-foreground h-3 w-3" />
-                            {user.phone}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {(user.roles || []).map((role) => {
-                            const level = getRoleLevel(role);
-                            return (
-                              <Badge
-                                key={role}
-                                className={getRoleLevelColor(level)}
-                              >
-                                {role.includes('system-admin') && (
-                                  <Shield className="mr-1 h-3 w-3" />
-                                )}
-                                {getRoleDisplayName(role)}
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm">
-                          {user.experience} years
-                          <div className="text-muted-foreground text-xs">
-                            {user.qualification?.split(',')[0]}
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-
-            {/* Pagination */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <Users className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                No users found
-              </h3>
-              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-                {hasActiveFilters
-                  ? 'Try adjusting your search or filters'
-                  : 'Get started by adding your first user'}
-              </p>
-              {!hasActiveFilters && (
-                <Button>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Add User
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <Button>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add User
+        </Button>
       </div>
-    </AppLayout>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Total Users</CardDescription>
+            <Users className="text-muted-foreground h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalUsers}</div>
+            <p className="text-muted-foreground text-xs">Active accounts</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Admins</CardDescription>
+            <Shield className="h-4 w-4 text-red-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{totalAdmins}</div>
+            <p className="text-muted-foreground text-xs">
+              System admin & admin
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Managers</CardDescription>
+            <Users className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-purple-600">
+              {totalManagers}
+            </div>
+            <p className="text-muted-foreground text-xs">Management level</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardDescription>Staff</CardDescription>
+            <Users className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{totalStaff}</div>
+            <p className="text-muted-foreground text-xs">Regular users</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filters */}
+      <SearchAndFilter
+        variant="card"
+        searchValue={searchQuery}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          setCurrentPage(1);
+        }}
+        searchPlaceholder="Search by name or email..."
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        filters={[
+          {
+            placeholder: 'Role',
+            options: [
+              { value: 'all', label: 'All Roles' },
+              ...allRoles.map((role) => ({
+                value: role,
+                label: getRoleDisplayName(role),
+              })),
+            ],
+            value: roleFilter,
+            onChange: (value) => {
+              setRoleFilter(value);
+              setCurrentPage(1);
+            },
+          },
+        ]}
+      />
+
+      {/* Results Summary */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Showing {startIndex + 1} to {Math.min(endIndex, filteredUsers.length)}{' '}
+          of {filteredUsers.length} users
+        </p>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Rows per page:
+          </span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Users Table */}
+      {filteredUsers.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Role(s)</TableHead>
+                  <TableHead>Experience</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedUsers.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className="hover:bg-muted/50 cursor-pointer"
+                    onClick={() =>
+                      (globalThis.location.href = `/admin/access-control/users/${user.id}`)
+                    }
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-zinc-400 to-zinc-600">
+                          <span className="text-sm font-medium text-white">
+                            {user.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium">{user.name}</div>
+                          <div className="text-muted-foreground text-sm">
+                            ID: {user.id}
+                          </div>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <Mail className="text-muted-foreground h-3 w-3" />
+                          {user.email}
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Phone className="text-muted-foreground h-3 w-3" />
+                          {user.phone}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {(user.roles || []).map((role) => {
+                          const level = getRoleLevel(role);
+                          return (
+                            <Badge
+                              key={role}
+                              className={getRoleLevelColor(level)}
+                            >
+                              {role.includes('system-admin') && (
+                                <Shield className="mr-1 h-3 w-3" />
+                              )}
+                              {getRoleDisplayName(role)}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {user.experience} years
+                        <div className="text-muted-foreground text-xs">
+                          {user.qualification?.split(',')[0]}
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Users className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              No users found
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              {hasActiveFilters
+                ? 'Try adjusting your search or filters'
+                : 'Get started by adding your first user'}
+            </p>
+            {!hasActiveFilters && (
+              <Button>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add User
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
