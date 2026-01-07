@@ -189,6 +189,13 @@ export default function RoleDetailsPage({
     }
   };
 
+  // Helper to check if a specific category has changes
+  const categoryHasChanges = (permissions: Permission[]) => {
+    return permissions.some(
+      (p) => selectedPermissions.includes(p) !== originalPermissions.includes(p)
+    );
+  };
+
   if (isLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -328,6 +335,7 @@ export default function RoleDetailsPage({
                 );
                 const allSelected =
                   categorySelected.length === permissions.length;
+                const hasCategoryChanges = categoryHasChanges(permissions);
 
                 return (
                   <div key={category}>
@@ -339,7 +347,7 @@ export default function RoleDetailsPage({
                         </Badge>
                       </h3>
                       <div className="flex items-center gap-2">
-                        {hasChanges && (
+                        {hasCategoryChanges && (
                           <>
                             <Button
                               size="sm"
