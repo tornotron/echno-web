@@ -8,7 +8,7 @@ import {
   mockProjects,
   mockTasks,
 } from '@/components/shared/mock-data';
-import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -227,310 +227,302 @@ export default function IssuesPage({ params }: PageProps) {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              {project?.projectName} - Issues
-            </h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Track and manage issues for this project
-            </p>
-          </div>
-          <Link href={`/users/dashboard/projects/${projectId}/issues/new`}>
-            <Button className="mt-4 md:mt-0">
-              <Plus className="mr-2 h-4 w-4" />
-              New Issue
-            </Button>
-          </Link>
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Issues</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {totalIssues}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Open</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
-                  <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {openIssues}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>In Progress</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {inProgressIssues}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Resolved</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <AlertCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {resolvedIssues}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filters */}
-        <SearchAndFilter
-          variant="card"
-          searchValue={searchQuery}
-          onSearchChange={setSearchQuery}
-          searchPlaceholder="Search issues..."
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
-          filters={[
-            {
-              placeholder: 'Status',
-              options: [
-                { value: 'all', label: 'All Status' },
-                { value: IssueStatus.open, label: 'Open' },
-                { value: IssueStatus.inProgress, label: 'In Progress' },
-                { value: IssueStatus.resolved, label: 'Resolved' },
-                { value: IssueStatus.closed, label: 'Closed' },
-              ],
-              value: statusFilter,
-              onChange: setStatusFilter,
-            },
-            {
-              placeholder: 'Type',
-              options: [
-                { value: 'all', label: 'All Types' },
-                { value: IssueType.technical, label: 'Technical' },
-                { value: IssueType.design, label: 'Design' },
-                { value: IssueType.quality, label: 'Quality' },
-                { value: IssueType.safety, label: 'Safety' },
-                { value: IssueType.material, label: 'Material' },
-                { value: IssueType.equipment, label: 'Equipment' },
-                { value: IssueType.labour, label: 'Labour' },
-                { value: IssueType.weather, label: 'Weather' },
-                { value: IssueType.permit, label: 'Permit' },
-                { value: IssueType.coordination, label: 'Coordination' },
-                { value: IssueType.other, label: 'Other' },
-              ],
-              value: typeFilter,
-              onChange: setTypeFilter,
-            },
-          ]}
-        />
-
-        {/* Results Summary */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to{' '}
-            {Math.min(endIndex, filteredIssues.length)} of{' '}
-            {filteredIssues.length} issues
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            {project?.projectName} - Issues
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Track and manage issues for this project
           </p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Rows per page:
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value: string) => setItemsPerPage(Number(value))}
-            >
-              <SelectTrigger className="w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
+        <Link href={`/users/dashboard/projects/${projectId}/issues/new`}>
+          <Button className="mt-4 md:mt-0">
+            <Plus className="mr-2 h-4 w-4" />
+            New Issue
+          </Button>
+        </Link>
+      </div>
 
-        {/* Issues Table */}
-        {filteredIssues.length > 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Issue</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Related Task</TableHead>
-                    <TableHead>Creator</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedIssues.map((issue) => {
-                    // Find the task that contains this issue
-                    const relatedTask = mockTasks.find((task) =>
-                      task.issues?.some((i) => i.id === issue.id)
-                    );
+      {/* Statistics Cards */}
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Total Issues</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {totalIssues}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
 
-                    return (
-                      <TableRow
-                        key={issue.id}
-                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                        onClick={() =>
-                          router.push(
-                            `/dashboard/projects/${projectId}/issues/${issue.id}`
-                          )
-                        }
-                      >
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {issue.title}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Open</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
+                <AlertCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {openIssues}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>In Progress</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <AlertCircle className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {inProgressIssues}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Resolved</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                <AlertCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {resolvedIssues}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filters */}
+      <SearchAndFilter
+        variant="card"
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Search issues..."
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        filters={[
+          {
+            placeholder: 'Status',
+            options: [
+              { value: 'all', label: 'All Status' },
+              { value: IssueStatus.open, label: 'Open' },
+              { value: IssueStatus.inProgress, label: 'In Progress' },
+              { value: IssueStatus.resolved, label: 'Resolved' },
+              { value: IssueStatus.closed, label: 'Closed' },
+            ],
+            value: statusFilter,
+            onChange: setStatusFilter,
+          },
+          {
+            placeholder: 'Type',
+            options: [
+              { value: 'all', label: 'All Types' },
+              { value: IssueType.technical, label: 'Technical' },
+              { value: IssueType.design, label: 'Design' },
+              { value: IssueType.quality, label: 'Quality' },
+              { value: IssueType.safety, label: 'Safety' },
+              { value: IssueType.material, label: 'Material' },
+              { value: IssueType.equipment, label: 'Equipment' },
+              { value: IssueType.labour, label: 'Labour' },
+              { value: IssueType.weather, label: 'Weather' },
+              { value: IssueType.permit, label: 'Permit' },
+              { value: IssueType.coordination, label: 'Coordination' },
+              { value: IssueType.other, label: 'Other' },
+            ],
+            value: typeFilter,
+            onChange: setTypeFilter,
+          },
+        ]}
+      />
+
+      {/* Results Summary */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Showing {startIndex + 1} to{' '}
+          {Math.min(endIndex, filteredIssues.length)} of {filteredIssues.length}{' '}
+          issues
+        </p>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Rows per page:
+          </span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value: string) => setItemsPerPage(Number(value))}
+          >
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Issues Table */}
+      {filteredIssues.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Issue</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Related Task</TableHead>
+                  <TableHead>Creator</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedIssues.map((issue) => {
+                  // Find the task that contains this issue
+                  const relatedTask = mockTasks.find((task) =>
+                    task.issues?.some((i) => i.id === issue.id)
+                  );
+
+                  return (
+                    <TableRow
+                      key={issue.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/projects/${projectId}/issues/${issue.id}`
+                        )
+                      }
+                    >
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {issue.title}
+                          </p>
+                          {issue.description && (
+                            <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
+                              {issue.description}
                             </p>
-                            {issue.description && (
-                              <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
-                                {issue.description}
-                              </p>
-                            )}
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getTypeColor(issue.type)}>
+                          {getTypeLabel(issue.type)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {relatedTask ? (
+                          <div
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(
+                                `/dashboard/projects/${projectId}/tasks/${relatedTask.id}`
+                              );
+                            }}
+                            className="cursor-pointer hover:underline"
+                          >
+                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                              {relatedTask.title}
+                            </p>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getTypeColor(issue.type)}>
-                            {getTypeLabel(issue.type)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {relatedTask ? (
-                            <div
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(
-                                  `/dashboard/projects/${projectId}/tasks/${relatedTask.id}`
-                                );
-                              }}
-                              className="cursor-pointer hover:underline"
+                        ) : (
+                          <span className="text-sm text-zinc-400">No task</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                            <span className="text-xs font-medium text-white">
+                              {issue.creator?.memberName?.charAt(0) || '?'}
+                            </span>
+                          </div>
+                          {issue.creator ? (
+                            <Link
+                              href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
+                              className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                {relatedTask.title}
-                              </p>
-                            </div>
+                              {issue.creator.memberName}
+                            </Link>
                           ) : (
-                            <span className="text-sm text-zinc-400">
-                              No task
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                              Unknown
                             </span>
                           )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
-                              <span className="text-xs font-medium text-white">
-                                {issue.creator?.memberName?.charAt(0) || '?'}
-                              </span>
-                            </div>
-                            {issue.creator ? (
-                              <Link
-                                href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
-                                className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {issue.creator.memberName}
-                              </Link>
-                            ) : (
-                              <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                                Unknown
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              {format(issue.createdAt, 'MMM d, yyyy')}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(issue.status)}>
-                            {getStatusLabel(issue.status)}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
+                          <Calendar className="h-3 w-3" />
+                          <span>{format(issue.createdAt, 'MMM d, yyyy')}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getStatusColor(issue.status)}>
+                          {getStatusLabel(issue.status)}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
 
-            {/* Pagination Controls */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                No issues found
-              </h3>
-              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-                {hasActiveFilters
-                  ? 'Try adjusting your search or filters'
-                  : 'Get started by creating your first issue'}
-              </p>
-              {!hasActiveFilters && (
-                <Link
-                  href={`/users/dashboard/projects/${projectId}/issues/new`}
-                >
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    New Issue
-                  </Button>
-                </Link>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </AppLayout>
+          {/* Pagination Controls */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              No issues found
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              {hasActiveFilters
+                ? 'Try adjusting your search or filters'
+                : 'Get started by creating your first issue'}
+            </p>
+            {!hasActiveFilters && (
+              <Link href={`/users/dashboard/projects/${projectId}/issues/new`}>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Issue
+                </Button>
+              </Link>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
