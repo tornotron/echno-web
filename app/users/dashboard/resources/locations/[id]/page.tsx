@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/components/common';
 import {
   MapPin,
   Edit,
@@ -42,7 +41,7 @@ export default function ViewLocationPage() {
 
   if (!location) {
     return (
-      <AppLayout title="Location Not Found">
+      <div title="Location Not Found">
         <Card>
           <CardContent className="py-12 text-center">
             <MapPin className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
@@ -58,7 +57,7 @@ export default function ViewLocationPage() {
             </Button>
           </CardContent>
         </Card>
-      </AppLayout>
+      </div>
     );
   }
 
@@ -91,7 +90,7 @@ export default function ViewLocationPage() {
   const locationInventory = mockInventoryItems.slice(0, 5); // Show first 5 items as sample
 
   return (
-    <AppLayout title={location.name}>
+    <div title={location.name}>
       <div className="px-4 py-8">
         {/* Header with Actions */}
         <div className="mb-8">
@@ -301,7 +300,7 @@ export default function ViewLocationPage() {
           </CardContent>
         </Card>
       </div>
-    </AppLayout>
+    </div>
   );
 }
 

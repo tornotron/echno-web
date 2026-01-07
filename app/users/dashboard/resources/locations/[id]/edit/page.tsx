@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AppLayout } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -147,7 +146,7 @@ export default function EditLocationPage() {
 
   if (!location) {
     return (
-      <AppLayout title="Location Not Found">
+      <div title="Location Not Found">
         <Card>
           <CardContent className="py-12 text-center">
             <MapPin className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
@@ -163,12 +162,12 @@ export default function EditLocationPage() {
             </Button>
           </CardContent>
         </Card>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout title={`Edit ${location.name}`}>
+    <div title={`Edit ${location.name}`}>
       <div className="px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -342,6 +341,6 @@ export default function EditLocationPage() {
           </Card>
         </form>
       </div>
-    </AppLayout>
+    </div>
   );
 }
