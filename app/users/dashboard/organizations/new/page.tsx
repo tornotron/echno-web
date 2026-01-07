@@ -3,7 +3,6 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { logger } from '@/lib/logger';
-import { AppLayout } from '@/components/common/app-layout';
 import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
 import { toast } from '@/lib/styles/toast-styles';
@@ -42,15 +41,13 @@ export default function NewOrganizationPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
-        {/* Form */}
-        <OrganizationForm
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isLoading={isLoading}
-        />
-      </div>
-    </AppLayout>
+    <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
+      {/* Form */}
+      <OrganizationForm
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        isLoading={isLoading}
+      />
+    </div>
   );
 }
