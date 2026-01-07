@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppLayout } from '@/components/common';
 import { mockProjects } from '@/components/shared/mock-data';
 import { Button } from '@/components/ui/button';
 import {
@@ -200,454 +199,448 @@ export default function NewInvoicePage() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">New Invoice</h1>
-            <p className="text-muted-foreground">Create a new invoice record</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">New Invoice</h1>
+          <p className="text-muted-foreground">Create a new invoice record</p>
         </div>
+      </div>
 
-        <div className="max-w-5xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Invoice Information Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Invoice Information</CardTitle>
-                  <CardDescription>
-                    Basic details about the invoice
-                  </CardDescription>
+      <div className="max-w-5xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Invoice Information Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Invoice Information</CardTitle>
+                <CardDescription>
+                  Basic details about the invoice
+                </CardDescription>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Invoice Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="invoiceNumber">
+                    Invoice Number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="invoiceNumber"
+                    value={formData.invoiceNumber}
+                    onChange={(e) =>
+                      handleInputChange('invoiceNumber', e.target.value)
+                    }
+                    placeholder="e.g., INV-2024-001"
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Invoice Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="invoiceNumber">
-                      Invoice Number <span className="text-destructive">*</span>
-                    </Label>
+                {/* Type */}
+                <div className="space-y-2">
+                  <Label htmlFor="type">
+                    Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) =>
+                      handleInputChange('type', value as InvoiceType)
+                    }
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(invoiceTypeLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label htmlFor="status">
+                    Status <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      handleInputChange('status', value as InvoiceStatus)
+                    }
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(invoiceStatusLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Project */}
+                <div className="space-y-2">
+                  <Label htmlFor="projectId">
+                    Project <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.projectId?.toString()}
+                    onValueChange={(value) =>
+                      handleInputChange('projectId', Number(value))
+                    }
+                  >
+                    <SelectTrigger id="projectId">
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockProjects.map((project) => (
+                        <SelectItem
+                          key={project.id}
+                          value={project.id.toString()}
+                        >
+                          {project.projectName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Issue Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="issueDate">
+                    Issue Date <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Calendar className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
                     <Input
-                      id="invoiceNumber"
-                      value={formData.invoiceNumber}
+                      id="issueDate"
+                      type="date"
+                      value={format(
+                        new Date(formData.issueDate || ''),
+                        'yyyy-MM-dd'
+                      )}
                       onChange={(e) =>
-                        handleInputChange('invoiceNumber', e.target.value)
+                        handleInputChange('issueDate', e.target.value)
                       }
-                      placeholder="e.g., INV-2024-001"
+                      className="pl-10"
                       required
                     />
                   </div>
+                </div>
 
-                  {/* Type */}
-                  <div className="space-y-2">
-                    <Label htmlFor="type">
-                      Type <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.type}
-                      onValueChange={(value) =>
-                        handleInputChange('type', value as InvoiceType)
-                      }
-                    >
-                      <SelectTrigger id="type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(invoiceTypeLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Status */}
-                  <div className="space-y-2">
-                    <Label htmlFor="status">
-                      Status <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) =>
-                        handleInputChange('status', value as InvoiceStatus)
-                      }
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(invoiceStatusLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Project */}
-                  <div className="space-y-2">
-                    <Label htmlFor="projectId">
-                      Project <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.projectId?.toString()}
-                      onValueChange={(value) =>
-                        handleInputChange('projectId', Number(value))
-                      }
-                    >
-                      <SelectTrigger id="projectId">
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockProjects.map((project) => (
-                          <SelectItem
-                            key={project.id}
-                            value={project.id.toString()}
-                          >
-                            {project.projectName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Issue Date */}
-                  <div className="space-y-2">
-                    <Label htmlFor="issueDate">
-                      Issue Date <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Calendar className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="issueDate"
-                        type="date"
-                        value={format(
-                          new Date(formData.issueDate || ''),
-                          'yyyy-MM-dd'
-                        )}
-                        onChange={(e) =>
-                          handleInputChange('issueDate', e.target.value)
-                        }
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Due Date */}
-                  <div className="space-y-2">
-                    <Label htmlFor="dueDate">
-                      Due Date <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Calendar className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="dueDate"
-                        type="date"
-                        value={format(
-                          new Date(formData.dueDate || ''),
-                          'yyyy-MM-dd'
-                        )}
-                        onChange={(e) =>
-                          handleInputChange('dueDate', e.target.value)
-                        }
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Payment Terms */}
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentTerms">Payment Terms</Label>
+                {/* Due Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="dueDate">
+                    Due Date <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Calendar className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
                     <Input
-                      id="paymentTerms"
-                      value={formData.paymentTerms}
+                      id="dueDate"
+                      type="date"
+                      value={format(
+                        new Date(formData.dueDate || ''),
+                        'yyyy-MM-dd'
+                      )}
                       onChange={(e) =>
-                        handleInputChange('paymentTerms', e.target.value)
+                        handleInputChange('dueDate', e.target.value)
                       }
-                      placeholder="e.g., Net 30"
+                      className="pl-10"
+                      required
                     />
                   </div>
-
-                  {/* GST Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="gstNumber">GST/Tax Number</Label>
-                    <div className="relative">
-                      <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="gstNumber"
-                        value={formData.gstNumber}
-                        onChange={(e) =>
-                          handleInputChange('gstNumber', e.target.value)
-                        }
-                        placeholder="Enter GST number"
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Line Items Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6 flex items-center justify-between">
-                  <div>
-                    <CardTitle>Line Items</CardTitle>
-                    <CardDescription>
-                      Add products or services to this invoice
-                    </CardDescription>
-                  </div>
-                  <Button
-                    type="button"
-                    onClick={addLineItem}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12">#</TableHead>
-                        <TableHead className="min-w-[250px]">
-                          Description *
-                        </TableHead>
-                        <TableHead className="min-w-[100px]">
-                          Quantity *
-                        </TableHead>
-                        <TableHead className="min-w-[100px]">Unit</TableHead>
-                        <TableHead className="min-w-[120px]">
-                          Unit Price (₹) *
-                        </TableHead>
-                        <TableHead className="min-w-[100px]">
-                          Tax Rate (%)
-                        </TableHead>
-                        <TableHead className="min-w-[120px]">
-                          Subtotal (₹)
-                        </TableHead>
-                        <TableHead className="min-w-[120px]">
-                          Tax Amount (₹)
-                        </TableHead>
-                        <TableHead className="min-w-[120px]">
-                          Total (₹)
-                        </TableHead>
-                        <TableHead className="w-12"></TableHead>
+                {/* Payment Terms */}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentTerms">Payment Terms</Label>
+                  <Input
+                    id="paymentTerms"
+                    value={formData.paymentTerms}
+                    onChange={(e) =>
+                      handleInputChange('paymentTerms', e.target.value)
+                    }
+                    placeholder="e.g., Net 30"
+                  />
+                </div>
+
+                {/* GST Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="gstNumber">GST/Tax Number</Label>
+                  <div className="relative">
+                    <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="gstNumber"
+                      value={formData.gstNumber}
+                      onChange={(e) =>
+                        handleInputChange('gstNumber', e.target.value)
+                      }
+                      placeholder="Enter GST number"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Line Items Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6 flex items-center justify-between">
+                <div>
+                  <CardTitle>Line Items</CardTitle>
+                  <CardDescription>
+                    Add products or services to this invoice
+                  </CardDescription>
+                </div>
+                <Button
+                  type="button"
+                  onClick={addLineItem}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Item
+                </Button>
+              </div>
+
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">#</TableHead>
+                      <TableHead className="min-w-[250px]">
+                        Description *
+                      </TableHead>
+                      <TableHead className="min-w-[100px]">
+                        Quantity *
+                      </TableHead>
+                      <TableHead className="min-w-[100px]">Unit</TableHead>
+                      <TableHead className="min-w-[120px]">
+                        Unit Price (₹) *
+                      </TableHead>
+                      <TableHead className="min-w-[100px]">
+                        Tax Rate (%)
+                      </TableHead>
+                      <TableHead className="min-w-[120px]">
+                        Subtotal (₹)
+                      </TableHead>
+                      <TableHead className="min-w-[120px]">
+                        Tax Amount (₹)
+                      </TableHead>
+                      <TableHead className="min-w-[120px]">Total (₹)</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {lineItems.map((item, index) => (
+                      <TableRow key={item.id}>
+                        <TableCell className="font-medium">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell>
+                          <Textarea
+                            value={item.description}
+                            onChange={(e) =>
+                              handleLineItemChange(
+                                index,
+                                'description',
+                                e.target.value
+                              )
+                            }
+                            placeholder="Enter item description"
+                            rows={2}
+                            required
+                            className="min-h-[60px] text-xs"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.quantity}
+                            onChange={(e) =>
+                              handleLineItemChange(
+                                index,
+                                'quantity',
+                                Number.parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="1"
+                            min="0"
+                            step="0.01"
+                            required
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            value={item.unit}
+                            onChange={(e) =>
+                              handleLineItemChange(
+                                index,
+                                'unit',
+                                e.target.value
+                              )
+                            }
+                            placeholder="LS"
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.unitPrice}
+                            onChange={(e) =>
+                              handleLineItemChange(
+                                index,
+                                'unitPrice',
+                                Number.parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="0.00"
+                            min="0"
+                            step="0.01"
+                            required
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.taxRate}
+                            onChange={(e) =>
+                              handleLineItemChange(
+                                index,
+                                'taxRate',
+                                Number.parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="18"
+                            min="0"
+                            step="0.01"
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.subtotal.toFixed(2)}
+                            disabled
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            value={item.taxAmount.toFixed(2)}
+                            disabled
+                            className="h-9"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-semibold whitespace-nowrap text-zinc-900 dark:text-zinc-100">
+                            ₹{item.total.toFixed(2)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {lineItems.length > 1 && (
+                            <Button
+                              type="button"
+                              onClick={() => removeLineItem(index)}
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {lineItems.map((item, index) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">
-                            {index + 1}
-                          </TableCell>
-                          <TableCell>
-                            <Textarea
-                              value={item.description}
-                              onChange={(e) =>
-                                handleLineItemChange(
-                                  index,
-                                  'description',
-                                  e.target.value
-                                )
-                              }
-                              placeholder="Enter item description"
-                              rows={2}
-                              required
-                              className="min-h-[60px] text-xs"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={item.quantity}
-                              onChange={(e) =>
-                                handleLineItemChange(
-                                  index,
-                                  'quantity',
-                                  Number.parseFloat(e.target.value) || 0
-                                )
-                              }
-                              placeholder="1"
-                              min="0"
-                              step="0.01"
-                              required
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              value={item.unit}
-                              onChange={(e) =>
-                                handleLineItemChange(
-                                  index,
-                                  'unit',
-                                  e.target.value
-                                )
-                              }
-                              placeholder="LS"
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={item.unitPrice}
-                              onChange={(e) =>
-                                handleLineItemChange(
-                                  index,
-                                  'unitPrice',
-                                  Number.parseFloat(e.target.value) || 0
-                                )
-                              }
-                              placeholder="0.00"
-                              min="0"
-                              step="0.01"
-                              required
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={item.taxRate}
-                              onChange={(e) =>
-                                handleLineItemChange(
-                                  index,
-                                  'taxRate',
-                                  Number.parseFloat(e.target.value) || 0
-                                )
-                              }
-                              placeholder="18"
-                              min="0"
-                              step="0.01"
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={item.subtotal.toFixed(2)}
-                              disabled
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              type="number"
-                              value={item.taxAmount.toFixed(2)}
-                              disabled
-                              className="h-9"
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="font-semibold whitespace-nowrap text-zinc-900 dark:text-zinc-100">
-                              ₹{item.total.toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {lineItems.length > 1 && (
-                              <Button
-                                type="button"
-                                onClick={() => removeLineItem(index)}
-                                variant="ghost"
-                                size="sm"
-                                className="text-destructive"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
-                {/* Summary */}
-                <div className="mt-6 space-y-3 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
-                  <div className="flex justify-between text-sm">
-                    <span>Subtotal:</span>
-                    <span className="font-medium">
-                      ₹{(formData.subtotal || 0).toLocaleString('en-IN')}
+              {/* Summary */}
+              <div className="mt-6 space-y-3 rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span className="font-medium">
+                    ₹{(formData.subtotal || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Tax:</span>
+                  <span className="font-medium">
+                    ₹{(formData.taxAmount || 0).toLocaleString('en-IN')}
+                  </span>
+                </div>
+                <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                  <div className="flex justify-between font-semibold">
+                    <span>Total:</span>
+                    <span className="text-lg text-blue-600 dark:text-blue-400">
+                      ₹{(formData.totalAmount || 0).toLocaleString('en-IN')}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Tax:</span>
-                    <span className="font-medium">
-                      ₹{(formData.taxAmount || 0).toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                  <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
-                    <div className="flex justify-between font-semibold">
-                      <span>Total:</span>
-                      <span className="text-lg text-blue-600 dark:text-blue-400">
-                        ₹{(formData.totalAmount || 0).toLocaleString('en-IN')}
-                      </span>
-                    </div>
-                  </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Additional Information Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Additional Information</CardTitle>
-                  <CardDescription>Notes and terms</CardDescription>
+          {/* Additional Information Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Additional Information</CardTitle>
+                <CardDescription>Notes and terms</CardDescription>
+              </div>
+
+              <div className="space-y-4">
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    placeholder="Add any notes or special instructions"
+                    rows={4}
+                  />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                <div className="space-y-4">
-                  {/* Notes */}
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) =>
-                        handleInputChange('notes', e.target.value)
-                      }
-                      placeholder="Add any notes or special instructions"
-                      rows={4}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Form Actions */}
-            <div className="flex gap-4">
-              <Button type="submit" disabled={isSubmitting}>
-                <Save className="mr-2 h-4 w-4" />
-                {isSubmitting ? 'Creating...' : 'Create Invoice'}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </div>
+          {/* Form Actions */}
+          <div className="flex gap-4">
+            <Button type="submit" disabled={isSubmitting}>
+              <Save className="mr-2 h-4 w-4" />
+              {isSubmitting ? 'Creating...' : 'Create Invoice'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+          </div>
+        </form>
       </div>
-    </AppLayout>
+    </div>
   );
 }
