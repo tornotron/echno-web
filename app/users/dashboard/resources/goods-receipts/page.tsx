@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AppLayout, Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter } from '@/components/common';
 import {
   Receipt,
   Plus,
@@ -178,293 +178,291 @@ export default function GoodsReceiptsPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-                Goods Receipts (GRN)
-              </h1>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Manage goods receipt notes and track deliveries
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Goods Receipts (GRN)
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Manage goods receipt notes and track deliveries
+            </p>
+          </div>
+          <Link href="/users/dashboard/resources/goods-receipts/new">
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="mr-2 h-4 w-4" />
+              Record Receipt
+            </Button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Total Receipts</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <Receipt className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {totalReceipts}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Pending QC</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {pendingQC}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>With Discrepancies</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {withDiscrepancies}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Processed Today</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {processedToday}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Search and Filters */}
+      <SearchAndFilter
+        variant="card"
+        searchValue={searchQuery}
+        onSearchChange={(value) => {
+          setSearchQuery(value);
+          setCurrentPage(1);
+        }}
+        searchPlaceholder="Search by receipt number or PO number..."
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
+        filters={[
+          {
+            placeholder: 'Status',
+            options: [
+              { value: 'all', label: 'All Statuses' },
+              ...Object.values(GoodsReceiptStatus).map((status) => ({
+                value: status,
+                label: goodsReceiptStatusLabels[status],
+              })),
+            ],
+            value: statusFilter,
+            onChange: (value) => {
+              setStatusFilter(value);
+              setCurrentPage(1);
+            },
+          },
+          {
+            placeholder: 'Date Range',
+            options: [
+              { value: 'all', label: 'All Time' },
+              { value: 'today', label: 'Today' },
+              { value: 'last7days', label: 'Last 7 Days' },
+              { value: 'last30days', label: 'Last 30 Days' },
+              { value: 'thisMonth', label: 'This Month' },
+            ],
+            value: dateFilter,
+            onChange: (value) => {
+              setDateFilter(value);
+              setCurrentPage(1);
+            },
+          },
+        ]}
+      />
+
+      {/* Results Summary */}
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Showing {startIndex + 1} to{' '}
+          {Math.min(endIndex, filteredReceipts.length)} of{' '}
+          {filteredReceipts.length} goods receipts
+        </p>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+            Rows per page:
+          </span>
+          <Select
+            value={itemsPerPage.toString()}
+            onValueChange={(value) => {
+              setItemsPerPage(Number(value));
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5">5</SelectItem>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="100">100</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Goods Receipts Table */}
+      {filteredReceipts.length > 0 ? (
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={isAllSelected}
+                      onCheckedChange={handleSelectAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead>Receipt #</TableHead>
+                  <TableHead>PO Number</TableHead>
+                  <TableHead>Vendor</TableHead>
+                  <TableHead>Received Date</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Discrepancies</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedReceipts.map((grn) => (
+                  <TableRow
+                    key={grn.id}
+                    className="hover:bg-muted/50 cursor-pointer"
+                    onClick={() =>
+                      (globalThis.location.href = `/dashboard/resources/goods-receipts/${grn.id}`)
+                    }
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={
+                          grn.id !== undefined && selectedIds.includes(grn.id)
+                        }
+                        onCheckedChange={(checked) =>
+                          grn.id !== undefined &&
+                          handleSelectOne(grn.id, checked as boolean)
+                        }
+                        aria-label={`Select ${grn.receiptNumber}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {grn.receiptNumber}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
+                        className="text-blue-600 hover:underline dark:text-blue-400"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        PO-{grn.purchaseOrderId}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-zinc-400" />
+                        <span className="text-zinc-900 dark:text-zinc-100">
+                          Vendor #{grn.vendorId}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-zinc-600 dark:text-zinc-400">
+                      {format(grn.receivedDate, 'MMM dd, yyyy')}
+                    </TableCell>
+                    <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
+                      ₹{(grn.totalReceivedValue / 100_000).toFixed(2)}L
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusBadgeColor(grn.status)}>
+                        {goodsReceiptStatusLabels[grn.status]}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {grn.hasDiscrepancies ? (
+                        <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                          <AlertTriangle className="h-4 w-4" />
+                          <span className="text-xs font-medium">Yes</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                          <CheckCircle className="h-4 w-4" />
+                          <span className="text-xs font-medium">No</span>
+                        </div>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+
+          {/* Pagination Controls */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-12">
+            <div className="text-center">
+              <Receipt className="mx-auto h-12 w-12 text-zinc-400" />
+              <h3 className="mt-4 text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                No goods receipts found
+              </h3>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                {hasActiveFilters
+                  ? 'Try adjusting your search or filters'
+                  : 'Get started by recording your first goods receipt'}
               </p>
             </div>
-            <Link href="/users/dashboard/resources/goods-receipts/new">
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="mr-2 h-4 w-4" />
-                Record Receipt
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Total Receipts</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                  <Receipt className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {totalReceipts}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Pending QC</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                  <Clock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {pendingQC}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>With Discrepancies</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
-                  <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {withDiscrepancies}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardDescription>Processed Today</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {processedToday}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Search and Filters */}
-        <SearchAndFilter
-          variant="card"
-          searchValue={searchQuery}
-          onSearchChange={(value) => {
-            setSearchQuery(value);
-            setCurrentPage(1);
-          }}
-          searchPlaceholder="Search by receipt number or PO number..."
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
-          filters={[
-            {
-              placeholder: 'Status',
-              options: [
-                { value: 'all', label: 'All Statuses' },
-                ...Object.values(GoodsReceiptStatus).map((status) => ({
-                  value: status,
-                  label: goodsReceiptStatusLabels[status],
-                })),
-              ],
-              value: statusFilter,
-              onChange: (value) => {
-                setStatusFilter(value);
-                setCurrentPage(1);
-              },
-            },
-            {
-              placeholder: 'Date Range',
-              options: [
-                { value: 'all', label: 'All Time' },
-                { value: 'today', label: 'Today' },
-                { value: 'last7days', label: 'Last 7 Days' },
-                { value: 'last30days', label: 'Last 30 Days' },
-                { value: 'thisMonth', label: 'This Month' },
-              ],
-              value: dateFilter,
-              onChange: (value) => {
-                setDateFilter(value);
-                setCurrentPage(1);
-              },
-            },
-          ]}
-        />
-
-        {/* Results Summary */}
-        <div className="mb-4 flex items-center justify-between">
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            Showing {startIndex + 1} to{' '}
-            {Math.min(endIndex, filteredReceipts.length)} of{' '}
-            {filteredReceipts.length} goods receipts
-          </p>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-zinc-600 dark:text-zinc-400">
-              Rows per page:
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(value) => {
-                setItemsPerPage(Number(value));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="w-[70px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Goods Receipts Table */}
-        {filteredReceipts.length > 0 ? (
-          <Card>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={handleSelectAll}
-                        aria-label="Select all"
-                      />
-                    </TableHead>
-                    <TableHead>Receipt #</TableHead>
-                    <TableHead>PO Number</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Received Date</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Discrepancies</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedReceipts.map((grn) => (
-                    <TableRow
-                      key={grn.id}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (globalThis.location.href = `/dashboard/resources/goods-receipts/${grn.id}`)
-                      }
-                    >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={
-                            grn.id !== undefined && selectedIds.includes(grn.id)
-                          }
-                          onCheckedChange={(checked) =>
-                            grn.id !== undefined &&
-                            handleSelectOne(grn.id, checked as boolean)
-                          }
-                          aria-label={`Select ${grn.receiptNumber}`}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {grn.receiptNumber}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Link
-                          href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
-                          className="text-blue-600 hover:underline dark:text-blue-400"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          PO-{grn.purchaseOrderId}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-4 w-4 text-zinc-400" />
-                          <span className="text-zinc-900 dark:text-zinc-100">
-                            Vendor #{grn.vendorId}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-zinc-600 dark:text-zinc-400">
-                        {format(grn.receivedDate, 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
-                        ₹{(grn.totalReceivedValue / 100_000).toFixed(2)}L
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusBadgeColor(grn.status)}>
-                          {goodsReceiptStatusLabels[grn.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {grn.hasDiscrepancies ? (
-                          <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
-                            <AlertTriangle className="h-4 w-4" />
-                            <span className="text-xs font-medium">Yes</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                            <CheckCircle className="h-4 w-4" />
-                            <span className="text-xs font-medium">No</span>
-                          </div>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-
-            {/* Pagination Controls */}
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          </Card>
-        ) : (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center">
-                <Receipt className="mx-auto h-12 w-12 text-zinc-400" />
-                <h3 className="mt-4 text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                  No goods receipts found
-                </h3>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  {hasActiveFilters
-                    ? 'Try adjusting your search or filters'
-                    : 'Get started by recording your first goods receipt'}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </AppLayout>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
