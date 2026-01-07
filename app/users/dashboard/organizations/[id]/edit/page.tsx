@@ -3,7 +3,6 @@
 import { useRouter, notFound } from 'next/navigation';
 import { logger } from '@/lib/logger';
 import { useState, use } from 'react';
-import { AppLayout } from '@/components/common/app-layout';
 import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
 import { mockOrganizations } from '@/components/shared/mock-data';
@@ -60,16 +59,14 @@ export default function EditOrganizationPage({
   };
 
   return (
-    <AppLayout>
-      <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
-        {/* Form */}
-        <OrganizationForm
-          organization={organization}
-          onSubmit={handleSubmit}
-          onCancel={handleCancel}
-          isLoading={isLoading}
-        />
-      </div>
-    </AppLayout>
+    <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
+      {/* Form */}
+      <OrganizationForm
+        organization={organization}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        isLoading={isLoading}
+      />
+    </div>
   );
 }
