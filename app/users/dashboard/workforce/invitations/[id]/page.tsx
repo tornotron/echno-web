@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { AppLayout } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -51,21 +50,17 @@ export default function InvitationPage() {
   // If not found, show error
   if (!foundInvitation) {
     return (
-      <AppLayout>
-        <div className="flex min-h-[400px] flex-col items-center justify-center">
-          <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-          <h2 className="mb-2 text-xl font-semibold">Invitation Not Found</h2>
-          <p className="mb-4 text-zinc-500">
-            The invitation code &quot;{inviteCode}&quot; could not be found.
-          </p>
-          <Button
-            onClick={() => router.push('/dashboard/workforce/invitations')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Invitations
-          </Button>
-        </div>
-      </AppLayout>
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <h2 className="mb-2 text-xl font-semibold">Invitation Not Found</h2>
+        <p className="mb-4 text-zinc-500">
+          The invitation code &quot;{inviteCode}&quot; could not be found.
+        </p>
+        <Button onClick={() => router.push('/dashboard/workforce/invitations')}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Invitations
+        </Button>
+      </div>
     );
   }
 
@@ -364,352 +359,348 @@ export default function InvitationPage() {
   const StatusIcon = statusDisplay.icon;
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              Invitation Details
-            </h1>
-            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-              {invitation.inviteCode}
-            </p>
-          </div>
-          <Badge className={statusDisplay.className}>
-            <StatusIcon className="mr-1 h-3 w-3" />
-            {statusDisplay.label}
-          </Badge>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            Invitation Details
+          </h1>
+          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+            {invitation.inviteCode}
+          </p>
+        </div>
+        <Badge className={statusDisplay.className}>
+          <StatusIcon className="mr-1 h-3 w-3" />
+          {statusDisplay.label}
+        </Badge>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main Details */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Employee Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Employee Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                    <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Full Name
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.employeeName}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/20">
+                    <Briefcase className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Employee ID
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.employeeId}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                    <Building2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Department
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.department}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                    <Briefcase className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Designation
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.designation}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/20">
+                    <AtSign className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Email
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.email}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 dark:bg-pink-900/20">
+                    <Phone className="h-5 w-5 text-pink-600 dark:text-pink-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Phone
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.phone}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Employment Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Employment Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-6">
+                {invitation.joiningDate && (
+                  <div>
+                    <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      Joining Date
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {format(invitation.joiningDate, 'MMM dd, yyyy')}
+                    </p>
+                  </div>
+                )}
+
+                {invitation.salary && (
+                  <div>
+                    <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      Salary
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      ₹{invitation.salary.toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                {invitation.reportingManager && (
+                  <div>
+                    <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      Reporting Manager
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.reportingManager}
+                    </p>
+                  </div>
+                )}
+
+                {invitation.shiftTiming && (
+                  <div>
+                    <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      Shift Timing
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.shiftTiming}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Invitation Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Invitation Timeline</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
+                    <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Created
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.createdDate
+                        ? format(
+                            invitation.createdDate,
+                            "MMM dd, yyyy 'at' h:mm a"
+                          )
+                        : 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/20">
+                    <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Expires
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.expiryDate
+                        ? format(
+                            invitation.expiryDate,
+                            "MMM dd, yyyy 'at' h:mm a"
+                          )
+                        : 'Never'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
+                    <Mail className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Sent Via
+                    </p>
+                    <div className="mt-1 flex flex-wrap gap-2">
+                      {invitation.sentVia?.map((method) => (
+                        <Badge
+                          key={method}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {method.charAt(0).toUpperCase() + method.slice(1)}
+                        </Badge>
+                      )) || <span className="text-sm text-zinc-400">None</span>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Main Details */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Employee Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Employee Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                      <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Full Name
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.employeeName}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/20">
-                      <Briefcase className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Employee ID
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.employeeId}
-                      </p>
-                    </div>
-                  </div>
+        {/* Sidebar */}
+        <div className="space-y-6 lg:col-span-1">
+          {/* Invite Code Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-center">Invitation Code</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-lg bg-zinc-100 p-6 text-center dark:bg-zinc-800">
+                <div className="mb-4 font-mono text-2xl font-bold tracking-wider text-blue-600 dark:text-blue-400">
+                  {invitation.inviteCode}
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                      <Building2 className="h-5 w-5 text-green-600 dark:text-green-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Department
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.department}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                      <Briefcase className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Designation
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.designation}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/20">
-                      <AtSign className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Email
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.email}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 dark:bg-pink-900/20">
-                      <Phone className="h-5 w-5 text-pink-600 dark:text-pink-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Phone
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.phone}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Employment Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Employment Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-6">
-                  {invitation.joiningDate && (
-                    <div>
-                      <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        Joining Date
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {format(invitation.joiningDate, 'MMM dd, yyyy')}
-                      </p>
-                    </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyToClipboard(invitation.inviteCode)}
+                  className="w-full"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="mr-2 h-4 w-4" />
+                      Copied!
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy Code
+                    </>
                   )}
+                </Button>
+              </div>
 
-                  {invitation.salary && (
-                    <div>
-                      <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        Salary
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        ₹{invitation.salary.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-
-                  {invitation.reportingManager && (
-                    <div>
-                      <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        Reporting Manager
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.reportingManager}
-                      </p>
-                    </div>
-                  )}
-
-                  {invitation.shiftTiming && (
-                    <div>
-                      <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
-                        Shift Timing
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.shiftTiming}
-                      </p>
-                    </div>
-                  )}
+              {/* QR Code Placeholder */}
+              <div className="mt-4 rounded-lg border-2 border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="flex aspect-square items-center justify-center">
+                  <QrCode className="h-32 w-32 text-zinc-400 dark:text-zinc-600" />
                 </div>
-              </CardContent>
-            </Card>
+                <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                  QR Code (Scan with mobile app)
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Invitation Timeline */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Invitation Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                      <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Created
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.createdDate
-                          ? format(
-                              invitation.createdDate,
-                              "MMM dd, yyyy 'at' h:mm a"
-                            )
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
+          {/* Share Options Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Share Invitation</CardTitle>
+              <CardDescription>Send the invitation again</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={sendViaWhatsApp}
+              >
+                <MessageSquare className="mr-2 h-4 w-4 text-green-600" />
+                Send via WhatsApp
+              </Button>
 
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/20">
-                      <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Expires
-                      </p>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.expiryDate
-                          ? format(
-                              invitation.expiryDate,
-                              "MMM dd, yyyy 'at' h:mm a"
-                            )
-                          : 'Never'}
-                      </p>
-                    </div>
-                  </div>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={sendViaEmail}
+              >
+                <Mail className="mr-2 h-4 w-4 text-blue-600" />
+                Send via Email
+              </Button>
 
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
-                      <Mail className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <div>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Sent Via
-                      </p>
-                      <div className="mt-1 flex flex-wrap gap-2">
-                        {invitation.sentVia?.map((method) => (
-                          <Badge
-                            key={method}
-                            variant="outline"
-                            className="text-xs"
-                          >
-                            {method.charAt(0).toUpperCase() + method.slice(1)}
-                          </Badge>
-                        )) || (
-                          <span className="text-sm text-zinc-400">None</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={sendViaSlack}
+              >
+                <MessageSquare className="mr-2 h-4 w-4 text-purple-600" />
+                Copy for Slack
+              </Button>
 
-          {/* Sidebar */}
-          <div className="space-y-6 lg:col-span-1">
-            {/* Invite Code Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Invitation Code</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg bg-zinc-100 p-6 text-center dark:bg-zinc-800">
-                  <div className="mb-4 font-mono text-2xl font-bold tracking-wider text-blue-600 dark:text-blue-400">
-                    {invitation.inviteCode}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(invitation.inviteCode)}
-                    className="w-full"
-                  >
-                    {copied ? (
-                      <>
-                        <Check className="mr-2 h-4 w-4" />
-                        Copied!
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Copy Code
-                      </>
-                    )}
-                  </Button>
-                </div>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={sendViaDiscord}
+              >
+                <MessageSquare className="mr-2 h-4 w-4 text-indigo-600" />
+                Copy for Discord
+              </Button>
 
-                {/* QR Code Placeholder */}
-                <div className="mt-4 rounded-lg border-2 border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                  <div className="flex aspect-square items-center justify-center">
-                    <QrCode className="h-32 w-32 text-zinc-400 dark:text-zinc-600" />
-                  </div>
-                  <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                    QR Code (Scan with mobile app)
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Share Options Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Share Invitation</CardTitle>
-                <CardDescription>Send the invitation again</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={sendViaWhatsApp}
-                >
-                  <MessageSquare className="mr-2 h-4 w-4 text-green-600" />
-                  Send via WhatsApp
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={sendViaEmail}
-                >
-                  <Mail className="mr-2 h-4 w-4 text-blue-600" />
-                  Send via Email
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={sendViaSlack}
-                >
-                  <MessageSquare className="mr-2 h-4 w-4 text-purple-600" />
-                  Copy for Slack
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={sendViaDiscord}
-                >
-                  <MessageSquare className="mr-2 h-4 w-4 text-indigo-600" />
-                  Copy for Discord
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={printInvitation}
-                >
-                  <Printer className="mr-2 h-4 w-4 text-zinc-600" />
-                  Print Invitation Letter
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={printInvitation}
+              >
+                <Printer className="mr-2 h-4 w-4 text-zinc-600" />
+                Print Invitation Letter
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }
