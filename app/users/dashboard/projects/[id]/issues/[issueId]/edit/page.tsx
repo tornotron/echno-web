@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, use } from 'react';
-import { AppLayout } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -89,28 +88,26 @@ export default function EditIssuePage({ params }: PageProps) {
 
   if (!issueToEdit) {
     return (
-      <AppLayout>
-        <div className="space-y-4 sm:space-y-6">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                Issue not found
-              </h3>
-              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-                The issue you&apos;re looking for doesn&apos;t exist.
-              </p>
-              <Button
-                onClick={() =>
-                  router.push(`/dashboard/projects/${projectId}/issues`)
-                }
-              >
-                Back to Issues
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
+      <div className="space-y-4 sm:space-y-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Issue not found
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              The issue you&apos;re looking for doesn&apos;t exist.
+            </p>
+            <Button
+              onClick={() =>
+                router.push(`/dashboard/projects/${projectId}/issues`)
+              }
+            >
+              Back to Issues
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -215,369 +212,363 @@ export default function EditIssuePage({ params }: PageProps) {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              Edit Issue
-            </h1>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Update issue information
-            </p>
-          </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            Edit Issue
+          </h1>
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Update issue information
+          </p>
         </div>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Main Form */}
-            <div className="space-y-6 lg:col-span-2">
-              {/* Basic Details Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <AlertTriangle className="h-5 w-5" />
-                    Issue Details
-                  </CardTitle>
-                  <CardDescription>
-                    Update information about the issue
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  {/* Related Task (Optional) */}
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Main Form */}
+          <div className="space-y-6 lg:col-span-2">
+            {/* Basic Details Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Issue Details
+                </CardTitle>
+                <CardDescription>
+                  Update information about the issue
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Related Task (Optional) */}
+                <div className="space-y-2">
+                  <Label htmlFor="task">Related Task (Optional)</Label>
+                  <Select value={taskId} onValueChange={setTaskId}>
+                    <SelectTrigger id="task">
+                      <SelectValue placeholder="Select a task (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockTasks.map((task) => (
+                        <SelectItem
+                          key={task.id}
+                          value={task.id?.toString() || ''}
+                        >
+                          <div className="flex flex-col">
+                            <span>{task.title}</span>
+                            <span className="text-xs text-zinc-500">
+                              {project?.projectName || 'Project'}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Issue Title */}
+                <div className="space-y-2">
+                  <Label htmlFor="title">
+                    Issue Title <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="title"
+                    placeholder="Enter a brief, descriptive title..."
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Minimum 5 characters ({title.length}/5)
+                  </p>
+                </div>
+
+                {/* Issue Type, Status, Priority */}
+                <div className="grid gap-4 md:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="task">Related Task (Optional)</Label>
-                    <Select value={taskId} onValueChange={setTaskId}>
-                      <SelectTrigger id="task">
-                        <SelectValue placeholder="Select a task (optional)" />
+                    <Label htmlFor="issueType">
+                      Type <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={issueType}
+                      onValueChange={(value) =>
+                        setIssueType(value as IssueType)
+                      }
+                    >
+                      <SelectTrigger id="issueType">
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockTasks.map((task) => (
-                          <SelectItem
-                            key={task.id}
-                            value={task.id?.toString() || ''}
-                          >
-                            <div className="flex flex-col">
-                              <span>{task.title}</span>
-                              <span className="text-xs text-zinc-500">
-                                {project?.projectName || 'Project'}
-                              </span>
-                            </div>
+                        {Object.values(IssueType).map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {getIssueTypeLabel(type)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
-                  {/* Issue Title */}
                   <div className="space-y-2">
-                    <Label htmlFor="title">
-                      Issue Title <span className="text-red-500">*</span>
+                    <Label htmlFor="status">
+                      Status <span className="text-red-500">*</span>
                     </Label>
-                    <Input
-                      id="title"
-                      placeholder="Enter a brief, descriptive title..."
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                    />
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Minimum 5 characters ({title.length}/5)
-                    </p>
+                    <Select
+                      value={status}
+                      onValueChange={(value) =>
+                        handleStatusChange(value as IssueStatus)
+                      }
+                    >
+                      <SelectTrigger id="status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(IssueStatus).map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {getIssueStatusLabel(s)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-
-                  {/* Issue Type, Status, Priority */}
-                  <div className="grid gap-4 md:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="issueType">
-                        Type <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={issueType}
-                        onValueChange={(value) =>
-                          setIssueType(value as IssueType)
-                        }
-                      >
-                        <SelectTrigger id="issueType">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(IssueType).map((type) => (
-                            <SelectItem key={type} value={type}>
-                              {getIssueTypeLabel(type)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="status">
-                        Status <span className="text-red-500">*</span>
-                      </Label>
-                      <Select
-                        value={status}
-                        onValueChange={(value) =>
-                          handleStatusChange(value as IssueStatus)
-                        }
-                      >
-                        <SelectTrigger id="status">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.values(IssueStatus).map((s) => (
-                            <SelectItem key={s} value={s}>
-                              {getIssueStatusLabel(s)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="priority">
-                        Priority <span className="text-red-500">*</span>
-                      </Label>
-                      <Select value={priority} onValueChange={setPriority}>
-                        <SelectTrigger id="priority">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  {/* Description */}
                   <div className="space-y-2">
-                    <Label htmlFor="description">
-                      Description <span className="text-red-500">*</span>
+                    <Label htmlFor="priority">
+                      Priority <span className="text-red-500">*</span>
                     </Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Provide a detailed description of the issue..."
-                      value={description}
-                      onChange={(e) => setDescription(e.target.value)}
-                      rows={8}
-                      className="resize-none"
-                    />
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      Minimum 20 characters ({description.length}/20)
-                    </p>
+                    <Select value={priority} onValueChange={setPriority}>
+                      <SelectTrigger id="priority">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* Action Buttons */}
-              <div className="flex justify-between">
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description">
+                    Description <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    placeholder="Provide a detailed description of the issue..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={8}
+                    className="resize-none"
+                  />
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    Minimum 20 characters ({description.length}/20)
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between">
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isSubmitting || isDeleting}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {isDeleting ? 'Deleting...' : 'Delete Issue'}
+              </Button>
+              <div className="flex gap-3">
                 <Button
                   type="button"
-                  variant="destructive"
-                  onClick={handleDelete}
+                  variant="outline"
+                  onClick={() => router.back()}
                   disabled={isSubmitting || isDeleting}
                 >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {isDeleting ? 'Deleting...' : 'Delete Issue'}
+                  Cancel
                 </Button>
-                <div className="flex gap-3">
+                <Button type="submit" disabled={isSubmitting || isDeleting}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isSubmitting ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Summary Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Issue Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-600 dark:text-zinc-400">Type</span>
+                  <Badge
+                    variant="outline"
+                    style={{
+                      borderColor: getIssueTypeColor(issueType),
+                      color: getIssueTypeColor(issueType),
+                    }}
+                  >
+                    {getIssueTypeLabel(issueType)}
+                  </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    Status
+                  </span>
+                  <Badge variant="outline">{getIssueStatusLabel(status)}</Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    Priority
+                  </span>
+                  <Badge className={getPriorityColor(priority)}>
+                    {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                  </Badge>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    New Attachments
+                  </span>
+                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {attachments.length}
+                  </span>
+                </div>
+                {taskId && (
+                  <div className="border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                    <p className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
+                      Linked to:
+                    </p>
+                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                      {
+                        mockTasks.find((t) => t.id?.toString() === taskId)
+                          ?.title
+                      }
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Add More Attachments */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <FileText className="h-4 w-4" />
+                  Add Attachments
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="space-y-2">
+                  <Input
+                    id="attachments-sidebar"
+                    type="file"
+                    onChange={handleFileChange}
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
+                    className="hidden"
+                  />
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => router.back()}
-                    disabled={isSubmitting || isDeleting}
+                    size="sm"
+                    className="w-full"
+                    onClick={() =>
+                      (
+                        document.querySelector(
+                          '#attachments-sidebar'
+                        ) as HTMLElement
+                      )?.click()
+                    }
                   >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={isSubmitting || isDeleting}>
-                    <Save className="mr-2 h-4 w-4" />
-                    {isSubmitting ? 'Saving...' : 'Save Changes'}
+                    <Upload className="mr-2 h-4 w-4" />
+                    Upload Files
                   </Button>
                 </div>
-              </div>
-            </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Summary Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-sm">Issue Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      Type
-                    </span>
-                    <Badge
-                      variant="outline"
-                      style={{
-                        borderColor: getIssueTypeColor(issueType),
-                        color: getIssueTypeColor(issueType),
-                      }}
-                    >
-                      {getIssueTypeLabel(issueType)}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      Status
-                    </span>
-                    <Badge variant="outline">
-                      {getIssueStatusLabel(status)}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      Priority
-                    </span>
-                    <Badge className={getPriorityColor(priority)}>
-                      {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                    </Badge>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      New Attachments
-                    </span>
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {attachments.length}
-                    </span>
-                  </div>
-                  {taskId && (
-                    <div className="border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                      <p className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
-                        Linked to:
-                      </p>
-                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {
-                          mockTasks.find((t) => t.id?.toString() === taskId)
-                            ?.title
-                        }
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Add More Attachments */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-sm">
-                    <FileText className="h-4 w-4" />
-                    Add Attachments
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                {attachments.length > 0 ? (
                   <div className="space-y-2">
-                    <Input
-                      id="attachments-sidebar"
-                      type="file"
-                      onChange={handleFileChange}
-                      multiple
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() =>
-                        (
-                          document.querySelector(
-                            '#attachments-sidebar'
-                          ) as HTMLElement
-                        )?.click()
-                      }
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Files
-                    </Button>
-                  </div>
-
-                  {attachments.length > 0 ? (
-                    <div className="space-y-2">
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"
-                        >
-                          <div className="flex min-w-0 flex-1 items-center gap-2">
-                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                                {file.name}
-                              </p>
-                              <p className="text-xs text-zinc-500">
-                                {(file.size / 1024).toFixed(1)} KB
-                              </p>
-                            </div>
+                    {attachments.map((file, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
+                          <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                              {file.name}
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                              {(file.size / 1024).toFixed(1)} KB
+                            </p>
                           </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 shrink-0 p-0"
-                            onClick={() => removeAttachment(index)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
                         </div>
-                      ))}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 shrink-0 p-0"
+                          onClick={() => removeAttachment(index)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                    No new attachments
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Safety Alert */}
+            {issueType === IssueType.safety && (
+              <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-red-900 dark:text-red-100">
+                        Safety Issue
+                      </p>
+                      <p className="text-xs text-red-700 dark:text-red-300">
+                        For immediate safety hazards, contact the safety officer
+                        directly.
+                      </p>
                     </div>
-                  ) : (
-                    <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                      No new attachments
-                    </p>
-                  )}
+                  </div>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Safety Alert */}
-              {issueType === IssueType.safety && (
-                <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-red-900 dark:text-red-100">
-                          Safety Issue
-                        </p>
-                        <p className="text-xs text-red-700 dark:text-red-300">
-                          For immediate safety hazards, contact the safety
-                          officer directly.
-                        </p>
-                      </div>
+            {/* Priority Alert */}
+            {priority === 'critical' && (
+              <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
+                <CardContent className="pt-6">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600 dark:text-orange-400" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
+                        Critical Priority
+                      </p>
+                      <p className="text-xs text-orange-700 dark:text-orange-300">
+                        This issue requires immediate attention from project
+                        management.
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Priority Alert */}
-              {priority === 'critical' && (
-                <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600 dark:text-orange-400" />
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                          Critical Priority
-                        </p>
-                        <p className="text-xs text-orange-700 dark:text-orange-300">
-                          This issue requires immediate attention from project
-                          management.
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
-        </form>
-      </div>
-    </AppLayout>
+        </div>
+      </form>
+    </div>
   );
 }
 
