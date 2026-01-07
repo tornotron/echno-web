@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { AppLayout } from '@/components/common';
 import {
   mockProjects,
   mockVendors,
@@ -208,511 +207,504 @@ export default function NewPaymentPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">New Payment</h1>
-            <p className="text-muted-foreground">Create a new payment record</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">New Payment</h1>
+          <p className="text-muted-foreground">Create a new payment record</p>
         </div>
+      </div>
 
-        <div className="max-w-5xl">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Payment Information Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Payment Information</CardTitle>
-                  <CardDescription>
-                    Basic details about the payment
-                  </CardDescription>
+      <div className="max-w-5xl">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Payment Information Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Payment Information</CardTitle>
+                <CardDescription>
+                  Basic details about the payment
+                </CardDescription>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Payment Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentNumber">
+                    Payment Number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="paymentNumber"
+                    value={formData.paymentNumber}
+                    onChange={(e) =>
+                      handleInputChange('paymentNumber', e.target.value)
+                    }
+                    placeholder="e.g., PAY-2024-001"
+                    required
+                  />
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Payment Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentNumber">
-                      Payment Number <span className="text-destructive">*</span>
-                    </Label>
+                {/* Type */}
+                <div className="space-y-2">
+                  <Label htmlFor="type">
+                    Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value) =>
+                      handleInputChange('type', value as PaymentType)
+                    }
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(paymentTypeLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Status */}
+                <div className="space-y-2">
+                  <Label htmlFor="status">
+                    Status <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) =>
+                      handleInputChange('status', value as PaymentStatus)
+                    }
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(paymentStatusLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Project */}
+                <div className="space-y-2">
+                  <Label htmlFor="projectId">
+                    Project <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.projectId?.toString()}
+                    onValueChange={(value) =>
+                      handleInputChange('projectId', Number(value))
+                    }
+                  >
+                    <SelectTrigger id="projectId">
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {mockProjects.map((project) => (
+                        <SelectItem
+                          key={project.id}
+                          value={project.id.toString()}
+                        >
+                          {project.projectName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Payment Date */}
+                <div className="space-y-2">
+                  <Label htmlFor="paymentDate">
+                    Payment Date <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Calendar className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
                     <Input
-                      id="paymentNumber"
-                      value={formData.paymentNumber}
+                      id="paymentDate"
+                      type="date"
+                      value={format(
+                        new Date(formData.paymentDate || ''),
+                        'yyyy-MM-dd'
+                      )}
                       onChange={(e) =>
-                        handleInputChange('paymentNumber', e.target.value)
+                        handleInputChange('paymentDate', e.target.value)
                       }
-                      placeholder="e.g., PAY-2024-001"
+                      className="pl-10"
                       required
                     />
                   </div>
+                </div>
 
-                  {/* Type */}
-                  <div className="space-y-2">
-                    <Label htmlFor="type">
-                      Type <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.type}
-                      onValueChange={(value) =>
-                        handleInputChange('type', value as PaymentType)
-                      }
-                    >
-                      <SelectTrigger id="type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(paymentTypeLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Status */}
-                  <div className="space-y-2">
-                    <Label htmlFor="status">
-                      Status <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) =>
-                        handleInputChange('status', value as PaymentStatus)
-                      }
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(paymentStatusLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Project */}
-                  <div className="space-y-2">
-                    <Label htmlFor="projectId">
-                      Project <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.projectId?.toString()}
-                      onValueChange={(value) =>
-                        handleInputChange('projectId', Number(value))
-                      }
-                    >
-                      <SelectTrigger id="projectId">
-                        <SelectValue placeholder="Select project" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {mockProjects.map((project) => (
-                          <SelectItem
-                            key={project.id}
-                            value={project.id.toString()}
-                          >
-                            {project.projectName}
+                {/* Payment Method */}
+                <div className="space-y-2">
+                  <Label htmlFor="method">
+                    Payment Method <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.method}
+                    onValueChange={(value) =>
+                      handleInputChange('method', value as PaymentMethod)
+                    }
+                  >
+                    <SelectTrigger id="method">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(paymentMethodLabels).map(
+                        ([value, label]) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
                           </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* Payment Date */}
-                  <div className="space-y-2">
-                    <Label htmlFor="paymentDate">
-                      Payment Date <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <Calendar className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="paymentDate"
-                        type="date"
-                        value={format(
-                          new Date(formData.paymentDate || ''),
-                          'yyyy-MM-dd'
-                        )}
-                        onChange={(e) =>
-                          handleInputChange('paymentDate', e.target.value)
-                        }
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Payment Method */}
-                  <div className="space-y-2">
-                    <Label htmlFor="method">
-                      Payment Method <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.method}
-                      onValueChange={(value) =>
-                        handleInputChange('method', value as PaymentMethod)
+                {/* Reference Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="referenceNumber">Reference Number</Label>
+                  <div className="relative">
+                    <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="referenceNumber"
+                      value={formData.referenceNumber}
+                      onChange={(e) =>
+                        handleInputChange('referenceNumber', e.target.value)
                       }
-                    >
-                      <SelectTrigger id="method">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(paymentMethodLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Reference Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="referenceNumber">Reference Number</Label>
-                    <div className="relative">
-                      <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="referenceNumber"
-                        value={formData.referenceNumber}
-                        onChange={(e) =>
-                          handleInputChange('referenceNumber', e.target.value)
-                        }
-                        placeholder="Enter reference number"
-                        className="pl-10"
-                      />
-                    </div>
+                      placeholder="Enter reference number"
+                      className="pl-10"
+                    />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Payee Information Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Payee Information</CardTitle>
-                  <CardDescription>
-                    Who is receiving this payment?
-                  </CardDescription>
+          {/* Payee Information Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Payee Information</CardTitle>
+                <CardDescription>
+                  Who is receiving this payment?
+                </CardDescription>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Payee Type */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="payeeType">
+                    Payee Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={selectedPayeeType}
+                    onValueChange={(value) =>
+                      handlePayeeTypeChange(value as PayeeType)
+                    }
+                  >
+                    <SelectTrigger id="payeeType">
+                      <SelectValue placeholder="Select payee type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(payeeTypeLabels).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Payee Type */}
+                {/* Entity Selector (for employee/vendor/labour/subContractor) */}
+                {selectedPayeeType && !showManualPayeeEntry && (
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="payeeType">
-                      Payee Type <span className="text-destructive">*</span>
+                    <Label htmlFor="payeeEntity">
+                      Select {payeeTypeLabels[selectedPayeeType]}{' '}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Select
-                      value={selectedPayeeType}
+                      value={
+                        formData.vendorId?.toString() ||
+                        formData.employeeId?.toString() ||
+                        formData.subContractId?.toString() ||
+                        formData.labourId?.toString() ||
+                        ''
+                      }
                       onValueChange={(value) =>
-                        handlePayeeTypeChange(value as PayeeType)
+                        handlePayeeEntityChange(Number(value))
                       }
                     >
-                      <SelectTrigger id="payeeType">
-                        <SelectValue placeholder="Select payee type" />
+                      <SelectTrigger id="payeeEntity">
+                        <SelectValue
+                          placeholder={`Select ${payeeTypeLabels[selectedPayeeType]}`}
+                        />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(payeeTypeLabels).map(
-                          ([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          )
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Entity Selector (for employee/vendor/labour/subContractor) */}
-                  {selectedPayeeType && !showManualPayeeEntry && (
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="payeeEntity">
-                        Select {payeeTypeLabels[selectedPayeeType]}{' '}
-                        <span className="text-destructive">*</span>
-                      </Label>
-                      <Select
-                        value={
-                          formData.vendorId?.toString() ||
-                          formData.employeeId?.toString() ||
-                          formData.subContractId?.toString() ||
-                          formData.labourId?.toString() ||
-                          ''
-                        }
-                        onValueChange={(value) =>
-                          handlePayeeEntityChange(Number(value))
-                        }
-                      >
-                        <SelectTrigger id="payeeEntity">
-                          <SelectValue
-                            placeholder={`Select ${payeeTypeLabels[selectedPayeeType]}`}
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getPayeesByType(
-                            selectedPayeeType,
-                            payeeDatasets
-                          ).map((payee) => (
+                        {getPayeesByType(selectedPayeeType, payeeDatasets).map(
+                          (payee) => (
                             <SelectItem
                               key={payee.id}
                               value={payee.id.toString()}
                             >
                               {payee.label}
                             </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-
-                  {/* Manual Payee Entry (for utility/government/insurance/etc.) */}
-                  {showManualPayeeEntry && (
-                    <>
-                      <div className="space-y-2">
-                        <Label htmlFor="payeeName">
-                          Payee Name <span className="text-destructive">*</span>
-                        </Label>
-                        <div className="relative">
-                          <Users className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                          <Input
-                            id="payeeName"
-                            value={formData.payeeName}
-                            onChange={(e) =>
-                              handleInputChange('payeeName', e.target.value)
-                            }
-                            placeholder="e.g., MSEB (Electricity Board)"
-                            className="pl-10"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="payeeDetails">Additional Details</Label>
-                        <Input
-                          id="payeeDetails"
-                          value={formData.payeeDetails}
-                          onChange={(e) =>
-                            handleInputChange('payeeDetails', e.target.value)
-                          }
-                          placeholder="e.g., Consumer No: 123456"
-                        />
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Amount Details Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Amount Details</CardTitle>
-                  <CardDescription>Payment amount information</CardDescription>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Amount */}
-                  <div className="space-y-2">
-                    <Label htmlFor="amount">
-                      Amount <span className="text-destructive">*</span>
-                    </Label>
-                    <div className="relative">
-                      <DollarSign className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="amount"
-                        type="number"
-                        value={formData.amount}
-                        onChange={(e) =>
-                          handleInputChange(
-                            'amount',
-                            Number.parseFloat(e.target.value) || 0
                           )
-                        }
-                        placeholder="0.00"
-                        step="0.01"
-                        className="pl-10"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  {/* Currency */}
-                  <div className="space-y-2">
-                    <Label htmlFor="currency">
-                      Currency <span className="text-destructive">*</span>
-                    </Label>
-                    <Select
-                      value={formData.currency}
-                      onValueChange={(value) =>
-                        handleInputChange('currency', value)
-                      }
-                    >
-                      <SelectTrigger id="currency">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
+                )}
 
-                  {/* Transaction ID */}
-                  <div className="space-y-2">
-                    <Label htmlFor="transactionId">Transaction ID</Label>
-                    <div className="relative">
-                      <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                {/* Manual Payee Entry (for utility/government/insurance/etc.) */}
+                {showManualPayeeEntry && (
+                  <>
+                    <div className="space-y-2">
+                      <Label htmlFor="payeeName">
+                        Payee Name <span className="text-destructive">*</span>
+                      </Label>
+                      <div className="relative">
+                        <Users className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                        <Input
+                          id="payeeName"
+                          value={formData.payeeName}
+                          onChange={(e) =>
+                            handleInputChange('payeeName', e.target.value)
+                          }
+                          placeholder="e.g., MSEB (Electricity Board)"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="payeeDetails">Additional Details</Label>
                       <Input
-                        id="transactionId"
-                        value={formData.transactionId}
+                        id="payeeDetails"
+                        value={formData.payeeDetails}
                         onChange={(e) =>
-                          handleInputChange('transactionId', e.target.value)
+                          handleInputChange('payeeDetails', e.target.value)
                         }
-                        placeholder="Enter transaction ID"
-                        className="pl-10"
+                        placeholder="e.g., Consumer No: 123456"
                       />
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Bank Details Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Bank Details</CardTitle>
-                  <CardDescription>
-                    Banking information (if applicable)
-                  </CardDescription>
-                </div>
+          {/* Amount Details Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Amount Details</CardTitle>
+                <CardDescription>Payment amount information</CardDescription>
+              </div>
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  {/* Bank Name */}
-                  <div className="space-y-2">
-                    <Label htmlFor="bankName">Bank Name</Label>
-                    <div className="relative">
-                      <Building className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="bankName"
-                        value={formData.bankName}
-                        onChange={(e) =>
-                          handleInputChange('bankName', e.target.value)
-                        }
-                        placeholder="Enter bank name"
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Account Number */}
-                  <div className="space-y-2">
-                    <Label htmlFor="accountNumber">Account Number</Label>
-                    <div className="relative">
-                      <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="accountNumber"
-                        value={formData.accountNumber}
-                        onChange={(e) =>
-                          handleInputChange('accountNumber', e.target.value)
-                        }
-                        placeholder="Enter account number"
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-
-                  {/* IFSC Code */}
-                  <div className="space-y-2">
-                    <Label htmlFor="ifscCode">IFSC Code</Label>
-                    <div className="relative">
-                      <FileText className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
-                      <Input
-                        id="ifscCode"
-                        value={formData.ifscCode}
-                        onChange={(e) =>
-                          handleInputChange('ifscCode', e.target.value)
-                        }
-                        placeholder="Enter IFSC code"
-                        className="pl-10"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Additional Information Card */}
-            <Card>
-              <CardContent className="pt-6">
-                <div className="mb-6">
-                  <CardTitle>Additional Information</CardTitle>
-                  <CardDescription>Description and notes</CardDescription>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6">
-                  {/* Description */}
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Amount */}
+                <div className="space-y-2">
+                  <Label htmlFor="amount">
+                    Amount <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <DollarSign className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={formData.amount}
                       onChange={(e) =>
-                        handleInputChange('description', e.target.value)
+                        handleInputChange(
+                          'amount',
+                          Number.parseFloat(e.target.value) || 0
+                        )
                       }
-                      placeholder="Enter payment description"
-                      rows={3}
-                    />
-                  </div>
-
-                  {/* Notes */}
-                  <div className="space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={formData.notes}
-                      onChange={(e) =>
-                        handleInputChange('notes', e.target.value)
-                      }
-                      placeholder="Add any additional notes"
-                      rows={4}
+                      placeholder="0.00"
+                      step="0.01"
+                      className="pl-10"
+                      required
                     />
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSubmitting}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                <Save className="mr-2 h-4 w-4" />
-                {isSubmitting ? 'Creating...' : 'Create Payment'}
-              </Button>
-            </div>
-          </form>
-        </div>
+                {/* Currency */}
+                <div className="space-y-2">
+                  <Label htmlFor="currency">
+                    Currency <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.currency}
+                    onValueChange={(value) =>
+                      handleInputChange('currency', value)
+                    }
+                  >
+                    <SelectTrigger id="currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="INR">INR - Indian Rupee</SelectItem>
+                      <SelectItem value="USD">USD - US Dollar</SelectItem>
+                      <SelectItem value="EUR">EUR - Euro</SelectItem>
+                      <SelectItem value="GBP">GBP - British Pound</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Transaction ID */}
+                <div className="space-y-2">
+                  <Label htmlFor="transactionId">Transaction ID</Label>
+                  <div className="relative">
+                    <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="transactionId"
+                      value={formData.transactionId}
+                      onChange={(e) =>
+                        handleInputChange('transactionId', e.target.value)
+                      }
+                      placeholder="Enter transaction ID"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Bank Details Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Bank Details</CardTitle>
+                <CardDescription>
+                  Banking information (if applicable)
+                </CardDescription>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Bank Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="bankName">Bank Name</Label>
+                  <div className="relative">
+                    <Building className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="bankName"
+                      value={formData.bankName}
+                      onChange={(e) =>
+                        handleInputChange('bankName', e.target.value)
+                      }
+                      placeholder="Enter bank name"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Account Number */}
+                <div className="space-y-2">
+                  <Label htmlFor="accountNumber">Account Number</Label>
+                  <div className="relative">
+                    <Hash className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="accountNumber"
+                      value={formData.accountNumber}
+                      onChange={(e) =>
+                        handleInputChange('accountNumber', e.target.value)
+                      }
+                      placeholder="Enter account number"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* IFSC Code */}
+                <div className="space-y-2">
+                  <Label htmlFor="ifscCode">IFSC Code</Label>
+                  <div className="relative">
+                    <FileText className="text-muted-foreground pointer-events-none absolute top-3 left-3 h-4 w-4" />
+                    <Input
+                      id="ifscCode"
+                      value={formData.ifscCode}
+                      onChange={(e) =>
+                        handleInputChange('ifscCode', e.target.value)
+                      }
+                      placeholder="Enter IFSC code"
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Additional Information Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="mb-6">
+                <CardTitle>Additional Information</CardTitle>
+                <CardDescription>Description and notes</CardDescription>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6">
+                {/* Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      handleInputChange('description', e.target.value)
+                    }
+                    placeholder="Enter payment description"
+                    rows={3}
+                  />
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange('notes', e.target.value)}
+                    placeholder="Add any additional notes"
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Form Actions */}
+          <div className="flex justify-end space-x-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              <Save className="mr-2 h-4 w-4" />
+              {isSubmitting ? 'Creating...' : 'Create Payment'}
+            </Button>
+          </div>
+        </form>
       </div>
-    </AppLayout>
+    </div>
   );
 }
