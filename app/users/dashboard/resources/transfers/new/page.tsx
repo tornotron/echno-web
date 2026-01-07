@@ -23,7 +23,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { AppLayout } from '@/components/common/app-layout';
 import { Plus, Trash2, Save, AlertCircle } from 'lucide-react';
 import {
   TransferType,
@@ -178,542 +177,525 @@ export default function CreateTransferPage() {
   const { totalItems, totalQuantity, totalValue } = calculateTotals();
 
   return (
-    <AppLayout>
-      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div>
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-                Create New Transfer
-              </h1>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                Create a new material or asset transfer between locations
-              </p>
-            </div>
-
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button onClick={handleSubmit}>
-                <Save className="mr-2 h-4 w-4" />
-                Create Transfer
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-                <CardDescription>General transfer details</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="transferNumber">Transfer Number</Label>
-                    <Input
-                      id="transferNumber"
-                      value={transferNumber}
-                      disabled
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="transferDate">Transfer Date</Label>
-                    <Input
-                      id="transferDate"
-                      type="date"
-                      value={transferDate}
-                      onChange={(e) => setTransferDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="transferType">Transfer Type *</Label>
-                    <Select
-                      value={transferType}
-                      onValueChange={(value) =>
-                        setTransferType(value as TransferType)
-                      }
-                    >
-                      <SelectTrigger id="transferType">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(TransferType).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {transferTypeLabels[type]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="priority">Priority *</Label>
-                    <Select
-                      value={priority}
-                      onValueChange={(value) =>
-                        setPriority(value as TransferPriority)
-                      }
-                    >
-                      <SelectTrigger id="priority">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(TransferPriority).map((p) => (
-                          <SelectItem key={p} value={p}>
-                            {transferPriorityLabels[p]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="scheduledDate">Scheduled Date</Label>
-                    <Input
-                      id="scheduledDate"
-                      type="date"
-                      value={scheduledDate}
-                      onChange={(e) => setScheduledDate(e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="expectedDeliveryDate">
-                      Expected Delivery Date
-                    </Label>
-                    <Input
-                      id="expectedDeliveryDate"
-                      type="date"
-                      value={expectedDeliveryDate}
-                      onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Transfer Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Transfer Details</CardTitle>
-                <CardDescription>
-                  Purpose and additional information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="purpose">Purpose *</Label>
-                  <Textarea
-                    id="purpose"
-                    value={purpose}
-                    onChange={(e) => setPurpose(e.target.value)}
-                    placeholder="Describe the purpose of this transfer..."
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="notes">Additional Notes</Label>
-                  <Textarea
-                    id="notes"
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Any additional notes or instructions..."
-                    rows={3}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Location Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Location Information</CardTitle>
-                <CardDescription>
-                  Source and destination details
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="sourceLocation">Source Location *</Label>
-                    <Select
-                      value={sourceLocationId}
-                      onValueChange={setSourceLocationId}
-                    >
-                      <SelectTrigger id="sourceLocation">
-                        <SelectValue placeholder="Select source location" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Warehouse A</SelectItem>
-                        <SelectItem value="2">Warehouse B</SelectItem>
-                        <SelectItem value="3">
-                          Site A - Building Project
-                        </SelectItem>
-                        <SelectItem value="4">
-                          Site B - Bridge Construction
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="destinationLocation">
-                      Destination Location *
-                    </Label>
-                    <Select
-                      value={destinationLocationId}
-                      onValueChange={setDestinationLocationId}
-                    >
-                      <SelectTrigger id="destinationLocation">
-                        <SelectValue placeholder="Select destination location" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">Warehouse A</SelectItem>
-                        <SelectItem value="2">Warehouse B</SelectItem>
-                        <SelectItem value="3">
-                          Site A - Building Project
-                        </SelectItem>
-                        <SelectItem value="4">
-                          Site B - Bridge Construction
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Transport Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Transport Details</CardTitle>
-                <CardDescription>
-                  Vehicle and driver information
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="transportMethod">Transport Method</Label>
-                    <Select
-                      value={transportMethod}
-                      onValueChange={setTransportMethod}
-                    >
-                      <SelectTrigger id="transportMethod">
-                        <SelectValue placeholder="Select transport method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Truck">Truck</SelectItem>
-                        <SelectItem value="Van">Van</SelectItem>
-                        <SelectItem value="Pickup">Pickup</SelectItem>
-                        <SelectItem value="Internal">Internal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="vehicleNumber">Vehicle Number</Label>
-                    <Input
-                      id="vehicleNumber"
-                      value={vehicleNumber}
-                      onChange={(e) => setVehicleNumber(e.target.value)}
-                      placeholder="e.g., KA-01-AB-1234"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="driverName">Driver Name</Label>
-                    <Input
-                      id="driverName"
-                      value={driverName}
-                      onChange={(e) => setDriverName(e.target.value)}
-                      placeholder="Driver's full name"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="driverPhone">Driver Phone</Label>
-                    <Input
-                      id="driverPhone"
-                      value={driverPhone}
-                      onChange={(e) => setDriverPhone(e.target.value)}
-                      placeholder="+91 98765 43210"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="transportCost">Transport Cost (₹)</Label>
-                    <Input
-                      id="transportCost"
-                      type="number"
-                      value={transportCost}
-                      onChange={(e) => setTransportCost(e.target.value)}
-                      placeholder="0"
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Temporary Transfer */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Temporary Transfer</CardTitle>
-                <CardDescription>
-                  If this is a temporary transfer (loan)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="isTemporary"
-                    checked={isTemporary}
-                    onChange={(e) => setIsTemporary(e.target.checked)}
-                    className="h-4 w-4"
-                  />
-                  <Label htmlFor="isTemporary" className="cursor-pointer">
-                    This is a temporary transfer
-                  </Label>
-                </div>
-
-                {isTemporary && (
-                  <div>
-                    <Label htmlFor="expectedReturnDate">
-                      Expected Return Date
-                    </Label>
-                    <Input
-                      id="expectedReturnDate"
-                      type="date"
-                      value={expectedReturnDate}
-                      onChange={(e) => setExpectedReturnDate(e.target.value)}
-                    />
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Transfer Items */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>Transfer Items</CardTitle>
-                    <CardDescription>Items to be transferred</CardDescription>
-                  </div>
-                  <Button onClick={addLineItem} size="sm">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {lineItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="space-y-4 rounded-lg border p-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        Item #{index + 1}
-                      </h4>
-                      {lineItems.length > 1 && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLineItem(item.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-500" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <Label>Description *</Label>
-                        <Input
-                          value={item.description}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'description',
-                              e.target.value
-                            )
-                          }
-                          placeholder="Item description"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Label>Specifications</Label>
-                        <Textarea
-                          value={item.specifications}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'specifications',
-                              e.target.value
-                            )
-                          }
-                          placeholder="Technical specifications, dimensions, etc."
-                          rows={2}
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Quantity *</Label>
-                        <Input
-                          type="number"
-                          value={item.quantityRequested || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'quantityRequested',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                        />
-                      </div>
-
-                      <div>
-                        <Label>Unit</Label>
-                        <Select
-                          value={item.unit}
-                          onValueChange={(value) =>
-                            updateLineItem(item.id, 'unit', value)
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="pcs">Pieces</SelectItem>
-                            <SelectItem value="kg">Kilograms</SelectItem>
-                            <SelectItem value="L">Liters</SelectItem>
-                            <SelectItem value="m">Meters</SelectItem>
-                            <SelectItem value="sqm">Square Meters</SelectItem>
-                            <SelectItem value="bags">Bags</SelectItem>
-                            <SelectItem value="boxes">Boxes</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Label>Unit Value (₹)</Label>
-                        <Input
-                          type="number"
-                          value={item.unitValue || ''}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'unitValue',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                        />
-                      </div>
-
-                      <div className="sm:col-span-2">
-                        <Label>Notes</Label>
-                        <Textarea
-                          value={item.notes}
-                          onChange={(e) =>
-                            updateLineItem(item.id, 'notes', e.target.value)
-                          }
-                          placeholder="Any additional notes for this item..."
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-zinc-500 dark:text-zinc-400">
-                        Item Total:
-                      </span>
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        ₹
-                        {(
-                          (item.quantityRequested || 0) * (item.unitValue || 0)
-                        ).toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+    <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div>
+        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
+              Create New Transfer
+            </h1>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Create a new material or asset transfer between locations
+            </p>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Total Items:
-                  </span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {totalItems}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Total Quantity:
-                  </span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {totalQuantity}
-                  </span>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="text-zinc-500 dark:text-zinc-400">
-                    Total Value:
-                  </span>
-                  <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    ₹{(totalValue / 100_000).toFixed(2)}L
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Tips */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <AlertCircle className="h-4 w-4" />
-                  Quick Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <p>• Ensure all required fields are filled</p>
-                <p>• Double-check source and destination locations</p>
-                <p>• Add transport details if known</p>
-                <p>• Include any special handling instructions in notes</p>
-                <p>• Use temporary transfer for items that will be returned</p>
-              </CardContent>
-            </Card>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleCancel}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit}>
+              <Save className="mr-2 h-4 w-4" />
+              Create Transfer
+            </Button>
           </div>
         </div>
       </div>
-    </AppLayout>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Main Content */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Basic Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Basic Information</CardTitle>
+              <CardDescription>General transfer details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="transferNumber">Transfer Number</Label>
+                  <Input id="transferNumber" value={transferNumber} disabled />
+                </div>
+
+                <div>
+                  <Label htmlFor="transferDate">Transfer Date</Label>
+                  <Input
+                    id="transferDate"
+                    type="date"
+                    value={transferDate}
+                    onChange={(e) => setTransferDate(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="transferType">Transfer Type *</Label>
+                  <Select
+                    value={transferType}
+                    onValueChange={(value) =>
+                      setTransferType(value as TransferType)
+                    }
+                  >
+                    <SelectTrigger id="transferType">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(TransferType).map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {transferTypeLabels[type]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="priority">Priority *</Label>
+                  <Select
+                    value={priority}
+                    onValueChange={(value) =>
+                      setPriority(value as TransferPriority)
+                    }
+                  >
+                    <SelectTrigger id="priority">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(TransferPriority).map((p) => (
+                        <SelectItem key={p} value={p}>
+                          {transferPriorityLabels[p]}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="scheduledDate">Scheduled Date</Label>
+                  <Input
+                    id="scheduledDate"
+                    type="date"
+                    value={scheduledDate}
+                    onChange={(e) => setScheduledDate(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="expectedDeliveryDate">
+                    Expected Delivery Date
+                  </Label>
+                  <Input
+                    id="expectedDeliveryDate"
+                    type="date"
+                    value={expectedDeliveryDate}
+                    onChange={(e) => setExpectedDeliveryDate(e.target.value)}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Transfer Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Transfer Details</CardTitle>
+              <CardDescription>
+                Purpose and additional information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="purpose">Purpose *</Label>
+                <Textarea
+                  id="purpose"
+                  value={purpose}
+                  onChange={(e) => setPurpose(e.target.value)}
+                  placeholder="Describe the purpose of this transfer..."
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="notes">Additional Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any additional notes or instructions..."
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Location Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Location Information</CardTitle>
+              <CardDescription>Source and destination details</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="sourceLocation">Source Location *</Label>
+                  <Select
+                    value={sourceLocationId}
+                    onValueChange={setSourceLocationId}
+                  >
+                    <SelectTrigger id="sourceLocation">
+                      <SelectValue placeholder="Select source location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Warehouse A</SelectItem>
+                      <SelectItem value="2">Warehouse B</SelectItem>
+                      <SelectItem value="3">
+                        Site A - Building Project
+                      </SelectItem>
+                      <SelectItem value="4">
+                        Site B - Bridge Construction
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="destinationLocation">
+                    Destination Location *
+                  </Label>
+                  <Select
+                    value={destinationLocationId}
+                    onValueChange={setDestinationLocationId}
+                  >
+                    <SelectTrigger id="destinationLocation">
+                      <SelectValue placeholder="Select destination location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Warehouse A</SelectItem>
+                      <SelectItem value="2">Warehouse B</SelectItem>
+                      <SelectItem value="3">
+                        Site A - Building Project
+                      </SelectItem>
+                      <SelectItem value="4">
+                        Site B - Bridge Construction
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Transport Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Transport Details</CardTitle>
+              <CardDescription>Vehicle and driver information</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="transportMethod">Transport Method</Label>
+                  <Select
+                    value={transportMethod}
+                    onValueChange={setTransportMethod}
+                  >
+                    <SelectTrigger id="transportMethod">
+                      <SelectValue placeholder="Select transport method" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Truck">Truck</SelectItem>
+                      <SelectItem value="Van">Van</SelectItem>
+                      <SelectItem value="Pickup">Pickup</SelectItem>
+                      <SelectItem value="Internal">Internal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="vehicleNumber">Vehicle Number</Label>
+                  <Input
+                    id="vehicleNumber"
+                    value={vehicleNumber}
+                    onChange={(e) => setVehicleNumber(e.target.value)}
+                    placeholder="e.g., KA-01-AB-1234"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="driverName">Driver Name</Label>
+                  <Input
+                    id="driverName"
+                    value={driverName}
+                    onChange={(e) => setDriverName(e.target.value)}
+                    placeholder="Driver's full name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="driverPhone">Driver Phone</Label>
+                  <Input
+                    id="driverPhone"
+                    value={driverPhone}
+                    onChange={(e) => setDriverPhone(e.target.value)}
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="transportCost">Transport Cost (₹)</Label>
+                  <Input
+                    id="transportCost"
+                    type="number"
+                    value={transportCost}
+                    onChange={(e) => setTransportCost(e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Temporary Transfer */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Temporary Transfer</CardTitle>
+              <CardDescription>
+                If this is a temporary transfer (loan)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isTemporary"
+                  checked={isTemporary}
+                  onChange={(e) => setIsTemporary(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                <Label htmlFor="isTemporary" className="cursor-pointer">
+                  This is a temporary transfer
+                </Label>
+              </div>
+
+              {isTemporary && (
+                <div>
+                  <Label htmlFor="expectedReturnDate">
+                    Expected Return Date
+                  </Label>
+                  <Input
+                    id="expectedReturnDate"
+                    type="date"
+                    value={expectedReturnDate}
+                    onChange={(e) => setExpectedReturnDate(e.target.value)}
+                  />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Transfer Items */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Transfer Items</CardTitle>
+                  <CardDescription>Items to be transferred</CardDescription>
+                </div>
+                <Button onClick={addLineItem} size="sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Item
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {lineItems.map((item, index) => (
+                <div key={item.id} className="space-y-4 rounded-lg border p-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      Item #{index + 1}
+                    </h4>
+                    {lineItems.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeLineItem(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-red-500" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="sm:col-span-2">
+                      <Label>Description *</Label>
+                      <Input
+                        value={item.description}
+                        onChange={(e) =>
+                          updateLineItem(item.id, 'description', e.target.value)
+                        }
+                        placeholder="Item description"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <Label>Specifications</Label>
+                      <Textarea
+                        value={item.specifications}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            'specifications',
+                            e.target.value
+                          )
+                        }
+                        placeholder="Technical specifications, dimensions, etc."
+                        rows={2}
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Quantity *</Label>
+                      <Input
+                        type="number"
+                        value={item.quantityRequested || ''}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            'quantityRequested',
+                            Number.parseFloat(e.target.value) || 0
+                          )
+                        }
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+
+                    <div>
+                      <Label>Unit</Label>
+                      <Select
+                        value={item.unit}
+                        onValueChange={(value) =>
+                          updateLineItem(item.id, 'unit', value)
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pcs">Pieces</SelectItem>
+                          <SelectItem value="kg">Kilograms</SelectItem>
+                          <SelectItem value="L">Liters</SelectItem>
+                          <SelectItem value="m">Meters</SelectItem>
+                          <SelectItem value="sqm">Square Meters</SelectItem>
+                          <SelectItem value="bags">Bags</SelectItem>
+                          <SelectItem value="boxes">Boxes</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <Label>Unit Value (₹)</Label>
+                      <Input
+                        type="number"
+                        value={item.unitValue || ''}
+                        onChange={(e) =>
+                          updateLineItem(
+                            item.id,
+                            'unitValue',
+                            Number.parseFloat(e.target.value) || 0
+                          )
+                        }
+                        placeholder="0"
+                        min="0"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <Label>Notes</Label>
+                      <Textarea
+                        value={item.notes}
+                        onChange={(e) =>
+                          updateLineItem(item.id, 'notes', e.target.value)
+                        }
+                        placeholder="Any additional notes for this item..."
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      Item Total:
+                    </span>
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                      ₹
+                      {(
+                        (item.quantityRequested || 0) * (item.unitValue || 0)
+                      ).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Total Items:
+                </span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {totalItems}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Total Quantity:
+                </span>
+                <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {totalQuantity}
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-zinc-500 dark:text-zinc-400">
+                  Total Value:
+                </span>
+                <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  ₹{(totalValue / 100_000).toFixed(2)}L
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Tips */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <AlertCircle className="h-4 w-4" />
+                Quick Tips
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <p>• Ensure all required fields are filled</p>
+              <p>• Double-check source and destination locations</p>
+              <p>• Add transport details if known</p>
+              <p>• Include any special handling instructions in notes</p>
+              <p>• Use temporary transfer for items that will be returned</p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }
