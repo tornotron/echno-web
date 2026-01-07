@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { AppLayout } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -96,7 +95,7 @@ export default function NewLocationPage() {
   };
 
   return (
-    <AppLayout title="Add New Location">
+    <div title="Add New Location">
       <div className="px-4 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -260,6 +259,6 @@ export default function NewLocationPage() {
           </Card>
         </form>
       </div>
-    </AppLayout>
+    </div>
   );
 }
