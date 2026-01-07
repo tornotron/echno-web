@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AppLayout } from '@/components/common/app-layout';
 import { Separator } from '@/components/ui/separator';
 import {
   FolderKanban,
@@ -151,42 +150,38 @@ export default function ProjectDashboardPage() {
 
   if (loading) {
     return (
-      <AppLayout>
-        <div className="space-y-4 sm:space-y-6">
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Loading project...
-              </p>
-            </div>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Loading project...
+            </p>
           </div>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!project) {
     return (
-      <AppLayout>
-        <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <FolderKanban className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-              <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                Project not found
-              </h3>
-              <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-                The project you&apos;re looking for doesn&apos;t exist or has
-                been removed.
-              </p>
-              <Button onClick={() => router.push('/dashboard/projects')}>
-                Back to Projects
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <FolderKanban className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Project not found
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              The project you&apos;re looking for doesn&apos;t exist or has been
+              removed.
+            </p>
+            <Button onClick={() => router.push('/dashboard/projects')}>
+              Back to Projects
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -259,489 +254,465 @@ export default function ProjectDashboardPage() {
   };
 
   return (
-    <AppLayout>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              {project.projectName}
-            </h1>
-            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-              <MapPin className="mr-1 inline h-4 w-4" />
-              {project.projectAddress}
-            </p>
-            <Badge className={`mt-2 ${getStatusBadgeColor(project.status)}`}>
-              {getProjectStatusLabel(project.status)}
-            </Badge>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/users/dashboard/projects/${project.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Project
-              </Link>
-            </Button>
-          </div>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Header */}
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+            {project.projectName}
+          </h1>
+          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+            <MapPin className="mr-1 inline h-4 w-4" />
+            {project.projectAddress}
+          </p>
+          <Badge className={`mt-2 ${getStatusBadgeColor(project.status)}`}>
+            {getProjectStatusLabel(project.status)}
+          </Badge>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/users/dashboard/projects/${project.id}/edit`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Project
+            </Link>
+          </Button>
+        </div>
+      </div>
 
-        {/* Progress Overview */}
-        {project.status !== ProjectStatus.upcoming && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Activity className="h-5 w-5" />
-                Project Progress
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+      {/* Progress Overview */}
+      {project.status !== ProjectStatus.upcoming && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Project Progress
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <div className="mb-2 flex justify-between text-sm">
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  Overall Progress
+                </span>
+                <span className="font-bold text-zinc-900 dark:text-zinc-100">
+                  {progress}%
+                </span>
+              </div>
+              <div className="h-4 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
+                <div
+                  className={`h-4 rounded-full transition-all ${
+                    progress === 100 ? 'bg-purple-600' : 'bg-green-600'
+                  }`}
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-2 md:grid-cols-4">
               <div>
-                <div className="mb-2 flex justify-between text-sm">
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    Overall Progress
-                  </span>
-                  <span className="font-bold text-zinc-900 dark:text-zinc-100">
-                    {progress}%
-                  </span>
-                </div>
-                <div className="h-4 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
-                  <div
-                    className={`h-4 rounded-full transition-all ${
-                      progress === 100 ? 'bg-purple-600' : 'bg-green-600'
-                    }`}
-                    style={{ width: `${progress}%` }}
-                  />
+                <div className="text-muted-foreground text-xs">Start Date</div>
+                <div className="text-sm font-medium">
+                  {project.startDate
+                    ? format(project.startDate, 'MMM dd, yyyy')
+                    : 'Not set'}
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-2 md:grid-cols-4">
-                <div>
-                  <div className="text-muted-foreground text-xs">
-                    Start Date
-                  </div>
-                  <div className="text-sm font-medium">
-                    {project.startDate
-                      ? format(project.startDate, 'MMM dd, yyyy')
-                      : 'Not set'}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground text-xs">End Date</div>
-                  <div className="text-sm font-medium">
-                    {project.endDate
-                      ? format(project.endDate, 'MMM dd, yyyy')
-                      : 'Not set'}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground text-xs">
-                    Days Remaining
-                  </div>
-                  <div
-                    className={`text-sm font-medium ${daysRemaining < 30 ? 'text-red-600' : 'text-zinc-900 dark:text-zinc-100'}`}
-                  >
-                    {daysRemaining > 0 ? `${daysRemaining} days` : 'Overdue'}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-muted-foreground text-xs">
-                    Completion
-                  </div>
-                  <div className="text-sm font-medium">
-                    {project.endDate && project.startDate
-                      ? `${Math.round((new Date(project.endDate).getTime() - new Date(project.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`
-                      : 'Not set'}
-                  </div>
+              <div>
+                <div className="text-muted-foreground text-xs">End Date</div>
+                <div className="text-sm font-medium">
+                  {project.endDate
+                    ? format(project.endDate, 'MMM dd, yyyy')
+                    : 'Not set'}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div>
+                <div className="text-muted-foreground text-xs">
+                  Days Remaining
+                </div>
+                <div
+                  className={`text-sm font-medium ${daysRemaining < 30 ? 'text-red-600' : 'text-zinc-900 dark:text-zinc-100'}`}
+                >
+                  {daysRemaining > 0 ? `${daysRemaining} days` : 'Overdue'}
+                </div>
+              </div>
+              <div>
+                <div className="text-muted-foreground text-xs">Completion</div>
+                <div className="text-sm font-medium">
+                  {project.endDate && project.startDate
+                    ? `${Math.round((new Date(project.endDate).getTime() - new Date(project.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`
+                    : 'Not set'}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {/* Key Metrics */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
-            <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Tasks
-                </CardTitle>
-                <ListTodo className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.totalTasks}</div>
-                <p className="text-muted-foreground text-xs">
-                  {stats.completedTasks} completed, {stats.pendingTasks} pending
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link href={`/users/dashboard/projects/${project.id}/issues`}>
-            <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Issues
-                </CardTitle>
-                <AlertCircle className="text-muted-foreground h-4 w-4" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stats.issues}</div>
-                <p className="text-muted-foreground text-xs">
-                  Active project issues
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Card>
+      {/* Key Metrics */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
+          <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Budget Spent
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-blue-600" />
+              <CardTitle className="text-sm font-medium">Total Tasks</CardTitle>
+              <ListTodo className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                ₹{(stats.spentBudget / 10_000_000).toFixed(1)}Cr
-              </div>
+              <div className="text-2xl font-bold">{stats.totalTasks}</div>
               <p className="text-muted-foreground text-xs">
-                of ₹{(stats.totalBudget / 10_000_000).toFixed(1)}Cr total
+                {stats.completedTasks} completed, {stats.pendingTasks} pending
               </p>
             </CardContent>
           </Card>
+        </Link>
 
-          <Card>
+        <Link href={`/users/dashboard/projects/${project.id}/issues`}>
+          <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Team Members
+                Total Issues
               </CardTitle>
-              <Users className="h-4 w-4 text-purple-600" />
+              <AlertCircle className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{project.members.length}</div>
-              <p className="text-muted-foreground text-xs">Active on project</p>
+              <div className="text-2xl font-bold">{stats.issues}</div>
+              <p className="text-muted-foreground text-xs">
+                Active project issues
+              </p>
             </CardContent>
           </Card>
-        </div>
+        </Link>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Main Content */}
-          <div className="space-y-6 lg:col-span-2">
-            {/* Team Members */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Team Members
-                </CardTitle>
-                <CardDescription>
-                  {project.members.length} members working on this project
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {project.members.map((member, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                            {member.memberName
-                              .split(' ')
-                              .map((n) => n[0])
-                              .join('')
-                              .toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {member.memberName}
-                          </p>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                            {member.designation}
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="outline">{member.department}</Badge>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Budget Spent</CardTitle>
+            <DollarSign className="h-4 w-4 text-blue-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ₹{(stats.spentBudget / 10_000_000).toFixed(1)}Cr
+            </div>
+            <p className="text-muted-foreground text-xs">
+              of ₹{(stats.totalBudget / 10_000_000).toFixed(1)}Cr total
+            </p>
+          </CardContent>
+        </Card>
 
-            {/* Recent Activity / Tasks */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ListTodo className="h-5 w-5" />
-                  Recent Tasks
-                </CardTitle>
-                <CardDescription>Latest task updates</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="py-8 text-center text-zinc-600 dark:text-zinc-400">
-                  <ListTodo className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                  <p>No tasks yet. Create tasks to track project progress.</p>
-                  <Button variant="outline" size="sm" className="mt-4" asChild>
-                    <Link
-                      href={`/users/dashboard/projects/${project.id}/tasks`}
-                    >
-                      <ListTodo className="mr-2 h-4 w-4" />
-                      Create Task
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Team Members</CardTitle>
+            <Users className="h-4 w-4 text-purple-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{project.members.length}</div>
+            <p className="text-muted-foreground text-xs">Active on project</p>
+          </CardContent>
+        </Card>
+      </div>
 
-            {/* Attachments */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Paperclip className="h-5 w-5" />
-                      Attachments
-                      {project.attachments &&
-                        project.attachments.length > 0 && (
-                          <Badge variant="outline">
-                            {project.attachments.length}
-                          </Badge>
-                        )}
-                    </CardTitle>
-                    <CardDescription>
-                      Files attached to this project
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {project.attachments && project.attachments.length > 0 ? (
-                  <div className="space-y-2">
-                    {project.attachments.map((attachment) => {
-                      const Icon = getAttachmentIcon(attachment.fileType);
-                      const attachmentKey =
-                        attachment.id ||
-                        `${attachment.fileUrl}-${attachment.uploadedAt?.getTime() || 'noDate'}`;
-                      const safeDownloadUrl = getSafeDownloadUrl(attachment);
-                      const isValidUrl = isValidAttachmentUrl(
-                        attachment.fileUrl
-                      );
-
-                      return (
-                        <div
-                          key={attachmentKey}
-                          className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
-                        >
-                          <div className="flex min-w-0 flex-1 items-center space-x-3">
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                              <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                                {attachment.fileName}
-                              </p>
-                              <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                                <span>
-                                  {formatFileSize(attachment.fileSize)}
-                                </span>
-                                <span>•</span>
-                                <span>
-                                  Uploaded{' '}
-                                  {format(attachment.uploadedAt, 'MMM d, yyyy')}
-                                </span>
-                                <span>•</span>
-                                <span>{attachment.uploadedBy}</span>
-                              </div>
-                              {attachment.description && (
-                                <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">
-                                  {attachment.description}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            asChild={isValidUrl}
-                            disabled={!isValidUrl}
-                          >
-                            {isValidUrl ? (
-                              <a
-                                href={safeDownloadUrl}
-                                download
-                                aria-label={`Download ${attachment.fileName}`}
-                              >
-                                <Download className="h-4 w-4" />
-                              </a>
-                            ) : (
-                              <span>
-                                <Download className="h-4 w-4" />
-                              </span>
-                            )}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="py-8 text-center">
-                    <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      No attachments yet
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link
-                    href={`/users/dashboard/projects/${project.id}/tasks/new`}
+      <div className="grid gap-6 lg:grid-cols-3">
+        {/* Main Content */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Team Members */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Team Members
+              </CardTitle>
+              <CardDescription>
+                {project.members.length} members working on this project
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {project.members.map((member, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded-lg border p-3"
                   >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          {member.memberName
+                            .split(' ')
+                            .map((n) => n[0])
+                            .join('')
+                            .toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {member.memberName}
+                        </p>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {member.designation}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline">{member.department}</Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Recent Activity / Tasks */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ListTodo className="h-5 w-5" />
+                Recent Tasks
+              </CardTitle>
+              <CardDescription>Latest task updates</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="py-8 text-center text-zinc-600 dark:text-zinc-400">
+                <ListTodo className="mx-auto mb-2 h-12 w-12 opacity-50" />
+                <p>No tasks yet. Create tasks to track project progress.</p>
+                <Button variant="outline" size="sm" className="mt-4" asChild>
+                  <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
                     <ListTodo className="mr-2 h-4 w-4" />
                     Create Task
                   </Link>
                 </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href="/users/dashboard/projects/inspections/new">
-                    <ClipboardCheck className="mr-2 h-4 w-4" />
-                    Schedule Inspection
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link
-                    href={`/users/dashboard/projects/${project.id}/issues/new`}
-                  >
-                    <AlertCircle className="mr-2 h-4 w-4" />
-                    Report Issue
-                  </Link>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  asChild
-                >
-                  <Link href="/users/dashboard/resources/material-requests/new">
-                    <Briefcase className="mr-2 h-4 w-4" />
-                    Material Request
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            {/* Project Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Inspections Done
-                  </span>
-                  <span className="font-medium">{stats.inspections}</span>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Open Issues
-                  </span>
-                  <span className="font-medium text-red-600">
-                    {stats.issues}
-                  </span>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Budget Utilization
-                  </span>
-                  <span className="font-medium">
-                    {Math.round((stats.spentBudget / stats.totalBudget) * 100)}%
-                  </span>
-                </div>
-                <Separator />
-                <div className="flex justify-between">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Task Completion
-                  </span>
-                  <span className="font-medium">
-                    {Math.round(
-                      (stats.completedTasks / stats.totalTasks) * 100
+          {/* Attachments */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Paperclip className="h-5 w-5" />
+                    Attachments
+                    {project.attachments && project.attachments.length > 0 && (
+                      <Badge variant="outline">
+                        {project.attachments.length}
+                      </Badge>
                     )}
-                    %
+                  </CardTitle>
+                  <CardDescription>
+                    Files attached to this project
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {project.attachments && project.attachments.length > 0 ? (
+                <div className="space-y-2">
+                  {project.attachments.map((attachment) => {
+                    const Icon = getAttachmentIcon(attachment.fileType);
+                    const attachmentKey =
+                      attachment.id ||
+                      `${attachment.fileUrl}-${attachment.uploadedAt?.getTime() || 'noDate'}`;
+                    const safeDownloadUrl = getSafeDownloadUrl(attachment);
+                    const isValidUrl = isValidAttachmentUrl(attachment.fileUrl);
+
+                    return (
+                      <div
+                        key={attachmentKey}
+                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                      >
+                        <div className="flex min-w-0 flex-1 items-center space-x-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                            <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
+                              {attachment.fileName}
+                            </p>
+                            <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                              <span>{formatFileSize(attachment.fileSize)}</span>
+                              <span>•</span>
+                              <span>
+                                Uploaded{' '}
+                                {format(attachment.uploadedAt, 'MMM d, yyyy')}
+                              </span>
+                              <span>•</span>
+                              <span>{attachment.uploadedBy}</span>
+                            </div>
+                            {attachment.description && (
+                              <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">
+                                {attachment.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          asChild={isValidUrl}
+                          disabled={!isValidUrl}
+                        >
+                          {isValidUrl ? (
+                            <a
+                              href={safeDownloadUrl}
+                              download
+                              aria-label={`Download ${attachment.fileName}`}
+                            >
+                              <Download className="h-4 w-4" />
+                            </a>
+                          ) : (
+                            <span>
+                              <Download className="h-4 w-4" />
+                            </span>
+                          )}
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="py-8 text-center">
+                  <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
+                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                    No attachments yet
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link
+                  href={`/users/dashboard/projects/${project.id}/tasks/new`}
+                >
+                  <ListTodo className="mr-2 h-4 w-4" />
+                  Create Task
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link href="/users/dashboard/projects/inspections/new">
+                  <ClipboardCheck className="mr-2 h-4 w-4" />
+                  Schedule Inspection
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link
+                  href={`/users/dashboard/projects/${project.id}/issues/new`}
+                >
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  Report Issue
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                asChild
+              >
+                <Link href="/users/dashboard/resources/material-requests/new">
+                  <Briefcase className="mr-2 h-4 w-4" />
+                  Material Request
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Project Stats */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Statistics</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Inspections Done
+                </span>
+                <span className="font-medium">{stats.inspections}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Open Issues
+                </span>
+                <span className="font-medium text-red-600">{stats.issues}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Budget Utilization
+                </span>
+                <span className="font-medium">
+                  {Math.round((stats.spentBudget / stats.totalBudget) * 100)}%
+                </span>
+              </div>
+              <Separator />
+              <div className="flex justify-between">
+                <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Task Completion
+                </span>
+                <span className="font-medium">
+                  {Math.round((stats.completedTasks / stats.totalTasks) * 100)}%
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Project Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Created On
+                </div>
+                <div className="font-medium">
+                  {project.createdAt
+                    ? format(project.createdAt, 'MMM dd, yyyy')
+                    : 'Unknown'}
+                </div>
+              </div>
+              <Separator />
+              <div>
+                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Location
+                </div>
+                <div className="flex items-start gap-1 font-medium">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                  <span className="wrap-break-word">
+                    {project.projectAddress}
                   </span>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Project Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Project Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div>
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Created On
-                  </div>
-                  <div className="font-medium">
-                    {project.createdAt
-                      ? format(project.createdAt, 'MMM dd, yyyy')
-                      : 'Unknown'}
-                  </div>
+              </div>
+              <Separator />
+              <div>
+                <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Coordinates
                 </div>
-                <Separator />
-                <div>
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Location
-                  </div>
-                  <div className="flex items-start gap-1 font-medium">
-                    <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span className="wrap-break-word">
-                      {project.projectAddress}
-                    </span>
-                  </div>
+                <div className="text-sm font-medium">
+                  {project.projectLatitude.toFixed(4)},{' '}
+                  {project.projectLongitude.toFixed(4)}
                 </div>
-                <Separator />
-                <div>
-                  <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Coordinates
-                  </div>
-                  <div className="text-sm font-medium">
-                    {project.projectLatitude.toFixed(4)},{' '}
-                    {project.projectLongitude.toFixed(4)}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 }

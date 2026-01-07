@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { logger } from '@/lib/logger';
-import { AppLayout } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -214,109 +213,103 @@ export default function EditProjectPage() {
 
   if (isLoading) {
     return (
-      <AppLayout>
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="text-center">
-            <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
-            <p className="text-muted-foreground mt-4">Loading project...</p>
-          </div>
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground mt-4">Loading project...</p>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   if (!project) {
     return (
-      <AppLayout>
-        <div className="flex h-[50vh] items-center justify-center">
-          <div className="text-center">
-            <h2 className="text-2xl font-bold">Project Not Found</h2>
-            <p className="text-muted-foreground mt-2">
-              The project you&apos;re looking for doesn&apos;t exist.
-            </p>
-            <Button className="mt-4" asChild>
-              <Link href="/users/dashboard/projects">Back to Projects</Link>
-            </Button>
-          </div>
+      <div className="flex h-[50vh] items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold">Project Not Found</h2>
+          <p className="text-muted-foreground mt-2">
+            The project you&apos;re looking for doesn&apos;t exist.
+          </p>
+          <Button className="mt-4" asChild>
+            <Link href="/users/dashboard/projects">Back to Projects</Link>
+          </Button>
         </div>
-      </AppLayout>
+      </div>
     );
   }
 
   return (
-    <AppLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold">Edit Project</h1>
-          <p className="text-muted-foreground">
-            Update project information for {project.projectName}
-          </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
-          <Card>
-            <CardHeader>
-              <CardTitle>Project Information</CardTitle>
-              <CardDescription>
-                Update the details for this project
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Project Form Fields */}
-              <ProjectEditForm
-                formData={formData}
-                onInputChange={handleInputChange}
-                onStatusChange={handleStatusChange}
-              />
-
-              {/* Team Members */}
-              <TeamMembersSection
-                selectedMembers={selectedMembers}
-                availableEmployees={availableEmployees}
-                isDialogOpen={isAddMemberDialogOpen}
-                onDialogOpenChange={setIsAddMemberDialogOpen}
-                onAddMember={handleAddMember}
-                onRemoveMember={handleRemoveMember}
-              />
-
-              {/* Attachments */}
-              <AttachmentsSection
-                existingAttachments={project.attachments}
-                newAttachments={attachments}
-                onAttachmentsChange={handleAttachmentsChange}
-                onRemoveAttachment={removeAttachment}
-              />
-
-              {/* Form Actions */}
-              <div className="flex justify-end gap-4 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? (
-                    <>
-                      <span className="border-background mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" />
-                      Save Changes
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </form>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold">Edit Project</h1>
+        <p className="text-muted-foreground">
+          Update project information for {project.projectName}
+        </p>
       </div>
-    </AppLayout>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Information</CardTitle>
+            <CardDescription>
+              Update the details for this project
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Project Form Fields */}
+            <ProjectEditForm
+              formData={formData}
+              onInputChange={handleInputChange}
+              onStatusChange={handleStatusChange}
+            />
+
+            {/* Team Members */}
+            <TeamMembersSection
+              selectedMembers={selectedMembers}
+              availableEmployees={availableEmployees}
+              isDialogOpen={isAddMemberDialogOpen}
+              onDialogOpenChange={setIsAddMemberDialogOpen}
+              onAddMember={handleAddMember}
+              onRemoveMember={handleRemoveMember}
+            />
+
+            {/* Attachments */}
+            <AttachmentsSection
+              existingAttachments={project.attachments}
+              newAttachments={attachments}
+              onAttachmentsChange={handleAttachmentsChange}
+              onRemoveAttachment={removeAttachment}
+            />
+
+            {/* Form Actions */}
+            <div className="flex justify-end gap-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <span className="border-background mr-2 h-4 w-4 animate-spin rounded-full border-2 border-t-transparent" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </form>
+    </div>
   );
 }
