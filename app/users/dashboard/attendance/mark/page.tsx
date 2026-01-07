@@ -2,7 +2,7 @@
 
 import { useModuleAccess } from '@/hooks/use-rbac';
 import { Module } from '@/types/rbac/module';
-import { AppLayout } from '@/components/common';
+
 import { MarkAttendanceForm } from '@/features/attendance/components/mark-attendance-form';
 import { ClipboardCheck } from 'lucide-react';
 
@@ -16,9 +16,5 @@ export default function MarkAttendancePage() {
     { label: 'Mark Attendance' },
   ];
 
-  return (
-    <AppLayout title="Mark Attendance">
-      <MarkAttendanceForm />
-    </AppLayout>
-  );
+  return <MarkAttendanceForm />;
 }
