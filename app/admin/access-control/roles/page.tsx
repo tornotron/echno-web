@@ -32,8 +32,8 @@ import {
   getRoleLevel,
   RoleLevel,
 } from '@/types/rbac/role';
-import { getRolePermissions } from '@/lib/rbac/permissions';
-import { Shield } from 'lucide-react';
+import { Shield, ExternalLink } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Helper function to get role level colors
 const getRoleLevelColor = (level: RoleLevel): string => {
@@ -116,13 +116,24 @@ export default function RolesPage() {
         <div>
           <h1 className="text-3xl font-bold">Role Browser</h1>
           <p className="text-muted-foreground mt-1">
-            Explore all system roles and their permissions
+            Explore all system roles available in the application
           </p>
         </div>
       </div>
 
+      {/* Keycloak Notice */}
+      <Alert>
+        <ExternalLink className="h-4 w-4" />
+        <AlertTitle>Permissions Managed in Keycloak</AlertTitle>
+        <AlertDescription>
+          Role permissions are now managed through Keycloak Authorization
+          Services. To view or modify permissions, access the Keycloak Admin
+          Console.
+        </AlertDescription>
+      </Alert>
+
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardDescription>Total Roles</CardDescription>
@@ -145,19 +156,6 @@ export default function RolesPage() {
             <div className="text-2xl font-bold">8</div>
             <p className="text-muted-foreground text-xs">
               Admin, Management, Professional, etc.
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardDescription>Total Permissions</CardDescription>
-            <Shield className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">120+</div>
-            <p className="text-muted-foreground text-xs">
-              Granular access controls
             </p>
           </CardContent>
         </Card>
@@ -225,15 +223,13 @@ export default function RolesPage() {
               <TableRow>
                 <TableHead>Role Name</TableHead>
                 <TableHead>Level</TableHead>
-                <TableHead>Permissions</TableHead>
                 <TableHead>Description</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedRoles.map((roleId) => {
                 const level = getRoleLevel(roleId);
-                const permissions = getRolePermissions([roleId]);
-                const isSystemAdmin = roleId === 'system-admin';
+                const isAdmin = roleId === 'system-admin';
 
                 return (
                   <TableRow
@@ -249,7 +245,7 @@ export default function RolesPage() {
                         <span className="font-medium">
                           {getRoleDisplayName(roleId)}
                         </span>
-                        {isSystemAdmin && (
+                        {isAdmin && (
                           <Badge className="bg-red-600 text-white">
                             Full Access
                           </Badge>
@@ -262,15 +258,8 @@ export default function RolesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="text-sm">
-                        {isSystemAdmin
-                          ? 'All Permissions'
-                          : `${permissions.length} permissions`}
-                      </span>
-                    </TableCell>
-                    <TableCell>
                       <span className="text-muted-foreground text-sm">
-                        {isSystemAdmin
+                        {isAdmin
                           ? 'Unrestricted system access'
                           : `${level.charAt(0).toUpperCase() + level.slice(1)}-level access`}
                       </span>
