@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
-import { logger } from '@/lib/logger';
 import { redirect, useRouter } from 'next/navigation';
 import {
   Card,
@@ -13,22 +12,15 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Separator } from '@/components/ui/separator';
-import { Shield, AlertCircle, Save, RotateCcw } from 'lucide-react';
-import { toast } from '@/lib/styles/toast-styles';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Shield, AlertCircle, ExternalLink, ArrowLeft } from 'lucide-react';
 import {
   getRoleDisplayName,
   getRoleLevel,
   RoleLevel,
   getAllSystemRoles,
 } from '@/types/rbac/role';
-import {
-  Permission,
-  getPermissionLabel,
-  groupPermissionsByCategory,
-} from '@/types/rbac/permission';
-import { getRolePermissions } from '@/lib/rbac/permissions';
+import { ROLE_TO_GROUP, getGroupDisplayName } from '@/lib/rbac/role-groups';
 
 // Helper function for role level colors
 const getRoleLevelColor = (level: RoleLevel): string => {
@@ -62,15 +54,6 @@ export default function RoleDetailsPage({
   const router = useRouter();
 
   const [roleId, setRoleId] = useState<string | null>(null);
-  const [originalPermissions, setOriginalPermissions] = useState<Permission[]>(
-    []
-  );
-  const [selectedPermissions, setSelectedPermissions] = useState<Permission[]>(
-    []
-  );
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
 
   // Unwrap params promise
   useEffect(() => {
@@ -82,121 +65,7 @@ export default function RoleDetailsPage({
     redirect('/users/dashboard');
   }
 
-  const fetchRoleData = useCallback(async () => {
-    if (!roleId) return;
-
-    try {
-      setLoading(true);
-
-      // Verify role exists
-      const allRoles = getAllSystemRoles();
-      if (!allRoles.includes(roleId)) {
-        toast.error('Role not found');
-        return;
-      }
-
-      // Get role permissions
-      const permissions = getRolePermissions([roleId]);
-      setOriginalPermissions(permissions);
-      setSelectedPermissions(permissions);
-    } catch (error) {
-      toast.error('Failed to load role data');
-      logger.error(`${error}`);
-    } finally {
-      setLoading(false);
-    }
-  }, [roleId]);
-
-  useEffect(() => {
-    fetchRoleData();
-  }, [fetchRoleData]);
-
-  // Check if there are changes
-  useEffect(() => {
-    const changed =
-      JSON.stringify([...selectedPermissions].toSorted()) !==
-      JSON.stringify([...originalPermissions].toSorted());
-    setHasChanges(changed);
-  }, [selectedPermissions, originalPermissions]);
-
-  const handlePermissionToggle = (permission: Permission) => {
-    if (roleId === 'system-admin') {
-      toast.error('Cannot modify System Admin permissions');
-      return;
-    }
-
-    setSelectedPermissions((prev) =>
-      prev.includes(permission)
-        ? prev.filter((p) => p !== permission)
-        : [...prev, permission]
-    );
-  };
-
-  const handleSave = async () => {
-    if (!roleId) return;
-
-    try {
-      setSaving(true);
-
-      // In production, this would call an API endpoint
-      const response = await fetch(`/api/admin/roles/${roleId}/permissions`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ permissions: selectedPermissions }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update permissions');
-
-      setOriginalPermissions(selectedPermissions);
-      toast.success('Permissions updated successfully');
-    } catch (error) {
-      toast.error('Failed to update permissions');
-      logger.error(`${error}`);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleReset = () => {
-    setSelectedPermissions(originalPermissions);
-    toast.success('Changes reset');
-  };
-
-  const handleSelectAll = (permissions: Permission[]) => {
-    if (roleId === 'system-admin') {
-      toast.error('Cannot modify System Admin permissions');
-      return;
-    }
-
-    const allSelected = permissions.every((p) =>
-      selectedPermissions.includes(p)
-    );
-
-    if (allSelected) {
-      // Deselect all
-      setSelectedPermissions((prev) =>
-        prev.filter((p) => !permissions.includes(p))
-      );
-    } else {
-      // Select all
-      const newPermissions = [...selectedPermissions];
-      for (const p of permissions) {
-        if (!newPermissions.includes(p)) {
-          newPermissions.push(p);
-        }
-      }
-      setSelectedPermissions(newPermissions);
-    }
-  };
-
-  // Helper to check if a specific category has changes
-  const categoryHasChanges = (permissions: Permission[]) => {
-    return permissions.some(
-      (p) => selectedPermissions.includes(p) !== originalPermissions.includes(p)
-    );
-  };
-
-  if (isLoading || loading) {
+  if (isLoading || !roleId) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -207,7 +76,7 @@ export default function RoleDetailsPage({
     );
   }
 
-  if (!roleId || !getAllSystemRoles().includes(roleId)) {
+  if (!getAllSystemRoles().includes(roleId)) {
     return (
       <div className="container mx-auto max-w-4xl p-6">
         <Card>
@@ -229,10 +98,19 @@ export default function RoleDetailsPage({
   const roleName = getRoleDisplayName(roleId);
   const level = getRoleLevel(roleId);
   const isSystemAdminRole = roleId === 'system-admin';
-  const groupedPermissions = groupPermissionsByCategory();
+  const associatedGroup = ROLE_TO_GROUP[roleId];
 
   return (
     <div className="space-y-6">
+      {/* Back Button */}
+      <Button
+        variant="ghost"
+        onClick={() => router.push('/admin/access-control/roles')}
+      >
+        <ArrowLeft className="mr-2 h-4 w-4" />
+        Back to Roles
+      </Button>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -241,9 +119,7 @@ export default function RoleDetailsPage({
             {roleName}
           </h1>
           <p className="text-muted-foreground mt-1">
-            {isSystemAdminRole
-              ? 'Full system access - Cannot be modified'
-              : 'Manage role permissions and access levels'}
+            Role details and configuration
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -259,54 +135,55 @@ export default function RoleDetailsPage({
         </div>
       </div>
 
-      {/* Stats Card */}
+      {/* Keycloak Notice */}
+      <Alert>
+        <ExternalLink className="h-4 w-4" />
+        <AlertTitle>Permissions Managed in Keycloak</AlertTitle>
+        <AlertDescription>
+          Role permissions are now managed through Keycloak Authorization
+          Services. To view or modify permissions for this role, access the
+          Keycloak Admin Console.
+        </AlertDescription>
+      </Alert>
+
+      {/* Role Info Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Permission Summary</CardTitle>
-          <CardDescription>
-            Current permission assignments for this role
-          </CardDescription>
+          <CardTitle>Role Information</CardTitle>
+          <CardDescription>Details about this role</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-6 md:grid-cols-2">
             <div>
-              <p className="text-muted-foreground text-sm">Total Permissions</p>
-              <p className="text-2xl font-bold">
-                {isSystemAdminRole ? 'All' : selectedPermissions.length}
+              <p className="text-muted-foreground mb-1 text-sm">Role ID</p>
+              <p className="font-mono text-sm">{roleId}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1 text-sm">Display Name</p>
+              <p className="font-medium">{roleName}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1 text-sm">Level</p>
+              <Badge className={getRoleLevelColor(level)}>
+                {level.charAt(0).toUpperCase() + level.slice(1)}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-1 text-sm">
+                Associated Group
+              </p>
+              <p className="font-medium">
+                {associatedGroup
+                  ? getGroupDisplayName(associatedGroup)
+                  : 'None'}
               </p>
             </div>
-            {hasChanges && (
-              <>
-                <div>
-                  <p className="text-muted-foreground text-sm">Added</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    +
-                    {
-                      selectedPermissions.filter(
-                        (p) => !originalPermissions.includes(p)
-                      ).length
-                    }
-                  </p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground text-sm">Removed</p>
-                  <p className="text-2xl font-bold text-red-600">
-                    -
-                    {
-                      originalPermissions.filter(
-                        (p) => !selectedPermissions.includes(p)
-                      ).length
-                    }
-                  </p>
-                </div>
-              </>
-            )}
           </div>
         </CardContent>
       </Card>
 
-      {/* Permissions */}
-      {isSystemAdminRole ? (
+      {/* System Admin Role */}
+      {isSystemAdminRole && (
         <Card className="border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-950">
           <CardContent className="py-12 text-center">
             <Shield className="mx-auto mb-4 h-16 w-16 text-red-600" />
@@ -315,115 +192,8 @@ export default function RoleDetailsPage({
             </h3>
             <p className="text-muted-foreground">
               This role has unrestricted access to all system functions and
-              permissions. Permissions cannot be modified for this role.
+              resources. Users with this role bypass all permission checks.
             </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Permissions</CardTitle>
-            <CardDescription>
-              Select or deselect permissions to modify role access
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {Object.entries(groupedPermissions).map(
-              ([category, permissions]) => {
-                const categorySelected = permissions.filter((p) =>
-                  selectedPermissions.includes(p)
-                );
-                const allSelected =
-                  categorySelected.length === permissions.length;
-                const hasCategoryChanges = categoryHasChanges(permissions);
-
-                return (
-                  <div key={category}>
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 font-semibold">
-                        {category}
-                        <Badge variant="secondary">
-                          {categorySelected.length} / {permissions.length}
-                        </Badge>
-                      </h3>
-                      <div className="flex items-center gap-2">
-                        {hasCategoryChanges && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={handleSave}
-                              disabled={saving}
-                            >
-                              <Save className="mr-1 h-3 w-3" />
-                              Save Changes
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={handleReset}
-                              disabled={saving}
-                            >
-                              <RotateCcw className="mr-1 h-3 w-3" />
-                              Reset
-                            </Button>
-                          </>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleSelectAll(permissions)}
-                        >
-                          {allSelected ? 'Deselect All' : 'Select All'}
-                        </Button>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                      {permissions.map((permission) => {
-                        const isSelected =
-                          selectedPermissions.includes(permission);
-                        const isChanged =
-                          isSelected !==
-                          originalPermissions.includes(permission);
-
-                        return (
-                          <div
-                            key={permission}
-                            className={`flex items-center space-x-3 rounded-lg border p-3 transition-colors ${
-                              isChanged
-                                ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-950'
-                                : 'hover:bg-accent'
-                            }`}
-                          >
-                            <Checkbox
-                              id={permission}
-                              checked={isSelected}
-                              onCheckedChange={() =>
-                                handlePermissionToggle(permission)
-                              }
-                            />
-                            <label
-                              htmlFor={permission}
-                              className="flex-1 cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                            >
-                              {getPermissionLabel(permission)}
-                              {isChanged && (
-                                <Badge
-                                  variant="outline"
-                                  className="ml-2 text-xs"
-                                >
-                                  {isSelected ? 'Added' : 'Removed'}
-                                </Badge>
-                              )}
-                            </label>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    <Separator className="mt-4" />
-                  </div>
-                );
-              }
-            )}
           </CardContent>
         </Card>
       )}

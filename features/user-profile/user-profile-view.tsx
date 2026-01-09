@@ -30,7 +30,12 @@ import {
   Clock,
   FileText,
   AlertCircle,
+  Users,
 } from 'lucide-react';
+import {
+  UserGroupBadge,
+  UserGroupList,
+} from '@/components/rbac/user-group-badge';
 
 interface UserProfileViewProps {
   user: User;
@@ -94,6 +99,7 @@ export function UserProfileView({
                   <Badge variant="default" className="text-xs">
                     {getRoleDisplayName(user.roles?.[0] || '')}
                   </Badge>
+                  <UserGroupBadge size="sm" showIcon />
                   {user.organizations && user.organizations.length > 0 && (
                     <Badge variant="secondary" className="text-xs">
                       <Building2 className="mr-1 h-3 w-3" />
@@ -310,12 +316,35 @@ export function UserProfileView({
           </ProfileCard>
         )}
 
+        {/* Access & Groups */}
+        <ProfileCard
+          title="Access & Groups"
+          description="Your roles and group memberships"
+          icon={<Users className="h-5 w-5" />}
+        >
+          <div className="space-y-4">
+            <div>
+              <p className="text-muted-foreground mb-2 text-sm font-medium">
+                Primary Role
+              </p>
+              <Badge variant="default">
+                {getRoleDisplayName(user.roles?.[0] || '')}
+              </Badge>
+            </div>
+            <div>
+              <p className="text-muted-foreground mb-2 text-sm font-medium">
+                Groups
+              </p>
+              <UserGroupList showIcons size="sm" />
+            </div>
+          </div>
+        </ProfileCard>
+
         {/* Account Information */}
         <ProfileCard
           title="Account Information"
           description="System and account details"
           variant="minimal"
-          className="lg:col-span-2"
         >
           <DataList
             items={[
