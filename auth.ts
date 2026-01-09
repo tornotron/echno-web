@@ -2,7 +2,7 @@ import NextAuth from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import KeycloakProvider from 'next-auth/providers/keycloak';
 import { jwtDecode } from 'jwt-decode';
-import { getRolePermissions } from '@/lib/rbac/permissions';
+import { normalizeGroups } from '@/lib/rbac/role-groups';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 import { TOKEN_REFRESH } from '@/lib/auth/constants';
@@ -153,15 +153,27 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
           token.roles = keycloakRoles;
 
-          // Log extracted roles for debugging
-          logger.debug('Roles extracted from Keycloak token', {
+          // Extract and normalize groups from Keycloak token
+          // Groups come as paths like "/management", "/engineering/frontend"
+          const rawGroups = decodedToken?.groups || [];
+          token.groups = normalizeGroups(rawGroups);
+
+          // Extract resource permissions from Keycloak Authorization Services
+          // These are fine-grained permissions with resource:scope format
+          token.resourcePermissions =
+            decodedToken?.authorization?.permissions || [];
+
+          // Log extracted roles, groups, and permissions for debugging
+          logger.debug('Roles and groups extracted from Keycloak token', {
             realmRoles,
             resourceRoles,
             combinedRoles: keycloakRoles,
+            groups: token.groups,
+            resourcePermissions: token.resourcePermissions?.map((p) => ({
+              resource: p.rsname,
+              scopes: p.scopes,
+            })),
           });
-
-          // Compute permissions from Keycloak roles
-          token.permissions = getRolePermissions(keycloakRoles);
 
           // Extract session ID for frontchannel logout
           // Keycloak sends 'sid' in the access token
@@ -256,7 +268,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null; // Invalidate session immediately
         }
 
-        // Re-extract roles after refresh
+        // Re-extract roles, groups, and permissions after refresh
         if (refreshed.accessToken && !refreshed.error) {
           try {
             const decodedToken = jwtDecode<DecodedKeycloakToken>(
@@ -270,10 +282,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
             // Use Keycloak roles
             refreshed.roles = keycloakRoles;
-            // Compute permissions from Keycloak roles
-            refreshed.permissions = getRolePermissions(keycloakRoles);
+
+            // Re-extract groups after refresh
+            const rawGroups = decodedToken?.groups || [];
+            refreshed.groups = normalizeGroups(rawGroups);
+
+            // Re-extract resource permissions after refresh
+            refreshed.resourcePermissions =
+              decodedToken?.authorization?.permissions || [];
           } catch (error) {
-            logger.error('Failed to extract roles after refresh', error);
+            logger.error(
+              'Failed to extract roles/groups/permissions after refresh',
+              error
+            );
           }
         }
 
@@ -293,11 +314,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Roles (permissions and system admin status computed on-demand from roles)
       session.user.roles = token.roles || [];
 
-      // Log session roles for debugging
-      logger.debug('Session callback - user roles', {
+      // Groups from Keycloak (normalized)
+      session.user.groups = token.groups || [];
+
+      // Resource permissions from Keycloak Authorization Services
+      session.user.resourcePermissions = token.resourcePermissions || [];
+
+      // Log session data for debugging
+      logger.debug('Session callback - user data', {
         userId: token.userId,
         email: token.email,
         roles: session.user.roles,
+        groups: session.user.groups,
+        resourcePermissionsCount: session.user.resourcePermissions?.length || 0,
       });
 
       // DEVELOPMENT: Set organizationId for testing
