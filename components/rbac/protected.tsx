@@ -1,22 +1,32 @@
 'use client';
 
 import { useAuthorization } from '@/hooks/use-authorization';
-import { Permission } from '@/types/rbac/permission';
+import { KeycloakGroup } from '@/lib/rbac/role-groups';
 import { ReactNode } from 'react';
+
+/**
+ * Resource permission specification
+ * @example { resource: 'project', scope: 'create' }
+ * @example { resource: 'project', scopes: ['read', 'update'], requireAll: false }
+ */
+interface ResourcePermission {
+  /** Resource name (e.g., "project", "organization") */
+  resource: string;
+  /** Single scope to check */
+  scope?: string;
+  /** Multiple scopes to check */
+  scopes?: string[];
+  /** If true, require all scopes (AND). If false, require any scope (OR). Default: false */
+  requireAll?: boolean;
+}
 
 interface ProtectedProps {
   /**
-   * Permission(s) required to view content
-   * - Single permission: User must have this permission
-   * - Array of permissions: User must have ALL permissions (AND logic)
+   * Resource permission check (Keycloak Authorization Services)
+   * @example resource={{ resource: 'project', scope: 'create' }}
+   * @example resource={{ resource: 'project', scopes: ['read', 'update'] }}
    */
-  permission?: Permission | Permission[];
-
-  /**
-   * Alternative: Check for ANY permission (OR logic)
-   * User needs at least one of these permissions
-   */
-  anyPermission?: Permission[];
+  resource?: ResourcePermission;
 
   /**
    * Role(s) required to view content
@@ -31,15 +41,22 @@ interface ProtectedProps {
   allRoles?: string[];
 
   /**
+   * Group(s) required to view content
+   * - Single group: User must be in this group
+   * - Array of groups: User needs to be in ANY group (OR logic)
+   */
+  group?: KeycloakGroup | KeycloakGroup[];
+
+  /**
    * Require system admin access
    */
   requireSystemAdmin?: boolean;
 
   /**
-   * Combination logic when both permission and role are provided
-   * - 'AND': User must meet both permission AND role requirements
-   * - 'OR': User must meet permission OR role requirements
-   * @default 'OR'
+   * Combination logic when multiple checks are provided
+   * If true: User must meet ALL requirements (AND logic)
+   * If false: User must meet ANY requirement (OR logic)
+   * @default false
    */
   requireAll?: boolean;
 
@@ -62,32 +79,35 @@ interface ProtectedProps {
 }
 
 /**
- * Protected component for conditionally rendering based on permissions/roles
+ * Protected component for conditionally rendering based on permissions, roles, or groups
+ *
+ * Uses Keycloak Authorization Services for resource-based permissions.
  *
  * @example
  * ```tsx
- * // Show only to users with specific permission
- * <Protected permission={Permission.PROJECT_CREATE}>
+ * // Show only to users with specific resource permission
+ * <Protected resource={{ resource: 'project', scope: 'create' }}>
  *   <CreateProjectButton />
  * </Protected>
  *
- * // Show to users with ANY of these permissions
- * <Protected anyPermission={[Permission.PROJECT_VIEW, Permission.TASK_VIEW]}>
- *   <Dashboard />
+ * // Show to users with ANY of these scopes on a resource
+ * <Protected resource={{ resource: 'project', scopes: ['read', 'update'] }}>
+ *   <ProjectEditor />
+ * </Protected>
+ *
+ * // Show to users with ALL scopes on a resource
+ * <Protected resource={{ resource: 'project', scopes: ['read', 'update'], requireAll: true }}>
+ *   <ProjectEditor />
  * </Protected>
  *
  * // Show to users with specific role
- * <Protected role="projectManager">
+ * <Protected role="project-manager">
  *   <ManagerControls />
  * </Protected>
  *
- * // Show to users with permission AND role
- * <Protected
- *   permission={Permission.PROJECT_DELETE}
- *   role="projectManager"
- *   requireAll={true}
- * >
- *   <DeleteButton />
+ * // Show to users in a specific group
+ * <Protected group="management">
+ *   <ManagerDashboard />
  * </Protected>
  *
  * // Show only to system admin
@@ -95,9 +115,18 @@ interface ProtectedProps {
  *   <AdminPanel />
  * </Protected>
  *
+ * // Combine resource permission AND role
+ * <Protected
+ *   resource={{ resource: 'project', scope: 'delete' }}
+ *   role="project-manager"
+ *   requireAll={true}
+ * >
+ *   <DeleteButton />
+ * </Protected>
+ *
  * // With custom fallback
  * <Protected
- *   permission={Permission.FINANCE_VIEW}
+ *   resource={{ resource: 'finance', scope: 'read' }}
  *   fallback={<div>You don't have access to finance data</div>}
  * >
  *   <FinanceReport />
@@ -105,10 +134,10 @@ interface ProtectedProps {
  * ```
  */
 export function Protected({
-  permission,
-  anyPermission,
+  resource,
   role,
   allRoles,
+  group,
   requireSystemAdmin = false,
   requireAll = false,
   fallback = null,
@@ -116,10 +145,13 @@ export function Protected({
   children,
 }: ProtectedProps) {
   const {
-    can,
-    canAny,
+    canResource,
+    canResourceAny,
+    canResourceAll,
     hasRoles,
     hasEveryRole,
+    inGroup,
+    inAnyGroup,
     isSystemAdmin,
     isLoading,
     isAuthenticated,
@@ -150,41 +182,54 @@ export function Protected({
     return <>{children}</>;
   }
 
-  // Check permissions
-  let hasPermissionAccess = true;
-  if (permission !== undefined) {
-    hasPermissionAccess = can(permission);
-  } else if (anyPermission !== undefined) {
-    hasPermissionAccess = canAny(anyPermission);
+  // Collect all access checks
+  const accessChecks: boolean[] = [];
+
+  // Check resource permissions
+  if (resource !== undefined) {
+    let hasResourceAccess = false;
+
+    if (resource.scope) {
+      // Single scope check
+      hasResourceAccess = canResource(resource.resource, resource.scope);
+    } else if (resource.scopes && resource.scopes.length > 0) {
+      // Multiple scopes check
+      hasResourceAccess = resource.requireAll
+        ? canResourceAll(resource.resource, resource.scopes)
+        : canResourceAny(resource.resource, resource.scopes);
+    }
+
+    accessChecks.push(hasResourceAccess);
   }
 
   // Check roles
-  let hasRoleAccess = true;
   if (role !== undefined) {
-    hasRoleAccess = hasRoles(role);
+    accessChecks.push(hasRoles(role));
   } else if (allRoles !== undefined) {
-    hasRoleAccess = hasEveryRole(allRoles);
+    accessChecks.push(hasEveryRole(allRoles));
   }
 
-  // Determine access based on combination logic
+  // Check groups
+  if (group !== undefined) {
+    if (Array.isArray(group)) {
+      accessChecks.push(inAnyGroup(group));
+    } else {
+      accessChecks.push(inGroup(group));
+    }
+  }
+
+  // Determine final access
   let hasAccess = false;
 
-  if (permission !== undefined || anyPermission !== undefined) {
-    if (role !== undefined || allRoles !== undefined) {
-      // Both permission and role checks
-      hasAccess = requireAll
-        ? hasPermissionAccess && hasRoleAccess
-        : hasPermissionAccess || hasRoleAccess;
-    } else {
-      // Only permission check
-      hasAccess = hasPermissionAccess;
-    }
-  } else if (role !== undefined || allRoles !== undefined) {
-    // Only role check
-    hasAccess = hasRoleAccess;
-  } else if (!requireSystemAdmin) {
+  if (accessChecks.length === 0) {
     // No checks specified, allow if authenticated
     hasAccess = true;
+  } else if (requireAll) {
+    // AND logic: all checks must pass
+    hasAccess = accessChecks.every(Boolean);
+  } else {
+    // OR logic: any check must pass
+    hasAccess = accessChecks.some(Boolean);
   }
 
   return hasAccess ? <>{children}</> : <>{fallback}</>;
