@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
-import { hasPermission, getRolePermissions } from '@/lib/rbac/permissions';
-import { Permission } from '@/types/rbac/permission';
+import { hasResourcePermission } from '@/lib/rbac/resource-permissions';
+import { getDashboardForUser } from '@/lib/rbac/role-groups';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { isSystemAdmin } from '@/lib/rbac/role-utils';
 import { logger } from '@/lib/logger';
@@ -105,11 +105,14 @@ export default auth((req) => {
 
   // ========== REDIRECT AFTER LOGIN ==========
   if (isLoggedIn && pathname === '/login') {
-    // All users redirect to dashboard (role-based UI is handled within pages)
-    const redirectUrl = '/users/dashboard';
+    // Redirect based on user's group/role
+    const userGroups = req.auth?.user.groups || [];
+    const userRoles = req.auth?.user.roles || [];
+    const redirectUrl = getDashboardForUser(userGroups, userRoles);
 
     logger.debug('Middleware: Redirecting authenticated user from login', {
-      userRoles: req.auth?.user.roles,
+      userRoles,
+      userGroups,
       redirectTo: redirectUrl,
     });
 
@@ -119,34 +122,48 @@ export default auth((req) => {
   // ========== SYSTEM ADMIN ROUTES ==========
   // Admin routes require system admin access
   if (pathname.startsWith('/admin') && !isSystemAdmin(req.auth?.user.roles)) {
-    const url = new URL('/users/dashboard', req.url);
+    const userGroups = req.auth?.user.groups || [];
+    const userRoles = req.auth?.user.roles || [];
+    const userDashboard = getDashboardForUser(userGroups, userRoles);
+    const url = new URL(userDashboard, req.url);
     url.searchParams.set('error', 'forbidden');
     url.searchParams.set('message', 'System admin access required');
     return NextResponse.redirect(url);
   }
 
-  // ========== PERMISSION-BASED ROUTE PROTECTION ==========
-  // Map routes to required permissions
-  const routePermissions: Record<string, Permission> = {
-    '/users/dashboard/finance': Permission.FINANCE_VIEW,
-    '/users/dashboard/projects': Permission.PROJECT_VIEW,
-    '/users/dashboard/workforce': Permission.WORKFORCE_VIEW,
-    '/users/dashboard/resources': Permission.RESOURCE_VIEW,
-    '/users/dashboard/inspections': Permission.INSPECTION_VIEW,
+  // ========== RESOURCE-BASED ROUTE PROTECTION ==========
+  // Map routes to required resource permissions (Keycloak Authorization Services)
+  // Format: { route: { resource: 'resource-name', scope: 'scope-name' } }
+  const routeResourcePermissions: Record<
+    string,
+    { resource: string; scope: string }
+  > = {
+    '/users/dashboard/finance': { resource: 'finance', scope: 'read' },
+    '/users/dashboard/projects': { resource: 'project', scope: 'read' },
+    '/users/dashboard/workforce': { resource: 'employee', scope: 'read' },
+    '/users/dashboard/resources': { resource: 'resource', scope: 'read' },
+    '/users/dashboard/attendance': { resource: 'attendance', scope: 'read' },
   };
 
-  // Check if user has required permission for route
-  for (const [route, permission] of Object.entries(routePermissions)) {
+  // Check if user has required resource permission for route
+  for (const [route, { resource, scope }] of Object.entries(
+    routeResourcePermissions
+  )) {
     if (pathname.startsWith(route) && isLoggedIn) {
       const userRoles = req.auth?.user.roles || [];
-      const userPermissions = getRolePermissions(userRoles);
+      const userGroups = req.auth?.user.groups || [];
+      const resourcePermissions = req.auth?.user.resourcePermissions || [];
       const userIsSystemAdmin = isSystemAdmin(userRoles);
 
       // System admin bypasses permission checks
-      if (!userIsSystemAdmin && !hasPermission(userPermissions, permission)) {
-        const url = new URL('/users/dashboard', req.url);
+      if (
+        !userIsSystemAdmin &&
+        !hasResourcePermission(resourcePermissions, resource, scope)
+      ) {
+        const userDashboard = getDashboardForUser(userGroups, userRoles);
+        const url = new URL(userDashboard, req.url);
         url.searchParams.set('error', 'insufficient_permissions');
-        url.searchParams.set('required', permission);
+        url.searchParams.set('required', `${resource}:${scope}`);
         return NextResponse.redirect(url);
       }
     }
