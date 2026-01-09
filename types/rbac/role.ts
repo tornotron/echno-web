@@ -1,13 +1,11 @@
-import { Permission } from './permission';
-
 /**
  * Role interface for RBAC
+ * Note: Permissions are now managed via Keycloak Authorization Services
  */
 export interface Role {
   id: string;
   name: string;
   description: string;
-  permissions: Permission[];
   isSystemRole: boolean; // Cannot be deleted or modified
   createdAt?: Date;
   updatedAt?: Date;

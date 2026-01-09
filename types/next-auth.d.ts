@@ -1,7 +1,7 @@
 import { DefaultSession, DefaultUser } from 'next-auth';
 import { JWT as DefaultJWT } from 'next-auth/jwt';
-import { Permission } from './rbac';
 import { UserModuleEntitlement } from './rbac/module';
+import { KeycloakResourcePermission } from './keycloak';
 
 declare module 'next-auth' {
   interface Session {
@@ -14,15 +14,17 @@ declare module 'next-auth' {
     user: {
       id: string;
       roles: string[];
+      groups: string[]; // Keycloak groups (normalized, without leading slash)
       organizationId: string;
       entitlements?: UserModuleEntitlement[];
+      resourcePermissions?: KeycloakResourcePermission[]; // Keycloak Authorization Services permissions
     } & DefaultSession['user'];
   }
 
   interface User extends DefaultUser {
     id: string;
-    // NEW: Multiple roles support
     roles: string[];
+    groups?: string[];
     organizationId?: string;
     accessToken?: string;
   }
@@ -32,7 +34,8 @@ declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     userId?: string;
     roles?: string[];
-    permissions?: Permission[];
+    groups?: string[]; // Keycloak groups (normalized)
+    resourcePermissions?: KeycloakResourcePermission[]; // Keycloak Authorization Services
     organizationId?: string;
     entitlements?: UserModuleEntitlement[];
     accessToken?: string;
