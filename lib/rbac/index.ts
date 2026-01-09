@@ -106,28 +106,7 @@ export {
   getEntitlementSummary,
 } from './entitlement-service';
 
-// ==================== Backward Compatibility ====================
-// NOTE: These are deprecated - use new module-action system instead
-export {
-  hasPermission,
-  hasAnyPermission,
-  hasAllPermissions,
-  legacyPermissionsToRoles,
-  migrateUserPermissionsToRoles,
-  needsMigration,
-} from './compatibility';
-
-// ==================== Permission-Module Mapping ====================
-export {
-  PERMISSION_MODULE_MAPPINGS,
-  permissionToModuleAction,
-  moduleActionToPermission,
-  getModulePermissions,
-  permissionsToModules,
-} from './permission-module-mapping';
-
-// Re-export legacy permission system for compatibility
-export { Permission } from '@/types/rbac/permission';
+// ==================== Role Types ====================
 export {
   SYSTEM_ROLES,
   type SystemRoleKey,

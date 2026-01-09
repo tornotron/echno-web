@@ -1,28 +1,28 @@
 import { auth } from '@/auth';
-import { Permission } from '@/types/rbac/permission';
-import {
-  hasPermission,
-  hasAnyPermission,
-  hasRole,
-  hasAllRoles,
-  getRolePermissions,
-} from './permissions';
+import { hasRole, hasAllRoles } from './permissions';
 import { isSystemAdmin } from './role-utils';
+import {
+  hasResourcePermission,
+  hasAnyResourceScope,
+  hasAllResourceScopes,
+} from './resource-permissions';
+import {
+  isInGroup,
+  isInAnyGroup,
+  getDashboardForUser,
+  type KeycloakGroup,
+} from './role-groups';
 import { redirect } from 'next/navigation';
+import type { KeycloakResourcePermission } from '@/types/keycloak';
 
 /**
  * Server-side authorization utilities
- * Use these in Server Components, Server Actions, and API Routes
+ *
+ * Use these in Server Components, Server Actions, and API Routes.
+ * All functions use Keycloak Authorization Services for resource-based permissions.
  */
 
-/**
- * Helper: Get permissions from user roles
- * Permissions are computed from roles to reduce session cookie size
- */
-function getUserPermissions(roles: string[] | undefined): Permission[] {
-  if (!roles) return [];
-  return getRolePermissions(roles);
-}
+// ==================== AUTHENTICATION ====================
 
 /**
  * Get current session or throw error
@@ -39,13 +39,33 @@ export async function requireAuth() {
 }
 
 /**
- * Require specific permission(s)
+ * Require system admin access
+ * @throws Error if user is not a system admin
+ */
+export async function requireSystemAdmin() {
+  const session = await requireAuth();
+
+  if (!isSystemAdmin(session.user.roles)) {
+    throw new Error('Forbidden - System admin access required');
+  }
+
+  return session;
+}
+
+// ==================== RESOURCE PERMISSIONS (Keycloak Authorization Services) ====================
+
+/**
+ * Require specific resource permission
  * System admin bypasses this check
  *
- * @param permission - Single permission or array of permissions (AND logic)
- * @throws Error if user doesn't have required permission
+ * @param resource - Resource name (e.g., "project", "organization")
+ * @param scope - Scope/action (e.g., "read", "create", "update", "delete")
+ * @throws Error if user doesn't have the required permission
  */
-export async function requirePermission(permission: Permission | Permission[]) {
+export async function requireResourcePermission(
+  resource: string,
+  scope: string
+) {
   const session = await requireAuth();
 
   // System admin has all permissions
@@ -53,25 +73,26 @@ export async function requirePermission(permission: Permission | Permission[]) {
     return session;
   }
 
-  const permissions = getUserPermissions(session.user.roles);
-  if (!hasPermission(permissions, permission)) {
-    const permList = Array.isArray(permission)
-      ? permission.join(', ')
-      : permission;
-    throw new Error(`Forbidden - Required permission(s): ${permList}`);
+  const permissions = session.user.resourcePermissions || [];
+  if (!hasResourcePermission(permissions, resource, scope)) {
+    throw new Error(`Forbidden - Required permission: ${resource}:${scope}`);
   }
 
   return session;
 }
 
 /**
- * Require ANY of the specified permissions (OR logic)
+ * Require ANY of the specified scopes on a resource (OR logic)
  * System admin bypasses this check
  *
- * @param permissions - Array of permissions
- * @throws Error if user doesn't have any of the required permissions
+ * @param resource - Resource name
+ * @param scopes - Array of scopes
+ * @throws Error if user doesn't have any of the required scopes
  */
-export async function requireAnyPermission(permissions: Permission[]) {
+export async function requireAnyResourceScope(
+  resource: string,
+  scopes: string[]
+) {
   const session = await requireAuth();
 
   // System admin has all permissions
@@ -79,13 +100,46 @@ export async function requireAnyPermission(permissions: Permission[]) {
     return session;
   }
 
-  const userPermissions = getUserPermissions(session.user.roles);
-  if (!hasAnyPermission(userPermissions, permissions)) {
-    throw new Error(`Forbidden - Required one of: ${permissions.join(', ')}`);
+  const permissions = session.user.resourcePermissions || [];
+  if (!hasAnyResourceScope(permissions, resource, scopes)) {
+    throw new Error(
+      `Forbidden - Required one of: ${scopes.map((s) => `${resource}:${s}`).join(', ')}`
+    );
   }
 
   return session;
 }
+
+/**
+ * Require ALL of the specified scopes on a resource (AND logic)
+ * System admin bypasses this check
+ *
+ * @param resource - Resource name
+ * @param scopes - Array of scopes
+ * @throws Error if user doesn't have all required scopes
+ */
+export async function requireAllResourceScopes(
+  resource: string,
+  scopes: string[]
+) {
+  const session = await requireAuth();
+
+  // System admin has all permissions
+  if (isSystemAdmin(session.user.roles)) {
+    return session;
+  }
+
+  const permissions = session.user.resourcePermissions || [];
+  if (!hasAllResourceScopes(permissions, resource, scopes)) {
+    throw new Error(
+      `Forbidden - Required all: ${scopes.map((s) => `${resource}:${s}`).join(', ')}`
+    );
+  }
+
+  return session;
+}
+
+// ==================== ROLE CHECKS ====================
 
 /**
  * Require specific role(s)
@@ -132,33 +186,67 @@ export async function requireAllRoles(roles: string[]) {
   return session;
 }
 
+// ==================== GROUP CHECKS ====================
+
 /**
- * Require system admin access
- * @throws Error if user is not a system admin
+ * Require membership in a specific group
+ * System admin bypasses this check
+ *
+ * @param group - Group name
+ * @throws Error if user is not in the group
  */
-export async function requireSystemAdmin() {
+export async function requireGroup(group: KeycloakGroup) {
   const session = await requireAuth();
 
-  if (!isSystemAdmin(session.user.roles)) {
-    throw new Error('Forbidden - System admin access required');
+  // System admin bypasses group checks
+  if (isSystemAdmin(session.user.roles)) {
+    return session;
+  }
+
+  if (!isInGroup(session.user.groups, group)) {
+    throw new Error(`Forbidden - Required group: ${group}`);
   }
 
   return session;
 }
 
 /**
- * Check if current user has permission (without throwing)
- * Returns true/false
+ * Require membership in ANY of the specified groups (OR logic)
+ * System admin bypasses this check
+ *
+ * @param groups - Array of group names
+ * @throws Error if user is not in any of the groups
  */
-export async function canUser(
-  permission: Permission | Permission[]
+export async function requireAnyGroup(groups: KeycloakGroup[]) {
+  const session = await requireAuth();
+
+  // System admin bypasses group checks
+  if (isSystemAdmin(session.user.roles)) {
+    return session;
+  }
+
+  if (!isInAnyGroup(session.user.groups, groups)) {
+    throw new Error(`Forbidden - Required one of groups: ${groups.join(', ')}`);
+  }
+
+  return session;
+}
+
+// ==================== NON-THROWING CHECKS ====================
+
+/**
+ * Check if current user has resource permission (without throwing)
+ */
+export async function canUserResource(
+  resource: string,
+  scope: string
 ): Promise<boolean> {
   try {
     const session = await auth();
     if (!session?.user) return false;
     if (isSystemAdmin(session.user.roles)) return true;
-    const permissions = getUserPermissions(session.user.roles);
-    return hasPermission(permissions, permission);
+    const permissions = session.user.resourcePermissions || [];
+    return hasResourcePermission(permissions, resource, scope);
   } catch {
     return false;
   }
@@ -166,7 +254,6 @@ export async function canUser(
 
 /**
  * Check if current user has role (without throwing)
- * Returns true/false
  */
 export async function userHasRole(role: string | string[]): Promise<boolean> {
   try {
@@ -180,8 +267,21 @@ export async function userHasRole(role: string | string[]): Promise<boolean> {
 }
 
 /**
+ * Check if current user is in a group (without throwing)
+ */
+export async function userInGroup(group: KeycloakGroup): Promise<boolean> {
+  try {
+    const session = await auth();
+    if (!session?.user) return false;
+    if (isSystemAdmin(session.user.roles)) return true;
+    return isInGroup(session.user.groups, group);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Check if current user is system admin (without throwing)
- * Returns true/false
  */
 export async function isUserSystemAdmin(): Promise<boolean> {
   try {
@@ -193,13 +293,43 @@ export async function isUserSystemAdmin(): Promise<boolean> {
 }
 
 /**
+ * Get user's resource permissions
+ */
+export async function getUserResourcePermissions(): Promise<
+  KeycloakResourcePermission[]
+> {
+  try {
+    const session = await auth();
+    return session?.user?.resourcePermissions || [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get user's dashboard route based on groups/roles
+ */
+export async function getUserDashboard(): Promise<string> {
+  try {
+    const session = await auth();
+    if (!session?.user) return '/login';
+    return getDashboardForUser(session.user.groups, session.user.roles);
+  } catch {
+    return '/login';
+  }
+}
+
+// ==================== PAGE AUTHORIZATION ====================
+
+/**
  * Redirect-based authorization for pages
  * Redirects to login if not authenticated
  * Redirects to dashboard if doesn't have permission
  */
 export async function requireAuthPage(options?: {
-  permission?: Permission | Permission[];
+  resource?: { name: string; scope: string };
   role?: string | string[];
+  group?: KeycloakGroup;
   requireSystemAdmin?: boolean;
 }) {
   const session = await auth();
@@ -210,17 +340,27 @@ export async function requireAuthPage(options?: {
   }
 
   const userIsSystemAdmin = isSystemAdmin(session.user.roles);
+  const userDashboard = getDashboardForUser(
+    session.user.groups,
+    session.user.roles
+  );
 
   // System admin check
   if (options?.requireSystemAdmin && !userIsSystemAdmin) {
-    redirect('/users/dashboard?error=forbidden');
+    redirect(`${userDashboard}?error=forbidden`);
   }
 
-  // Permission check
-  if (options?.permission && !userIsSystemAdmin) {
-    const permissions = getUserPermissions(session.user.roles);
-    if (!hasPermission(permissions, options.permission)) {
-      redirect('/users/dashboard?error=forbidden');
+  // Resource permission check
+  if (options?.resource && !userIsSystemAdmin) {
+    const permissions = session.user.resourcePermissions || [];
+    if (
+      !hasResourcePermission(
+        permissions,
+        options.resource.name,
+        options.resource.scope
+      )
+    ) {
+      redirect(`${userDashboard}?error=forbidden`);
     }
   }
 
@@ -230,11 +370,22 @@ export async function requireAuthPage(options?: {
     !userIsSystemAdmin &&
     !hasRole(session.user.roles, options.role)
   ) {
-    redirect('/users/dashboard?error=forbidden');
+    redirect(`${userDashboard}?error=forbidden`);
+  }
+
+  // Group check
+  if (
+    options?.group &&
+    !userIsSystemAdmin &&
+    !isInGroup(session.user.groups, options.group)
+  ) {
+    redirect(`${userDashboard}?error=forbidden`);
   }
 
   return session;
 }
+
+// ==================== API RESPONSE HELPERS ====================
 
 /**
  * API Route helper - returns standardized error response
