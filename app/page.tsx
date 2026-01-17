@@ -46,7 +46,7 @@ function HomeContent() {
 
   const navLinks = [
     { name: 'Features', href: '/features' },
-    { name: 'About Us', href: '/about' },
+    // { name: 'About Us', href: '/about' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Contact', href: '/contact' },
   ];
@@ -997,14 +997,14 @@ function HomeContent() {
                 Company
               </h4>
               <ul className="space-y-2">
-                <li>
+                {/* <li>
                   <button
                     onClick={() => scrollToSection('#about')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     About Us
                   </button>
-                </li>
+                </li> */}
                 <li>
                   <button
                     onClick={() => scrollToSection('#contact')}
