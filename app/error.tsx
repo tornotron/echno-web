@@ -94,10 +94,10 @@ export default function Error({
             <p>
               If this problem persists, contact{' '}
               <a
-                href="mailto:support@echno.com"
+                href="mailto:support@echnoai.com"
                 className="text-primary hover:underline"
               >
-                support@echno.com
+                support@echnoai.com
               </a>
             </p>
             {error.digest && (

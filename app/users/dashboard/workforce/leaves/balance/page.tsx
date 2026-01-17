@@ -264,7 +264,7 @@ export default function LeaveBalancePage() {
               days)
             </p>
             <p>• Casual leaves cannot be combined with holidays</p>
-            <p>• Contact HR for any leave-related queries: hr@echno.com</p>
+            <p>• Contact HR for any leave-related queries: hr@echnoai.com</p>
           </CardContent>
         </Card>
       </div>

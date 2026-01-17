@@ -6,7 +6,7 @@ export const mockOrganizations: Organization[] = [
     organizationName: 'Echno Construction Ltd.',
     organizationAddress:
       'Plot No. 45, Andheri East, Mumbai, Maharashtra 400069',
-    organizationEmail: 'contact@echno.com',
+    organizationEmail: 'contact@echnoai.com',
     organizationPhone: '+91 22 4567 8900',
     organizationWebsite: 'https://echno.com',
     organizationLogo:

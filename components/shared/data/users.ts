@@ -6,7 +6,7 @@ export const mockUsers: User[] = [
   {
     id: 1,
     name: 'Admin User',
-    email: 'admin@echno.com',
+    email: 'admin@echnoai.com',
     phone: '+91 99999 00000',
     address: '1 Corporate Tower, Mumbai, Maharashtra 400001',
     gender: 'Male',
@@ -26,7 +26,7 @@ export const mockUsers: User[] = [
   {
     id: 2,
     name: 'Manager User',
-    email: 'manager@echno.com',
+    email: 'manager@echnoai.com',
     phone: '+91 99999 11111',
     address: '2 Executive Plaza, Bangalore, Karnataka 560001',
     gender: 'Female',
@@ -45,7 +45,7 @@ export const mockUsers: User[] = [
   {
     id: 3,
     name: 'Rajesh Kumar',
-    email: 'rajesh.kumar@echno.com',
+    email: 'rajesh.kumar@echnoai.com',
     phone: '+91 98765 43210',
     address: '123 MG Road, Bangalore, Karnataka 560001',
     gender: 'Male',
@@ -69,7 +69,7 @@ export const mockUsers: User[] = [
   {
     id: 4,
     name: 'Priya Sharma',
-    email: 'priya.sharma@echno.com',
+    email: 'priya.sharma@echnoai.com',
     phone: '+91 87654 32109',
     address: '456 Anna Salai, Chennai, Tamil Nadu 600002',
     gender: 'Female',
@@ -88,7 +88,7 @@ export const mockUsers: User[] = [
   {
     id: 5,
     name: 'Amit Patel',
-    email: 'amit.patel@echno.com',
+    email: 'amit.patel@echnoai.com',
     phone: '+91 76543 21098',
     address: '789 CG Road, Ahmedabad, Gujarat 380009',
     gender: 'Male',
@@ -112,7 +112,7 @@ export const mockUsers: User[] = [
   {
     id: 6,
     name: 'Sneha Reddy',
-    email: 'sneha.reddy@echno.com',
+    email: 'sneha.reddy@echnoai.com',
     phone: '+91 65432 10987',
     address: '321 Banjara Hills, Hyderabad, Telangana 500034',
     gender: 'Female',
@@ -136,7 +136,7 @@ export const mockUsers: User[] = [
   {
     id: 7,
     name: 'Vikram Singh',
-    email: 'vikram.singh@echno.com',
+    email: 'vikram.singh@echnoai.com',
     phone: '+91 54321 09876',
     address: '567 Park Street, Kolkata, West Bengal 700016',
     gender: 'Male',
@@ -155,7 +155,7 @@ export const mockUsers: User[] = [
   {
     id: 8,
     name: 'Anjali Verma',
-    email: 'anjali.verma@echno.com',
+    email: 'anjali.verma@echnoai.com',
     phone: '+91 43210 98765',
     address: '890 Civil Lines, Delhi 110054',
     gender: 'Female',
@@ -179,7 +179,7 @@ export const mockUsers: User[] = [
   {
     id: 9,
     name: 'Karan Mehta',
-    email: 'karan.mehta@echno.com',
+    email: 'karan.mehta@echnoai.com',
     phone: '+91 32109 87654',
     address: '234 FC Road, Pune, Maharashtra 411004',
     gender: 'Male',
@@ -204,7 +204,7 @@ export const mockUsers: User[] = [
   {
     id: 10,
     name: 'Divya Iyer',
-    email: 'divya.iyer@echno.com',
+    email: 'divya.iyer@echnoai.com',
     phone: '+91 21098 76543',
     address: '678 Residency Road, Bangalore, Karnataka 560025',
     gender: 'Female',

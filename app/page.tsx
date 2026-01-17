@@ -872,10 +872,10 @@ function HomeContent() {
                 Email Us
               </h3>
               <p className="text-zinc-600 dark:text-zinc-400">
-                support@echno.com
+                support@echnoai.com
               </p>
               <p className="text-zinc-600 dark:text-zinc-400">
-                sales@echno.com
+                sales@echnoai.com
               </p>
             </Card>
 

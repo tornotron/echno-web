@@ -25,8 +25,8 @@ const contactMethods = [
     icon: Mail,
     title: 'Email Us',
     description: 'Send us an email anytime',
-    primary: 'support@echno.com',
-    secondary: 'sales@echno.com',
+    primary: 'support@echnoai.com',
+    secondary: 'sales@echnoai.com',
     color: 'blue',
   },
   {
