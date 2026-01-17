@@ -32,17 +32,17 @@ const contactMethods = [
   {
     icon: Phone,
     title: 'Call Us',
-    description: 'Mon-Fri from 9am to 6pm EST',
-    primary: '+1 (555) 123-4567',
-    secondary: '+1 (555) 987-6543',
+    description: 'Mon-Fri from 9am to 6pm IST',
+    primary: '+91 85900 40842',
+    secondary: '',
     color: 'green',
   },
   {
     icon: MapPin,
     title: 'Visit Us',
     description: 'Come say hello at our office',
-    primary: '123 Business Avenue',
-    secondary: 'San Francisco, CA 94107',
+    primary: 'Alappuzha',
+    secondary: 'Perumbavoor, Ernakulam, Kerala, India',
     color: 'purple',
   },
   {
@@ -78,22 +78,16 @@ const supportOptions = [
 
 const offices = [
   {
-    city: 'San Francisco',
-    country: 'United States',
-    address: '123 Business Avenue, San Francisco, CA 94107',
-    phone: '+1 (555) 123-4567',
+    city: 'Alappuzha',
+    country: 'India',
+    address: 'Chettikulangara, Mavelikkara, Kerala 690106',
+    phone: '+91 85900 40842',
   },
   {
-    city: 'New York',
-    country: 'United States',
-    address: '456 Innovation Street, New York, NY 10001',
-    phone: '+1 (555) 234-5678',
-  },
-  {
-    city: 'London',
-    country: 'United Kingdom',
-    address: '789 Tech Lane, London, EC1A 1BB',
-    phone: '+44 20 1234 5678',
+    city: 'Ernakulam',
+    country: 'India',
+    address: 'Perumbavoor, Ernakulam, Kerala',
+    phone: '+91 85900 40842',
   },
 ];
 
@@ -447,11 +441,11 @@ export default function ContactPage() {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
                     <span>Monday - Friday</span>
-                    <span>9:00 AM - 6:00 PM EST</span>
+                    <span>9:00 AM - 6:00 PM IST</span>
                   </div>
                   <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
                     <span>Saturday</span>
-                    <span>10:00 AM - 2:00 PM EST</span>
+                    <span>10:00 AM - 2:00 PM IST</span>
                   </div>
                   <div className="flex justify-between text-zinc-600 dark:text-zinc-400">
                     <span>Sunday</span>
