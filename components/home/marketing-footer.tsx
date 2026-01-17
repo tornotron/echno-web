@@ -62,14 +62,14 @@ export function MarketingFooter() {
               Company
             </h4>
             <ul className="space-y-2">
-              <li>
+              {/* <li>
                 <Link
                   href="/about"
                   className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                 >
                   About Us
                 </Link>
-              </li>
+              </li> */}
               <li>
                 <Link
                   href="/contact"
