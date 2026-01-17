@@ -40,7 +40,7 @@ function HomeContent() {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Features', href: '/features' },
-    { name: 'About Us', href: '/about' },
+    // { name: 'About Us', href: '/about' },
     { name: 'Pricing', href: '/pricing' },
     { name: 'Contact', href: '/contact' },
   ];
@@ -677,14 +677,14 @@ function HomeContent() {
                 Company
               </h4>
               <ul className="space-y-2">
-                <li>
+                {/* <li>
                   <button
                     onClick={() => router.push('/about')}
                     className="text-sm text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
                   >
                     About Us
                   </button>
-                </li>
+                </li> */}
                 <li>
                   <button
                     onClick={() => router.push('/contact')}
