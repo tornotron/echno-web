@@ -33,7 +33,6 @@ import { format } from 'date-fns';
 import {
   AccessRequestType,
   AccessRequestPriority,
-  AccessRequestStatus,
   getTypeLabel,
   getPriorityLabel,
   validateCreateInput,
@@ -141,7 +140,7 @@ export default function NewAccessRequestPage() {
     expiresAt: expiresAt ? new Date(expiresAt) : undefined,
   });
 
-  // Handle save as draft
+  // Handle save as draft (simulated with mock data)
   const handleSaveDraft = async () => {
     if (!requestType) {
       toast.error('Validation Error', {
@@ -151,36 +150,17 @@ export default function NewAccessRequestPage() {
     }
 
     setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/access-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...buildInput(),
-          status: AccessRequestStatus.DRAFT,
-        }),
-      });
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to save draft');
-      }
-
-      toast.success('Draft Saved', {
-        description: 'Your access request has been saved as draft',
-      });
-      router.push('/users/dashboard/access-requests');
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to save draft',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    toast.success('Draft Saved', {
+      description: 'Your access request has been saved as draft',
+    });
+    router.push('/users/dashboard/access-requests');
+    setIsSubmitting(false);
   };
 
-  // Handle submit
+  // Handle submit (simulated with mock data)
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -194,33 +174,14 @@ export default function NewAccessRequestPage() {
     }
 
     setIsSubmitting(true);
-    try {
-      const response = await fetch('/api/access-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...input,
-          status: AccessRequestStatus.PENDING,
-        }),
-      });
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to submit request');
-      }
-
-      toast.success('Request Submitted', {
-        description: 'Your access request has been submitted for review',
-      });
-      router.push('/users/dashboard/access-requests');
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to submit request',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    toast.success('Request Submitted', {
+      description: 'Your access request has been submitted for review',
+    });
+    router.push('/users/dashboard/access-requests');
+    setIsSubmitting(false);
   };
 
   return (

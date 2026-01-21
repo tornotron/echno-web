@@ -48,11 +48,11 @@ import {
   getPriorityColor,
   getTypeLabel,
   getRequestSummary,
-  parseAccessRequest,
   canReviewRequest,
 } from '@/types/access-request';
 import { toast } from '@/lib/styles/toast-styles';
 import { RESOURCES, RESOURCE_SCOPES } from '@/lib/rbac/resource-permissions';
+import { mockAccessRequests } from '@/components/shared/data/access-requests';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -86,111 +86,68 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
     redirect('/users/dashboard');
   }
 
-  // Fetch request details
+  // Load request from mock data
   useEffect(() => {
     if (authLoading || !isSystemAdmin) return;
 
-    const fetchRequest = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/admin/access-requests/${id}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Access request not found');
-          }
-          throw new Error('Failed to fetch access request');
+    const timer = setTimeout(() => {
+      const foundRequest = mockAccessRequests.find((r) => r.id === id);
+      if (foundRequest) {
+        setRequest(foundRequest);
+        // Initialize permission fields based on request type
+        if (
+          foundRequest.type === AccessRequestType.RESOURCE &&
+          foundRequest.resourceName
+        ) {
+          setSelectedResource(foundRequest.resourceName);
+          setSelectedScope(foundRequest.resourceScope || 'read');
         }
-        const data = await response.json();
-        setRequest(parseAccessRequest(data));
-      } catch (error) {
+      } else {
         toast.error('Error', {
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to load access request',
+          description: 'Access request not found',
         });
         router.push('/admin/access-requests');
-      } finally {
-        setLoading(false);
       }
-    };
+      setLoading(false);
+    }, 300);
 
-    fetchRequest();
+    return () => clearTimeout(timer);
   }, [id, router, authLoading, isSystemAdmin]);
 
-  // Initialize permission fields based on request type
-  useEffect(() => {
-    if (
-      request &&
-      request.type === AccessRequestType.RESOURCE &&
-      request.resourceName
-    ) {
-      setSelectedResource(request.resourceName);
-      setSelectedScope(request.resourceScope || 'read');
-    }
-  }, [request]);
-
-  // Handle approve
+  // Handle approve (simulated with mock data)
   const handleApprove = async () => {
     if (!request) return;
 
     setActionLoading(true);
-    try {
-      // Build approval payload
-      const payload: {
-        comments: string;
-        grantPermission?: boolean;
-        resource?: string;
-        scope?: string;
-      } = {
-        comments: reviewerComments,
-      };
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      // Include permission granting info if enabled
-      if (grantPermission && selectedResource && selectedScope) {
-        payload.grantPermission = true;
-        payload.resource = selectedResource;
-        payload.scope = selectedScope;
-      }
+    const successMessage =
+      grantPermission && selectedResource && selectedScope
+        ? `Request approved and ${selectedResource}:${selectedScope} permission granted`
+        : 'The access request has been approved';
 
-      const response = await fetch(`/api/admin/access-requests/${id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+    // Update local state to simulate approval
+    const now = new Date();
+    setRequest({
+      ...request,
+      status: AccessRequestStatus.APPROVED,
+      reviewedAt: now,
+      reviewerName: 'Admin User',
+      reviewedBy: '1',
+      reviewerComments: reviewerComments || 'Request approved.',
+      updatedAt: now,
+    });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to approve request');
-      }
+    toast.success('Request Approved', {
+      description: successMessage,
+    });
 
-      const successMessage =
-        grantPermission && selectedResource && selectedScope
-          ? `Request approved and ${selectedResource}:${selectedScope} permission granted`
-          : 'The access request has been approved';
-
-      toast.success('Request Approved', {
-        description: successMessage,
-      });
-
-      // Refresh request data
-      const updatedResponse = await fetch(`/api/admin/access-requests/${id}`);
-      if (updatedResponse.ok) {
-        const data = await updatedResponse.json();
-        setRequest(parseAccessRequest(data));
-      }
-      setShowApproveOptions(false);
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to approve request',
-      });
-    } finally {
-      setActionLoading(false);
-    }
+    setShowApproveOptions(false);
+    setActionLoading(false);
   };
 
-  // Handle reject
+  // Handle reject (simulated with mock data)
   const handleReject = async () => {
     if (!request) return;
 
@@ -202,38 +159,28 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
     }
 
     setActionLoading(true);
-    try {
-      const response = await fetch(`/api/admin/access-requests/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason: rejectReason }),
-      });
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to reject request');
-      }
+    // Update local state to simulate rejection
+    const now = new Date();
+    setRequest({
+      ...request,
+      status: AccessRequestStatus.REJECTED,
+      reviewedAt: now,
+      reviewerName: 'Admin User',
+      reviewedBy: '1',
+      reviewerComments: rejectReason,
+      updatedAt: now,
+    });
 
-      toast.success('Request Rejected', {
-        description: 'The access request has been rejected',
-      });
+    toast.success('Request Rejected', {
+      description: 'The access request has been rejected',
+    });
 
-      // Refresh request data
-      const updatedResponse = await fetch(`/api/admin/access-requests/${id}`);
-      if (updatedResponse.ok) {
-        const data = await updatedResponse.json();
-        setRequest(parseAccessRequest(data));
-      }
-      setShowRejectForm(false);
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to reject request',
-      });
-    } finally {
-      setActionLoading(false);
-      setRejectReason('');
-    }
+    setShowRejectForm(false);
+    setActionLoading(false);
+    setRejectReason('');
   };
 
   // Cancel reject
@@ -242,43 +189,28 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
     setRejectReason('');
   };
 
-  // Handle assign to self (mark as under review)
+  // Handle assign to self (simulated with mock data)
   const handleAssignToSelf = async () => {
     if (!request) return;
 
     setActionLoading(true);
-    try {
-      const response = await fetch(`/api/admin/access-requests/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: AccessRequestStatus.UNDER_REVIEW,
-        }),
-      });
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to assign request');
-      }
+    // Update local state to simulate assignment
+    setRequest({
+      ...request,
+      status: AccessRequestStatus.UNDER_REVIEW,
+      assignedTo: '1',
+      assignedToName: 'Admin User',
+      updatedAt: new Date(),
+    });
 
-      toast.success('Request Assigned', {
-        description: 'You have been assigned to review this request',
-      });
+    toast.success('Request Assigned', {
+      description: 'You have been assigned to review this request',
+    });
 
-      // Refresh request data
-      const updatedResponse = await fetch(`/api/admin/access-requests/${id}`);
-      if (updatedResponse.ok) {
-        const data = await updatedResponse.json();
-        setRequest(parseAccessRequest(data));
-      }
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to assign request',
-      });
-    } finally {
-      setActionLoading(false);
-    }
+    setActionLoading(false);
   };
 
   if (authLoading || loading) {
@@ -310,20 +242,13 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/admin/access-requests">
-            <Button variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              Review Access Request
-            </h1>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {getRequestSummary(request)}
-            </p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            Review Access Request
+          </h1>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            {getRequestSummary(request)}
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Badge className={getStatusColor(request.status)}>
