@@ -14,7 +14,6 @@ export interface Organization {
   creatorId: number;
   createdAt?: Date;
   isActive: boolean;
-  type: 'client' | 'internal';
 }
 
 /** -------------------------------------------------------------
@@ -39,7 +38,6 @@ export function parseOrganization(json: any): Organization {
     creatorId: json.proprietorId ?? json.creatorId ?? 0,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     isActive: json.isActive ?? true,
-    type: json.type ?? 'internal',
   };
 }
 
@@ -58,7 +56,6 @@ export function organizationToJson(org: Organization): Record<string, unknown> {
     creatorId: org.creatorId,
     createdAt: org.createdAt?.toISOString(),
     isActive: org.isActive,
-    type: org.type,
   };
 }
 
@@ -77,7 +74,6 @@ export function organizationToJsonWithIds(
     creatorId: org.creatorId,
     createdAt: org.createdAt?.toISOString(),
     isActive: org.isActive,
-    type: org.type,
   };
 }
 
