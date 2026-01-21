@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import {
   Card,
@@ -32,6 +33,7 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  ChevronRight,
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -46,11 +48,11 @@ import {
   getPriorityColor,
   getTypeLabel,
   getRequestSummary,
-  parseAccessRequest,
 } from '@/types/access-request';
-import { toast } from '@/lib/styles/toast-styles';
+import { mockAccessRequests } from '@/components/shared/data/access-requests';
 
 export default function AccessRequestsPage() {
+  const router = useRouter();
   const [requests, setRequests] = useState<AccessRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,39 +61,26 @@ export default function AccessRequestsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Fetch access requests
+  // Load access requests from mock data (simulating current user's requests)
   useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/access-requests');
-        if (!response.ok) {
-          throw new Error('Failed to fetch access requests');
-        }
-        const data = await response.json();
-        const parsedRequests = Array.isArray(data.items)
-          ? data.items.map((item: Record<string, unknown>) =>
-              parseAccessRequest(item)
-            )
-          : Array.isArray(data)
-            ? data.map((item: Record<string, unknown>) =>
-                parseAccessRequest(item)
-              )
-            : [];
-        setRequests(parsedRequests);
-      } catch (error) {
-        toast.error('Error', {
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to load access requests',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    // Simulate loading with mock data
+    const timer = setTimeout(() => {
+      // For demo purposes, show requests from user IDs 3, 4, 5 (Rajesh, Priya, Amit)
+      // In a real app, this would filter by the logged-in user's ID
+      const userRequests = mockAccessRequests.filter((req) =>
+        ['3', '4', '5'].includes(req.requesterId)
+      );
 
-    fetchRequests();
+      // Sort by most recent first
+      userRequests.sort(
+        (a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()
+      );
+
+      setRequests(userRequests);
+      setLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // Filter requests
@@ -333,13 +322,14 @@ export default function AccessRequestsPage() {
                 <TableHead>Status</TableHead>
                 <TableHead>Submitted</TableHead>
                 <TableHead>Updated</TableHead>
+                <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {currentRequests.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="py-8 text-center text-zinc-500"
                   >
                     <div className="flex flex-col items-center gap-2">
@@ -358,10 +348,12 @@ export default function AccessRequestsPage() {
                 currentRequests.map((request) => (
                   <TableRow
                     key={request.id}
-                    className="hover:bg-accent cursor-pointer"
-                    onClick={() => {
-                      globalThis.location.href = `/users/dashboard/access-requests/${request.id}`;
-                    }}
+                    className="group hover:bg-accent cursor-pointer"
+                    onClick={() =>
+                      router.push(
+                        `/users/dashboard/access-requests/${request.id}`
+                      )
+                    }
                   >
                     <TableCell>
                       <div>
@@ -399,6 +391,9 @@ export default function AccessRequestsPage() {
                       {request.updatedAt
                         ? format(request.updatedAt, 'dd MMM yyyy')
                         : '-'}
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="h-4 w-4 text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100" />
                     </TableCell>
                   </TableRow>
                 ))

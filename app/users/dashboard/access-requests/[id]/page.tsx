@@ -36,7 +36,6 @@ import {
   getPriorityColor,
   getTypeLabel,
   getRequestSummary,
-  parseAccessRequest,
   canEditRequest,
   canCancelRequest,
   canSubmitRequest,
@@ -54,6 +53,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { mockAccessRequests } from '@/components/shared/data/access-requests';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -70,103 +70,67 @@ export default function AccessRequestDetailPage({ params }: PageProps) {
 
   const userId = session?.user?.id || '';
 
-  // Fetch request details
+  // Load request from mock data
   useEffect(() => {
-    const fetchRequest = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/access-requests/${id}`);
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Access request not found');
-          }
-          throw new Error('Failed to fetch access request');
-        }
-        const data = await response.json();
-        setRequest(parseAccessRequest(data));
-      } catch (error) {
+    const timer = setTimeout(() => {
+      const foundRequest = mockAccessRequests.find((r) => r.id === id);
+      if (foundRequest) {
+        setRequest(foundRequest);
+      } else {
         toast.error('Error', {
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Failed to load access request',
+          description: 'Access request not found',
         });
         router.push('/users/dashboard/access-requests');
-      } finally {
-        setLoading(false);
       }
-    };
+      setLoading(false);
+    }, 300);
 
-    fetchRequest();
+    return () => clearTimeout(timer);
   }, [id, router]);
 
-  // Handle cancel request
+  // Handle cancel request (simulated with mock data)
   const handleCancel = async () => {
     if (!request) return;
 
     setActionLoading(true);
-    try {
-      const response = await fetch(`/api/access-requests/${id}`, {
-        method: 'DELETE',
-      });
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to cancel request');
-      }
+    // Update local state to simulate cancellation
+    setRequest({
+      ...request,
+      status: AccessRequestStatus.CANCELLED,
+      updatedAt: new Date(),
+    });
 
-      toast.success('Request Cancelled', {
-        description: 'Your access request has been cancelled',
-      });
-      router.push('/users/dashboard/access-requests');
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to cancel request',
-      });
-    } finally {
-      setActionLoading(false);
-    }
+    toast.success('Request Cancelled', {
+      description: 'Your access request has been cancelled',
+    });
+    setActionLoading(false);
+    router.push('/users/dashboard/access-requests');
   };
 
-  // Handle submit draft
+  // Handle submit draft (simulated with mock data)
   const handleSubmit = async () => {
     if (!request) return;
 
     setActionLoading(true);
-    try {
-      const response = await fetch(`/api/access-requests/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: AccessRequestStatus.PENDING,
-          submittedAt: new Date().toISOString(),
-        }),
-      });
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to submit request');
-      }
+    // Update local state to simulate submission
+    const now = new Date();
+    setRequest({
+      ...request,
+      status: AccessRequestStatus.PENDING,
+      submittedAt: now,
+      updatedAt: now,
+    });
 
-      toast.success('Request Submitted', {
-        description: 'Your access request has been submitted for review',
-      });
-      router.refresh();
-      // Refresh the request data
-      const updatedResponse = await fetch(`/api/access-requests/${id}`);
-      if (updatedResponse.ok) {
-        const data = await updatedResponse.json();
-        setRequest(parseAccessRequest(data));
-      }
-    } catch (error) {
-      toast.error('Error', {
-        description:
-          error instanceof Error ? error.message : 'Failed to submit request',
-      });
-    } finally {
-      setActionLoading(false);
-    }
+    toast.success('Request Submitted', {
+      description: 'Your access request has been submitted for review',
+    });
+    setActionLoading(false);
   };
 
   // Handle add comment (placeholder for future implementation)
