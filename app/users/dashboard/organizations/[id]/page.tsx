@@ -120,14 +120,6 @@ export default function OrganizationDetailPage({
                   <MapPin className="h-4 w-4" />
                   <span>{organization.organizationAddress}</span>
                 </div>
-                <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  <Building2 className="h-4 w-4" />
-                  <span>
-                    {organization.type === 'client'
-                      ? 'Client'
-                      : 'Internal Organization'}
-                  </span>
-                </div>
                 {organization.createdAt && (
                   <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
                     <Calendar className="h-4 w-4" />
