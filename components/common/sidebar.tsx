@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Module } from '@/types/rbac/module';
 import { useModuleAccess, useIsSystemAdmin } from '@/hooks/use-rbac';
@@ -36,6 +36,8 @@ import {
   UserCog,
   Blocks,
   Settings,
+  Lock,
+  KeyRound,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -66,6 +68,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { RequestAccessModal } from '@/components/access-request';
+import { AccessRequestType } from '@/types/access-request';
 
 interface NavItem {
   title: string;
@@ -73,6 +77,8 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   module?: Module;
   requiredRoles?: string[]; // Roles required to see this item (empty/undefined = all roles can see)
+  hideForRoles?: string[]; // Roles that should NOT see this item
+  hideWhenLocked?: boolean; // If true, hide completely instead of showing locked state
   items?: {
     title: string;
     url: string;
@@ -91,6 +97,7 @@ const navItems: NavItem[] = [
     url: '/admin/access-control/users',
     icon: Shield,
     requiredRoles: ['system-admin'],
+    hideWhenLocked: true, // Admin section should be hidden for non-admins
     items: [
       {
         title: 'Users',
@@ -110,7 +117,21 @@ const navItems: NavItem[] = [
         icon: Blocks,
         requiredRoles: ['system-admin'],
       },
+      {
+        title: 'Access Requests',
+        url: '/admin/access-requests',
+        icon: KeyRound,
+        requiredRoles: ['system-admin'],
+      },
     ],
+  },
+  // ==================== MY ACCESS REQUESTS ====================
+  // Only visible to non-admin users (admins have it in Administrator section)
+  {
+    title: 'My Access Requests',
+    url: '/users/dashboard/access-requests',
+    icon: KeyRound,
+    hideForRoles: ['system-admin'], // Hide for system admins
   },
   // ==================== PROJECT SECTION ====================
   {
@@ -332,6 +353,17 @@ export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [selectedLockedItem, setSelectedLockedItem] = useState<{
+    title: string;
+    module?: Module;
+  } | null>(null);
+
+  // Handle click on locked item
+  const handleLockedItemClick = (item: { title: string; module?: Module }) => {
+    setSelectedLockedItem(item);
+    setRequestModalOpen(true);
+  };
 
   // Get module access for all modules used in navigation
   const hasProjectAccess = useModuleAccess(Module.PROJECT);
@@ -375,11 +407,21 @@ export function AppSidebar() {
   const canSeeItem = (item: {
     module?: Module;
     requiredRoles?: string[];
+    hideForRoles?: string[];
   }): boolean => {
-    // Check role requirement first
+    const userRoles = session?.user?.roles || [];
+
+    // Check if item should be hidden for user's roles
+    if (item.hideForRoles && item.hideForRoles.length > 0) {
+      const shouldHide = item.hideForRoles.some((role) =>
+        userRoles.includes(role)
+      );
+      if (shouldHide) return false;
+    }
+
+    // Check role requirement
     // If requiredRoles is undefined or empty, all users can see the item
     if (item.requiredRoles && item.requiredRoles.length > 0) {
-      const userRoles = session?.user?.roles || [];
       // User must have at least one of the required roles
       const hasRequiredRole = item.requiredRoles.some((role) =>
         userRoles.includes(role)
@@ -393,19 +435,33 @@ export function AppSidebar() {
   // Memoize navigation items rendering to prevent flickering
   const navigationItems = useMemo(() => {
     return navItems
-      .filter((item) => canSeeItem(item))
+      .filter((item) => {
+        // If item should be hidden when locked and user doesn't have access, filter it out
+        if (item.hideWhenLocked && !canSeeItem(item)) {
+          return false;
+        }
+        return true;
+      })
       .map((item) => {
-        // Filter child items by module access and role
-        const filteredItems = item.items?.filter((child) => canSeeItem(child));
+        const hasAccess = canSeeItem(item);
+        // Filter child items - show all but mark as locked
+        const processedItems = item.items?.map((child) => ({
+          ...child,
+          hasAccess: canSeeItem(child),
+        }));
+        // Only show children that user has access to OR show all if parent is locked
+        const filteredItems = hasAccess
+          ? processedItems?.filter((child) => child.hasAccess)
+          : processedItems;
         const hasChildren = filteredItems && filteredItems.length > 0;
 
         let isChildActive = false;
         let activeChildUrl = '';
 
-        if (hasChildren && filteredItems) {
+        if (hasChildren && filteredItems && hasAccess) {
           // Find the most specific matching child (longest URL that matches)
-          const matchingChildren = filteredItems.filter((child) =>
-            isPathActive(child.url, pathname)
+          const matchingChildren = filteredItems.filter(
+            (child) => child.hasAccess && isPathActive(child.url, pathname)
           );
 
           if (matchingChildren.length > 0) {
@@ -417,7 +473,7 @@ export function AppSidebar() {
         }
 
         // Parent is only active if current path matches exactly AND no child is active
-        const isActive = pathname === item.url && !isChildActive;
+        const isActive = pathname === item.url && !isChildActive && hasAccess;
 
         return {
           ...item,
@@ -426,6 +482,8 @@ export function AppSidebar() {
           isChildActive,
           isActive,
           activeChildUrl,
+          hasAccess,
+          isLocked: !hasAccess,
         };
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -478,6 +536,23 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigationItems.map((item) => {
+                // Locked item without children - show with lock icon
+                if (item.isLocked && !item.hasChildren) {
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        tooltip={`${item.title} (Locked)`}
+                        className="cursor-pointer opacity-60 hover:opacity-80"
+                        onClick={() => handleLockedItemClick(item)}
+                      >
+                        <item.icon className="text-zinc-400" />
+                        <span className="text-zinc-500">{item.title}</span>
+                        <Lock className="ml-auto h-3 w-3 text-zinc-400" />
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
+
                 if (!item.hasChildren) {
                   return (
                     <SidebarMenuItem key={item.title}>
@@ -490,6 +565,25 @@ export function AppSidebar() {
                           <item.icon />
                           <span>{item.title}</span>
                         </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                // Locked item with children - show collapsed with lock
+                if (item.isLocked && state === 'collapsed') {
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        tooltip={{
+                          children: `${item.title} (Locked)`,
+                          side: 'right',
+                        }}
+                        className="cursor-pointer opacity-60 hover:opacity-80"
+                        onClick={() => handleLockedItemClick(item)}
+                      >
+                        <item.icon className="text-zinc-400" />
+                        <span className="text-zinc-500">{item.title}</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
@@ -530,6 +624,23 @@ export function AppSidebar() {
                           ))}
                         </DropdownMenuContent>
                       </DropdownMenu>
+                    </SidebarMenuItem>
+                  );
+                }
+
+                // Locked item with children - show expanded with lock
+                if (item.isLocked) {
+                  return (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        tooltip={`${item.title} (Locked)`}
+                        className="cursor-pointer opacity-60 hover:opacity-80"
+                        onClick={() => handleLockedItemClick(item)}
+                      >
+                        <item.icon className="text-zinc-400" />
+                        <span className="text-zinc-500">{item.title}</span>
+                        <Lock className="ml-auto h-3 w-3 text-zinc-400" />
+                      </SidebarMenuButton>
                     </SidebarMenuItem>
                   );
                 }
@@ -599,6 +710,23 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      {/* Request Access Modal */}
+      {selectedLockedItem && (
+        <RequestAccessModal
+          open={requestModalOpen}
+          onOpenChange={(open) => {
+            setRequestModalOpen(open);
+            if (!open) setSelectedLockedItem(null);
+          }}
+          moduleOrResource={
+            selectedLockedItem.module || selectedLockedItem.title
+          }
+          displayName={selectedLockedItem.title}
+          description={`Request access to the ${selectedLockedItem.title} module to unlock its features.`}
+          requestType={AccessRequestType.MODULE}
+        />
+      )}
     </SidebarPrimitive>
   );
 }
