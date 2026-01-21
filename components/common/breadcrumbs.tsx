@@ -10,6 +10,7 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  BreadcrumbEllipsis,
 } from '@/components/ui/breadcrumb';
 import {
   Tooltip,
@@ -17,6 +18,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   mockProjects,
   mockTasks,
@@ -87,6 +94,7 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   users: 'Users',
   roles: 'Roles',
   modules: 'Modules',
+  'access-requests': 'Access Requests',
 };
 
 // Segments that should NEVER appear in breadcrumbs
@@ -299,48 +307,116 @@ export function Breadcrumbs() {
         arr[index - 1].label.toLowerCase() !== item.label.toLowerCase()
     );
 
+  // For mobile: show first item, ellipsis dropdown for middle items, and last 2 items
+  const ITEMS_TO_SHOW_ON_MOBILE = 2;
+  const shouldCollapse = breadcrumbItems.length > ITEMS_TO_SHOW_ON_MOBILE;
+  const collapsedItems = shouldCollapse
+    ? breadcrumbItems.slice(0, -ITEMS_TO_SHOW_ON_MOBILE)
+    : [];
+  const visibleItemsOnMobile = shouldCollapse
+    ? breadcrumbItems.slice(-ITEMS_TO_SHOW_ON_MOBILE)
+    : breadcrumbItems;
+
+  const renderBreadcrumbItem = (item: (typeof breadcrumbItems)[0]) => {
+    if (item.isLast || item.isNonInteractive) {
+      return item.isTruncated ? (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <BreadcrumbPage className="max-w-[120px] cursor-default truncate sm:max-w-[200px] md:max-w-none">
+              {item.label}
+            </BreadcrumbPage>
+          </TooltipTrigger>
+          <TooltipContent>{item.fullName}</TooltipContent>
+        </Tooltip>
+      ) : (
+        <BreadcrumbPage className="max-w-[120px] truncate sm:max-w-[200px] md:max-w-none">
+          {item.label}
+        </BreadcrumbPage>
+      );
+    }
+
+    return item.isTruncated ? (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <BreadcrumbLink asChild>
+            <Link
+              href={item.href}
+              className="max-w-[120px] truncate sm:max-w-[200px] md:max-w-none"
+            >
+              {item.label}
+            </Link>
+          </BreadcrumbLink>
+        </TooltipTrigger>
+        <TooltipContent>{item.fullName}</TooltipContent>
+      </Tooltip>
+    ) : (
+      <BreadcrumbLink asChild>
+        <Link
+          href={item.href}
+          className="max-w-[120px] truncate sm:max-w-[200px] md:max-w-none"
+        >
+          {item.label}
+        </Link>
+      </BreadcrumbLink>
+    );
+  };
+
   return (
     <TooltipProvider>
-      <Breadcrumb className="text-base">
-        <BreadcrumbList>
-          <BreadcrumbItem>
+      <Breadcrumb className="text-sm sm:text-base">
+        <BreadcrumbList className="flex-wrap gap-1 sm:gap-1.5">
+          {/* Dashboard - Always visible */}
+          <BreadcrumbItem className="hidden sm:inline-flex">
             <BreadcrumbLink asChild>
               <Link href="/users/dashboard">Dashboard</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
 
-          {breadcrumbItems.map((item) => (
-            <div key={item.href} className="flex items-center gap-2">
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
-                {item.isLast || item.isNonInteractive ? (
-                  item.isTruncated ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <BreadcrumbPage className="cursor-default">
-                          {item.label}
-                        </BreadcrumbPage>
-                      </TooltipTrigger>
-                      <TooltipContent>{item.fullName}</TooltipContent>
-                    </Tooltip>
-                  ) : (
-                    <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                  )
-                ) : item.isTruncated ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <BreadcrumbLink asChild>
-                        <Link href={item.href}>{item.label}</Link>
-                      </BreadcrumbLink>
-                    </TooltipTrigger>
-                    <TooltipContent>{item.fullName}</TooltipContent>
-                  </Tooltip>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link href={item.href}>{item.label}</Link>
-                  </BreadcrumbLink>
-                )}
+          {/* Mobile: Collapsed items in dropdown */}
+          {shouldCollapse && (
+            <>
+              <BreadcrumbSeparator className="hidden sm:block" />
+              <BreadcrumbItem className="hidden sm:inline-flex md:hidden">
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="flex items-center gap-1">
+                    <BreadcrumbEllipsis className="h-4 w-4" />
+                    <span className="sr-only">Show more breadcrumbs</span>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    {collapsedItems.map((item) => (
+                      <DropdownMenuItem key={item.href} asChild>
+                        <Link href={item.href}>{item.fullName}</Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </BreadcrumbItem>
+            </>
+          )}
+
+          {/* Desktop: Show all items */}
+          {breadcrumbItems.map((item, index) => (
+            <div
+              key={item.href}
+              className="hidden md:flex md:items-center md:gap-1.5"
+            >
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>{renderBreadcrumbItem(item)}</BreadcrumbItem>
+            </div>
+          ))}
+
+          {/* Tablet/Mobile: Show collapsed view */}
+          {visibleItemsOnMobile.map((item, index) => (
+            <div
+              key={item.href}
+              className="flex items-center gap-1 sm:gap-1.5 md:hidden"
+            >
+              <BreadcrumbSeparator
+                className={
+                  index === 0 && !shouldCollapse ? 'hidden sm:block' : ''
+                }
+              />
+              <BreadcrumbItem>{renderBreadcrumbItem(item)}</BreadcrumbItem>
             </div>
           ))}
         </BreadcrumbList>
