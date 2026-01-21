@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { SearchAndFilter, Pagination } from '@/components/common';
 import {
   Card,
@@ -32,8 +32,9 @@ import {
   getRoleLevel,
   RoleLevel,
 } from '@/types/rbac/role';
-import { Shield, ExternalLink } from 'lucide-react';
+import { Shield, ExternalLink, ChevronRight } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Helper function to get role level colors
 const getRoleLevelColor = (level: RoleLevel): string => {
@@ -60,6 +61,7 @@ const getRoleLevelColor = (level: RoleLevel): string => {
 
 export default function RolesPage() {
   const { isSystemAdmin, isLoading } = useAuthorization();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
@@ -100,11 +102,60 @@ export default function RolesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground">Loading roles...</p>
+      <div className="space-y-4 sm:space-y-6">
+        <div>
+          <Skeleton className="h-9 w-40" />
+          <Skeleton className="mt-2 h-4 w-72" />
         </div>
+        <Skeleton className="h-20 w-full" />
+        <div className="grid gap-4 md:grid-cols-2">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-12" />
+                <Skeleton className="mt-1 h-3 w-32" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Role Name</TableHead>
+                  <TableHead>Level</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-4 w-36" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-24 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-48" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -218,57 +269,63 @@ export default function RolesPage() {
       {/* Roles Table */}
       <Card>
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Role Name</TableHead>
-                <TableHead>Level</TableHead>
-                <TableHead>Description</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedRoles.map((roleId) => {
-                const level = getRoleLevel(roleId);
-                const isAdmin = roleId === 'system-admin';
+          <div className="overflow-x-auto">
+            <Table className="min-w-[600px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Role Name</TableHead>
+                  <TableHead>Level</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedRoles.map((roleId) => {
+                  const level = getRoleLevel(roleId);
+                  const isAdmin = roleId === 'system-admin';
 
-                return (
-                  <TableRow
-                    key={roleId}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() =>
-                      (globalThis.location.href = `/admin/access-control/roles/${roleId}`)
-                    }
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Shield className="text-muted-foreground h-4 w-4" />
-                        <span className="font-medium">
-                          {getRoleDisplayName(roleId)}
+                  return (
+                    <TableRow
+                      key={roleId}
+                      className="group hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() =>
+                        router.push(`/admin/access-control/roles/${roleId}`)
+                      }
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Shield className="text-muted-foreground h-4 w-4" />
+                          <span className="font-medium">
+                            {getRoleDisplayName(roleId)}
+                          </span>
+                          {isAdmin && (
+                            <Badge className="bg-red-600 text-white">
+                              Full Access
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={getRoleLevelColor(level)}>
+                          {level.charAt(0).toUpperCase() + level.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-muted-foreground text-sm">
+                          {isAdmin
+                            ? 'Unrestricted system access'
+                            : `${level.charAt(0).toUpperCase() + level.slice(1)}-level access`}
                         </span>
-                        {isAdmin && (
-                          <Badge className="bg-red-600 text-white">
-                            Full Access
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getRoleLevelColor(level)}>
-                        {level.charAt(0).toUpperCase() + level.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-muted-foreground text-sm">
-                        {isAdmin
-                          ? 'Unrestricted system access'
-                          : `${level.charAt(0).toUpperCase() + level.slice(1)}-level access`}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+                      </TableCell>
+                      <TableCell>
+                        <ChevronRight className="h-4 w-4 text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
 
         {/* Pagination */}
