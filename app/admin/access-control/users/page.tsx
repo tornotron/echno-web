@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,15 @@ import {
 } from '@/components/ui/table';
 import { mockUsers } from '@/components/shared/data/users';
 import { getRoleDisplayName, getRoleLevel, RoleLevel } from '@/types/rbac/role';
-import { Users, UserPlus, Shield, Mail, Phone } from 'lucide-react';
+import {
+  Users,
+  UserPlus,
+  Shield,
+  Mail,
+  Phone,
+  ChevronRight,
+} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Helper function to get role level color
 function getRoleLevelColor(level: RoleLevel): string {
@@ -56,6 +64,7 @@ function getRoleLevelColor(level: RoleLevel): string {
 
 export default function AdminUsersPage() {
   const { isSystemAdmin, isLoading } = useAuthorization();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
@@ -124,11 +133,75 @@ export default function AdminUsersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground">Loading users...</p>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-9 w-48" />
+            <Skeleton className="mt-2 h-4 w-64" />
+          </div>
+          <Skeleton className="h-10 w-28" />
         </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+                <Skeleton className="mt-1 h-3 w-20" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Role(s)</TableHead>
+                  <TableHead>Experience</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="size-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-40" />
+                        <Skeleton className="h-4 w-28" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -265,81 +338,87 @@ export default function AdminUsersPage() {
       {filteredUsers.length > 0 ? (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Role(s)</TableHead>
-                  <TableHead>Experience</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedUsers.map((user) => (
-                  <TableRow
-                    key={user.id}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() =>
-                      (globalThis.location.href = `/admin/access-control/users/${user.id}`)
-                    }
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-zinc-400 to-zinc-600">
-                          <span className="text-sm font-medium text-white">
-                            {user.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium">{user.name}</div>
-                          <div className="text-muted-foreground text-sm">
-                            ID: {user.id}
+            <div className="overflow-x-auto">
+              <Table className="min-w-[700px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Role(s)</TableHead>
+                    <TableHead>Experience</TableHead>
+                    <TableHead className="w-10"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedUsers.map((user) => (
+                    <TableRow
+                      key={user.id}
+                      className="group hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() =>
+                        router.push(`/admin/access-control/users/${user.id}`)
+                      }
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 items-center justify-center rounded-full bg-linear-to-br from-zinc-400 to-zinc-600">
+                            <span className="text-sm font-medium text-white">
+                              {user.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                          <div>
+                            <div className="font-medium">{user.name}</div>
+                            <div className="text-muted-foreground text-sm">
+                              ID: {user.id}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2 text-sm">
-                          <Mail className="text-muted-foreground h-3 w-3" />
-                          {user.email}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Mail className="text-muted-foreground h-3 w-3" />
+                            {user.email}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Phone className="text-muted-foreground h-3 w-3" />
+                            {user.phone}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <Phone className="text-muted-foreground h-3 w-3" />
-                          {user.phone}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {(user.roles || []).map((role) => {
+                            const level = getRoleLevel(role);
+                            return (
+                              <Badge
+                                key={role}
+                                className={getRoleLevelColor(level)}
+                              >
+                                {role.includes('system-admin') && (
+                                  <Shield className="mr-1 h-3 w-3" />
+                                )}
+                                {getRoleDisplayName(role)}
+                              </Badge>
+                            );
+                          })}
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {(user.roles || []).map((role) => {
-                          const level = getRoleLevel(role);
-                          return (
-                            <Badge
-                              key={role}
-                              className={getRoleLevelColor(level)}
-                            >
-                              {role.includes('system-admin') && (
-                                <Shield className="mr-1 h-3 w-3" />
-                              )}
-                              {getRoleDisplayName(role)}
-                            </Badge>
-                          );
-                        })}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {user.experience} years
-                        <div className="text-muted-foreground text-xs">
-                          {user.qualification?.split(',')[0]}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">
+                          {user.experience} years
+                          <div className="text-muted-foreground text-xs">
+                            {user.qualification?.split(',')[0]}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                      </TableCell>
+                      <TableCell>
+                        <ChevronRight className="h-4 w-4 text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
 
           {/* Pagination */}
