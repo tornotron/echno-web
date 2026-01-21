@@ -336,10 +336,6 @@ export default function ManageOrganizationEntitlementPage({
             <Label className="text-muted-foreground text-xs">Phone</Label>
             <p className="text-sm">{organization.organizationPhone}</p>
           </div>
-          <div>
-            <Label className="text-muted-foreground text-xs">Type</Label>
-            <Badge variant="outline">{organization.type}</Badge>
-          </div>
         </CardContent>
       </Card>
 

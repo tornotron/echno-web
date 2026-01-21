@@ -14,7 +14,6 @@ export const mockOrganizations: Organization[] = [
     creatorId: 1,
     createdAt: new Date('2020-01-10'),
     isActive: true,
-    type: 'internal',
   },
   {
     id: 2,
@@ -28,7 +27,6 @@ export const mockOrganizations: Organization[] = [
     creatorId: 1,
     createdAt: new Date('2019-06-15'),
     isActive: true,
-    type: 'client',
   },
   {
     id: 3,
@@ -42,6 +40,5 @@ export const mockOrganizations: Organization[] = [
     creatorId: 4,
     createdAt: new Date('2021-03-20'),
     isActive: true,
-    type: 'client',
   },
 ];
