@@ -122,12 +122,9 @@ export default auth((req) => {
   // ========== SYSTEM ADMIN ROUTES ==========
   // Admin routes require system admin access
   if (pathname.startsWith('/admin') && !isSystemAdmin(req.auth?.user.roles)) {
-    const userGroups = req.auth?.user.groups || [];
-    const userRoles = req.auth?.user.roles || [];
-    const userDashboard = getDashboardForUser(userGroups, userRoles);
-    const url = new URL(userDashboard, req.url);
-    url.searchParams.set('error', 'forbidden');
-    url.searchParams.set('message', 'System admin access required');
+    const url = new URL('/access-denied', req.url);
+    url.searchParams.set('path', pathname);
+    url.searchParams.set('message', 'System administrator access required');
     return NextResponse.redirect(url);
   }
 
@@ -151,7 +148,6 @@ export default auth((req) => {
   )) {
     if (pathname.startsWith(route) && isLoggedIn) {
       const userRoles = req.auth?.user.roles || [];
-      const userGroups = req.auth?.user.groups || [];
       const resourcePermissions = req.auth?.user.resourcePermissions || [];
       const userIsSystemAdmin = isSystemAdmin(userRoles);
 
@@ -160,10 +156,14 @@ export default auth((req) => {
         !userIsSystemAdmin &&
         !hasResourcePermission(resourcePermissions, resource, scope)
       ) {
-        const userDashboard = getDashboardForUser(userGroups, userRoles);
-        const url = new URL(userDashboard, req.url);
-        url.searchParams.set('error', 'insufficient_permissions');
-        url.searchParams.set('required', `${resource}:${scope}`);
+        const url = new URL('/access-denied', req.url);
+        url.searchParams.set('resource', resource);
+        url.searchParams.set('scope', scope);
+        url.searchParams.set('path', pathname);
+        url.searchParams.set(
+          'message',
+          `You need ${resource}:${scope} permission to access this page`
+        );
         return NextResponse.redirect(url);
       }
     }
