@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,7 +38,9 @@ import {
   Building2,
   Shield,
   PlusCircle,
+  ChevronRight,
 } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Helper function to get module display name
 function getModuleDisplayName(module: Module): string {
@@ -50,6 +52,7 @@ function getModuleDisplayName(module: Module): string {
 
 export default function ModulesPage() {
   const { isSystemAdmin, isLoading } = useAuthorization();
+  const router = useRouter();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -271,11 +274,72 @@ export default function ModulesPage() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <div className="border-primary mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2"></div>
-          <p className="text-muted-foreground">Loading modules...</p>
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <Skeleton className="h-9 w-52" />
+            <Skeleton className="mt-2 h-4 w-72" />
+          </div>
+          <Skeleton className="h-10 w-32" />
         </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader className="pb-2">
+                <Skeleton className="h-4 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-12" />
+                <Skeleton className="mt-1 h-3 w-28" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        <Card>
+          <CardContent className="p-0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Module</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>License Types</TableHead>
+                  <TableHead>Organizations</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="size-10 rounded-lg" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-6 w-24 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Skeleton className="h-6 w-20 rounded-full" />
+                        <Skeleton className="h-6 w-16 rounded-full" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-28" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-4" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -417,71 +481,79 @@ export default function ModulesPage() {
       {filteredModules.length > 0 ? (
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Module</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>License Types</TableHead>
-                  <TableHead>Organizations</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedModules.map((mod) => (
-                  <TableRow
-                    key={mod.module}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() =>
-                      (globalThis.location.href = `/admin/access-control/modules/${mod.module}`)
-                    }
-                  >
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
-                          <Blocks className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium">
-                            {getModuleDisplayName(mod.module)}
-                          </div>
-                          <div className="text-muted-foreground text-sm">
-                            {mod.module}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {getStatusBadge(
-                          mod.activeCount,
-                          mod.trialCount,
-                          mod.suspendedCount,
-                          mod.expiredCount
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {getLicenseTypeBadges(
-                          mod.paidLicenses,
-                          mod.freeLicenses,
-                          mod.trialLicenses
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="text-muted-foreground h-4 w-4" />
-                        <span className="font-medium">{mod.totalOrgs}</span>
-                        <span className="text-muted-foreground text-sm">
-                          organizations
-                        </span>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table className="min-w-[700px]">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Module</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>License Types</TableHead>
+                    <TableHead>Organizations</TableHead>
+                    <TableHead className="w-10"></TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {paginatedModules.map((mod) => (
+                    <TableRow
+                      key={mod.module}
+                      className="group hover:bg-muted/50 cursor-pointer transition-colors"
+                      onClick={() =>
+                        router.push(
+                          `/admin/access-control/modules/${mod.module}`
+                        )
+                      }
+                    >
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-400 to-blue-600">
+                            <Blocks className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <div className="font-medium">
+                              {getModuleDisplayName(mod.module)}
+                            </div>
+                            <div className="text-muted-foreground text-sm">
+                              {mod.module}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {getStatusBadge(
+                            mod.activeCount,
+                            mod.trialCount,
+                            mod.suspendedCount,
+                            mod.expiredCount
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {getLicenseTypeBadges(
+                            mod.paidLicenses,
+                            mod.freeLicenses,
+                            mod.trialLicenses
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="text-muted-foreground h-4 w-4" />
+                          <span className="font-medium">{mod.totalOrgs}</span>
+                          <span className="text-muted-foreground text-sm">
+                            organizations
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <ChevronRight className="h-4 w-4 text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
 
           {/* Pagination */}
