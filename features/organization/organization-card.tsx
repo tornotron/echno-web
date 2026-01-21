@@ -32,7 +32,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
   return (
     <Card className="group hover:border-primary/50 h-full transition-all duration-200 hover:shadow-lg">
       <Link
-        href={`/app/users/dashboard/organizations/${organization.id}`}
+        href={`/users/dashboard/organizations/${organization.id}`}
         className="block"
       >
         <CardHeader className="pb-3">
