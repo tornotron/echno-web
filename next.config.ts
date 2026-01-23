@@ -24,6 +24,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://backend.echno.xyz/api/v1/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;
