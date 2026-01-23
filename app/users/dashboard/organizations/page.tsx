@@ -5,8 +5,8 @@ import { OrganizationCard } from '@/features/organization/organization-card';
 import { SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Plus, Search } from 'lucide-react';
-import { mockOrganizations } from '@/components/shared/mock-data';
 import Link from 'next/link';
+import { useOrganizations } from '@/hooks/organization/use-organizations';
 
 export default function OrganizationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,8 +14,26 @@ export default function OrganizationsPage() {
     'all' | 'active' | 'inactive'
   >('all');
 
+  const { data: organizations, isLoading, error } = useOrganizations();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center text-red-500">
+        Error loading organizations
+      </div>
+    );
+  }
+
   // Filter organizations based on search and status
-  const filteredOrganizations = mockOrganizations.filter((org) => {
+  const filteredOrganizations = (organizations || []).filter((org) => {
     const matchesSearch =
       org.organizationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       org.organizationAddress
@@ -87,19 +105,19 @@ export default function OrganizationsPage() {
             Total Organizations
           </p>
           <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {mockOrganizations.length}
+            {(organizations || []).length}
           </p>
         </div>
         <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Active</p>
           <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-500">
-            {mockOrganizations.filter((org) => org.isActive).length}
+            {(organizations || []).filter((org) => org.isActive).length}
           </p>
         </div>
         <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <p className="text-sm text-zinc-600 dark:text-zinc-400">Inactive</p>
           <p className="mt-1 text-2xl font-bold text-zinc-600 dark:text-zinc-400">
-            {mockOrganizations.filter((org) => !org.isActive).length}
+            {(organizations || []).filter((org) => !org.isActive).length}
           </p>
         </div>
       </div>

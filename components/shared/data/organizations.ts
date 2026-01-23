@@ -1,6 +1,9 @@
 import { Organization } from '@/types/organization';
 
 export const mockOrganizations: Organization[] = [
+  /**
+   * @deprecated Use `useOrganizations` hook or `organizationService` instead.
+   */
   {
     id: 1,
     organizationName: 'Echno Construction Ltd.',

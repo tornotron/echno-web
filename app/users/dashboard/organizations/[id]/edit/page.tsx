@@ -1,12 +1,12 @@
 'use client';
 
 import { useRouter, notFound } from 'next/navigation';
-import { logger } from '@/lib/logger';
 import { useState, use } from 'react';
 import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
-import { mockOrganizations } from '@/components/shared/mock-data';
 import { toast } from '@/lib/styles/toast-styles';
+import { useOrganization } from '@/hooks/organization/use-organizations';
+import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
 
 interface EditOrganizationPageProps {
   params: Promise<{
@@ -19,54 +19,81 @@ export default function EditOrganizationPage({
 }: EditOrganizationPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const id = Number.parseInt(resolvedParams.id);
 
-  const organization = mockOrganizations.find(
-    (org) => org.id === Number.parseInt(resolvedParams.id)
-  );
+  const {
+    data: organization,
+    isLoading: isLoadingOrg,
+    error,
+  } = useOrganization(id);
+  const { mutate: updateOrganization, isPending: isUpdating } =
+    useUpdateOrganization();
 
-  if (!organization) {
+  if (isLoadingOrg) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if ((error || !organization) && !isLoadingOrg && error) {
+    // Only show 404/error if done loading
+    // notFound(); // This might be too aggressive if it's just a fetch error?
+    // Let's just show an error message.
+    return (
+      <div className="flex h-screen items-center justify-center text-red-500">
+        Error loading organization
+      </div>
+    );
+  }
+  // Case: Loading finished, no error, but no org? Should be 404 or empty.
+  // If isLoading is handled, this might be reachable if enabled=false or something?
+  // Assuming getById throws or returns null if not found.
+  // But useOrganization types might include undefined.
+
+  // If we really couldn't find it after loading
+  if (!isLoadingOrg && !organization && !error) {
     notFound();
   }
 
-  const handleSubmit = async (data: Partial<Organization>) => {
-    setIsLoading(true);
+  const handleSubmit = (data: Partial<Organization>) => {
+    // Merge existing org data with updates to ensure complete object (if needed)
+    // The service requires (id, org)
+    // The form returns partial updates.
+    // We should probably pass the FULL object with updates merged, OR the service should accept Partial.
+    // organizationService.update signature: update(id: number, org: Organization).
+    // So we need to merge.
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    if (!organization) return;
 
-      // Here you would make an API call to update the organization
-      logger.debug('Updating organization:', { id: organization.id, ...data });
+    const updatedOrg = { ...organization, ...data };
 
-      toast.success('Organization updated!', {
-        description: `${data.organizationName} has been successfully updated.`,
-      });
-
-      // Redirect to organization detail page
-      router.push(`/dashboard/organizations/${organization.id}`);
-    } catch {
-      toast.error('Error', {
-        description: 'Failed to update organization. Please try again.',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    updateOrganization(
+      { id: organization.id!, data: updatedOrg },
+      {
+        onSuccess: () => {
+          router.push(`/users/dashboard/organizations/${organization.id}`);
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
-    router.push(`/dashboard/organizations/${organization.id}`);
+    router.push(`/users/dashboard/organizations/${organization?.id}`);
   };
 
   return (
     <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
       {/* Form */}
-      <OrganizationForm
-        organization={organization}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        isLoading={isLoading}
-      />
+      {organization && (
+        <OrganizationForm
+          organization={organization}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={isUpdating}
+        />
+      )}
     </div>
   );
 }
