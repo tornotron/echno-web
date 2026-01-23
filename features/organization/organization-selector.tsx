@@ -11,39 +11,37 @@ import {
 import { Building } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { mockOrganizations } from '@/components/shared/data/organizations';
+import { useOrganizations } from '@/hooks/organization/use-organizations';
 
 export function OrganizationSelector() {
   const { data: session } = useSession();
   const {
     selectedOrganization,
     setSelectedOrganization,
-    organizations,
+    organizations: contextOrganizations, // rename to avoid conflict
     setOrganizations,
   } = useOrganization();
 
-  // Mock: Load user's organizations (replace with actual API call)
-  useEffect(() => {
-    if (session?.user) {
-      // TODO: Replace with actual API call to fetch user's organizations
-      // TODO: Replace with actual API call to fetch user's organizations
-      // const mockOrganizations = ... (removed local definition)
+  const { data: fetchedOrganizations } = useOrganizations();
 
-      setOrganizations(mockOrganizations);
+  // Sync fetched organizations to context
+  useEffect(() => {
+    if (fetchedOrganizations) {
+      setOrganizations(fetchedOrganizations);
 
       // Set first organization as default if none selected
-      if (!selectedOrganization && mockOrganizations.length > 0) {
-        setSelectedOrganization(mockOrganizations[0]);
+      if (!selectedOrganization && fetchedOrganizations.length > 0) {
+        setSelectedOrganization(fetchedOrganizations[0]);
       }
     }
   }, [
-    session,
-    selectedOrganization,
+    fetchedOrganizations,
     setOrganizations,
+    selectedOrganization,
     setSelectedOrganization,
   ]);
 
-  if (!session || organizations.length === 0) {
+  if (!session || contextOrganizations.length === 0) {
     return null;
   }
 
@@ -53,7 +51,9 @@ export function OrganizationSelector() {
       <Select
         value={selectedOrganization?.id?.toString() || ''}
         onValueChange={(value) => {
-          const org = organizations.find((o) => o.id?.toString() === value);
+          const org = contextOrganizations.find(
+            (o) => o.id?.toString() === value
+          );
           if (org) {
             setSelectedOrganization(org);
           }
@@ -63,7 +63,7 @@ export function OrganizationSelector() {
           <SelectValue placeholder="Select organization" />
         </SelectTrigger>
         <SelectContent>
-          {organizations.map((org) => (
+          {contextOrganizations.map((org) => (
             <SelectItem key={org.id} value={org.id?.toString() || ''}>
               {org.organizationName}
             </SelectItem>
