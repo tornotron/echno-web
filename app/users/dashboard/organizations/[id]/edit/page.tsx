@@ -4,7 +4,6 @@ import { useRouter, notFound } from 'next/navigation';
 import { useState, use } from 'react';
 import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
-import { toast } from '@/lib/styles/toast-styles';
 import { useOrganization } from '@/hooks/organization/use-organizations';
 import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
 
