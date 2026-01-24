@@ -396,12 +396,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Allow callback URLs on the same origin
       if (new URL(url).origin === baseUrl) return url;
 
-      // Redirect to /login - middleware will handle role-based redirect
+      // Redirect to home - middleware will handle role-based redirect
       // This allows the middleware to check roles and redirect appropriately
       logger.debug(
-        'Redirect callback - sending to /login for role-based redirect'
+        'Redirect callback - sending to home for role-based redirect'
       );
-      return `${baseUrl}/login`;
+      return baseUrl;
     },
 
     // Handle sign-in authorization
@@ -420,8 +420,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
 
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: '/',
+    error: '/',
   },
 
   events: {
