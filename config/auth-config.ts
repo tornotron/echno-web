@@ -1,22 +1,21 @@
 /**
- * Authentication Configuration Validation
+ * Authentication configuration helpers and validators.
  *
- * Validates all required environment variables at startup
- * Prevents runtime crashes due to missing configuration
- *
- * Call validateAuthConfig() at app initialization
+ * This module centralizes validation and access for authentication-related
+ * environment variables. Call `validateAuthConfig()` early during process
+ * initialization (server-side) to fail-fast on missing or malformed
+ * configuration values.
  */
-
 import { logger } from '@/lib/logger';
 import { NEXTAUTH } from '@/lib/auth/constants';
 
 /**
- * Required environment variables for authentication
+ * Required environment variables for authentication. Kept as a `const`
+ * tuple so we can derive a narrow `RequiredAuthEnvVar` union type.
  */
 const REQUIRED_AUTH_ENV_VARS = [
   'KEYCLOAK_ISSUER',
   'KEYCLOAK_ID',
-  'KEYCLOAK_SECRET',
   'NEXTAUTH_SECRET',
   'NEXTAUTH_URL',
 ] as const;
@@ -31,7 +30,6 @@ export interface AuthConfig {
   keycloak: {
     issuer: string;
     clientId: string;
-    clientSecret: string;
   };
   nextAuth: {
     secret: string;
@@ -46,8 +44,13 @@ export interface AuthConfig {
 }
 
 /**
- * Validate that all required environment variables are present
- * @throws Error if any required variable is missing
+ * validateAuthConfig
+ *
+ * Ensures that all required authentication environment variables are set
+ * and performs lightweight format validation. Throws a detailed Error that
+ * is suitable for logging and crash reporting when validation fails.
+ *
+ * @throws {Error} When required environment variables are missing or invalid.
  */
 export function validateAuthConfig(): void {
   const missing: string[] = [];
@@ -72,7 +75,10 @@ export function validateAuthConfig(): void {
 }
 
 /**
- * Validate KEYCLOAK_ISSUER format
+ * validateKeycloakIssuer
+ *
+ * Ensures `KEYCLOAK_ISSUER` (if present) is a valid HTTP(S) URL. Throws a
+ * descriptive Error when the format is invalid to aid troubleshooting.
  */
 function validateKeycloakIssuer(): void {
   const issuer = process.env.KEYCLOAK_ISSUER;
@@ -92,7 +98,9 @@ function validateKeycloakIssuer(): void {
 }
 
 /**
- * Validate NEXTAUTH_URL format
+ * validateNextAuthUrl
+ *
+ * Ensures `NEXTAUTH_URL` (if present) parses as a valid URL.
  */
 function validateNextAuthUrl(): void {
   const url = process.env.NEXTAUTH_URL;
@@ -109,7 +117,11 @@ function validateNextAuthUrl(): void {
 }
 
 /**
- * Validate NEXTAUTH_SECRET length
+ * validateNextAuthSecret
+ *
+ * Performs a minimal check against `NEXTAUTH_SECRET` strength by
+ * validating length. Logs a warning (does not throw) because a short
+ * secret is not fatal but is discouraged for production.
  */
 function validateNextAuthSecret(): void {
   const secret = process.env.NEXTAUTH_SECRET;
@@ -126,8 +138,11 @@ function validateNextAuthSecret(): void {
 }
 
 /**
- * Get validated auth configuration
- * Use this instead of directly accessing process.env
+ * getAuthConfig
+ *
+ * Returns a typed `AuthConfig` built from environment variables. This
+ * helper assumes `validateAuthConfig()` has been executed previously to
+ * ensure required keys exist.
  */
 export function getAuthConfig(): AuthConfig {
   // This assumes validateAuthConfig() was already called
@@ -135,7 +150,6 @@ export function getAuthConfig(): AuthConfig {
     keycloak: {
       issuer: process.env.KEYCLOAK_ISSUER!,
       clientId: process.env.KEYCLOAK_ID!,
-      clientSecret: process.env.KEYCLOAK_SECRET!,
     },
     nextAuth: {
       secret: process.env.NEXTAUTH_SECRET!,
@@ -151,21 +165,30 @@ export function getAuthConfig(): AuthConfig {
 }
 
 /**
- * Check if we're in production environment
+ * isProduction
+ *
+ * Returns true when `NODE_ENV` is set to `production`.
  */
 export function isProduction(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
 /**
- * Check if running on server side
+ * isServer
+ *
+ * Helper to determine if the code is executing on the server (Node)
+ * rather than in a browser runtime.
  */
 export function isServer(): boolean {
   return globalThis.window === undefined;
 }
 
 /**
- * Safe environment variable getter with type safety
+ * getEnv
+ *
+ * Typed accessor for environment variables used by auth configuration.
+ * Use the overloads to get either required or optional variables with
+ * compile-time safety in TypeScript code.
  */
 export function getEnv(key: RequiredAuthEnvVar): string;
 export function getEnv(key: OptionalAuthEnvVar): string | undefined;
