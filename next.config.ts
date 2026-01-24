@@ -1,5 +1,11 @@
 import type { NextConfig } from 'next';
 
+/**
+ * next.config
+ *
+ * Application-level Next.js configuration. Kept concise and documented to
+ * make deployment and routing constraints explicit for platform operators.
+ */
 const nextConfig: NextConfig = {
   output: 'standalone',
   // Disable typed routes to fix /dev/lrt path corruption bug
@@ -21,14 +27,6 @@ const nextConfig: NextConfig = {
         source: '/dashboard/:path*',
         destination: '/users/dashboard/:path*',
         permanent: true,
-      },
-    ];
-  },
-  async rewrites() {
-    return [
-      {
-        source: '/api/:path*',
-        destination: 'https://backend.echno.xyz/api/v1/:path*',
       },
     ];
   },
