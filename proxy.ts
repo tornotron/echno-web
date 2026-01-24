@@ -6,6 +6,19 @@ import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { isSystemAdmin } from '@/lib/rbac/role-utils';
 import { logger } from '@/lib/logger';
 
+/**
+ * proxy middleware
+ *
+ * HTTP middleware that applies authentication and authorization checks
+ * to incoming requests. Responsibilities include:
+ * - skipping auth for health checks
+ * - handling token-refresh/session errors and revocation
+ * - redirecting unauthenticated users for protected routes
+ * - enforcing system-admin and resource-based permissions
+ *
+ * This middleware should be fast and deterministic because it runs on
+ * every matched request.
+ */
 export default auth((req) => {
   const { pathname } = req.nextUrl;
 
@@ -38,11 +51,9 @@ export default auth((req) => {
       error: req.auth?.error,
     });
 
-    // Allow access to home page and login page without redirect
-    if (pathname === '/' || pathname === '/login') {
-      logger.debug(
-        'Middleware: Allowing home/login page access for errored session'
-      );
+    // Allow access to home page without redirect
+    if (pathname === '/') {
+      logger.debug('Middleware: Allowing home page access for errored session');
       return NextResponse.next();
     }
 
@@ -70,11 +81,9 @@ export default auth((req) => {
     if (isSessionRevoked(req.auth.sessionId as string)) {
       logger.warn('Middleware: Session revoked, forcing logout');
 
-      // Allow access to home page and login page
-      if (pathname === '/' || pathname === '/login') {
-        logger.debug(
-          'Middleware: Allowing home/login page for revoked session'
-        );
+      // Allow access to home page
+      if (pathname === '/') {
+        logger.debug('Middleware: Allowing home page for revoked session');
         return NextResponse.next();
       }
 
@@ -98,25 +107,10 @@ export default auth((req) => {
 
   // ========== AUTHENTICATION CHECK ==========
   if (!isLoggedIn && isProtected) {
-    const url = new URL('/login', req.url);
+    // Redirect to home page - user can sign in from there
+    const url = new URL('/', req.url);
     url.searchParams.set('callbackUrl', pathname);
     return NextResponse.redirect(url);
-  }
-
-  // ========== REDIRECT AFTER LOGIN ==========
-  if (isLoggedIn && pathname === '/login') {
-    // Redirect based on user's group/role
-    const userGroups = req.auth?.user.groups || [];
-    const userRoles = req.auth?.user.roles || [];
-    const redirectUrl = getDashboardForUser(userGroups, userRoles);
-
-    logger.debug('Middleware: Redirecting authenticated user from login', {
-      userRoles,
-      userGroups,
-      redirectTo: redirectUrl,
-    });
-
-    return NextResponse.redirect(new URL(redirectUrl, req.url));
   }
 
   // ========== SYSTEM ADMIN ROUTES ==========
@@ -172,6 +166,13 @@ export default auth((req) => {
   return NextResponse.next();
 });
 
+/**
+ * Middleware configuration
+ *
+ * `matcher` controls which paths the middleware runs on. This pattern
+ * excludes static assets and Next.js internals while protecting app
+ * routes.
+ */
 export const config = {
   matcher: [
     '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',

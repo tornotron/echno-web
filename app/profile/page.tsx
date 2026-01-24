@@ -81,9 +81,9 @@ function ProfileSkeleton() {
 export default async function ProfilePage() {
   const user = await getUserProfile();
 
-  // Redirect to login if not authenticated
+  // Redirect to home if not authenticated
   if (!user) {
-    redirect('/login');
+    redirect('/');
   }
 
   return (

@@ -226,7 +226,7 @@ function truncateText(text: string, maxLength: number = 30): string {
 export function Breadcrumbs() {
   const pathname = usePathname();
 
-  if (pathname === '/' || pathname === '/login') return null;
+  if (pathname === '/') return null;
 
   const pathSegments = pathname.split('/').filter(Boolean);
 

@@ -21,6 +21,26 @@ import {
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+/**
+ * GET
+ *
+ * Health-check endpoint used by load balancers and monitoring systems.
+ * Returns a JSON object with a top-level `status` (healthy|degraded|unhealthy),
+ * subsystem checks, and runtime metadata. This endpoint is intentionally
+ * public and lightweight.
+ *
+ * Response shape (partial):
+ * {
+ *   status: 'healthy'|'degraded'|'unhealthy',
+ *   timestamp: string,
+ *   uptime: number,
+ *   checks: { api: {...}, sessionStore: {...}, environment: {...} }
+ * }
+ *
+ * Status codes:
+ * - 200 for healthy or degraded
+ * - 503 for unhealthy
+ */
 export async function GET() {
   try {
     const startTime = Date.now();

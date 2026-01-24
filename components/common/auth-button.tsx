@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
 import { Button } from '@/components/ui/button';
 import { handleSignOut } from '@/lib/utils/auth-utils';
@@ -9,6 +10,7 @@ import { handleSignOut } from '@/lib/utils/auth-utils';
 export function AuthButton() {
   const { data: session, status } = useSession();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const router = useRouter();
 
   if (status === 'loading') {
     return (
@@ -51,8 +53,17 @@ export function AuthButton() {
   }
 
   return (
-    <Button onClick={() => signIn('keycloak')} size="sm">
-      Sign In
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        onClick={() => router.push('/register')}
+        variant="outline"
+        size="sm"
+      >
+        Register
+      </Button>
+      <Button onClick={() => signIn('keycloak')} size="sm">
+        Sign In
+      </Button>
+    </div>
   );
 }

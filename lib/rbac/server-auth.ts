@@ -16,10 +16,12 @@ import { redirect } from 'next/navigation';
 import type { KeycloakResourcePermission } from '@/types/keycloak';
 
 /**
- * Server-side authorization utilities
+ * lib/rbac/server-auth
  *
- * Use these in Server Components, Server Actions, and API Routes.
- * All functions use Keycloak Authorization Services for resource-based permissions.
+ * Server-side authorization helpers used by Server Components, Server
+ * Actions, and API routes. Functions throw descriptive errors that callers
+ * can catch and translate into HTTP responses. System admin users bypass
+ * scoped checks by design.
  */
 
 // ==================== AUTHENTICATION ====================
@@ -27,6 +29,15 @@ import type { KeycloakResourcePermission } from '@/types/keycloak';
 /**
  * Get current session or throw error
  * @throws Error if user is not authenticated
+ */
+/**
+ * requireAuth
+ *
+ * Ensure there is an authenticated session. Throws when no user is
+ * authenticated. Use in server-side handlers to enforce authentication.
+ *
+ * @throws {Error} when the request is not authenticated
+ * @returns The current session object when authenticated
  */
 export async function requireAuth() {
   const session = await auth();
@@ -41,6 +52,15 @@ export async function requireAuth() {
 /**
  * Require system admin access
  * @throws Error if user is not a system admin
+ */
+/**
+ * requireSystemAdmin
+ *
+ * Ensure the current user has system administrator privileges. Throws
+ * when the authenticated user is not a system admin.
+ *
+ * @throws {Error} when the user is not a system administrator
+ * @returns The current session when the caller is a system admin
  */
 export async function requireSystemAdmin() {
   const session = await requireAuth();
@@ -61,6 +81,17 @@ export async function requireSystemAdmin() {
  * @param resource - Resource name (e.g., "project", "organization")
  * @param scope - Scope/action (e.g., "read", "create", "update", "delete")
  * @throws Error if user doesn't have the required permission
+ */
+/**
+ * requireResourcePermission
+ *
+ * Ensure the authenticated user has the specified resource:scope
+ * permission. System admins bypass this check.
+ *
+ * @param resource - Resource name (e.g., "project")
+ * @param scope - Scope/action name (e.g., "read")
+ * @throws {Error} when the user lacks the required permission
+ * @returns The current session when permitted
  */
 export async function requireResourcePermission(
   resource: string,
@@ -88,6 +119,17 @@ export async function requireResourcePermission(
  * @param resource - Resource name
  * @param scopes - Array of scopes
  * @throws Error if user doesn't have any of the required scopes
+ */
+/**
+ * requireAnyResourceScope
+ *
+ * Require that the user has at least one of the specified scopes on a
+ * resource. System admins bypass this check.
+ *
+ * @param resource - Resource name
+ * @param scopes - Array of scope names
+ * @throws {Error} when none of the scopes are available for the user
+ * @returns The current session when permitted
  */
 export async function requireAnyResourceScope(
   resource: string,
@@ -117,6 +159,17 @@ export async function requireAnyResourceScope(
  * @param resource - Resource name
  * @param scopes - Array of scopes
  * @throws Error if user doesn't have all required scopes
+ */
+/**
+ * requireAllResourceScopes
+ *
+ * Require that the user has all listed scopes on a resource (AND logic).
+ * System admins bypass this check.
+ *
+ * @param resource - Resource name
+ * @param scopes - Array of scope names
+ * @throws {Error} when the user lacks any required scope
+ * @returns The current session when permitted
  */
 export async function requireAllResourceScopes(
   resource: string,
@@ -148,6 +201,16 @@ export async function requireAllResourceScopes(
  * @param role - Single role or array of roles (OR logic)
  * @throws Error if user doesn't have required role
  */
+/**
+ * requireRole
+ *
+ * Require that the current user has at least one of the provided role(s)
+ * (OR logic). System admins bypass role checks.
+ *
+ * @param role - Single role string or array of role strings
+ * @throws {Error} when the user does not have any of the required roles
+ * @returns The current session when permitted
+ */
 export async function requireRole(role: string | string[]) {
   const session = await requireAuth();
 
@@ -170,6 +233,16 @@ export async function requireRole(role: string | string[]) {
  *
  * @param roles - Array of roles
  * @throws Error if user doesn't have all required roles
+ */
+/**
+ * requireAllRoles
+ *
+ * Require that the user has all roles provided (AND logic). System admin
+ * bypasses role checks.
+ *
+ * @param roles - Array of roles required
+ * @throws {Error} when the user lacks any required role
+ * @returns The current session when permitted
  */
 export async function requireAllRoles(roles: string[]) {
   const session = await requireAuth();
@@ -195,6 +268,16 @@ export async function requireAllRoles(roles: string[]) {
  * @param group - Group name
  * @throws Error if user is not in the group
  */
+/**
+ * requireGroup
+ *
+ * Require membership in a Keycloak group. System admins bypass group
+ * checks.
+ *
+ * @param group - Group name
+ * @throws {Error} when the user is not a member of the group
+ * @returns The current session when permitted
+ */
 export async function requireGroup(group: KeycloakGroup) {
   const session = await requireAuth();
 
@@ -217,6 +300,16 @@ export async function requireGroup(group: KeycloakGroup) {
  * @param groups - Array of group names
  * @throws Error if user is not in any of the groups
  */
+/**
+ * requireAnyGroup
+ *
+ * Require membership in any one of the supplied groups (OR logic).
+ * System admins bypass group checks.
+ *
+ * @param groups - Array of group names
+ * @throws {Error} when the user is not in any of the groups
+ * @returns The current session when permitted
+ */
 export async function requireAnyGroup(groups: KeycloakGroup[]) {
   const session = await requireAuth();
 
@@ -237,6 +330,16 @@ export async function requireAnyGroup(groups: KeycloakGroup[]) {
 /**
  * Check if current user has resource permission (without throwing)
  */
+/**
+ * canUserResource
+ *
+ * Non-throwing check for a specific resource:scope permission. Returns
+ * `true` when the user has the permission or is a system admin.
+ *
+ * @param resource - Resource name
+ * @param scope - Scope/action name
+ * @returns boolean indicating permission presence
+ */
 export async function canUserResource(
   resource: string,
   scope: string
@@ -255,6 +358,15 @@ export async function canUserResource(
 /**
  * Check if current user has role (without throwing)
  */
+/**
+ * userHasRole
+ *
+ * Non-throwing role check. Returns `true` when the current user has the
+ * requested role(s) or is a system admin.
+ *
+ * @param role - Role string or array of roles
+ * @returns boolean indicating whether user has the role
+ */
 export async function userHasRole(role: string | string[]): Promise<boolean> {
   try {
     const session = await auth();
@@ -268,6 +380,15 @@ export async function userHasRole(role: string | string[]): Promise<boolean> {
 
 /**
  * Check if current user is in a group (without throwing)
+ */
+/**
+ * userInGroup
+ *
+ * Non-throwing group membership check. Returns `true` when the user is a
+ * member of the provided group or is a system admin.
+ *
+ * @param group - Group name
+ * @returns boolean indicating group membership
  */
 export async function userInGroup(group: KeycloakGroup): Promise<boolean> {
   try {
@@ -283,6 +404,14 @@ export async function userInGroup(group: KeycloakGroup): Promise<boolean> {
 /**
  * Check if current user is system admin (without throwing)
  */
+/**
+ * isUserSystemAdmin
+ *
+ * Non-throwing convenience to determine if the current user is a
+ * system administrator.
+ *
+ * @returns boolean indicating system admin status
+ */
 export async function isUserSystemAdmin(): Promise<boolean> {
   try {
     const session = await auth();
@@ -294,6 +423,15 @@ export async function isUserSystemAdmin(): Promise<boolean> {
 
 /**
  * Get user's resource permissions
+ */
+/**
+ * getUserResourcePermissions
+ *
+ * Retrieve the current user's resource permissions (Keycloak
+ * Authorization Services). Returns an empty array on error or when not
+ * authenticated.
+ *
+ * @returns Array of `KeycloakResourcePermission`
  */
 export async function getUserResourcePermissions(): Promise<
   KeycloakResourcePermission[]
@@ -309,13 +447,21 @@ export async function getUserResourcePermissions(): Promise<
 /**
  * Get user's dashboard route based on groups/roles
  */
+/**
+ * getUserDashboard
+ *
+ * Determine a user's dashboard route based on groups and roles. Returns
+ * `'/'` when the user is not authenticated or on error.
+ *
+ * @returns Dashboard route string
+ */
 export async function getUserDashboard(): Promise<string> {
   try {
     const session = await auth();
-    if (!session?.user) return '/login';
+    if (!session?.user) return '/';
     return getDashboardForUser(session.user.groups, session.user.roles);
   } catch {
-    return '/login';
+    return '/';
   }
 }
 
@@ -326,6 +472,17 @@ export async function getUserDashboard(): Promise<string> {
  * Redirects to login if not authenticated
  * Redirects to dashboard if doesn't have permission
  */
+/**
+ * requireAuthPage
+ *
+ * Page-level authorization helper intended for Server Components that
+ * should redirect to the appropriate location when the user lacks
+ * authentication or authorization. Redirects to home when unauthenticated
+ * and to the user's dashboard with an error query when forbidden.
+ *
+ * @param options - Optional authorization requirements (resource/role/group)
+ * @returns The current session when access is permitted
+ */
 export async function requireAuthPage(options?: {
   resource?: { name: string; scope: string };
   role?: string | string[];
@@ -334,9 +491,9 @@ export async function requireAuthPage(options?: {
 }) {
   const session = await auth();
 
-  // Not authenticated - redirect to login
+  // Not authenticated - redirect to home
   if (!session?.user) {
-    redirect('/login');
+    redirect('/');
   }
 
   const userIsSystemAdmin = isSystemAdmin(session.user.roles);
@@ -390,6 +547,15 @@ export async function requireAuthPage(options?: {
 /**
  * API Route helper - returns standardized error response
  */
+/**
+ * unauthorizedResponse
+ *
+ * Small helper that produces a standardized 401 JSON response usable in
+ * API route handlers.
+ *
+ * @param message - Optional error message
+ * @returns `Response` with JSON body and 401 status
+ */
 export function unauthorizedResponse(message = 'Unauthorized') {
   return Response.json(
     { error: message },
@@ -402,6 +568,15 @@ export function unauthorizedResponse(message = 'Unauthorized') {
 
 /**
  * API Route helper - returns forbidden response
+ */
+/**
+ * forbiddenResponse
+ *
+ * Small helper that produces a standardized 403 JSON response usable in
+ * API route handlers.
+ *
+ * @param message - Optional error message
+ * @returns `Response` with JSON body and 403 status
  */
 export function forbiddenResponse(
   message = 'Forbidden - Insufficient permissions'
