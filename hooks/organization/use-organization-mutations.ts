@@ -2,13 +2,42 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { organizationService } from '@/services/organization-service';
 import { Organization } from '@/types/organization/organization';
 import { toast } from '@/lib/styles/toast-styles';
+import { ApiError } from '@/lib/api/api-client';
+import { logger } from '@/lib/logger';
+
+/**
+ * Get a user-friendly error message from an error.
+ * Uses ApiError's pre-formatted messages when available.
+ */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return 'An unexpected error occurred. Please try again.';
+}
+
+/**
+ * Get appropriate toast title based on error type.
+ */
+function getErrorTitle(error: unknown, defaultTitle: string): string {
+  if (error instanceof ApiError) {
+    if (error.isAuthError) return 'Authentication Required';
+    if (error.isTimeout) return 'Request Timeout';
+    if (error.isServerError) return 'Server Error';
+    if (error.status === 0) return 'Network Error';
+  }
+  return defaultTitle;
+}
 
 /**
  * useCreateOrganization
  *
  * React Query mutation hook that creates an organization and invalidates
  * the `['organizations']` query on success. Errors are surfaced via
- * an application toast and logged to the console for diagnostics.
+ * an application toast with context-aware messaging.
  */
 export function useCreateOrganization() {
   const queryClient = useQueryClient();
@@ -22,12 +51,10 @@ export function useCreateOrganization() {
       });
     },
     onError: (error) => {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
-      toast.error('Failed to Create Organization', {
-        description: errorMessage,
-      });
-      console.error(error);
+      const title = getErrorTitle(error, 'Failed to Create Organization');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to create organization:', error);
     },
   });
 }
@@ -44,19 +71,18 @@ export function useUpdateOrganization() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Organization }) =>
       organizationService.update(id, data),
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations', id] });
       toast.success('Organization Updated', {
         description: 'The organization has been updated successfully',
       });
     },
     onError: (error) => {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
-      toast.error('Failed to Update Organization', {
-        description: errorMessage,
-      });
-      console.error(error);
+      const title = getErrorTitle(error, 'Failed to Update Organization');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to update organization:', error);
     },
   });
 }
@@ -79,12 +105,10 @@ export function useDeleteOrganization() {
       });
     },
     onError: (error) => {
-      const errorMessage =
-        error instanceof Error ? error.message : 'An unexpected error occurred';
-      toast.error('Failed to Delete Organization', {
-        description: errorMessage,
-      });
-      console.error(error);
+      const title = getErrorTitle(error, 'Failed to Delete Organization');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to delete organization:', error);
     },
   });
 }
