@@ -24,8 +24,8 @@ export default function UnauthorizedPage() {
       ]}
       actions={[
         {
-          label: 'Sign In',
-          href: '/login',
+          label: 'Go to Home',
+          href: '/',
           variant: 'default',
         },
         {
