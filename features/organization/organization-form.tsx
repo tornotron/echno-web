@@ -14,6 +14,14 @@ import {
 import { Organization } from '@/types/organization';
 import { Building, Loader2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
+import {
+  required,
+  compose,
+  optional,
+  email,
+  phone,
+  url,
+} from '@/lib/validators';
 import Image from 'next/image';
 
 interface OrganizationFormProps {
@@ -48,23 +56,32 @@ export function OrganizationForm({
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.organizationName?.trim()) {
-      newErrors.organizationName = 'Organization name is required';
-    }
+    // Validate organization name
+    const nameError = required('Organization name')(
+      formData.organizationName ?? ''
+    );
+    if (nameError) newErrors.organizationName = nameError;
 
-    if (!formData.organizationAddress?.trim()) {
-      newErrors.organizationAddress = 'Address is required';
-    }
+    // Validate address
+    const addressError = required('Address')(
+      formData.organizationAddress ?? ''
+    );
+    if (addressError) newErrors.organizationAddress = addressError;
 
-    if (!formData.organizationEmail?.trim()) {
-      newErrors.organizationEmail = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.organizationEmail)) {
-      newErrors.organizationEmail = 'Invalid email format';
-    }
+    // Validate email
+    const emailValidator = compose(required('Email'), email);
+    const emailError = emailValidator(formData.organizationEmail ?? '');
+    if (emailError) newErrors.organizationEmail = emailError;
 
-    if (!formData.organizationPhone?.trim()) {
-      newErrors.organizationPhone = 'Phone number is required';
-    }
+    // Validate phone
+    const phoneValidator = compose(required('Phone'), phone);
+    const phoneError = phoneValidator(formData.organizationPhone ?? '');
+    if (phoneError) newErrors.organizationPhone = phoneError;
+
+    // Validate website (optional)
+    const websiteValidator = optional(url);
+    const websiteError = websiteValidator(formData.organizationWebsite ?? '');
+    if (websiteError) newErrors.organizationWebsite = websiteError;
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -246,7 +263,13 @@ export function OrganizationForm({
                 handleChange('organizationWebsite', e.target.value)
               }
               placeholder="https://example.com"
+              className={errors.organizationWebsite ? 'border-red-500' : ''}
             />
+            {errors.organizationWebsite && (
+              <p className="text-sm text-red-500">
+                {errors.organizationWebsite}
+              </p>
+            )}
           </div>
 
           {/* Logo Upload */}
