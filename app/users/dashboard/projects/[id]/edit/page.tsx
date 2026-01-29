@@ -125,7 +125,7 @@ export default function EditProjectPage() {
       memberRole: employee.roles?.[0] || '',
       department: employee.department,
       designation: (employee as Employee).designation,
-      memberImage: employee.profilePictureUrl,
+      memberImage: employee.profilePicture?.file,
     };
 
     setSelectedMembers((prev) => [...prev, newMember]);
