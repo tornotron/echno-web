@@ -116,7 +116,17 @@ function AccessDeniedContent() {
       return `${moduleName} Module`;
     }
     if (resource && scope) {
-      return `${resource}:${scope}`;
+      // Map scope to CRUD permission label
+      const scopeMap: Record<string, string> = {
+        create: 'Create',
+        read: 'Read',
+        update: 'Update',
+        delete: 'Delete',
+        list: 'Read', // List is essentially read access
+        view: 'Read', // View is essentially read access
+      };
+      const permission = scopeMap[scope.toLowerCase()] || scope;
+      return `${permission} permission for ${resource}`;
     }
     if (resource) {
       return resource;
