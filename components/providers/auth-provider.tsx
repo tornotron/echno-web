@@ -2,6 +2,7 @@
 
 import { SessionProvider, signOut, useSession } from 'next-auth/react';
 import { QueryProvider } from './query-provider';
+import { UserPrefetcher } from './user-prefetcher';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
@@ -203,7 +204,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <SessionMonitor>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <UserPrefetcher>{children}</UserPrefetcher>
+        </QueryProvider>
       </SessionMonitor>
     </SessionProvider>
   );
