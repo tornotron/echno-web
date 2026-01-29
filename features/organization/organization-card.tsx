@@ -38,10 +38,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              {organization.organizationLogo ? (
+              {organization.logo ? (
                 <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <Image
-                    src={organization.organizationLogo}
+                    src={organization.logo.file}
                     alt={organization.organizationName}
                     fill
                     className="object-cover"
