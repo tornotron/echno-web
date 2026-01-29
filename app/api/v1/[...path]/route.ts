@@ -82,9 +82,12 @@ async function proxyRequest(
     });
 
     // Get request body for non-GET/HEAD requests
-    let body: string | undefined;
+    // Use arrayBuffer for binary data (multipart forms) to preserve integrity
+    let body: BodyInit | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      body = await request.text();
+      const isMultipart = contentType?.includes('multipart/form-data');
+      // For multipart, pass as ArrayBuffer to preserve binary data
+      body = isMultipart ? await request.arrayBuffer() : await request.text();
     }
 
     const response = await fetch(targetUrl, {

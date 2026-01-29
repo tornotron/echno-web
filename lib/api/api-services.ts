@@ -1,6 +1,5 @@
 // Export all API services
-export * from './api-client'
-export * from './user-api'
+export * from './api-client';
 
 // Re-export commonly used types
-export type { ApiResponse, ApiError } from './api-client'
+export type { ApiResponse, ApiError } from './api-client';
