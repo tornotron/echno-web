@@ -41,7 +41,7 @@ import {
   canSubmitRequest,
 } from '@/types/access-request';
 import { toast } from '@/lib/styles/toast-styles';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@/hooks/user/use-user';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,13 +62,13 @@ interface PageProps {
 export default function AccessRequestDetailPage({ params }: PageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: currentUser } = useUser();
   const [request, setRequest] = useState<AccessRequest | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [newComment, setNewComment] = useState('');
 
-  const userId = session?.user?.id || '';
+  const userId = currentUser?.id?.toString() || '';
 
   // Load request from mock data
   useEffect(() => {
