@@ -12,42 +12,40 @@ export enum AttachmentType {
 export interface Attachment {
   id?: number;
   fileName: string;
-  fileUrl: string;
+  file: string;
   fileSize: number; // in bytes
   fileType: AttachmentType;
-  mimeType: string;
-  uploadedAt: Date;
-  uploadedBy: string;
+  contentType: string;
+  createdAt: Date;
+  updatedAt: Date;
+  uploadedBy?: string;
   description?: string;
 }
 
 /** Helper: Get file type from mime type */
 export function getFileTypeFromMimeType(mimeType: string): AttachmentType {
+  if (!mimeType) return AttachmentType.other;
+
   if (mimeType.startsWith('image/')) return AttachmentType.image;
   if (mimeType === 'application/pdf') return AttachmentType.pdf;
-  if (
-    mimeType ===
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    mimeType === 'application/msword' ||
-    mimeType === 'text/plain'
-  ) {
+
+  if (mimeType.includes('word') || mimeType === 'text/plain') {
     return AttachmentType.document;
   }
-  if (
-    mimeType ===
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    mimeType === 'application/vnd.ms-excel' ||
-    mimeType === 'text/csv'
-  ) {
+
+  if (mimeType.includes('excel') || mimeType === 'text/csv') {
     return AttachmentType.spreadsheet;
   }
+
   if (
-    mimeType === 'application/acad' ||
-    mimeType === 'application/x-acad' ||
-    mimeType === 'application/dxf'
+    mimeType.includes('dwg') ||
+    mimeType.includes('dxf') ||
+    mimeType.includes('step') ||
+    mimeType.includes('cad')
   ) {
     return AttachmentType.cad;
   }
+
   return AttachmentType.other;
 }
 
@@ -95,15 +93,29 @@ export function getFileTypeColor(type: AttachmentType): string {
 /** JSON → Attachment */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseAttachment(json: any): Attachment {
+  // Derive fileType from contentType if not provided
+  const contentType = json.contentType ?? json.mimeType ?? '';
+  const fileType = json.fileType ?? getFileTypeFromMimeType(contentType);
+
   return {
     id: json.id ?? undefined,
     fileName: json.fileName ?? '',
-    fileUrl: json.fileUrl ?? '',
+    // Support multiple possible field names for the file URL
+    file: json.file ?? json.fileUrl ?? json.url ?? json.downloadUrl ?? '',
     fileSize: json.fileSize ?? 0,
-    fileType: json.fileType ?? AttachmentType.other,
-    mimeType: json.mimeType ?? '',
-    uploadedAt: new Date(json.uploadedAt),
-    uploadedBy: json.uploadedBy ?? '',
+    fileType,
+    contentType,
+    createdAt: json.createdAt
+      ? new Date(json.createdAt)
+      : json.uploadedAt
+        ? new Date(json.uploadedAt)
+        : new Date(),
+    updatedAt: json.updatedAt
+      ? new Date(json.updatedAt)
+      : json.createdAt
+        ? new Date(json.createdAt)
+        : new Date(),
+    uploadedBy: json.uploadedBy ?? undefined,
     description: json.description ?? undefined,
   };
 }
@@ -115,11 +127,9 @@ export function attachmentToJson(
   return {
     id: attachment.id,
     fileName: attachment.fileName,
-    fileUrl: attachment.fileUrl,
+    file: attachment.file,
     fileSize: attachment.fileSize,
     fileType: attachment.fileType,
-    mimeType: attachment.mimeType,
-    uploadedAt: attachment.uploadedAt.toISOString(),
     uploadedBy: attachment.uploadedBy,
     description: attachment.description,
   };
