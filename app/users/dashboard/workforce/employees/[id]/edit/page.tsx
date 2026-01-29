@@ -101,7 +101,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
 
     // Additional
     certifications: employee.certifications?.join(', ') || '',
-    cvUrl: employee.cvUrl || '',
+    cvUrl: employee.cv?.file || '',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -422,7 +422,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                     <FileText className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                     <Input
                       id="cvUrl"
-                      placeholder="https://example.com/cv.pdf"
+                      placeholder="https://example.com/cvUrl.pdf"
                       className="pl-9"
                       value={formData.cvUrl}
                       onChange={(e) =>

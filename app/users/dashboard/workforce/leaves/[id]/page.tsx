@@ -314,7 +314,7 @@ export default function LeaveDetailPage({
                           </p>
                           <p className="text-xs text-zinc-500">
                             Uploaded on{' '}
-                            {format(attachment.uploadedAt, 'dd MMM yyyy')}
+                            {format(attachment.createdAt, 'dd MMM yyyy')}
                           </p>
                         </div>
                       </div>
