@@ -1,5 +1,6 @@
 import { Employee, employeeToJson, parseEmployee } from '@/types/employee';
 import { Project, projectToJson, parseProject } from '@/types/project';
+import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface Organization {
   id?: number;
@@ -8,7 +9,7 @@ export interface Organization {
   organizationEmail: string;
   organizationPhone: string;
   organizationWebsite?: string;
-  organizationLogo?: string;
+  logo?: Attachment;
   employees?: Employee[];
   projects?: Project[];
   creatorId: number;
@@ -28,7 +29,10 @@ export function parseOrganization(json: any): Organization {
     organizationEmail: json.organizationEmail ?? '',
     organizationPhone: json.organizationPhone ?? '',
     organizationWebsite: json.organizationWebsite ?? undefined,
-    organizationLogo: json.organizationLogo ?? undefined,
+    logo:
+      (json.logo ?? json.organizationLogo)
+        ? parseAttachment(json.logo ?? json.organizationLogo)
+        : undefined,
     employees: json.employees
       ? (json.employees as unknown[]).map((e) => parseEmployee(e))
       : undefined,
@@ -50,7 +54,7 @@ export function organizationToJson(org: Organization): Record<string, unknown> {
     organizationEmail: org.organizationEmail,
     organizationPhone: org.organizationPhone,
     organizationWebsite: org.organizationWebsite,
-    organizationLogo: org.organizationLogo,
+    // Note: logo not sent - file uploads handled via multipart
     employees: org.employees?.map((e) => employeeToJson(e)),
     projects: org.projects?.map((p) => projectToJson(p)),
     creatorId: org.creatorId,
@@ -70,7 +74,7 @@ export function organizationToJsonWithIds(
     organizationEmail: org.organizationEmail,
     organizationPhone: org.organizationPhone,
     organizationWebsite: org.organizationWebsite,
-    organizationLogo: org.organizationLogo,
+    // Note: logo not sent - file uploads handled via multipart
     creatorId: org.creatorId,
     createdAt: org.createdAt?.toISOString(),
     isActive: org.isActive,
