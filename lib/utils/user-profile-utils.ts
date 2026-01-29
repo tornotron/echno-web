@@ -136,9 +136,9 @@ export function getProfileCompletionPercentage(user: User): number {
     user.qualification,
     user.skills && user.skills.length > 0,
     user.experience,
-    user.cvUrl,
+    user.cv?.file,
     user.emergencyContact,
-    user.profilePictureUrl,
+    user.profilePicture?.file,
   ];
 
   const filledFields = fields.filter((field) => {
@@ -236,7 +236,7 @@ export function hasProfessionalInfo(user: User): boolean {
     hasValue(user.qualification) ||
     hasValue(user.skills) ||
     hasValue(user.experience) ||
-    hasValue(user.cvUrl)
+    hasValue(user.cv?.file)
   );
 }
 
