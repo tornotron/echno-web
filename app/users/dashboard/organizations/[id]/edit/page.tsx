@@ -4,8 +4,11 @@ import { useRouter, notFound } from 'next/navigation';
 import { useState, use } from 'react';
 import { OrganizationForm } from '@/features/organization/organization-form';
 import { Organization } from '@/types/organization';
-import { useOrganization } from '@/hooks/organization/use-organizations';
+import { useOrganizationWithLogo } from '@/hooks/organization/use-organizations';
 import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
+import { organizationService } from '@/services/organization-service';
+import { toast } from '@/lib/styles/toast-styles';
+import { logger } from '@/lib/logger';
 
 interface EditOrganizationPageProps {
   params: Promise<{
@@ -21,12 +24,13 @@ export default function EditOrganizationPage({
   const id = Number.parseInt(resolvedParams.id);
 
   const {
-    data: organization,
+    organization,
     isLoading: isLoadingOrg,
     error,
-  } = useOrganization(id);
+  } = useOrganizationWithLogo(id);
   const { mutate: updateOrganization, isPending: isUpdating } =
     useUpdateOrganization();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isLoadingOrg) {
     return (
@@ -56,7 +60,7 @@ export default function EditOrganizationPage({
     notFound();
   }
 
-  const handleSubmit = (data: Partial<Organization>) => {
+  const handleSubmit = async (data: Partial<Organization>, logoFile?: File) => {
     // Merge existing org data with updates to ensure complete object (if needed)
     // The service requires (id, org)
     // The form returns partial updates.
@@ -68,14 +72,41 @@ export default function EditOrganizationPage({
 
     const updatedOrg = { ...organization, ...data };
 
-    updateOrganization(
-      { id: organization.id!, data: updatedOrg },
-      {
-        onSuccess: () => {
-          router.push(`/users/dashboard/organizations/${organization.id}`);
-        },
+    // If there's a logo file, use the updateWithFiles method directly
+    if (logoFile) {
+      setIsSubmitting(true);
+      try {
+        await organizationService.updateWithFiles(
+          organization.id!,
+          updatedOrg,
+          { organizationLogo: logoFile }
+        );
+        toast.success('Organization Updated', {
+          description: 'The organization has been updated successfully',
+        });
+        router.push(`/users/dashboard/organizations/${organization.id}`);
+      } catch (error) {
+        logger.error('Failed to update organization with files:', error);
+        toast.error('Failed to Update Organization', {
+          description:
+            error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred',
+        });
+      } finally {
+        setIsSubmitting(false);
       }
-    );
+    } else {
+      // No logo file, use the regular mutation
+      updateOrganization(
+        { id: organization.id!, data: updatedOrg },
+        {
+          onSuccess: () => {
+            router.push(`/users/dashboard/organizations/${organization.id}`);
+          },
+        }
+      );
+    }
   };
 
   const handleCancel = () => {
@@ -90,7 +121,7 @@ export default function EditOrganizationPage({
           organization={organization}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
-          isLoading={isUpdating}
+          isLoading={isUpdating || isSubmitting}
         />
       )}
     </div>

@@ -6,7 +6,7 @@ import { SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Plus, Search } from 'lucide-react';
 import Link from 'next/link';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
+import { useUserOrganizations } from '@/hooks/organization/use-organizations';
 
 export default function OrganizationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,7 +14,7 @@ export default function OrganizationsPage() {
     'all' | 'active' | 'inactive'
   >('all');
 
-  const { data: organizations, isLoading, error } = useOrganizations();
+  const { data: organizations, isLoading, error } = useUserOrganizations();
 
   if (isLoading) {
     return (

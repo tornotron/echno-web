@@ -33,7 +33,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { useOrganization } from '@/hooks/organization/use-organizations';
+import { useOrganizationWithLogo } from '@/hooks/organization/use-organizations';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -50,11 +50,8 @@ export default function OrganizationDetailPage({
     'overview' | 'settings' | 'hierarchy'
   >('overview');
 
-  const {
-    data: organization,
-    isLoading,
-    error,
-  } = useOrganization(organizationId);
+  const { organization, isLoading, error } =
+    useOrganizationWithLogo(organizationId);
 
   if (isLoading) {
     return (
@@ -97,10 +94,10 @@ export default function OrganizationDetailPage({
       <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start space-x-4">
-            {organization.organizationLogo ? (
+            {organization.logo ? (
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <Image
-                  src={organization.organizationLogo}
+                  src={organization.logo.file}
                   alt={organization.organizationName}
                   fill
                   className="object-cover"

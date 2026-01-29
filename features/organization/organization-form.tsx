@@ -24,9 +24,18 @@ import {
 } from '@/lib/validators';
 import Image from 'next/image';
 
+interface OrganizationFormData {
+  organizationName: string;
+  organizationAddress: string;
+  organizationEmail: string;
+  organizationPhone: string;
+  organizationWebsite: string;
+  isActive: boolean;
+}
+
 interface OrganizationFormProps {
   organization?: Organization;
-  onSubmit: (data: Partial<Organization>) => void;
+  onSubmit: (data: Partial<Organization>, logoFile?: File) => void;
   onCancel: () => void;
   isLoading?: boolean;
 }
@@ -37,19 +46,19 @@ export function OrganizationForm({
   onCancel,
   isLoading = false,
 }: OrganizationFormProps) {
-  const [formData, setFormData] = useState<Partial<Organization>>({
+  const [formData, setFormData] = useState<OrganizationFormData>({
     organizationName: organization?.organizationName || '',
     organizationAddress: organization?.organizationAddress || '',
     organizationEmail: organization?.organizationEmail || '',
     organizationPhone: organization?.organizationPhone || '',
     organizationWebsite: organization?.organizationWebsite || '',
-    organizationLogo: organization?.organizationLogo || '',
     isActive: organization?.isActive ?? true,
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(
-    organization?.organizationLogo || null
+    organization?.logo?.file || null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,10 +106,22 @@ export function OrganizationForm({
       return;
     }
 
-    onSubmit(formData);
+    const orgData: Partial<Organization> = {
+      organizationName: formData.organizationName,
+      organizationAddress: formData.organizationAddress,
+      organizationEmail: formData.organizationEmail,
+      organizationPhone: formData.organizationPhone,
+      organizationWebsite: formData.organizationWebsite || undefined,
+      isActive: formData.isActive,
+    };
+
+    onSubmit(orgData, logoFile || undefined);
   };
 
-  const handleChange = (field: keyof Organization, value: string | boolean) => {
+  const handleChange = (
+    field: keyof OrganizationFormData,
+    value: string | boolean
+  ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error for this field
     if (errors[field]) {
@@ -132,19 +153,18 @@ export function OrganizationForm({
       return;
     }
 
-    // Create preview
+    // Store the file and create preview
+    setLogoFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
-      const result = reader.result as string;
-      setLogoPreview(result);
-      setFormData((prev) => ({ ...prev, organizationLogo: result }));
+      setLogoPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
 
   const handleRemoveLogo = () => {
+    setLogoFile(null);
     setLogoPreview(null);
-    setFormData((prev) => ({ ...prev, organizationLogo: '' }));
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
