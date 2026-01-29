@@ -257,16 +257,16 @@ export function UserProfileView({
               />
             </InfoGrid>
 
-            {user.cvUrl && (
-              <div className="mt-4">
+            {user.cv?.file && (
+              <div className="mt-6">
                 <a
-                  href={user.cvUrl}
+                  href={user.cv.file}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
+                  className="border-primary bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold transition-colors"
                 >
-                  <FileText className="h-4 w-4" />
-                  View CV/Resume
+                  <FileText className="h-5 w-5" />
+                  <span>View CV/Resume</span>
                 </a>
               </div>
             )}
