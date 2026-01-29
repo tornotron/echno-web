@@ -1,5 +1,6 @@
 // types/user/user.ts
 import { Organization } from '@/types/organization';
+import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface User {
   id?: number;
@@ -13,12 +14,12 @@ export interface User {
   qualification: string;
   skills?: string[];
   experience?: number;
-  cvUrl?: string;
+  cv?: Attachment;
   emergencyContact?: string;
   organizations?: Organization[];
   roles?: string[];
 
-  profilePictureUrl?: string;
+  profilePicture?: Attachment;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -45,6 +46,18 @@ export function belongsToOrganization(user: User, orgId: number): boolean {
 
 export function organizationCount(user: User): number {
   return user.organizations?.length ?? 0;
+}
+
+/**
+ * Formats a Date object to backend-compatible format: "YYYY-MM-DDTHH:mm:ss"
+ * @param date - Date object to format
+ * @returns Formatted date string in "YYYY-MM-DDTHH:mm:ss" format
+ */
+function formatDateForBackend(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}T00:00:00`;
 }
 
 // ────── JSON Parsing & Serialization ──────
@@ -79,13 +92,16 @@ export function parseUser(json: any): User {
     qualification: json.qualification ?? 'Not Specified',
     skills: json.skills ? parseSkills(json.skills) : undefined,
     experience: json.experience ?? undefined,
-    cvUrl: json.cvUrl ?? undefined,
+    cv: json.cv ? parseAttachment(json.cv) : undefined,
     emergencyContact: json.emergencyContact ?? undefined,
     organizations: json.organizations
       ? (json.organizations as Organization[])
       : undefined,
     roles: json.roles ? (json.roles as string[]) : undefined,
-    profilePictureUrl: json.profilePictureUrl ?? undefined,
+    profilePicture:
+      json.profilePicture || json.profilePictureUrl
+        ? parseAttachment(json.profilePicture || json.profilePictureUrl)
+        : undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
   };
@@ -100,16 +116,50 @@ export function userToJson(user: User): Record<string, unknown> {
     email: user.email,
     phone: user.phone,
     gender: user.gender,
-    dateOfBirth: user.dateOfBirth.toISOString(),
+    dateOfBirth: user.dateOfBirth
+      ? formatDateForBackend(user.dateOfBirth)
+      : undefined,
     qualification: user.qualification,
     skills: user.skills?.join(', '),
     experience: user.experience,
-    cvUrl: user.cvUrl,
     emergencyContact: user.emergencyContact,
     organizations: user.organizations?.map((o) => o.id),
     roles: user.roles,
-    profilePictureUrl: user.profilePictureUrl,
-    createdAt: user.createdAt?.toISOString(),
-    updatedAt: user.updatedAt?.toISOString(),
+    // Note: cv and profilePicture are not sent - file uploads handled via multipart
   };
+}
+
+/**
+ * Convert partial user data to JSON for API requests.
+ * Only includes fields that are actually provided in the partial user object.
+ * Note: File uploads are handled separately via multipart form data.
+ */
+export function partialUserToJson(
+  user: Partial<User>
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  if (user.id !== undefined) payload.id = user.id;
+  if (user.name !== undefined) payload.name = user.name;
+  if (user.address !== undefined) payload.address = user.address;
+  if (user.bloodGroup !== undefined) payload.bloodGroup = user.bloodGroup;
+  if (user.email !== undefined) payload.email = user.email;
+  if (user.phone !== undefined) payload.phone = user.phone;
+  if (user.gender !== undefined) payload.gender = user.gender;
+  if (user.dateOfBirth !== undefined) {
+    payload.dateOfBirth = formatDateForBackend(user.dateOfBirth);
+  }
+  if (user.qualification !== undefined)
+    payload.qualification = user.qualification;
+  if (user.skills !== undefined) payload.skills = user.skills.join(', ');
+  if (user.experience !== undefined) payload.experience = user.experience;
+  if (user.emergencyContact !== undefined)
+    payload.emergencyContact = user.emergencyContact;
+  if (user.organizations !== undefined) {
+    payload.organizations = user.organizations.map((o) => o.id);
+  }
+  if (user.roles !== undefined) payload.roles = user.roles;
+  // Note: cv and profilePicture are not sent - file uploads handled via multipart
+
+  return payload;
 }
