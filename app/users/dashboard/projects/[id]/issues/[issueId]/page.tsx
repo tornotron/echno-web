@@ -439,7 +439,7 @@ export default function IssueDetailPage({ params }: PageProps) {
                           asChild
                         >
                           <a
-                            href={attachment.fileUrl}
+                            href={attachment.file}
                             download={attachment.fileName}
                           >
                             <Download className="h-3 w-3" />

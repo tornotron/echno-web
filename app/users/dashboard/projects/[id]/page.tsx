@@ -66,19 +66,16 @@ function isValidAttachmentUrl(url: string): boolean {
 }
 
 // Helper function to get safe download URL
-function getSafeDownloadUrl(attachment: {
-  id?: number;
-  fileUrl: string;
-}): string {
+function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
   // Validate the URL
-  if (!isValidAttachmentUrl(attachment.fileUrl)) {
+  if (!isValidAttachmentUrl(attachment.file)) {
     return '#'; // Return a safe fallback
   }
 
   // In a real application, you would return a proxy endpoint like:
   // return `/api/attachments/${attachment.id}/download`;
   // For now, return the validated URL
-  return attachment.fileUrl;
+  return attachment.file;
 }
 
 // Fetch project by ID from mock data
@@ -506,9 +503,9 @@ export default function ProjectDashboardPage() {
                     const Icon = getAttachmentIcon(attachment.fileType);
                     const attachmentKey =
                       attachment.id ||
-                      `${attachment.fileUrl}-${attachment.uploadedAt?.getTime() || 'noDate'}`;
+                      `${attachment.file}-${attachment.createdAt?.getTime() || 'noDate'}`;
                     const safeDownloadUrl = getSafeDownloadUrl(attachment);
-                    const isValidUrl = isValidAttachmentUrl(attachment.fileUrl);
+                    const isValidUrl = isValidAttachmentUrl(attachment.file);
 
                     return (
                       <div
@@ -528,7 +525,7 @@ export default function ProjectDashboardPage() {
                               <span>•</span>
                               <span>
                                 Uploaded{' '}
-                                {format(attachment.uploadedAt, 'MMM d, yyyy')}
+                                {format(attachment.createdAt, 'MMM d, yyyy')}
                               </span>
                               <span>•</span>
                               <span>{attachment.uploadedBy}</span>

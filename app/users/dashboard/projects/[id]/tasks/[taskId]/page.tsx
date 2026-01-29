@@ -321,7 +321,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                               <span>•</span>
                               <span>
                                 Uploaded{' '}
-                                {format(attachment.uploadedAt, 'MMM d, yyyy')}
+                                {format(attachment.createdAt, 'MMM d, yyyy')}
                               </span>
                               <span>•</span>
                               <span>{attachment.uploadedBy}</span>
@@ -334,7 +334,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                           </div>
                         </div>
                         <Button variant="ghost" size="sm" asChild>
-                          <a href={attachment.fileUrl} download>
+                          <a href={attachment.file} download>
                             <Download className="h-4 w-4" />
                           </a>
                         </Button>
