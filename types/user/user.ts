@@ -120,7 +120,7 @@ export function userToJson(user: User): Record<string, unknown> {
       ? formatDateForBackend(user.dateOfBirth)
       : undefined,
     qualification: user.qualification,
-    skills: user.skills?.join(', '),
+    skills: user.skills,
     experience: user.experience,
     emergencyContact: user.emergencyContact,
     organizations: user.organizations?.map((o) => o.id),
@@ -151,7 +151,7 @@ export function partialUserToJson(
   }
   if (user.qualification !== undefined)
     payload.qualification = user.qualification;
-  if (user.skills !== undefined) payload.skills = user.skills.join(', ');
+  if (user.skills !== undefined) payload.skills = user.skills;
   if (user.experience !== undefined) payload.experience = user.experience;
   if (user.emergencyContact !== undefined)
     payload.emergencyContact = user.emergencyContact;
