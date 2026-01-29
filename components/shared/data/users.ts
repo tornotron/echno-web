@@ -14,10 +14,10 @@ export const mockUsers: User[] = [
     qualification: 'MBA, B.Tech Computer Science',
     skills: ['System Administration', 'Management', 'IT Infrastructure'],
     experience: 20,
-    cvUrl: '/cv/admin.pdf',
+
     emergencyContact: '+91 99999 00001',
     roles: [SYSTEM_ROLES.SYSTEM_ADMIN],
-    profilePictureUrl: '/avatars/admin.jpg',
+
     bloodGroup: 'O+',
     createdAt: new Date('2022-01-01'),
     updatedAt: new Date('2025-01-15'),
@@ -34,10 +34,10 @@ export const mockUsers: User[] = [
     qualification: 'MBA, B.Tech',
     skills: ['Team Management', 'Operations', 'Administration'],
     experience: 15,
-    cvUrl: '/cv/manager.pdf',
+
     emergencyContact: '+91 99999 11112',
     roles: [SYSTEM_ROLES.DIRECTOR],
-    profilePictureUrl: '/avatars/manager.jpg',
+
     bloodGroup: 'A+',
     createdAt: new Date('2022-06-01'),
     updatedAt: new Date('2025-01-15'),
@@ -58,10 +58,10 @@ export const mockUsers: User[] = [
       'Site Supervision',
     ],
     experience: 15,
-    cvUrl: '/cv/rajesh-kumar.pdf',
+
     emergencyContact: '+91 98765 43211',
     roles: [SYSTEM_ROLES.PROJECT_MANAGER],
-    profilePictureUrl: '/avatars/rajesh.jpg',
+
     bloodGroup: 'O+',
     createdAt: new Date('2023-01-15'),
     updatedAt: new Date('2025-01-10'),
@@ -77,10 +77,10 @@ export const mockUsers: User[] = [
     qualification: 'M.Tech Structural Engineering',
     skills: ['Structural Analysis', 'ETABS', 'SAP2000', 'Quality Control'],
     experience: 8,
-    cvUrl: '/cv/priya-sharma.pdf',
+
     emergencyContact: '+91 87654 32110',
     roles: [SYSTEM_ROLES.CIVIL_ENGINEER],
-    profilePictureUrl: '/avatars/priya.jpg',
+
     bloodGroup: 'A+',
     createdAt: new Date('2023-03-20'),
     updatedAt: new Date('2025-01-08'),
@@ -101,10 +101,10 @@ export const mockUsers: User[] = [
       'Safety Protocols',
     ],
     experience: 6,
-    cvUrl: '/cv/amit-patel.pdf',
+
     emergencyContact: '+91 76543 21099',
     roles: [SYSTEM_ROLES.ELECTRICIAN],
-    profilePictureUrl: '/avatars/amit.jpg',
+
     bloodGroup: 'B+',
     createdAt: new Date('2023-06-10'),
     updatedAt: new Date('2025-01-05'),
@@ -125,10 +125,10 @@ export const mockUsers: User[] = [
       'Payroll',
     ],
     experience: 10,
-    cvUrl: '/cv/sneha-reddy.pdf',
+
     emergencyContact: '+91 65432 10988',
     roles: [SYSTEM_ROLES.HR_MANAGER],
-    profilePictureUrl: '/avatars/sneha.jpg',
+
     bloodGroup: 'AB+',
     createdAt: new Date('2023-02-01'),
     updatedAt: new Date('2025-01-12'),
@@ -144,10 +144,10 @@ export const mockUsers: User[] = [
     qualification: 'ITI in Plumbing',
     skills: ['Pipe Fitting', 'Drainage Systems', 'Water Supply', 'Maintenance'],
     experience: 5,
-    cvUrl: '/cv/vikram-singh.pdf',
+
     emergencyContact: '+91 54321 09877',
     roles: [SYSTEM_ROLES.PLUMBER],
-    profilePictureUrl: '/avatars/vikram.jpg',
+
     bloodGroup: 'O-',
     createdAt: new Date('2023-09-15'),
     updatedAt: new Date('2025-01-03'),
@@ -168,10 +168,10 @@ export const mockUsers: User[] = [
       'Training',
     ],
     experience: 7,
-    cvUrl: '/cv/anjali-verma.pdf',
+
     emergencyContact: '+91 43210 98766',
     roles: [SYSTEM_ROLES.SAFETY_OFFICER],
-    profilePictureUrl: '/avatars/anjali.jpg',
+
     bloodGroup: 'A-',
     createdAt: new Date('2023-04-22'),
     updatedAt: new Date('2025-01-11'),
@@ -193,10 +193,10 @@ export const mockUsers: User[] = [
       'Site Planning',
     ],
     experience: 9,
-    cvUrl: '/cv/karan-mehta.pdf',
+
     emergencyContact: '+91 32109 87655',
     roles: [SYSTEM_ROLES.ARCHITECT],
-    profilePictureUrl: '/avatars/karan.jpg',
+
     bloodGroup: 'B-',
     createdAt: new Date('2023-05-18'),
     updatedAt: new Date('2025-01-09'),
@@ -212,10 +212,10 @@ export const mockUsers: User[] = [
     qualification: 'B.Com with Accounting Certification',
     skills: ['Financial Reporting', 'Taxation', 'Budgeting', 'Tally', 'Excel'],
     experience: 6,
-    cvUrl: '/cv/divya-iyer.pdf',
+
     emergencyContact: '+91 21098 76544',
     roles: [SYSTEM_ROLES.ACCOUNTANT],
-    profilePictureUrl: '/avatars/divya.jpg',
+
     bloodGroup: 'O+',
     createdAt: new Date('2023-07-25'),
     updatedAt: new Date('2025-01-07'),
