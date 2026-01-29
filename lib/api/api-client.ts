@@ -351,6 +351,120 @@ class ApiClient {
 
     return this.handleResponse<T>(response);
   }
+
+  /**
+   * Issue a POST request with multipart/form-data.
+   * Used for file uploads where the backend expects:
+   * - 'data' field: JSON string of the entity data
+   * - 'attachments' field(s): File objects
+   *
+   * @param endpoint - Path relative to baseURL
+   * @param data - JSON data to send (will be stringified and sent as 'data' field)
+   * @param files - Map of field names to File arrays (e.g., { attachments: [file1, file2] })
+   */
+  async postMultipart<T = unknown>(
+    endpoint: string,
+    data: unknown,
+    files?: Record<string, File[]>,
+    options?: RequestOptions
+  ): Promise<T> {
+    const formData = new FormData();
+
+    // Add JSON data as 'data' field
+    formData.append('data', JSON.stringify(data));
+
+    // Add files
+    if (files) {
+      for (const [fieldName, fileList] of Object.entries(files)) {
+        for (const file of fileList) {
+          formData.append(fieldName, file);
+        }
+      }
+    }
+
+    // Don't set Content-Type header - browser will set it with boundary
+    const response = await this.fetchWithRetry(
+      `${this.baseURL}${endpoint}`,
+      {
+        method: 'POST',
+        body: formData,
+        // Note: Don't include Content-Type header for multipart
+      },
+      options
+    );
+
+    return this.handleResponse<T>(response);
+  }
+
+  /**
+   * Issue a PATCH request with multipart/form-data.
+   * Used for file uploads where the backend expects:
+   * - 'data' field: JSON string of the entity data
+   * - 'attachments' field(s): File objects
+   *
+   * @param endpoint - Path relative to baseURL
+   * @param data - JSON data to send (will be stringified and sent as 'data' field)
+   * @param files - Map of field names to File arrays (e.g., { attachments: [file1, file2] })
+   */
+  async patchMultipart<T = unknown>(
+    endpoint: string,
+    data: unknown,
+    files?: Record<string, File[]>,
+    options?: RequestOptions
+  ): Promise<T> {
+    const formData = new FormData();
+
+    // Add JSON data as 'data' field
+    formData.append('data', JSON.stringify(data));
+
+    // Add files
+    if (files) {
+      for (const [fieldName, fileList] of Object.entries(files)) {
+        for (const file of fileList) {
+          formData.append(fieldName, file);
+        }
+      }
+    }
+
+    // Don't set Content-Type header - browser will set it with boundary
+    const response = await this.fetchWithRetry(
+      `${this.baseURL}${endpoint}`,
+      {
+        method: 'PATCH',
+        body: formData,
+        // Note: Don't include Content-Type header for multipart
+      },
+      options
+    );
+
+    return this.handleResponse<T>(response);
+  }
+
+  /**
+   * Issue a POST request with raw FormData.
+   * Used for simple file uploads without additional JSON data.
+   *
+   * @param endpoint - Path relative to baseURL
+   * @param formData - FormData object containing files and fields
+   */
+  async postFormData<T = unknown>(
+    endpoint: string,
+    formData: FormData,
+    options?: RequestOptions
+  ): Promise<T> {
+    // Don't set Content-Type header - browser will set it with boundary
+    const response = await this.fetchWithRetry(
+      `${this.baseURL}${endpoint}`,
+      {
+        method: 'POST',
+        body: formData,
+        // Note: Don't include Content-Type header for multipart
+      },
+      options
+    );
+
+    return this.handleResponse<T>(response);
+  }
 }
 
 export const apiClient = new ApiClient();
@@ -362,4 +476,7 @@ export const api = {
   put: apiClient.put.bind(apiClient),
   patch: apiClient.patch.bind(apiClient),
   delete: apiClient.delete.bind(apiClient),
+  postMultipart: apiClient.postMultipart.bind(apiClient),
+  patchMultipart: apiClient.patchMultipart.bind(apiClient),
+  postFormData: apiClient.postFormData.bind(apiClient),
 };
