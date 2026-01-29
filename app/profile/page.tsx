@@ -1,46 +1,19 @@
-import { Suspense } from 'react';
-import { auth } from '@/auth';
-import { logger } from '@/lib/logger';
+'use client';
 
-export const dynamic = 'force-dynamic';
-import { redirect } from 'next/navigation';
-import { User } from '@/types/user/user';
-
+import { useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { useUserWithAttachments } from '@/hooks/user/use-user';
+import { UserProfileView } from '@/features/user-profile/user-profile-view';
 import { Card, CardContent } from '@/components/ui/card';
-import { fetchUserProfileFromBackend } from '@/lib/api/user-api';
+import { toast } from '@/lib/styles/toast-styles';
 import { AppLayout } from '@/components/common/app-layout';
-import { ProfilePageClient } from './profile-client';
-import { getAccessToken } from '@/lib/auth/get-session-tokens';
-
-/**
- * Server Component: Fetches user profile data from backend
- * Uses Next.js server-side rendering for optimal performance
- * Fetches directly from Spring Boot backend to maximize static rendering
- */
-async function getUserProfile(): Promise<User | null> {
-  try {
-    const session = await auth();
-    const accessToken = await getAccessToken();
-
-    if (!session || !accessToken) {
-      return null;
-    }
-
-    // Fetch directly from backend using the dedicated API service
-    const user = await fetchUserProfileFromBackend(accessToken);
-    return user;
-  } catch (error) {
-    logger.error('Error fetching user profile:', error);
-    return null;
-  }
-}
 
 /**
  * Loading skeleton for profile page
  */
 function ProfileSkeleton() {
   return (
-    <div className="px-4 py-8">
+    <>
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
@@ -70,37 +43,90 @@ function ProfileSkeleton() {
           </Card>
         ))}
       </div>
-    </div>
+    </>
   );
 }
 
 /**
  * Profile Page Component
- * Statically rendered on the server with user data
+ *
+ * Client component that displays the user profile.
+ * Uses React Query's useUser hook which reads from the cache
+ * populated by UserPrefetcher on login.
  */
-export default async function ProfilePage() {
-  const user = await getUserProfile();
+export default function ProfilePage() {
+  const router = useRouter();
+  const loginToastShown = useRef(false);
 
-  // Redirect to home if not authenticated
-  if (!user) {
-    redirect('/');
+  // Get user data with attachments from React Query cache (prefetched on login)
+  const { user, isLoading, error } = useUserWithAttachments();
+
+  // Show login success toast if redirected from login (client-side only)
+  useEffect(() => {
+    if (globalThis.window !== undefined) {
+      const params = new URLSearchParams(globalThis.location.search);
+      const loginParam = params.get('login');
+      if (loginParam === 'success' && !loginToastShown.current) {
+        loginToastShown.current = true;
+
+        const timer = setTimeout(() => {
+          toast.success('Login successful!', {
+            description: 'Welcome to your profile.',
+          });
+
+          // Clean up URL
+          const url = new URL(globalThis.location.href);
+          url.searchParams.delete('login');
+          globalThis.history.replaceState({}, '', url.toString());
+        }, 100);
+
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  const handleEdit = () => {
+    router.push('/profile/edit');
+  };
+
+  // Show loading skeleton while fetching
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="px-4 py-8">
+          <ProfileSkeleton />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Show error state
+  if (error || !user) {
+    return (
+      <AppLayout>
+        <div className="px-4 py-8">
+          <Card>
+            <CardContent className="py-8 text-center">
+              <p className="text-muted-foreground">
+                Failed to load profile. Please try refreshing the page.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
   }
 
   return (
     <AppLayout>
       <div className="px-4 py-8">
-        <Suspense fallback={<ProfileSkeleton />}>
-          <ProfilePageClient user={user} />
-        </Suspense>
+        <UserProfileView
+          user={user}
+          showEditButton={true}
+          onEdit={handleEdit}
+          variant="detailed"
+        />
       </div>
     </AppLayout>
   );
 }
-
-/**
- * Metadata for the profile page
- */
-export const metadata = {
-  title: 'User Profile | Echno',
-  description: 'View and manage your user profile',
-};

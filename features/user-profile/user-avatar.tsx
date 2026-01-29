@@ -21,7 +21,7 @@ export function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
   const initials = userInitials(user);
   const avatarColor = getAvatarColor(initials);
 
-  if (user.profilePictureUrl) {
+  if (user.profilePicture?.file) {
     return (
       <div
         className={cn(
@@ -31,7 +31,7 @@ export function UserAvatar({ user, size = 'md', className }: UserAvatarProps) {
         )}
       >
         <Image
-          src={user.profilePictureUrl}
+          src={user.profilePicture.file}
           alt={user.name}
           fill
           className="object-cover"
