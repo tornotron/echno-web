@@ -45,6 +45,13 @@ function safeParseOrganizations(data: ApiResponse[]): Organization[] {
 }
 
 /**
+ * Files that can be uploaded for an organization.
+ */
+export interface OrganizationFiles {
+  organizationLogo?: File;
+}
+
+/**
  * organizationService
  *
  * Thin wrapper around the backend organization REST endpoints. Provides
@@ -58,6 +65,7 @@ function safeParseOrganizations(data: ApiResponse[]): Organization[] {
  *   client and should be handled by callers (e.g. via React Query
  *   mutation error handlers).
  * - Parsing errors are wrapped in ApiError for consistent error handling.
+ * - File uploads use multipart/form-data with 'data' and 'attachments' fields.
  */
 export const organizationService = {
   /**
@@ -116,6 +124,7 @@ export const organizationService = {
 
   /**
    * Create a new organization.
+   * Uses multipart/form-data as required by the backend endpoint.
    *
    * @param {Organization} org - Organization data to create.
    * @returns {Promise<Organization>} The created, parsed organization.
@@ -123,7 +132,10 @@ export const organizationService = {
    */
   async create(org: Organization): Promise<Organization> {
     const payload = organizationToJsonWithIds(org);
-    const data = await api.post<ApiResponse>('/organization/web', payload);
+    const data = await api.postMultipart<ApiResponse>(
+      '/organization/web',
+      payload
+    );
     return safeParseOrganization(data);
   },
 
@@ -136,5 +148,73 @@ export const organizationService = {
    */
   async delete(id: number): Promise<void> {
     await api.delete(`/organization/web/${id}`);
+  },
+
+  /**
+   * Create a new organization with file uploads.
+   * Uses multipart/form-data to send both JSON data and files.
+   *
+   * Backend expects:
+   * - 'data' field: JSON string of organization data
+   * - 'attachments' field(s): File objects (logo)
+   *
+   * @param {Organization} org - Organization data to create.
+   * @param {OrganizationFiles} files - Files to upload (logo).
+   * @returns {Promise<Organization>} The created, parsed organization.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async createWithFiles(
+    org: Organization,
+    files: OrganizationFiles
+  ): Promise<Organization> {
+    const payload = organizationToJsonWithIds(org);
+
+    // Collect files into attachments array
+    const attachments: File[] = [];
+    if (files.organizationLogo) {
+      attachments.push(files.organizationLogo);
+    }
+
+    const data = await api.postMultipart<ApiResponse>(
+      '/organization/web',
+      payload,
+      attachments.length > 0 ? { attachments } : undefined
+    );
+    return safeParseOrganization(data);
+  },
+
+  /**
+   * Update an existing organization with file uploads.
+   * Uses multipart/form-data to send both JSON data and files.
+   *
+   * Backend expects:
+   * - 'data' field: JSON string of organization data
+   * - 'attachments' field(s): File objects (logo)
+   *
+   * @param {number} id - Organization id to update.
+   * @param {Organization} org - Organization data to persist.
+   * @param {OrganizationFiles} files - Files to upload (logo).
+   * @returns {Promise<Organization>} The updated, parsed organization.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async updateWithFiles(
+    id: number,
+    org: Organization,
+    files: OrganizationFiles
+  ): Promise<Organization> {
+    const payload = organizationToJsonWithIds(org);
+
+    // Collect files into attachments array
+    const attachments: File[] = [];
+    if (files.organizationLogo) {
+      attachments.push(files.organizationLogo);
+    }
+
+    const data = await api.patchMultipart<ApiResponse>(
+      `/organization/web/${id}`,
+      payload,
+      attachments.length > 0 ? { attachments } : undefined
+    );
+    return safeParseOrganization(data);
   },
 };
