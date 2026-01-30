@@ -14,17 +14,50 @@ export interface User {
   qualification: string;
   skills?: string[];
   experience?: number;
-  cv?: Attachment;
   emergencyContact?: string;
   organizations?: Organization[];
   roles?: string[];
 
+  // User's selected default organization (for filtering data across the app)
+  defaultOrganizationId?: number;
+
+  // Attachments from backend
+  attachments?: Attachment[];
+
+  // Computed fields for backward compatibility (populated from attachments)
+  cv?: Attachment;
   profilePicture?: Attachment;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
 
 // ────── Helper Functions ──────
+
+/**
+ * Get attachment by entity type from user's attachments array
+ */
+export function getUserAttachment(
+  user: User,
+  entityType: string
+): Attachment | undefined {
+  return user.attachments?.find((att) => att.entityType === entityType);
+}
+
+/**
+ * Get user's profile picture from attachments
+ */
+export function getUserProfilePicture(user: User): Attachment | undefined {
+  return user.profilePicture ?? getUserAttachment(user, 'USER_PROFILE_PICTURE');
+}
+
+/**
+ * Get user's CV from attachments
+ */
+export function getUserCV(user: User): Attachment | undefined {
+  return user.cv ?? getUserAttachment(user, 'USER_CV');
+}
+
 export function userInitials(user: User): string {
   const words = user.name.trim().split(/\s+/);
   let initials = '';
@@ -80,6 +113,24 @@ function parseSkills(data: unknown): string[] {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseUser(json: any): User {
+  // Parse attachments array from backend
+  const attachments: Attachment[] | undefined = json.attachments
+    ? (json.attachments as unknown[]).map((att) => parseAttachment(att))
+    : undefined;
+
+  // Extract specific attachments for backward compatibility
+  const profilePicture =
+    attachments?.find((att) => att.entityType === 'USER_PROFILE_PICTURE') ??
+    // Fallback for old API responses
+    (json.profilePicture || json.profilePictureUrl
+      ? parseAttachment(json.profilePicture || json.profilePictureUrl)
+      : undefined);
+
+  const cv =
+    attachments?.find((att) => att.entityType === 'USER_CV') ??
+    // Fallback for old API responses
+    (json.cv ? parseAttachment(json.cv) : undefined);
+
   return {
     id: json.id ?? undefined,
     name: json.name ?? 'Not Specified',
@@ -92,16 +143,15 @@ export function parseUser(json: any): User {
     qualification: json.qualification ?? 'Not Specified',
     skills: json.skills ? parseSkills(json.skills) : undefined,
     experience: json.experience ?? undefined,
-    cv: json.cv ? parseAttachment(json.cv) : undefined,
     emergencyContact: json.emergencyContact ?? undefined,
     organizations: json.organizations
       ? (json.organizations as Organization[])
       : undefined,
     roles: json.roles ? (json.roles as string[]) : undefined,
-    profilePicture:
-      json.profilePicture || json.profilePictureUrl
-        ? parseAttachment(json.profilePicture || json.profilePictureUrl)
-        : undefined,
+    defaultOrganizationId: json.defaultOrganizationId ?? undefined,
+    attachments,
+    cv,
+    profilePicture,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
   };
@@ -159,6 +209,8 @@ export function partialUserToJson(
     payload.organizations = user.organizations.map((o) => o.id);
   }
   if (user.roles !== undefined) payload.roles = user.roles;
+  if (user.defaultOrganizationId !== undefined)
+    payload.defaultOrganizationId = user.defaultOrganizationId;
   // Note: cv and profilePicture are not sent - file uploads handled via multipart
 
   return payload;

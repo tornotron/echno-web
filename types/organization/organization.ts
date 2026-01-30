@@ -9,12 +9,31 @@ export interface Organization {
   organizationEmail: string;
   organizationPhone: string;
   organizationWebsite?: string;
-  logo?: Attachment;
   employees?: Employee[];
   projects?: Project[];
   creatorId: number;
   createdAt?: Date;
   isActive: boolean;
+
+  // Attachments from backend
+  attachments?: Attachment[];
+
+  // Computed field for backward compatibility (populated from attachments)
+  logo?: Attachment;
+}
+
+/** -------------------------------------------------------------
+ *  Helper Functions
+ *  ------------------------------------------------------------- */
+
+/**
+ * Get organization logo from attachments
+ */
+export function getOrganizationLogo(org: Organization): Attachment | undefined {
+  return (
+    org.logo ??
+    org.attachments?.find((att) => att.entityType === 'ORGANIZATION_LOGO')
+  );
 }
 
 /** -------------------------------------------------------------
@@ -22,6 +41,19 @@ export interface Organization {
  *  ------------------------------------------------------------- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseOrganization(json: any): Organization {
+  // Parse attachments array from backend
+  const attachments: Attachment[] | undefined = json.attachments
+    ? (json.attachments as unknown[]).map((att) => parseAttachment(att))
+    : undefined;
+
+  // Extract logo for backward compatibility
+  const logo =
+    attachments?.find((att) => att.entityType === 'ORGANIZATION_LOGO') ??
+    // Fallback for old API responses
+    ((json.logo ?? json.organizationLogo)
+      ? parseAttachment(json.logo ?? json.organizationLogo)
+      : undefined);
+
   return {
     id: json.id ?? undefined,
     organizationName: json.organizationName ?? '',
@@ -29,10 +61,6 @@ export function parseOrganization(json: any): Organization {
     organizationEmail: json.organizationEmail ?? '',
     organizationPhone: json.organizationPhone ?? '',
     organizationWebsite: json.organizationWebsite ?? undefined,
-    logo:
-      (json.logo ?? json.organizationLogo)
-        ? parseAttachment(json.logo ?? json.organizationLogo)
-        : undefined,
     employees: json.employees
       ? (json.employees as unknown[]).map((e) => parseEmployee(e))
       : undefined,
@@ -42,6 +70,8 @@ export function parseOrganization(json: any): Organization {
     creatorId: json.proprietorId ?? json.creatorId ?? 0,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     isActive: json.isActive ?? true,
+    attachments,
+    logo,
   };
 }
 
