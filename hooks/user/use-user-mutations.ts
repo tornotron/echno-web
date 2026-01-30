@@ -96,3 +96,54 @@ export function useUpdateUserWithFiles() {
     },
   });
 }
+
+/**
+ * useUpdateUserOrganization
+ *
+ * React Query mutation hook that updates the user's selected organization preference.
+ * This is a silent mutation (no success toast) used for syncing organization
+ * context across devices. Updates are optimistically applied.
+ */
+export function useUpdateUserOrganization() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      organizationId,
+    }: {
+      id: number;
+      organizationId: number | null;
+    }) => userService.updateUserOrganization(id, organizationId),
+    // Optimistically update the cache
+    onMutate: async ({ organizationId }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['user'] });
+
+      // Snapshot previous value
+      const previousUser = queryClient.getQueryData<User>(['user']);
+
+      // Optimistically update
+      if (previousUser) {
+        queryClient.setQueryData<User>(['user'], {
+          ...previousUser,
+          defaultOrganizationId: organizationId ?? undefined,
+        });
+      }
+
+      return { previousUser };
+    },
+    onSuccess: () => {
+      // Silently invalidate to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+    },
+    onError: (error, _variables, context) => {
+      // Rollback on error
+      if (context?.previousUser) {
+        queryClient.setQueryData(['user'], context.previousUser);
+      }
+      // Silent error - just log it
+      logger.error('Failed to update user organization preference:', error);
+    },
+  });
+}
