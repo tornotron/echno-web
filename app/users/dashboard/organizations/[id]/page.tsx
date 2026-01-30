@@ -29,11 +29,14 @@ import {
   Settings,
   Network,
   Loader2,
+  Star,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { useOrganizationWithLogo } from '@/hooks/organization/use-organizations';
+import { useOrganization } from '@/components/providers/organization-provider';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -52,6 +55,18 @@ export default function OrganizationDetailPage({
 
   const { organization, isLoading, error } =
     useOrganizationWithLogo(organizationId);
+  const { defaultOrganization, setDefaultOrganization } = useOrganization();
+
+  const isDefault = defaultOrganization?.id === organization?.id;
+
+  const handleSetAsDefault = () => {
+    if (organization && !isDefault) {
+      setDefaultOrganization(organization);
+      toast.success('Default Organization Updated', {
+        description: `${organization.organizationName} is now your default organization`,
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -109,7 +124,7 @@ export default function OrganizationDetailPage({
               </div>
             )}
             <div>
-              <div className="mb-2 flex items-center space-x-3">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   {organization.organizationName}
                 </h1>
@@ -128,6 +143,15 @@ export default function OrganizationDetailPage({
                     </>
                   )}
                 </Badge>
+                {isDefault && (
+                  <Badge
+                    variant="outline"
+                    className="border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400"
+                  >
+                    <Star className="mr-1 h-3 w-3 fill-yellow-500" />
+                    Default
+                  </Badge>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -146,12 +170,22 @@ export default function OrganizationDetailPage({
               </div>
             </div>
           </div>
-          <Link href={`/users/dashboard/organizations/${organization.id}/edit`}>
-            <Button>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Organization
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {!isDefault && (
+              <Button variant="outline" onClick={handleSetAsDefault}>
+                <Star className="mr-2 h-4 w-4" />
+                Set as Default
+              </Button>
+            )}
+            <Link
+              href={`/users/dashboard/organizations/${organization.id}/edit`}
+            >
+              <Button>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Organization
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -298,6 +332,36 @@ export default function OrganizationDetailPage({
                   General Settings
                 </h3>
                 <div className="space-y-4">
+                  <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
+                    <div className="flex-1">
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        Default Organization
+                      </p>
+                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {isDefault
+                          ? 'This is your default organization for viewing data'
+                          : 'Set as default to filter all data by this organization'}
+                      </p>
+                    </div>
+                    {isDefault ? (
+                      <Badge
+                        variant="outline"
+                        className="border-yellow-500 bg-yellow-50 text-yellow-700 dark:bg-yellow-950 dark:text-yellow-400"
+                      >
+                        <Star className="mr-1 h-3 w-3 fill-yellow-500" />
+                        Default
+                      </Badge>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSetAsDefault}
+                      >
+                        <Star className="mr-2 h-4 w-4" />
+                        Set as Default
+                      </Button>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-800">
                     <div>
                       <p className="font-medium text-zinc-900 dark:text-zinc-100">
