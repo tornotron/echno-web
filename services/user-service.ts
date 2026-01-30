@@ -105,4 +105,25 @@ export const userService = {
     );
     return safeParseUser(data);
   },
+
+  /**
+   * Update the user's selected organization preference.
+   * This is a silent update used for syncing organization context across devices.
+   *
+   * @param {number} id - User ID to update.
+   * @param {number | null} organizationId - Organization ID to set as default (null to clear).
+   * @returns {Promise<User>} The updated, parsed user profile.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async updateUserOrganization(
+    id: number,
+    organizationId: number | null
+  ): Promise<User> {
+    const payload = { defaultOrganizationId: organizationId };
+    const data = await api.patchMultipart<ApiResponse>(
+      `/user/web/${id}`,
+      payload
+    );
+    return safeParseUser(data);
+  },
 };
