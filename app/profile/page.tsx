@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUserWithAttachments } from '@/hooks/user/use-user';
+import { useUser } from '@/hooks/user/use-user';
 import { UserProfileView } from '@/features/user-profile/user-profile-view';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/lib/styles/toast-styles';
@@ -58,8 +58,8 @@ export default function ProfilePage() {
   const router = useRouter();
   const loginToastShown = useRef(false);
 
-  // Get user data with attachments from React Query cache (prefetched on login)
-  const { user, isLoading, error } = useUserWithAttachments();
+  // Get user data (including attachments) from React Query cache (prefetched on login)
+  const { data: user, isLoading, error } = useUser();
 
   // Show login success toast if redirected from login (client-side only)
   useEffect(() => {

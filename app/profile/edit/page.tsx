@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useUserWithAttachments } from '@/hooks/user/use-user';
+import { useUser } from '@/hooks/user/use-user';
 import { ProfileEditForm } from '@/features/user-profile/profile-edit-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -43,7 +43,7 @@ function EditProfileSkeleton() {
  */
 export default function EditProfilePage() {
   const router = useRouter();
-  const { user, isLoading, error } = useUserWithAttachments();
+  const { data: user, isLoading, error } = useUser();
 
   const handleCancel = () => {
     router.push('/profile');
