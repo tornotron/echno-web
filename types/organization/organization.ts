@@ -46,13 +46,19 @@ export function parseOrganization(json: any): Organization {
     ? (json.attachments as unknown[]).map((att) => parseAttachment(att))
     : undefined;
 
-  // Extract logo for backward compatibility
+  // Extract logo - use latest by createdAt if multiple exist
+  const logoAttachments = attachments?.filter(
+    (att) => att.entityType === 'ORGANIZATION_LOGO'
+  );
   const logo =
-    attachments?.find((att) => att.entityType === 'ORGANIZATION_LOGO') ??
-    // Fallback for old API responses
-    ((json.logo ?? json.organizationLogo)
-      ? parseAttachment(json.logo ?? json.organizationLogo)
-      : undefined);
+    logoAttachments && logoAttachments.length > 0
+      ? logoAttachments.toSorted(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+        )[0]
+      : // Fallback for old API responses
+        (json.logo ?? json.organizationLogo)
+        ? parseAttachment(json.logo ?? json.organizationLogo)
+        : undefined;
 
   return {
     id: json.id ?? undefined,
