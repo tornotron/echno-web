@@ -16,8 +16,8 @@ import { useOrganizations } from '@/hooks/organization/use-organizations';
 export function OrganizationSelector() {
   const { data: session } = useSession();
   const {
-    selectedOrganization,
-    setSelectedOrganization,
+    defaultOrganization,
+    setDefaultOrganization,
     organizations: contextOrganizations, // rename to avoid conflict
     setOrganizations,
   } = useOrganization();
@@ -30,15 +30,15 @@ export function OrganizationSelector() {
       setOrganizations(fetchedOrganizations);
 
       // Set first organization as default if none selected
-      if (!selectedOrganization && fetchedOrganizations.length > 0) {
-        setSelectedOrganization(fetchedOrganizations[0]);
+      if (!defaultOrganization && fetchedOrganizations.length > 0) {
+        setDefaultOrganization(fetchedOrganizations[0]);
       }
     }
   }, [
     fetchedOrganizations,
     setOrganizations,
-    selectedOrganization,
-    setSelectedOrganization,
+    defaultOrganization,
+    setDefaultOrganization,
   ]);
 
   if (!session || contextOrganizations.length === 0) {
@@ -49,13 +49,13 @@ export function OrganizationSelector() {
     <div className="flex items-center gap-2">
       <Building className="h-4 w-4 text-zinc-500" />
       <Select
-        value={selectedOrganization?.id?.toString() || ''}
+        value={defaultOrganization?.id?.toString() || ''}
         onValueChange={(value) => {
           const org = contextOrganizations.find(
             (o) => o.id?.toString() === value
           );
           if (org) {
-            setSelectedOrganization(org);
+            setDefaultOrganization(org);
           }
         }}
       >
