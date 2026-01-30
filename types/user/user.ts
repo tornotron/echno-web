@@ -118,18 +118,32 @@ export function parseUser(json: any): User {
     ? (json.attachments as unknown[]).map((att) => parseAttachment(att))
     : undefined;
 
-  // Extract specific attachments for backward compatibility
+  // Extract specific attachments - use latest by createdAt if multiple exist
+  const profilePictureAttachments = attachments?.filter(
+    (att) => att.entityType === 'USER_PROFILE_PICTURE'
+  );
   const profilePicture =
-    attachments?.find((att) => att.entityType === 'USER_PROFILE_PICTURE') ??
-    // Fallback for old API responses
-    (json.profilePicture || json.profilePictureUrl
-      ? parseAttachment(json.profilePicture || json.profilePictureUrl)
-      : undefined);
+    profilePictureAttachments && profilePictureAttachments.length > 0
+      ? profilePictureAttachments.toSorted(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+        )[0]
+      : // Fallback for old API responses
+        json.profilePicture || json.profilePictureUrl
+        ? parseAttachment(json.profilePicture || json.profilePictureUrl)
+        : undefined;
 
+  const cvAttachments = attachments?.filter(
+    (att) => att.entityType === 'USER_CV'
+  );
   const cv =
-    attachments?.find((att) => att.entityType === 'USER_CV') ??
-    // Fallback for old API responses
-    (json.cv ? parseAttachment(json.cv) : undefined);
+    cvAttachments && cvAttachments.length > 0
+      ? cvAttachments.toSorted(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+        )[0]
+      : // Fallback for old API responses
+        json.cv
+        ? parseAttachment(json.cv)
+        : undefined;
 
   return {
     id: json.id ?? undefined,
