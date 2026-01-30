@@ -16,6 +16,7 @@ export interface Attachment {
   fileSize: number; // in bytes
   fileType: AttachmentType;
   contentType: string;
+  entityType?: string; // e.g., 'USER_PROFILE_PICTURE', 'USER_CV', 'ORGANIZATION_LOGO'
   createdAt: Date;
   updatedAt: Date;
   uploadedBy?: string;
@@ -105,6 +106,7 @@ export function parseAttachment(json: any): Attachment {
     fileSize: json.fileSize ?? 0,
     fileType,
     contentType,
+    entityType: json.entityType ?? undefined,
     createdAt: json.createdAt
       ? new Date(json.createdAt)
       : json.uploadedAt
