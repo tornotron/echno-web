@@ -1,84 +1,7 @@
 // lib/utils/user-profile-utils.ts
 import { User } from '@/types/user';
 
-/**
- * Formats a date to a readable string
- */
-export function formatDate(date: Date | string | undefined): string {
-  if (!date) return 'Not specified';
-  try {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (Number.isNaN(d.getTime())) return 'Invalid date';
-
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(d);
-  } catch {
-    return 'Invalid date';
-  }
-}
-
-/**
- * Formats a date to a short string (MMM DD, YYYY)
- */
-export function formatDateShort(date: Date | string | undefined): string {
-  if (!date) return 'Not specified';
-  try {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (Number.isNaN(d.getTime())) return 'Invalid date';
-
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(d);
-  } catch {
-    return 'Invalid date';
-  }
-}
-
-/**
- * Formats a date to ISO string for input fields
- */
-export function formatDateForInput(date: Date | string | undefined): string {
-  if (!date) return '';
-  try {
-    const d = typeof date === 'string' ? new Date(date) : date;
-    if (Number.isNaN(d.getTime())) return '';
-
-    return d.toISOString().split('T')[0];
-  } catch {
-    return '';
-  }
-}
-
-/**
- * Calculates age from date of birth
- */
-export function calculateAge(
-  dateOfBirth: Date | string | undefined
-): number | null {
-  if (!dateOfBirth) return null;
-  try {
-    const dob =
-      typeof dateOfBirth === 'string' ? new Date(dateOfBirth) : dateOfBirth;
-    if (Number.isNaN(dob.getTime())) return null;
-
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const monthDiff = today.getMonth() - dob.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-
-    return age >= 0 ? age : null;
-  } catch {
-    return null;
-  }
-}
+// Re-export date utilities for backward compatibility
 
 /**
  * Formats phone number for display
@@ -220,12 +143,11 @@ export function formatList(items: string[] | undefined): string {
 
 /**
  * Gets user's organization names as a string
+ * Note: Organizations should be fetched separately using useUserOrganizations hook
  */
 export function getOrganizationNames(user: User): string {
-  if (!user.organizations || user.organizations.length === 0) {
-    return 'No organizations';
-  }
-  return user.organizations.map((org) => org.organizationName).join(', ');
+  // Organizations are now fetched via hooks, not stored in user object
+  return user.defaultOrganizationId ? 'View organizations' : 'No organizations';
 }
 
 /**
@@ -256,3 +178,10 @@ export function sanitizeString(input: string | undefined): string {
   if (!input) return '';
   return input.replaceAll(/[<>]/g, '').trim();
 }
+
+export {
+  formatDate,
+  formatDateShort,
+  formatDateForInput,
+  calculateAge,
+} from './date-utils';

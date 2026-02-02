@@ -1,3 +1,18 @@
+/**
+ * hooks/user/use-user.ts
+ *
+ * User-centric query hooks for current user profile and related collections.
+ *
+ * - `useUser()` fetches the current authenticated user's profile and applies
+ *   enterprise-friendly caching and retry rules.
+ * - `useUserEmployees()` returns employee profiles associated with the
+ *   current user.
+ *
+ * Implementation notes: parsing and normalization are handled in the
+ * `userService`. Hooks are intentionally thin and focus on attaching
+ * configuration (staleTime, gcTime, retry) and consumer-friendly signatures.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
 import { ApiError } from '@/lib/api/api-client';
@@ -63,6 +78,32 @@ export function useUser() {
     queryFn: () => userService.getCurrentUser(),
     staleTime: 10 * 60 * 1000, // 10 minutes - matches prefetch staleTime
     gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
+}
+
+/**
+ * Hook to fetch all employee profiles for the current user.
+ * Returns a list of employee objects across all organizations the user belongs to.
+ * The current/active employee is where defaultOrganizationId = employee.organizationId.
+ *
+ * @example
+ * ```tsx
+ * const { data: user } = useUser();
+ * const { data: employees, isLoading } = useUserEmployees();
+ *
+ * // Find current employee
+ * const currentEmployee = employees?.find(
+ *   emp => emp.organizationId === user?.defaultOrganizationId
+ * );
+ * ```
+ */
+export function useUserEmployees() {
+  return useQuery({
+    queryKey: ['user', 'employees'],
+    queryFn: () => userService.getUserEmployees(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });

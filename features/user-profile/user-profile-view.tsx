@@ -100,12 +100,6 @@ export function UserProfileView({
                     {getRoleDisplayName(user.roles?.[0] || '')}
                   </Badge>
                   <UserGroupBadge size="sm" showIcon />
-                  {user.organizations && user.organizations.length > 0 && (
-                    <Badge variant="secondary" className="text-xs">
-                      <Building2 className="mr-1 h-3 w-3" />
-                      {user.organizations[0].organizationName}
-                    </Badge>
-                  )}
                   {user.experience !== undefined && user.experience > 0 && (
                     <Badge variant="outline" className="text-xs">
                       <Briefcase className="mr-1 h-3 w-3" />
@@ -290,27 +284,6 @@ export function UserProfileView({
                 >
                   {skill}
                 </Badge>
-              ))}
-            </div>
-          </ProfileCard>
-        )}
-
-        {/* Organizations */}
-        {user.organizations && user.organizations.length > 0 && (
-          <ProfileCard
-            title="Organizations"
-            description="Your organizational affiliations"
-            icon={<Building2 className="h-5 w-5" />}
-          >
-            <div className="space-y-2">
-              {user.organizations.map((org) => (
-                <div
-                  key={org.id}
-                  className="border-border bg-muted/50 flex items-center gap-2 rounded-md border p-3"
-                >
-                  <Building2 className="text-primary h-5 w-5" />
-                  <span className="font-medium">{org.organizationName}</span>
-                </div>
               ))}
             </div>
           </ProfileCard>
