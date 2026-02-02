@@ -1,5 +1,4 @@
 // types/user/user.ts
-import { Organization } from '@/types/organization';
 import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface User {
@@ -15,7 +14,6 @@ export interface User {
   skills?: string[];
   experience?: number;
   emergencyContact?: string;
-  organizations?: Organization[];
   roles?: string[];
 
   // User's selected default organization (for filtering data across the app)
@@ -67,18 +65,6 @@ export function userInitials(user: User): string {
 
 export function skillsAsString(user: User): string {
   return user.skills?.join(', ') ?? '';
-}
-
-export function primaryOrganization(user: User): Organization | undefined {
-  return user.organizations?.[0];
-}
-
-export function belongsToOrganization(user: User, orgId: number): boolean {
-  return user.organizations?.some((o) => o.id === orgId) ?? false;
-}
-
-export function organizationCount(user: User): number {
-  return user.organizations?.length ?? 0;
 }
 
 /**
@@ -158,9 +144,6 @@ export function parseUser(json: any): User {
     skills: json.skills ? parseSkills(json.skills) : undefined,
     experience: json.experience ?? undefined,
     emergencyContact: json.emergencyContact ?? undefined,
-    organizations: json.organizations
-      ? (json.organizations as Organization[])
-      : undefined,
     roles: json.roles ? (json.roles as string[]) : undefined,
     defaultOrganizationId: json.defaultOrganizationId ?? undefined,
     attachments,
@@ -187,7 +170,6 @@ export function userToJson(user: User): Record<string, unknown> {
     skills: user.skills,
     experience: user.experience,
     emergencyContact: user.emergencyContact,
-    organizations: user.organizations?.map((o) => o.id),
     roles: user.roles,
     // Note: cv and profilePicture are not sent - file uploads handled via multipart
   };
@@ -219,9 +201,6 @@ export function partialUserToJson(
   if (user.experience !== undefined) payload.experience = user.experience;
   if (user.emergencyContact !== undefined)
     payload.emergencyContact = user.emergencyContact;
-  if (user.organizations !== undefined) {
-    payload.organizations = user.organizations.map((o) => o.id);
-  }
   if (user.roles !== undefined) payload.roles = user.roles;
   if (user.defaultOrganizationId !== undefined)
     payload.defaultOrganizationId = user.defaultOrganizationId;

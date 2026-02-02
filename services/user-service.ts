@@ -1,6 +1,8 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import { User, parseUser, partialUserToJson } from '@/types/user/user';
+import { Employee, parseEmployee } from '@/types/employee';
+import { Organization, parseOrganization } from '@/types/organization';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
@@ -15,6 +17,44 @@ function safeParseUser(data: ApiResponse): User {
   } catch (error) {
     logger.error('Failed to parse user data:', error);
     throw new ApiError('Failed to process user data. Please try again.', 422);
+  }
+}
+
+/**
+ * Safely parse employee array with error handling.
+ * @throws {ApiError} when parsing fails
+ */
+function safeParseEmployees(data: ApiResponse[]): Employee[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  try {
+    return data.map((item) => parseEmployee(item));
+  } catch (error) {
+    logger.error('Failed to parse employees data:', error);
+    throw new ApiError(
+      'Failed to process employees data. Please try again.',
+      422
+    );
+  }
+}
+
+/**
+ * Safely parse organization array with error handling.
+ * @throws {ApiError} when parsing fails
+ */
+function safeParseOrganizations(data: ApiResponse[]): Organization[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  try {
+    return data.map((item) => parseOrganization(item));
+  } catch (error) {
+    logger.error('Failed to parse organizations data:', error);
+    throw new ApiError(
+      'Failed to process organizations data. Please try again.',
+      422
+    );
   }
 }
 
@@ -115,6 +155,21 @@ export const userService = {
    * @returns {Promise<User>} The updated, parsed user profile.
    * @throws {ApiError} on network, server, or parsing errors
    */
+
+  /**
+   * services/user-service.ts
+   *
+   * Robust, typed wrapper around user-related backend endpoints.
+   *
+   * This module centralizes REST interactions for user CRUD operations and
+   * file uploads. It converts raw server payloads into typed `User` objects
+   * via parsing helpers and ensures consistent error wrapping using `ApiError`.
+   *
+   * Conventions:
+   * - Use `safeParse*` helpers to validate and normalize responses.
+   * - Use multipart endpoints for file uploads via `patchMultipart`.
+   */
+
   async updateUserOrganization(
     id: number,
     organizationId: number | null
@@ -125,5 +180,34 @@ export const userService = {
       payload
     );
     return safeParseUser(data);
+  },
+
+  /**
+   * Get all employee profiles for the current user.
+   * Returns a list of employee objects across all organizations the user belongs to.
+   * The current/active employee is where defaultOrganizationId = employee.organizationId.
+   *
+   * @returns {Promise<Employee[]>} List of employee profiles for the current user.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async getUserEmployees(): Promise<Employee[]> {
+    const data = await api.get<ApiResponse[]>('/user/web/employees');
+    return safeParseEmployees(data);
+  },
+
+  /**
+   * Get all organizations that a user is an employee of.
+   *
+   * @param {number} userId - User ID to get organizations for.
+   * @returns {Promise<Organization[]>} List of organizations the user belongs to.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async getUserOrganizationsEmployedIn(
+    userId: number
+  ): Promise<Organization[]> {
+    const data = await api.get<ApiResponse[]>(
+      `/user/web/${userId}/organizations`
+    );
+    return safeParseOrganizations(data);
   },
 };
