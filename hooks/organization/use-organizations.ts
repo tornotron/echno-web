@@ -1,9 +1,20 @@
+/**
+ * hooks/organization/use-organizations.ts
+ *
+ * Organization-related query hooks used throughout the application.
+ *
+ * Provides a small set of composable hooks for retrieving organization
+ * lists, a single organization, combined organization+logo view, and user
+ * specific organization collections. Hooks are designed for enterprise
+ * usage: they apply sensible caching, retries and clear error semantics.
+ */
+
 import React, { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { organizationService } from '@/services/organization-service';
+import { userService } from '@/services/user-service';
 import { ApiError } from '@/lib/api/api-client';
 import { useUser } from '@/hooks/user/use-user';
-import { useCurrentUserEmployee } from '@/hooks/employee/use-employee';
 import { useAttachmentByEntity } from '@/hooks/attachment/use-attachment';
 import { Organization } from '@/types/organization';
 
@@ -119,12 +130,10 @@ export function useOrganizationWithLogo(id: number) {
  *
  * This hook combines:
  * 1. Organizations created by the user (via getByCreator endpoint)
- * 2. Organizations where the user is an employee (from employee.organizations)
+ * 2. Organizations where the user is an employee (via getUserOrganizationsEmployedIn endpoint)
  */
 export function useUserOrganizations() {
   const { data: user, isLoading: isUserLoading, error: userError } = useUser();
-  const { data: employee, isLoading: isEmployeeLoading } =
-    useCurrentUserEmployee();
 
   // Fetch organizations created by the user
   const {
@@ -145,6 +154,25 @@ export function useUserOrganizations() {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 
+  // Fetch organizations where user is an employee
+  const {
+    data: employeeOrgs,
+    isLoading: isEmployeeOrgsLoading,
+    error: employeeOrgsError,
+  } = useQuery({
+    queryKey: ['user', user?.id, 'employee-organizations'],
+    queryFn: () => {
+      if (!user?.id) {
+        throw new Error('User ID not available');
+      }
+      return userService.getUserOrganizationsEmployedIn(user.id);
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
+
   // Combine organizations from both sources and deduplicate by ID
   const organizations = React.useMemo(() => {
     const orgsMap = new Map();
@@ -157,19 +185,46 @@ export function useUserOrganizations() {
     }
 
     // Add organizations where user is an employee
-    if (employee?.organizations) {
-      for (const org of employee.organizations) {
+    if (employeeOrgs) {
+      for (const org of employeeOrgs) {
         if (org.id) orgsMap.set(org.id, org);
       }
     }
 
     return [...orgsMap.values()];
-  }, [createdOrgs, employee]);
+  }, [createdOrgs, employeeOrgs]);
 
   return {
     data: organizations,
-    isLoading: isUserLoading || isEmployeeLoading || isCreatedOrgsLoading,
-    error: userError || createdOrgsError,
+    isLoading: isUserLoading || isCreatedOrgsLoading || isEmployeeOrgsLoading,
+    error: userError || createdOrgsError || employeeOrgsError,
     user,
   };
+}
+
+/**
+ * Hook to fetch all organizations that a user is an employee of.
+ * Uses the new /api/v1/user/web/{userId}/organizations endpoint.
+ *
+ * @param userId - User ID to get organizations for
+ * @example
+ * ```tsx
+ * const { data: user } = useUser();
+ * const { data: organizations, isLoading } = useUserEmployeeOrganizations(user?.id);
+ * ```
+ */
+export function useUserEmployeeOrganizations(userId?: number) {
+  return useQuery({
+    queryKey: ['user', userId, 'employee-organizations'],
+    queryFn: () => {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      return userService.getUserOrganizationsEmployedIn(userId);
+    },
+    enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
 }
