@@ -35,13 +35,13 @@ import {
   AlertCircle,
   User,
   LucideIcon,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { mockInvitations } from '@/components/shared/mock-data';
-
-// Use invitations directly from mock data
-const mockInvitationsExtended = mockInvitations;
+import { getInvitationStatus } from '@/types/invitation/invitation';
+import { useInvitationsByOrganization } from '@/hooks/invitation';
+import { useUser } from '@/hooks/user/use-user';
 
 const getStatusBadge = (status: string) => {
   const config: Record<
@@ -90,32 +90,49 @@ export default function InvitationsPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedInvitations, setSelectedInvitations] = useState<string[]>([]);
 
+  const { data: user } = useUser();
+  const {
+    data: invitations,
+    isLoading,
+    error,
+  } = useInvitationsByOrganization(user?.defaultOrganizationId);
+
+  const invitationsList = invitations || [];
+
   // Filter invitations
-  const filteredInvitations = mockInvitationsExtended.filter((inv) => {
+  const filteredInvitations = invitationsList.filter((inv) => {
     const matchesSearch =
       searchQuery === '' ||
-      inv.employeeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      inv.employeeDetails.employeeName
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
       inv.inviteCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.employeeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inv.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      inv.employeeDetails.employeeId
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase()) ||
+      inv.employeeDetails.email
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    const matchesStatus = statusFilter === 'all' || inv.status === statusFilter;
+    const matchesStatus =
+      statusFilter === 'all' || getInvitationStatus(inv) === statusFilter;
     const matchesDepartment =
-      departmentFilter === 'all' || inv.department === departmentFilter;
+      departmentFilter === 'all' ||
+      inv.employeeDetails.department === departmentFilter;
 
     return matchesSearch && matchesStatus && matchesDepartment;
   });
 
   // Calculate statistics
-  const totalInvitations = mockInvitationsExtended.length;
-  const pendingInvitations = mockInvitationsExtended.filter(
-    (i) => i.status === 'pending'
+  const totalInvitations = invitationsList.length;
+  const pendingInvitations = invitationsList.filter(
+    (i) => getInvitationStatus(i) === 'pending'
   ).length;
-  const acceptedInvitations = mockInvitationsExtended.filter(
-    (i) => i.status === 'accepted'
+  const acceptedInvitations = invitationsList.filter(
+    (i) => getInvitationStatus(i) === 'accepted'
   ).length;
-  const expiredInvitations = mockInvitationsExtended.filter(
-    (i) => i.status === 'expired'
+  const expiredInvitations = invitationsList.filter(
+    (i) => getInvitationStatus(i) === 'expired'
   ).length;
 
   // Pagination
@@ -160,6 +177,40 @@ export default function InvitationsPage() {
       selectedInvitations.includes(inv.inviteCode)
     );
   const isSomeSelected = selectedInvitations.length > 0 && !isAllSelected;
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <h2 className="mb-2 text-xl font-semibold">
+          Error Loading Invitations
+        </h2>
+        <p className="text-zinc-500">
+          Failed to load invitations. Please try again later.
+        </p>
+      </div>
+    );
+  }
+
+  if (!user?.defaultOrganizationId) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-yellow-500" />
+        <h2 className="mb-2 text-xl font-semibold">No Organization Selected</h2>
+        <p className="text-zinc-500">
+          Please select an organization to view invitations.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -352,7 +403,7 @@ export default function InvitationsPage() {
                     key={invitation.inviteCode}
                     className="hover:bg-muted/50 cursor-pointer border-b border-zinc-200 dark:border-zinc-800"
                     onClick={() =>
-                      (globalThis.location.href = `/dashboard/workforce/invitations/${invitation.inviteCode}`)
+                      (globalThis.location.href = `/users/dashboard/workforce/invitations/${invitation.inviteCode}`)
                     }
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
@@ -366,7 +417,7 @@ export default function InvitationsPage() {
                             checked as boolean
                           )
                         }
-                        aria-label={`Select ${invitation.employeeName || 'invitation'}`}
+                        aria-label={`Select ${invitation.employeeDetails.employeeName || 'invitation'}`}
                       />
                     </TableCell>
                     <TableCell>
@@ -376,28 +427,31 @@ export default function InvitationsPage() {
                         </div>
                         <div>
                           <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {invitation.employeeName}
+                            {invitation.employeeDetails.employeeName || 'N/A'}
                           </div>
                           <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                            {invitation.employeeId}
+                            {invitation.employeeDetails.employeeId ||
+                              'Not Assigned'}
                           </div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-zinc-900 dark:text-zinc-100">
-                        {invitation.designation}
+                        {invitation.employeeDetails.designation}
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(invitation.status)}</TableCell>
                     <TableCell>
-                      {invitation.createdDate ? (
+                      {getStatusBadge(getInvitationStatus(invitation))}
+                    </TableCell>
+                    <TableCell>
+                      {invitation.expiryDate ? (
                         <>
                           <div className="text-sm text-zinc-900 dark:text-zinc-100">
-                            {format(invitation.createdDate, 'MMM dd, yyyy')}
+                            {format(invitation.expiryDate, 'MMM dd, yyyy')}
                           </div>
                           <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {format(invitation.createdDate, 'h:mm a')}
+                            {format(invitation.expiryDate, 'h:mm a')}
                           </div>
                         </>
                       ) : (
