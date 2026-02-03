@@ -692,240 +692,6 @@ const mockProjects: Project[] = [
 // 10. INVITATIONS
 // ═════════════════════════════════════════════════════════════════════════════
 
-const mockInvitations: Invitation[] = [
-  {
-    inviteCode: 'ECHNO2025-001',
-    employeeId: 'EMP009',
-    employeeName: 'Vikram Singh',
-    email: 'vikram.singh@echno.com',
-    phone: '+91-9876543210',
-    designation: 'Site Supervisor',
-    department: 'Construction',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.pending,
-    joiningDate: new Date('2025-02-01'),
-    salary: 75_000,
-    reportingManager: 'Rajesh Kumar',
-    shiftTiming: '07:00 - 16:00',
-    validityDays: 30,
-    expiryDate: new Date('2025-02-15'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-15'),
-    sentVia: ['email', 'sms'],
-  },
-  {
-    inviteCode: 'ECHNO2025-002',
-    employeeId: 'EMP010',
-    employeeName: 'Ananya Desai',
-    email: 'ananya.desai@echno.com',
-    phone: '+91-9876543211',
-    designation: 'Junior Engineer',
-    department: 'Engineering',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.accepted,
-    joiningDate: new Date('2025-02-10'),
-    salary: 45_000,
-    reportingManager: 'Priya Sharma',
-    shiftTiming: '09:00 - 18:00',
-    validityDays: 45,
-    expiryDate: new Date('2025-03-01'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-16'),
-    sentVia: ['email'],
-  },
-  {
-    inviteCode: 'BUILDRIGHT-2025-001',
-    employeeId: 'EMP011',
-    employeeName: 'Rahul Verma',
-    email: 'rahul.verma@buildright.com',
-    phone: '+91-9876543212',
-    designation: 'Quantity Surveyor',
-    department: 'Planning',
-    organizationId: '2',
-    organizationName: 'BuildRight Infrastructure Pvt. Ltd.',
-    status: InvitationStatus.pending,
-    joiningDate: new Date('2025-03-01'),
-    salary: 80_000,
-    reportingManager: 'Project Manager',
-    shiftTiming: '09:00 - 18:00',
-    validityDays: 60,
-    expiryDate: new Date('2025-04-15'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-20'),
-    sentVia: ['email', 'whatsapp'],
-  },
-  {
-    inviteCode: 'ECHNO2025-003',
-    employeeId: 'EMP012',
-    employeeName: 'Priya Nair',
-    email: 'priya.nair@echno.com',
-    phone: '+91-9876543213',
-    designation: 'Safety Officer',
-    department: 'Safety',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.expired,
-    joiningDate: new Date('2025-01-25'),
-    salary: 65_000,
-    reportingManager: 'Vikram Singh',
-    shiftTiming: '08:00 - 17:00',
-    validityDays: 15,
-    expiryDate: new Date('2025-01-10'),
-    maxUses: 1,
-    createdDate: new Date('2024-12-26'),
-    sentVia: ['email', 'sms'],
-  },
-  {
-    inviteCode: 'ECHNO2025-004',
-    employeeId: 'EMP013',
-    employeeName: 'Arjun Patel',
-    email: 'arjun.patel@echno.com',
-    phone: '+91-9876543214',
-    designation: 'Electrician',
-    department: 'Electrical',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.pending,
-    joiningDate: new Date('2025-02-05'),
-    salary: 38_000,
-    reportingManager: 'Priya Sharma',
-    shiftTiming: '07:00 - 16:00',
-    validityDays: 30,
-    expiryDate: new Date('2025-02-20'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-18'),
-    sentVia: ['email'],
-  },
-  {
-    inviteCode: 'ECHNO2025-005',
-    employeeId: 'EMP014',
-    employeeName: 'Sneha Reddy',
-    email: 'sneha.reddy@echno.com',
-    phone: '+91-9876543215',
-    designation: 'Accountant',
-    department: 'Finance',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.accepted,
-    joiningDate: new Date('2025-01-28'),
-    salary: 55_000,
-    reportingManager: 'Finance Manager',
-    shiftTiming: '09:00 - 18:00',
-    validityDays: 20,
-    expiryDate: new Date('2025-02-05'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-12'),
-    sentVia: ['email', 'whatsapp'],
-  },
-  {
-    inviteCode: 'BUILDRIGHT-2025-002',
-    employeeId: 'EMP015',
-    employeeName: 'Karthik Menon',
-    email: 'karthik.menon@buildright.com',
-    phone: '+91-9876543216',
-    designation: 'Civil Engineer',
-    department: 'Engineering',
-    organizationId: '2',
-    organizationName: 'BuildRight Infrastructure Pvt. Ltd.',
-    status: InvitationStatus.pending,
-    joiningDate: new Date('2025-02-15'),
-    salary: 72_000,
-    reportingManager: 'Senior Engineer',
-    shiftTiming: '08:00 - 17:00',
-    validityDays: 45,
-    expiryDate: new Date('2025-03-10'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-22'),
-    sentVia: ['email'],
-  },
-  {
-    inviteCode: 'ECHNO2025-006',
-    employeeId: 'EMP016',
-    employeeName: 'Meera Krishnan',
-    email: 'meera.krishnan@echno.com',
-    phone: '+91-9876543217',
-    designation: 'HR Manager',
-    department: 'Human Resources',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.expired,
-    joiningDate: new Date('2025-01-20'),
-    salary: 85_000,
-    reportingManager: 'Director',
-    shiftTiming: '09:00 - 18:00',
-    validityDays: 10,
-    expiryDate: new Date('2025-01-05'),
-    maxUses: 1,
-    createdDate: new Date('2024-12-22'),
-    sentVia: ['email', 'sms', 'whatsapp'],
-  },
-  {
-    inviteCode: 'ECHNO2025-007',
-    employeeId: 'EMP017',
-    employeeName: 'Aditya Sharma',
-    email: 'aditya.sharma@echno.com',
-    phone: '+91-9876543218',
-    designation: 'Plumber',
-    department: 'Plumbing',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.pending,
-    joiningDate: new Date('2025-02-12'),
-    salary: 35_000,
-    reportingManager: 'Site Supervisor',
-    shiftTiming: '07:00 - 16:00',
-    validityDays: 30,
-    expiryDate: new Date('2025-02-25'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-19'),
-    sentVia: ['sms'],
-  },
-  {
-    inviteCode: 'BUILDRIGHT-2025-003',
-    employeeId: 'EMP018',
-    employeeName: 'Deepika Iyer',
-    email: 'deepika.iyer@buildright.com',
-    phone: '+91-9876543219',
-    designation: 'Architect',
-    department: 'Design',
-    organizationId: '2',
-    organizationName: 'BuildRight Infrastructure Pvt. Ltd.',
-    status: InvitationStatus.accepted,
-    joiningDate: new Date('2025-02-20'),
-    salary: 95_000,
-    reportingManager: 'Chief Architect',
-    shiftTiming: '09:00 - 18:00',
-    validityDays: 60,
-    expiryDate: new Date('2025-04-01'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-25'),
-    sentVia: ['email', 'whatsapp'],
-  },
-  {
-    inviteCode: 'ECHNO2025-008',
-    employeeId: 'EMP019',
-    employeeName: 'Rohan Gupta',
-    email: 'rohan.gupta@echno.com',
-    phone: '+91-9876543220',
-    designation: 'Carpenter',
-    department: 'Carpentry',
-    organizationId: '1',
-    organizationName: 'Echno Construction Ltd.',
-    status: InvitationStatus.pending,
-    joiningDate: new Date('2025-02-08'),
-    salary: 40_000,
-    reportingManager: 'Site Supervisor',
-    shiftTiming: '07:00 - 16:00',
-    validityDays: 30,
-    expiryDate: new Date('2025-02-22'),
-    maxUses: 1,
-    createdDate: new Date('2025-01-17'),
-    sentVia: ['email', 'sms'],
-  },
-];
-
 // ═════════════════════════════════════════════════════════════════════════════
 // 11. SHIFT TIMINGS
 // ═════════════════════════════════════════════════════════════════════════════
@@ -2603,7 +2369,6 @@ export const COMPREHENSIVE_MOCK_DATA = {
   issues: mockIssues,
   tasks: mockTasks,
   projects: mockProjects,
-  invitations: mockInvitations,
   shiftTimings: mockShiftTimings,
   attendance: mockAttendance,
   attendanceSummaries: mockAttendanceSummaries,
@@ -3133,7 +2898,6 @@ export {
   mockIssues,
   mockTasks,
   mockProjects,
-  mockInvitations,
   mockShiftTimings,
   mockAttendance,
   mockAttendanceSummaries,
@@ -3142,6 +2906,17 @@ export {
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 15. UTILITY FUNCTIONS FOR MOCK DATA
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// NOTE: Most of these utility functions are UNUSED in the codebase.
+// Only the following functions are actually imported and used:
+//   - getEmployeeLeaveRequests() - used in app/users/dashboard/workforce/leaves/balance/page.tsx
+//   - getLabourById() - used in app/users/dashboard/third-party/labour/[id]/page.tsx
+//   - dashboardData - used in app/users/dashboard/page.tsx
+//
+// The remaining 40+ functions can be safely removed in a future cleanup.
+// Until then, if you need to query mock data, prefer importing the mock arrays
+// directly and using array methods like .find(), .filter(), etc.
 // ═════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -3223,16 +2998,6 @@ export function getUpcomingTasks(): Task[] {
  */
 export function getCompletedTasks(): Task[] {
   return mockTasks.filter((task) => task.status === TaskStatus.completed);
-}
-
-/**
- * Get active invitations
- */
-export function getActiveInvitations(): Invitation[] {
-  return mockInvitations.filter((inv) => {
-    if (!inv.expiryDate) return true;
-    return inv.expiryDate > new Date();
-  });
 }
 
 /**
@@ -7045,12 +6810,12 @@ export function getProjectOrganizations(projectId: number): {
   const orgIds = new Set(
     project.members?.flatMap((m) => {
       const employee = mockEmployees.find((e) => e.email === m.memberEmail);
-      return employee?.organizations?.map((o) => o.id) || [];
+      return employee?.organizationId ? [employee.organizationId] : [];
     })
   );
 
-  const relatedOrganizations = mockOrganizations.filter((o) =>
-    orgIds.has(o.id)
+  const relatedOrganizations = mockOrganizations.filter(
+    (o) => o.id !== undefined && orgIds.has(o.id)
   );
 
   return {
@@ -7120,15 +6885,15 @@ export function getOrganizationOverview(organizationId: number) {
   const organization = mockOrganizations.find((o) => o.id === organizationId);
   if (!organization) return null;
 
-  const employees = mockEmployees.filter((e) =>
-    e.organizations?.some((o) => o.id === organizationId)
+  const employees = mockEmployees.filter(
+    (e) => e.organizationId === organizationId
   );
 
   // Get projects where employees from this organization are members
   const projects = mockProjects.filter((p) =>
     p.members?.some((m) => {
       const employee = mockEmployees.find((e) => e.email === m.memberEmail);
-      return employee?.organizations?.some((o) => o.id === organizationId);
+      return employee?.organizationId === organizationId;
     })
   );
 
