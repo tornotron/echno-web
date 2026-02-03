@@ -27,6 +27,7 @@ import {
   QrCode,
   Copy,
   Check,
+  Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
@@ -37,15 +38,13 @@ import {
   InvitationStatus,
 } from '@/types/invitation';
 import type { Invitation } from '@/types/invitation';
-
-// Generate invite code
-const generateInviteCode = () => {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).slice(2, 7);
-  return `INV-${timestamp}-${random}`.toUpperCase();
-};
+import { useGenerateInviteCode } from '@/hooks/invitation';
+import { useUser } from '@/hooks/user/use-user';
 
 export default function NewInvitationPage() {
+  const { data: user } = useUser();
+  const generateMutation = useGenerateInviteCode();
+
   const [formData, setFormData] = useState({
     employeeId: '',
     employeeName: '',
@@ -60,9 +59,12 @@ export default function NewInvitationPage() {
     validityDays: '30',
   });
 
-  const [inviteCode, setInviteCode] = useState('');
-  const [isGenerated, setIsGenerated] = useState(false);
+  const [generatedInvitation, setGeneratedInvitation] =
+    useState<Invitation | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const inviteCode = generatedInvitation?.inviteCode || '';
+  const isGenerated = !!generatedInvitation;
 
   // Handle form submission
   const handleGenerate = (e: React.FormEvent) => {
@@ -79,18 +81,50 @@ export default function NewInvitationPage() {
       return;
     }
 
-    // Generate invite code
-    const code = generateInviteCode();
-    setInviteCode(code);
-    setIsGenerated(true);
+    if (!user?.defaultOrganizationId) {
+      toast.error(
+        'No organization selected. Please select an organization first.'
+      );
+      return;
+    }
 
-    toast.success('Invitation generated successfully!', {
-      description: `Invite code: ${code}`,
-    });
+    // Generate invite code via API
+    generateMutation.mutate(
+      {
+        organizationId: user.defaultOrganizationId,
+        request: {
+          designation: formData.designation,
+          department: formData.department,
+          employeeId: formData.employeeId,
+          employeeName: formData.employeeName || undefined,
+          email: formData.email || undefined,
+          phone: formData.phone || undefined,
+          joiningDate: formData.joiningDate
+            ? new Date(formData.joiningDate)
+            : undefined,
+          salary: formData.salary
+            ? Number.parseFloat(formData.salary)
+            : undefined,
+          reportingManager: formData.reportingManager || undefined,
+          shiftTiming: formData.shiftTiming || undefined,
+          validityDays: Number.parseInt(formData.validityDays),
+        },
+      },
+      {
+        onSuccess: (invitation) => {
+          setGeneratedInvitation(invitation);
+        },
+      }
+    );
   };
 
-  // Create invitation object
+  // Get invitation object (use generated invitation from API)
   const getInvitation = (): Invitation => {
+    if (generatedInvitation) {
+      return generatedInvitation;
+    }
+
+    // Fallback (shouldn't happen, but for type safety)
     const expiryDate = new Date();
     expiryDate.setDate(
       expiryDate.getDate() + Number.parseInt(formData.validityDays)
@@ -98,19 +132,28 @@ export default function NewInvitationPage() {
 
     return {
       inviteCode,
-      employeeId: formData.employeeId,
-      designation: formData.designation,
-      department: formData.department,
-      organizationId: 'ORG-001',
-      organizationName: 'Echno Construction',
-      status: InvitationStatus.pending,
-      joiningDate: formData.joiningDate
-        ? new Date(formData.joiningDate)
-        : undefined,
-      salary: formData.salary ? Number.parseFloat(formData.salary) : undefined,
-      reportingManager: formData.reportingManager || undefined,
-      shiftTiming: formData.shiftTiming || undefined,
-      validityDays: Number.parseInt(formData.validityDays),
+      usedCount: 0,
+      isActive: true,
+      employeeDetails: {
+        employeeId: formData.employeeId,
+        employeeName: formData.employeeName || undefined,
+        designation: formData.designation,
+        department: formData.department,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        joiningDate: formData.joiningDate
+          ? new Date(formData.joiningDate)
+          : undefined,
+        salary: formData.salary
+          ? Number.parseFloat(formData.salary)
+          : undefined,
+        reportingManager: formData.reportingManager || undefined,
+        shiftTiming: formData.shiftTiming || undefined,
+        status: 'active',
+      },
+      organizationId: user?.defaultOrganizationId || 0,
+      organizationName: undefined,
+      maxUses: undefined,
       expiryDate,
     };
   };
@@ -284,7 +327,7 @@ export default function NewInvitationPage() {
 
           <p>Dear ${formData.employeeName},</p>
           
-          <p>We are pleased to invite you to join <strong>${invitation.organizationName}</strong> as a <strong>${invitation.designation}</strong> in our <strong>${invitation.department}</strong> department.</p>
+          <p>We are pleased to invite you to join <strong>${invitation.organizationName}</strong> as a <strong>${invitation.employeeDetails.designation}</strong> in our <strong>${invitation.employeeDetails.department}</strong> department.</p>
 
           <div class="invite-code">
             <div class="label">Your Invitation Code</div>
@@ -295,40 +338,40 @@ export default function NewInvitationPage() {
             <h2>Employment Details</h2>
             <div class="detail-row">
               <div class="label">Employee ID:</div>
-              <div class="value">${invitation.employeeId}</div>
+              <div class="value">${invitation.employeeDetails.employeeId}</div>
             </div>
             <div class="detail-row">
               <div class="label">Position:</div>
-              <div class="value">${invitation.designation}</div>
+              <div class="value">${invitation.employeeDetails.designation}</div>
             </div>
             <div class="detail-row">
               <div class="label">Department:</div>
-              <div class="value">${invitation.department}</div>
+              <div class="value">${invitation.employeeDetails.department}</div>
             </div>
             ${
-              invitation.joiningDate
+              invitation.employeeDetails.joiningDate
                 ? `
             <div class="detail-row">
               <div class="label">Start Date:</div>
-              <div class="value">${new Date(invitation.joiningDate).toLocaleDateString('en-GB')}</div>
+              <div class="value">${new Date(invitation.employeeDetails.joiningDate).toLocaleDateString('en-GB')}</div>
             </div>`
                 : ''
             }
             ${
-              invitation.reportingManager
+              invitation.employeeDetails.reportingManager
                 ? `
             <div class="detail-row">
               <div class="label">Reporting Manager:</div>
-              <div class="value">${invitation.reportingManager}</div>
+              <div class="value">${invitation.employeeDetails.reportingManager}</div>
             </div>`
                 : ''
             }
             ${
-              invitation.shiftTiming
+              invitation.employeeDetails.shiftTiming
                 ? `
             <div class="detail-row">
               <div class="label">Shift Timing:</div>
-              <div class="value">${invitation.shiftTiming}</div>
+              <div class="value">${invitation.employeeDetails.shiftTiming}</div>
             </div>`
                 : ''
             }
@@ -626,9 +669,24 @@ export default function NewInvitationPage() {
 
                 {/* Submit Button */}
                 {!isGenerated && (
-                  <Button type="submit" className="w-full">
-                    <QrCode className="mr-2 h-4 w-4" />
-                    Generate Invitation
+                  <Button
+                    type="submit"
+                    className="w-full"
+                    disabled={
+                      generateMutation.isPending || !user?.defaultOrganizationId
+                    }
+                  >
+                    {generateMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <QrCode className="mr-2 h-4 w-4" />
+                        Generate Invitation
+                      </>
+                    )}
                   </Button>
                 )}
               </form>
