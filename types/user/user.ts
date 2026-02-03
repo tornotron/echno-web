@@ -15,6 +15,7 @@ export interface User {
   experience?: number;
   emergencyContact?: string;
   roles?: string[];
+  certifications?: string[];
 
   // User's selected default organization (for filtering data across the app)
   defaultOrganizationId?: number;
@@ -145,6 +146,7 @@ export function parseUser(json: any): User {
     experience: json.experience ?? undefined,
     emergencyContact: json.emergencyContact ?? undefined,
     roles: json.roles ? (json.roles as string[]) : undefined,
+    certifications: json.certifications ? [...json.certifications] : undefined,
     defaultOrganizationId: json.defaultOrganizationId ?? undefined,
     attachments,
     cv,
@@ -171,6 +173,7 @@ export function userToJson(user: User): Record<string, unknown> {
     experience: user.experience,
     emergencyContact: user.emergencyContact,
     roles: user.roles,
+    certifications: user.certifications,
     // Note: cv and profilePicture are not sent - file uploads handled via multipart
   };
 }
@@ -202,6 +205,8 @@ export function partialUserToJson(
   if (user.emergencyContact !== undefined)
     payload.emergencyContact = user.emergencyContact;
   if (user.roles !== undefined) payload.roles = user.roles;
+  if (user.certifications !== undefined)
+    payload.certifications = user.certifications;
   if (user.defaultOrganizationId !== undefined)
     payload.defaultOrganizationId = user.defaultOrganizationId;
   // Note: cv and profilePicture are not sent - file uploads handled via multipart

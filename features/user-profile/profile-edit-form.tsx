@@ -58,6 +58,7 @@ export function ProfileEditForm({
     emergencyContact: user.emergencyContact || '',
     experience: user.experience?.toString() || '',
     skills: user.skills?.join(', ') || '',
+    certifications: user.certifications?.join(', ') || '',
   });
 
   // File state - store both File object and preview URL
@@ -188,6 +189,12 @@ export function ProfileEditForm({
         : undefined,
       skills: formData.skills
         ? formData.skills
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        : undefined,
+      certifications: formData.certifications
+        ? formData.certifications
             .split(',')
             .map((s) => s.trim())
             .filter(Boolean)
@@ -518,6 +525,21 @@ export function ProfileEditForm({
             />
             <p className="text-muted-foreground text-xs">
               Separate multiple skills with commas
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="certifications">Certifications</Label>
+            <Textarea
+              id="certifications"
+              name="certifications"
+              value={formData.certifications}
+              onChange={handleChange}
+              placeholder="Enter your certifications separated by commas (e.g., PMP, OSHA 30, AWS Certified)"
+              rows={3}
+            />
+            <p className="text-muted-foreground text-xs">
+              Separate multiple certifications with commas
             </p>
           </div>
         </CardContent>
