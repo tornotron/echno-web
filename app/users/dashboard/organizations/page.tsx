@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { OrganizationCard } from '@/features/organization/organization-card';
 import { SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, Building2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useUserOrganizations } from '@/hooks/organization/use-organizations';
 
@@ -68,12 +68,20 @@ export default function OrganizationsPage() {
             Manage and view all organizations
           </p>
         </div>
-        <Link href="/users/dashboard/organizations/new">
-          <Button className="sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Organization
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/users/dashboard/organizations/join">
+            <Button variant="outline" className="sm:w-auto">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Join Organization
+            </Button>
+          </Link>
+          <Link href="/users/dashboard/organizations/new">
+            <Button className="sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Organization
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}
@@ -134,14 +142,36 @@ export default function OrganizationsPage() {
       ) : (
         <div className="py-12 text-center">
           <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-            <Search className="h-8 w-8 text-zinc-400" />
+            {searchQuery || statusFilter !== 'all' ? (
+              <Search className="h-8 w-8 text-zinc-400" />
+            ) : (
+              <Building2 className="h-8 w-8 text-zinc-400" />
+            )}
           </div>
-          <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+          <h3 className="mb-2 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
             No organizations found
           </h3>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Try adjusting your search or filter criteria
+          <p className="text-muted-foreground mb-6">
+            {searchQuery || statusFilter !== 'all'
+              ? "Try adjusting your filters to find what you're looking for."
+              : 'Get started by creating a new organization or joining an existing one.'}
           </p>
+          {!searchQuery && statusFilter === 'all' && (
+            <div className="flex justify-center gap-3">
+              <Button variant="outline" asChild>
+                <Link href="/users/dashboard/organizations/join">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Join Organization
+                </Link>
+              </Button>
+              <Button asChild>
+                <Link href="/users/dashboard/organizations/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Organization
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       )}
     </div>
