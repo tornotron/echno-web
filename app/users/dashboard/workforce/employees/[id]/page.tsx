@@ -1,8 +1,6 @@
 'use client';
 
-import { notFound } from 'next/navigation';
 import { use } from 'react';
-import { mockEmployees } from '@/components/shared/mock-data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -27,10 +25,13 @@ import {
   Clock,
   Users,
   Award,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { getDepartmentLabel } from '@/types/employee';
+import { useEmployee } from '@/hooks/employee';
 
 interface EmployeeDetailPageProps {
   params: Promise<{
@@ -76,12 +77,32 @@ export default function EmployeeDetailPage({
   params,
 }: EmployeeDetailPageProps) {
   const resolvedParams = use(params);
-  const employee = mockEmployees.find(
-    (emp) => emp.id === Number.parseInt(resolvedParams.id)
-  );
+  const employeeId = Number.parseInt(resolvedParams.id);
+  const { data: employee, isLoading, error } = useEmployee(employeeId);
 
-  if (!employee) {
-    notFound();
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error || !employee) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <h2 className="mb-2 text-xl font-semibold">Employee Not Found</h2>
+        <p className="mb-4 text-zinc-500">
+          The employee with ID {employeeId} could not be found.
+        </p>
+        <Button asChild>
+          <Link href="/users/dashboard/workforce/employees">
+            Back to Employees
+          </Link>
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -326,37 +347,33 @@ export default function EmployeeDetailPage({
 
         {/* Right Column - Organizations, Projects, Certifications */}
         <div className="space-y-6">
-          {/* Organizations */}
-          {employee.organizations && employee.organizations.length > 0 && (
+          {/* Organization */}
+          {employee.organizationId && (
             <Card>
               <CardHeader>
-                <CardTitle>Organizations</CardTitle>
-                <CardDescription>Associated organizations</CardDescription>
+                <CardTitle>Organization</CardTitle>
+                <CardDescription>Associated organization</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {employee.organizations.map((org) => (
-                    <Link
-                      key={org.id}
-                      href={`/users/dashboard/organizations/${org.id}`}
-                      className="block rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-blue-600">
-                          <Building className="h-5 w-5 text-white" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                            {org.organizationName}
-                          </p>
-                          <p className="truncate text-xs text-zinc-600 dark:text-zinc-400">
-                            {org.organizationAddress}
-                          </p>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                <Link
+                  href={`/users/dashboard/organizations/${employee.organizationId}`}
+                  className="block rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-blue-600">
+                      <Building className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
+                        {employee.organizationName ||
+                          `Organization ${employee.organizationId}`}
+                      </p>
+                      <p className="truncate text-xs text-zinc-600 dark:text-zinc-400">
+                        ID: {employee.organizationId}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
               </CardContent>
             </Card>
           )}
