@@ -289,6 +289,28 @@ export function UserProfileView({
           </ProfileCard>
         )}
 
+        {/* Certifications */}
+        {user.certifications && user.certifications.length > 0 && (
+          <ProfileCard
+            title="Certifications"
+            description="Your professional certifications and credentials"
+            icon={<Award className="h-5 w-5" />}
+            className={hasProfessionalInfo(user) ? '' : 'lg:col-span-2'}
+          >
+            <div className="flex flex-wrap gap-2">
+              {user.certifications.map((cert, index) => (
+                <Badge
+                  key={index}
+                  variant="outline"
+                  className="px-3 py-1 text-sm font-medium"
+                >
+                  {cert}
+                </Badge>
+              ))}
+            </div>
+          </ProfileCard>
+        )}
+
         {/* Access & Groups */}
         <ProfileCard
           title="Access & Groups"

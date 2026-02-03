@@ -14,6 +14,7 @@ export const mockUsers: User[] = [
     qualification: 'MBA, B.Tech Computer Science',
     skills: ['System Administration', 'Management', 'IT Infrastructure'],
     experience: 20,
+    certifications: ['ITIL', 'PMP', 'AWS Certified Solutions Architect'],
 
     emergencyContact: '+91 99999 00001',
     roles: [SYSTEM_ROLES.SYSTEM_ADMIN],
@@ -58,6 +59,7 @@ export const mockUsers: User[] = [
       'Site Supervision',
     ],
     experience: 15,
+    certifications: ['PMP', 'LEED Green Associate', 'OSHA Safety'],
 
     emergencyContact: '+91 98765 43211',
     roles: [SYSTEM_ROLES.PROJECT_MANAGER],
@@ -77,6 +79,7 @@ export const mockUsers: User[] = [
     qualification: 'M.Tech Structural Engineering',
     skills: ['Structural Analysis', 'ETABS', 'SAP2000', 'Quality Control'],
     experience: 8,
+    certifications: ['Professional Engineer (PE)', 'LEED AP'],
 
     emergencyContact: '+91 87654 32110',
     roles: [SYSTEM_ROLES.CIVIL_ENGINEER],
