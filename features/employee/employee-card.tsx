@@ -107,24 +107,15 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
             </div>
           </div>
 
-          {/* Organizations */}
-          {employee.organizations && employee.organizations.length > 0 && (
+          {/* Organization */}
+          {employee.organizationName && (
             <div className="border-t border-zinc-200 pt-4 dark:border-zinc-800">
               <p className="mb-2 text-xs text-zinc-500 dark:text-zinc-500">
-                Organizations
+                Organization
               </p>
-              <div className="flex flex-wrap gap-1">
-                {employee.organizations.slice(0, 2).map((org) => (
-                  <Badge key={org.id} variant="outline" className="text-xs">
-                    {org.organizationName}
-                  </Badge>
-                ))}
-                {employee.organizations.length > 2 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{employee.organizations.length - 2}
-                  </Badge>
-                )}
-              </div>
+              <Badge variant="outline" className="text-xs">
+                {employee.organizationName}
+              </Badge>
             </div>
           )}
 

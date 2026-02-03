@@ -63,7 +63,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['PMP', 'LEED Green Associate', 'OSHA Safety'],
     joiningDate: new Date('2020-02-01'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [
       projectsForEmployees[0],
       projectsForEmployees[1],
@@ -81,7 +82,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['Professional Engineer (PE)', 'LEED AP'],
     joiningDate: new Date('2020-04-15'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [projectsForEmployees[0], projectsForEmployees[1]],
   },
   {
@@ -95,7 +97,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['Licensed Electrician', 'NFPA 70E'],
     joiningDate: new Date('2021-01-10'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [projectsForEmployees[0]],
   },
   {
@@ -109,7 +112,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['SHRM-CP', 'PHR'],
     joiningDate: new Date('2020-03-01'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [],
   },
   {
@@ -123,7 +127,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['Licensed Plumber', 'Backflow Prevention'],
     joiningDate: new Date('2021-06-01'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [projectsForEmployees[1], projectsForEmployees[2]],
   },
   {
@@ -137,7 +142,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['OSHA 30-Hour', 'NEBOSH IGC', 'First Aid'],
     joiningDate: new Date('2020-07-15'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [projectsForEmployees[0], projectsForEmployees[1]],
   },
   {
@@ -151,7 +157,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['Registered Architect', 'LEED AP BD+C'],
     joiningDate: new Date('2020-05-20'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [projectsForEmployees[2], projectsForEmployees[3]],
   },
   {
@@ -165,7 +172,8 @@ export const mockEmployees: Employee[] = [
     status: EmployeeStatus.active,
     certifications: ['CPA', 'Tally Certified'],
     joiningDate: new Date('2021-02-10'),
-    organizations: [mockOrganizations[0]],
+    organizationId: mockOrganizations[0].id!,
+    organizationName: mockOrganizations[0].organizationName,
     currentProjects: [],
   },
 ];

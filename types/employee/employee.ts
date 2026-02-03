@@ -1,13 +1,53 @@
 // types/employee/employee.ts
-import { User, parseUser, userToJson } from '@/types/user';
+/**
+ * types/employee/employee.ts
+ *
+ * Domain model and JSON (de)serialization helpers for `Employee`.
+ *
+ * This module defines the `Employee` interface used across the frontend and
+ * robust helper functions for parsing backend JSON into typed objects
+ * (`parseEmployee`) and serializing objects back to backend-compatible JSON
+ * (`employeeToJson`). All parsing functions are defensive and intended to
+ * handle real-world backend inconsistencies.
+ *
+ * Conventions:
+ * - Date fields are normalized to `Date` instances.
+ * - Numeric fields are coerced when appropriate.
+ * - Unknown or missing fields receive safe defaults to avoid runtime errors.
+ */
+
 import { Project, parseProject, projectToJson } from '@/types/project';
-import { Organization } from '@/types/organization';
+import { Attachment } from '@/types/attachment';
 import { EmployeeStatus, employeeStatusFromString } from './employee-status';
 import { Department } from './departments';
-import { format, formatDistanceToNow } from 'date-fns';
 
-export interface Employee extends User {
+/**
+ * Employee interface
+ * Backend returns complete employee data including user-related fields
+ */
+export interface Employee {
+  // User fields (returned by backend as part of employee)
+  id?: number;
+  name: string;
+  address: string;
+  bloodGroup?: string;
+  email: string;
+  phone: string;
+  gender: string;
+  dateOfBirth: Date;
+  qualification: string;
+  skills?: string[];
+  experience?: number;
+  emergencyContact?: string;
+  roles?: string[];
+  attachments?: Attachment[];
+  cv?: Attachment;
+  profilePicture?: Attachment;
+
+  // Employee-specific fields
   employeeId: string;
+  organizationId: number;
+  organizationName?: string;
   designation: string;
   department: Department;
   salary?: number;
@@ -17,51 +57,45 @@ export interface Employee extends User {
   certifications?: string[];
   joiningDate?: Date;
   currentProjects?: Project[];
-  organizations?: Organization[];
+
+  // Timestamps
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-// Factory: fromUser
-export function employeeFromUser(
-  user: User,
-  data: {
-    employeeId: string;
-    designation: string;
-    department: Department;
-    joiningDate?: Date;
-    salary?: number;
-    reportingManager?: string;
-    shiftTiming?: string;
-    status?: EmployeeStatus;
-    certifications?: string[];
-    currentProjects?: Project[];
-    organizations?: Organization[];
-  }
-): Employee {
-  return {
-    ...user,
-    employeeId: data.employeeId,
-    designation: data.designation,
-    department: data.department,
-    joiningDate: data.joiningDate,
-    salary: data.salary,
-    reportingManager: data.reportingManager,
-    shiftTiming: data.shiftTiming,
-    status: data.status ?? EmployeeStatus.active,
-    certifications: data.certifications,
-    currentProjects: data.currentProjects,
-    organizations: data.organizations,
-  };
-}
+// Note: employeeFromUser removed - backend returns complete employee data
+// No need to merge user and employee data separately
 
 // JSON → Employee
+// Backend returns complete employee data including all user fields
+// Backend field mapping:
+// - employeeName → name
+// - phoneNumber → phone
+// - emailAddress → email
+// - role → roles (convert to array)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseEmployee(json: any): Employee {
-  const baseUser = parseUser(json);
   return {
-    ...baseUser,
-    employeeId: json.employeeId ?? '',
+    id: json.id,
+    name: json.employeeName ?? '',
+    address: json.address ?? '',
+    bloodGroup: json.bloodGroup ?? undefined,
+    email: json.emailAddress ?? '',
+    phone: json.phoneNumber ?? '',
+    gender: json.gender ?? '',
+    dateOfBirth: json.dateOfBirth ? new Date(json.dateOfBirth) : new Date(),
+    qualification: json.qualification ?? '',
+    skills: json.skills ? [...json.skills] : undefined,
+    experience: json.experience ? Number(json.experience) : undefined,
+    emergencyContact: json.emergencyContact ?? undefined,
+    roles: json.role ? [json.role] : undefined,
+    attachments: json.attachments ? [...json.attachments] : undefined,
+    cv: json.cv ?? undefined,
+    profilePicture: json.profilePicture ?? undefined,
+    employeeId: json.employeeId ?? json.id?.toString() ?? '',
+    organizationId: json.organizationId ?? 0,
+    organizationName: json.organizationName ?? undefined,
     designation: json.designation ?? '',
-     
     department:
       json.department && json.department in Department
         ? Department[json.department as keyof typeof Department]
@@ -75,15 +109,31 @@ export function parseEmployee(json: any): Employee {
     currentProjects: json.currentProjects
       ? (json.currentProjects as unknown[]).map((p) => parseProject(p))
       : undefined,
+    createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
+    updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
   };
 }
 
 // Employee → JSON
+// Maps frontend fields back to backend field names
 export function employeeToJson(emp: Employee): Record<string, unknown> {
-  const userJson = userToJson(emp);
   return {
-    ...userJson,
+    id: emp.id,
+    employeeName: emp.name,
+    phoneNumber: emp.phone,
+    emailAddress: emp.email,
+    address: emp.address,
+    bloodGroup: emp.bloodGroup,
+    gender: emp.gender,
+    dateOfBirth: emp.dateOfBirth.toISOString(),
+    qualification: emp.qualification,
+    skills: emp.skills,
+    experience: emp.experience,
+    emergencyContact: emp.emergencyContact,
+    role: emp.roles?.[0], // Convert array back to single role
     employeeId: emp.employeeId,
+    organizationId: emp.organizationId,
+    organizationName: emp.organizationName,
     designation: emp.designation,
     department: emp.department,
     joiningDate: emp.joiningDate?.toISOString(),
@@ -93,73 +143,12 @@ export function employeeToJson(emp: Employee): Record<string, unknown> {
     status: emp.status,
     certifications: emp.certifications,
     currentProjects: emp.currentProjects?.map((p) => projectToJson(p)),
+    createdAt: emp.createdAt?.toISOString(),
+    updatedAt: emp.updatedAt?.toISOString(),
   };
 }
 
 // Getters
-export function displayName(emp: Employee): string {
-  return `${emp.name} (${emp.employeeId})`;
-}
-
-export function yearsOfService(emp: Employee): number {
-  if (!emp.joiningDate) return 0;
-  return new Date().getFullYear() - emp.joiningDate.getFullYear();
-}
-
 export function isActive(emp: Employee): boolean {
   return emp.status === EmployeeStatus.active;
 }
-
-// copyWith
-export function copyEmployee(
-  emp: Employee,
-  updates: Partial<Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>>
-): Employee {
-  return { ...emp, ...updates };
-}
-
-// Date formatting (equivalent to EchnoDateFormatter)
-export function formatDateMedium(date: Date): string {
-  return format(date, 'dd MMM yyyy');
-}
-
-export function formatDateMediumHyphen(date: Date): string {
-  return format(date, 'dd-MM-yyyy');
-}
-
-export function formatDateTimeMediumHyphen(date: Date): string {
-  return format(date, 'dd-MM-yyyy HH:mm');
-}
-
-export function formatRelativeTime(date: Date): string {
-  return formatDistanceToNow(date, { addSuffix: true });
-}
-
-// Public formatted getters
-export function formattedJoiningDate(emp: Employee): string | null {
-  return emp.joiningDate ? formatDateMedium(emp.joiningDate) : null;
-}
-
-export function formattedJoiningDateHyphen(emp: Employee): string | null {
-  return emp.joiningDate ? formatDateMediumHyphen(emp.joiningDate) : null;
-}
-
-export function formattedDateOfBirth(emp: Employee): string {
-  return formatDateMedium(emp.dateOfBirth);
-}
-
-export function formattedCreatedTime(emp: Employee): string | null {
-  return emp.createdAt ? formatRelativeTime(emp.createdAt) : null;
-}
-
-export function formattedUpdatedTime(emp: Employee): string | null {
-  return emp.updatedAt ? formatRelativeTime(emp.updatedAt) : null;
-}
-
-export function formattedJoiningDateTime(emp: Employee): string | null {
-  return emp.joiningDate ? formatDateTimeMediumHyphen(emp.joiningDate) : null;
-}
-
-// Reuse User helpers
-
-export { primaryOrganization, belongsToOrganization } from '@/types/user';

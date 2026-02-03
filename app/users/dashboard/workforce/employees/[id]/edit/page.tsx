@@ -1,9 +1,9 @@
 'use client';
 
-import { notFound, useRouter } from 'next/navigation';
-import { use, useState } from 'react';
-import { mockEmployees } from '@/components/shared/mock-data';
+import { useRouter } from 'next/navigation';
+import { use, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { useEmployee } from '@/hooks/employee';
 import {
   Card,
   CardContent,
@@ -40,6 +40,8 @@ import {
   Users as UsersIcon,
   UserCircle,
   FileText,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import {
@@ -49,6 +51,7 @@ import {
 import { UserRole } from '@/types/user/user-role';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
+import type { Employee } from '@/types/employee';
 
 interface EditEmployeePageProps {
   params: Promise<{
@@ -56,55 +59,77 @@ interface EditEmployeePageProps {
   }>;
 }
 
+// Helper to get initial form data from employee
+const getInitialFormData = (emp: Employee | null | undefined) => ({
+  // Personal Information
+  name: emp?.name || '',
+  email: emp?.email || '',
+  phone: emp?.phone || '',
+  gender: emp?.gender || '',
+  dateOfBirth: emp?.dateOfBirth ? format(emp.dateOfBirth, 'yyyy-MM-dd') : '',
+  bloodGroup: emp?.bloodGroup || '',
+  address: emp?.address || '',
+  emergencyContact: emp?.emergencyContact || '',
+
+  // Professional Information
+  employeeId: emp?.employeeId || '',
+  designation: emp?.designation || '',
+  department: emp?.department || '',
+  qualification: emp?.qualification || '',
+  experience: emp?.experience?.toString() || '',
+  skills: emp?.skills?.join(', ') || '',
+
+  // Employment Details
+  joiningDate: emp?.joiningDate ? format(emp.joiningDate, 'yyyy-MM-dd') : '',
+  status: emp?.status || '',
+  salary: emp?.salary?.toString() || '',
+  reportingManager: emp?.reportingManager || '',
+  shiftTiming: emp?.shiftTiming || '',
+  role: emp?.roles?.[0] || '',
+
+  // Additional
+  certifications: emp?.certifications?.join(', ') || '',
+  cvUrl: emp?.cv?.file || '',
+});
+
 export default function EditEmployeePage({ params }: EditEmployeePageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
-  const employee = mockEmployees.find(
-    (emp) => emp.id === Number.parseInt(resolvedParams.id)
-  );
-
-  if (!employee) {
-    notFound();
-  }
-
-  // Form state
-  const [formData, setFormData] = useState({
-    // Personal Information
-    name: employee.name,
-    email: employee.email,
-    phone: employee.phone,
-    gender: employee.gender,
-    dateOfBirth: employee.dateOfBirth
-      ? format(employee.dateOfBirth, 'yyyy-MM-dd')
-      : '',
-    bloodGroup: employee.bloodGroup || '',
-    address: employee.address,
-    emergencyContact: employee.emergencyContact || '',
-
-    // Professional Information
-    employeeId: employee.employeeId,
-    designation: employee.designation,
-    department: employee.department,
-    qualification: employee.qualification,
-    experience: employee.experience?.toString() || '',
-    skills: employee.skills?.join(', ') || '',
-
-    // Employment Details
-    joiningDate: employee.joiningDate
-      ? format(employee.joiningDate, 'yyyy-MM-dd')
-      : '',
-    status: employee.status,
-    salary: employee.salary?.toString() || '',
-    reportingManager: employee.reportingManager || '',
-    shiftTiming: employee.shiftTiming || '',
-    role: employee.roles?.[0] || '',
-
-    // Additional
-    certifications: employee.certifications?.join(', ') || '',
-    cvUrl: employee.cv?.file || '',
-  });
+  const employeeId = Number.parseInt(resolvedParams.id);
+  const { data: employee, isLoading, error } = useEmployee(employeeId);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Form state - initialized from employee data or empty
+  // Using employee?.id as key ensures form resets when employee changes
+  const [formData, setFormData] = useState(() => getInitialFormData(employee));
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !employee) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <h2 className="mb-2 text-xl font-semibold">Employee Not Found</h2>
+        <p className="mb-4 text-zinc-500">
+          The employee with ID {employeeId} could not be found.
+        </p>
+        <Button
+          onClick={() => router.push('/users/dashboard/workforce/employees')}
+        >
+          Back to Employees
+        </Button>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,12 +141,12 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
         description: `${formData.name}'s information has been updated successfully.`,
       });
       setIsSubmitting(false);
-      router.push(`/dashboard/workforce/employees/${resolvedParams.id}`);
+      router.push(`/users/dashboard/workforce/employees/${resolvedParams.id}`);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push(`/dashboard/workforce/employees/${resolvedParams.id}`);
+    router.push(`/users/dashboard/workforce/employees/${resolvedParams.id}`);
   };
 
   return (
