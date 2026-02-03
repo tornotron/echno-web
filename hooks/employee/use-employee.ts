@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { employeeService } from '@/services/employee-service';
 import { ApiError } from '@/lib/api/api-client';
-import { useUser } from '@/hooks/user/use-user';
+import { useUser, useUserEmployees } from '@/hooks/user/use-user';
+import { useMemo } from 'react';
 
 /**
  * Determine if an error should trigger a retry.
@@ -72,32 +73,41 @@ export function useEmployeesByOrganization(organizationId: number) {
 
 /**
  * Hook to get the current user's employee profile.
- * Returns the employee data if the user is also an employee.
+ * Returns the employee data for the user's currently selected organization.
  * This data is prefetched by UserPrefetcher on login.
  *
- * @returns Employee data if user is an employee, undefined otherwise
+ * The hook derives the current employee from all user employees by matching
+ * the user's defaultOrganizationId with the employee's organizationId.
+ *
+ * @returns Employee data if user is an employee in the current organization, undefined otherwise
+ *
+ * @example
+ * ```tsx
+ * const { data: employee, isLoading } = useCurrentUserEmployee();
+ *
+ * // employee will be the one matching user.defaultOrganizationId
+ * if (employee) {
+ *   console.log(`Current employee in org ${employee.organizationId}`);
+ * }
+ * ```
  */
 export function useCurrentUserEmployee() {
   const { data: user } = useUser();
+  const { data: employees, isLoading, error } = useUserEmployees();
 
-  return useQuery({
-    queryKey: ['employees', user?.id],
-    queryFn: () => {
-      if (!user?.id) {
-        throw new Error('User ID not available');
-      }
-      return employeeService.getById(user.id);
-    },
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000, // 5 minutes - matches employee hook staleTime
-    gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: (failureCount, error) => {
-      // Don't retry on 404 (user is not an employee)
-      if (error instanceof ApiError && error.isNotFound) {
-        return false;
-      }
-      return shouldRetry(failureCount, error);
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
-  });
+  const defaultOrgId = user?.defaultOrganizationId;
+
+  // Derive current employee from the list based on defaultOrganizationId
+  const currentEmployee = useMemo(() => {
+    if (!defaultOrgId || !employees) {
+      return;
+    }
+    return employees.find((emp) => emp.organizationId === defaultOrgId);
+  }, [defaultOrgId, employees]);
+
+  return {
+    data: currentEmployee,
+    isLoading,
+    error,
+  };
 }
