@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { mockEmployees, mockProjects } from '@/components/shared/mock-data';
+import { mockProjects } from '@/components/shared/mock-data';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,10 +27,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, UserPlus, Mail, Phone, User, FolderKanban } from 'lucide-react';
+import {
+  Users,
+  UserPlus,
+  Mail,
+  Phone,
+  User,
+  FolderKanban,
+  Loader2,
+  AlertCircle,
+} from 'lucide-react';
 import Link from 'next/link';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
+import { useEmployeesByOrganization } from '@/hooks/employee';
+import { useUser } from '@/hooks/user/use-user';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -76,14 +87,23 @@ export default function EmployeesPage() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
+  const { data: user } = useUser();
+  const {
+    data: employees,
+    isLoading,
+    error,
+  } = useEmployeesByOrganization(user?.defaultOrganizationId || 0);
+
+  const employeesList = useMemo(() => employees || [], [employees]);
+
   // Get unique designations from employees
   const uniqueDesignations = [
-    ...new Set(mockEmployees.map((emp) => emp.designation)),
+    ...new Set(employeesList.map((emp) => emp.designation)),
   ].toSorted();
 
   // Filter employees based on search and filters
   const filteredEmployees = useMemo(() => {
-    return mockEmployees.filter((employee) => {
+    return employeesList.filter((employee) => {
       // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
@@ -97,7 +117,7 @@ export default function EmployeesPage() {
       const matchesStatus =
         statusFilter === 'all' || employee.status === statusFilter;
 
-      // Project filter
+      // Project filter (using mock data temporarily until project hooks are available)
       const matchesProject =
         projectFilter === 'all' ||
         employee.currentProjects?.some(
@@ -127,6 +147,7 @@ export default function EmployeesPage() {
     projectFilter,
     departmentFilter,
     designationFilter,
+    employeesList,
   ]);
 
   // Pagination calculations
@@ -161,14 +182,14 @@ export default function EmployeesPage() {
     selectedIds.length === paginatedEmployees.length;
 
   // Statistics
-  const totalEmployees = mockEmployees.length;
-  const activeEmployees = mockEmployees.filter(
+  const totalEmployees = employeesList.length;
+  const activeEmployees = employeesList.filter(
     (emp) => emp.status === EmployeeStatus.active
   ).length;
-  const inactiveEmployees = mockEmployees.filter(
+  const inactiveEmployees = employeesList.filter(
     (emp) => emp.status === EmployeeStatus.inactive
   ).length;
-  const onLeaveEmployees = mockEmployees.filter(
+  const onLeaveEmployees = employeesList.filter(
     (emp) => emp.status === EmployeeStatus.onLeave
   ).length;
 
@@ -188,6 +209,38 @@ export default function EmployeesPage() {
     setDesignationFilter('all');
     setCurrentPage(1);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
+        <h2 className="mb-2 text-xl font-semibold">Error Loading Employees</h2>
+        <p className="text-zinc-500">
+          Failed to load employees. Please try again later.
+        </p>
+      </div>
+    );
+  }
+
+  if (!user?.defaultOrganizationId) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-yellow-500" />
+        <h2 className="mb-2 text-xl font-semibold">No Organization Selected</h2>
+        <p className="text-zinc-500">
+          Please select an organization to view employees.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -414,7 +467,7 @@ export default function EmployeesPage() {
                       key={employee.id}
                       className="hover:bg-muted/50 cursor-pointer"
                       onClick={() =>
-                        (globalThis.location.href = `/dashboard/workforce/employees/${employee.id}`)
+                        (globalThis.location.href = `/users/dashboard/workforce/employees/${employee.id}`)
                       }
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
@@ -541,10 +594,10 @@ export default function EmployeesPage() {
                 : 'Get started by adding your first employee'}
             </p>
             {!hasActiveFilters && (
-              <Link href="/users/dashboard/workforce/employees/new">
+              <Link href="/users/dashboard/workforce/invitations/new">
                 <Button>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Add Employee
+                  Create Invitation
                 </Button>
               </Link>
             )}
