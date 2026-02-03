@@ -30,41 +30,66 @@ import {
   Phone,
   AtSign,
   LucideIcon,
+  Loader2,
 } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { whatsappMessage, emailSubject, emailBody } from '@/types/invitation';
+import {
+  whatsappMessage,
+  emailSubject,
+  emailBody,
+  getInvitationStatus,
+} from '@/types/invitation';
 import { format } from 'date-fns';
-import { mockInvitations } from '@/components/shared/mock-data';
+import { useInvitationsByOrganization } from '@/hooks/invitation';
+import { useUser } from '@/hooks/user/use-user';
 
 export default function InvitationPage() {
   const params = useParams();
   const router = useRouter();
   const [copied, setCopied] = useState(false);
 
-  // Find invitation by invite code from URL params
-  const inviteCode = params.id as string;
-  const foundInvitation = mockInvitations.find(
-    (inv) => inv.inviteCode === inviteCode
-  );
+  // Get user and their organization
+  const { data: user } = useUser();
 
-  // If not found, show error
-  if (!foundInvitation) {
+  // Get all invitations for the organization
+  const {
+    data: invitations,
+    isLoading,
+    error,
+  } = useInvitationsByOrganization(user?.defaultOrganizationId);
+
+  // Find the specific invitation by code from URL params
+  const inviteCode = params.id as string;
+  const invitation = invitations?.find((inv) => inv.inviteCode === inviteCode);
+
+  // Show loading state
+  if (isLoading || !user) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  // If invitation not found, show error
+  if (error || !invitation) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center">
         <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
         <h2 className="mb-2 text-xl font-semibold">Invitation Not Found</h2>
         <p className="mb-4 text-zinc-500">
-          The invitation code &quot;{inviteCode}&quot; could not be found.
+          The invitation code &quot;{inviteCode}&quot; could not be found or is
+          invalid.
         </p>
-        <Button onClick={() => router.push('/dashboard/workforce/invitations')}>
+        <Button
+          onClick={() => router.push('/users/dashboard/workforce/invitations')}
+        >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Invitations
         </Button>
       </div>
     );
   }
-
-  const invitation = foundInvitation;
 
   // Copy to clipboard
   const copyToClipboard = (text: string) => {
@@ -76,8 +101,9 @@ export default function InvitationPage() {
 
   // Send via WhatsApp
   const sendViaWhatsApp = () => {
-    const message = whatsappMessage(invitation);
-    const phone = invitation.phone?.replaceAll(/[^0-9]/g, '') || '';
+    const message = whatsappMessage(invitation, invitation.organizationName);
+    const phone =
+      invitation.employeeDetails.phone?.replaceAll(/[^0-9]/g, '') || '';
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     window.open(url, '_blank');
     toast.success('Opening WhatsApp...');
@@ -85,9 +111,9 @@ export default function InvitationPage() {
 
   // Send via Email
   const sendViaEmail = () => {
-    const subject = emailSubject(invitation);
-    const body = emailBody(invitation);
-    const url = `mailto:${invitation.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const subject = emailSubject(invitation, invitation.organizationName);
+    const body = emailBody(invitation, invitation.organizationName);
+    const url = `mailto:${invitation.employeeDetails.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.click();
@@ -96,7 +122,7 @@ export default function InvitationPage() {
 
   // Send via Slack
   const sendViaSlack = () => {
-    const message = whatsappMessage(invitation);
+    const message = whatsappMessage(invitation, invitation.organizationName);
     copyToClipboard(message);
     toast.success('Message copied! Paste it in Slack', {
       description: 'Open Slack and paste the invitation message',
@@ -105,7 +131,7 @@ export default function InvitationPage() {
 
   // Send via Discord
   const sendViaDiscord = () => {
-    const message = whatsappMessage(invitation);
+    const message = whatsappMessage(invitation, invitation.organizationName);
     copyToClipboard(message);
     toast.success('Message copied! Paste it in Discord', {
       description: 'Open Discord and paste the invitation message',
@@ -226,13 +252,13 @@ export default function InvitationPage() {
         </head>
         <body>
           <div class="header">
-            <h1>${invitation.organizationName}</h1>
+            <h1>${invitation.organizationName || 'Organization'}</h1>
             <p>Employee Invitation Letter</p>
           </div>
 
-          <p>Dear ${invitation.employeeName},</p>
-          
-          <p>We are pleased to invite you to join <strong>${invitation.organizationName}</strong> as a <strong>${invitation.designation}</strong> in our <strong>${invitation.department}</strong> department.</p>
+          <p>Dear ${invitation.employeeDetails.employeeName || 'Candidate'},</p>
+
+          <p>We are pleased to invite you to join <strong>${invitation.organizationName || 'our organization'}</strong> as a <strong>${invitation.employeeDetails.designation}</strong> in our <strong>${invitation.employeeDetails.department}</strong> department.</p>
 
           <div class="invite-code">
             <div class="label">Your Invitation Code</div>
@@ -241,42 +267,47 @@ export default function InvitationPage() {
 
           <div class="details">
             <h2>Employment Details</h2>
+            ${
+              invitation.employeeDetails.employeeId
+                ? `
             <div class="detail-row">
               <div class="label">Employee ID:</div>
-              <div class="value">${invitation.employeeId}</div>
-            </div>
+              <div class="value">${invitation.employeeDetails.employeeId}</div>
+            </div>`
+                : ''
+            }
             <div class="detail-row">
               <div class="label">Position:</div>
-              <div class="value">${invitation.designation}</div>
+              <div class="value">${invitation.employeeDetails.designation}</div>
             </div>
             <div class="detail-row">
               <div class="label">Department:</div>
-              <div class="value">${invitation.department}</div>
+              <div class="value">${invitation.employeeDetails.department}</div>
             </div>
             ${
-              invitation.joiningDate
+              invitation.employeeDetails.joiningDate
                 ? `
             <div class="detail-row">
               <div class="label">Start Date:</div>
-              <div class="value">${format(invitation.joiningDate, 'dd/MM/yyyy')}</div>
+              <div class="value">${format(invitation.employeeDetails.joiningDate, 'dd/MM/yyyy')}</div>
             </div>`
                 : ''
             }
             ${
-              invitation.reportingManager
+              invitation.employeeDetails.reportingManager
                 ? `
             <div class="detail-row">
               <div class="label">Reporting Manager:</div>
-              <div class="value">${invitation.reportingManager}</div>
+              <div class="value">${invitation.employeeDetails.reportingManager}</div>
             </div>`
                 : ''
             }
             ${
-              invitation.shiftTiming
+              invitation.employeeDetails.shiftTiming
                 ? `
             <div class="detail-row">
               <div class="label">Shift Timing:</div>
-              <div class="value">${invitation.shiftTiming}</div>
+              <div class="value">${invitation.employeeDetails.shiftTiming}</div>
             </div>`
                 : ''
             }
@@ -300,7 +331,7 @@ export default function InvitationPage() {
           <p>We look forward to welcoming you to our team. If you have any questions, please don't hesitate to contact our HR department.</p>
 
           <div class="footer">
-            <p><strong>${invitation.organizationName}</strong></p>
+            <p><strong>${invitation.organizationName || 'Organization'}</strong></p>
             <p>This is a system-generated invitation letter.</p>
             <p>Generated on ${format(new Date(), 'dd/MM/yyyy')}</p>
           </div>
@@ -352,7 +383,7 @@ export default function InvitationPage() {
       },
     };
 
-    return statusMap[invitation.status] || statusMap.pending;
+    return statusMap[getInvitationStatus(invitation)] || statusMap.pending;
   };
 
   const statusDisplay = getStatusDisplay();
@@ -395,7 +426,7 @@ export default function InvitationPage() {
                       Full Name
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.employeeName}
+                      {invitation.employeeDetails.employeeName || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -409,7 +440,7 @@ export default function InvitationPage() {
                       Employee ID
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.employeeId}
+                      {invitation.employeeDetails.employeeId || 'Not Assigned'}
                     </p>
                   </div>
                 </div>
@@ -425,7 +456,7 @@ export default function InvitationPage() {
                       Department
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.department}
+                      {invitation.employeeDetails.department}
                     </p>
                   </div>
                 </div>
@@ -439,7 +470,7 @@ export default function InvitationPage() {
                       Designation
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.designation}
+                      {invitation.employeeDetails.designation}
                     </p>
                   </div>
                 </div>
@@ -455,7 +486,7 @@ export default function InvitationPage() {
                       Email
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.email}
+                      {invitation.employeeDetails.email || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -469,7 +500,7 @@ export default function InvitationPage() {
                       Phone
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.phone}
+                      {invitation.employeeDetails.phone || 'N/A'}
                     </p>
                   </div>
                 </div>
@@ -484,46 +515,49 @@ export default function InvitationPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-6">
-                {invitation.joiningDate && (
+                {invitation.employeeDetails.joiningDate && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
                       Joining Date
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {format(invitation.joiningDate, 'MMM dd, yyyy')}
+                      {format(
+                        invitation.employeeDetails.joiningDate,
+                        'MMM dd, yyyy'
+                      )}
                     </p>
                   </div>
                 )}
 
-                {invitation.salary && (
+                {invitation.employeeDetails.salary && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
                       Salary
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ₹{invitation.salary.toLocaleString()}
+                      ₹{invitation.employeeDetails.salary.toLocaleString()}
                     </p>
                   </div>
                 )}
 
-                {invitation.reportingManager && (
+                {invitation.employeeDetails.reportingManager && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
                       Reporting Manager
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.reportingManager}
+                      {invitation.employeeDetails.reportingManager}
                     </p>
                   </div>
                 )}
 
-                {invitation.shiftTiming && (
+                {invitation.employeeDetails.shiftTiming && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
                       Shift Timing
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.shiftTiming}
+                      {invitation.employeeDetails.shiftTiming}
                     </p>
                   </div>
                 )}
@@ -534,29 +568,10 @@ export default function InvitationPage() {
           {/* Invitation Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle>Invitation Timeline</CardTitle>
+              <CardTitle>Invitation Details</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                    <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Created
-                    </p>
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.createdDate
-                        ? format(
-                            invitation.createdDate,
-                            "MMM dd, yyyy 'at' h:mm a"
-                          )
-                        : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100 dark:bg-yellow-900/20">
                     <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
@@ -578,23 +593,29 @@ export default function InvitationPage() {
 
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/20">
-                    <Mail className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                    <User className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                   </div>
                   <div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Sent Via
+                      Max Uses
                     </p>
-                    <div className="mt-1 flex flex-wrap gap-2">
-                      {invitation.sentVia?.map((method) => (
-                        <Badge
-                          key={method}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          {method.charAt(0).toUpperCase() + method.slice(1)}
-                        </Badge>
-                      )) || <span className="text-sm text-zinc-400">None</span>}
-                    </div>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.maxUses || 'Unlimited'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Current Uses
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {invitation.usedCount} / {invitation.maxUses || '∞'}
+                    </p>
                   </div>
                 </div>
               </div>
