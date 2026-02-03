@@ -4,7 +4,6 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
-import { employeeService } from '@/services/employee-service';
 import { organizationService } from '@/services/organization-service';
 import { logger } from '@/lib/logger';
 import { ApiError } from '@/lib/api/api-client';
@@ -42,19 +41,36 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
           logger.debug('User profile prefetched successfully');
 
           if (user?.id) {
-            // Prefetch employee record (if user is an employee)
-            employeeService
-              .getById(user.id)
-              .then((employee) => {
-                queryClient.setQueryData(['employees', user.id], employee);
-                logger.debug('Employee profile prefetched successfully');
+            // Prefetch all employee records for the user
+            userService
+              .getUserEmployees()
+              .then((employees) => {
+                // Cache all employees
+                queryClient.setQueryData(['user', 'employees'], employees);
+                logger.debug('User employees prefetched successfully');
+
+                // Find and cache the current employee (matching defaultOrganizationId)
+                if (user.defaultOrganizationId) {
+                  const currentEmployee = employees.find(
+                    (emp) => emp.organizationId === user.defaultOrganizationId
+                  );
+                  if (currentEmployee) {
+                    queryClient.setQueryData(
+                      ['employees', user.id],
+                      currentEmployee
+                    );
+                    logger.debug(
+                      'Current employee profile cached successfully'
+                    );
+                  }
+                }
               })
               .catch((error) => {
                 // It's okay if employee fetch fails (user might not be an employee)
                 if (error instanceof ApiError && error.isNotFound) {
-                  logger.debug('User is not an employee');
+                  logger.debug('User has no employee profiles');
                 } else {
-                  logger.error('Failed to prefetch employee profile:', error);
+                  logger.error('Failed to prefetch employee profiles:', error);
                 }
               });
 
