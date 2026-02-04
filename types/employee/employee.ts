@@ -51,12 +51,14 @@ export interface Employee {
   designation: string;
   department: Department;
   salary?: number;
-  reportingManager?: string;
+  managerId?: number;
+  managerName?: string;
   shiftTiming?: string;
   status: EmployeeStatus;
   certifications?: string[];
   joiningDate?: Date;
   currentProjects?: Project[];
+  isManager?: boolean;
 
   // Timestamps
   createdAt?: Date;
@@ -102,13 +104,15 @@ export function parseEmployee(json: any): Employee {
         : Department.engineering,
     joiningDate: json.joiningDate ? new Date(json.joiningDate) : undefined,
     salary: json.salary == null ? undefined : Number(json.salary),
-    reportingManager: json.reportingManager ?? undefined,
+    managerId: json.managerId ?? undefined,
+    managerName: json.managerName ?? undefined,
     shiftTiming: json.shiftTiming ?? undefined,
     status: employeeStatusFromString(json.status ?? 'active'),
     certifications: json.certifications ? [...json.certifications] : undefined,
     currentProjects: json.currentProjects
       ? (json.currentProjects as unknown[]).map((p) => parseProject(p))
       : undefined,
+    isManager: json.isManager ?? undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
   };
@@ -138,11 +142,13 @@ export function employeeToJson(emp: Employee): Record<string, unknown> {
     department: emp.department,
     joiningDate: emp.joiningDate?.toISOString(),
     salary: emp.salary,
-    reportingManager: emp.reportingManager,
+    managerId: emp.managerId,
+    managerName: emp.managerName,
     shiftTiming: emp.shiftTiming,
     status: emp.status,
     certifications: emp.certifications,
     currentProjects: emp.currentProjects?.map((p) => projectToJson(p)),
+    isManager: emp.isManager,
     createdAt: emp.createdAt?.toISOString(),
     updatedAt: emp.updatedAt?.toISOString(),
   };

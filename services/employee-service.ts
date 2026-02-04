@@ -145,4 +145,65 @@ export const employeeService = {
     );
     return safeParseEmployee(data);
   },
+
+  /**
+   * Assign a reporting manager to an employee.
+   *
+   * @param {number} employeeId - Employee id (employee.id, not employeeId field).
+   * @param {number} managerId - Manager's employee id.
+   * @returns {Promise<Employee>} The updated employee with manager assigned.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async assignManager(
+    employeeId: number,
+    managerId: number
+  ): Promise<Employee> {
+    const data = await api.put<ApiResponse>(
+      `/employee/web/employeeId/${employeeId}/managerId/${managerId}`,
+      {}
+    );
+    return safeParseEmployee(data);
+  },
+
+  /**
+   * Remove the assigned manager from an employee.
+   *
+   * @param {number} employeeId - Employee id (employee.id, not employeeId field).
+   * @returns {Promise<Employee>} The updated employee with manager removed.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async removeManager(employeeId: number): Promise<Employee> {
+    const data = await api.delete<ApiResponse>(
+      `/employee/web/employeeId/${employeeId}/manager`
+    );
+    return safeParseEmployee(data);
+  },
+
+  /**
+   * Get all subordinates (direct reports) of a manager.
+   *
+   * @param {number} managerId - Manager's employee id.
+   * @returns {Promise<Employee[]>} Array of employees reporting to this manager.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async getSubordinates(managerId: number): Promise<Employee[]> {
+    const data = await api.get<ApiResponse[]>(
+      `/employee/web/managerId/${managerId}/subordinates`
+    );
+    return safeParseEmployees(data);
+  },
+
+  /**
+   * Get all managers in an organization.
+   *
+   * @param {number} organizationId - Organization id.
+   * @returns {Promise<Employee[]>} Array of employees who are managers.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async getManagers(organizationId: number): Promise<Employee[]> {
+    const data = await api.get<ApiResponse[]>(
+      `/employee/web/managers/organizationId/${organizationId}`
+    );
+    return safeParseEmployees(data);
+  },
 };
