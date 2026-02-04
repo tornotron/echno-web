@@ -83,7 +83,7 @@ const getInitialFormData = (emp: Employee | null | undefined) => ({
   joiningDate: emp?.joiningDate ? format(emp.joiningDate, 'yyyy-MM-dd') : '',
   status: emp?.status || '',
   salary: emp?.salary?.toString() || '',
-  reportingManager: emp?.reportingManager || '',
+  managerId: emp?.managerId?.toString() || '',
   shiftTiming: emp?.shiftTiming || '',
   role: emp?.roles?.[0] || '',
 
@@ -572,18 +572,19 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="reportingManager">Reporting Manager</Label>
+                  <Label htmlFor="managerId">Manager ID</Label>
                   <div className="relative">
                     <UsersIcon className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
                     <Input
-                      id="reportingManager"
-                      placeholder="Manager's name"
+                      id="managerId"
+                      type="number"
+                      placeholder="Employee ID of manager"
                       className="pl-9"
-                      value={formData.reportingManager}
+                      value={formData.managerId}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          reportingManager: e.target.value,
+                          managerId: e.target.value,
                         })
                       }
                     />
