@@ -67,7 +67,7 @@ export interface GenerateInviteCodeRequest {
   phone?: string;
   joiningDate?: Date;
   salary?: number;
-  reportingManager?: string;
+  managerId?: number;
   shiftTiming?: string;
   status?: string;
   validityDays?: number;
@@ -132,8 +132,7 @@ export const invitationService = {
     if (request.joiningDate)
       payload.joiningDate = request.joiningDate.toISOString();
     if (request.salary !== undefined) payload.salary = request.salary;
-    if (request.reportingManager)
-      payload.reportingManager = request.reportingManager;
+    if (request.managerId !== undefined) payload.managerId = request.managerId;
     if (request.shiftTiming) payload.shiftTiming = request.shiftTiming;
     if (request.validityDays !== undefined)
       payload.validityDays = request.validityDays;
