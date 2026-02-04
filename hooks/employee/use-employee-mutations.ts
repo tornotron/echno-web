@@ -109,3 +109,66 @@ export function useJoinOrganization() {
     },
   });
 }
+
+/**
+ * Hook to assign a manager to an employee.
+ * Invalidates employee caches on success.
+ */
+export function useAssignManager() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      employeeId,
+      managerId,
+    }: {
+      employeeId: number;
+      managerId: number;
+    }) => employeeService.assignManager(employeeId, managerId),
+    onSuccess: (employee, { employeeId }) => {
+      // Invalidate the specific employee and subordinates list
+      queryClient.invalidateQueries({ queryKey: ['employees', employeeId] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({
+        queryKey: ['employees', 'subordinates'],
+      });
+      toast.success('Manager Assigned', {
+        description: `${employee.managerName || 'Manager'} has been assigned successfully.`,
+      });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to assign manager', {
+        description: error.message,
+      });
+    },
+  });
+}
+
+/**
+ * Hook to remove a manager from an employee.
+ * Invalidates employee caches on success.
+ */
+export function useRemoveManager() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (employeeId: number) =>
+      employeeService.removeManager(employeeId),
+    onSuccess: (employee, employeeId) => {
+      // Invalidate the specific employee and subordinates list
+      queryClient.invalidateQueries({ queryKey: ['employees', employeeId] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({
+        queryKey: ['employees', 'subordinates'],
+      });
+      toast.success('Manager Removed', {
+        description: 'The reporting manager has been removed successfully.',
+      });
+    },
+    onError: (error: Error) => {
+      toast.error('Failed to remove manager', {
+        description: error.message,
+      });
+    },
+  });
+}
