@@ -287,7 +287,7 @@ export default function EmployeeDetailPage({
                   </p>
                 </div>
               </div>
-              {employee.reportingManager && (
+              {employee.managerName && (
                 <>
                   <Separator />
                   <div className="flex items-center space-x-3">
@@ -299,7 +299,7 @@ export default function EmployeeDetailPage({
                         Reporting Manager
                       </p>
                       <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {employee.reportingManager}
+                        {employee.managerName}
                       </p>
                     </div>
                   </div>
