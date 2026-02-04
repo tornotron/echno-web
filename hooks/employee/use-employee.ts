@@ -111,3 +111,49 @@ export function useCurrentUserEmployee() {
     error,
   };
 }
+
+/**
+ * Hook to fetch all subordinates (direct reports) of a manager.
+ * Includes retry logic for transient errors and caches data for 5 minutes.
+ *
+ * @param managerId - Employee ID of the manager
+ * @returns Array of employees reporting to this manager
+ */
+export function useSubordinates(managerId?: number) {
+  return useQuery({
+    queryKey: ['employees', 'subordinates', managerId],
+    queryFn: () => {
+      if (!managerId) {
+        throw new Error('Manager ID is required');
+      }
+      return employeeService.getSubordinates(managerId);
+    },
+    enabled: !!managerId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
+}
+
+/**
+ * Hook to fetch all managers in an organization.
+ * Includes retry logic for transient errors and caches data for 5 minutes.
+ *
+ * @param organizationId - Organization ID
+ * @returns Array of employees who are managers
+ */
+export function useManagers(organizationId?: number) {
+  return useQuery({
+    queryKey: ['employees', 'managers', organizationId],
+    queryFn: () => {
+      if (!organizationId) {
+        throw new Error('Organization ID is required');
+      }
+      return employeeService.getManagers(organizationId);
+    },
+    enabled: !!organizationId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
+}
