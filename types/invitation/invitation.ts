@@ -33,7 +33,7 @@ export interface EmployeeDetails {
   employeeName?: string;
   joiningDate?: Date;
   phone?: string;
-  reportingManager?: string;
+  managerId?: number;
   salary?: number;
   shiftTiming?: string;
   status?: string;
@@ -72,7 +72,7 @@ export function parseInvitation(json: any): Invitation {
       ? new Date(json.employeeDetails.joiningDate)
       : undefined,
     phone: json.employeeDetails?.phone ?? undefined,
-    reportingManager: json.employeeDetails?.reportingManager ?? undefined,
+    managerId: json.employeeDetails?.managerId ?? undefined,
     salary:
       json.employeeDetails?.salary == null
         ? undefined
@@ -110,7 +110,7 @@ export function invitationToJson(inv: Invitation): Record<string, unknown> {
       employeeName: inv.employeeDetails.employeeName,
       joiningDate: inv.employeeDetails.joiningDate?.toISOString(),
       phone: inv.employeeDetails.phone,
-      reportingManager: inv.employeeDetails.reportingManager,
+      managerId: inv.employeeDetails.managerId,
       salary: inv.employeeDetails.salary,
       shiftTiming: inv.employeeDetails.shiftTiming,
       status: inv.employeeDetails.status,
@@ -188,8 +188,6 @@ export function whatsappMessage(
       `*Start Date*: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
     );
   }
-  if (inv.employeeDetails.reportingManager)
-    lines.push(`*Reporting Manager*: ${inv.employeeDetails.reportingManager}`);
   if (inv.employeeDetails.shiftTiming)
     lines.push(`*Shift Timing*: ${inv.employeeDetails.shiftTiming}`);
 
@@ -235,8 +233,6 @@ export function emailBody(inv: Invitation, organizationName?: string): string {
       `- Start Date: ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
     );
   }
-  if (inv.employeeDetails.reportingManager)
-    lines.push(`- Reporting Manager: ${inv.employeeDetails.reportingManager}`);
   if (inv.employeeDetails.shiftTiming)
     lines.push(`- Shift Timing: ${inv.employeeDetails.shiftTiming}`);
 
