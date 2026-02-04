@@ -42,6 +42,11 @@ import {
 import { format } from 'date-fns';
 import { useInvitationsByOrganization } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
+import { useManagerName } from '@/hooks/employee';
+import {
+  InvitationQRCode,
+  InvitationQRCodeDialog,
+} from '@/components/invitation/invitation-qr-code';
 
 export default function InvitationPage() {
   const params = useParams();
@@ -61,6 +66,12 @@ export default function InvitationPage() {
   // Find the specific invitation by code from URL params
   const inviteCode = params.id as string;
   const invitation = invitations?.find((inv) => inv.inviteCode === inviteCode);
+
+  // Resolve manager name from ID
+  const managerName = useManagerName(
+    invitation?.employeeDetails.managerId,
+    invitation?.organizationId
+  );
 
   // Show loading state
   if (isLoading || !user) {
@@ -294,20 +305,20 @@ export default function InvitationPage() {
                 : ''
             }
             ${
-              invitation.employeeDetails.reportingManager
-                ? `
-            <div class="detail-row">
-              <div class="label">Reporting Manager:</div>
-              <div class="value">${invitation.employeeDetails.reportingManager}</div>
-            </div>`
-                : ''
-            }
-            ${
               invitation.employeeDetails.shiftTiming
                 ? `
             <div class="detail-row">
               <div class="label">Shift Timing:</div>
               <div class="value">${invitation.employeeDetails.shiftTiming}</div>
+            </div>`
+                : ''
+            }
+            ${
+              managerName
+                ? `
+            <div class="detail-row">
+              <div class="label">Reporting Manager:</div>
+              <div class="value">${managerName}</div>
             </div>`
                 : ''
             }
@@ -540,17 +551,6 @@ export default function InvitationPage() {
                   </div>
                 )}
 
-                {invitation.employeeDetails.reportingManager && (
-                  <div>
-                    <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
-                      Reporting Manager
-                    </p>
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.employeeDetails.reportingManager}
-                    </p>
-                  </div>
-                )}
-
                 {invitation.employeeDetails.shiftTiming && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
@@ -558,6 +558,17 @@ export default function InvitationPage() {
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
                       {invitation.employeeDetails.shiftTiming}
+                    </p>
+                  </div>
+                )}
+
+                {managerName && (
+                  <div>
+                    <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      Reporting Manager
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {managerName}
                     </p>
                   </div>
                 )}
@@ -655,14 +666,14 @@ export default function InvitationPage() {
                 </Button>
               </div>
 
-              {/* QR Code Placeholder */}
-              <div className="mt-4 rounded-lg border-2 border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                <div className="flex aspect-square items-center justify-center">
-                  <QrCode className="h-32 w-32 text-zinc-400 dark:text-zinc-600" />
-                </div>
-                <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                  QR Code (Scan with mobile app)
-                </p>
+              {/* QR Code */}
+              <div className="mt-4">
+                <InvitationQRCode
+                  inviteCode={invitation.inviteCode}
+                  organizationName={invitation.organizationName}
+                  size={256}
+                  showDownload={true}
+                />
               </div>
             </CardContent>
           </Card>

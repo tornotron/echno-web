@@ -40,10 +40,15 @@ import {
 import type { Invitation } from '@/types/invitation';
 import { useGenerateInviteCode } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
+import { useManagers } from '@/hooks/employee';
+import { InvitationQRCode } from '@/components/invitation/invitation-qr-code';
 
 export default function NewInvitationPage() {
   const { data: user } = useUser();
   const generateMutation = useGenerateInviteCode();
+  const { data: managers = [], isLoading: managersLoading } = useManagers(
+    user?.defaultOrganizationId
+  );
 
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -54,7 +59,7 @@ export default function NewInvitationPage() {
     department: '',
     joiningDate: '',
     salary: '',
-    reportingManager: '',
+    managerId: '',
     shiftTiming: '',
     validityDays: '30',
   });
@@ -105,7 +110,9 @@ export default function NewInvitationPage() {
           salary: formData.salary
             ? Number.parseFloat(formData.salary)
             : undefined,
-          reportingManager: formData.reportingManager || undefined,
+          managerId: formData.managerId
+            ? Number.parseInt(formData.managerId, 10)
+            : undefined,
           shiftTiming: formData.shiftTiming || undefined,
           validityDays: Number.parseInt(formData.validityDays),
         },
@@ -147,7 +154,9 @@ export default function NewInvitationPage() {
         salary: formData.salary
           ? Number.parseFloat(formData.salary)
           : undefined,
-        reportingManager: formData.reportingManager || undefined,
+        managerId: formData.managerId
+          ? Number.parseInt(formData.managerId, 10)
+          : undefined,
         shiftTiming: formData.shiftTiming || undefined,
         status: 'active',
       },
@@ -354,15 +363,6 @@ export default function NewInvitationPage() {
             <div class="detail-row">
               <div class="label">Start Date:</div>
               <div class="value">${new Date(invitation.employeeDetails.joiningDate).toLocaleDateString('en-GB')}</div>
-            </div>`
-                : ''
-            }
-            ${
-              invitation.employeeDetails.reportingManager
-                ? `
-            <div class="detail-row">
-              <div class="label">Reporting Manager:</div>
-              <div class="value">${invitation.employeeDetails.reportingManager}</div>
             </div>`
                 : ''
             }
@@ -596,19 +596,39 @@ export default function NewInvitationPage() {
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="reportingManager">Reporting Manager</Label>
-                    <Input
-                      id="reportingManager"
-                      placeholder="e.g., Jane Smith"
-                      value={formData.reportingManager}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          reportingManager: e.target.value,
-                        })
+                    <Label htmlFor="managerId">Reporting Manager</Label>
+                    <Select
+                      value={formData.managerId}
+                      onValueChange={(value) =>
+                        setFormData({ ...formData, managerId: value })
                       }
                       disabled={isGenerated}
-                    />
+                    >
+                      <SelectTrigger id="managerId">
+                        <SelectValue
+                          placeholder={
+                            managersLoading
+                              ? 'Loading managers...'
+                              : 'Select manager (optional)'
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {managers.length === 0 && !managersLoading && (
+                          <SelectItem value="none" disabled>
+                            No managers available
+                          </SelectItem>
+                        )}
+                        {managers.map((manager) => (
+                          <SelectItem
+                            key={manager.id}
+                            value={manager.id?.toString() || ''}
+                          >
+                            {manager.name} - {manager.designation}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-2">
@@ -728,14 +748,18 @@ export default function NewInvitationPage() {
                     </Button>
                   </div>
 
-                  {/* QR Code Placeholder */}
-                  <div className="mt-4 rounded-lg border-2 border-dashed border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-                    <div className="flex aspect-square items-center justify-center">
-                      <QrCode className="h-32 w-32 text-zinc-400 dark:text-zinc-600" />
-                    </div>
-                    <p className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                      QR Code (Scan with mobile app)
-                    </p>
+                  {/* QR Code */}
+                  <div className="mt-4">
+                    <InvitationQRCode
+                      inviteCode={inviteCode}
+                      organizationName={
+                        user?.defaultOrganizationId
+                          ? 'Your Organization'
+                          : undefined
+                      }
+                      size={256}
+                      showDownload={true}
+                    />
                   </div>
                 </CardContent>
               </Card>
