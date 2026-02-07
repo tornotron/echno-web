@@ -255,7 +255,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Employees</CardDescription>
@@ -439,7 +439,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
         {paginatedEmployees.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-zinc-500">
@@ -509,7 +509,7 @@ export default function EmployeesPage() {
 
       {/* Employees Table */}
       {filteredEmployees.length > 0 ? (
-        <Card className="hidden md:block">
+        <Card className="hidden lg:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -651,7 +651,7 @@ export default function EmployeesPage() {
           />
         </Card>
       ) : (
-        <Card className="hidden md:block">
+        <Card className="hidden lg:block">
           <CardContent className="py-12 text-center">
             <Users className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
             <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">

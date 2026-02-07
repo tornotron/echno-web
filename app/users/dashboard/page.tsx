@@ -932,7 +932,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                   <div className="rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
                     <div className="mb-2 flex items-center gap-2">
                       <CheckCircle2 className="h-5 w-5 text-green-600" />
@@ -1178,7 +1178,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                   <div className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-4 dark:border-green-800 dark:from-green-900/20 dark:to-green-800/10">
                     <Truck className="mb-2 h-6 w-6 text-green-600" />
                     <div className="text-2xl font-bold text-green-900 dark:text-green-100">
@@ -1412,7 +1412,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                   <div className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-4 dark:border-green-800 dark:from-green-900/20 dark:to-green-800/10">
                     <Package className="mb-2 h-6 w-6 text-green-600" />
                     <div className="text-2xl font-bold text-green-900 dark:text-green-100">
@@ -1948,7 +1948,7 @@ export default function DashboardPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                 <div className="rounded-lg border border-green-200 bg-gradient-to-br from-green-50 to-green-100 p-4 dark:border-green-800 dark:from-green-900/20 dark:to-green-800/10">
                   <DollarSign className="mb-2 h-6 w-6 text-green-600" />
                   <div className="text-2xl font-bold text-green-900 dark:text-green-100">
