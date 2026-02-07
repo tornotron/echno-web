@@ -232,7 +232,7 @@ export default function SubContractEditPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="contractId">Contract ID *</Label>
                     <Input
@@ -345,7 +345,7 @@ export default function SubContractEditPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="status">Status *</Label>
                     <Select
@@ -488,7 +488,7 @@ export default function SubContractEditPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="contractValue">Contract Value (₹) *</Label>
                     <Input
@@ -614,7 +614,7 @@ export default function SubContractEditPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                         <div className="md:col-span-2">
                           <Label htmlFor={`milestone-name-${index}`}>
                             Milestone Name

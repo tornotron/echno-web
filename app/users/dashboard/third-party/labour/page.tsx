@@ -180,7 +180,7 @@ export default function LabourPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Labour</CardDescription>
@@ -319,7 +319,7 @@ export default function LabourPage() {
       />
 
       {/* Showing results and rows per page */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Showing {startIndex + 1} to{' '}
           {Math.min(startIndex + itemsPerPage, filteredLabour.length)} of{' '}
@@ -351,8 +351,81 @@ export default function LabourPage() {
         </div>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-3 md:hidden">
+        {paginatedLabour.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-zinc-500">
+              No labour records found
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedLabour.map((labour) => (
+            <Card
+              key={labour.id}
+              className="cursor-pointer"
+              onClick={() =>
+                (globalThis.location.href = `/dashboard/third-party/labour/${labour.id}`)
+              }
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-orange-600">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {labour.name}
+                      </p>
+                      <p className="text-sm text-zinc-500">
+                        {labour.trade} &middot;{' '}
+                        {
+                          skillLevelLabels[
+                            labour.skillLevel as keyof typeof skillLevelLabels
+                          ]
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    className={`bg-${statusColors[labour.status as keyof typeof statusColors]}-100 text-${statusColors[labour.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[labour.status as keyof typeof statusColors]}-900 dark:text-${statusColors[labour.status as keyof typeof statusColors]}-300`}
+                  >
+                    {statusLabels[labour.status as keyof typeof statusLabels]}
+                  </Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-zinc-500">Project</span>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {labour.currentProject ?? '-'}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Rate</span>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {labour.dailyRate && `₹${labour.dailyRate}/day`}
+                      {labour.monthlyRate &&
+                        `₹${labour.monthlyRate.toLocaleString()}/mo`}
+                      {!labour.dailyRate && !labour.monthlyRate && '-'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {filteredLabour.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
+
       {/* Labour Table */}
-      <Card>
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

@@ -265,7 +265,7 @@ export default function AttendancePage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
             Attendance Management
@@ -274,7 +274,7 @@ export default function AttendancePage() {
             Track employee attendance with geo-location and photo verification
           </p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-wrap items-center gap-3">
           {selectedAttendance.length > 0 && (
             <>
               <Button
@@ -314,7 +314,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -468,7 +468,7 @@ export default function AttendancePage() {
       </Card>
 
       {/* Results Summary */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Showing {startIndex + 1} to{' '}
           {Math.min(endIndex, filteredAttendance.length)} of{' '}
@@ -498,8 +498,98 @@ export default function AttendancePage() {
         </div>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-3 md:hidden">
+        {paginatedAttendance.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center">
+              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <p className="text-zinc-600 dark:text-zinc-400">
+                No attendance records found
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedAttendance.map((attendance) => (
+            <Card
+              key={attendance.id}
+              className="cursor-pointer"
+              onClick={() =>
+                (globalThis.location.href = `/dashboard/attendance/${attendance.id}`)
+              }
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {attendance.employeeName}
+                      </p>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                        {attendance.employeeId}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={getAttendanceStatusColor(attendance.status)}
+                  >
+                    {getAttendanceStatusLabel(attendance.status)}
+                  </Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <p className="text-zinc-500 dark:text-zinc-500">Date</p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {format(attendance.date, 'dd MMM yyyy')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-500 dark:text-zinc-500">
+                      Work Hours
+                    </p>
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {attendance.workDuration.hours}h{' '}
+                      {attendance.workDuration.minutes}m
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-500 dark:text-zinc-500">Check In</p>
+                    <p className="font-medium text-zinc-700 dark:text-zinc-300">
+                      {attendance.morningClockIn
+                        ? format(attendance.morningClockIn.timestamp, 'HH:mm')
+                        : '\u2014'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-zinc-500 dark:text-zinc-500">
+                      Check Out
+                    </p>
+                    <p className="font-medium text-zinc-700 dark:text-zinc-300">
+                      {attendance.eveningClockOut
+                        ? format(attendance.eveningClockOut.timestamp, 'HH:mm')
+                        : '\u2014'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {filteredAttendance.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
+
       {/* Attendance Table */}
-      <Card>
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -803,7 +893,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Location Details */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="fromLocation">From Location *</Label>
                 <Input
@@ -1005,7 +1095,7 @@ export default function AttendancePage() {
             </div>
 
             {/* Date and Project */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="date">Date *</Label>
                 <Input
