@@ -314,7 +314,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-6 lg:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
@@ -499,7 +499,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
         {paginatedAttendance.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center">
@@ -589,7 +589,7 @@ export default function AttendancePage() {
       </div>
 
       {/* Attendance Table */}
-      <Card className="hidden md:block">
+      <Card className="hidden lg:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

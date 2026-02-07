@@ -195,7 +195,7 @@ export default function SubContractsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Contracts</CardDescription>
@@ -370,7 +370,7 @@ export default function SubContractsPage() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
         {paginatedContracts.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-zinc-500">
@@ -439,7 +439,7 @@ export default function SubContractsPage() {
       </div>
 
       {/* Filters and Table */}
-      <Card className="hidden md:block">
+      <Card className="hidden lg:block">
         <CardContent className="p-0">
           {/* Table */}
           <Table>
