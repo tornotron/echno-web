@@ -107,7 +107,7 @@ export default function VendorNewPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="vendorId">Vendor ID *</Label>
                     <Input
@@ -207,7 +207,7 @@ export default function VendorNewPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="type">Vendor Type *</Label>
                     <Select
@@ -310,7 +310,7 @@ export default function VendorNewPage() {
                 <CardDescription>Bank and transaction details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="bankAccount">Bank Account Number</Label>
                     <Input

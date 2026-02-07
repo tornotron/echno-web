@@ -233,7 +233,7 @@ export default function InvitationsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Invitations</CardDescription>
@@ -346,7 +346,7 @@ export default function InvitationsPage() {
       />
 
       {/* Table Header Info - Outside Card */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Showing {startIndex + 1} to{' '}
           {Math.min(endIndex, filteredInvitations.length)} of{' '}
@@ -373,8 +373,75 @@ export default function InvitationsPage() {
         </div>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-3 md:hidden">
+        {currentInvitations.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-zinc-500">
+              No invitation records found
+            </CardContent>
+          </Card>
+        ) : (
+          currentInvitations.map((invitation) => (
+            <Card
+              key={invitation.inviteCode}
+              className="cursor-pointer"
+              onClick={() =>
+                (globalThis.location.href = `/users/dashboard/workforce/invitations/${invitation.inviteCode}`)
+              }
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {invitation.employeeDetails.employeeName || 'N/A'}
+                      </div>
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {invitation.inviteCode}
+                      </div>
+                    </div>
+                  </div>
+                  {getStatusBadge(getInvitationStatus(invitation))}
+                </div>
+                <div className="mt-3 space-y-1.5 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      Designation
+                    </span>
+                    <span className="text-zinc-700 dark:text-zinc-300">
+                      {invitation.employeeDetails.designation}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      Expires
+                    </span>
+                    <span className="text-zinc-700 dark:text-zinc-300">
+                      {invitation.expiryDate
+                        ? format(invitation.expiryDate, 'MMM dd, yyyy')
+                        : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {filteredInvitations.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
+
       {/* Invitations Table */}
-      <Card>
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

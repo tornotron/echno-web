@@ -427,7 +427,7 @@ export default function InvitationPage() {
               <CardTitle>Employee Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
                     <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
@@ -457,7 +457,7 @@ export default function InvitationPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
                     <Building2 className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -487,7 +487,7 @@ export default function InvitationPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-100 dark:bg-cyan-900/20">
                     <AtSign className="h-5 w-5 text-cyan-600 dark:text-cyan-400" />
@@ -525,7 +525,7 @@ export default function InvitationPage() {
               <CardTitle>Employment Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {invitation.employeeDetails.joiningDate && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">

@@ -174,7 +174,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="name">
                     Full Name <span className="text-red-500">*</span>
@@ -343,7 +343,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="employeeId">
                     Employee ID <span className="text-red-500">*</span>
@@ -507,7 +507,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <Label htmlFor="joiningDate">Joining Date</Label>
                   <div className="relative">
@@ -717,7 +717,7 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
           </Card>
 
           {/* Form Actions */}
-          <div className="flex justify-end space-x-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:justify-end sm:space-x-4">
             <Button
               type="button"
               variant="outline"

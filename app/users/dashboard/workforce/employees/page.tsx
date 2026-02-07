@@ -255,7 +255,7 @@ export default function EmployeesPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Employees</CardDescription>
@@ -407,7 +407,7 @@ export default function EmployeesPage() {
       />
 
       {/* Results Summary */}
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Showing {startIndex + 1} to{' '}
           {Math.min(endIndex, filteredEmployees.length)} of{' '}
@@ -438,9 +438,78 @@ export default function EmployeesPage() {
         </div>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-3 md:hidden">
+        {paginatedEmployees.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-zinc-500">
+              No employee records found
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedEmployees.map((employee) => (
+            <Card
+              key={employee.id}
+              className="cursor-pointer"
+              onClick={() =>
+                (globalThis.location.href = `/users/dashboard/workforce/employees/${employee.id}`)
+              }
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {employee.name}
+                      </p>
+                      {employee.employeeId && (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                          ID: {employee.employeeId}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <Badge className={getStatusColor(employee.status)}>
+                    {getStatusLabel(employee.status)}
+                  </Badge>
+                </div>
+                <div className="mt-3 space-y-1.5 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      Designation
+                    </span>
+                    <span className="text-zinc-700 dark:text-zinc-300">
+                      {employee.designation}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500 dark:text-zinc-400">
+                      Department
+                    </span>
+                    <Badge variant="outline">
+                      {getDepartmentLabel(employee.department)}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {filteredEmployees.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
+
       {/* Employees Table */}
       {filteredEmployees.length > 0 ? (
-        <Card>
+        <Card className="hidden md:block">
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -582,7 +651,7 @@ export default function EmployeesPage() {
           />
         </Card>
       ) : (
-        <Card>
+        <Card className="hidden md:block">
           <CardContent className="py-12 text-center">
             <Users className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
             <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
