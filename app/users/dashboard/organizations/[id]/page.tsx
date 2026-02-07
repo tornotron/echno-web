@@ -37,6 +37,7 @@ import { format } from 'date-fns';
 import { useOrganizationWithLogo } from '@/hooks/organization/use-organizations';
 import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
+import { LeavePoliciesManager } from '@/components/leave/leave-policies-manager';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
@@ -431,6 +432,29 @@ export default function OrganizationDetailPage({
               </div>
             </CardContent>
           </Card>
+
+          <div className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Leave Policies</CardTitle>
+                <CardDescription>
+                  Manage leave policies for this organization
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                  Configure leave types, accrual rules, and policy settings for
+                  employees.
+                </p>
+                <Link href="/users/dashboard/workforce/leaves/policies">
+                  <Button>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Go to Leave Policy Management
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 

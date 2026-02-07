@@ -233,7 +233,7 @@ export default function InvitationsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-6 md:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Invitations</CardDescription>
@@ -374,7 +374,7 @@ export default function InvitationsPage() {
       </div>
 
       {/* Mobile Card View */}
-      <div className="space-y-3 md:hidden">
+      <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
         {currentInvitations.length === 0 ? (
           <Card>
             <CardContent className="py-8 text-center text-zinc-500">
@@ -441,7 +441,7 @@ export default function InvitationsPage() {
       </div>
 
       {/* Invitations Table */}
-      <Card className="hidden md:block">
+      <Card className="hidden lg:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>
