@@ -129,7 +129,7 @@ export default function VendorDetailPage({ params }: PageProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Company Name
@@ -202,7 +202,7 @@ export default function VendorDetailPage({ params }: PageProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Vendor Type
@@ -267,7 +267,7 @@ export default function VendorDetailPage({ params }: PageProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Total Purchase Value
@@ -308,7 +308,7 @@ export default function VendorDetailPage({ params }: PageProps) {
                 </div>
               </div>
               <Separator />
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Bank Account

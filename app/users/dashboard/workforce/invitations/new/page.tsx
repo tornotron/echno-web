@@ -440,7 +440,7 @@ export default function NewInvitationPage() {
             <CardContent>
               <form onSubmit={handleGenerate} className="space-y-6">
                 {/* Basic Info */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="employeeId">
                       Employee ID <span className="text-red-500">*</span>
@@ -478,7 +478,7 @@ export default function NewInvitationPage() {
                 </div>
 
                 {/* Contact Info */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email Address</Label>
                     <Input
@@ -509,7 +509,7 @@ export default function NewInvitationPage() {
                 </div>
 
                 {/* Position Info */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="designation">
                       Designation <span className="text-red-500">*</span>
@@ -562,7 +562,7 @@ export default function NewInvitationPage() {
                 </div>
 
                 {/* Employment Details */}
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="joiningDate">Joining Date</Label>
                     <Input
@@ -594,7 +594,7 @@ export default function NewInvitationPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="managerId">Reporting Manager</Label>
                     <Select

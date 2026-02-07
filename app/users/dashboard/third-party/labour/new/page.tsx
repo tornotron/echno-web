@@ -104,7 +104,7 @@ export default function NewLabourPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="labourId">
                       Labour ID <span className="text-red-500">*</span>
@@ -175,7 +175,7 @@ export default function NewLabourPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="trade">
                       Trade/Specialization{' '}
@@ -302,7 +302,7 @@ export default function NewLabourPage() {
                 <CardDescription>Salary and payment details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {formData.type === 'daily' && (
                     <div>
                       <Label htmlFor="dailyRate">Daily Rate (₹)</Label>
@@ -383,7 +383,7 @@ export default function NewLabourPage() {
                 <CardDescription>Government ID and documents</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="aadhaarNumber">Aadhaar Number</Label>
                     <Input

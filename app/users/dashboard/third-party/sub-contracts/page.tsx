@@ -195,7 +195,7 @@ export default function SubContractsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Contracts</CardDescription>
@@ -337,7 +337,7 @@ export default function SubContractsPage() {
       />
 
       {/* Showing results and rows per page */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Showing {startIndex + 1} to{' '}
           {Math.min(startIndex + itemsPerPage, filteredContracts.length)} of{' '}
@@ -369,8 +369,77 @@ export default function SubContractsPage() {
         </div>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-3 md:hidden">
+        {paginatedContracts.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-zinc-500">
+              No contract records found
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedContracts.map((contract) => (
+            <Card
+              key={contract.id}
+              className="cursor-pointer"
+              onClick={() =>
+                (globalThis.location.href = `/dashboard/third-party/sub-contracts/${contract.id}`)
+              }
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {contract.contractName}
+                    </p>
+                    <p className="text-sm text-zinc-500">
+                      {contract.contractorName}
+                    </p>
+                  </div>
+                  <Badge
+                    className={`ml-2 shrink-0 bg-${statusColors[contract.status as keyof typeof statusColors]}-100 text-${statusColors[contract.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[contract.status as keyof typeof statusColors]}-900 dark:text-${statusColors[contract.status as keyof typeof statusColors]}-300`}
+                  >
+                    {statusLabels[contract.status as keyof typeof statusLabels]}
+                  </Badge>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-zinc-500">Contract Value</span>
+                    <p className="font-semibold text-blue-600 dark:text-blue-400">
+                      ₹{(contract.contractValue / 100_000).toFixed(1)}L
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-zinc-500">Outstanding</span>
+                    <p className="font-semibold text-orange-600 dark:text-orange-400">
+                      {contract.totalDue > 0
+                        ? `₹${(contract.totalDue / 100_000).toFixed(1)}L`
+                        : 'Paid'}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2 flex items-center space-x-1 text-xs text-zinc-400">
+                  <Clock className="h-3 w-3" />
+                  <span>
+                    {format(contract.startDate, 'MMM d, yyyy')} &ndash;{' '}
+                    {format(contract.endDate, 'MMM d, yyyy')}
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {filteredContracts.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
+
       {/* Filters and Table */}
-      <Card>
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           {/* Table */}
           <Table>

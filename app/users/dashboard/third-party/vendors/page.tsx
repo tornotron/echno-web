@@ -161,7 +161,7 @@ export default function VendorsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-3">
             <CardDescription>Total Vendors</CardDescription>
@@ -286,7 +286,7 @@ export default function VendorsPage() {
       />
 
       {/* Showing results and rows per page */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
           Showing {startIndex + 1} to{' '}
           {Math.min(startIndex + itemsPerPage, filteredVendors.length)} of{' '}
@@ -318,8 +318,64 @@ export default function VendorsPage() {
         </div>
       </div>
 
+      {/* Mobile Card View */}
+      <div className="space-y-3 md:hidden">
+        {paginatedVendors.length === 0 ? (
+          <Card>
+            <CardContent className="py-8 text-center text-zinc-500">
+              No vendor records found
+            </CardContent>
+          </Card>
+        ) : (
+          paginatedVendors.map((vendor) => (
+            <Card
+              key={vendor.id}
+              className="cursor-pointer"
+              onClick={() =>
+                (globalThis.location.href = `/dashboard/third-party/vendors/${vendor.id}`)
+              }
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                      <Building2 className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {vendor.companyName}
+                      </p>
+                      <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                        {vendor.contactPerson}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    className={`bg-${statusColors[vendor.status as keyof typeof statusColors]}-100 text-${statusColors[vendor.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[vendor.status as keyof typeof statusColors]}-900 dark:text-${statusColors[vendor.status as keyof typeof statusColors]}-300`}
+                  >
+                    {statusLabels[vendor.status as keyof typeof statusLabels]}
+                  </Badge>
+                </div>
+                <div className="mt-3 flex items-center">
+                  <Badge variant="outline">
+                    {typeLabels[vendor.type as keyof typeof typeLabels]}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+        {filteredVendors.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        )}
+      </div>
+
       {/* Filters and Table */}
-      <Card>
+      <Card className="hidden md:block">
         <CardContent className="p-0">
           <Table>
             <TableHeader>

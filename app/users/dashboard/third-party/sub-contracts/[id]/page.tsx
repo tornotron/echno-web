@@ -188,7 +188,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Contractor Name
@@ -263,7 +263,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Status
@@ -368,7 +368,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Contract Value
@@ -395,7 +395,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                 </div>
               </div>
               <Separator />
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Bank Account
