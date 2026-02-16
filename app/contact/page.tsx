@@ -106,7 +106,7 @@ export default function ContactPage() {
                 Send us an email anytime
               </p>
               <p className="font-medium text-zinc-700 dark:text-zinc-300">
-                support@echno.com
+                support@echnoai.com
               </p>
             </div>
 
