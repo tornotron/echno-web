@@ -35,30 +35,13 @@ import {
 } from '@/lib/validators';
 import Link from 'next/link';
 
-// Common roles for registration (subset of all roles)
-const REGISTRATION_ROLES: UserRole[] = [
-  UserRole.laborer,
-  UserRole.electrician,
-  UserRole.plumber,
-  UserRole.carpenter,
-  UserRole.mason,
-  UserRole.welder,
-  UserRole.painter,
-  UserRole.driver,
-  UserRole.helper,
-  UserRole.securityGuard,
-  UserRole.civilEngineer,
-  UserRole.siteEngineer,
-  UserRole.architect,
-  UserRole.projectManager,
-  UserRole.supervisor,
-  UserRole.foreman,
-  UserRole.contractor,
-  UserRole.intern,
-  UserRole.trainee,
-];
+const REGISTRATION_ROLES = Object.values(UserRole);
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
+
+const inputClasses =
+  'h-9 border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 dark:focus-visible:ring-amber-500/50 dark:focus-visible:border-amber-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600';
+const inputErrorClasses = 'border-red-500';
 
 export function RegistrationForm() {
   const [formData, setFormData] = useState<RegistrationFormData>(
@@ -72,39 +55,32 @@ export function RegistrationForm() {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Validate username using composed validators
     const usernameValidator = compose(required('Username'), username);
     const usernameError = usernameValidator(formData.userName);
     if (usernameError) newErrors.userName = usernameError;
 
-    // Validate name
     const nameValidator = compose(required('Full name'), name);
     const nameError = nameValidator(formData.name);
     if (nameError) newErrors.name = nameError;
 
-    // Validate email
     const emailValidator = compose(required('Email'), email);
     const emailError = emailValidator(formData.email);
     if (emailError) newErrors.email = emailError;
 
-    // Validate password
     const passwordValidator = compose(required('Password'), password);
     const passwordError = passwordValidator(formData.password);
     if (passwordError) newErrors.password = passwordError;
 
-    // Validate confirm password
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Confirm password is required';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
 
-    // Validate phone
     const phoneValidator = compose(required('Phone'), phone);
     const phoneError = phoneValidator(formData.phone);
     if (phoneError) newErrors.phone = phoneError;
 
-    // Validate date of birth
     if (formData.dateOfBirth) {
       const age = Math.floor(
         (Date.now() - formData.dateOfBirth.getTime()) /
@@ -117,11 +93,9 @@ export function RegistrationForm() {
       newErrors.dateOfBirth = 'Date of birth is required';
     }
 
-    // Validate role
     const roleError = required('Role')(formData.role);
     if (roleError) newErrors.role = roleError;
 
-    // Validate terms acceptance
     if (!formData.acceptTerms) {
       newErrors.acceptTerms = 'You must accept the terms and conditions';
     }
@@ -152,16 +126,13 @@ export function RegistrationForm() {
 
       setFormData(initialRegistrationFormData);
 
-      // Redirect to Keycloak sign in after short delay
       setTimeout(() => {
         signIn('keycloak');
       }, 1500);
     } catch (error) {
       logger.error('Registration error:', error);
 
-      // Handle ApiError with field-level errors
       if (error instanceof ApiError) {
-        // Set field-level errors from server validation
         if (error.errors) {
           const fieldErrors: Record<string, string> = {};
           for (const [field, messages] of Object.entries(error.errors)) {
@@ -170,7 +141,6 @@ export function RegistrationForm() {
           setErrors((prev) => ({ ...prev, ...fieldErrors }));
         }
 
-        // Show context-aware toast (avoid nested ternary for readability/linting)
         let title = 'Registration Failed';
         if (error.isTimeout) {
           title = 'Request Timeout';
@@ -211,7 +181,10 @@ export function RegistrationForm() {
       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {/* Username */}
         <div className="space-y-1">
-          <Label htmlFor="userName" className="text-sm">
+          <Label
+            htmlFor="userName"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Username <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -219,7 +192,7 @@ export function RegistrationForm() {
             value={formData.userName}
             onChange={(e) => handleChange('userName', e.target.value)}
             placeholder="john_doe"
-            className={`h-9 ${errors.userName ? 'border-red-500' : ''}`}
+            className={`${inputClasses} ${errors.userName ? inputErrorClasses : ''}`}
           />
           {errors.userName && (
             <p className="text-xs text-red-500">{errors.userName}</p>
@@ -228,7 +201,10 @@ export function RegistrationForm() {
 
         {/* Full Name */}
         <div className="space-y-1">
-          <Label htmlFor="name" className="text-sm">
+          <Label
+            htmlFor="name"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Full Name <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -236,14 +212,17 @@ export function RegistrationForm() {
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
             placeholder="John Doe"
-            className={`h-9 ${errors.name ? 'border-red-500' : ''}`}
+            className={`${inputClasses} ${errors.name ? inputErrorClasses : ''}`}
           />
           {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
         </div>
 
         {/* Email - Full width */}
         <div className="col-span-2 space-y-1">
-          <Label htmlFor="email" className="text-sm">
+          <Label
+            htmlFor="email"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Email <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -252,7 +231,7 @@ export function RegistrationForm() {
             value={formData.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder="john@example.com"
-            className={`h-9 ${errors.email ? 'border-red-500' : ''}`}
+            className={`${inputClasses} ${errors.email ? inputErrorClasses : ''}`}
           />
           {errors.email && (
             <p className="text-xs text-red-500">{errors.email}</p>
@@ -261,7 +240,10 @@ export function RegistrationForm() {
 
         {/* Password */}
         <div className="space-y-1">
-          <Label htmlFor="password" className="text-sm">
+          <Label
+            htmlFor="password"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Password <span className="text-red-500">*</span>
           </Label>
           <div className="relative">
@@ -271,11 +253,11 @@ export function RegistrationForm() {
               value={formData.password}
               onChange={(e) => handleChange('password', e.target.value)}
               placeholder="Min 8 characters"
-              className={`h-9 pr-9 ${errors.password ? 'border-red-500' : ''}`}
+              className={`${inputClasses} pr-9 ${errors.password ? inputErrorClasses : ''}`}
             />
             <button
               type="button"
-              className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+              className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
               onClick={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
@@ -292,7 +274,10 @@ export function RegistrationForm() {
 
         {/* Confirm Password */}
         <div className="space-y-1">
-          <Label htmlFor="confirmPassword" className="text-sm">
+          <Label
+            htmlFor="confirmPassword"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Confirm Password <span className="text-red-500">*</span>
           </Label>
           <div className="relative">
@@ -302,11 +287,11 @@ export function RegistrationForm() {
               value={formData.confirmPassword}
               onChange={(e) => handleChange('confirmPassword', e.target.value)}
               placeholder="Confirm password"
-              className={`h-9 pr-9 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+              className={`${inputClasses} pr-9 ${errors.confirmPassword ? inputErrorClasses : ''}`}
             />
             <button
               type="button"
-              className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+              className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? (
@@ -323,7 +308,10 @@ export function RegistrationForm() {
 
         {/* Phone */}
         <div className="space-y-1">
-          <Label htmlFor="phone" className="text-sm">
+          <Label
+            htmlFor="phone"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Phone <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -332,7 +320,7 @@ export function RegistrationForm() {
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="9876543210"
-            className={`h-9 ${errors.phone ? 'border-red-500' : ''}`}
+            className={`${inputClasses} ${errors.phone ? inputErrorClasses : ''}`}
           />
           {errors.phone && (
             <p className="text-xs text-red-500">{errors.phone}</p>
@@ -341,7 +329,10 @@ export function RegistrationForm() {
 
         {/* Date of Birth */}
         <div className="space-y-1">
-          <Label htmlFor="dateOfBirth" className="text-sm">
+          <Label
+            htmlFor="dateOfBirth"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Date of Birth <span className="text-red-500">*</span>
           </Label>
           <Input
@@ -358,7 +349,7 @@ export function RegistrationForm() {
                 e.target.value ? new Date(e.target.value) : null
               )
             }
-            className={`h-9 ${errors.dateOfBirth ? 'border-red-500' : ''}`}
+            className={`${inputClasses} ${errors.dateOfBirth ? inputErrorClasses : ''}`}
           />
           {errors.dateOfBirth && (
             <p className="text-xs text-red-500">{errors.dateOfBirth}</p>
@@ -367,7 +358,10 @@ export function RegistrationForm() {
 
         {/* Gender */}
         <div className="space-y-1">
-          <Label htmlFor="gender" className="text-sm">
+          <Label
+            htmlFor="gender"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Gender <span className="text-red-500">*</span>
           </Label>
           <Select
@@ -377,13 +371,17 @@ export function RegistrationForm() {
             }
           >
             <SelectTrigger
-              className={`h-9 w-full ${errors.gender ? 'border-red-500' : ''}`}
+              className={`h-9 w-full border-zinc-300 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 ${errors.gender ? 'border-red-500' : ''}`}
             >
               <SelectValue placeholder="Select" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-zinc-300 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
               {GENDER_OPTIONS.map((gender) => (
-                <SelectItem key={gender} value={gender}>
+                <SelectItem
+                  key={gender}
+                  value={gender}
+                  className="text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-800 dark:focus:text-zinc-100"
+                >
                   {gender}
                 </SelectItem>
               ))}
@@ -396,7 +394,10 @@ export function RegistrationForm() {
 
         {/* Role */}
         <div className="space-y-1">
-          <Label htmlFor="role" className="text-sm">
+          <Label
+            htmlFor="role"
+            className="text-sm text-zinc-700 dark:text-zinc-300"
+          >
             Role <span className="text-red-500">*</span>
           </Label>
           <Select
@@ -404,13 +405,17 @@ export function RegistrationForm() {
             onValueChange={(value) => handleChange('role', value)}
           >
             <SelectTrigger
-              className={`h-9 w-full ${errors.role ? 'border-red-500' : ''}`}
+              className={`h-9 w-full border-zinc-300 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 ${errors.role ? 'border-red-500' : ''}`}
             >
               <SelectValue placeholder="Select role" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="border-zinc-300 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
               {REGISTRATION_ROLES.map((role) => (
-                <SelectItem key={role} value={role}>
+                <SelectItem
+                  key={role}
+                  value={role}
+                  className="text-zinc-900 focus:bg-zinc-100 focus:text-zinc-900 dark:text-zinc-100 dark:focus:bg-zinc-800 dark:focus:text-zinc-100"
+                >
                   {getUserRoleLabel(role)}
                 </SelectItem>
               ))}
@@ -427,20 +432,23 @@ export function RegistrationForm() {
             onCheckedChange={(checked) =>
               handleChange('acceptTerms', checked === true)
             }
-            className={errors.acceptTerms ? 'border-red-500' : ''}
+            className={`border-zinc-400 data-[state=checked]:border-indigo-600 data-[state=checked]:bg-indigo-600 dark:border-zinc-600 dark:data-[state=checked]:border-amber-600 dark:data-[state=checked]:bg-amber-600 ${errors.acceptTerms ? 'border-red-500' : ''}`}
           />
-          <Label htmlFor="acceptTerms" className="cursor-pointer text-sm">
+          <Label
+            htmlFor="acceptTerms"
+            className="cursor-pointer text-sm text-zinc-600 dark:text-zinc-400"
+          >
             I agree to the{' '}
             <Link
               href="/terms"
-              className="text-blue-600 hover:underline dark:text-blue-400"
+              className="text-indigo-600 hover:underline dark:text-amber-500"
             >
               Terms
             </Link>{' '}
             and{' '}
             <Link
               href="/privacy"
-              className="text-blue-600 hover:underline dark:text-blue-400"
+              className="text-indigo-600 hover:underline dark:text-amber-500"
             >
               Privacy Policy
             </Link>
@@ -455,7 +463,7 @@ export function RegistrationForm() {
         {/* Submit Button - Full width */}
         <Button
           type="submit"
-          className="col-span-2 mt-2 h-10 w-full bg-zinc-900 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
+          className="col-span-2 mt-2 h-10 w-full bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-amber-600 dark:hover:bg-amber-500"
           disabled={isLoading}
         >
           {isLoading ? (
@@ -474,7 +482,7 @@ export function RegistrationForm() {
           <button
             type="button"
             onClick={() => signIn('keycloak')}
-            className="font-medium text-zinc-900 hover:underline dark:text-zinc-100"
+            className="font-medium text-indigo-600 hover:underline dark:text-amber-500"
           >
             Sign in
           </button>
