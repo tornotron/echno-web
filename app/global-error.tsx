@@ -192,10 +192,10 @@ export default function GlobalError({
               <p>
                 If this problem persists, contact{' '}
                 <a
-                  href="mailto:support@echno.com"
+                  href="mailto:support@echnoai.com"
                   style={{ color: '#2563eb', textDecoration: 'underline' }}
                 >
-                  support@echno.com
+                  support@echnoai.com
                 </a>
               </p>
               {error.digest && (
