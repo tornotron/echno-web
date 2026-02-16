@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     // TODO: Integrate with email service (SendGrid, Resend, etc.) or CRM
     // Example:
     // await sendEmail({
-    //   to: 'support@echno.com',
+    //   to: 'support@echnoai.com',
     //   subject: `Contact Form: ${body.subject}`,
     //   body: `From: ${body.name} (${body.email})\nCompany: ${body.company}\n\n${body.message}`,
     // });
