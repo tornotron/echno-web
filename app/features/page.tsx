@@ -1,247 +1,124 @@
 'use client';
 
-import { signIn, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect } from 'react';
 import { MarketingNav } from '@/components/home/marketing-nav';
 import { MarketingFooter } from '@/components/home/marketing-footer';
 import { Button } from '@/components/ui/button';
 import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
   Clock,
-  BarChart2,
-  Lock,
   Users,
-  FileText,
-  Globe,
+  Lock,
+  Building2,
+  ClipboardList,
+  CalendarCheck,
   ArrowRight,
+  HardHat,
   CheckCircle2,
-  Smartphone,
-  Bell,
-  Calendar,
-  Layers,
-  Settings,
-  Shield,
-  Zap,
-  Database,
-  Cloud,
-  RefreshCw,
+  UserPlus,
+  BarChart2,
 } from 'lucide-react';
 
 const features = [
   {
     icon: Clock,
-    title: 'Real-time Tracking',
+    title: 'Attendance & Time Tracking',
     description:
-      'Monitor attendance, project progress, and resource allocation in real-time with instant updates and notifications across all your sites.',
-    color: 'blue',
+      'Track workforce attendance across all your construction sites in real-time. QR-code check-ins, GPS verification, and automated timesheets eliminate manual tracking errors.',
     details: [
-      'Live GPS tracking for field workers',
-      'Instant attendance updates',
-      'Real-time project status dashboards',
-      'Automated alerts and notifications',
-    ],
-  },
-  {
-    icon: BarChart2,
-    title: 'Advanced Analytics',
-    description:
-      'Generate comprehensive reports and insights to optimize workforce management, project timelines, and resource allocation.',
-    color: 'green',
-    details: [
-      'Custom report generation',
-      'Performance trend analysis',
-      'Predictive project forecasting',
-      'Cost analysis and optimization',
-    ],
-  },
-  {
-    icon: Lock,
-    title: 'Enterprise Security',
-    description:
-      'Enterprise-grade security with Keycloak authentication, role-based access control, and comprehensive data protection.',
-    color: 'purple',
-    details: [
-      'SSO and multi-factor authentication',
-      'Role-based access control (RBAC)',
-      'Data encryption at rest and in transit',
-      'Audit logs and compliance reporting',
+      'QR-code based check-in/check-out',
+      'Real-time attendance dashboards',
+      'Automated timesheet generation',
+      'Multi-site attendance monitoring',
     ],
   },
   {
     icon: Users,
-    title: 'Team Management',
+    title: 'Workforce Management',
     description:
-      'Effortlessly manage teams, assign tasks, and track performance across multiple project sites from a single dashboard.',
-    color: 'amber',
+      'Manage your entire workforce from a single platform. Handle employee profiles, departments, reporting hierarchies, and role assignments with ease.',
     details: [
-      'Team scheduling and shift management',
-      'Skill-based task assignment',
-      'Performance tracking and reviews',
-      'Communication tools integration',
+      'Employee profiles and directories',
+      'Department and team management',
+      'Reporting hierarchy configuration',
+      'Manager assignment and delegation',
     ],
   },
   {
-    icon: FileText,
-    title: 'Document Management',
+    icon: ClipboardList,
+    title: 'Project & Task Tracking',
     description:
-      'Centralized document storage with version control, approval workflows, and easy sharing capabilities for all project files.',
-    color: 'red',
+      'Break down construction projects into manageable tasks. Assign teams, set deadlines, track progress, and ensure every project stays on schedule.',
     details: [
-      'Cloud-based document storage',
-      'Version control and history',
-      'Digital signature support',
-      'Automated backup and recovery',
+      'Project creation and organization',
+      'Task assignment and tracking',
+      'Progress status updates',
+      'Deadline and milestone management',
     ],
   },
   {
-    icon: Globe,
-    title: 'Multi-site Support',
+    icon: Lock,
+    title: 'Role-Based Access Control',
     description:
-      'Manage multiple construction sites from a single dashboard with location-based insights and consolidated reporting.',
-    color: 'indigo',
+      'Enterprise-grade security with granular permissions. Define exactly what each role can see and do — from site engineers to project managers to company admins.',
     details: [
-      'Unified multi-site dashboard',
-      'Location-based analytics',
-      'Cross-site resource allocation',
-      'Centralized project oversight',
+      'Fine-grained permission system',
+      'Custom role definitions',
+      'Organization-level access policies',
+      'Keycloak SSO integration',
     ],
   },
   {
-    icon: Smartphone,
-    title: 'Mobile-First Design',
+    icon: Building2,
+    title: 'Multi-Organization Support',
     description:
-      'Access all features on-the-go with our responsive mobile interface designed for field workers and managers alike.',
-    color: 'cyan',
+      'Run multiple companies, subsidiaries, or project entities under a single account. Each organization maintains isolated data, teams, and permission boundaries.',
     details: [
-      'Native mobile applications',
-      'Offline mode support',
-      'Push notifications',
-      'Quick clock-in/out functionality',
+      'Multiple organizations per account',
+      'Isolated data and permissions',
+      'Organization-level configurations',
+      'Cross-organization user management',
     ],
   },
   {
-    icon: Bell,
-    title: 'Smart Notifications',
+    icon: CalendarCheck,
+    title: 'Leave Management',
     description:
-      'Stay informed with intelligent notifications that alert you to important events, deadlines, and project milestones.',
-    color: 'orange',
+      'Streamline leave requests and approvals with configurable policies. Employees can apply for leave, managers can approve, and HR can track balances — all in one place.',
     details: [
-      'Customizable alert preferences',
-      'Priority-based notifications',
-      'Escalation workflows',
-      'Multi-channel delivery (email, SMS, push)',
+      'Leave request and approval workflow',
+      'Configurable leave policies',
+      'Balance tracking and reporting',
+      'Calendar view for team availability',
     ],
   },
   {
-    icon: Calendar,
-    title: 'Project Scheduling',
+    icon: UserPlus,
+    title: 'Invitations & Onboarding',
     description:
-      'Plan and manage project timelines with intuitive scheduling tools, Gantt charts, and milestone tracking.',
-    color: 'teal',
+      'Invite team members to your organization with role-based invitation links and QR codes. Streamline the onboarding process for new hires across all sites.',
     details: [
-      'Drag-and-drop Gantt charts',
-      'Milestone and deadline tracking',
-      'Resource capacity planning',
-      'Dependency management',
+      'Email and QR-code invitations',
+      'Role-based invitation templates',
+      'Bulk invitation support',
+      'Onboarding status tracking',
     ],
   },
   {
-    icon: Layers,
-    title: 'Inventory Management',
+    icon: BarChart2,
+    title: 'Dashboards & Reporting',
     description:
-      'Track materials, equipment, and supplies across all sites with automated reorder alerts and usage analytics.',
-    color: 'pink',
+      "Get a bird's-eye view of your entire operation. Customizable dashboards surface the metrics that matter — attendance rates, project progress, and team performance.",
     details: [
-      'Real-time inventory tracking',
-      'Automated reorder points',
-      'Equipment maintenance schedules',
-      'Supplier management',
-    ],
-  },
-  {
-    icon: Settings,
-    title: 'Custom Workflows',
-    description:
-      'Create and automate custom workflows tailored to your business processes and approval requirements.',
-    color: 'slate',
-    details: [
-      'Visual workflow builder',
-      'Automated task routing',
-      'Conditional logic support',
-      'Integration with external tools',
-    ],
-  },
-  {
-    icon: Database,
-    title: 'Data Integration',
-    description:
-      'Seamlessly integrate with your existing tools including accounting software, ERP systems, and more.',
-    color: 'violet',
-    details: [
-      'REST API access',
-      'Pre-built integrations',
-      'Webhook support',
-      'Custom data import/export',
+      'Organization-level dashboards',
+      'Project progress overviews',
+      'Workforce analytics',
+      'Exportable reports',
     ],
   },
 ];
-
-const colorClasses: Record<string, { bg: string; icon: string }> = {
-  blue: {
-    bg: 'bg-blue-100 dark:bg-blue-900/30',
-    icon: 'text-blue-600 dark:text-blue-400',
-  },
-  green: {
-    bg: 'bg-green-100 dark:bg-green-900/30',
-    icon: 'text-green-600 dark:text-green-400',
-  },
-  purple: {
-    bg: 'bg-purple-100 dark:bg-purple-900/30',
-    icon: 'text-purple-600 dark:text-purple-400',
-  },
-  amber: {
-    bg: 'bg-amber-100 dark:bg-amber-900/30',
-    icon: 'text-amber-600 dark:text-amber-400',
-  },
-  red: {
-    bg: 'bg-red-100 dark:bg-red-900/30',
-    icon: 'text-red-600 dark:text-red-400',
-  },
-  indigo: {
-    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
-    icon: 'text-indigo-600 dark:text-indigo-400',
-  },
-  cyan: {
-    bg: 'bg-cyan-100 dark:bg-cyan-900/30',
-    icon: 'text-cyan-600 dark:text-cyan-400',
-  },
-  orange: {
-    bg: 'bg-orange-100 dark:bg-orange-900/30',
-    icon: 'text-orange-600 dark:text-orange-400',
-  },
-  teal: {
-    bg: 'bg-teal-100 dark:bg-teal-900/30',
-    icon: 'text-teal-600 dark:text-teal-400',
-  },
-  pink: {
-    bg: 'bg-pink-100 dark:bg-pink-900/30',
-    icon: 'text-pink-600 dark:text-pink-400',
-  },
-  slate: {
-    bg: 'bg-slate-100 dark:bg-slate-900/30',
-    icon: 'text-slate-600 dark:text-slate-400',
-  },
-  violet: {
-    bg: 'bg-violet-100 dark:bg-violet-900/30',
-    icon: 'text-violet-600 dark:text-violet-400',
-  },
-};
 
 export default function FeaturesPage() {
   const { status } = useSession();
@@ -255,9 +132,9 @@ export default function FeaturesPage() {
 
   if (status === 'loading' || status === 'authenticated') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
+      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-zinc-950">
         <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-zinc-900 dark:border-zinc-100"></div>
+          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500 dark:border-amber-500"></div>
           <p className="mt-4 text-zinc-600 dark:text-zinc-400">
             {status === 'authenticated' ? 'Redirecting...' : 'Loading...'}
           </p>
@@ -267,152 +144,176 @@ export default function FeaturesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-zinc-50 via-white to-zinc-100 dark:from-black dark:via-zinc-900 dark:to-black">
+    <div className="min-h-screen bg-white dark:bg-zinc-950">
       <MarketingNav currentPage="Features" />
 
       {/* Hero Section */}
       <section className="px-4 pt-32 pb-16">
         <div className="mx-auto max-w-7xl text-center">
-          <div className="mb-6 inline-flex items-center rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-            <Zap className="mr-2 h-4 w-4" />
-            Powerful Features
+          <div className="mb-6 inline-flex items-center rounded-full border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500">
+            <HardHat className="mr-2 h-4 w-4" />
+            Platform Features
           </div>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl dark:text-zinc-100">
-            Everything You Need to
-            <span className="block bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text pb-1 text-transparent dark:from-blue-400 dark:to-indigo-400">
-              Manage Construction Projects
+          <h1 className="mb-6 text-4xl font-black tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl dark:text-zinc-100">
+            Tools Built for the
+            <span className="block text-indigo-600 dark:text-amber-500">
+              Construction Site
             </span>
           </h1>
           <p className="mx-auto mb-8 max-w-3xl text-lg text-zinc-600 dark:text-zinc-400">
-            Our comprehensive platform provides all the tools you need to
-            streamline operations, improve efficiency, and deliver projects on
-            time and within budget.
+            Every feature in Echno is designed around the real challenges of
+            managing construction teams, projects, and operations.
           </p>
         </div>
       </section>
 
-      {/* Key Benefits */}
-      <section className="bg-zinc-50 px-4 py-16 dark:bg-zinc-900/50">
-        <div className="mx-auto max-w-7xl">
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="p-6 text-center">
-              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/30">
-                <Cloud className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                Cloud-Based Platform
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Access your data anywhere, anytime with our secure cloud
-                infrastructure.
-              </p>
-            </div>
-            <div className="p-6 text-center">
-              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-green-100 dark:bg-green-900/30">
-                <RefreshCw className="h-8 w-8 text-green-600 dark:text-green-400" />
-              </div>
-              <h3 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                Regular Updates
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Continuous improvements and new features added based on customer
-                feedback.
-              </p>
-            </div>
-            <div className="p-6 text-center">
-              <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-purple-100 dark:bg-purple-900/30">
-                <Shield className="h-8 w-8 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="mb-2 text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-                Enterprise Security
-              </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                Bank-level security with SOC 2 compliance and data encryption.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Features — Alternating Layout */}
+      {features.map((feature, index) => {
+        const Icon = feature.icon;
+        const isEven = index % 2 === 0;
+        const isDark = index % 2 === 0;
 
-      {/* Features Grid */}
-      <section className="px-4 py-24">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-16 text-center">
-            <h2 className="mb-4 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              Complete Feature Set
-            </h2>
-            <p className="mx-auto max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-              Explore all the powerful features designed to transform your
-              construction business operations.
-            </p>
-          </div>
+        return (
+          <section
+            key={feature.title}
+            className={`px-4 py-20 ${isDark ? 'bg-white dark:bg-zinc-950' : 'bg-zinc-50 dark:bg-zinc-900'}`}
+          >
+            {/* Blueprint-style separator line */}
+            {index > 0 && (
+              <div className="mx-auto mb-16 max-w-7xl">
+                <div className="h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent dark:via-amber-500/20"></div>
+              </div>
+            )}
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => {
-              const Icon = feature.icon;
-              const colors = colorClasses[feature.color];
-              return (
-                <Card
-                  key={feature.title}
-                  className="group border-zinc-200 bg-white transition-all hover:scale-[1.02] hover:shadow-xl dark:border-zinc-700 dark:bg-zinc-800/80"
-                >
-                  <CardHeader>
+            <div className="mx-auto max-w-7xl">
+              <div
+                className={`grid items-center gap-12 lg:grid-cols-2 ${
+                  isEven ? '' : 'lg:direction-rtl'
+                }`}
+              >
+                {/* Text Content */}
+                <div className={isEven ? '' : 'lg:order-2'}>
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-indigo-50 dark:bg-amber-500/10">
+                    <Icon className="h-7 w-7 text-indigo-600 dark:text-amber-500" />
+                  </div>
+                  <h2 className="mb-4 text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                    {feature.title}
+                  </h2>
+                  <p className="mb-6 text-lg leading-relaxed text-zinc-600 dark:text-zinc-400">
+                    {feature.description}
+                  </p>
+                  <ul className="space-y-3">
+                    {feature.details.map((detail) => (
+                      <li
+                        key={detail}
+                        className="flex items-center text-zinc-700 dark:text-zinc-300"
+                      >
+                        <CheckCircle2 className="mr-3 h-5 w-5 shrink-0 text-indigo-600 dark:text-amber-500" />
+                        {detail}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Visual Placeholder */}
+                <div className={isEven ? '' : 'lg:order-1'}>
+                  <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100/50 dark:border-zinc-800 dark:bg-zinc-900/50">
                     <div
-                      className={`mb-4 flex h-14 w-14 items-center justify-center rounded-xl ${colors.bg} transition-transform group-hover:scale-110`}
-                    >
-                      <Icon className={`h-7 w-7 ${colors.icon}`} />
-                    </div>
-                    <CardTitle className="text-xl text-zinc-900 dark:text-zinc-100">
-                      {feature.title}
-                    </CardTitle>
-                    <CardDescription className="mb-4 text-zinc-600 dark:text-zinc-400">
-                      {feature.description}
-                    </CardDescription>
-                    <ul className="space-y-2">
-                      {feature.details.map((detail) => (
-                        <li
-                          key={detail}
-                          className="flex items-center text-sm text-zinc-600 dark:text-zinc-400"
-                        >
-                          <CheckCircle2 className="mr-2 h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
-                          {detail}
-                        </li>
-                      ))}
-                    </ul>
-                  </CardHeader>
-                </Card>
-              );
-            })}
+                      className="pointer-events-none absolute inset-0 dark:opacity-40"
+                      style={{
+                        backgroundImage:
+                          'repeating-linear-gradient(0deg, transparent, transparent 29px, rgba(161,161,170,0.12) 29px, rgba(161,161,170,0.12) 30px), repeating-linear-gradient(90deg, transparent, transparent 29px, rgba(161,161,170,0.12) 29px, rgba(161,161,170,0.12) 30px)',
+                      }}
+                    />
+                    <Icon className="h-20 w-20 text-indigo-500/20 dark:text-amber-500/20" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+        );
+      })}
+
+      {/* Why Echno? */}
+      <section className="border-t border-zinc-200 bg-zinc-50 px-4 py-24 dark:border-zinc-800 dark:bg-zinc-900">
+        <div className="mx-auto max-w-5xl text-center">
+          <h2 className="mb-6 text-3xl font-black tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-100">
+            Why Echno?
+          </h2>
+          <p className="mx-auto mb-12 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
+            Built by a team that understands construction. We&apos;re not
+            another generic project management tool — Echno is designed from the
+            ground up for the way construction businesses actually work.
+          </p>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            <div className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="mb-3 text-3xl font-black text-indigo-600 dark:text-amber-500">
+                IITM
+              </div>
+              <h3 className="mb-2 font-bold text-zinc-900 dark:text-zinc-100">
+                Alumni Founded
+              </h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Built by IIT Madras graduates who understand technology and
+                industry challenges.
+              </p>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="mb-3 text-3xl font-black text-indigo-600 dark:text-amber-500">
+                100%
+              </div>
+              <h3 className="mb-2 font-bold text-zinc-900 dark:text-zinc-100">
+                Construction Focused
+              </h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Every feature is designed around construction workflows, not
+                adapted from generic tools.
+              </p>
+            </div>
+            <div className="rounded-lg border border-zinc-200 bg-white p-8 dark:border-zinc-800 dark:bg-zinc-950">
+              <div className="mb-3 text-3xl font-black text-indigo-600 dark:text-amber-500">
+                India
+              </div>
+              <h3 className="mb-2 font-bold text-zinc-900 dark:text-zinc-100">
+                Made for Indian Teams
+              </h3>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Designed for the way Indian construction companies operate, with
+                local support.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-sky-100 px-4 py-24 dark:bg-sky-950">
+      <section className="px-4 py-24">
         <div className="mx-auto max-w-4xl text-center">
-          <h2 className="mb-6 text-3xl font-bold text-zinc-900 sm:text-4xl dark:text-white">
-            Ready to Experience These Features?
+          <h2 className="mb-6 text-3xl font-black tracking-tight text-zinc-900 sm:text-4xl dark:text-zinc-100">
+            Ready to See These Features in Action?
           </h2>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-600 dark:text-zinc-300">
-            Start your free trial today and see how Echno can transform your
-            construction business operations.
+          <p className="mx-auto mb-8 max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
+            Get early access to Echno and experience construction management the
+            way it should be.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
-            <Button
-              onClick={() => signIn('keycloak')}
-              size="lg"
-              className="bg-zinc-900 px-8 text-white hover:bg-zinc-800 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
-            >
-              Start Free Trial
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
+            <Link href="/plans">
+              <Button
+                size="lg"
+                className="bg-indigo-600 px-8 text-white hover:bg-indigo-500 dark:bg-amber-600 dark:hover:bg-amber-500"
+              >
+                Get Early Access
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
             <Button
               variant="outline"
               size="lg"
-              className="border-zinc-900 bg-transparent px-8 text-zinc-900 hover:bg-zinc-900/10 dark:border-white/70 dark:text-white dark:hover:bg-white/10 dark:hover:text-white"
+              className="border-zinc-300 bg-transparent px-8 text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
               asChild
             >
-              <a href="/contact#demo">Request a Demo</a>
+              <Link href="/contact">Contact Us</Link>
             </Button>
           </div>
         </div>

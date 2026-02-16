@@ -14,7 +14,12 @@ export function AuthButton() {
 
   if (status === 'loading') {
     return (
-      <Button disabled variant="outline" size="sm">
+      <Button
+        disabled
+        variant="outline"
+        size="sm"
+        className="border-zinc-300 bg-transparent text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+      >
         <span className="animate-pulse">Loading...</span>
       </Button>
     );
@@ -45,6 +50,7 @@ export function AuthButton() {
           variant="outline"
           size="sm"
           disabled={isSigningOut}
+          className="border-zinc-300 bg-transparent text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
         >
           {isSigningOut ? 'Signing out...' : 'Sign Out'}
         </Button>
@@ -58,10 +64,15 @@ export function AuthButton() {
         onClick={() => router.push('/register')}
         variant="outline"
         size="sm"
+        className="border-zinc-300 bg-transparent text-zinc-700 hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
       >
         Register
       </Button>
-      <Button onClick={() => signIn('keycloak')} size="sm">
+      <Button
+        onClick={() => signIn('keycloak')}
+        size="sm"
+        className="bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-amber-600 dark:hover:bg-amber-500"
+      >
         Sign In
       </Button>
     </div>
