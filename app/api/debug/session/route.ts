@@ -26,7 +26,6 @@ export async function GET(req: NextRequest) {
               ? new Date(session.expiresAt).toISOString()
               : null,
             error: session.error,
-            roles: session.user?.roles,
           }
         : null,
       revocationStore: {
