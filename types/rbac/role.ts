@@ -16,72 +16,72 @@ export interface Role {
  */
 export const SYSTEM_ROLES = {
   // ==================== Administration ====================
-  SYSTEM_ADMIN: 'system-admin',
+  SYSTEM_ADMIN: 'SYSTEM_ADMIN',
 
   // ==================== Management Roles ====================
-  PROJECT_MANAGER: 'project-manager',
-  SITE_MANAGER: 'site-manager',
-  HR_MANAGER: 'hr-manager',
-  DIRECTOR: 'director',
+  PROJECT_MANAGER: 'PROJECT_MANAGER',
+  SITE_MANAGER: 'SITE_MANAGER',
+  HR_MANAGER: 'HR_MANAGER',
+  DIRECTOR: 'DIRECTOR',
 
   // ==================== Engineering & Technical ====================
-  CIVIL_ENGINEER: 'civil-engineer',
-  SITE_ENGINEER: 'site-engineer',
-  STRUCTURAL_ENGINEER: 'structural-engineer',
-  ARCHITECT: 'architect',
-  PLANNING_ENGINEER: 'planning-engineer',
-  TECHNICAL_COORDINATOR: 'technical-coordinator',
+  CIVIL_ENGINEER: 'CIVIL_ENGINEER',
+  SITE_ENGINEER: 'SITE_ENGINEER',
+  STRUCTURAL_ENGINEER: 'STRUCTURAL_ENGINEER',
+  ARCHITECT: 'ARCHITECT',
+  PLANNING_ENGINEER: 'PLANNING_ENGINEER',
+  TECHNICAL_COORDINATOR: 'TECHNICAL_COORDINATOR',
 
   // ==================== Finance & Admin ====================
-  ACCOUNTANT: 'accountant',
-  QUANTITY_SURVEYOR: 'quantity-surveyor',
-  PROCUREMENT_OFFICER: 'procurement-officer',
-  ADMIN_STAFF: 'admin-staff',
-  DOCUMENT_CONTROLLER: 'document-controller',
+  ACCOUNTANT: 'ACCOUNTANT',
+  QUANTITY_SURVEYOR: 'QUANTITY_SURVEYOR',
+  PROCUREMENT_OFFICER: 'PROCUREMENT_OFFICER',
+  ADMIN_STAFF: 'ADMIN_STAFF',
+  DOCUMENT_CONTROLLER: 'DOCUMENT_CONTROLLER',
 
   // ==================== Supervisory ====================
-  SUPERVISOR: 'supervisor',
-  FOREMAN: 'foreman',
-  SAFETY_OFFICER: 'safety-officer',
+  SUPERVISOR: 'SUPERVISOR',
+  FOREMAN: 'FOREMAN',
+  SAFETY_OFFICER: 'SAFETY_OFFICER',
 
   // ==================== Skilled Workers ====================
-  ELECTRICIAN: 'electrician',
-  PLUMBER: 'plumber',
-  CARPENTER: 'carpenter',
-  MASON: 'mason',
-  WELDER: 'welder',
-  PAINTER: 'painter',
-  SCAFFOLDER: 'scaffolder',
+  ELECTRICIAN: 'ELECTRICIAN',
+  PLUMBER: 'PLUMBER',
+  CARPENTER: 'CARPENTER',
+  MASON: 'MASON',
+  WELDER: 'WELDER',
+  PAINTER: 'PAINTER',
+  SCAFFOLDER: 'SCAFFOLDER',
 
   // ==================== Equipment Operators ====================
-  EQUIPMENT_OPERATOR: 'equipment-operator',
-  CRANE_OPERATOR: 'crane-operator',
-  DRIVER: 'driver',
+  EQUIPMENT_OPERATOR: 'EQUIPMENT_OPERATOR',
+  CRANE_OPERATOR: 'CRANE_OPERATOR',
+  DRIVER: 'DRIVER',
 
   // ==================== General Workers ====================
-  LABORER: 'laborer',
-  HELPER: 'helper',
-  SITE_CLEANER: 'site-cleaner',
-  SECURITY_GUARD: 'security-guard',
+  LABORER: 'LABORER',
+  HELPER: 'HELPER',
+  SITE_CLEANER: 'SITE_CLEANER',
+  SECURITY_GUARD: 'SECURITY_GUARD',
 
   // ==================== Third Party ====================
-  CONTRACTOR: 'contractor',
-  SUBCONTRACTOR: 'subcontractor',
-  MATERIAL_SUPPLIER: 'material-supplier',
-  VENDOR: 'vendor',
-  CONSULTANT: 'consultant',
-  OWNER_REPRESENTATIVE: 'owner-representative',
-  CLIENT: 'client',
+  CONTRACTOR: 'CONTRACTOR',
+  SUBCONTRACTOR: 'SUBCONTRACTOR',
+  MATERIAL_SUPPLIER: 'MATERIAL_SUPPLIER',
+  VENDOR: 'VENDOR',
+  CONSULTANT: 'CONSULTANT',
+  OWNER_REPRESENTATIVE: 'OWNER_REPRESENTATIVE',
+  CLIENT: 'CLIENT',
 
   // ==================== Office Support ====================
-  RECEPTIONIST: 'receptionist',
-  IT_SUPPORT: 'it-support',
-  OFFICE_ASSISTANT: 'office-assistant',
+  RECEPTIONIST: 'RECEPTIONIST',
+  IT_SUPPORT: 'IT_SUPPORT',
+  OFFICE_ASSISTANT: 'OFFICE_ASSISTANT',
 
   // ==================== Trainees ====================
-  STUDENT: 'student',
-  INTERN: 'intern',
-  TRAINEE: 'trainee',
+  STUDENT: 'STUDENT',
+  INTERN: 'INTERN',
+  TRAINEE: 'TRAINEE',
 } as const;
 
 export type SystemRoleKey = keyof typeof SYSTEM_ROLES;
