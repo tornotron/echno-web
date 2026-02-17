@@ -14,14 +14,33 @@ import {
 import { Button } from '@/components/ui/button';
 import { Settings, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/user/use-user';
+import { useEffect } from 'react';
 
 interface AppLayoutProps {
   children: React.ReactNode;
   title?: string;
 }
 
+const ORGANIZATIONS_PATH = '/users/dashboard/organizations';
+
 function AppLayoutContent({ children }: AppLayoutProps) {
   const { state, toggleSidebar, isMobile } = useSidebar();
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: user, isLoading: userLoading } = useUser();
+
+  // Redirect to organizations page if user has no default organization
+  useEffect(() => {
+    if (userLoading || !user) return;
+    if (
+      !user.defaultOrganizationId &&
+      !pathname.startsWith(ORGANIZATIONS_PATH)
+    ) {
+      router.replace(ORGANIZATIONS_PATH);
+    }
+  }, [user, userLoading, pathname, router]);
 
   return (
     <>
@@ -56,14 +75,14 @@ function AppLayoutContent({ children }: AppLayoutProps) {
 
           <div className="flex flex-1 items-center justify-between">
             <Breadcrumbs />
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
                 <Link
                   href="/users/dashboard/organizations"
                   className="flex items-center gap-2"
                 >
                   <Building className="h-4 w-4" />
-                  Organizations
+                  <span className="hidden sm:inline">Organizations</span>
                 </Link>
               </Button>
               <Button variant="ghost" size="icon" asChild>
@@ -77,7 +96,7 @@ function AppLayoutContent({ children }: AppLayoutProps) {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4">{children}</main>
+        <main className="flex-1 p-3 sm:p-4 lg:p-6">{children}</main>
 
         {/* Footer */}
         <Footer />
