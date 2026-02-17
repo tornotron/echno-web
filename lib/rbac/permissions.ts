@@ -2,7 +2,7 @@
  * Role Utilities
  *
  * Functions for checking user roles. Permissions are now handled by
- * Keycloak Authorization Services (see resource-permissions.ts).
+ * Backend API enforces fine-grained permissions.
  */
 
 /**
