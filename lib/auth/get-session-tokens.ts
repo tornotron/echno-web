@@ -1,17 +1,16 @@
 import { auth } from '@/auth';
 import { getToken } from 'next-auth/jwt';
 import { cookies } from 'next/headers';
-import { isSystemAdmin } from '@/lib/rbac/role-utils';
 
 /**
- * Server-side helper to get full session with tokens and permissions
+ * Server-side helper to get full session with tokens
  *
  * The session object sent to client is minimal to reduce cookie size.
  * This function retrieves the full JWT token server-side with all data.
  *
  * Usage:
  * ```typescript
- * const { accessToken, idToken, permissions } = await getSessionTokens();
+ * const { accessToken, idToken } = await getSessionTokens();
  * ```
  */
 export async function getSessionTokens() {
@@ -36,15 +35,11 @@ export async function getSessionTokens() {
     return null;
   }
 
-  const userRoles = session.user?.roles || [];
-
   return {
     // Session info (already in session)
     userId: session.user?.id,
     email: session.user?.email,
     name: session.user?.name,
-    roles: userRoles,
-    isSystemAdmin: isSystemAdmin(userRoles),
     provider: session.provider,
     sessionId: session.sessionId,
     expiresAt: session.expiresAt,
@@ -55,7 +50,6 @@ export async function getSessionTokens() {
     idToken: token.idToken as string,
     refreshToken: token.refreshToken as string,
     keycloakIssuer: token.keycloakIssuer as string,
-    permissions: token.permissions || [],
   };
 }
 
@@ -65,12 +59,4 @@ export async function getSessionTokens() {
 export async function getAccessToken(): Promise<string | null> {
   const tokens = await getSessionTokens();
   return tokens?.accessToken || null;
-}
-
-/**
- * Shorthand to get permissions computed from roles
- */
-export async function getSessionPermissions() {
-  const tokens = await getSessionTokens();
-  return tokens?.permissions || [];
 }

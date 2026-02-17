@@ -14,6 +14,7 @@ export async function handleSignOut() {
     // Clear local storage
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('loginToastShown');
+      localStorage.removeItem('defaultOrganization');
     }
 
     // Sign out from NextAuth
@@ -36,6 +37,7 @@ export async function silentLogout() {
   try {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem('loginToastShown');
+      localStorage.removeItem('defaultOrganization');
     }
     await nextAuthSignOut({ redirect: false });
   } catch (error) {

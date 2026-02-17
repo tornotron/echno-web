@@ -1,23 +1,11 @@
-import { SYSTEM_ROLES } from '@/types/rbac/role';
+import { OrgRole } from '@/types/employee';
 
 /**
  * Check if user has system admin role
- * Handles both formats: 'system-admin' and 'SYSTEM_ADMIN'
  */
 export function isSystemAdmin(roles: string[] | undefined): boolean {
   if (!roles || roles.length === 0) return false;
-
-  // Check for exact match with SYSTEM_ROLES.SYSTEM_ADMIN
-  if (roles.includes(SYSTEM_ROLES.SYSTEM_ADMIN)) return true;
-
-  // Also check for uppercase format that Keycloak might send
-  if (roles.includes('SYSTEM_ADMIN')) return true;
-
-  // Check case-insensitive
-  const normalizedRoles = new Set(roles.map((r) => r.toLowerCase()));
-  return (
-    normalizedRoles.has('system-admin') || normalizedRoles.has('system_admin')
-  );
+  return roles.includes(OrgRole.SYSTEM_ADMIN);
 }
 
 /**
