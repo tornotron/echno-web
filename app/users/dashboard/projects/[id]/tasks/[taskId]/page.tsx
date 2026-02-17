@@ -7,7 +7,7 @@ import {
   mockProjects,
   mockIssues,
 } from '@/components/shared/mock-data';
-import { getUserRoleLabel, UserRole } from '@/types/user/user-role';
+import { memberRoleLabel } from '@/types/member/member';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -421,7 +421,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                         </p>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           {assignee.memberRole
-                            ? getUserRoleLabel(assignee.memberRole as UserRole)
+                            ? memberRoleLabel(assignee)
                             : 'Team Member'}
                         </p>
                       </div>
@@ -458,7 +458,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       {task.creator.memberRole
-                        ? getUserRoleLabel(task.creator.memberRole as UserRole)
+                        ? memberRoleLabel(task.creator)
                         : 'Project Manager'}
                     </p>
                   </div>

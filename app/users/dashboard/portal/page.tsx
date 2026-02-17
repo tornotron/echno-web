@@ -39,8 +39,6 @@ import {
   Send,
 } from 'lucide-react';
 import Link from 'next/link';
-import { UserGroupBadge } from '@/components/rbac/user-group-badge';
-import { useAuthorization } from '@/hooks/use-authorization';
 
 // Helper function for status colors
 const getStatusColor = (status: string) => {
@@ -240,27 +238,16 @@ const upcomingEvents = [
   },
 ];
 
+const getPortalTitle = () => {
+  return 'Partner Portal';
+};
+
 export default function ExternalPortalDashboard() {
   const { data: session } = useSession();
-  const { primaryGroup } = useAuthorization();
   const [activeTab, setActiveTab] = useState('overview');
 
   const userName = session?.user?.name || 'Partner';
   const unreadMessages = messages.filter((m) => m.unread).length;
-
-  const getPortalTitle = () => {
-    switch (primaryGroup) {
-      case 'contractors': {
-        return 'Contractor Portal';
-      }
-      case 'clients': {
-        return 'Client Portal';
-      }
-      default: {
-        return 'Partner Portal';
-      }
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -276,7 +263,6 @@ export default function ExternalPortalDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <UserGroupBadge showIcon />
           {unreadMessages > 0 && (
             <Badge className="bg-red-600">{unreadMessages} new messages</Badge>
           )}
