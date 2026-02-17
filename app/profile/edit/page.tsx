@@ -89,23 +89,11 @@ export default function EditProfilePage() {
     <AppLayout>
       <div className="px-4 py-8">
         <div className="space-y-6">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={handleCancel}
-              variant="ghost"
-              size="icon"
-              className="h-10 w-10"
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">
-                Edit Profile
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                Update your personal information and settings
-              </p>
-            </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Edit Profile</h1>
+            <p className="text-muted-foreground mt-2">
+              Update your personal information and settings
+            </p>
           </div>
           <ProfileEditForm
             user={user}
