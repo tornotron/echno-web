@@ -1,112 +1,29 @@
 // types/user/user-role.ts
 export enum UserRole {
-  laborer = 'laborer',
-  electrician = 'electrician',
-  plumber = 'plumber',
-  carpenter = 'carpenter',
-  mason = 'mason',
-  welder = 'welder',
-  painter = 'painter',
-  scaffolder = 'scaffolder',
-  equipmentOperator = 'equipment-operator',
-  craneOperator = 'crane-operator',
-  driver = 'driver',
-  helper = 'helper',
-  siteCleaner = 'site-cleaner',
-  securityGuard = 'security-guard',
-
-  systemAdmin = 'system-admin',
-  hrManager = 'hr-manager',
-  accountant = 'accountant',
-  adminStaff = 'admin-staff',
-  receptionist = 'receptionist',
-  documentController = 'document-controller',
-  itSupport = 'it-support',
-  officeAssistant = 'office-assistant',
-  director = 'director',
-
-  civilEngineer = 'civil-engineer',
-  siteEngineer = 'site-engineer',
-  structuralEngineer = 'structural-engineer',
-  architect = 'architect',
-  quantitySurveyor = 'quantity-surveyor',
-  safetyOfficer = 'safety-officer',
-  planningEngineer = 'planning-engineer',
-  technicalCoordinator = 'technical-coordinator',
-  projectManager = 'project-manager',
-  siteManager = 'site-manager',
-  supervisor = 'supervisor',
-  foreman = 'foreman',
-
-  contractor = 'contractor',
-  subcontractor = 'sub-contractor',
-  materialSupplier = 'material-supplier',
-  procurementOfficer = 'procurement-officer',
-  vendor = 'vendor',
-  consultant = 'consultant',
-  ownerRepresentative = 'owner-representative',
-  client = 'client',
-
-  student = 'student',
-  intern = 'intern',
-  trainee = 'trainee',
+  OWNER = 'OWNER',
+  CO_FOUNDER = 'CO_FOUNDER',
+  HR_MANAGER = 'HR_MANAGER',
+  EMPLOYEE = 'EMPLOYEE',
+  STUDENT = 'STUDENT',
+  MANAGEMENT = 'MANAGEMENT',
+  ADMINISTRATOR = 'ADMINISTRATOR',
 }
+
+const USER_ROLE_LABELS: Record<UserRole, string> = {
+  [UserRole.OWNER]: 'Owner',
+  [UserRole.CO_FOUNDER]: 'Co-Founder',
+  [UserRole.HR_MANAGER]: 'HR Manager',
+  [UserRole.EMPLOYEE]: 'Employee',
+  [UserRole.STUDENT]: 'Student',
+  [UserRole.MANAGEMENT]: 'Management',
+  [UserRole.ADMINISTRATOR]: 'Administrator',
+};
 
 export function getUserRoleLabel(role: UserRole): string {
-  const map: Record<UserRole, string> = {
-    [UserRole.laborer]: 'Laborer',
-    [UserRole.electrician]: 'Electrician',
-    [UserRole.plumber]: 'Plumber',
-    [UserRole.carpenter]: 'Carpenter',
-    [UserRole.mason]: 'Mason',
-    [UserRole.welder]: 'Welder',
-    [UserRole.painter]: 'Painter',
-    [UserRole.scaffolder]: 'Scaffolder',
-    [UserRole.equipmentOperator]: 'Equipment Operator',
-    [UserRole.craneOperator]: 'Crane Operator',
-    [UserRole.driver]: 'Driver',
-    [UserRole.helper]: 'Helper',
-    [UserRole.siteCleaner]: 'Site Cleaner',
-    [UserRole.securityGuard]: 'Security Guard',
-    [UserRole.hrManager]: 'HR Manager',
-    [UserRole.accountant]: 'Accountant',
-    [UserRole.adminStaff]: 'Admin Staff',
-    [UserRole.receptionist]: 'Receptionist',
-    [UserRole.documentController]: 'Document Controller',
-    [UserRole.itSupport]: 'IT Support',
-    [UserRole.officeAssistant]: 'Office Assistant',
-    [UserRole.director]: 'Director',
-    [UserRole.systemAdmin]: 'System Administrator',
-    [UserRole.civilEngineer]: 'Civil Engineer',
-    [UserRole.siteEngineer]: 'Site Engineer',
-    [UserRole.structuralEngineer]: 'Structural Engineer',
-    [UserRole.architect]: 'Architect',
-    [UserRole.quantitySurveyor]: 'Quantity Surveyor',
-    [UserRole.safetyOfficer]: 'Safety Officer',
-    [UserRole.planningEngineer]: 'Planning Engineer',
-    [UserRole.technicalCoordinator]: 'Technical Coordinator',
-    [UserRole.projectManager]: 'Project Manager',
-    [UserRole.siteManager]: 'Site Manager',
-    [UserRole.supervisor]: 'Supervisor',
-    [UserRole.foreman]: 'Foreman',
-    [UserRole.contractor]: 'Contractor',
-    [UserRole.subcontractor]: 'Subcontractor',
-    [UserRole.materialSupplier]: 'Material Supplier',
-    [UserRole.procurementOfficer]: 'Procurement Officer',
-    [UserRole.vendor]: 'Vendor',
-    [UserRole.consultant]: 'Consultant',
-    [UserRole.ownerRepresentative]: 'Owner Representative',
-    [UserRole.client]: 'Client',
-    [UserRole.student]: 'Student',
-    [UserRole.intern]: 'Intern',
-    [UserRole.trainee]: 'Trainee',
-  };
-  return map[role];
+  return USER_ROLE_LABELS[role] ?? role;
 }
 
-export function userRoleFromString(str: string): UserRole {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const role = (UserRole as any)[str];
-  if (!role) throw new Error(`Invalid user role: ${str}`);
-  return role;
+export function userRoleFromString(str: string): UserRole | undefined {
+  const values = Object.values(UserRole) as string[];
+  return values.includes(str) ? (str as UserRole) : undefined;
 }

@@ -1,5 +1,6 @@
 // types/user/member.ts
 import { getUserRoleLabel, userRoleFromString } from '../user';
+import { getOrgRoleLabel, orgRoleFromString } from '../employee/org-role';
 
 /**
  * Member – shape only (like Dart class)
@@ -32,28 +33,15 @@ export function memberInitials(member: Member): string {
  *  Tries to map to UserRole → falls back to legacy mapping
  *  ------------------------------------------------------------- */
 export function memberRoleLabel(member: Member): string {
-  try {
-    const role = userRoleFromString(member.memberRole);
-    return getUserRoleLabel(role);
-  } catch {
-    // Legacy fallback
-    const lower = member.memberRole.toLowerCase();
-    switch (lower) {
-      case 'admin':
-      case 'administrator': {
-        return 'Administrator';
-      }
-      case 'manager': {
-        return 'Manager';
-      }
-      case 'employee': {
-        return 'Employee';
-      }
-      default: {
-        return member.memberRole || 'Unknown';
-      }
-    }
-  }
+  // Try UserRole first
+  const userRole = userRoleFromString(member.memberRole);
+  if (userRole) return getUserRoleLabel(userRole);
+
+  // Try OrgRole (employee organizational roles)
+  const orgRole = orgRoleFromString(member.memberRole);
+  if (orgRole) return getOrgRoleLabel(orgRole);
+
+  return member.memberRole || 'Unknown';
 }
 
 /** -------------------------------------------------------------
