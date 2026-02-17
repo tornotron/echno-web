@@ -17,19 +17,19 @@
  */
 
 import { useEffect, useState } from 'react';
-import {
-  Module,
-  ModuleCategory,
+import { Module, ModuleCategory, groupModulesByCategory } from '@/lib/rbac';
+import type {
   ModuleDefinition,
   UserModuleEntitlement,
-  EntitlementStatus,
-  groupModulesByCategory,
+} from '@/types/rbac/module';
+import { EntitlementStatus } from '@/types/rbac/module';
+import {
   getEntitlementSummary,
   enableModule,
   disableModule,
   purchaseModule,
   startTrial,
-} from '@/lib/rbac';
+} from '@/lib/rbac/entitlement-service';
 
 interface ModuleManagementProps {
   organizationId: string;
