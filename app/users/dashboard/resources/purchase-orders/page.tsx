@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-
-export const dynamic = 'force-dynamic';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
