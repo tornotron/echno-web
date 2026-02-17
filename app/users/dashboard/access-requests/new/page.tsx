@@ -38,8 +38,7 @@ import {
   validateCreateInput,
   type CreateAccessRequestInput,
 } from '@/types/access-request';
-import { RESOURCES, RESOURCE_SCOPES } from '@/lib/rbac/resource-permissions';
-import { SYSTEM_ROLES } from '@/types/rbac/role';
+import { SYSTEM_ROLES, getRoleDisplayName } from '@/types/rbac/role';
 import { toast } from '@/lib/styles/toast-styles';
 
 // Module options for module access requests
@@ -250,43 +249,23 @@ export default function NewAccessRequestPage() {
                       <Label htmlFor="resourceName">
                         Resource <span className="text-red-500">*</span>
                       </Label>
-                      <Select
+                      <Input
+                        id="resourceName"
+                        placeholder="e.g., Employee Records, Reports"
                         value={resourceName}
-                        onValueChange={setResourceName}
-                      >
-                        <SelectTrigger id="resourceName">
-                          <SelectValue placeholder="Select resource" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(RESOURCES).map(([key, value]) => (
-                            <SelectItem key={key} value={value}>
-                              {value.charAt(0).toUpperCase() + value.slice(1)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        onChange={(e) => setResourceName(e.target.value)}
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="resourceScope">
                         Permission <span className="text-red-500">*</span>
                       </Label>
-                      <Select
+                      <Input
+                        id="resourceScope"
+                        placeholder="e.g., view, create, update, delete"
                         value={resourceScope}
-                        onValueChange={setResourceScope}
-                      >
-                        <SelectTrigger id="resourceScope">
-                          <SelectValue placeholder="Select permission" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(RESOURCE_SCOPES).map(
-                            ([key, value]) => (
-                              <SelectItem key={key} value={value}>
-                                {value.charAt(0).toUpperCase() + value.slice(1)}
-                              </SelectItem>
-                            )
-                          )}
-                        </SelectContent>
-                      </Select>
+                        onChange={(e) => setResourceScope(e.target.value)}
+                      />
                     </div>
                   </div>
                 )}
@@ -325,13 +304,7 @@ export default function NewAccessRequestPage() {
                       <SelectContent>
                         {Object.values(SYSTEM_ROLES).map((role) => (
                           <SelectItem key={role} value={role}>
-                            {role
-                              .split('-')
-                              .map(
-                                (word) =>
-                                  word.charAt(0).toUpperCase() + word.slice(1)
-                              )
-                              .join(' ')}
+                            {getRoleDisplayName(role)}
                           </SelectItem>
                         ))}
                       </SelectContent>
