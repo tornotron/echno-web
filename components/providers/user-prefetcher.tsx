@@ -74,14 +74,11 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
                 }
               });
 
-            // Prefetch organizations created by the user
+            // Prefetch organizations for the current user
             organizationService
-              .getByCreator(user.id)
+              .getAll()
               .then((organizations) => {
-                queryClient.setQueryData(
-                  ['organizations', 'creator', user.id],
-                  organizations
-                );
+                queryClient.setQueryData(['organizations'], organizations);
                 logger.debug('User organizations prefetched successfully');
               })
               .catch((error) => {
