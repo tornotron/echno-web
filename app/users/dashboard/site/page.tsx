@@ -36,7 +36,6 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
-import { UserGroupBadge } from '@/components/rbac/user-group-badge';
 
 // Mock data for site operations - filtered by user's organization/projects
 const siteStats = {
@@ -191,7 +190,6 @@ export default function SiteOperationsDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <UserGroupBadge showIcon />
           <div className="text-right">
             <p className="text-sm font-medium">
               {currentTime.toLocaleDateString('en-US', {

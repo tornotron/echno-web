@@ -25,7 +25,6 @@ import {
   Coffee,
   Sun,
 } from 'lucide-react';
-import { UserGroupBadge } from '@/components/rbac/user-group-badge';
 
 // Helper function for priority colors
 const getPriorityColor = (priority: string) => {
@@ -192,9 +191,7 @@ export default function FieldWorkersDashboard() {
             {getTimeOfDay()}, {userName}!
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <UserGroupBadge showIcon size="sm" />
-        </div>
+        <div className="flex items-center gap-3" />
       </div>
 
       {/* Worker Info & Progress */}
