@@ -5,6 +5,7 @@ import { logger } from '@/lib/logger';
 // Server-side only env var (not exposed to client)
 const BACKEND_URL = process.env.BACKEND_API_URL;
 const REQUEST_TIMEOUT_MS = 30_000; // 30 seconds
+const UPLOAD_TIMEOUT_MS = 120_000; // 2 minutes for file uploads
 
 // Headers to forward from client request
 const FORWARDED_HEADERS = [
@@ -70,9 +71,16 @@ async function proxyRequest(
     headers['Authorization'] = `Bearer ${session.accessToken}`;
   }
 
-  // Create abort controller for timeout
+  // Forward organization ID for multi-tenancy
+  if (session?.user?.defaultOrganizationId) {
+    headers['X-Organization-Id'] = session.user.defaultOrganizationId;
+  }
+
+  // Use longer timeout for file uploads
+  const isMultipart = contentType?.includes('multipart/form-data');
+  const timeoutMs = isMultipart ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     logger.debug('Proxying request', {
@@ -85,8 +93,6 @@ async function proxyRequest(
     // Use arrayBuffer for binary data (multipart forms) to preserve integrity
     let body: BodyInit | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      const isMultipart = contentType?.includes('multipart/form-data');
-      // For multipart, pass as ArrayBuffer to preserve binary data
       body = isMultipart ? await request.arrayBuffer() : await request.text();
     }
 
@@ -123,7 +129,7 @@ async function proxyRequest(
     if (error instanceof Error && error.name === 'AbortError') {
       logger.error('Request timeout', {
         targetUrl,
-        timeoutMs: REQUEST_TIMEOUT_MS,
+        timeoutMs,
       });
       return NextResponse.json({ error: 'Request timeout' }, { status: 504 });
     }
