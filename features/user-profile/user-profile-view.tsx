@@ -32,10 +32,6 @@ import {
   AlertCircle,
   Users,
 } from 'lucide-react';
-import {
-  UserGroupBadge,
-  UserGroupList,
-} from '@/components/rbac/user-group-badge';
 
 interface UserProfileViewProps {
   user: User;
@@ -99,7 +95,6 @@ export function UserProfileView({
                   <Badge variant="default" className="text-xs">
                     {getRoleDisplayName(user.roles?.[0] || '')}
                   </Badge>
-                  <UserGroupBadge size="sm" showIcon />
                   {user.experience !== undefined && user.experience > 0 && (
                     <Badge variant="outline" className="text-xs">
                       <Briefcase className="mr-1 h-3 w-3" />
@@ -325,12 +320,6 @@ export function UserProfileView({
               <Badge variant="default">
                 {getRoleDisplayName(user.roles?.[0] || '')}
               </Badge>
-            </div>
-            <div>
-              <p className="text-muted-foreground mb-2 text-sm font-medium">
-                Groups
-              </p>
-              <UserGroupList showIcons size="sm" />
             </div>
           </div>
         </ProfileCard>
