@@ -72,6 +72,7 @@ interface RequestOptions {
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000; // 30 seconds
+const UPLOAD_TIMEOUT_MS = 120_000; // 2 minutes for file uploads
 const DEFAULT_RETRIES = 2;
 const RETRY_DELAY_MS = 1000;
 
@@ -275,14 +276,32 @@ class ApiClient {
 
   /**
    * Issue a POST request with JSON body.
+   * @param endpoint - Path relative to baseURL
+   * @param data - Request body data
+   * @param params - Optional query parameters
+   * @param options - Optional request options
    */
   async post<T = unknown>(
     endpoint: string,
     data?: unknown,
+    params?: Record<string, string | number | boolean>,
     options?: RequestOptions
   ): Promise<T> {
-    const response = await this.fetchWithRetry(
+    const url = new URL(
       `${this.baseURL}${endpoint}`,
+      globalThis.location.origin
+    );
+
+    if (params) {
+      for (const key of Object.keys(params)) {
+        if (params[key] !== undefined && params[key] !== null) {
+          url.searchParams.append(key, params[key].toString());
+        }
+      }
+    }
+
+    const response = await this.fetchWithRetry(
+      url.toString(),
       {
         method: 'POST',
         headers: this.headers,
@@ -296,14 +315,32 @@ class ApiClient {
 
   /**
    * Issue a PUT request with JSON body.
+   * @param endpoint - Path relative to baseURL
+   * @param data - Request body data
+   * @param params - Optional query parameters
+   * @param options - Optional request options
    */
   async put<T = unknown>(
     endpoint: string,
     data?: unknown,
+    params?: Record<string, string | number | boolean>,
     options?: RequestOptions
   ): Promise<T> {
-    const response = await this.fetchWithRetry(
+    const url = new URL(
       `${this.baseURL}${endpoint}`,
+      globalThis.location.origin
+    );
+
+    if (params) {
+      for (const key of Object.keys(params)) {
+        if (params[key] !== undefined && params[key] !== null) {
+          url.searchParams.append(key, params[key].toString());
+        }
+      }
+    }
+
+    const response = await this.fetchWithRetry(
+      url.toString(),
       {
         method: 'PUT',
         headers: this.headers,
@@ -317,14 +354,32 @@ class ApiClient {
 
   /**
    * Issue a PATCH request with JSON body.
+   * @param endpoint - Path relative to baseURL
+   * @param data - Request body data
+   * @param params - Optional query parameters
+   * @param options - Optional request options
    */
   async patch<T = unknown>(
     endpoint: string,
     data?: unknown,
+    params?: Record<string, string | number | boolean>,
     options?: RequestOptions
   ): Promise<T> {
-    const response = await this.fetchWithRetry(
+    const url = new URL(
       `${this.baseURL}${endpoint}`,
+      globalThis.location.origin
+    );
+
+    if (params) {
+      for (const key of Object.keys(params)) {
+        if (params[key] !== undefined && params[key] !== null) {
+          url.searchParams.append(key, params[key].toString());
+        }
+      }
+    }
+
+    const response = await this.fetchWithRetry(
+      url.toString(),
       {
         method: 'PATCH',
         headers: this.headers,
@@ -338,13 +393,30 @@ class ApiClient {
 
   /**
    * Issue a DELETE request.
+   * @param endpoint - Path relative to baseURL
+   * @param params - Optional query parameters
+   * @param options - Optional request options
    */
   async delete<T = unknown>(
     endpoint: string,
+    params?: Record<string, string | number | boolean>,
     options?: RequestOptions
   ): Promise<T> {
-    const response = await this.fetchWithRetry(
+    const url = new URL(
       `${this.baseURL}${endpoint}`,
+      globalThis.location.origin
+    );
+
+    if (params) {
+      for (const key of Object.keys(params)) {
+        if (params[key] !== undefined && params[key] !== null) {
+          url.searchParams.append(key, params[key].toString());
+        }
+      }
+    }
+
+    const response = await this.fetchWithRetry(
+      url.toString(),
       { method: 'DELETE', headers: this.headers },
       options
     );
@@ -390,7 +462,7 @@ class ApiClient {
         body: formData,
         // Note: Don't include Content-Type header for multipart
       },
-      options
+      { timeout: UPLOAD_TIMEOUT_MS, retries: 0, ...options }
     );
 
     return this.handleResponse<T>(response);
@@ -434,7 +506,7 @@ class ApiClient {
         body: formData,
         // Note: Don't include Content-Type header for multipart
       },
-      options
+      { timeout: UPLOAD_TIMEOUT_MS, retries: 0, ...options }
     );
 
     return this.handleResponse<T>(response);
@@ -460,7 +532,7 @@ class ApiClient {
         body: formData,
         // Note: Don't include Content-Type header for multipart
       },
-      options
+      { timeout: UPLOAD_TIMEOUT_MS, retries: 0, ...options }
     );
 
     return this.handleResponse<T>(response);
