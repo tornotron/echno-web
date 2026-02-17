@@ -84,8 +84,8 @@ export default function NewProjectPage() {
       memberName: employee.name,
       memberEmail: employee.email,
       memberPhone: employee.phone,
-      memberRole: employee.roles?.[0] || '',
-      department: employee.department,
+      memberRole: '',
+      department: employee.department ?? '',
       designation: (employee as Employee).designation,
       memberImage: employee.profilePicture?.file,
     };
