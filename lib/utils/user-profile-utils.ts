@@ -143,7 +143,7 @@ export function formatList(items: string[] | undefined): string {
 
 /**
  * Gets user's organization names as a string
- * Note: Organizations should be fetched separately using useUserOrganizations hook
+ * Note: Organizations should be fetched separately using useOrganizations hook
  */
 export function getOrganizationNames(user: User): string {
   // Organizations are now fetched via hooks, not stored in user object
