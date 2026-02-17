@@ -1,8 +1,11 @@
 /**
  * Centralized Policy Engine
  *
- * Single source of truth for access control decisions
- * Evaluates: entitlement → enabled → purchased → role → context
+ * Single source of truth for access control decisions.
+ *
+ * NOTE: Entitlement checks (steps 1-4) are temporarily disabled.
+ * Module entitlements will be managed by the backend / Keycloak.
+ * Currently only role-based policy checks are enforced.
  */
 
 import {
@@ -10,11 +13,8 @@ import {
   ModuleAction,
   ModuleActionContext,
   AccessCheckResult,
-  UserModuleEntitlement,
-  EntitlementStatus,
 } from '@/types/rbac/module';
 import { getRoleModulePolicy } from './role-module-policies';
-import { getModuleDefinition } from './module-registry';
 import { logger } from '@/lib/logger';
 
 /**
@@ -23,111 +23,25 @@ import { logger } from '@/lib/logger';
  * This is the SINGLE centralized access check function.
  * All access control should go through this function.
  *
- * Evaluation order:
- * 1. Check entitlements - does user/org have access to module?
- * 2. Check if module is enabled
- * 3. Check if module is purchased (if required)
- * 4. Check role policies - does role allow this action?
- * 5. Check contextual constraints - own only, team only, etc.
+ * Currently only evaluates role policies (entitlement checks disabled —
+ * will be moved to backend / Keycloak).
  *
  * @param context - Context containing user, roles, module, action, and resource info
- * @param entitlements - User/org entitlements (will be fetched from DB in production)
  * @returns Access check result with allowed status and reason
  */
 export async function canUserPerformAction(
-  context: ModuleActionContext,
-  entitlements: UserModuleEntitlement[]
+  context: ModuleActionContext
 ): Promise<AccessCheckResult> {
-  const { module, action, userId, userRoles, organizationId, resource } =
-    context;
+  const { module, action, userId, userRoles, resource } = context;
 
   logger.debug('Evaluating access', {
     module,
     action,
     userId,
     roles: userRoles,
-    organizationId,
   });
 
-  // ==================== Step 1: Check Entitlements ====================
-  // Find entitlement for this module
-  const entitlement = entitlements.find(
-    (e) =>
-      e.module === module &&
-      e.organizationId === organizationId &&
-      (e.userId === userId || !e.userId) // Org-level or user-level
-  );
-
-  if (!entitlement) {
-    return {
-      allowed: false,
-      reason: `No entitlement found for module: ${module}`,
-      appliedPolicy: {
-        type: 'entitlement',
-        details: 'Module not entitled',
-      },
-      requiredActions: ['Purchase or enable this module'],
-    };
-  }
-
-  // ==================== Step 2: Check if Enabled ====================
-  if (!entitlement.isEnabled) {
-    return {
-      allowed: false,
-      reason: `Module ${module} is not enabled`,
-      appliedPolicy: {
-        type: 'entitlement',
-        details: 'Module disabled',
-      },
-      requiredActions: ['Enable this module in admin settings'],
-    };
-  }
-
-  // ==================== Step 3: Check Entitlement Status ====================
-  if (entitlement.status === EntitlementStatus.EXPIRED) {
-    return {
-      allowed: false,
-      reason: `Module ${module} entitlement has expired`,
-      appliedPolicy: {
-        type: 'entitlement',
-        details: 'Entitlement expired',
-      },
-      requiredActions: ['Renew module subscription'],
-    };
-  }
-
-  if (entitlement.status === EntitlementStatus.SUSPENDED) {
-    return {
-      allowed: false,
-      reason: `Module ${module} is suspended`,
-      appliedPolicy: {
-        type: 'entitlement',
-        details: 'Entitlement suspended',
-      },
-      requiredActions: ['Contact administrator to restore access'],
-    };
-  }
-
-  // ==================== Step 4: Check if Purchased (if required) ====================
-  const moduleDefinition = getModuleDefinition(module);
-
-  if (
-    moduleDefinition.isPurchasable &&
-    !entitlement.isPurchased && // Allow if it's in trial status
-    entitlement.status !== EntitlementStatus.TRIAL
-  ) {
-    return {
-      allowed: false,
-      reason: `Module ${module} requires purchase`,
-      appliedPolicy: {
-        type: 'entitlement',
-        details: 'Module not purchased',
-      },
-      requiredActions: ['Purchase this module'],
-    };
-  }
-
-  // ==================== Step 5: Check Role Policies ====================
+  // ==================== Check Role Policies ====================
   // Check each role the user has
   let roleAllowsAction = false;
   let applicablePolicy = null;
@@ -212,73 +126,26 @@ export async function canUserPerformAction(
 
 /**
  * Simplified check - does user have access to module at all?
- * (Checks entitlement and enabled status only)
+ *
+ * NOTE: Entitlement checks temporarily disabled — all modules are accessible.
+ * Will be replaced by backend / Keycloak entitlement checks.
  */
 export async function hasModuleAccess(
-  userId: string,
-  organizationId: string,
-  module: Module,
-  entitlements: UserModuleEntitlement[]
+  _userId: string,
+  _organizationId: string,
+  _module: Module
 ): Promise<boolean> {
-  const entitlement = entitlements.find(
-    (e) =>
-      e.module === module &&
-      e.organizationId === organizationId &&
-      (e.userId === userId || !e.userId)
-  );
-
-  if (!entitlement) return false;
-  if (!entitlement.isEnabled) return false;
-  if (
-    entitlement.status === EntitlementStatus.EXPIRED ||
-    entitlement.status === EntitlementStatus.SUSPENDED
-  ) {
-    return false;
-  }
-
-  const moduleDefinition = getModuleDefinition(module);
-  if (
-    moduleDefinition.isPurchasable &&
-    !entitlement.isPurchased &&
-    entitlement.status !== EntitlementStatus.TRIAL
-  ) {
-    return false;
-  }
-
   return true;
 }
 
 /**
  * Get all modules a user has access to
+ *
+ * NOTE: Entitlement checks temporarily disabled — returns all modules.
+ * Will be replaced by backend / Keycloak entitlement checks.
  */
-export async function getUserModules(
-  userId: string,
-  organizationId: string,
-  entitlements: UserModuleEntitlement[]
-): Promise<Module[]> {
-  const accessibleModules: Module[] = [];
-
-  for (const entitlement of entitlements) {
-    if (
-      entitlement.organizationId !== organizationId ||
-      (entitlement.userId && entitlement.userId !== userId)
-    ) {
-      continue;
-    }
-
-    const hasAccess = await hasModuleAccess(
-      userId,
-      organizationId,
-      entitlement.module,
-      entitlements
-    );
-
-    if (hasAccess) {
-      accessibleModules.push(entitlement.module);
-    }
-  }
-
-  return accessibleModules;
+export async function getUserModules(): Promise<Module[]> {
+  return Object.values(Module);
 }
 
 /**
@@ -309,16 +176,12 @@ export function getUserAllowedActions(
  */
 export async function canUserPerformActions(
   context: Omit<ModuleActionContext, 'action'>,
-  actions: ModuleAction[],
-  entitlements: UserModuleEntitlement[]
+  actions: ModuleAction[]
 ): Promise<Record<ModuleAction, boolean>> {
   const results: Record<string, boolean> = {};
 
   for (const action of actions) {
-    const result = await canUserPerformAction(
-      { ...context, action },
-      entitlements
-    );
+    const result = await canUserPerformAction({ ...context, action });
     results[action] = result.allowed;
   }
 

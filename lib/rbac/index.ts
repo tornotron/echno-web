@@ -1,7 +1,11 @@
 /**
  * Module-Centric RBAC System
  *
- * Central export point for the new RBAC architecture
+ * Central export point for the RBAC architecture.
+ *
+ * NOTE: Module entitlements are temporarily disabled.
+ * Entitlement management will move to the backend / Keycloak.
+ * Only role-based policy checks are currently enforced.
  *
  * QUICK START:
  *
@@ -9,16 +13,13 @@
  * ```ts
  * import { canUserPerformAction } from '@/lib/rbac';
  *
- * const result = await canUserPerformAction(
- *   {
- *     userId: user.id,
- *     userRoles: user.roles,
- *     organizationId: user.organizationId,
- *     module: Module.TASK,
- *     action: 'create',
- *   },
- *   entitlements
- * );
+ * const result = await canUserPerformAction({
+ *   userId: user.id,
+ *   userRoles: user.roles,
+ *   organizationId: user.organizationId,
+ *   module: Module.TASK,
+ *   action: 'create',
+ * });
  *
  * if (result.allowed) {
  *   // User can create tasks
@@ -32,14 +33,6 @@
  * const actions = getUserAllowedActions(user.roles, Module.TASK);
  * // Returns: ['view', 'create', 'update']
  * ```
- *
- * 3. Manage entitlements:
- * ```ts
- * import { enableModule, purchaseModule } from '@/lib/rbac';
- *
- * await enableModule(organizationId, Module.FINANCE);
- * await purchaseModule(organizationId, Module.FINANCE);
- * ```
  */
 
 // ==================== Types ====================
@@ -47,13 +40,12 @@ export type {
   ModuleAction,
   ModuleDefinition,
   RoleModulePolicy,
-  UserModuleEntitlement,
   AccessContext,
   AccessCheckResult,
   ModuleActionContext,
 } from '@/types/rbac/module';
 
-export { Module, ModuleCategory, EntitlementStatus } from '@/types/rbac/module';
+export { Module, ModuleCategory } from '@/types/rbac/module';
 
 // ==================== Module Registry ====================
 export {
@@ -88,23 +80,6 @@ export {
   canRolePerformAction,
   getRoleModules,
 } from './role-module-policies';
-
-// ==================== Entitlement Service ====================
-export {
-  createEntitlement,
-  getEntitlement,
-  getOrganizationEntitlements,
-  getUserEntitlements,
-  enableModule,
-  disableModule,
-  purchaseModule,
-  startTrial,
-  updateEntitlementStatus,
-  checkExpiredEntitlements,
-  deleteEntitlement,
-  initializeOrganizationEntitlements,
-  getEntitlementSummary,
-} from './entitlement-service';
 
 // ==================== Role Types ====================
 export {
