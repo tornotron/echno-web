@@ -29,7 +29,6 @@ import {
   Star,
   Lock,
 } from 'lucide-react';
-import { UserGroupBadge } from '@/components/rbac/user-group-badge';
 
 // Helper function for category colors
 const getCategoryColor = (category: string) => {
@@ -244,7 +243,6 @@ export default function LearningDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <UserGroupBadge showIcon />
           <Badge className="bg-orange-100 text-orange-800">
             <TrendingUp className="mr-1 h-3 w-3" />
             {traineeStats.currentStreak} day streak

@@ -40,12 +40,9 @@ import {
   AlertCircle,
   User,
   ExternalLink,
-  Key,
-  Lock,
   Loader2,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RESOURCES, RESOURCE_SCOPES } from '@/lib/rbac/resource-permissions';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   getAllSystemRoles,
@@ -87,14 +84,6 @@ interface UserData {
   lastLogin?: string;
 }
 
-interface UserPermission {
-  id: string;
-  resource: string;
-  scope: string;
-  grantedAt?: Date;
-  grantedBy?: string;
-}
-
 export default function UserAccessControlPage({
   params,
 }: {
@@ -110,17 +99,7 @@ export default function UserAccessControlPage({
   const [selectedRole, setSelectedRole] = useState<string>('');
   const [userRoles, setUserRoles] = useState<string[]>([]);
 
-  // Permission management state
-  const [userPermissions, setUserPermissions] = useState<UserPermission[]>([]);
-  const [selectedResource, setSelectedResource] = useState<string>('');
-  const [selectedScope, setSelectedScope] = useState<string>('');
-  const [savingPermission, setSavingPermission] = useState(false);
-
   const systemRoles = getAllSystemRoles();
-  const resourceList = Object.values(RESOURCES).filter(
-    (r) => r !== 'Default Resource'
-  );
-  const scopeList = Object.values(RESOURCE_SCOPES);
 
   // Unwrap params promise
   useEffect(() => {
@@ -215,62 +194,6 @@ export default function UserAccessControlPage({
     (role) => !userRoles.includes(role)
   );
   const isSystemAdminUser = userRoles.includes('system-admin');
-
-  // Check if permission already exists
-  const permissionExists = (resource: string, scope: string) => {
-    return userPermissions.some(
-      (p) => p.resource === resource && p.scope === scope
-    );
-  };
-
-  const handleAddPermission = async () => {
-    if (!selectedResource || !selectedScope || !userId) return;
-    if (permissionExists(selectedResource, selectedScope)) {
-      toast.error('Permission already assigned');
-      return;
-    }
-
-    try {
-      setSavingPermission(true);
-      // TODO: API call to add permission in Keycloak
-      // For now, we'll add it locally
-      const newPermission: UserPermission = {
-        id: `${selectedResource}:${selectedScope}`,
-        resource: selectedResource,
-        scope: selectedScope,
-        grantedAt: new Date(),
-      };
-      setUserPermissions([...userPermissions, newPermission]);
-      setSelectedResource('');
-      setSelectedScope('');
-      toast.success(
-        `Permission "${selectedResource}:${selectedScope}" granted`
-      );
-    } catch (error) {
-      toast.error('Failed to add permission');
-      logger.error(`${error}`);
-    } finally {
-      setSavingPermission(false);
-    }
-  };
-
-  const handleRemovePermission = async (permission: UserPermission) => {
-    if (!userId) return;
-
-    try {
-      setSavingPermission(true);
-      // TODO: API call to remove permission in Keycloak
-      setUserPermissions(userPermissions.filter((p) => p.id !== permission.id));
-      toast.success(
-        `Permission "${permission.resource}:${permission.scope}" revoked`
-      );
-    } catch (error) {
-      toast.error('Failed to remove permission');
-      logger.error(`${error}`);
-    } finally {
-      setSavingPermission(false);
-    }
-  };
 
   if (isLoading || loading) {
     return (
@@ -520,168 +443,6 @@ export default function UserAccessControlPage({
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Individual Permissions Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            Individual Permissions
-          </CardTitle>
-          <CardDescription>
-            Grant specific resource permissions directly to this user (beyond
-            their role permissions)
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Add Permission Form */}
-          <div className="rounded-lg border border-dashed p-4">
-            <h4 className="mb-3 text-sm font-medium">Add New Permission</h4>
-            <div className="flex flex-wrap gap-2">
-              <Select
-                value={selectedResource}
-                onValueChange={setSelectedResource}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Select resource" />
-                </SelectTrigger>
-                <SelectContent>
-                  {resourceList.map((resource) => (
-                    <SelectItem key={resource} value={resource}>
-                      {resource.charAt(0).toUpperCase() + resource.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="flex items-center text-zinc-400">:</span>
-              <Select value={selectedScope} onValueChange={setSelectedScope}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Select scope" />
-                </SelectTrigger>
-                <SelectContent>
-                  {scopeList.map((scope) => (
-                    <SelectItem key={scope} value={scope}>
-                      {scope.charAt(0).toUpperCase() + scope.slice(1)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                onClick={handleAddPermission}
-                disabled={
-                  !selectedResource || !selectedScope || savingPermission
-                }
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Grant Permission
-              </Button>
-            </div>
-            {selectedResource && selectedScope && (
-              <p className="mt-2 text-xs text-zinc-500">
-                This will grant{' '}
-                <code className="rounded bg-zinc-100 px-1 py-0.5 dark:bg-zinc-800">
-                  {selectedResource}:{selectedScope}
-                </code>{' '}
-                permission to this user
-              </p>
-            )}
-          </div>
-
-          {/* Current Permissions List */}
-          <div>
-            <h4 className="mb-3 text-sm font-medium">
-              Current Individual Permissions ({userPermissions.length})
-            </h4>
-            {userPermissions.length === 0 ? (
-              <div className="text-muted-foreground rounded-lg border border-dashed py-8 text-center">
-                <Lock className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <p>No individual permissions assigned</p>
-                <p className="mt-1 text-sm">
-                  This user&apos;s access is based on their roles only
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {userPermissions.map((permission) => (
-                  <div
-                    key={permission.id}
-                    className="hover:bg-accent/50 flex items-center justify-between rounded-lg border p-3 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded bg-blue-100 dark:bg-blue-900/20">
-                        <Key className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div>
-                        <code className="text-sm font-medium">
-                          {permission.resource}:{permission.scope}
-                        </code>
-                        {permission.grantedAt && (
-                          <p className="text-xs text-zinc-500">
-                            Granted{' '}
-                            {new Date(
-                              permission.grantedAt
-                            ).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={savingPermission}
-                          className="text-zinc-500 hover:text-red-600"
-                        >
-                          {savingPermission ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <X className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Revoke Permission</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Are you sure you want to revoke the{' '}
-                            <strong>
-                              {permission.resource}:{permission.scope}
-                            </strong>{' '}
-                            permission from this user? They will no longer have
-                            direct access to this resource.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => handleRemovePermission(permission)}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Revoke Permission
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Info Note */}
-          <Alert>
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>About Individual Permissions</AlertTitle>
-            <AlertDescription>
-              Individual permissions are in addition to role-based permissions.
-              They allow you to grant specific access to a user without changing
-              their role. These permissions are managed in Keycloak as
-              user-specific policies.
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
     </div>

@@ -14,14 +14,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Shield,
   Clock,
@@ -33,7 +25,6 @@ import {
   AlertCircle,
   MessageSquare,
   UserCog,
-  Key,
   ChevronDown,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -51,7 +42,6 @@ import {
   canReviewRequest,
 } from '@/types/access-request';
 import { toast } from '@/lib/styles/toast-styles';
-import { RESOURCES, RESOURCE_SCOPES } from '@/lib/rbac/resource-permissions';
 import { mockAccessRequests } from '@/components/shared/data/access-requests';
 
 interface PageProps {
@@ -71,16 +61,6 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
   const [showRejectForm, setShowRejectForm] = useState(false);
   const [showApproveOptions, setShowApproveOptions] = useState(false);
 
-  // Permission assignment state
-  const [grantPermission, setGrantPermission] = useState(true);
-  const [selectedResource, setSelectedResource] = useState('');
-  const [selectedScope, setSelectedScope] = useState('');
-
-  const resourceList = Object.values(RESOURCES).filter(
-    (r) => r !== 'Default Resource'
-  );
-  const scopeList = Object.values(RESOURCE_SCOPES);
-
   // Redirect if not system admin
   if (!authLoading && !isSystemAdmin) {
     redirect('/users/dashboard');
@@ -94,14 +74,6 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
       const foundRequest = mockAccessRequests.find((r) => r.id === id);
       if (foundRequest) {
         setRequest(foundRequest);
-        // Initialize permission fields based on request type
-        if (
-          foundRequest.type === AccessRequestType.RESOURCE &&
-          foundRequest.resourceName
-        ) {
-          setSelectedResource(foundRequest.resourceName);
-          setSelectedScope(foundRequest.resourceScope || 'read');
-        }
       } else {
         toast.error('Error', {
           description: 'Access request not found',
@@ -122,11 +94,6 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    const successMessage =
-      grantPermission && selectedResource && selectedScope
-        ? `Request approved and ${selectedResource}:${selectedScope} permission granted`
-        : 'The access request has been approved';
-
     // Update local state to simulate approval
     const now = new Date();
     setRequest({
@@ -140,7 +107,7 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
     });
 
     toast.success('Request Approved', {
-      description: successMessage,
+      description: 'The access request has been approved',
     });
 
     setShowApproveOptions(false);
@@ -447,75 +414,6 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
                       Approve Access Request
                     </h4>
 
-                    {/* Permission Assignment */}
-                    <div className="mb-4 rounded-lg border border-green-100 bg-white p-4 dark:border-green-800 dark:bg-zinc-900">
-                      <div className="mb-3 flex items-center gap-2">
-                        <Checkbox
-                          id="grantPermission"
-                          checked={grantPermission}
-                          onCheckedChange={(checked) =>
-                            setGrantPermission(checked as boolean)
-                          }
-                        />
-                        <Label
-                          htmlFor="grantPermission"
-                          className="flex cursor-pointer items-center gap-2"
-                        >
-                          <Key className="h-4 w-4" />
-                          Grant permission upon approval
-                        </Label>
-                      </div>
-
-                      {grantPermission && (
-                        <div className="mt-3 space-y-3">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <Select
-                              value={selectedResource}
-                              onValueChange={setSelectedResource}
-                            >
-                              <SelectTrigger className="w-[160px]">
-                                <SelectValue placeholder="Resource" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {resourceList.map((resource) => (
-                                  <SelectItem key={resource} value={resource}>
-                                    {resource.charAt(0).toUpperCase() +
-                                      resource.slice(1)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <span className="text-zinc-400">:</span>
-                            <Select
-                              value={selectedScope}
-                              onValueChange={setSelectedScope}
-                            >
-                              <SelectTrigger className="w-[140px]">
-                                <SelectValue placeholder="Scope" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {scopeList.map((scope) => (
-                                  <SelectItem key={scope} value={scope}>
-                                    {scope.charAt(0).toUpperCase() +
-                                      scope.slice(1)}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          {selectedResource && selectedScope && (
-                            <p className="text-xs text-green-700 dark:text-green-300">
-                              Will grant{' '}
-                              <code className="rounded bg-green-100 px-1 py-0.5 dark:bg-green-800">
-                                {selectedResource}:{selectedScope}
-                              </code>{' '}
-                              permission to {request.requesterName}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
                     {/* Comments */}
                     <div className="mb-4 space-y-2">
                       <Label htmlFor="comments">Comments (Optional)</Label>
@@ -540,11 +438,7 @@ export default function AdminAccessRequestDetailPage({ params }: PageProps) {
                       </Button>
                       <Button
                         onClick={handleApprove}
-                        disabled={
-                          actionLoading ||
-                          (grantPermission &&
-                            (!selectedResource || !selectedScope))
-                        }
+                        disabled={actionLoading}
                         className="flex-1 bg-green-600 hover:bg-green-700"
                       >
                         {actionLoading ? 'Approving...' : 'Confirm Approval'}

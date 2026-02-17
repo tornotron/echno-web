@@ -19,12 +19,6 @@ import {
   ExternalLink,
   ArrowLeft,
   Users,
-  Key,
-  CheckCircle2,
-  Lock,
-  Eye,
-  Edit3,
-  Trash2,
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -33,9 +27,7 @@ import {
   RoleLevel,
   getAllSystemRoles,
 } from '@/types/rbac/role';
-import { ROLE_TO_GROUP, getGroupDisplayName } from '@/lib/rbac/role-groups';
 import { mockUsers } from '@/components/shared/data/users';
-import { RESOURCES, RESOURCE_SCOPES } from '@/lib/rbac/resource-permissions';
 
 // Helper function for role level colors
 const getRoleLevelColor = (level: RoleLevel): string => {
@@ -84,45 +76,6 @@ export default function RoleDetailsPage({
   const usersWithRole = useMemo(() => {
     if (!roleId) return [];
     return mockUsers.filter((user) => user.roles?.includes(roleId));
-  }, [roleId]);
-
-  // Generate mock permissions based on role level (for visualization)
-  const rolePermissions = useMemo(() => {
-    if (!roleId) return [];
-    const level = getRoleLevel(roleId);
-    const resources = Object.values(RESOURCES).filter(
-      (r) => r !== 'Default Resource'
-    );
-
-    // System admin has all permissions
-    if (roleId === 'system-admin') {
-      return resources.map((resource) => ({
-        resource,
-        scopes: Object.values(RESOURCE_SCOPES),
-      }));
-    }
-
-    // Generate permissions based on level
-    const scopesByLevel: Record<RoleLevel, string[]> = {
-      [RoleLevel.ADMIN]: ['view', 'create', 'update', 'delete', 'manage'],
-      [RoleLevel.MANAGEMENT]: ['view', 'create', 'update', 'manage'],
-      [RoleLevel.PROFESSIONAL]: ['view', 'create', 'update'],
-      [RoleLevel.SUPERVISORY]: ['view', 'create', 'update'],
-      [RoleLevel.SKILLED]: ['view', 'create'],
-      [RoleLevel.GENERAL]: ['view'],
-      [RoleLevel.EXTERNAL]: ['view'],
-      [RoleLevel.TRAINEE]: ['view'],
-    };
-
-    const scopes = scopesByLevel[level] || ['view'];
-
-    // Return subset of resources based on role
-    return resources
-      .slice(0, Math.min(resources.length, 5))
-      .map((resource) => ({
-        resource,
-        scopes,
-      }));
   }, [roleId]);
 
   if (isLoading || !roleId) {
@@ -181,7 +134,6 @@ export default function RoleDetailsPage({
   const roleName = getRoleDisplayName(roleId);
   const level = getRoleLevel(roleId);
   const isSystemAdminRole = roleId === 'system-admin';
-  const associatedGroup = ROLE_TO_GROUP[roleId];
 
   return (
     <div className="space-y-6">
@@ -253,13 +205,9 @@ export default function RoleDetailsPage({
             </div>
             <div>
               <p className="text-muted-foreground mb-1 text-sm">
-                Associated Group
+                Users Assigned
               </p>
-              <p className="font-medium">
-                {associatedGroup
-                  ? getGroupDisplayName(associatedGroup)
-                  : 'None'}
-              </p>
+              <p className="font-medium">{usersWithRole.length}</p>
             </div>
           </div>
         </CardContent>
@@ -280,75 +228,6 @@ export default function RoleDetailsPage({
           </CardContent>
         </Card>
       )}
-
-      {/* Permissions Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5" />
-            Role Permissions
-          </CardTitle>
-          <CardDescription>
-            Resources and actions this role can access
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isSystemAdminRole ? (
-            <div className="rounded-lg border border-dashed border-red-200 bg-red-50/50 p-6 text-center dark:border-red-800 dark:bg-red-900/10">
-              <Lock className="mx-auto mb-3 h-8 w-8 text-red-500" />
-              <p className="font-medium text-red-700 dark:text-red-300">
-                Full System Access
-              </p>
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                System Admin bypasses all permission checks
-              </p>
-            </div>
-          ) : rolePermissions.length > 0 ? (
-            <div className="space-y-4">
-              {rolePermissions.map((perm) => (
-                <div key={perm.resource} className="rounded-lg border p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                      <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="font-medium capitalize">
-                      {perm.resource}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {perm.scopes.map((scope) => {
-                      const icons: Record<string, React.ReactNode> = {
-                        view: <Eye className="mr-1 h-3 w-3" />,
-                        create: <Edit3 className="mr-1 h-3 w-3" />,
-                        update: <Edit3 className="mr-1 h-3 w-3" />,
-                        delete: <Trash2 className="mr-1 h-3 w-3" />,
-                        manage: <Shield className="mr-1 h-3 w-3" />,
-                      };
-                      return (
-                        <Badge
-                          key={scope}
-                          variant="outline"
-                          className="flex items-center gap-1 capitalize"
-                        >
-                          {icons[scope]}
-                          {scope}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-dashed p-6 text-center">
-              <Lock className="mx-auto mb-3 h-8 w-8 text-zinc-400" />
-              <p className="text-sm text-zinc-500">
-                No specific permissions assigned
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Users with this Role */}
       <Card>
