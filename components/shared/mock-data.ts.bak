@@ -2900,7 +2900,7 @@ export {
 //
 // NOTE: Most of these utility functions are UNUSED in the codebase.
 // Only the following functions are actually imported and used:
-//   - Leave management now uses real API (not mock data)
+//   - getEmployeeLeaveRequests() - used in app/users/dashboard/workforce/leaves/balance/page.tsx
 //   - getLabourById() - used in app/users/dashboard/third-party/labour/[id]/page.tsx
 //   - dashboardData - used in app/users/dashboard/page.tsx
 //
@@ -3161,6 +3161,556 @@ export function getProjectWiseAttendance(
 /**
  * Mock Leave Requests
  */
+export const mockLeaveRequests: LeaveRequest[] = [
+  {
+    id: 'LV-2025-001',
+    employeeId: '1',
+    employeeName: 'Rajesh Kumar',
+    employeeEmail: 'rajesh.kumar@echno.com',
+    department: 'Engineering',
+    leaveType: LeaveType.earnedLeave,
+    fromDate: new Date('2025-01-20'),
+    toDate: new Date('2025-01-22'),
+    daysCount: 3,
+    reason: 'Family vacation to Goa',
+    status: LeaveStatus.approved,
+    appliedAt: new Date('2025-01-10'),
+    approvers: [
+      {
+        id: 'APP-001',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        approvedAt: new Date('2025-01-11'),
+        comments: 'Approved. Enjoy your vacation!',
+      },
+    ],
+    delegation: {
+      delegateToId: '2',
+      delegateToName: 'Priya Sharma',
+      delegateToEmail: 'priya.sharma@echno.com',
+      responsibilities: 'Handle project reviews and client meetings',
+      notified: true,
+    },
+    attachments: [],
+    createdAt: new Date('2025-01-10'),
+    updatedAt: new Date('2025-01-11'),
+  },
+  {
+    id: 'LV-2025-002',
+    employeeId: '2',
+    employeeName: 'Priya Sharma',
+    employeeEmail: 'priya.sharma@echno.com',
+    department: 'Engineering',
+    leaveType: LeaveType.sickLeave,
+    fromDate: new Date('2025-01-15'),
+    toDate: new Date('2025-01-16'),
+    daysCount: 2,
+    reason: 'Fever and flu',
+    status: LeaveStatus.approved,
+    appliedAt: new Date('2025-01-14'),
+    approvers: [
+      {
+        id: 'APP-002',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        approvedAt: new Date('2025-01-14'),
+        comments: 'Approved. Take rest and get well soon.',
+      },
+    ],
+    attachments: [
+      {
+        id: 'ATT-001',
+        fileName: 'medical-certificate.pdf',
+        file: '/documents/medical-certificate.pdf',
+        fileType: 'application/pdf',
+        createdAt: new Date('2025-01-14'),
+      },
+    ],
+    emergencyContact: '+91 98765 11111',
+    createdAt: new Date('2025-01-14'),
+    updatedAt: new Date('2025-01-14'),
+  },
+  {
+    id: 'LV-2025-003',
+    employeeId: '3',
+    employeeName: 'Amit Patel',
+    employeeEmail: 'amit.patel@echno.com',
+    department: 'Electrical',
+    leaveType: LeaveType.casualLeave,
+    fromDate: new Date('2025-02-05'),
+    toDate: new Date('2025-02-05'),
+    daysCount: 1,
+    reason: 'Personal work - bank visit',
+    status: LeaveStatus.pending,
+    appliedAt: new Date('2025-01-30'),
+    approvers: [
+      {
+        id: 'APP-003',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+      },
+    ],
+    currentApproverId: '4',
+    attachments: [],
+    createdAt: new Date('2025-01-30'),
+    updatedAt: new Date('2025-01-30'),
+  },
+  {
+    id: 'LV-2025-004',
+    employeeId: '5',
+    employeeName: 'Vikram Singh',
+    employeeEmail: 'vikram.singh@echno.com',
+    department: 'Operations',
+    leaveType: LeaveType.paternityLeave,
+    fromDate: new Date('2025-02-10'),
+    toDate: new Date('2025-02-24'),
+    daysCount: 15,
+    reason: 'Expecting a baby',
+    status: LeaveStatus.pending,
+    appliedAt: new Date('2025-01-25'),
+    approvers: [
+      {
+        id: 'APP-004',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+      },
+    ],
+    currentApproverId: '4',
+    delegation: {
+      delegateToId: '6',
+      delegateToName: 'Ananya Iyer',
+      delegateToEmail: 'ananya.iyer@echno.com',
+      responsibilities: 'Manage site operations and coordinate with vendors',
+      notified: true,
+    },
+    attachments: [],
+    emergencyContact: '+91 98765 33333',
+    createdAt: new Date('2025-01-25'),
+    updatedAt: new Date('2025-01-25'),
+  },
+  {
+    id: 'LV-2025-005',
+    employeeId: '7',
+    employeeName: 'Karthik Menon',
+    employeeEmail: 'karthik.menon@echno.com',
+    department: 'Administration',
+    leaveType: LeaveType.casualLeave,
+    fromDate: new Date('2025-01-18'),
+    toDate: new Date('2025-01-18'),
+    daysCount: 1,
+    reason: 'Wedding anniversary celebration',
+    status: LeaveStatus.approved,
+    appliedAt: new Date('2025-01-12'),
+    approvers: [
+      {
+        id: 'APP-005',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        approvedAt: new Date('2025-01-13'),
+        comments: 'Approved. Congratulations!',
+      },
+    ],
+    attachments: [],
+    createdAt: new Date('2025-01-12'),
+    updatedAt: new Date('2025-01-13'),
+  },
+  {
+    id: 'LV-2025-006',
+    employeeId: '8',
+    employeeName: 'Divya Nair',
+    employeeEmail: 'divya.nair@echno.com',
+    department: 'Finance',
+    leaveType: LeaveType.sickLeave,
+    fromDate: new Date('2025-02-15'),
+    toDate: new Date('2025-02-17'),
+    daysCount: 3,
+    reason: 'Dental surgery',
+    status: LeaveStatus.pending,
+    appliedAt: new Date('2025-02-01'),
+    approvers: [
+      {
+        id: 'APP-006',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+      },
+    ],
+    currentApproverId: '4',
+    attachments: [
+      {
+        id: 'ATT-002',
+        fileName: 'dental-appointment.pdf',
+        file: '/documents/dental-appointment.pdf',
+        fileType: 'application/pdf',
+        createdAt: new Date('2025-02-01'),
+      },
+    ],
+    emergencyContact: '+91 98765 44444',
+    createdAt: new Date('2025-02-01'),
+    updatedAt: new Date('2025-02-01'),
+  },
+  {
+    id: 'LV-2025-007',
+    employeeId: '1',
+    employeeName: 'Rajesh Kumar',
+    employeeEmail: 'rajesh.kumar@echno.com',
+    department: 'Engineering',
+    leaveType: LeaveType.earnedLeave,
+    fromDate: new Date('2025-03-10'),
+    toDate: new Date('2025-03-14'),
+    daysCount: 5,
+    reason: "Attending cousin's wedding in Delhi",
+    status: LeaveStatus.draft,
+    appliedAt: new Date('2025-02-05'),
+    approvers: [],
+    attachments: [],
+    createdAt: new Date('2025-02-05'),
+    updatedAt: new Date('2025-02-05'),
+  },
+  {
+    id: 'LV-2025-008',
+    employeeId: '2',
+    employeeName: 'Priya Sharma',
+    employeeEmail: 'priya.sharma@echno.com',
+    department: 'Engineering',
+    leaveType: LeaveType.casualLeave,
+    fromDate: new Date('2025-01-12'),
+    toDate: new Date('2025-01-12'),
+    daysCount: 1,
+    reason: 'House maintenance work',
+    status: LeaveStatus.rejected,
+    appliedAt: new Date('2025-01-10'),
+    approvers: [
+      {
+        id: 'APP-007',
+        employeeId: '4',
+        employeeName: 'Sneha Reddy',
+        employeeEmail: 'sneha.reddy@echno.com',
+        role: 'HR Manager',
+        rejectedAt: new Date('2025-01-11'),
+        comments: 'Critical project deadline on this date. Please reschedule.',
+      },
+    ],
+    attachments: [],
+    createdAt: new Date('2025-01-10'),
+    updatedAt: new Date('2025-01-11'),
+  },
+];
+
+/**
+ * Mock Employee Leave Quotas
+ */
+export const mockEmployeeLeaveQuotas: EmployeeLeaveQuota[] = [
+  {
+    employeeId: '1',
+    employeeName: 'Rajesh Kumar',
+    department: 'Engineering',
+    period: QuotaPeriod.yearly,
+    year: 2025,
+    balances: [
+      {
+        leaveType: LeaveType.casualLeave,
+        allocated: 12,
+        used: 2,
+        pending: 0,
+        available: 10,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.sickLeave,
+        allocated: 12,
+        used: 0,
+        pending: 0,
+        available: 12,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.earnedLeave,
+        allocated: 21,
+        used: 3,
+        pending: 5,
+        available: 13,
+        encashable: 8,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.compensatoryOff,
+        allocated: 0,
+        used: 0,
+        pending: 0,
+        available: 2,
+        encashable: 0,
+        carriedForward: 2,
+      },
+    ],
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
+  },
+  {
+    employeeId: '2',
+    employeeName: 'Priya Sharma',
+    department: 'Engineering',
+    period: QuotaPeriod.yearly,
+    year: 2025,
+    balances: [
+      {
+        leaveType: LeaveType.casualLeave,
+        allocated: 12,
+        used: 0,
+        pending: 1,
+        available: 11,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.sickLeave,
+        allocated: 12,
+        used: 2,
+        pending: 0,
+        available: 10,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.earnedLeave,
+        allocated: 21,
+        used: 0,
+        pending: 0,
+        available: 21,
+        encashable: 15,
+        carriedForward: 0,
+      },
+    ],
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
+  },
+  {
+    employeeId: '3',
+    employeeName: 'Amit Patel',
+    department: 'Electrical',
+    period: QuotaPeriod.yearly,
+    year: 2025,
+    balances: [
+      {
+        leaveType: LeaveType.casualLeave,
+        allocated: 12,
+        used: 3,
+        pending: 1,
+        available: 8,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.sickLeave,
+        allocated: 12,
+        used: 1,
+        pending: 0,
+        available: 11,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.earnedLeave,
+        allocated: 21,
+        used: 5,
+        pending: 0,
+        available: 16,
+        encashable: 10,
+        carriedForward: 0,
+      },
+    ],
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
+  },
+  {
+    employeeId: '4',
+    employeeName: 'Sneha Reddy',
+    department: 'Human Resources',
+    period: QuotaPeriod.yearly,
+    year: 2025,
+    balances: [
+      {
+        leaveType: LeaveType.casualLeave,
+        allocated: 12,
+        used: 1,
+        pending: 0,
+        available: 11,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.sickLeave,
+        allocated: 12,
+        used: 0,
+        pending: 0,
+        available: 12,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.earnedLeave,
+        allocated: 21,
+        used: 8,
+        pending: 0,
+        available: 13,
+        encashable: 5,
+        carriedForward: 0,
+      },
+    ],
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
+  },
+  {
+    employeeId: '5',
+    employeeName: 'Vikram Singh',
+    department: 'Operations',
+    period: QuotaPeriod.yearly,
+    year: 2025,
+    balances: [
+      {
+        leaveType: LeaveType.casualLeave,
+        allocated: 12,
+        used: 4,
+        pending: 0,
+        available: 8,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.sickLeave,
+        allocated: 12,
+        used: 2,
+        pending: 0,
+        available: 10,
+        encashable: 0,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.earnedLeave,
+        allocated: 21,
+        used: 6,
+        pending: 0,
+        available: 15,
+        encashable: 8,
+        carriedForward: 0,
+      },
+      {
+        leaveType: LeaveType.paternityLeave,
+        allocated: 15,
+        used: 0,
+        pending: 15,
+        available: 0,
+        encashable: 0,
+        carriedForward: 0,
+      },
+    ],
+    effectiveFrom: new Date('2025-01-01'),
+    effectiveTo: new Date('2025-12-31'),
+    lastUpdated: new Date('2025-02-05'),
+  },
+];
+
+/**
+ * Get leave requests for an employee
+ */
+export function getEmployeeLeaveRequests(employeeId: string): LeaveRequest[] {
+  return mockLeaveRequests.filter((leave) => leave.employeeId === employeeId);
+}
+
+/**
+ * Get pending leave requests
+ */
+export function getPendingLeaveRequests(): LeaveRequest[] {
+  return mockLeaveRequests.filter(
+    (leave) => leave.status === LeaveStatus.pending
+  );
+}
+
+/**
+ * Get leave requests by status
+ */
+export function getLeaveRequestsByStatus(status: LeaveStatus): LeaveRequest[] {
+  return mockLeaveRequests.filter((leave) => leave.status === status);
+}
+
+/**
+ * Get leave requests for approval (for a specific approver)
+ */
+export function getLeaveRequestsForApproval(
+  approverId: string
+): LeaveRequest[] {
+  return mockLeaveRequests.filter(
+    (leave) =>
+      leave.status === LeaveStatus.pending &&
+      leave.currentApproverId === approverId
+  );
+}
+
+/**
+ * Get employee leave quota
+ */
+export function getEmployeeLeaveQuota(
+  employeeId: string,
+  year: number
+): EmployeeLeaveQuota | undefined {
+  return mockEmployeeLeaveQuotas.find(
+    (quota) => quota.employeeId === employeeId && quota.year === year
+  );
+}
+
+/**
+ * Get leave balance for specific type
+ */
+export function getLeaveBalance(
+  employeeId: string,
+  leaveType: LeaveType,
+  year: number
+): LeaveBalance | undefined {
+  const quota = getEmployeeLeaveQuota(employeeId, year);
+  return quota?.balances.find((balance) => balance.leaveType === leaveType);
+}
+
+/**
+ * Get upcoming leaves (approved leaves in the future)
+ */
+export function getUpcomingLeaves(): LeaveRequest[] {
+  const today = new Date();
+  return mockLeaveRequests.filter(
+    (leave) => leave.status === LeaveStatus.approved && leave.fromDate > today
+  );
+}
+
+/**
+ * Get leaves by date range
+ */
+export function getLeavesByDateRange(
+  fromDate: Date,
+  toDate: Date
+): LeaveRequest[] {
+  return mockLeaveRequests.filter(
+    (leave) =>
+      (leave.fromDate >= fromDate && leave.fromDate <= toDate) ||
+      (leave.toDate >= fromDate && leave.toDate <= toDate) ||
+      (leave.fromDate <= fromDate && leave.toDate >= toDate)
+  );
+}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // RESOURCES - INVENTORY, LOCATIONS, ASSETS
