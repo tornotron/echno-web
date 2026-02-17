@@ -1,30 +1,19 @@
 /**
  * RBAC React Hooks
  *
- * Convenient hooks for using the module-centric RBAC system in React components
+ * Convenient hooks for using the module-centric RBAC system in React components.
+ * Sources roles from employee.orgRoles via useEmployeeRoles().
  *
- * USAGE:
- * ```tsx
- * import { useModuleAccess, useCanPerform } from '@/hooks/use-rbac';
- *
- * function MyComponent() {
- *   const canCreate = useCanPerform(Module.TASK, 'create');
- *   const hasFinance = useModuleAccess(Module.FINANCE);
- *
- *   return (
- *     <div>
- *       {canCreate && <Button>Create Task</Button>}
- *       {hasFinance && <FinanceSection />}
- *     </div>
- *   );
- * }
- * ```
+ * NOTE: Module entitlements are temporarily disabled — all modules are accessible.
+ * Entitlement management will move to the backend / Keycloak.
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useEmployeeRoles } from '@/hooks/use-employee-roles';
+import { OrgRole } from '@/types/employee';
 import {
   Module,
   ModuleAction,
@@ -33,40 +22,10 @@ import {
   getUserAllowedActions,
   canUserPerformActions,
   getUserModules,
-  UserModuleEntitlement,
 } from '@/lib/rbac';
 
 /**
- * Helper to load mock entitlements for development
- * In production, entitlements should come from the session/database
- */
-async function loadMockEntitlementsIfNeeded(
-  entitlements: UserModuleEntitlement[],
-  organizationId: string = '1'
-): Promise<UserModuleEntitlement[]> {
-  if (entitlements.length > 0) return entitlements;
-
-  // Use organizationId from session, or default to '1' for development
-  const orgId = organizationId;
-
-  try {
-    const { getEntitlementsForOrganization } = await import(
-      '@/components/shared/data/module-entitlements'
-    );
-    return getEntitlementsForOrganization(orgId);
-  } catch (error) {
-    console.warn('Could not load mock entitlements:', error);
-    return [];
-  }
-}
-
-/**
  * Hook to check if user can perform a specific action on a module
- *
- * @param module - Module to check
- * @param action - Action to check
- * @param resource - Optional resource context (for own/team checks)
- * @returns Boolean indicating if action is allowed
  */
 export function useCanPerform(
   module: Module,
@@ -79,6 +38,7 @@ export function useCanPerform(
   }
 ): boolean {
   const { data: session } = useSession();
+  const { orgRoles } = useEmployeeRoles();
   const [allowed, setAllowed] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -90,37 +50,26 @@ export function useCanPerform(
         return;
       }
 
-      // Type assertion for extended session user
       const user = session.user as {
         id: string;
-        roles?: string[];
         organizationId?: string;
-        entitlements?: UserModuleEntitlement[];
       };
 
-      const entitlements = await loadMockEntitlementsIfNeeded(
-        user.entitlements || [],
-        user.organizationId
-      );
-
-      const result = await canUserPerformAction(
-        {
-          userId: user.id,
-          userRoles: user.roles || [],
-          organizationId: user.organizationId || '',
-          module,
-          action,
-          resource,
-        },
-        entitlements
-      );
+      const result = await canUserPerformAction({
+        userId: user.id,
+        userRoles: orgRoles,
+        organizationId: user.organizationId || '',
+        module,
+        action,
+        resource,
+      });
 
       setAllowed(result.allowed);
       setLoading(false);
     }
 
     checkAccess();
-  }, [session, module, action, resource]);
+  }, [session, module, action, resource, orgRoles]);
 
   return loading ? false : allowed;
 }
@@ -128,8 +77,7 @@ export function useCanPerform(
 /**
  * Hook to check if user has access to a module at all
  *
- * @param module - Module to check
- * @returns Boolean indicating if user has access
+ * NOTE: Entitlements disabled — always returns true for authenticated users.
  */
 export function useModuleAccess(module: Module): boolean {
   const { data: session } = useSession();
@@ -144,23 +92,15 @@ export function useModuleAccess(module: Module): boolean {
         return;
       }
 
-      // Type assertion for extended session user
       const user = session.user as {
         id: string;
         organizationId?: string;
-        entitlements?: UserModuleEntitlement[];
       };
-
-      const entitlements = await loadMockEntitlementsIfNeeded(
-        user.entitlements || [],
-        user.organizationId
-      );
 
       const access = await hasModuleAccess(
         user.id,
         user.organizationId || '1',
-        module,
-        entitlements
+        module
       );
 
       setHasAccess(access);
@@ -175,35 +115,26 @@ export function useModuleAccess(module: Module): boolean {
 
 /**
  * Hook to get all actions user can perform on a module
- *
- * @param module - Module to check
- * @returns Array of allowed actions
  */
 export function useAllowedActions(module: Module): ModuleAction[] {
-  const { data: session } = useSession();
+  const { orgRoles } = useEmployeeRoles();
 
-  // Compute directly from session - no need for effect or state
-  // This is a pure derived value from session data
-  if (!session?.user?.roles) {
+  if (orgRoles.length === 0) {
     return [];
   }
 
-  return getUserAllowedActions(session.user.roles, module);
+  return getUserAllowedActions(orgRoles, module);
 }
 
 /**
  * Hook to check multiple actions at once
- * Useful for determining which UI elements to show
- *
- * @param module - Module to check
- * @param actions - Actions to check
- * @returns Record of action → allowed boolean
  */
 export function useCanPerformMultiple(
   module: Module,
   actions: ModuleAction[]
 ): Record<ModuleAction, boolean> {
   const { data: session } = useSession();
+  const { orgRoles } = useEmployeeRoles();
   const [results, setResults] = useState<Record<ModuleAction, boolean>>(
     {} as Record<ModuleAction, boolean>
   );
@@ -221,28 +152,19 @@ export function useCanPerformMultiple(
         return;
       }
 
-      // Type assertion for extended session user
       const user = session.user as {
         id: string;
-        roles?: string[];
         organizationId?: string;
-        entitlements?: UserModuleEntitlement[];
       };
-
-      const entitlements = await loadMockEntitlementsIfNeeded(
-        user.entitlements || [],
-        user.organizationId
-      );
 
       const batchResults = await canUserPerformActions(
         {
           userId: user.id,
-          userRoles: user.roles || [],
+          userRoles: orgRoles,
           organizationId: user.organizationId || '1',
           module,
         },
-        actions,
-        entitlements
+        actions
       );
 
       setResults(batchResults);
@@ -250,7 +172,7 @@ export function useCanPerformMultiple(
     }
 
     checkAccess();
-  }, [session, module, actions]);
+  }, [session, module, actions, orgRoles]);
 
   return loading ? ({} as Record<ModuleAction, boolean>) : results;
 }
@@ -258,7 +180,7 @@ export function useCanPerformMultiple(
 /**
  * Hook to get all modules user has access to
  *
- * @returns Array of accessible modules
+ * NOTE: Entitlements disabled — returns all modules for authenticated users.
  */
 export function useUserModules(): Module[] {
   const { data: session } = useSession();
@@ -273,23 +195,7 @@ export function useUserModules(): Module[] {
         return;
       }
 
-      // Type assertion for extended session user
-      const user = session.user as {
-        id: string;
-        organizationId?: string;
-        entitlements?: UserModuleEntitlement[];
-      };
-
-      const entitlements = await loadMockEntitlementsIfNeeded(
-        user.entitlements || [],
-        user.organizationId
-      );
-
-      const userModules = await getUserModules(
-        user.id,
-        user.organizationId || '1',
-        entitlements
-      );
+      const userModules = await getUserModules();
 
       setModules(userModules);
       setLoading(false);
@@ -303,28 +209,19 @@ export function useUserModules(): Module[] {
 
 /**
  * Hook to check if user is system admin
- *
- * @returns Boolean indicating if user is system admin
  */
 export function useIsSystemAdmin(): boolean {
-  const { data: session } = useSession();
+  const { orgRoles } = useEmployeeRoles();
 
-  return (
-    session?.user?.roles?.includes('system-admin') ||
-    session?.user?.roles?.includes('SYSTEM_ADMIN') ||
-    false
-  );
+  return orgRoles.includes(OrgRole.SYSTEM_ADMIN);
 }
 
 /**
  * Comprehensive RBAC hook with all checks
- * Returns object with multiple helpful properties
- *
- * @param module - Module to check
- * @returns Object with access information
  */
 export function useRBAC(module: Module) {
   const { data: session } = useSession();
+  const { orgRoles } = useEmployeeRoles();
   const [state, setState] = useState({
     hasAccess: false,
     allowedActions: [] as ModuleAction[],
@@ -356,35 +253,11 @@ export function useRBAC(module: Module) {
         return;
       }
 
-      // Type assertion for extended session user
-      const user = session.user as {
-        id: string;
-        roles?: string[];
-        organizationId?: string;
-        entitlements?: UserModuleEntitlement[];
-      };
-
-      const entitlements = await loadMockEntitlementsIfNeeded(
-        user.entitlements || [],
-        user.organizationId
-      );
-
-      const hasAccess = await hasModuleAccess(
-        user.id,
-        user.organizationId || '1',
-        module,
-        entitlements
-      );
-
-      const allowedActions = getUserAllowedActions(user.roles || [], module);
-
-      const isSystemAdmin =
-        user.roles?.includes('system-admin') ||
-        user.roles?.includes('SYSTEM_ADMIN') ||
-        false;
+      const allowedActions = getUserAllowedActions(orgRoles, module);
+      const isSystemAdmin = orgRoles.includes(OrgRole.SYSTEM_ADMIN);
 
       setState({
-        hasAccess,
+        hasAccess: true, // Entitlements disabled — always accessible
         allowedActions,
         canView: allowedActions.includes('view'),
         canCreate: allowedActions.includes('create'),
@@ -398,7 +271,7 @@ export function useRBAC(module: Module) {
     }
 
     loadState();
-  }, [session, module]);
+  }, [session, module, orgRoles]);
 
   return state;
 }
