@@ -12,7 +12,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { useEmployeeRoles } from '@/hooks/use-employee-roles';
+import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
 import { OrgRole } from '@/types/employee';
 import {
   Module,

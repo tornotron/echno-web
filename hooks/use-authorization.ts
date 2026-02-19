@@ -1,59 +1,70 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEmployeeRoles } from '@/hooks/use-employee-roles';
-import { isSystemAdmin as checkSystemAdmin } from '@/lib/rbac/role-utils';
+import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
+import {
+  isSystemAdmin as checkSystemAdmin,
+  isAdmin as checkAdmin,
+  isManager as checkManager,
+  isSupervisor as checkSupervisor,
+  isEngineer as checkEngineer,
+  isInspector as checkInspector,
+  isManagerOrAbove as checkManagerOrAbove,
+  isSupervisorOrAbove as checkSupervisorOrAbove,
+} from '@/lib/rbac/role-utils';
 import { hasRole, hasAllRoles } from '@/lib/rbac/permissions';
 
 /**
  * Authorization hook for checking roles based on employee data.
- * Sources roles from employee.orgRoles + employee.isManager
- * instead of JWT/session data.
+ * Sources roles from employee.orgRoles instead of JWT/session data.
  *
  * @example
  * ```tsx
  * function MyComponent() {
- *   const { hasRoles, isSystemAdmin, isManager } = useAuthorization();
+ *   const { isAdmin, isManager, isSupervisorOrAbove } = useAuthorization();
  *
- *   if (isSystemAdmin) return <AdminPanel />;
+ *   if (isAdmin) return <AdminPanel />;
  *   if (isManager) return <ManagerControls />;
- *   if (hasRoles(['HR_MANAGER'])) return <HRSection />;
+ *   if (isSupervisorOrAbove) return <SupervisorView />;
  *
- *   return null;
+ *   return <EmployeeView />;
  * }
  * ```
  */
 export function useAuthorization() {
   const { status } = useSession();
-  const {
-    orgRoles,
-    isManager,
-    isLoading: employeeLoading,
-    employee,
-  } = useEmployeeRoles();
+  const { orgRoles, isLoading: employeeLoading, employee } = useEmployeeRoles();
 
   const isAuthenticated = status === 'authenticated';
   const isLoading = status === 'loading' || employeeLoading;
 
+  // Role group checks
   const isSystemAdmin = checkSystemAdmin(orgRoles);
+  const isAdmin = checkAdmin(orgRoles);
+  const isManager = checkManager(orgRoles);
+  const isSupervisor = checkSupervisor(orgRoles);
+  const isEngineer = checkEngineer(orgRoles);
+  const isInspector = checkInspector(orgRoles);
+  const isManagerOrAbove = checkManagerOrAbove(orgRoles);
+  const isSupervisorOrAbove = checkSupervisorOrAbove(orgRoles);
 
   /**
    * Check if user has a specific role (or any role if array)
-   * System admin always returns true
+   * Admin always returns true
    */
   const checkRoles = (role: string | string[]): boolean => {
     if (!isAuthenticated) return false;
-    if (isSystemAdmin) return true;
+    if (isAdmin) return true;
     return hasRole(orgRoles, role);
   };
 
   /**
    * Check if user has ALL specified roles (AND logic)
-   * System admin always returns true
+   * Admin always returns true
    */
   const hasEveryRole = (roles: string[]): boolean => {
     if (!isAuthenticated) return false;
-    if (isSystemAdmin) return true;
+    if (isAdmin) return true;
     return hasAllRoles(orgRoles, roles);
   };
 
@@ -62,9 +73,17 @@ export function useAuthorization() {
     hasRoles: checkRoles,
     hasEveryRole,
 
-    // Status checks
+    // Role group checks
     isSystemAdmin,
+    isAdmin,
     isManager,
+    isSupervisor,
+    isEngineer,
+    isInspector,
+    isManagerOrAbove,
+    isSupervisorOrAbove,
+
+    // Status
     isAuthenticated,
     isLoading,
 
