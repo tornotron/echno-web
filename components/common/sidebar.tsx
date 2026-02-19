@@ -2,8 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Module } from '@/types/rbac/module';
-import { useModuleAccess, useIsSystemAdmin } from '@/hooks/use-rbac';
 import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
 import { OrgRole, isManagerOrAbove } from '@/types/employee';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
@@ -72,14 +70,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { RequestAccessModal } from '@/components/access-request';
-import { AccessRequestType } from '@/types/access-request';
 
 interface NavItem {
   title: string;
   url: string;
   icon: React.ComponentType<{ className?: string }>;
-  module?: Module;
   requiredRoles?: string[]; // Roles required to see this item (empty/undefined = all roles can see)
   hideForRoles?: string[]; // Roles that should NOT see this item
   hideWhenLocked?: boolean; // If true, hide completely instead of showing locked state
@@ -87,62 +82,16 @@ interface NavItem {
     title: string;
     url: string;
     icon: React.ComponentType<{ className?: string }>;
-    module?: Module;
     requiredRoles?: string[]; // Roles required to see this sub-item
   }[];
 }
 
 const navItems: NavItem[] = [
   { title: 'Dashboard', url: '/users/dashboard', icon: Home },
-  // ==================== ADMIN SECTION ====================
-  // Only visible to system admins
-  {
-    title: 'Administrator',
-    url: '/admin/access-control/users',
-    icon: Shield,
-    requiredRoles: [OrgRole.SYSTEM_ADMIN],
-    hideWhenLocked: true, // Admin section should be hidden for non-admins
-    items: [
-      {
-        title: 'Users',
-        url: '/admin/access-control/users',
-        icon: Users,
-        requiredRoles: [OrgRole.SYSTEM_ADMIN],
-      },
-      {
-        title: 'Roles',
-        url: '/admin/access-control/roles',
-        icon: UserCog,
-        requiredRoles: [OrgRole.SYSTEM_ADMIN],
-      },
-      {
-        title: 'Modules',
-        url: '/admin/access-control/modules',
-        icon: Blocks,
-        requiredRoles: [OrgRole.SYSTEM_ADMIN],
-      },
-      {
-        title: 'Access Requests',
-        url: '/admin/access-requests',
-        icon: KeyRound,
-        requiredRoles: [OrgRole.SYSTEM_ADMIN],
-      },
-    ],
-  },
-  // ==================== MY ACCESS REQUESTS ====================
-  // Only visible to non-admin users (admins have it in Administrator section)
-  {
-    title: 'My Access Requests',
-    url: '/users/dashboard/access-requests',
-    icon: KeyRound,
-    hideForRoles: [OrgRole.SYSTEM_ADMIN], // Hide for system admins
-  },
-  // ==================== PROJECT SECTION ====================
   {
     title: 'Projects',
     url: '/users/dashboard/projects',
     icon: FolderKanban,
-    module: Module.PROJECT,
     items: [
       {
         title: 'All Projects',
@@ -161,7 +110,6 @@ const navItems: NavItem[] = [
     title: 'Workforce',
     url: '/users/dashboard/workforce',
     icon: Users,
-    module: Module.WORKFORCE,
     items: [
       {
         title: 'Employees',
@@ -186,7 +134,6 @@ const navItems: NavItem[] = [
     title: 'Attendance',
     url: '/users/dashboard/attendance',
     icon: UserCheck,
-    module: Module.ATTENDANCE,
     items: [
       {
         title: 'All Attendance',
@@ -205,7 +152,6 @@ const navItems: NavItem[] = [
     title: 'Third Party',
     url: '/users/dashboard/third-party',
     icon: Handshake,
-    module: Module.VENDOR,
     items: [
       {
         title: 'Labour',
@@ -229,7 +175,6 @@ const navItems: NavItem[] = [
     title: 'Resources',
     url: '/users/dashboard/resources',
     icon: Boxes,
-    module: Module.INVENTORY,
     items: [
       {
         title: 'Inventory',
@@ -278,7 +223,6 @@ const navItems: NavItem[] = [
     title: 'Finance',
     url: '/users/dashboard/finance',
     icon: Wallet,
-    module: Module.FINANCE,
     items: [
       {
         title: 'Receipts',
@@ -307,43 +251,6 @@ const navItems: NavItem[] = [
       },
     ],
   },
-  // ==================== EXTRA SECTIONS (COMMENTED OUT) ====================
-  /*
-  {
-    title: 'Compliance',
-    url: '/users/dashboard/compliance',
-    icon: ShieldCheck,
-    items: [
-      {
-        title: 'Permits & Licenses',
-        url: '/users/dashboard/compliance/permits',
-        icon: FileText,
-      },
-      {
-        title: 'Certificates',
-        url: '/users/dashboard/compliance/certificates',
-        icon: CheckCircle2,
-      },
-      {
-        title: 'Regulations',
-        url: '/users/dashboard/compliance/regulations',
-        icon: ClipboardList,
-      },
-      {
-        title: 'Audits',
-        url: '/users/dashboard/compliance/audits',
-        icon: ClipboardCheck,
-      },
-      {
-        title: 'Reports',
-        url: '/users/dashboard/compliance/reports',
-        icon: FileSpreadsheet,
-      },
-    ],
-  },
-  { title: 'Reports', url: '/users/dashboard/reports', icon: BarChart3 },
-  { title: 'Documents', url: '/users/dashboard/documents', icon: FileText },
-  */
 ];
 
 // Helper function to check if a path is active
@@ -358,26 +265,6 @@ export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
-  const [requestModalOpen, setRequestModalOpen] = useState(false);
-  const [selectedLockedItem, setSelectedLockedItem] = useState<{
-    title: string;
-    module?: Module;
-  } | null>(null);
-
-  // Handle click on locked item
-  const handleLockedItemClick = (item: { title: string; module?: Module }) => {
-    setSelectedLockedItem(item);
-    setRequestModalOpen(true);
-  };
-
-  // Get module access for all modules used in navigation
-  const hasProjectAccess = useModuleAccess(Module.PROJECT);
-  const hasWorkforceAccess = useModuleAccess(Module.WORKFORCE);
-  const hasAttendanceAccess = useModuleAccess(Module.ATTENDANCE);
-  const hasVendorAccess = useModuleAccess(Module.VENDOR);
-  const hasInventoryAccess = useModuleAccess(Module.INVENTORY);
-  const hasFinanceAccess = useModuleAccess(Module.FINANCE);
-  const isSystemAdmin = useIsSystemAdmin();
 
   // Get employee roles for authorization checks
   const { orgRoles, employee } = useEmployeeRoles();
@@ -388,38 +275,8 @@ export function AppSidebar() {
     canApproveLeaves ? employee?.id || 0 : 0
   );
 
-  // Helper to check if user has module access
-  const hasModuleAccess = (module?: Module): boolean => {
-    if (!module) return true; // No module requirement - always visible
-
-    switch (module) {
-      case Module.PROJECT: {
-        return hasProjectAccess;
-      }
-      case Module.WORKFORCE: {
-        return hasWorkforceAccess;
-      }
-      case Module.ATTENDANCE: {
-        return hasAttendanceAccess;
-      }
-      case Module.VENDOR: {
-        return hasVendorAccess;
-      }
-      case Module.INVENTORY: {
-        return hasInventoryAccess;
-      }
-      case Module.FINANCE: {
-        return hasFinanceAccess;
-      }
-      default: {
-        return false;
-      }
-    }
-  };
-
   // Helper to check if user can see item (module access + role check)
   const canSeeItem = (item: {
-    module?: Module;
     requiredRoles?: string[];
     hideForRoles?: string[];
   }): boolean => {
@@ -440,8 +297,7 @@ export function AppSidebar() {
       );
       if (!hasRequiredRole) return false;
     }
-    // Then check module access
-    return hasModuleAccess(item.module);
+    return true;
   };
 
   // Memoize navigation items rendering to prevent flickering
@@ -499,17 +355,7 @@ export function AppSidebar() {
         };
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    pathname,
-    hasProjectAccess,
-    hasWorkforceAccess,
-    hasAttendanceAccess,
-    hasVendorAccess,
-    hasInventoryAccess,
-    hasFinanceAccess,
-    isSystemAdmin,
-    orgRoles,
-  ]);
+  }, [pathname, orgRoles]);
 
   // Only show sidebar for authenticated users
   if (!session) {
@@ -554,8 +400,8 @@ export function AppSidebar() {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         tooltip={`${item.title} (Locked)`}
-                        className="cursor-pointer opacity-60 hover:opacity-80"
-                        onClick={() => handleLockedItemClick(item)}
+                        className="cursor-not-allowed opacity-60"
+                        disabled
                       >
                         <item.icon className="text-zinc-400" />
                         <span className="text-zinc-500">{item.title}</span>
@@ -591,8 +437,8 @@ export function AppSidebar() {
                           children: `${item.title} (Locked)`,
                           side: 'right',
                         }}
-                        className="cursor-pointer opacity-60 hover:opacity-80"
-                        onClick={() => handleLockedItemClick(item)}
+                        className="cursor-not-allowed opacity-60"
+                        disabled
                       >
                         <item.icon className="text-zinc-400" />
                         <span className="text-zinc-500">{item.title}</span>
@@ -665,8 +511,8 @@ export function AppSidebar() {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         tooltip={`${item.title} (Locked)`}
-                        className="cursor-pointer opacity-60 hover:opacity-80"
-                        onClick={() => handleLockedItemClick(item)}
+                        className="cursor-not-allowed opacity-60"
+                        disabled
                       >
                         <item.icon className="text-zinc-400" />
                         <span className="text-zinc-500">{item.title}</span>
@@ -756,23 +602,6 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
-      {/* Request Access Modal */}
-      {selectedLockedItem && (
-        <RequestAccessModal
-          open={requestModalOpen}
-          onOpenChange={(open) => {
-            setRequestModalOpen(open);
-            if (!open) setSelectedLockedItem(null);
-          }}
-          moduleOrResource={
-            selectedLockedItem.module || selectedLockedItem.title
-          }
-          displayName={selectedLockedItem.title}
-          description={`Request access to the ${selectedLockedItem.title} module to unlock its features.`}
-          requestType={AccessRequestType.MODULE}
-        />
-      )}
     </SidebarPrimitive>
   );
 }
