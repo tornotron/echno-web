@@ -122,6 +122,8 @@ export function useGenerateInviteCode() {
  * ```
  */
 export function useValidateInviteCodeMutation() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       userId,
@@ -132,10 +134,14 @@ export function useValidateInviteCodeMutation() {
     }) => invitationService.validateCode(userId, inviteCode),
     onSuccess: (result) => {
       if (result.valid) {
-        toast.success('Valid Invite Code', {
+        // Invalidate organizations and user data since validate also joins
+        queryClient.invalidateQueries({ queryKey: ['organizations'] });
+        queryClient.invalidateQueries({ queryKey: ['user'] });
+        queryClient.invalidateQueries({ queryKey: ['employees'] });
+        toast.success('Joined Organization', {
           description: result.invitation
-            ? `Invitation to join ${result.invitation.organizationName}`
-            : 'Code is valid',
+            ? `Successfully joined ${result.invitation.organizationName}`
+            : 'Successfully joined the organization',
         });
       } else {
         toast.error('Invalid Invite Code', {
