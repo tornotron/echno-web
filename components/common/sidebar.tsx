@@ -4,6 +4,10 @@ import { useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { Module } from '@/types/rbac/module';
 import { useModuleAccess, useIsSystemAdmin } from '@/hooks/use-rbac';
+import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
+import { OrgRole, isManagerOrAbove } from '@/types/employee';
+import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
+import { Badge } from '@/components/ui/badge';
 import {
   Home,
   Users,
@@ -96,32 +100,32 @@ const navItems: NavItem[] = [
     title: 'Administrator',
     url: '/admin/access-control/users',
     icon: Shield,
-    requiredRoles: ['system-admin'],
+    requiredRoles: [OrgRole.SYSTEM_ADMIN],
     hideWhenLocked: true, // Admin section should be hidden for non-admins
     items: [
       {
         title: 'Users',
         url: '/admin/access-control/users',
         icon: Users,
-        requiredRoles: ['system-admin'],
+        requiredRoles: [OrgRole.SYSTEM_ADMIN],
       },
       {
         title: 'Roles',
         url: '/admin/access-control/roles',
         icon: UserCog,
-        requiredRoles: ['system-admin'],
+        requiredRoles: [OrgRole.SYSTEM_ADMIN],
       },
       {
         title: 'Modules',
         url: '/admin/access-control/modules',
         icon: Blocks,
-        requiredRoles: ['system-admin'],
+        requiredRoles: [OrgRole.SYSTEM_ADMIN],
       },
       {
         title: 'Access Requests',
         url: '/admin/access-requests',
         icon: KeyRound,
-        requiredRoles: ['system-admin'],
+        requiredRoles: [OrgRole.SYSTEM_ADMIN],
       },
     ],
   },
@@ -131,7 +135,7 @@ const navItems: NavItem[] = [
     title: 'My Access Requests',
     url: '/users/dashboard/access-requests',
     icon: KeyRound,
-    hideForRoles: ['system-admin'], // Hide for system admins
+    hideForRoles: [OrgRole.SYSTEM_ADMIN], // Hide for system admins
   },
   // ==================== PROJECT SECTION ====================
   {
@@ -169,8 +173,9 @@ const navItems: NavItem[] = [
         url: '/users/dashboard/workforce/invitations',
         icon: Mail,
       },
+      // Leave Requests with dynamic sub-items (handled in component)
       {
-        title: 'Leave Requests',
+        title: 'Leave Management',
         url: '/users/dashboard/workforce/leaves',
         icon: Calendar,
       },
@@ -374,6 +379,15 @@ export function AppSidebar() {
   const hasFinanceAccess = useModuleAccess(Module.FINANCE);
   const isSystemAdmin = useIsSystemAdmin();
 
+  // Get employee roles for authorization checks
+  const { orgRoles, employee } = useEmployeeRoles();
+
+  // Get leave management pending approvals count for badge (only for managers/admins)
+  const canApproveLeaves = isManagerOrAbove(orgRoles);
+  const { data: leavePendingCount } = usePendingApprovalsCount(
+    canApproveLeaves ? employee?.id || 0 : 0
+  );
+
   // Helper to check if user has module access
   const hasModuleAccess = (module?: Module): boolean => {
     if (!module) return true; // No module requirement - always visible
@@ -409,12 +423,10 @@ export function AppSidebar() {
     requiredRoles?: string[];
     hideForRoles?: string[];
   }): boolean => {
-    const userRoles = session?.user?.roles || [];
-
     // Check if item should be hidden for user's roles
     if (item.hideForRoles && item.hideForRoles.length > 0) {
       const shouldHide = item.hideForRoles.some((role) =>
-        userRoles.includes(role)
+        (orgRoles as string[]).includes(role)
       );
       if (shouldHide) return false;
     }
@@ -424,7 +436,7 @@ export function AppSidebar() {
     if (item.requiredRoles && item.requiredRoles.length > 0) {
       // User must have at least one of the required roles
       const hasRequiredRole = item.requiredRoles.some((role) =>
-        userRoles.includes(role)
+        (orgRoles as string[]).includes(role)
       );
       if (!hasRequiredRole) return false;
     }
@@ -496,7 +508,7 @@ export function AppSidebar() {
     hasInventoryAccess,
     hasFinanceAccess,
     isSystemAdmin,
-    session?.user?.roles,
+    orgRoles,
   ]);
 
   // Only show sidebar for authenticated users
@@ -591,19 +603,38 @@ export function AppSidebar() {
 
                 // When collapsed, show dropdown menu
                 if (state === 'collapsed') {
+                  // Check if this is Leave Management item to show badge in tooltip
+                  const isLeaveManagement = item.title === 'Leave Management';
+                  const tooltipText =
+                    isLeaveManagement &&
+                    leavePendingCount &&
+                    leavePendingCount > 0
+                      ? `${item.title} (${leavePendingCount} pending)`
+                      : item.title;
+
                   return (
                     <SidebarMenuItem key={item.title}>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <SidebarMenuButton
                             tooltip={{
-                              children: item.title,
+                              children: tooltipText,
                               side: 'right',
                             }}
                             isActive={item.isActive || item.isChildActive}
+                            className="relative"
                           >
                             <item.icon />
                             <span>{item.title}</span>
+                            {isLeaveManagement &&
+                              leavePendingCount &&
+                              leavePendingCount > 0 && (
+                                <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px]">
+                                  {leavePendingCount > 9
+                                    ? '9+'
+                                    : leavePendingCount}
+                                </span>
+                              )}
                           </SidebarMenuButton>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
@@ -646,6 +677,13 @@ export function AppSidebar() {
                 }
 
                 // When expanded, show collapsible menu
+                // Check if this is Leave Management item to show badge
+                const isLeaveManagement = item.title === 'Leave Management';
+                const showBadge =
+                  isLeaveManagement &&
+                  leavePendingCount &&
+                  leavePendingCount > 0;
+
                 return (
                   <Collapsible
                     key={item.title}
@@ -660,6 +698,14 @@ export function AppSidebar() {
                         >
                           <item.icon />
                           <span>{item.title}</span>
+                          {showBadge && (
+                            <Badge
+                              variant="destructive"
+                              className="mr-2 ml-auto h-5 min-w-5 px-1 text-xs"
+                            >
+                              {leavePendingCount}
+                            </Badge>
+                          )}
                           <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
