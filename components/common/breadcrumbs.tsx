@@ -106,7 +106,6 @@ const breadcrumbNameMap: BreadcrumbConfig = {
   users: 'Users',
   roles: 'Roles',
   modules: 'Modules',
-  'access-requests': 'Access Requests',
 };
 
 // Segments that should NEVER appear in breadcrumbs
