@@ -1,4 +1,9 @@
-import { Employee, EmployeeStatus, Department } from '@/types/employee';
+import {
+  Employee,
+  EmployeeStatus,
+  Department,
+  OrgRole,
+} from '@/types/employee';
 import { mockUsers } from './users';
 import { mockOrganizations } from './organizations';
 import { Project, ProjectStatus } from '@/types/project';
@@ -65,6 +70,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2020-02-01'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [OrgRole.SYSTEM_ADMIN],
     currentProjects: [
       projectsForEmployees[0],
       projectsForEmployees[1],
@@ -84,6 +90,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2020-04-15'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [projectsForEmployees[0], projectsForEmployees[1]],
   },
   {
@@ -99,6 +106,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2021-01-10'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [projectsForEmployees[0]],
   },
   {
@@ -114,6 +122,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2020-03-01'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [],
   },
   {
@@ -129,6 +138,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2021-06-01'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [projectsForEmployees[1], projectsForEmployees[2]],
   },
   {
@@ -144,6 +154,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2020-07-15'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [projectsForEmployees[0], projectsForEmployees[1]],
   },
   {
@@ -159,6 +170,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2020-05-20'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [projectsForEmployees[2], projectsForEmployees[3]],
   },
   {
@@ -174,6 +186,7 @@ export const mockEmployees: Employee[] = [
     joiningDate: new Date('2021-02-10'),
     organizationId: mockOrganizations[0].id!,
     organizationName: mockOrganizations[0].organizationName,
+    orgRoles: [],
     currentProjects: [],
   },
 ];
