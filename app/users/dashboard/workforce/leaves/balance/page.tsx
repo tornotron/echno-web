@@ -1,266 +1,499 @@
 'use client';
 
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Calendar,
-  Plus,
+  useEmployeeBalanceSummary,
+  useTransactionHistory,
+} from '@/hooks/leave/use-leave';
+import { TransactionType } from '@/types/leave';
+import { StatCard } from '@/components/leave/stat-card';
+import { TableSkeleton } from '@/components/leave/skeletons';
+import {
   TrendingUp,
+  TrendingDown,
+  Calendar,
+  Loader2,
+  FileText,
   AlertCircle,
-  CheckCircle,
   Clock,
 } from 'lucide-react';
-import Link from 'next/link';
-import {
-  mockEmployeeLeaveQuotas,
-  getEmployeeLeaveRequests,
-} from '@/components/shared/mock-data';
-import {
-  getLeaveTypeLabel,
-  getLeaveTypeColor,
-  getLeaveStatusColor,
-  getLeaveStatusLabel,
-} from '@/types/leave';
 import { format } from 'date-fns';
+import { useCurrentUserEmployee } from '@/hooks/employee';
 
-export default function LeaveBalancePage() {
-  // For demo, using employee ID 1 (Rajesh Kumar)
-  const employeeId = '1';
-  const quota = mockEmployeeLeaveQuotas.find(
-    (q) => q.employeeId === employeeId
+const getTransactionIcon = (type: TransactionType) => {
+  switch (type) {
+    case TransactionType.ACCRUAL:
+    case TransactionType.CARRY_FORWARD:
+    case TransactionType.ADJUSTMENT: {
+      return <TrendingUp className="h-4 w-4 text-green-600" />;
+    }
+    case TransactionType.DEDUCTION:
+    case TransactionType.EXPIRY: {
+      return <TrendingDown className="h-4 w-4 text-red-600" />;
+    }
+    default: {
+      return <FileText className="text-muted-foreground h-4 w-4" />;
+    }
+  }
+};
+
+const getTransactionColor = (type: TransactionType) => {
+  switch (type) {
+    case TransactionType.ACCRUAL:
+    case TransactionType.CARRY_FORWARD: {
+      return 'text-green-600';
+    }
+    case TransactionType.DEDUCTION:
+    case TransactionType.EXPIRY: {
+      return 'text-red-600';
+    }
+    case TransactionType.ADJUSTMENT: {
+      return 'text-blue-600';
+    }
+    default: {
+      return 'text-zinc-600';
+    }
+  }
+};
+
+export default function BalanceDetailsPage() {
+  const { data: employee, isLoading: employeeLoading } =
+    useCurrentUserEmployee();
+  const employeeId = employee?.id || 0;
+
+  const currentYear = new Date().getFullYear();
+  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
+
+  const { data: balanceSummary, isLoading: balanceLoading } =
+    useEmployeeBalanceSummary(employeeId, Number.parseInt(selectedYear));
+  const { data: transactions, isLoading: transactionsLoading } =
+    useTransactionHistory(employeeId);
+
+  const years = [currentYear, currentYear - 1, currentYear - 2].map((y) =>
+    y.toString()
   );
-  const leaveRequests = getEmployeeLeaveRequests(employeeId);
 
-  if (!quota) {
-    return <div>No leave quota found</div>;
+  // Calculate totals
+  const totalAvailable = balanceSummary?.totalAvailable || 0;
+  const totalUsed = balanceSummary?.totalUsed || 0;
+  const totalPending = balanceSummary?.totalPending || 0;
+  const totalAllocated =
+    balanceSummary?.balances?.reduce(
+      (sum, b) =>
+        sum + (b.openingBalance + b.accrued + b.carryForwardFromPrevious),
+      0
+    ) || 0;
+
+  if (employeeLoading) {
+    return <TableSkeleton />;
   }
 
-  const totalAllocated = quota.balances.reduce(
-    (sum, b) => sum + b.allocated,
-    0
-  );
-  const totalUsed = quota.balances.reduce((sum, b) => sum + b.used, 0);
-  const totalPending = quota.balances.reduce((sum, b) => sum + b.pending, 0);
-  const totalAvailable = quota.balances.reduce(
-    (sum, b) => sum + b.available + b.carriedForward,
-    0
-  );
+  if (!employee) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center">
+        <AlertCircle className="mb-4 h-12 w-12 text-yellow-500" />
+        <h2 className="mb-2 text-xl font-semibold">
+          Employee Profile Not Found
+        </h2>
+        <p className="text-zinc-500">
+          Please ensure your employee profile is set up correctly.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            My Leave Balance
+            Leave Balance
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400">
-            {quota.employeeName} • {quota.department}
+            View your leave balances and transaction history
           </p>
         </div>
-        <Link href="/users/dashboard/workforce/leaves/apply">
-          <Button className="mt-4 md:mt-0">
-            <Plus className="mr-2 h-4 w-4" />
-            Apply for Leave
-          </Button>
-        </Link>
+        <Select value={selectedYear} onValueChange={setSelectedYear}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select year" />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((year) => (
+              <SelectItem key={year} value={year}>
+                {year}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-      {/* Summary Cards */}
-      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Allocated</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Calendar className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+
+      {/* Statistics Cards */}
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <StatCard
+          icon={Calendar}
+          label="Total Allocated"
+          value={totalAllocated.toFixed(1)}
+          color="blue"
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Available"
+          value={totalAvailable.toFixed(1)}
+          color="green"
+        />
+        <StatCard
+          icon={TrendingDown}
+          label="Used"
+          value={totalUsed.toFixed(1)}
+          color="red"
+        />
+        <StatCard
+          icon={Clock}
+          label="Pending"
+          value={totalPending.toFixed(1)}
+          color="yellow"
+        />
+      </div>
+
+      <Tabs defaultValue="balances" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="balances">Leave Balances</TabsTrigger>
+          <TabsTrigger value="transactions">Transaction History</TabsTrigger>
+        </TabsList>
+
+        {/* Balances Tab */}
+        <TabsContent value="balances" className="space-y-4">
+          {balanceLoading ? (
+            <Card>
+              <CardContent className="flex items-center justify-center py-12">
+                <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+              </CardContent>
+            </Card>
+          ) : balanceSummary && balanceSummary.balances.length > 0 ? (
+            <>
+              {/* Mobile Card View */}
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
+                {balanceSummary.balances.map((balance) => {
+                  const total =
+                    balance.openingBalance +
+                    balance.accrued +
+                    balance.carryForwardFromPrevious;
+                  const usagePercent =
+                    total > 0 ? (balance.used / total) * 100 : 0;
+
+                  return (
+                    <Card key={balance.id}>
+                      <CardContent className="p-4">
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {balance.leaveTypeName}
+                          </span>
+                          <span className="text-lg font-bold text-green-600 dark:text-green-400">
+                            {balance.availableBalance.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
+                          <div>
+                            <p className="text-zinc-500 dark:text-zinc-400">
+                              Total
+                            </p>
+                            <p className="font-semibold">{total.toFixed(1)}</p>
+                          </div>
+                          <div>
+                            <p className="text-zinc-500 dark:text-zinc-400">
+                              Used
+                            </p>
+                            <p className="font-semibold text-red-600 dark:text-red-400">
+                              {balance.used.toFixed(1)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-zinc-500 dark:text-zinc-400">
+                              Pending
+                            </p>
+                            <p className="font-semibold text-yellow-600 dark:text-yellow-400">
+                              {balance.pending.toFixed(1)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Progress
+                            value={usagePercent}
+                            className="h-2 flex-1"
+                          />
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {usagePercent.toFixed(0)}%
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {totalAllocated}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Available</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              {/* Desktop Table View */}
+              <Card className="hidden lg:block">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Leave Type</TableHead>
+                        <TableHead>Opening</TableHead>
+                        <TableHead>Accrued</TableHead>
+                        <TableHead>Carry Forward</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Used</TableHead>
+                        <TableHead>Pending</TableHead>
+                        <TableHead>Available</TableHead>
+                        <TableHead>Usage</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {balanceSummary.balances.map((balance) => {
+                        const total =
+                          balance.openingBalance +
+                          balance.accrued +
+                          balance.carryForwardFromPrevious;
+                        const usagePercent =
+                          total > 0 ? (balance.used / total) * 100 : 0;
+
+                        return (
+                          <TableRow
+                            key={balance.id}
+                            className="hover:bg-muted/50"
+                          >
+                            <TableCell>
+                              <div>
+                                <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {balance.leaveTypeName}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-zinc-700 dark:text-zinc-300">
+                                {balance.openingBalance.toFixed(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-green-600 dark:text-green-400">
+                                +{balance.accrued.toFixed(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-blue-600 dark:text-blue-400">
+                                {balance.carryForwardFromPrevious > 0
+                                  ? `+${balance.carryForwardFromPrevious.toFixed(1)}`
+                                  : '0.0'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                                {total.toFixed(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-red-600 dark:text-red-400">
+                                {balance.used.toFixed(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-yellow-600 dark:text-yellow-400">
+                                {balance.pending.toFixed(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-semibold text-green-600 dark:text-green-400">
+                                {balance.availableBalance.toFixed(1)}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex min-w-[120px] items-center gap-2">
+                                <Progress
+                                  value={usagePercent}
+                                  className="h-2 flex-1"
+                                />
+                                <span className="min-w-[40px] text-xs text-zinc-600 dark:text-zinc-400">
+                                  {usagePercent.toFixed(0)}%
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <Calendar className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+                <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                  No leave balance found
+                </h3>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  No leave balances are available for the selected year
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        {/* Transactions Tab */}
+        <TabsContent value="transactions" className="space-y-4">
+          {transactionsLoading ? (
+            <Card>
+              <CardContent className="flex items-center justify-center py-12">
+                <Loader2 className="text-muted-foreground h-8 w-8 animate-spin" />
+              </CardContent>
+            </Card>
+          ) : transactions && transactions.length > 0 ? (
+            <>
+              {/* Mobile Card View */}
+              <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
+                {transactions.slice(0, 50).map((transaction) => (
+                  <Card key={transaction.id}>
+                    <CardContent className="p-4">
+                      <div className="mb-2 flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          {getTransactionIcon(transaction.transactionType)}
+                          <Badge variant="outline" className="text-xs">
+                            {transaction.transactionType.replaceAll('_', ' ')}
+                          </Badge>
+                        </div>
+                        <span
+                          className={`font-semibold ${getTransactionColor(transaction.transactionType)}`}
+                        >
+                          {transaction.days > 0 ? '+' : ''}
+                          {transaction.days.toFixed(1)}
+                        </span>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-zinc-500 dark:text-zinc-400">
+                            {transaction.leaveTypeName || '-'}
+                          </span>
+                          <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                            Bal: {transaction.balanceAfter.toFixed(1)}
+                          </span>
+                        </div>
+                        <p className="text-zinc-500 dark:text-zinc-400">
+                          {format(
+                            new Date(transaction.transactionDate),
+                            'MMM dd, yyyy'
+                          )}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {totalAvailable}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Used</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                <TrendingUp className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {totalUsed}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Pending</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
-                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {totalPending}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>{' '}
-      {/* Leave Balance by Type */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Leave Balance by Type</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
-            {quota.balances.map((balance) => {
-              const totalQuota = balance.allocated + balance.carriedForward;
-              const consumed = balance.used + balance.pending;
-              const percentageUsed =
-                totalQuota > 0 ? (consumed / totalQuota) * 100 : 0;
-
-              return (
-                <div key={balance.leaveType} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Badge className={getLeaveTypeColor(balance.leaveType)}>
-                        {getLeaveTypeLabel(balance.leaveType)}
-                      </Badge>
-                      {balance.carriedForward > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{balance.carriedForward} carried forward
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold">
-                        {balance.available + balance.carriedForward}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        of {totalQuota} days
-                      </p>
-                    </div>
-                  </div>
-
-                  <Progress value={percentageUsed} className="h-2" />
-
-                  <div className="flex justify-between text-sm text-zinc-500">
-                    <span>Used: {balance.used} days</span>
-                    <span>Pending: {balance.pending} days</span>
-                    {balance.encashable > 0 && (
-                      <span className="text-green-600">
-                        Encashable: {balance.encashable} days
-                      </span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
-      {/* Recent Leave Requests */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>My Leave Requests</CardTitle>
-            <Link href="/users/dashboard/workforce/leaves">
-              <Button variant="outline" size="sm">
-                View All
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {leaveRequests.length === 0 ? (
-              <div className="py-8 text-center text-zinc-500">
-                <AlertCircle className="mx-auto mb-4 h-12 w-12 opacity-50" />
-                <p>No leave requests found</p>
-              </div>
-            ) : (
-              leaveRequests.slice(0, 5).map((leave) => (
-                <div
-                  key={leave.id}
-                  className="flex items-center justify-between rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                >
-                  <div className="flex-1">
-                    <div className="mb-1 flex items-center gap-2">
-                      <Badge className={getLeaveTypeColor(leave.leaveType)}>
-                        {getLeaveTypeLabel(leave.leaveType)}
-                      </Badge>
-                      <Badge className={getLeaveStatusColor(leave.status)}>
-                        {getLeaveStatusLabel(leave.status)}
-                      </Badge>
-                    </div>
-                    <p className="text-sm font-medium">
-                      {format(leave.fromDate, 'dd MMM yyyy')} -{' '}
-                      {format(leave.toDate, 'dd MMM yyyy')}
-                    </p>
-                    <p className="mt-1 text-xs text-zinc-500">{leave.reason}</p>
-                  </div>
-                  <div className="ml-4 text-right">
-                    <p className="text-lg font-bold">{leave.daysCount}</p>
-                    <p className="text-xs text-zinc-500">days</p>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-      {/* Leave Policy Information */}
-      <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-blue-900 dark:text-blue-100">
-            <AlertCircle className="h-5 w-5" />
-            Leave Policy Information
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm text-blue-900 dark:text-blue-100">
-          <p>• Leave requests should be submitted at least 3 days in advance</p>
-          <p>• Sick leaves exceeding 3 days require a medical certificate</p>
-          <p>
-            • Earned leaves can be carried forward to the next year (max 10
-            days)
-          </p>
-          <p>• Casual leaves cannot be combined with holidays</p>
-          <p>• Contact HR for any leave-related queries: hr@echno.com</p>
-        </CardContent>
-      </Card>
+              {/* Desktop Table View */}
+              <Card className="hidden lg:block">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Leave Type</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Balance After</TableHead>
+                        <TableHead>Description</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {transactions.slice(0, 50).map((transaction) => (
+                        <TableRow
+                          key={transaction.id}
+                          className="hover:bg-muted/50"
+                        >
+                          <TableCell>
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                              {format(
+                                new Date(transaction.transactionDate),
+                                'MMM dd, yyyy'
+                              )}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {transaction.leaveTypeName || '-'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getTransactionIcon(transaction.transactionType)}
+                              <Badge variant="outline">
+                                {transaction.transactionType.replaceAll(
+                                  '_',
+                                  ' '
+                                )}
+                              </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`font-semibold ${getTransactionColor(transaction.transactionType)}`}
+                            >
+                              {transaction.days > 0 ? '+' : ''}
+                              {transaction.days.toFixed(1)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {transaction.balanceAfter.toFixed(1)}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                              {transaction.reason || '-'}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <FileText className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+                <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+                  No transactions found
+                </h3>
+                <p className="text-zinc-600 dark:text-zinc-400">
+                  No transaction history is available
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
