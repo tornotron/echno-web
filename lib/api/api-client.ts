@@ -378,12 +378,21 @@ class ApiClient {
       }
     }
 
+    // Custom JSON stringification for PATCH to handle Java backend type expectations
+    let body: string | undefined;
+    if (data) {
+      body = JSON.stringify(data);
+      // Fix: Ensure salary values are formatted as floats (with decimal) for Java backend
+      // Java's Jackson parser treats "45000" as Integer but "45000.0" as Double
+      body = body.replaceAll(/"salary":(\d+)([,}])/g, '"salary":$1.0$2');
+    }
+
     const response = await this.fetchWithRetry(
       url.toString(),
       {
         method: 'PATCH',
         headers: this.headers,
-        body: data ? JSON.stringify(data) : undefined,
+        body,
       },
       options
     );
