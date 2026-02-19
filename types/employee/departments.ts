@@ -17,7 +17,8 @@ export enum Department {
   marketing = 'marketing',
 }
 
-export function getDepartmentLabel(dept: Department): string {
+export function getDepartmentLabel(dept: Department | undefined): string {
+  if (!dept) return 'Unassigned';
   const map: Record<Department, string> = {
     [Department.engineering]: 'Engineering',
     [Department.construction]: 'Construction',
