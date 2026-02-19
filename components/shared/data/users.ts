@@ -1,5 +1,4 @@
 import { User } from '@/types/user';
-import { SYSTEM_ROLES } from '@/types/rbac/role';
 
 export const mockUsers: User[] = [
   // System Admin - Full system access
@@ -17,7 +16,7 @@ export const mockUsers: User[] = [
     certifications: ['ITIL', 'PMP', 'AWS Certified Solutions Architect'],
 
     emergencyContact: '+91 99999 00001',
-    roles: [SYSTEM_ROLES.SYSTEM_ADMIN],
+    roles: [],
 
     bloodGroup: 'O+',
     createdAt: new Date('2022-01-01'),
@@ -37,7 +36,7 @@ export const mockUsers: User[] = [
     experience: 15,
 
     emergencyContact: '+91 99999 11112',
-    roles: [SYSTEM_ROLES.DIRECTOR],
+    roles: [],
 
     bloodGroup: 'A+',
     createdAt: new Date('2022-06-01'),
@@ -62,7 +61,7 @@ export const mockUsers: User[] = [
     certifications: ['PMP', 'LEED Green Associate', 'OSHA Safety'],
 
     emergencyContact: '+91 98765 43211',
-    roles: [SYSTEM_ROLES.PROJECT_MANAGER],
+    roles: [],
 
     bloodGroup: 'O+',
     createdAt: new Date('2023-01-15'),
@@ -82,7 +81,7 @@ export const mockUsers: User[] = [
     certifications: ['Professional Engineer (PE)', 'LEED AP'],
 
     emergencyContact: '+91 87654 32110',
-    roles: [SYSTEM_ROLES.CIVIL_ENGINEER],
+    roles: [],
 
     bloodGroup: 'A+',
     createdAt: new Date('2023-03-20'),
@@ -106,7 +105,7 @@ export const mockUsers: User[] = [
     experience: 6,
 
     emergencyContact: '+91 76543 21099',
-    roles: [SYSTEM_ROLES.ELECTRICIAN],
+    roles: [],
 
     bloodGroup: 'B+',
     createdAt: new Date('2023-06-10'),
@@ -130,7 +129,7 @@ export const mockUsers: User[] = [
     experience: 10,
 
     emergencyContact: '+91 65432 10988',
-    roles: [SYSTEM_ROLES.HR_MANAGER],
+    roles: [],
 
     bloodGroup: 'AB+',
     createdAt: new Date('2023-02-01'),
@@ -149,7 +148,7 @@ export const mockUsers: User[] = [
     experience: 5,
 
     emergencyContact: '+91 54321 09877',
-    roles: [SYSTEM_ROLES.PLUMBER],
+    roles: [],
 
     bloodGroup: 'O-',
     createdAt: new Date('2023-09-15'),
@@ -173,7 +172,7 @@ export const mockUsers: User[] = [
     experience: 7,
 
     emergencyContact: '+91 43210 98766',
-    roles: [SYSTEM_ROLES.SAFETY_OFFICER],
+    roles: [],
 
     bloodGroup: 'A-',
     createdAt: new Date('2023-04-22'),
@@ -198,7 +197,7 @@ export const mockUsers: User[] = [
     experience: 9,
 
     emergencyContact: '+91 32109 87655',
-    roles: [SYSTEM_ROLES.ARCHITECT],
+    roles: [],
 
     bloodGroup: 'B-',
     createdAt: new Date('2023-05-18'),
@@ -217,7 +216,7 @@ export const mockUsers: User[] = [
     experience: 6,
 
     emergencyContact: '+91 21098 76544',
-    roles: [SYSTEM_ROLES.ACCOUNTANT],
+    roles: [],
 
     bloodGroup: 'O+',
     createdAt: new Date('2023-07-25'),
