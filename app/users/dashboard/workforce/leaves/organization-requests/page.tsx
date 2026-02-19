@@ -25,7 +25,7 @@ import { TableSkeleton } from '@/components/leave/skeletons';
 import { EmptyState } from '@/components/leave/empty-state';
 import { useOrganizationRequests } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
-import { FileText, AlertCircle, Calendar, Clock, Users } from 'lucide-react';
+import { FileText, AlertCircle, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 
@@ -107,8 +107,6 @@ export default function OrganizationRequestsPage() {
 
   // Statistics
   const totalRequests = requests?.length || 0;
-  const draftCount =
-    requests?.filter((r) => r.status === LeaveStatus.DRAFT).length || 0;
   const pendingCount =
     requests?.filter((r) => r.status === LeaveStatus.PENDING_APPROVAL).length ||
     0;
@@ -116,8 +114,6 @@ export default function OrganizationRequestsPage() {
     requests?.filter((r) => r.status === LeaveStatus.APPROVED).length || 0;
   const rejectedCount =
     requests?.filter((r) => r.status === LeaveStatus.REJECTED).length || 0;
-  const uniqueEmployees = new Set(requests?.map((r) => r.employeeId)).size || 0;
-
   const hasActiveFilters = Boolean(
     searchQuery ||
       statusFilter !== 'all' ||
@@ -134,7 +130,7 @@ export default function OrganizationRequestsPage() {
   };
 
   if (isLoading) {
-    return <TableSkeleton statCount={6} />;
+    return <TableSkeleton statCount={4} />;
   }
 
   if (error) {
@@ -181,18 +177,6 @@ export default function OrganizationRequestsPage() {
           label="Total Requests"
           value={totalRequests}
           color="blue"
-        />
-        <StatCard
-          icon={Users}
-          label="Employees"
-          value={uniqueEmployees}
-          color="purple"
-        />
-        <StatCard
-          icon={FileText}
-          label="Draft"
-          value={draftCount}
-          color="gray"
         />
         <StatCard
           icon={Clock}
