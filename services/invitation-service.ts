@@ -78,7 +78,7 @@ export interface GenerateInviteCodeRequest {
  * Request payload for validating an invite code
  */
 export interface ValidateInviteCodeRequest {
-  inviteCode: string;
+  code: string;
 }
 
 /**
@@ -157,7 +157,7 @@ export const invitationService = {
     userId: number,
     inviteCode: string
   ): Promise<ValidateInviteCodeResponse> {
-    const payload: ValidateInviteCodeRequest = { inviteCode };
+    const payload: ValidateInviteCodeRequest = { code: inviteCode };
 
     try {
       const data = await api.post<ApiResponse>(
@@ -165,12 +165,21 @@ export const invitationService = {
         payload
       );
 
+      // Backend returns the organization object directly on success
       return {
-        valid: data.valid ?? false,
-        invitation: data.invitation
-          ? safeParseInvitation(data.invitation)
-          : undefined,
-        message: data.message,
+        valid: true,
+        invitation: {
+          inviteCode,
+          organizationId: data.id,
+          organizationName: data.organizationName,
+          usedCount: 0,
+          isActive: true,
+          employeeDetails: {
+            department: '',
+            designation: '',
+          },
+        },
+        message: 'Valid invitation code',
       };
     } catch (error) {
       // If the error is a 404 or validation error, return invalid
