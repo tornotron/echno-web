@@ -91,8 +91,7 @@ export default auth((req) => {
   const isProtected =
     pathname.startsWith('/users/dashboard') ||
     pathname.startsWith('/profile') ||
-    pathname.startsWith('/api/user') ||
-    pathname.startsWith('/admin');
+    pathname.startsWith('/api/user');
 
   // ========== AUTHENTICATION CHECK ==========
   if (!isLoggedIn && isProtected) {
