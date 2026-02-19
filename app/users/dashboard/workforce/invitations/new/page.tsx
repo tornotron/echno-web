@@ -31,6 +31,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
+import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import {
   whatsappMessage,
   emailSubject,
@@ -46,9 +47,7 @@ import { InvitationQRCode } from '@/components/invitation/invitation-qr-code';
 export default function NewInvitationPage() {
   const { data: user } = useUser();
   const generateMutation = useGenerateInviteCode();
-  const { data: managers = [], isLoading: managersLoading } = useManagers(
-    user?.defaultOrganizationId
-  );
+  const { data: managers = [], isLoading: managersLoading } = useManagers();
 
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -545,17 +544,11 @@ export default function NewInvitationPage() {
                         <SelectValue placeholder="Select department" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Engineering">Engineering</SelectItem>
-                        <SelectItem value="Quality">Quality</SelectItem>
-                        <SelectItem value="Safety">Safety</SelectItem>
-                        <SelectItem value="Human Resources">
-                          Human Resources
-                        </SelectItem>
-                        <SelectItem value="Operations">Operations</SelectItem>
-                        <SelectItem value="Finance">Finance</SelectItem>
-                        <SelectItem value="Administration">
-                          Administration
-                        </SelectItem>
+                        {Object.values(Department).map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {getDepartmentLabel(dept)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

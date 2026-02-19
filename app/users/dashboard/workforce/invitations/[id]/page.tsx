@@ -68,10 +68,7 @@ export default function InvitationPage() {
   const invitation = invitations?.find((inv) => inv.inviteCode === inviteCode);
 
   // Resolve manager name from ID
-  const managerName = useManagerName(
-    invitation?.employeeDetails.managerId,
-    invitation?.organizationId
-  );
+  const managerName = useManagerName(invitation?.employeeDetails.managerId);
 
   // Show loading state
   if (isLoading || !user) {
