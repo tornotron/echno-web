@@ -76,20 +76,6 @@ export const employeeService = {
   },
 
   /**
-   * Fetch employees by organization id.
-   *
-   * @param {number} organizationId - Organization id.
-   * @returns {Promise<Employee[]>} Resolves with an array of parsed employees.
-   * @throws {ApiError} on network, server, or parsing errors
-   */
-  async getByOrganization(organizationId: number): Promise<Employee[]> {
-    const data = await api.get<ApiResponse[]>(
-      `/employee/web/organization/${organizationId}`
-    );
-    return safeParseEmployees(data);
-  },
-
-  /**
    * Create a new employee.
    *
    * @param {Partial<Employee>} employee - Employee data to create.
@@ -196,14 +182,11 @@ export const employeeService = {
   /**
    * Get all managers in an organization.
    *
-   * @param {number} organizationId - Organization id.
    * @returns {Promise<Employee[]>} Array of employees who are managers.
    * @throws {ApiError} on network, server, or parsing errors
    */
-  async getManagers(organizationId: number): Promise<Employee[]> {
-    const data = await api.get<ApiResponse[]>(
-      `/employee/web/managers/organizationId/${organizationId}`
-    );
+  async getManagers(): Promise<Employee[]> {
+    const data = await api.get<ApiResponse[]>(`/employee/web/managers`);
     return safeParseEmployees(data);
   },
 };

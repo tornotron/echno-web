@@ -57,21 +57,6 @@ export function useEmployee(id: number) {
 }
 
 /**
- * Hook to fetch employees by organization ID.
- * Includes retry logic for transient errors and caches data for 5 minutes.
- */
-export function useEmployeesByOrganization(organizationId: number) {
-  return useQuery({
-    queryKey: ['employees', 'organization', organizationId],
-    queryFn: () => employeeService.getByOrganization(organizationId),
-    enabled: !!organizationId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: shouldRetry,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
-  });
-}
-
-/**
  * Hook to get the current user's employee profile.
  * Returns the employee data for the user's currently selected organization.
  * This data is prefetched by UserPrefetcher on login.
@@ -136,22 +121,15 @@ export function useSubordinates(managerId?: number) {
 }
 
 /**
- * Hook to fetch all managers in an organization.
+ * Hook to fetch all managers in the current organization.
  * Includes retry logic for transient errors and caches data for 5 minutes.
  *
- * @param organizationId - Organization ID
  * @returns Array of employees who are managers
  */
-export function useManagers(organizationId?: number) {
+export function useManagers() {
   return useQuery({
-    queryKey: ['employees', 'managers', organizationId],
-    queryFn: () => {
-      if (!organizationId) {
-        throw new Error('Organization ID is required');
-      }
-      return employeeService.getManagers(organizationId);
-    },
-    enabled: !!organizationId,
+    queryKey: ['employees', 'managers'],
+    queryFn: () => employeeService.getManagers(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),

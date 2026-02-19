@@ -95,9 +95,10 @@ export function useJoinOrganization() {
       organizationId: number;
     }) => employeeService.joinOrganization(userId, organizationId),
     onSuccess: (employee) => {
-      // Invalidate employees and user data
+      // Invalidate employees, user, and organizations data
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
       toast.success('Joined Organization', {
         description: `Successfully joined as ${employee.designation || 'employee'}.`,
       });
