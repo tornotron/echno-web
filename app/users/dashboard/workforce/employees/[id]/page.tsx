@@ -4,6 +4,16 @@ import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   Card,
   CardContent,
   CardDescription,
@@ -43,18 +53,25 @@ import {
   Shield,
   Wrench,
   CalendarDays,
+  Plus,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { getDepartmentLabel } from '@/types/employee';
-import { getOrgRoleLabel } from '@/types/employee/org-role';
+import { OrgRole, getOrgRoleLabel } from '@/types/employee/org-role';
 import {
   useEmployees,
   useManagers,
   useCurrentUserEmployee,
 } from '@/hooks/employee';
 import { useAssignManager } from '@/hooks/employee/use-employee-mutations';
+import { useRoleManagement } from '@/hooks/role-management/use-role-management';
+import {
+  useAssignRole,
+  useUnassignRole,
+} from '@/hooks/role-management/use-role-management-mutations';
+import { useAuthorization } from '@/hooks/use-authorization';
 import { EmployeeLeaveSection } from '@/components/leave/employee-leave-section';
 
 interface EmployeeDetailPageProps {
@@ -107,8 +124,17 @@ export default function EmployeeDetailPage({
   const { data: managers = [], isLoading: managersLoading } = useManagers();
   const assignManagerMutation = useAssignManager();
   const { data: currentUserEmployee } = useCurrentUserEmployee();
+  const { isAdmin } = useAuthorization();
   const [isChangingManager, setIsChangingManager] = useState(false);
   const [selectedManagerId, setSelectedManagerId] = useState<string>('');
+
+  // Role management
+  const { currentRoles, availableRoles } = useRoleManagement(employeeId);
+  const assignRole = useAssignRole();
+  const unassignRole = useUnassignRole();
+  const [isAssigningRole, setIsAssigningRole] = useState(false);
+  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [roleToRemove, setRoleToRemove] = useState<OrgRole | null>(null);
 
   if (isLoading) {
     return (
@@ -603,28 +629,124 @@ export default function EmployeeDetailPage({
                 )}
 
               {/* Roles */}
-              {employee.orgRoles && employee.orgRoles.length > 0 && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Roles</CardTitle>
-                    <CardDescription>Roles in the organization</CardDescription>
-                  </CardHeader>
-                  <CardContent>
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Roles</CardTitle>
+                      <CardDescription>
+                        Organization roles &amp; permissions
+                      </CardDescription>
+                    </div>
+                    {isAdmin &&
+                      !isAssigningRole &&
+                      availableRoles.length > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedRole('');
+                            setIsAssigningRole(true);
+                          }}
+                        >
+                          <Plus className="mr-1.5 h-3.5 w-3.5" />
+                          Assign
+                        </Button>
+                      )}
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {/* Assign role inline form */}
+                  {isAdmin && isAssigningRole && (
+                    <div className="space-y-2">
+                      <Select
+                        value={selectedRole}
+                        onValueChange={setSelectedRole}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a role to assign" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableRoles.map((role) => (
+                            <SelectItem key={role} value={role}>
+                              {getOrgRoleLabel(role as OrgRole)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          className="flex-1"
+                          disabled={!selectedRole || assignRole.isPending}
+                          onClick={() => {
+                            if (!selectedRole || !employee.id) return;
+                            assignRole.mutate(
+                              {
+                                employeeId: employee.id,
+                                orgRole: selectedRole as OrgRole,
+                              },
+                              {
+                                onSuccess: () => {
+                                  setIsAssigningRole(false);
+                                  setSelectedRole('');
+                                },
+                              }
+                            );
+                          }}
+                        >
+                          {assignRole.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : null}
+                          Save
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setIsAssigningRole(false);
+                            setSelectedRole('');
+                          }}
+                          disabled={assignRole.isPending}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Current roles */}
+                  {currentRoles.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {employee.orgRoles.map((role) => (
+                      {currentRoles.map((role) => (
                         <Badge
                           key={role}
                           variant="outline"
-                          className="flex items-center gap-1.5"
+                          className="flex items-center gap-1.5 pr-1"
                         >
                           <Shield className="h-3 w-3" />
                           {getOrgRoleLabel(role)}
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              className="ml-0.5 rounded-full p-0.5 opacity-60 transition-opacity hover:opacity-100 disabled:pointer-events-none"
+                              disabled={unassignRole.isPending}
+                              onClick={() => setRoleToRemove(role)}
+                              aria-label={`Remove ${getOrgRoleLabel(role)}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
                         </Badge>
                       ))}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  ) : (
+                    <p className="text-sm text-zinc-400 italic dark:text-zinc-500">
+                      No roles assigned
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Skills */}
               {employee.skills && employee.skills.length > 0 && (
@@ -723,6 +845,49 @@ export default function EmployeeDetailPage({
           </TabsContent>
         )}
       </Tabs>
+
+      {/* Role removal confirmation dialog */}
+      <AlertDialog
+        open={roleToRemove !== null}
+        onOpenChange={(open) => {
+          if (!open) setRoleToRemove(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Role</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove the{' '}
+              <span className="font-medium text-zinc-900 dark:text-zinc-100">
+                {roleToRemove ? getOrgRoleLabel(roleToRemove) : ''}
+              </span>{' '}
+              role from {employee.name}? This will immediately affect their
+              access and permissions.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={unassignRole.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={unassignRole.isPending}
+              onClick={() => {
+                if (!roleToRemove || !employee.id) return;
+                unassignRole.mutate(
+                  { employeeId: employee.id, orgRole: roleToRemove },
+                  { onSettled: () => setRoleToRemove(null) }
+                );
+              }}
+            >
+              {unassignRole.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              Remove Role
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
