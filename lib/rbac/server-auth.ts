@@ -15,12 +15,12 @@ import { parseEmployee } from '@/types/employee/employee';
 // ==================== HELPERS ====================
 
 /**
- * Fetch the current employee's orgRoles and isManager from the backend.
+ * Fetch the current employee's orgRoles from the backend.
  * Uses the session access token for authentication.
  */
 async function fetchEmployeeRoles(
   accessToken: string
-): Promise<{ orgRoles: string[]; isManager: boolean }> {
+): Promise<{ orgRoles: string[] }> {
   try {
     const backendUrl =
       process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -32,7 +32,7 @@ async function fetchEmployeeRoles(
     });
 
     if (!response.ok) {
-      return { orgRoles: [], isManager: false };
+      return { orgRoles: [] };
     }
 
     const data = await response.json();
@@ -44,13 +44,12 @@ async function fetchEmployeeRoles(
       const employee = parseEmployee(data[0]);
       return {
         orgRoles: employee.orgRoles ?? [],
-        isManager: employee.isManager ?? false,
       };
     }
 
-    return { orgRoles: [], isManager: false };
+    return { orgRoles: [] };
   } catch {
-    return { orgRoles: [], isManager: false };
+    return { orgRoles: [] };
   }
 }
 
