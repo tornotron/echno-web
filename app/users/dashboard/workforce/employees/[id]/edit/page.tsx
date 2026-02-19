@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useEmployee } from '@/hooks/employee';
+import { useEmployees } from '@/hooks/employee';
+import { useUpdateEmployee } from '@/hooks/employee/use-employee-mutations';
 import {
   Card,
   CardContent,
@@ -13,7 +14,6 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -27,30 +27,17 @@ import {
   Building2,
   DollarSign,
   Calendar,
-  Clock,
-  Shield,
-  Award,
   Save,
   X,
-  Phone,
-  Mail,
-  MapPin,
-  Droplet,
-  GraduationCap,
-  Users as UsersIcon,
-  UserCircle,
-  FileText,
   Loader2,
   AlertCircle,
 } from 'lucide-react';
+import Image from 'next/image';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import {
   EmployeeStatus,
   getEmployeeStatusLabel,
 } from '@/types/employee/employee-status';
-import { UserRole } from '@/types/user/user-role';
-import { format } from 'date-fns';
-import { toast } from '@/lib/styles/toast-styles';
 import type { Employee } from '@/types/employee';
 
 interface EditEmployeePageProps {
@@ -61,48 +48,23 @@ interface EditEmployeePageProps {
 
 // Helper to get initial form data from employee
 const getInitialFormData = (emp: Employee | null | undefined) => ({
-  // Personal Information
-  name: emp?.name || '',
-  email: emp?.email || '',
-  phone: emp?.phone || '',
-  gender: emp?.gender || '',
-  dateOfBirth: emp?.dateOfBirth ? format(emp.dateOfBirth, 'yyyy-MM-dd') : '',
-  bloodGroup: emp?.bloodGroup || '',
-  address: emp?.address || '',
-  emergencyContact: emp?.emergencyContact || '',
-
   // Professional Information
   employeeId: emp?.employeeId || '',
   designation: emp?.designation || '',
   department: emp?.department || '',
-  qualification: emp?.qualification || '',
-  experience: emp?.experience?.toString() || '',
-  skills: emp?.skills?.join(', ') || '',
-
   // Employment Details
-  joiningDate: emp?.joiningDate ? format(emp.joiningDate, 'yyyy-MM-dd') : '',
+  joiningDate: emp?.joiningDate || null,
   status: emp?.status || '',
   salary: emp?.salary?.toString() || '',
-  managerId: emp?.managerId?.toString() || '',
   shiftTiming: emp?.shiftTiming || '',
-  role: emp?.roles?.[0] || '',
-
-  // Additional
-  certifications: emp?.certifications?.join(', ') || '',
-  cvUrl: emp?.cv?.file || '',
 });
 
 export default function EditEmployeePage({ params }: EditEmployeePageProps) {
   const router = useRouter();
   const resolvedParams = use(params);
   const employeeId = Number.parseInt(resolvedParams.id);
-  const { data: employee, isLoading, error } = useEmployee(employeeId);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Form state - initialized from employee data or empty
-  // Using employee?.id as key ensures form resets when employee changes
-  const [formData, setFormData] = useState(() => getInitialFormData(employee));
+  const { data: employees, isLoading, error } = useEmployees();
+  const employee = employees?.find((e) => e.id === employeeId);
 
   // Show loading state
   if (isLoading) {
@@ -131,206 +93,100 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
+  return <EditEmployeeForm employee={employee} />;
+}
 
-    // Simulate API call
-    setTimeout(() => {
-      toast.success('Employee Updated', {
-        description: `${formData.name}'s information has been updated successfully.`,
-      });
-      setIsSubmitting(false);
-      router.push(`/users/dashboard/workforce/employees/${resolvedParams.id}`);
-    }, 1000);
+// Separate component to handle the form - receives employee as prop
+function EditEmployeeForm({ employee }: { employee: Employee }) {
+  const router = useRouter();
+  const updateEmployee = useUpdateEmployee();
+
+  // Form state - initialized with employee data
+  const [formData, setFormData] = useState(() => getInitialFormData(employee));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Build update payload matching the working Postman pattern
+    // Only send employment detail fields, not professional info
+    const updateData: Partial<Employee> = {};
+
+    // Employment Details (matching Postman payload structure)
+    if (formData.department) {
+      updateData.department = formData.department as Department;
+    }
+    if (formData.joiningDate) {
+      updateData.joiningDate = formData.joiningDate;
+    }
+    if (formData.salary) {
+      // Parse as float and ensure it's a decimal number
+      const salaryValue = Number.parseFloat(formData.salary);
+      // Force decimal precision to ensure Java treats it as Double
+      updateData.salary = salaryValue;
+    }
+    if (formData.shiftTiming) {
+      updateData.shiftTiming = formData.shiftTiming;
+    }
+    if (formData.status) {
+      updateData.status = formData.status as EmployeeStatus;
+    }
+
+    // Professional info - add if provided
+    if (formData.employeeId) {
+      updateData.employeeId = formData.employeeId;
+    }
+    if (formData.designation) {
+      updateData.designation = formData.designation;
+    }
+
+    updateEmployee.mutate(
+      {
+        id: employee.id!,
+        data: updateData,
+      },
+      {
+        onSuccess: () => {
+          router.push(`/users/dashboard/workforce/employees/${employee.id}`);
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
-    router.push(`/users/dashboard/workforce/employees/${resolvedParams.id}`);
+    router.push(`/users/dashboard/workforce/employees/${employee.id}`);
   };
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Edit Employee
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Update {employee.name}&apos;s information
-          </p>
+        <div className="mb-8 flex items-center space-x-4">
+          {employee.profilePicture?.file ? (
+            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
+              <Image
+                src={employee.profilePicture.file}
+                alt={employee.name}
+                fill
+                className="object-cover"
+                sizes="64px"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+              <User className="h-8 w-8 text-white" />
+            </div>
+          )}
+          <div>
+            <h1 className="mb-1 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+              Edit Employee
+            </h1>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Update {employee.name}&apos;s information
+            </p>
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <User className="h-5 w-5" />
-                <span>Personal Information</span>
-              </CardTitle>
-              <CardDescription>
-                Basic personal details of the employee
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
-                  <Label htmlFor="name">
-                    Full Name <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <UserCircle className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="name"
-                      placeholder="Enter full name"
-                      className="pl-9"
-                      value={formData.name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, name: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="email">
-                    Email <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Mail className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="email@example.com"
-                      className="pl-9"
-                      value={formData.email}
-                      onChange={(e) =>
-                        setFormData({ ...formData, email: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="phone">
-                    Phone <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Phone className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="phone"
-                      placeholder="+1 234 567 8900"
-                      className="pl-9"
-                      value={formData.phone}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phone: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="gender">
-                    Gender <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, gender: value })
-                    }
-                  >
-                    <SelectTrigger id="gender">
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Male">Male</SelectItem>
-                      <SelectItem value="Female">Female</SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <div className="relative">
-                    <Calendar className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      className="pl-9"
-                      value={formData.dateOfBirth}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          dateOfBirth: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="bloodGroup">Blood Group</Label>
-                  <div className="relative">
-                    <Droplet className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="bloodGroup"
-                      placeholder="e.g., A+, B-, O+"
-                      className="pl-9"
-                      value={formData.bloodGroup}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          bloodGroup: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="address">Address</Label>
-                <div className="relative">
-                  <MapPin className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                  <Textarea
-                    id="address"
-                    placeholder="Enter full address"
-                    rows={2}
-                    className="pl-9"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                <div className="relative">
-                  <Phone className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                  <Input
-                    id="emergencyContact"
-                    placeholder="Emergency contact number"
-                    className="pl-9"
-                    value={formData.emergencyContact}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        emergencyContact: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+        <form key={employee.id} onSubmit={handleSubmit} className="space-y-6">
           {/* Professional Information */}
           <Card>
             <CardHeader>
@@ -406,91 +262,6 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <Label htmlFor="qualification">Qualification</Label>
-                  <div className="relative">
-                    <GraduationCap className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="qualification"
-                      placeholder="e.g., B.Tech in Civil Engineering"
-                      className="pl-9"
-                      value={formData.qualification}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          qualification: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="experience">Experience (Years)</Label>
-                  <Input
-                    id="experience"
-                    type="number"
-                    placeholder="e.g., 5"
-                    min="0"
-                    step="0.1"
-                    value={formData.experience}
-                    onChange={(e) =>
-                      setFormData({ ...formData, experience: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="cvUrl">CV/Resume URL</Label>
-                  <div className="relative">
-                    <FileText className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="cvUrl"
-                      placeholder="https://example.com/cvUrl.pdf"
-                      className="pl-9"
-                      value={formData.cvUrl}
-                      onChange={(e) =>
-                        setFormData({ ...formData, cvUrl: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="skills">Skills (comma-separated)</Label>
-                <Textarea
-                  id="skills"
-                  placeholder="e.g., AutoCAD, Project Management, Site Supervision"
-                  rows={2}
-                  value={formData.skills}
-                  onChange={(e) =>
-                    setFormData({ ...formData, skills: e.target.value })
-                  }
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="certifications">
-                  Certifications (comma-separated)
-                </Label>
-                <div className="relative">
-                  <Award className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                  <Textarea
-                    id="certifications"
-                    placeholder="e.g., PMP, Safety Officer Level 2"
-                    rows={2}
-                    className="pl-9"
-                    value={formData.certifications}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        certifications: e.target.value,
-                      })
-                    }
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -516,11 +287,17 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                       id="joiningDate"
                       type="date"
                       className="pl-9"
-                      value={formData.joiningDate}
+                      value={
+                        formData.joiningDate
+                          ? formData.joiningDate.toISOString().split('T')[0]
+                          : ''
+                      }
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          joiningDate: e.target.value,
+                          joiningDate: e.target.value
+                            ? new Date(e.target.value)
+                            : null,
                         })
                       }
                     />
@@ -572,145 +349,32 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
                 </div>
 
                 <div>
-                  <Label htmlFor="managerId">Manager ID</Label>
-                  <div className="relative">
-                    <UsersIcon className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="managerId"
-                      type="number"
-                      placeholder="Employee ID of manager"
-                      className="pl-9"
-                      value={formData.managerId}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          managerId: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
                   <Label htmlFor="shiftTiming">Shift Timing</Label>
-                  <div className="relative">
-                    <Clock className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Input
-                      id="shiftTiming"
-                      placeholder="e.g., 9:00 AM - 6:00 PM"
-                      className="pl-9"
-                      value={formData.shiftTiming}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          shiftTiming: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="role">
-                    System Role <span className="text-red-500">*</span>
-                  </Label>
-                  <div className="relative">
-                    <Shield className="absolute top-3 left-3 h-4 w-4 text-zinc-400" />
-                    <Select
-                      value={formData.role}
-                      onValueChange={(value) =>
-                        setFormData({ ...formData, role: value as UserRole })
-                      }
-                    >
-                      <SelectTrigger id="role" className="pl-9">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={UserRole.projectManager}>
-                          Project Manager
-                        </SelectItem>
-                        <SelectItem value={UserRole.siteManager}>
-                          Site Manager
-                        </SelectItem>
-                        <SelectItem value={UserRole.supervisor}>
-                          Supervisor
-                        </SelectItem>
-                        <SelectItem value={UserRole.foreman}>
-                          Foreman
-                        </SelectItem>
-                        <SelectItem value={UserRole.civilEngineer}>
-                          Civil Engineer
-                        </SelectItem>
-                        <SelectItem value={UserRole.siteEngineer}>
-                          Site Engineer
-                        </SelectItem>
-                        <SelectItem value={UserRole.structuralEngineer}>
-                          Structural Engineer
-                        </SelectItem>
-                        <SelectItem value={UserRole.architect}>
-                          Architect
-                        </SelectItem>
-                        <SelectItem value={UserRole.safetyOfficer}>
-                          Safety Officer
-                        </SelectItem>
-                        <SelectItem value={UserRole.planningEngineer}>
-                          Planning Engineer
-                        </SelectItem>
-                        <SelectItem value={UserRole.quantitySurveyor}>
-                          Quantity Surveyor
-                        </SelectItem>
-                        <SelectItem value={UserRole.technicalCoordinator}>
-                          Technical Coordinator
-                        </SelectItem>
-                        <SelectItem value={UserRole.hrManager}>
-                          HR Manager
-                        </SelectItem>
-                        <SelectItem value={UserRole.accountant}>
-                          Accountant
-                        </SelectItem>
-                        <SelectItem value={UserRole.adminStaff}>
-                          Admin Staff
-                        </SelectItem>
-                        <SelectItem value={UserRole.documentController}>
-                          Document Controller
-                        </SelectItem>
-                        <SelectItem value={UserRole.itSupport}>
-                          IT Support
-                        </SelectItem>
-                        <SelectItem value={UserRole.laborer}>
-                          Laborer
-                        </SelectItem>
-                        <SelectItem value={UserRole.electrician}>
-                          Electrician
-                        </SelectItem>
-                        <SelectItem value={UserRole.plumber}>
-                          Plumber
-                        </SelectItem>
-                        <SelectItem value={UserRole.carpenter}>
-                          Carpenter
-                        </SelectItem>
-                        <SelectItem value={UserRole.mason}>Mason</SelectItem>
-                        <SelectItem value={UserRole.welder}>Welder</SelectItem>
-                        <SelectItem value={UserRole.painter}>
-                          Painter
-                        </SelectItem>
-                        <SelectItem value={UserRole.contractor}>
-                          Contractor
-                        </SelectItem>
-                        <SelectItem value={UserRole.subcontractor}>
-                          Subcontractor
-                        </SelectItem>
-                        <SelectItem value={UserRole.consultant}>
-                          Consultant
-                        </SelectItem>
-                        <SelectItem value={UserRole.client}>Client</SelectItem>
-                        <SelectItem value={UserRole.intern}>Intern</SelectItem>
-                        <SelectItem value={UserRole.trainee}>
-                          Trainee
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select
+                    value={formData.shiftTiming}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, shiftTiming: value })
+                    }
+                  >
+                    <SelectTrigger id="shiftTiming">
+                      <SelectValue placeholder="Select shift" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="9:00 AM - 6:00 PM">
+                        9:00 AM - 6:00 PM
+                      </SelectItem>
+                      <SelectItem value="10:00 AM - 7:00 PM">
+                        10:00 AM - 7:00 PM
+                      </SelectItem>
+                      <SelectItem value="6:00 AM - 3:00 PM">
+                        6:00 AM - 3:00 PM
+                      </SelectItem>
+                      <SelectItem value="2:00 PM - 11:00 PM">
+                        2:00 PM - 11:00 PM
+                      </SelectItem>
+                      <SelectItem value="Flexible">Flexible</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </CardContent>
@@ -722,14 +386,14 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
               type="button"
               variant="outline"
               onClick={handleCancel}
-              disabled={isSubmitting}
+              disabled={updateEmployee.isPending}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={updateEmployee.isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {updateEmployee.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
