@@ -34,7 +34,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { useOrganizationWithLogo } from '@/hooks/organization/use-organizations';
+import { useOrganization as useOrganizationQuery } from '@/hooks/organization/use-organizations';
 import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
 import { LeavePoliciesManager } from '@/components/leave/leave-policies-manager';
@@ -54,8 +54,11 @@ export default function OrganizationDetailPage({
     'overview' | 'settings' | 'hierarchy'
   >('overview');
 
-  const { organization, isLoading, error } =
-    useOrganizationWithLogo(organizationId);
+  const {
+    data: organization,
+    isLoading,
+    error,
+  } = useOrganizationQuery(organizationId);
   const { defaultOrganization, setDefaultOrganization } = useOrganization();
 
   const isDefault = defaultOrganization?.id === organization?.id;
