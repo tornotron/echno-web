@@ -38,9 +38,10 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
-import { useEmployeesByOrganization } from '@/hooks/employee';
+import { useEmployees } from '@/hooks/employee';
 import { useUser } from '@/hooks/user/use-user';
 
 const getStatusColor = (status: string) => {
@@ -88,17 +89,13 @@ export default function EmployeesPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { data: user } = useUser();
-  const {
-    data: employees,
-    isLoading,
-    error,
-  } = useEmployeesByOrganization(user?.defaultOrganizationId || 0);
+  const { data: employees, isLoading, error } = useEmployees();
 
   const employeesList = useMemo(() => employees || [], [employees]);
 
-  // Get unique designations from employees
+  // Get unique designations from employees (filter out empty values)
   const uniqueDesignations = [
-    ...new Set(employeesList.map((emp) => emp.designation)),
+    ...new Set(employeesList.map((emp) => emp.designation).filter(Boolean)),
   ].toSorted();
 
   // Filter employees based on search and filters
@@ -458,9 +455,22 @@ export default function EmployeesPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                      <User className="h-5 w-5 text-white" />
-                    </div>
+                    {employee.profilePicture?.file ? (
+                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                        <Image
+                          src={employee.profilePicture.file}
+                          alt={employee.name}
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                          unoptimized
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                    )}
                     <div>
                       <p className="font-medium text-zinc-900 dark:text-zinc-100">
                         {employee.name}
@@ -489,9 +499,13 @@ export default function EmployeesPage() {
                     <span className="text-zinc-500 dark:text-zinc-400">
                       Department
                     </span>
-                    <Badge variant="outline">
-                      {getDepartmentLabel(employee.department)}
-                    </Badge>
+                    {employee.department ? (
+                      <Badge variant="outline">
+                        {getDepartmentLabel(employee.department)}
+                      </Badge>
+                    ) : (
+                      <span className="text-zinc-400">—</span>
+                    )}
                   </div>
                 </div>
               </CardContent>
@@ -554,9 +568,22 @@ export default function EmployeesPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                            <User className="h-5 w-5 text-white" />
-                          </div>
+                          {employee.profilePicture?.file ? (
+                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                              <Image
+                                src={employee.profilePicture.file}
+                                alt={employee.name}
+                                fill
+                                className="object-cover"
+                                sizes="40px"
+                                unoptimized
+                              />
+                            </div>
+                          ) : (
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                              <User className="h-5 w-5 text-white" />
+                            </div>
+                          )}
                           <div>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
                               {employee.name}
@@ -575,9 +602,13 @@ export default function EmployeesPage() {
                         </span>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {getDepartmentLabel(employee.department)}
-                        </Badge>
+                        {employee.department ? (
+                          <Badge variant="outline">
+                            {getDepartmentLabel(employee.department)}
+                          </Badge>
+                        ) : (
+                          <span className="text-zinc-400">—</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <div className="space-y-1">
