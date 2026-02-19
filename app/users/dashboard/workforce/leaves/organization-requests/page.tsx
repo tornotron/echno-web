@@ -27,6 +27,7 @@ import { useOrganizationRequests } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
 import { FileText, AlertCircle, Calendar, Clock, Users } from 'lucide-react';
 import { format } from 'date-fns';
+import { Department, getDepartmentLabel } from '@/types/employee/departments';
 
 export default function OrganizationRequestsPage() {
   const router = useRouter();
@@ -339,7 +340,7 @@ export default function OrganizationRequestsPage() {
                       </p>
                       {request.department && (
                         <p className="text-muted-foreground text-xs">
-                          {request.department}
+                          {getDepartmentLabel(request.department as Department)}
                         </p>
                       )}
                     </div>
@@ -380,7 +381,6 @@ export default function OrganizationRequestsPage() {
                     <TableHead>Leave Type</TableHead>
                     <TableHead>Period</TableHead>
                     <TableHead>Days</TableHead>
-                    <TableHead>Reason</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Submitted</TableHead>
                   </TableRow>
@@ -403,7 +403,9 @@ export default function OrganizationRequestsPage() {
                           </div>
                           {request.department && (
                             <div className="text-muted-foreground text-xs">
-                              {request.department}
+                              {getDepartmentLabel(
+                                request.department as Department
+                              )}
                             </div>
                           )}
                         </div>
@@ -439,11 +441,6 @@ export default function OrganizationRequestsPage() {
                         <div className="text-foreground font-semibold">
                           {request.totalDays}{' '}
                           {request.totalDays === 1 ? 'day' : 'days'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-muted-foreground max-w-[200px] truncate text-sm">
-                          {request.reason}
                         </div>
                       </TableCell>
                       <TableCell>
