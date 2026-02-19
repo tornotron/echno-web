@@ -43,7 +43,8 @@ export function useCreateOrganization() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: organizationService.create,
+    mutationFn: ({ data, logoFile }: { data: Organization; logoFile?: File }) =>
+      organizationService.create(data, logoFile),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       toast.success('Organization Created', {
@@ -69,8 +70,15 @@ export function useUpdateOrganization() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Organization }) =>
-      organizationService.update(id, data),
+    mutationFn: ({
+      id,
+      data,
+      logoFile,
+    }: {
+      id: number;
+      data: Organization;
+      logoFile?: File;
+    }) => organizationService.update(id, data, logoFile),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       queryClient.invalidateQueries({ queryKey: ['organizations', id] });
