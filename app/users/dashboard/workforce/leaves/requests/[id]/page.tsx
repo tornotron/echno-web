@@ -68,7 +68,7 @@ import {
 import { useManagers } from '@/hooks/employee';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { LeaveStatus, ApprovalAction } from '@/types/leave';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 
 interface PageProps {
