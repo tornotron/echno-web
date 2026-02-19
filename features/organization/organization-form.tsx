@@ -4,6 +4,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -217,13 +218,14 @@ export function OrganizationForm({
             <Label htmlFor="organizationAddress">
               Address <span className="text-red-500">*</span>
             </Label>
-            <Input
+            <Textarea
               id="organizationAddress"
               value={formData.organizationAddress}
               onChange={(e) =>
                 handleChange('organizationAddress', e.target.value)
               }
               placeholder="Enter organization address"
+              rows={3}
               className={errors.organizationAddress ? 'border-red-500' : ''}
             />
             {errors.organizationAddress && (

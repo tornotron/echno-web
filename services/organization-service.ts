@@ -45,51 +45,26 @@ function safeParseOrganizations(data: ApiResponse[]): Organization[] {
 }
 
 /**
- * Files that can be uploaded for an organization.
- */
-export interface OrganizationFiles {
-  organizationLogo?: File;
-}
-
-/**
  * organizationService
  *
- * Thin wrapper around the backend organization REST endpoints. Provides
- * typed, parse-safe convenience methods for common organization CRUD
- * operations used throughout the application.
+ * Thin wrapper around the backend organization REST endpoints.
  *
- * Implementation notes:
- * - This module expects the backend to return JSON payloads compatible
- *   with `parseOrganization` and `organizationToJsonWithIds` helpers.
- * - Network errors and non-2xx responses are propagated from the API
- *   client and should be handled by callers (e.g. via React Query
- *   mutation error handlers).
- * - Parsing errors are wrapped in ApiError for consistent error handling.
- * - File uploads use multipart/form-data with 'data' and 'attachments' fields.
+ * Endpoints:
+ * - GET    /organization/web                  — get all organizations for current user
+ * - POST   /organization/web                  — create a new organization
+ * - GET    /organization/web/{organizationId}  — get organization by ID
+ * - PATCH  /organization/web/{organizationId}  — update organization
+ * - DELETE /organization/web/{organizationId}  — delete organization
  */
 export const organizationService = {
   /**
-   * Fetch all organizations.
+   * Fetch all organizations for the current user.
    *
    * @returns {Promise<Organization[]>} Resolves with an array of parsed organizations.
    * @throws {ApiError} on network, server, or parsing errors
    */
   async getAll(): Promise<Organization[]> {
     const data = await api.get<ApiResponse[]>('/organization/web');
-    return safeParseOrganizations(data);
-  },
-
-  /**
-   * Fetch organizations created by a specific user.
-   *
-   * @param {number} creatorId - The numeric id of the creator user.
-   * @returns {Promise<Organization[]>} Resolves with an array of parsed organizations.
-   * @throws {ApiError} on network, server, or parsing errors
-   */
-  async getByCreator(creatorId: number): Promise<Organization[]> {
-    const data = await api.get<ApiResponse[]>(
-      `/organization/web/creator/${creatorId}`
-    );
     return safeParseOrganizations(data);
   },
 
@@ -106,34 +81,53 @@ export const organizationService = {
   },
 
   /**
-   * Update an existing organization.
+   * Create a new organization.
+   * Uses multipart/form-data to support optional file uploads (e.g. logo).
    *
-   * @param {number} id - Organization id to update.
-   * @param {Organization} org - Organization data to persist.
-   * @returns {Promise<Organization>} The updated, parsed organization.
+   * @param {Organization} org - Organization data to create.
+   * @param {File} [logoFile] - Optional logo file to upload.
+   * @returns {Promise<Organization>} The created, parsed organization.
    * @throws {ApiError} on network, server, or parsing errors
    */
-  async update(id: number, org: Organization): Promise<Organization> {
+  async create(org: Organization, logoFile?: File): Promise<Organization> {
     const payload = organizationToJsonWithIds(org);
-    const data = await api.patch<ApiResponse>(
-      `/organization/web/${id}`,
-      payload
+    const files = logoFile ? { attachments: [logoFile] } : undefined;
+    const data = await api.postMultipart<ApiResponse>(
+      '/organization/web',
+      payload,
+      files
     );
     return safeParseOrganization(data);
   },
 
   /**
-   * Create a new organization.
-   * Uses multipart/form-data as required by the backend endpoint.
+   * Update an existing organization.
+   * Uses multipart/form-data when a file is provided, JSON PATCH otherwise.
    *
-   * @param {Organization} org - Organization data to create.
-   * @returns {Promise<Organization>} The created, parsed organization.
+   * @param {number} id - Organization id to update.
+   * @param {Organization} org - Organization data to persist.
+   * @param {File} [logoFile] - Optional logo file to upload.
+   * @returns {Promise<Organization>} The updated, parsed organization.
    * @throws {ApiError} on network, server, or parsing errors
    */
-  async create(org: Organization): Promise<Organization> {
+  async update(
+    id: number,
+    org: Organization,
+    logoFile?: File
+  ): Promise<Organization> {
     const payload = organizationToJsonWithIds(org);
-    const data = await api.postMultipart<ApiResponse>(
-      '/organization/web',
+
+    if (logoFile) {
+      const data = await api.patchMultipart<ApiResponse>(
+        `/organization/web/${id}`,
+        payload,
+        { attachments: [logoFile] }
+      );
+      return safeParseOrganization(data);
+    }
+
+    const data = await api.patch<ApiResponse>(
+      `/organization/web/${id}`,
       payload
     );
     return safeParseOrganization(data);
@@ -148,73 +142,5 @@ export const organizationService = {
    */
   async delete(id: number): Promise<void> {
     await api.delete(`/organization/web/${id}`);
-  },
-
-  /**
-   * Create a new organization with file uploads.
-   * Uses multipart/form-data to send both JSON data and files.
-   *
-   * Backend expects:
-   * - 'data' field: JSON string of organization data
-   * - 'attachments' field(s): File objects (logo)
-   *
-   * @param {Organization} org - Organization data to create.
-   * @param {OrganizationFiles} files - Files to upload (logo).
-   * @returns {Promise<Organization>} The created, parsed organization.
-   * @throws {ApiError} on network, server, or parsing errors
-   */
-  async createWithFiles(
-    org: Organization,
-    files: OrganizationFiles
-  ): Promise<Organization> {
-    const payload = organizationToJsonWithIds(org);
-
-    // Collect files into attachments array
-    const attachments: File[] = [];
-    if (files.organizationLogo) {
-      attachments.push(files.organizationLogo);
-    }
-
-    const data = await api.postMultipart<ApiResponse>(
-      '/organization/web',
-      payload,
-      attachments.length > 0 ? { attachments } : undefined
-    );
-    return safeParseOrganization(data);
-  },
-
-  /**
-   * Update an existing organization with file uploads.
-   * Uses multipart/form-data to send both JSON data and files.
-   *
-   * Backend expects:
-   * - 'data' field: JSON string of organization data
-   * - 'attachments' field(s): File objects (logo)
-   *
-   * @param {number} id - Organization id to update.
-   * @param {Organization} org - Organization data to persist.
-   * @param {OrganizationFiles} files - Files to upload (logo).
-   * @returns {Promise<Organization>} The updated, parsed organization.
-   * @throws {ApiError} on network, server, or parsing errors
-   */
-  async updateWithFiles(
-    id: number,
-    org: Organization,
-    files: OrganizationFiles
-  ): Promise<Organization> {
-    const payload = organizationToJsonWithIds(org);
-
-    // Collect files into attachments array
-    const attachments: File[] = [];
-    if (files.organizationLogo) {
-      attachments.push(files.organizationLogo);
-    }
-
-    const data = await api.patchMultipart<ApiResponse>(
-      `/organization/web/${id}`,
-      payload,
-      attachments.length > 0 ? { attachments } : undefined
-    );
-    return safeParseOrganization(data);
   },
 };
