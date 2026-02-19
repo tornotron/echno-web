@@ -39,6 +39,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { Department, getDepartmentLabel } from '@/types/employee/departments';
 
 export default function ApprovalsPage() {
   const router = useRouter();
@@ -275,7 +276,7 @@ export default function ApprovalsPage() {
                       </p>
                       {request.department && (
                         <p className="text-muted-foreground text-xs">
-                          {request.department}
+                          {getDepartmentLabel(request.department as Department)}
                         </p>
                       )}
                     </div>
@@ -318,7 +319,6 @@ export default function ApprovalsPage() {
                     <TableHead>Leave Type</TableHead>
                     <TableHead>Period</TableHead>
                     <TableHead>Days</TableHead>
-                    <TableHead>Reason</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -340,7 +340,9 @@ export default function ApprovalsPage() {
                           </div>
                           {request.department && (
                             <div className="text-muted-foreground text-xs">
-                              {request.department}
+                              {getDepartmentLabel(
+                                request.department as Department
+                              )}
                             </div>
                           )}
                         </div>
@@ -376,11 +378,6 @@ export default function ApprovalsPage() {
                         <div className="text-foreground font-semibold">
                           {request.totalDays}{' '}
                           {request.totalDays === 1 ? 'day' : 'days'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-muted-foreground max-w-[200px] truncate text-sm">
-                          {request.reason}
                         </div>
                       </TableCell>
                       <TableCell>
