@@ -8,12 +8,14 @@ interface GeolocationState {
   isLoading: boolean;
 }
 
+type LocationCallback = (latitude: number, longitude: number) => void;
+
 interface GeolocationResult {
   latitude: number | null;
   longitude: number | null;
   error: string | null;
   isLoading: boolean;
-  getCurrentLocation: () => void;
+  getCurrentLocation: (onSuccess?: LocationCallback) => void;
 }
 
 export function useGeolocation(): GeolocationResult {
@@ -24,7 +26,7 @@ export function useGeolocation(): GeolocationResult {
     isLoading: false,
   });
 
-  const getCurrentLocation = () => {
+  const getCurrentLocation = (onSuccess?: LocationCallback) => {
     // Check if geolocation is available
     if (!navigator.geolocation) {
       const error = 'Geolocation is not supported by your browser';
@@ -48,6 +50,7 @@ export function useGeolocation(): GeolocationResult {
           isLoading: false,
         });
 
+        onSuccess?.(latitude, longitude);
         toast.success('Location retrieved successfully!');
       },
       (error) => {
