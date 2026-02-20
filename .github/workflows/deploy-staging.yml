@@ -51,6 +51,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
+            NEXT_PUBLIC_API_URL=/api/v1
 
   # ------------ Job 2: Deploy to Server ------------
   deploy:
