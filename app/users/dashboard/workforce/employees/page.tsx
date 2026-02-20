@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { mockProjects } from '@/components/shared/mock-data';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,7 +32,6 @@ import {
   Mail,
   Phone,
   User,
-  FolderKanban,
   Loader2,
   AlertCircle,
 } from 'lucide-react';
@@ -42,7 +40,9 @@ import Image from 'next/image';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
+import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
+import { EmployeeProjectsCell } from '@/components/workforce/employee-projects-cell';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -90,6 +90,7 @@ export default function EmployeesPage() {
 
   const { data: user } = useUser();
   const { data: employees, isLoading, error } = useEmployees();
+  const { data: projects } = useProjects();
 
   const employeesList = useMemo(() => employees || [], [employees]);
 
@@ -114,12 +115,8 @@ export default function EmployeesPage() {
       const matchesStatus =
         statusFilter === 'all' || employee.status === statusFilter;
 
-      // Project filter (using mock data temporarily until project hooks are available)
-      const matchesProject =
-        projectFilter === 'all' ||
-        employee.currentProjects?.some(
-          (proj) => proj.id === Number.parseInt(projectFilter)
-        );
+      // Project filter - kept for future backend support
+      const matchesProject = projectFilter === 'all';
 
       // Department filter
       const matchesDepartment =
@@ -348,7 +345,7 @@ export default function EmployeesPage() {
             placeholder: 'Project',
             options: [
               { value: 'all', label: 'All Projects' },
-              ...mockProjects.map((proj) => ({
+              ...(projects || []).map((proj) => ({
                 value: proj.id!.toString(),
                 label: proj.projectName,
               })),
@@ -627,39 +624,8 @@ export default function EmployeesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {employee.currentProjects &&
-                        employee.currentProjects.length > 0 ? (
-                          <div className="flex flex-col gap-1.5">
-                            {employee.currentProjects
-                              .slice(
-                                0,
-                                employee.currentProjects.length > 2 ? 1 : 2
-                              )
-                              .map((proj) => (
-                                <div
-                                  key={proj.id}
-                                  className="flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 dark:bg-blue-900/20"
-                                >
-                                  <FolderKanban className="h-3 w-3 shrink-0 text-blue-600 dark:text-blue-400" />
-                                  <span className="max-w-[180px] truncate text-xs font-medium text-blue-700 dark:text-blue-300">
-                                    {proj.projectName}
-                                  </span>
-                                </div>
-                              ))}
-                            {employee.currentProjects.length > 2 && (
-                              <div className="flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">
-                                <FolderKanban className="h-3 w-3 shrink-0 text-zinc-500 dark:text-zinc-400" />
-                                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                                  +{employee.currentProjects.length - 1} more
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                            <FolderKanban className="h-3 w-3" />
-                            <span>No projects</span>
-                          </div>
+                        {employee.id !== undefined && (
+                          <EmployeeProjectsCell employeeId={employee.id} />
                         )}
                       </TableCell>
                       <TableCell>
