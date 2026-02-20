@@ -17,7 +17,7 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Features', href: '/features' },
-    { name: 'About Us', href: '/about' },
+    // { name: 'About Us', href: '/about' }, // Temporarily disabled
     { name: 'Plans', href: '/plans' },
     { name: 'Contact', href: '/contact' },
   ];
