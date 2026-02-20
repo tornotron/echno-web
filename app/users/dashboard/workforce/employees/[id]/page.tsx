@@ -72,6 +72,7 @@ import {
   useUnassignRole,
 } from '@/hooks/role-management/use-role-management-mutations';
 import { useAuthorization } from '@/hooks/use-authorization';
+import { useProjectsByEmployee } from '@/hooks/project';
 import { EmployeeLeaveSection } from '@/components/leave/employee-leave-section';
 
 interface EmployeeDetailPageProps {
@@ -127,6 +128,10 @@ export default function EmployeeDetailPage({
   const { isAdmin } = useAuthorization();
   const [isChangingManager, setIsChangingManager] = useState(false);
   const [selectedManagerId, setSelectedManagerId] = useState<string>('');
+
+  // Projects
+  const { data: employeeProjects, isLoading: projectsLoading } =
+    useProjectsByEmployee(employeeId);
 
   // Role management
   const { currentRoles, availableRoles } = useRoleManagement(employeeId);
@@ -596,37 +601,42 @@ export default function EmployeeDetailPage({
               </Card>
 
               {/* Current Projects */}
-              {employee.currentProjects &&
-                employee.currentProjects.length > 0 && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Current Projects</CardTitle>
-                      <CardDescription>
-                        Active project assignments
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-3">
-                        {employee.currentProjects.map((project) => (
-                          <div
-                            key={project.id}
-                            className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
-                          >
-                            <div className="mb-2 flex items-start justify-between">
-                              <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {project.projectName}
-                              </h4>
-                              <Badge variant="outline">{project.status}</Badge>
-                            </div>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                              {project.projectAddress}
-                            </p>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Current Projects</CardTitle>
+                  <CardDescription>Active project assignments</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {projectsLoading ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                    </div>
+                  ) : employeeProjects && employeeProjects.length > 0 ? (
+                    <div className="space-y-3">
+                      {employeeProjects.map((project) => (
+                        <div
+                          key={project.id}
+                          className="rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
+                        >
+                          <div className="mb-2 flex items-start justify-between">
+                            <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {project.projectName}
+                            </h4>
+                            <Badge variant="outline">{project.status}</Badge>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                            {project.projectAddress}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-zinc-400 italic dark:text-zinc-500">
+                      No projects assigned
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Roles */}
               <Card>
