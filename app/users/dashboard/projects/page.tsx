@@ -52,8 +52,6 @@ import {
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
 import { mockProjects } from '@/components/shared/mock-data';
-import { useCanPerform, useIsSystemAdmin } from '@/hooks/use-rbac';
-import { Module } from '@/types/rbac/module';
 
 interface ProjectFilters {
   search: string;
@@ -61,13 +59,6 @@ interface ProjectFilters {
 }
 
 export default function ProjectsPage() {
-  // RBAC: Role-based access control hooks
-  const isSystemAdmin = useIsSystemAdmin();
-  const canCreate = useCanPerform(Module.PROJECT, 'create');
-  // canUpdate and canDelete can be used for edit/delete buttons in project cards
-  // const canUpdate = useCanPerform(Module.PROJECT, 'update');
-  // const canDelete = useCanPerform(Module.PROJECT, 'delete');
-
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12); // 4 columns x 3 rows
 
@@ -196,37 +187,18 @@ export default function ProjectsPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-3xl font-bold">Projects</h1>
-            {/* System Admin Badge - Only visible to system admins */}
-            {isSystemAdmin && (
-              <Badge variant="destructive" className="gap-1">
-                <Shield className="h-3 w-3" />
-                Admin
-              </Badge>
-            )}
           </div>
           <p className="text-muted-foreground">
             Manage and monitor all construction projects
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Admin Controls - Only visible to system admins */}
-          {isSystemAdmin && (
-            <Button variant="outline" asChild>
-              <Link href="/admin/access-control">
-                <Settings className="mr-2 h-4 w-4" />
-                Admin Panel
-              </Link>
-            </Button>
-          )}
-          {/* Add Project Button - Only visible to users with create permission */}
-          {canCreate && (
-            <Button asChild>
-              <Link href="/users/dashboard/projects/new">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Project
-              </Link>
-            </Button>
-          )}
+          <Button asChild>
+            <Link href="/users/dashboard/projects/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Project
+            </Link>
+          </Button>
         </div>
       </div>
 
