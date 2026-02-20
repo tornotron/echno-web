@@ -174,6 +174,7 @@ export function useAddEmployeeToProject() {
     onSuccess: (_, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success('Employee Added', {
         description: 'The employee has been added to the project',
       });
@@ -207,6 +208,7 @@ export function useRemoveEmployeeFromProject() {
     onSuccess: (_, { projectId }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
       toast.success('Employee Removed', {
         description: 'The employee has been removed from the project',
       });
