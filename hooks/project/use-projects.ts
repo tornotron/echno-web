@@ -78,3 +78,43 @@ export function useProjectsByOrganization(organizationId?: number) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 }
+
+/**
+ * Hook to fetch projects assigned to a specific employee.
+ * Includes retry logic for transient errors and caches data for 5 minutes.
+ */
+export function useProjectsByEmployee(employeeId?: number) {
+  return useQuery({
+    queryKey: ['projects', 'employee', employeeId],
+    queryFn: () => {
+      if (!employeeId) {
+        throw new Error('Employee ID is required');
+      }
+      return projectService.getProjectsByEmployee(employeeId);
+    },
+    enabled: !!employeeId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
+}
+
+/**
+ * Hook to fetch member employees of a specific project.
+ * Includes retry logic for transient errors and caches data for 5 minutes.
+ */
+export function useEmployeesByProject(projectId?: number) {
+  return useQuery({
+    queryKey: ['employees', 'project', projectId],
+    queryFn: () => {
+      if (!projectId) {
+        throw new Error('Project ID is required');
+      }
+      return projectService.getEmployeesByProject(projectId);
+    },
+    enabled: !!projectId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: shouldRetry,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+  });
+}

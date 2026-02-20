@@ -1,6 +1,7 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import { Project, parseProject, projectToJson } from '@/types/project/project';
+import { Employee, parseEmployee } from '@/types/employee';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
@@ -35,6 +36,25 @@ function safeParseProjects(data: ApiResponse[]): Project[] {
     logger.error('Failed to parse projects data:', error);
     throw new ApiError(
       'Failed to process projects data. Please try again.',
+      422
+    );
+  }
+}
+
+/**
+ * Safely parse employee array with error handling.
+ * @throws {ApiError} when parsing fails
+ */
+function safeParseEmployees(data: ApiResponse[]): Employee[] {
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  try {
+    return data.map((item) => parseEmployee(item));
+  } catch (error) {
+    logger.error('Failed to parse employees data:', error);
+    throw new ApiError(
+      'Failed to process employees data. Please try again.',
       422
     );
   }
@@ -190,13 +210,18 @@ export const projectService = {
     files: ProjectFiles
   ): Promise<Project> {
     const payload = partialProjectToJson(projectData);
+    const hasFiles = files.attachments && files.attachments.length > 0;
+
+    // Send empty attachments array in JSON when no files,
+    // so the backend doesn't receive null
+    if (!hasFiles) {
+      payload.attachments = [];
+    }
 
     const data = await api.postMultipart<ApiResponse>(
       '/project/web',
       payload,
-      files.attachments && files.attachments.length > 0
-        ? { attachments: files.attachments }
-        : undefined
+      hasFiles ? { attachments: files.attachments! } : undefined
     );
     return safeParseProject(data);
   },
@@ -263,5 +288,33 @@ export const projectService = {
    */
   async removeEmployee(projectId: number, employeeId: number): Promise<void> {
     await api.delete(`/project/web/${projectId}/employees/${employeeId}`);
+  },
+
+  /**
+   * Fetch projects assigned to a specific employee.
+   *
+   * @param {number} employeeId - Employee id.
+   * @returns {Promise<Project[]>} Resolves with an array of parsed projects.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async getProjectsByEmployee(employeeId: number): Promise<Project[]> {
+    const data = await api.get<ApiResponse[]>(
+      `/project/web/employees/${employeeId}`
+    );
+    return safeParseProjects(data);
+  },
+
+  /**
+   * Fetch member employees of a specific project.
+   *
+   * @param {number} projectId - Project id.
+   * @returns {Promise<Employee[]>} Resolves with an array of parsed employees.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async getEmployeesByProject(projectId: number): Promise<Employee[]> {
+    const data = await api.get<ApiResponse[]>(
+      `/project/web/${projectId}/employees`
+    );
+    return safeParseEmployees(data);
   },
 };
