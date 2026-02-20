@@ -1,5 +1,5 @@
 // types/project/project.ts
-import { Member, parseMember, memberToJson } from '@/types/member';
+import { Employee, parseEmployee, employeeToJson } from '@/types/employee';
 import { Task, parseTask } from '@/types/task';
 import { ProjectStatus, getProjectStatus } from './project-status';
 import type { Attachment } from '../attachment';
@@ -16,27 +16,27 @@ export interface Project {
   startDate?: Date;
   endDate?: Date;
   createdAt?: Date;
-  members: Member[];
+  members: Employee[];
   tasks: Task[];
   attachments?: Attachment[];
 }
 
 /** Add member (immutable) */
-export function addMember(project: Project, member: Member): Project {
-  if (project.members.some((m) => m.id === member.id)) {
+export function addMember(project: Project, employee: Employee): Project {
+  if (project.members.some((e) => e.id === employee.id)) {
     return project;
   }
   return {
     ...project,
-    members: [...project.members, member],
+    members: [...project.members, employee],
   };
 }
 
 /** Remove member (immutable) */
-export function removeMember(project: Project, member: Member): Project {
+export function removeMember(project: Project, employee: Employee): Project {
   return {
     ...project,
-    members: project.members.filter((m) => m.id !== member.id),
+    members: project.members.filter((e) => e.id !== employee.id),
   };
 }
 
@@ -56,8 +56,8 @@ export function parseProject(json: any): Project {
     startDate: json.startDate ? new Date(json.startDate) : undefined,
     endDate: json.endDate ? new Date(json.endDate) : undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
-    members: json.teamMembers
-      ? (json.teamMembers as unknown[]).map((m) => parseMember(m))
+    members: json.employees
+      ? (json.employees as unknown[]).map((e) => parseEmployee(e))
       : [],
     tasks: json.tasks ? (json.tasks as unknown[]).map((t) => parseTask(t)) : [],
     attachments: json.attachments
@@ -78,7 +78,7 @@ export function projectToJson(project: Project): Record<string, unknown> {
     projectLatitude: project.projectLatitude,
     startDate: project.startDate?.toISOString(),
     endDate: project.endDate?.toISOString(),
-    teamMembers: project.members.map((m) => memberToJson(m)),
+    employees: project.members.map((e) => employeeToJson(e)),
     createdAt: project.createdAt?.toISOString(),
     attachments: project.attachments
       ? project.attachments.map((a) => attachmentToJson(a))
