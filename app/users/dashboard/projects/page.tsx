@@ -43,15 +43,13 @@ import {
   XCircle,
   Pause,
   TrendingUp,
-  Shield,
-  Settings,
 } from 'lucide-react';
 import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
-import { mockProjects } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 
 interface ProjectFilters {
   search: string;
@@ -59,6 +57,9 @@ interface ProjectFilters {
 }
 
 export default function ProjectsPage() {
+  // Fetch projects
+  const { data: projects = [], isLoading, error } = useProjects();
+
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12); // 4 columns x 3 rows
 
@@ -69,7 +70,7 @@ export default function ProjectsPage() {
 
   // Filter projects
   const filteredProjects = useMemo(() => {
-    return mockProjects.filter((project) => {
+    return projects.filter((project) => {
       const matchesSearch =
         project.projectName
           .toLowerCase()
@@ -83,7 +84,7 @@ export default function ProjectsPage() {
 
       return matchesSearch && matchesStatus;
     });
-  }, [filters]);
+  }, [projects, filters]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProjects.length / itemsPerPage);
@@ -108,14 +109,14 @@ export default function ProjectsPage() {
   };
 
   // Statistics
-  const totalProjects = mockProjects.length;
-  const activeProjects = mockProjects.filter(
+  const totalProjects = projects.length;
+  const activeProjects = projects.filter(
     (p) => p.status === ProjectStatus.open
   ).length;
-  const completedProjects = mockProjects.filter(
+  const completedProjects = projects.filter(
     (p) => p.status === ProjectStatus.completed
   ).length;
-  const upcomingProjects = mockProjects.filter(
+  const upcomingProjects = projects.filter(
     (p) => p.status === ProjectStatus.upcoming
   ).length;
 
@@ -179,6 +180,44 @@ export default function ProjectsPage() {
     const elapsed = now.getTime() - start.getTime();
     return Math.round((elapsed / total) * 100);
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Loading projects...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <FolderKanban className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Failed to load projects
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              {error instanceof Error ? error.message : 'An error occurred'}
+            </p>
+            <Button onClick={() => globalThis.location.reload()}>
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
