@@ -1,8 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
+import { useUser } from '@/hooks/user/use-user';
+import { useCreateProjectWithFiles } from '@/hooks/project/use-project-mutations';
+import { useGeolocation } from '@/hooks/use-geolocation';
+import { ProjectFiles } from '@/services/project-service';
 import {
   Card,
   CardContent,
@@ -21,27 +25,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Save, X, UserPlus, Upload, FileText } from 'lucide-react';
+import { Save, Upload, FileText, MapPin, Loader2, X } from 'lucide-react';
 import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
 import { toast } from '@/lib/styles/toast-styles';
-import { mockEmployees } from '@/components/shared/mock-data';
-import type { Employee } from '@/types/employee';
-import type { Member } from '@/types/member';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 
 export default function NewProjectPage() {
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: currentUser, isLoading: isUserLoading } = useUser();
+  const createProjectWithFiles = useCreateProjectWithFiles();
+  const { isLoading: isGettingLocation, getCurrentLocation } = useGeolocation();
   const [attachments, setAttachments] = useState<File[]>([]);
 
   const [formData, setFormData] = useState({
@@ -55,8 +50,15 @@ export default function NewProjectPage() {
     description: '',
   });
 
-  const [selectedMembers, setSelectedMembers] = useState<Member[]>([]);
-  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const handleGetLocation = useCallback(() => {
+    getCurrentLocation((lat, lng) => {
+      setFormData((prev) => ({
+        ...prev,
+        projectLatitude: lat.toString(),
+        projectLongitude: lng.toString(),
+      }));
+    });
+  }, [getCurrentLocation]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -67,38 +69,6 @@ export default function NewProjectPage() {
 
   const handleStatusChange = (value: string) => {
     setFormData((prev) => ({ ...prev, status: value as ProjectStatus }));
-  };
-
-  const handleAddMember = (employee: Employee) => {
-    const isAlreadyAdded = selectedMembers.some(
-      (m) => m.memberEmail === employee.email
-    );
-
-    if (isAlreadyAdded) {
-      toast.error('Member already added to the project');
-      return;
-    }
-
-    const newMember: Member = {
-      id: employee.id,
-      memberName: employee.name,
-      memberEmail: employee.email,
-      memberPhone: employee.phone,
-      memberRole: '',
-      department: employee.department ?? '',
-      designation: (employee as Employee).designation,
-      memberImage: employee.profilePicture?.file,
-    };
-
-    setSelectedMembers((prev) => [...prev, newMember]);
-    toast.success(`${employee.name} added to the team`);
-  };
-
-  const handleRemoveMember = (memberEmail: string) => {
-    setSelectedMembers((prev) =>
-      prev.filter((m) => m.memberEmail !== memberEmail)
-    );
-    toast.success('Member removed from the team');
   };
 
   // Handle file upload
@@ -141,42 +111,84 @@ export default function NewProjectPage() {
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  const availableEmployees = mockEmployees.filter(
-    (emp) => !selectedMembers.some((m) => m.memberEmail === emp.email)
-  );
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+
+    // Validate user
+    if (!currentUser?.id) {
+      toast.error('User not found', {
+        description: 'Please log in again',
+      });
+      return;
+    }
+
+    // Validate required fields
+    if (!formData.projectName.trim()) {
+      toast.error('Project name is required');
+      return;
+    }
+
+    if (!formData.projectAddress.trim()) {
+      toast.error('Project address is required');
+      return;
+    }
 
     try {
-      // Validate required fields
-      if (!formData.projectName.trim()) {
-        toast.error('Project name is required');
-        setIsSubmitting(false);
-        return;
-      }
+      // Prepare project data
+      const projectData = {
+        projectName: formData.projectName,
+        projectAddress: formData.projectAddress,
+        status: formData.status,
+        projectLatitude: Number.parseFloat(formData.projectLatitude) || 0,
+        projectLongitude: Number.parseFloat(formData.projectLongitude) || 0,
+        startDate: formData.startDate
+          ? new Date(formData.startDate)
+          : undefined,
+        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      };
 
-      if (!formData.projectAddress.trim()) {
-        toast.error('Project address is required');
-        setIsSubmitting(false);
-        return;
-      }
+      // Prepare files
+      const files: ProjectFiles = {
+        attachments: attachments.length > 0 ? attachments : undefined,
+      };
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // TODO: Replace with actual API call
-      logger.debug('Creating project:', formData);
-
-      toast.success('Project created successfully!');
-      router.push('/dashboard/projects');
+      // Create project
+      createProjectWithFiles.mutate(
+        { data: projectData, files },
+        {
+          onSuccess: (createdProject) => {
+            router.push(`/users/dashboard/projects/${createdProject.id}`);
+          },
+        }
+      );
     } catch (error) {
       logger.error('Error creating project:', error);
       toast.error('Failed to create project. Please try again.');
-      setIsSubmitting(false);
     }
   };
+
+  const isSubmitting = createProjectWithFiles.isPending;
+
+  // Loading state for user
+  if (isUserLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">Loading...</div>
+      </div>
+    );
+  }
+
+  // User check
+  if (!currentUser) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500">User not found</p>
+          <p className="text-sm text-zinc-600">Please log in again</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -290,140 +302,55 @@ export default function NewProjectPage() {
             </div>
 
             {/* Location Coordinates */}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="projectLatitude">Latitude</Label>
-                <Input
-                  id="projectLatitude"
-                  name="projectLatitude"
-                  type="number"
-                  step="any"
-                  value={formData.projectLatitude}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 19.0760"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="projectLongitude">Longitude</Label>
-                <Input
-                  id="projectLongitude"
-                  name="projectLongitude"
-                  type="number"
-                  step="any"
-                  value={formData.projectLongitude}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 72.8777"
-                />
-              </div>
-            </div>
-
-            {/* Team Members */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <Label>Team Members</Label>
-                <Dialog
-                  open={isAddMemberDialogOpen}
-                  onOpenChange={setIsAddMemberDialogOpen}
+                <Label>Location Coordinates</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGetLocation}
+                  disabled={isGettingLocation}
                 >
-                  <DialogTrigger asChild>
-                    <Button type="button" variant="outline" size="sm">
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Add Member
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Add Team Members</DialogTitle>
-                      <DialogDescription>
-                        Select employees from your organization to add to this
-                        project
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-2">
-                      {availableEmployees.length === 0 ? (
-                        <p className="text-muted-foreground py-8 text-center">
-                          All employees have been added to the team
-                        </p>
-                      ) : (
-                        availableEmployees.map((employee) => (
-                          <div
-                            key={employee.id}
-                            className="hover:bg-accent flex items-center justify-between rounded-lg border p-3"
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
-                                {employee.name
-                                  .split(' ')
-                                  .map((n) => n[0])
-                                  .join('')
-                                  .toUpperCase()
-                                  .slice(0, 2)}
-                              </div>
-                              <div>
-                                <p className="font-medium">{employee.name}</p>
-                                <p className="text-muted-foreground text-sm">
-                                  {(employee as Employee).designation} •{' '}
-                                  {employee.department}
-                                </p>
-                              </div>
-                            </div>
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={() => {
-                                handleAddMember(employee);
-                                setIsAddMemberDialogOpen(false);
-                              }}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              Add
-                            </Button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </DialogContent>
-                </Dialog>
+                  {isGettingLocation ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Getting Location...
+                    </>
+                  ) : (
+                    <>
+                      <MapPin className="mr-2 h-4 w-4" />
+                      Get Current Location
+                    </>
+                  )}
+                </Button>
               </div>
-              {selectedMembers.length === 0 ? (
-                <p className="text-muted-foreground text-sm">
-                  No team members added yet
-                </p>
-              ) : (
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  {selectedMembers.map((member) => (
-                    <div
-                      key={member.memberEmail}
-                      className="flex items-center justify-between rounded-lg border p-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
-                          {member.memberName
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()
-                            .slice(0, 2)}
-                        </div>
-                        <div>
-                          <p className="font-medium">{member.memberName}</p>
-                          <p className="text-muted-foreground text-sm">
-                            {member.designation} • {member.department}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveMember(member.memberEmail)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
+                  <Label htmlFor="projectLatitude">Latitude</Label>
+                  <Input
+                    id="projectLatitude"
+                    name="projectLatitude"
+                    type="number"
+                    step="any"
+                    value={formData.projectLatitude}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 19.0760"
+                  />
                 </div>
-              )}
+                <div className="space-y-2">
+                  <Label htmlFor="projectLongitude">Longitude</Label>
+                  <Input
+                    id="projectLongitude"
+                    name="projectLongitude"
+                    type="number"
+                    step="any"
+                    value={formData.projectLongitude}
+                    onChange={handleInputChange}
+                    placeholder="e.g., 72.8777"
+                  />
+                </div>
+              </div>
             </div>
 
             {/* Description */}

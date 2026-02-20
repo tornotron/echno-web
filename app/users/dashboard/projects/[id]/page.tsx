@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
+import { useProject } from '@/hooks/project/use-projects';
 import {
   Card,
   CardContent,
@@ -18,9 +19,9 @@ import {
   Edit,
   MapPin,
   Users,
+  UserPlus,
   ListTodo,
   AlertCircle,
-  DollarSign,
   Activity,
   Briefcase,
   ClipboardCheck,
@@ -36,16 +37,10 @@ import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
-import type { Project } from '@/types/project/project';
-import {
-  mockProjects,
-  mockTasks,
-  mockBudgets,
-  mockInspections,
-} from '@/components/shared/mock-data';
 import { TaskStatus } from '@/types/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { format } from 'date-fns';
+import { TeamMembersSection } from '@/features/projects/components';
 
 // Helper function to validate attachment URLs
 function isValidAttachmentUrl(url: string): boolean {
@@ -77,13 +72,6 @@ function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
   // For now, return the validated URL
   return attachment.file;
 }
-
-// Fetch project by ID from mock data
-const fetchProject = async (id: string): Promise<Project | null> => {
-  // Simulate API call delay
-  await new Promise((resolve) => setTimeout(resolve, 100));
-  return mockProjects.find((p) => p.id === Number.parseInt(id)) || null;
-};
 
 const getStatusBadgeColor = (status: ProjectStatus): string => {
   const colors = {
@@ -129,23 +117,15 @@ const getAttachmentIcon = (type: AttachmentType) => {
 export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
-  const [project, setProject] = useState<Project | null>(null);
-  const [loading, setLoading] = useState(true);
+  const projectId = params.id
+    ? Number.parseInt(params.id as string)
+    : undefined;
+  const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
 
-  // Load project data
-  useEffect(() => {
-    const loadProject = async () => {
-      if (!params.id) return;
+  // Fetch project data
+  const { data: project, isLoading, error } = useProject(projectId);
 
-      const projectData = await fetchProject(params.id as string);
-      setProject(projectData);
-      setLoading(false);
-    };
-
-    loadProject();
-  }, [params.id]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center justify-center py-12">
@@ -156,6 +136,27 @@ export default function ProjectDashboardPage() {
             </p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <FolderKanban className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Failed to load project
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              {error instanceof Error ? error.message : 'An error occurred'}
+            </p>
+            <Button onClick={() => router.push('/users/dashboard/projects')}>
+              Back to Projects
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -173,7 +174,7 @@ export default function ProjectDashboardPage() {
               The project you&apos;re looking for doesn&apos;t exist or has been
               removed.
             </p>
-            <Button onClick={() => router.push('/dashboard/projects')}>
+            <Button onClick={() => router.push('/users/dashboard/projects')}>
               Back to Projects
             </Button>
           </CardContent>
@@ -210,10 +211,8 @@ export default function ProjectDashboardPage() {
   const progress = getProjectProgress();
   const daysRemaining = calculateDaysRemaining();
 
-  // Calculate real statistics from project data
-  const projectTasks = mockTasks.filter(
-    (task) => task.projectId === project.id
-  );
+  // Calculate statistics from real project data
+  const projectTasks = project.tasks ?? [];
   const completedTasks = projectTasks.filter(
     (task) => task.status === TaskStatus.completed
   ).length;
@@ -228,25 +227,10 @@ export default function ProjectDashboardPage() {
     0
   );
 
-  // Get budget data for this project
-  const projectBudget = mockBudgets.find(
-    (budget) => budget.projectId === project.id
-  );
-  const totalBudget = projectBudget?.totalAllocated || 0;
-  const spentBudget = projectBudget?.totalSpent || 0;
-
-  // Count inspections for this project
-  const projectInspections = mockInspections.filter(
-    (inspection) => inspection.projectId === project.id
-  );
-
   const stats = {
     totalTasks: projectTasks.length,
     completedTasks,
     pendingTasks,
-    totalBudget,
-    spentBudget,
-    inspections: projectInspections.length,
     issues: totalIssues,
   };
 
@@ -333,7 +317,7 @@ export default function ProjectDashboardPage() {
                 </div>
               </div>
               <div>
-                <div className="text-muted-foreground text-xs">Completion</div>
+                <div className="text-muted-foreground text-xs">Duration</div>
                 <div className="text-sm font-medium">
                   {project.endDate && project.startDate
                     ? `${Math.round((new Date(project.endDate).getTime() - new Date(project.startDate).getTime()) / (1000 * 60 * 60 * 24))} days`
@@ -346,7 +330,7 @@ export default function ProjectDashboardPage() {
       )}
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
           <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -381,21 +365,6 @@ export default function ProjectDashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Budget Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ₹{(stats.spentBudget / 10_000_000).toFixed(1)}Cr
-            </div>
-            <p className="text-muted-foreground text-xs">
-              of ₹{(stats.totalBudget / 10_000_000).toFixed(1)}Cr total
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Team Members</CardTitle>
             <Users className="h-4 w-4 text-purple-600" />
           </CardHeader>
@@ -411,49 +380,36 @@ export default function ProjectDashboardPage() {
         <div className="space-y-6 lg:col-span-2">
           {/* Team Members */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Team Members
-              </CardTitle>
-              <CardDescription>
-                {project.members.length} members working on this project
-              </CardDescription>
+            <CardHeader className="flex flex-row items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Team Members
+                </CardTitle>
+                <CardDescription>
+                  {project.members.length} members working on this project
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsAddMemberDialogOpen(true)}
+              >
+                <UserPlus className="mr-2 h-4 w-4" />
+                Add Member
+              </Button>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {project.members.map((member, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between rounded-lg border p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
-                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                          {member.memberName
-                            .split(' ')
-                            .map((n) => n[0])
-                            .join('')
-                            .toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {member.memberName}
-                        </p>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {member.designation}
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline">{member.department}</Badge>
-                  </div>
-                ))}
-              </div>
+              <TeamMembersSection
+                projectId={project.id}
+                members={project.members || []}
+                isDialogOpen={isAddMemberDialogOpen}
+                onDialogOpenChange={setIsAddMemberDialogOpen}
+              />
             </CardContent>
           </Card>
 
-          {/* Recent Activity / Tasks */}
+          {/* Recent Tasks */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -463,16 +419,38 @@ export default function ProjectDashboardPage() {
               <CardDescription>Latest task updates</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="py-8 text-center text-zinc-600 dark:text-zinc-400">
-                <ListTodo className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                <p>No tasks yet. Create tasks to track project progress.</p>
-                <Button variant="outline" size="sm" className="mt-4" asChild>
-                  <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
-                    <ListTodo className="mr-2 h-4 w-4" />
-                    Create Task
-                  </Link>
-                </Button>
-              </div>
+              {projectTasks.length > 0 ? (
+                <div className="space-y-3">
+                  {projectTasks.slice(0, 5).map((task, index) => (
+                    <div
+                      key={task.id ?? index}
+                      className="flex items-center justify-between rounded-lg border p-3"
+                    >
+                      <div>
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {task.title}
+                        </p>
+                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                          {task.status}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-8 text-center text-zinc-600 dark:text-zinc-400">
+                  <ListTodo className="mx-auto mb-2 h-12 w-12 opacity-50" />
+                  <p>No tasks yet. Create tasks to track project progress.</p>
+                  <Button variant="outline" size="sm" className="mt-4" asChild>
+                    <Link
+                      href={`/users/dashboard/projects/${project.id}/tasks`}
+                    >
+                      <ListTodo className="mr-2 h-4 w-4" />
+                      Create Task
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -636,13 +614,6 @@ export default function ProjectDashboardPage() {
             <CardContent className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Inspections Done
-                </span>
-                <span className="font-medium">{stats.inspections}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between">
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">
                   Open Issues
                 </span>
                 <span className="font-medium text-red-600">{stats.issues}</span>
@@ -650,20 +621,20 @@ export default function ProjectDashboardPage() {
               <Separator />
               <div className="flex justify-between">
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Budget Utilization
+                  Task Completion
                 </span>
                 <span className="font-medium">
-                  {Math.round((stats.spentBudget / stats.totalBudget) * 100)}%
+                  {stats.totalTasks > 0
+                    ? `${Math.round((stats.completedTasks / stats.totalTasks) * 100)}%`
+                    : '0%'}
                 </span>
               </div>
               <Separator />
               <div className="flex justify-between">
                 <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Task Completion
+                  Team Size
                 </span>
-                <span className="font-medium">
-                  {Math.round((stats.completedTasks / stats.totalTasks) * 100)}%
-                </span>
+                <span className="font-medium">{project.members.length}</span>
               </div>
             </CardContent>
           </Card>

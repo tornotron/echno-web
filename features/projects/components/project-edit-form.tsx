@@ -17,7 +17,7 @@ import {
 } from '@/types/project/project-status';
 import { MapPin, Loader2 } from 'lucide-react';
 import { useGeolocation } from '@/hooks/use-geolocation';
-import { useEffect } from 'react';
+import { useCallback } from 'react';
 
 interface ProjectEditFormProps {
   formData: {
@@ -43,15 +43,13 @@ export function ProjectEditForm({
   onStatusChange,
   onLocationUpdate,
 }: ProjectEditFormProps) {
-  const { latitude, longitude, isLoading, getCurrentLocation } =
-    useGeolocation();
+  const { isLoading, getCurrentLocation } = useGeolocation();
 
-  // Update form when geolocation data changes
-  useEffect(() => {
-    if (latitude !== null && longitude !== null && onLocationUpdate) {
-      onLocationUpdate(latitude.toString(), longitude.toString());
-    }
-  }, [latitude, longitude, onLocationUpdate]);
+  const handleGetLocation = useCallback(() => {
+    getCurrentLocation((lat, lng) => {
+      onLocationUpdate?.(lat.toString(), lng.toString());
+    });
+  }, [getCurrentLocation, onLocationUpdate]);
 
   return (
     <div className="space-y-6">
@@ -151,7 +149,7 @@ export function ProjectEditForm({
             type="button"
             variant="outline"
             size="sm"
-            onClick={getCurrentLocation}
+            onClick={handleGetLocation}
             disabled={isLoading}
           >
             {isLoading ? (
