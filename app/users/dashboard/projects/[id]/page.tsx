@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
+import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   Card,
   CardContent,
@@ -12,6 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -32,6 +35,8 @@ import {
   Sheet,
   Box,
   File,
+  Upload,
+  Loader2,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -121,9 +126,44 @@ export default function ProjectDashboardPage() {
     ? Number.parseInt(params.id as string)
     : undefined;
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const updateProjectWithFiles = useUpdateProjectWithFiles();
 
   // Fetch project data
   const { data: project, isLoading, error } = useProject(projectId);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !projectId) return;
+
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const selectedFiles = [...e.target.files];
+    const validFiles: File[] = [];
+    const invalidFiles: string[] = [];
+
+    for (const file of selectedFiles) {
+      if (file.size > MAX_FILE_SIZE) {
+        invalidFiles.push(file.name);
+      } else {
+        validFiles.push(file);
+      }
+    }
+
+    if (invalidFiles.length > 0) {
+      toast.error(
+        `The following files exceed 10MB and were not uploaded: ${invalidFiles.join(', ')}`
+      );
+    }
+
+    if (validFiles.length > 0) {
+      updateProjectWithFiles.mutate({
+        id: projectId,
+        data: {},
+        files: { attachments: validFiles },
+      });
+    }
+
+    // Reset input so same file can be selected again
+    e.target.value = '';
+  };
 
   if (isLoading) {
     return (
@@ -456,22 +496,54 @@ export default function ProjectDashboardPage() {
 
           {/* Attachments */}
           <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Paperclip className="h-5 w-5" />
-                    Attachments
-                    {project.attachments && project.attachments.length > 0 && (
-                      <Badge variant="outline">
-                        {project.attachments.length}
-                      </Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription>
-                    Files attached to this project
-                  </CardDescription>
-                </div>
+            <CardHeader className="flex flex-row items-start justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Paperclip className="h-5 w-5" />
+                  Attachments
+                  {project.attachments && project.attachments.length > 0 && (
+                    <Badge variant="outline">
+                      {project.attachments.length}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Files attached to this project
+                </CardDescription>
+              </div>
+              <div>
+                <Input
+                  id="attachment-upload"
+                  type="file"
+                  onChange={handleFileUpload}
+                  multiple
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={updateProjectWithFiles.isPending}
+                  onClick={() =>
+                    (
+                      document.querySelector(
+                        '#attachment-upload'
+                      ) as HTMLElement
+                    )?.click()
+                  }
+                >
+                  {updateProjectWithFiles.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="mr-2 h-4 w-4" />
+                      Upload
+                    </>
+                  )}
+                </Button>
               </div>
             </CardHeader>
             <CardContent>
