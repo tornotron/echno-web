@@ -46,7 +46,6 @@ import { Organization } from '@/types/organization';
 import { Project, ProjectStatus } from '@/types/project';
 import { Task, TaskStatus, WorkCategory } from '@/types/task';
 import { Issue, IssueStatus, IssueType, IssueComment } from '@/types/issue';
-import { Invitation, InvitationStatus } from '@/types/invitation';
 import { Member } from '@/types/member';
 import {
   Attendance,
@@ -499,7 +498,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2024-12-01'),
     endDate: new Date('2026-11-30'),
     createdAt: new Date('2024-11-01'),
-    members: mockMembers.slice(0, 4),
+    members: mockEmployees.slice(0, 4),
     tasks: mockTasks.filter((t) => t.projectId === 1),
     attachments: [
       {
@@ -551,7 +550,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2025-01-15'),
     endDate: new Date('2027-01-14'),
     createdAt: new Date('2024-12-10'),
-    members: mockMembers,
+    members: mockEmployees,
     tasks: mockTasks.filter((t) => t.projectId === 2),
     attachments: [
       {
@@ -592,7 +591,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2025-03-01'),
     endDate: new Date('2027-02-28'),
     createdAt: new Date('2025-01-05'),
-    members: [mockMembers[0], mockMembers[1], mockMembers[4]],
+    members: [mockEmployees[0], mockEmployees[1], mockEmployees[4]],
     tasks: [],
     attachments: [
       {
@@ -620,7 +619,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2023-06-01'),
     endDate: new Date('2024-12-31'),
     createdAt: new Date('2023-05-01'),
-    members: [mockMembers[0], mockMembers[5]],
+    members: [mockEmployees[0], mockEmployees[5]],
     tasks: [],
     attachments: [
       {
@@ -672,7 +671,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2024-08-01'),
     endDate: new Date('2026-07-31'),
     createdAt: new Date('2024-07-01'),
-    members: [mockMembers[0], mockMembers[1]],
+    members: [mockEmployees[0], mockEmployees[1]],
     tasks: [],
     attachments: [],
   },
@@ -2353,7 +2352,7 @@ export const COMPREHENSIVE_MOCK_DATA = {
   users: mockUsers,
   employees: mockEmployees,
   organizations: mockOrganizations,
-  members: mockMembers,
+  members: mockMembers as unknown as Employee[],
   workCategories: mockWorkCategories,
   issueComments: mockIssueComments,
   issues: mockIssues,
@@ -6216,7 +6215,7 @@ export const dashboardData = {
  */
 export function getProjectsByMember(userEmail: string): Project[] {
   return mockProjects.filter((p) =>
-    p.members?.some((m) => m.memberEmail === userEmail)
+    p.members?.some((m) => m.email === userEmail)
   );
 }
 
@@ -6249,7 +6248,7 @@ export function getProjectOrganizations(projectId: number): {
   // Get organizations related through employees
   const orgIds = new Set(
     project.members?.flatMap((m) => {
-      const employee = mockEmployees.find((e) => e.email === m.memberEmail);
+      const employee = mockEmployees.find((e) => e.email === m.email);
       return employee?.organizationId ? [employee.organizationId] : [];
     })
   );
@@ -6332,7 +6331,7 @@ export function getOrganizationOverview(organizationId: number) {
   // Get projects where employees from this organization are members
   const projects = mockProjects.filter((p) =>
     p.members?.some((m) => {
-      const employee = mockEmployees.find((e) => e.email === m.memberEmail);
+      const employee = mockEmployees.find((e) => e.email === m.email);
       return employee?.organizationId === organizationId;
     })
   );
