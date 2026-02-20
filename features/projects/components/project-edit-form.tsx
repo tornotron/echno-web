@@ -3,6 +3,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,9 @@ import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
+import { MapPin, Loader2 } from 'lucide-react';
+import { useGeolocation } from '@/hooks/use-geolocation';
+import { useEffect } from 'react';
 
 interface ProjectEditFormProps {
   formData: {
@@ -30,13 +34,25 @@ interface ProjectEditFormProps {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
   onStatusChange: (value: string) => void;
+  onLocationUpdate?: (latitude: string, longitude: string) => void;
 }
 
 export function ProjectEditForm({
   formData,
   onInputChange,
   onStatusChange,
+  onLocationUpdate,
 }: ProjectEditFormProps) {
+  const { latitude, longitude, isLoading, getCurrentLocation } =
+    useGeolocation();
+
+  // Update form when geolocation data changes
+  useEffect(() => {
+    if (latitude !== null && longitude !== null && onLocationUpdate) {
+      onLocationUpdate(latitude.toString(), longitude.toString());
+    }
+  }, [latitude, longitude, onLocationUpdate]);
+
   return (
     <div className="space-y-6">
       {/* Project Name */}
@@ -128,30 +144,54 @@ export function ProjectEditForm({
       </div>
 
       {/* Location Coordinates */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="projectLatitude">Latitude</Label>
-          <Input
-            id="projectLatitude"
-            name="projectLatitude"
-            type="number"
-            step="any"
-            value={formData.projectLatitude}
-            onChange={onInputChange}
-            placeholder="e.g., 19.0760"
-          />
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <Label>Location Coordinates</Label>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={getCurrentLocation}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Getting Location...
+              </>
+            ) : (
+              <>
+                <MapPin className="mr-2 h-4 w-4" />
+                Get Current Location
+              </>
+            )}
+          </Button>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="projectLongitude">Longitude</Label>
-          <Input
-            id="projectLongitude"
-            name="projectLongitude"
-            type="number"
-            step="any"
-            value={formData.projectLongitude}
-            onChange={onInputChange}
-            placeholder="e.g., 72.8777"
-          />
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="projectLatitude">Latitude</Label>
+            <Input
+              id="projectLatitude"
+              name="projectLatitude"
+              type="number"
+              step="any"
+              value={formData.projectLatitude}
+              onChange={onInputChange}
+              placeholder="e.g., 19.0760"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="projectLongitude">Longitude</Label>
+            <Input
+              id="projectLongitude"
+              name="projectLongitude"
+              type="number"
+              step="any"
+              value={formData.projectLongitude}
+              onChange={onInputChange}
+              placeholder="e.g., 72.8777"
+            />
+          </div>
         </div>
       </div>
 
