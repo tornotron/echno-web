@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Budget } from '@/types/finance/budget';
 import { Employee } from '@/types/employee/employee';
 import { useEmployees } from '@/hooks/employee/use-employee';
+import { useProjects } from '@/hooks/project/use-projects';
 import { useLeaveRequest } from '@/hooks/leave/use-leave';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
 import { LeaveRequest } from '@/types/leave';
@@ -30,8 +31,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Project } from '@/types/project/project';
 import {
-  mockProjects,
   mockTasks,
   mockIssues,
   mockInspections,
@@ -126,13 +127,16 @@ function getNameForId(
   context: string[],
   employees?: Employee[],
   leaveRequests?: LeaveRequest[],
-  organizations?: Organization[]
+  organizations?: Organization[],
+  projects?: Project[]
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
 
   if (parentSegment === 'projects') {
-    return mockProjects.find((p) => p.id === numericId)?.projectName ?? id;
+    return (
+      projects?.find((p) => p.id === numericId)?.projectName ?? `Project ${id}`
+    );
   }
   if (parentSegment === 'tasks') {
     return mockTasks.find((t) => t.id === numericId)?.title ?? id;
@@ -253,6 +257,7 @@ export function Breadcrumbs() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { data: employees } = useEmployees();
+  const { data: projects } = useProjects();
   const { data: organizations } = useOrganizations();
 
   // Extract leave request ID from path if present
@@ -313,7 +318,8 @@ export function Breadcrumbs() {
             context,
             employees,
             leaveRequests,
-            organizations
+            organizations,
+            projects
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
