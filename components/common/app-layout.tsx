@@ -16,11 +16,7 @@ import { Settings, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
-import { useEmployees } from '@/hooks/employee/use-employee';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
-import { useLeaveRequest } from '@/hooks/leave/use-leave';
-import { useTask } from '@/hooks/task/use-tasks';
+import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { useEffect } from 'react';
 
 interface AppLayoutProps {
@@ -36,25 +32,8 @@ function AppLayoutContent({ children }: AppLayoutProps) {
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
 
-  // Fetch data for breadcrumbs
-  const { data: employees } = useEmployees();
-  const { data: projects } = useProjects();
-  const { data: organizations } = useOrganizations();
-
-  // Extract leave request ID from path if present
-  const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
-  const leaveRequestId = leaveRequestIdMatch
-    ? Number.parseInt(leaveRequestIdMatch[1], 10)
-    : undefined;
-  const { data: leaveRequest } = useLeaveRequest(
-    leaveRequestId ?? 0,
-    !!leaveRequestId
-  );
-
-  // Extract task ID from path if present
-  const taskIdMatch = pathname.match(/\/tasks\/(\d+)/);
-  const taskId = taskIdMatch ? Number.parseInt(taskIdMatch[1], 10) : undefined;
-  const { data: task } = useTask(taskId);
+  // Fetch data for breadcrumbs using custom hook
+  const breadcrumbData = useBreadcrumbData();
 
   // Redirect to organizations page if user has no default organization
   useEffect(() => {
@@ -100,11 +79,11 @@ function AppLayoutContent({ children }: AppLayoutProps) {
 
           <div className="flex flex-1 items-center justify-between">
             <Breadcrumbs
-              employees={employees}
-              projects={projects}
-              organizations={organizations}
-              leaveRequest={leaveRequest}
-              task={task}
+              employees={breadcrumbData.employees}
+              projects={breadcrumbData.projects}
+              organizations={breadcrumbData.organizations}
+              leaveRequest={breadcrumbData.leaveRequest}
+              task={breadcrumbData.task}
             />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
