@@ -16,6 +16,10 @@ import { Settings, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
+import { useEmployees } from '@/hooks/employee/use-employee';
+import { useProjects } from '@/hooks/project/use-projects';
+import { useOrganizations } from '@/hooks/organization/use-organizations';
+import { useLeaveRequest } from '@/hooks/leave/use-leave';
 import { useEffect } from 'react';
 
 interface AppLayoutProps {
@@ -30,6 +34,21 @@ function AppLayoutContent({ children }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
+
+  // Fetch data for breadcrumbs
+  const { data: employees } = useEmployees();
+  const { data: projects } = useProjects();
+  const { data: organizations } = useOrganizations();
+
+  // Extract leave request ID from path if present
+  const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
+  const leaveRequestId = leaveRequestIdMatch
+    ? Number.parseInt(leaveRequestIdMatch[1], 10)
+    : undefined;
+  const { data: leaveRequest } = useLeaveRequest(
+    leaveRequestId ?? 0,
+    !!leaveRequestId
+  );
 
   // Redirect to organizations page if user has no default organization
   useEffect(() => {
@@ -74,7 +93,12 @@ function AppLayoutContent({ children }: AppLayoutProps) {
           {isMobile && <SidebarTrigger />}
 
           <div className="flex flex-1 items-center justify-between">
-            <Breadcrumbs />
+            <Breadcrumbs
+              employees={employees}
+              projects={projects}
+              organizations={organizations}
+              leaveRequest={leaveRequest}
+            />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
                 <Link
