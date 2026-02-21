@@ -41,24 +41,36 @@ export function ManagerDashboard() {
   const { data: employee } = useCurrentUserEmployee();
   const employeeId = employee?.id || 0;
 
-  const { data: pendingApprovals, isLoading: approvalsLoading } =
+  const { data: pendingApprovalsRaw, isLoading: approvalsLoading } =
     usePendingApprovals(employeeId);
   const { data: pendingCount } = usePendingApprovalsCount(employeeId);
 
   // Capture current time once on mount (pure during render)
   const [now] = useState(() => Date.now());
 
+  // Filter approvals matching approverId = employee.id
+  const pendingApprovals = useMemo(() => {
+    return (
+      pendingApprovalsRaw?.filter((r) => r.currentApproverId === employeeId) ||
+      []
+    );
+  }, [pendingApprovalsRaw, employeeId]);
+
   // Calculate urgent approvals (starting in 3 days or less)
   const urgentApprovals = useMemo(() => {
-    return (
-      pendingApprovals?.filter((r) => {
-        const daysUntilStart = Math.ceil(
-          (r.startDate.getTime() - now) / (1000 * 60 * 60 * 24)
-        );
-        return daysUntilStart <= 3;
-      }) || []
-    );
+    return pendingApprovals.filter((r) => {
+      const daysUntilStart = Math.ceil(
+        (r.startDate.getTime() - now) / (1000 * 60 * 60 * 24)
+      );
+      return daysUntilStart <= 3;
+    });
   }, [pendingApprovals, now]);
+
+  // Non-urgent approvals (to avoid duplicates)
+  const nonUrgentApprovals = useMemo(() => {
+    const urgentIds = new Set(urgentApprovals.map((r) => r.id));
+    return pendingApprovals.filter((r) => !urgentIds.has(r.id));
+  }, [pendingApprovals, urgentApprovals]);
 
   return (
     <div className="space-y-6">
@@ -150,13 +162,24 @@ export function ManagerDashboard() {
             </div>
           ) : pendingApprovals && pendingApprovals.length > 0 ? (
             <div className="space-y-4">
-              {pendingApprovals.slice(0, 5).map((request) => (
+              {nonUrgentApprovals.slice(0, 5).map((request) => (
                 <LeaveRequestCard
                   key={request.id}
                   request={request}
                   from="manager-dashboard"
                 />
               ))}
+              {nonUrgentApprovals.length === 0 &&
+                urgentApprovals.length > 0 && (
+                  <Card>
+                    <CardContent className="flex flex-col items-center justify-center py-8">
+                      <CheckCircle className="mb-3 h-10 w-10 text-green-500" />
+                      <p className="text-muted-foreground text-sm">
+                        All other approvals are shown above
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
               {pendingApprovals.length > 5 && (
                 <Button
                   variant="outline"
