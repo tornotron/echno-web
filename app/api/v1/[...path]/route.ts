@@ -14,6 +14,64 @@ const FORWARDED_HEADERS = [
   'x-request-id',
 ] as const;
 
+// Keys to redact from logged response bodies
+const SENSITIVE_KEYS = [
+  'email',
+  'name',
+  'ssn',
+  'password',
+  'stack',
+  'errorMessage',
+] as const;
+
+const MAX_LOG_BODY_LENGTH = 1000;
+
+/**
+ * Sanitizes response body for logging by redacting sensitive fields
+ * and truncating long content to prevent logging PII or excessive data.
+ */
+function sanitizeResponseBody(data: string): string {
+  try {
+    const parsed = JSON.parse(data);
+    const sanitized = redactSensitiveFields(parsed);
+    return JSON.stringify(sanitized);
+  } catch {
+    // Not JSON, truncate the string
+    if (data.length > MAX_LOG_BODY_LENGTH) {
+      return data.slice(0, Math.max(0, MAX_LOG_BODY_LENGTH)) + '…(truncated)';
+    }
+    return data;
+  }
+}
+
+/**
+ * Recursively redacts sensitive fields from an object
+ */
+function redactSensitiveFields(obj: unknown): unknown {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map((item) => redactSensitiveFields(item));
+  }
+
+  if (typeof obj === 'object') {
+    const result: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj)) {
+      const lowerKey = key.toLowerCase();
+      result[key] = SENSITIVE_KEYS.some((sensitive) =>
+        lowerKey.includes(sensitive)
+      )
+        ? '[REDACTED]'
+        : redactSensitiveFields(value);
+    }
+    return result;
+  }
+
+  return obj;
+}
+
 /**
  * proxyRequest
  *
@@ -112,7 +170,7 @@ async function proxyRequest(
       logger.warn('Backend returned error', {
         status: response.status,
         targetUrl,
-        body: data,
+        body: sanitizeResponseBody(data),
       });
     }
 
