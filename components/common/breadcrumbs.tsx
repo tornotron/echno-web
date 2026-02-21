@@ -6,6 +6,7 @@ import { Budget } from '@/types/finance/budget';
 import { Employee } from '@/types/employee/employee';
 import { LeaveRequest } from '@/types/leave';
 import { Organization } from '@/types/organization';
+import { Task } from '@/types/task';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,7 +30,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Project } from '@/types/project/project';
 import {
-  mockTasks,
   mockIssues,
   mockInspections,
   mockLabour,
@@ -124,7 +124,8 @@ function getNameForId(
   employees?: Employee[],
   leaveRequests?: LeaveRequest[],
   organizations?: Organization[],
-  projects?: Project[]
+  projects?: Project[],
+  task?: Task
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
@@ -135,7 +136,7 @@ function getNameForId(
     );
   }
   if (parentSegment === 'tasks') {
-    return mockTasks.find((t) => t.id === numericId)?.title ?? id;
+    return task?.title ?? `Task ${id}`;
   }
   if (parentSegment === 'issues') {
     return mockIssues.find((i) => i.id === numericId)?.title ?? id;
@@ -254,6 +255,7 @@ interface BreadcrumbsProps {
   projects?: Project[];
   organizations?: Organization[];
   leaveRequest?: LeaveRequest;
+  task?: Task;
 }
 
 export function Breadcrumbs({
@@ -261,6 +263,7 @@ export function Breadcrumbs({
   projects,
   organizations,
   leaveRequest,
+  task,
 }: BreadcrumbsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -314,7 +317,8 @@ export function Breadcrumbs({
             employees,
             leaveRequests,
             organizations,
-            projects
+            projects,
+            task
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
