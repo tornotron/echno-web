@@ -56,7 +56,6 @@ import { LeaveStatusBadge } from '@/components/leave/leave-status-badge';
 import {
   useLeaveRequest,
   useEmployeeRequests,
-  useApprovalHistory,
   useCanApprove,
 } from '@/hooks/leave/use-leave';
 import {
@@ -114,8 +113,9 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
     ? adminRequestLoading
     : employeeRequestsLoading;
 
-  const { data: approvalHistory, isLoading: historyLoading } =
-    useApprovalHistory(requestId, hasApprovalPermission);
+  // Use approvals from the request object itself (available to all users)
+  const approvalHistory = request?.approvals || [];
+
   const { data: canApproveData } = useCanApprove(
     requestId,
     employeeId,
@@ -139,7 +139,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
 
   const { data: managers = [], isLoading: managersLoading } = useManagers();
 
-  const isLoading = requestLoading || (hasApprovalPermission && historyLoading);
+  const isLoading = requestLoading;
   const canApproveRequest = hasApprovalPermission && canApproveData?.canApprove;
 
   const handleApprove = async () => {
@@ -299,25 +299,6 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
               }
             >
               Edit Request
-            </Button>
-          )}
-          {canCancel && (
-            <Button
-              variant="destructive"
-              onClick={() => setShowCancelDialog(true)}
-              disabled={cancelMutation.isPending}
-            >
-              {cancelMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Cancelling...
-                </>
-              ) : (
-                <>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Cancel Request
-                </>
-              )}
             </Button>
           )}
         </div>
