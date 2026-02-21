@@ -11,7 +11,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { DashboardSkeleton } from '@/components/leave/skeletons';
 import { useLeaveRole, LeaveRole } from '@/hooks/leave/use-leave-role';
@@ -43,6 +43,22 @@ export default function LeaveDashboardPage() {
     }
     return LeaveRole.EMPLOYEE;
   });
+
+  // Once roles are resolved, ensure the stored preference is actually available
+  // for this user. If a previous user (e.g. admin) left a role stored in
+  // localStorage that the current user doesn't have, fall back to EMPLOYEE.
+  // Derived (not stored in state) to avoid calling setState inside an effect.
+  const activeView =
+    !roleLoading && !availableRoles.includes(currentView)
+      ? LeaveRole.EMPLOYEE
+      : currentView;
+
+  // Sync corrected preference back to localStorage (external system — no setState).
+  useEffect(() => {
+    if (!roleLoading && !availableRoles.includes(currentView)) {
+      localStorage.setItem(DASHBOARD_PREFERENCE_KEY, LeaveRole.EMPLOYEE);
+    }
+  }, [availableRoles, roleLoading, currentView]);
 
   // Save preference when view changes
   const handleViewChange = (newView: LeaveRole) => {
@@ -87,7 +103,7 @@ export default function LeaveDashboardPage() {
             </p>
           </div>
           <DashboardSwitcher
-            currentRole={currentView}
+            currentRole={activeView}
             availableRoles={availableRoles}
             onRoleChange={handleViewChange}
             pendingApprovalsCount={pendingCount}
@@ -96,9 +112,9 @@ export default function LeaveDashboardPage() {
       )}
 
       {/* Render selected dashboard */}
-      {currentView === LeaveRole.EMPLOYEE && <EmployeeDashboard />}
-      {currentView === LeaveRole.MANAGER && <ManagerDashboard />}
-      {currentView === LeaveRole.ADMIN && <AdminDashboard />}
+      {activeView === LeaveRole.EMPLOYEE && <EmployeeDashboard />}
+      {activeView === LeaveRole.MANAGER && <ManagerDashboard />}
+      {activeView === LeaveRole.ADMIN && <AdminDashboard />}
     </div>
   );
 }

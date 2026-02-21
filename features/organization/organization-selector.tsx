@@ -24,22 +24,16 @@ export function OrganizationSelector() {
 
   const { data: fetchedOrganizations } = useOrganizations();
 
-  // Sync fetched organizations to context
+  // Sync fetched organizations to context.
+  // Default-selection logic lives exclusively in OrganizationProvider's sync
+  // effect so it can reconcile against user.defaultOrganizationId from the
+  // backend. Setting a default here would race and overwrite that preference
+  // when localStorage is empty (e.g. after clearing browser data).
   useEffect(() => {
     if (fetchedOrganizations) {
       setOrganizations(fetchedOrganizations);
-
-      // Set first organization as default if none selected
-      if (!defaultOrganization && fetchedOrganizations.length > 0) {
-        setDefaultOrganization(fetchedOrganizations[0]);
-      }
     }
-  }, [
-    fetchedOrganizations,
-    setOrganizations,
-    defaultOrganization,
-    setDefaultOrganization,
-  ]);
+  }, [fetchedOrganizations, setOrganizations]);
 
   if (!session || contextOrganizations.length === 0) {
     return null;
