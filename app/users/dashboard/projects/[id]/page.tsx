@@ -46,6 +46,7 @@ import {
   AttachmentsUploader,
 } from '@/features/projects/components';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -154,6 +155,8 @@ export default function ProjectDashboardPage() {
       setAttachmentToDelete(null);
     } catch (error) {
       console.error('Failed to delete attachment:', error);
+      toast.error('Failed to delete attachment');
+      setAttachmentToDelete(null);
     }
   };
 
