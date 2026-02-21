@@ -94,9 +94,9 @@ export function TaskAttachmentsSection({
       }
 
       if (invalidFiles.length > 0) {
-        toast.error(
-          `The following files exceed 10MB and were not added: ${invalidFiles.join(', ')}`
-        );
+        toast.error('Some files exceed 10MB', {
+          description: `The following files were not added: ${invalidFiles.join(', ')}`,
+        });
       }
 
       if (validFiles.length > 0) {
