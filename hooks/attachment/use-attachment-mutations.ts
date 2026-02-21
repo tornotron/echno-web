@@ -78,6 +78,11 @@ export function useDeleteAttachment() {
         queryKey: ['projects'],
         refetchType: 'active',
       });
+      // Invalidate tasks queries to refetch task data with updated attachments
+      queryClient.invalidateQueries({
+        queryKey: ['tasks'],
+        refetchType: 'active',
+      });
     },
   });
 }
