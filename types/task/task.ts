@@ -1,5 +1,5 @@
 // types/task/task.ts
-import { Member, memberToJson, parseMember } from '@/types/member';
+import { Employee, parseEmployee, employeeToJson } from '@/types/employee';
 import { Issue, issueToJson, parseIssue } from '@/types/issue';
 import {
   WorkCategory,
@@ -7,16 +7,17 @@ import {
   workCategoryToJson,
 } from './work-category';
 import { TaskStatus, taskStatusFromString } from './task-status';
-import { Attachment } from '@/types/attachment';
+import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface Task {
   id?: number;
   projectId: number;
   title: string;
+  description?: string;
   startDate?: Date;
   endDate?: Date;
-  creator?: Member;
-  assignees?: Member[];
+  creator?: Employee;
+  assignees?: Employee[];
   category?: WorkCategory;
   progress: number;
   tags?: string[];
@@ -29,7 +30,7 @@ export interface Task {
 
 export const creatorId = (task: Task): number | undefined => task.creator?.id;
 export const categoryId = (task: Task): number | undefined => task.category?.id;
-export const asignees = (task: Task): Member[] | undefined => task.assignees;
+export const asignees = (task: Task): Employee[] | undefined => task.assignees;
 
 /** JSON → Task */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -38,11 +39,14 @@ export function parseTask(json: any): Task {
     id: json.id ?? undefined,
     projectId: json.projectId ?? 1,
     title: json.title ?? 'Untitled Task',
+    description: json.description ?? undefined,
     startDate: parseDateTime(json.startDate),
     endDate: parseDateTime(json.endDate),
-    creator: json.creator ? parseMember(json.creator) : undefined,
+    creator: json.creator ? parseEmployee(json.creator) : undefined,
     assignees: json.assignees
-      ? (json.assignees as unknown[]).filter(Boolean).map((m) => parseMember(m))
+      ? (json.assignees as unknown[])
+          .filter(Boolean)
+          .map((m) => parseEmployee(m))
       : [],
     category: json.category ? parseWorkCategory(json.category) : undefined,
     progress: Number(json.progress ?? 0),
@@ -54,6 +58,11 @@ export function parseTask(json: any): Task {
     status: taskStatusFromString(json.status),
     issues: json.issues
       ? (json.issues as unknown[]).filter(Boolean).map((i) => parseIssue(i))
+      : [],
+    attachments: json.attachments
+      ? (json.attachments as unknown[])
+          .filter(Boolean)
+          .map((a) => parseAttachment(a))
       : [],
   };
 }
@@ -76,10 +85,11 @@ export function taskToJson(task: Task): Record<string, unknown> {
     id: task.id,
     projectId: task.projectId,
     title: task.title,
+    description: task.description,
     startDate: task.startDate?.toISOString(),
     endDate: task.endDate?.toISOString(),
-    creator: task.creator ? memberToJson(task.creator) : undefined,
-    assignees: task.assignees?.map((m) => memberToJson(m)),
+    creator: task.creator ? employeeToJson(task.creator) : undefined,
+    assignees: task.assignees?.map((e) => employeeToJson(e)),
     category: task.category ? workCategoryToJson(task.category) : undefined,
     progress: task.progress,
     tags: task.tags ?? [],
