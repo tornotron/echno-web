@@ -42,7 +42,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   Sidebar as SidebarPrimitive,
@@ -264,6 +264,7 @@ function isPathActive(itemUrl: string, currentPath: string) {
 export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
+  const router = useRouter();
   const { state, toggleSidebar } = useSidebar();
 
   // Get employee roles for authorization checks
@@ -489,14 +490,13 @@ export function AppSidebar() {
                           className="w-48"
                         >
                           {item.items?.map((subItem) => (
-                            <DropdownMenuItem key={subItem.title} asChild>
-                              <Link
-                                href={subItem.url}
-                                className="flex cursor-pointer items-center gap-2"
-                              >
-                                <subItem.icon className="h-4 w-4" />
-                                <span>{subItem.title}</span>
-                              </Link>
+                            <DropdownMenuItem
+                              key={subItem.title}
+                              className="flex cursor-pointer items-center gap-2"
+                              onSelect={() => router.push(subItem.url)}
+                            >
+                              <subItem.icon className="h-4 w-4" />
+                              <span>{subItem.title}</span>
                             </DropdownMenuItem>
                           ))}
                         </DropdownMenuContent>
