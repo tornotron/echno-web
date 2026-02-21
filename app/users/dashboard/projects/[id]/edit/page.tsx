@@ -127,7 +127,7 @@ function EditProjectForm({ project }: { project: Project }) {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
             <CardTitle>Project Information</CardTitle>
@@ -142,39 +142,39 @@ function EditProjectForm({ project }: { project: Project }) {
               onStatusChange={handleStatusChange}
               onLocationUpdate={handleLocationUpdate}
             />
-
-            <AttachmentsSection
-              existingAttachments={project.attachments}
-              newAttachments={attachments}
-              onAttachmentsChange={handleAttachmentsChange}
-              onRemoveAttachment={removeAttachment}
-            />
-
-            <div className="flex justify-end gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Changes
-                  </>
-                )}
-              </Button>
-            </div>
           </CardContent>
         </Card>
+
+        <AttachmentsSection
+          existingAttachments={project.attachments}
+          newAttachments={attachments}
+          onAttachmentsChange={handleAttachmentsChange}
+          onRemoveAttachment={removeAttachment}
+        />
+
+        <div className="flex justify-end gap-4">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Changes
+              </>
+            )}
+          </Button>
+        </div>
       </form>
     </div>
   );
