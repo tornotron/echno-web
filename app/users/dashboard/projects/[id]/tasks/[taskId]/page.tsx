@@ -211,11 +211,32 @@ export default function TaskDetailPage({ params }: PageProps) {
               {task.category && (
                 <div>
                   <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                    <Tag className="mr-1 inline h-4 w-4" />
                     Category
                   </label>
-                  <p className="text-zinc-900 dark:text-zinc-100">
-                    {task.category.name}
-                  </p>
+                  <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-gradient-to-br from-zinc-50 to-zinc-100 p-4 transition-all hover:shadow-md dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900">
+                    {task.category.image ? (
+                      <img
+                        src={task.category.image}
+                        alt={task.category.name}
+                        className="h-12 w-12 rounded-md object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-sm">
+                        {task.category.icon}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {task.category.name}
+                      </h4>
+                      {task.category.description && (
+                        <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+                          {task.category.description}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
 
