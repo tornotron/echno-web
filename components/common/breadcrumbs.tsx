@@ -4,10 +4,6 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Budget } from '@/types/finance/budget';
 import { Employee } from '@/types/employee/employee';
-import { useEmployees } from '@/hooks/employee/use-employee';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useLeaveRequest } from '@/hooks/leave/use-leave';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
 import { LeaveRequest } from '@/types/leave';
 import { Organization } from '@/types/organization';
 import {
@@ -253,22 +249,21 @@ const leaveFromMap: Record<string, { label: string; href: string }> = {
   },
 };
 
-export function Breadcrumbs() {
+interface BreadcrumbsProps {
+  employees?: Employee[];
+  projects?: Project[];
+  organizations?: Organization[];
+  leaveRequest?: LeaveRequest;
+}
+
+export function Breadcrumbs({
+  employees,
+  projects,
+  organizations,
+  leaveRequest,
+}: BreadcrumbsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: employees } = useEmployees();
-  const { data: projects } = useProjects();
-  const { data: organizations } = useOrganizations();
-
-  // Extract leave request ID from path if present
-  const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
-  const leaveRequestId = leaveRequestIdMatch
-    ? Number.parseInt(leaveRequestIdMatch[1], 10)
-    : undefined;
-  const { data: leaveRequest } = useLeaveRequest(
-    leaveRequestId ?? 0,
-    !!leaveRequestId
-  );
 
   // Convert single leave request to array for consistency with getNameForId signature
   const leaveRequests = leaveRequest ? [leaveRequest] : undefined;
