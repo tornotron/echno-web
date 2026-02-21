@@ -1,23 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { workCategoryService } from '@/services/work-category-service';
-import { ApiError } from '@/lib/api/api-client';
-
-/**
- * Determine if an error should trigger a retry.
- */
-function shouldRetry(failureCount: number, error: Error): boolean {
-  if (failureCount >= 3) return false;
-
-  if (error instanceof ApiError) {
-    if (error.isAuthError || error.isNotFound) return false;
-    if (error.isServerError || error.isTimeout || error.status === 0)
-      return true;
-    if (error.status === 429) return true;
-    if (error.status >= 400 && error.status < 500) return false;
-  }
-
-  return true;
-}
+import { shouldRetry } from '@/lib/utils/retry';
 
 /**
  * Hook to fetch all work categories.
