@@ -112,6 +112,7 @@ async function proxyRequest(
       logger.warn('Backend returned error', {
         status: response.status,
         targetUrl,
+        body: data,
       });
     }
 

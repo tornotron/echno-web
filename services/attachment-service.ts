@@ -118,16 +118,14 @@ export const attachmentService = {
 
   /**
    * Delete an attachment by ID.
-   *
-   * TODO: Update endpoint URL once backend is ready
+   * Endpoint: DELETE /attachment/web/attachmentId/{id}
    *
    * @param {number} id - Attachment ID to delete
    * @returns {Promise<void>} Resolves when delete completes
    * @throws {ApiError} on network or server errors
    */
   async delete(id: number): Promise<void> {
-    // TODO: Verify if this endpoint exists in backend
-    await api.delete(`/attachment/web/${id}`);
+    await api.delete(`/attachment/web/attachmentId/${id}`);
   },
 
   /**
