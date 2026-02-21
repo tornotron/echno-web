@@ -2,16 +2,21 @@
 
 import { FolderKanban, Loader2 } from 'lucide-react';
 import { useProjectsByEmployee } from '@/hooks/project';
+import type { Project } from '@/types/project';
 
 interface EmployeeProjectsCellProps {
-  employeeId: number;
+  projects: Project[] | undefined;
+  isLoading: boolean;
 }
 
+/**
+ * Pure presentational component that displays employee projects.
+ * Accepts projects data and loading state as props.
+ */
 export function EmployeeProjectsCell({
-  employeeId,
+  projects,
+  isLoading,
 }: EmployeeProjectsCellProps) {
-  const { data: projects, isLoading } = useProjectsByEmployee(employeeId);
-
   if (isLoading) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-zinc-400">
@@ -32,7 +37,7 @@ export function EmployeeProjectsCell({
 
   return (
     <div className="flex flex-col gap-1.5">
-      {projects.slice(0, projects.length > 2 ? 1 : 2).map((proj) => (
+      {projects.slice(0, 2).map((proj) => (
         <div
           key={proj.id}
           className="flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 dark:bg-blue-900/20"
@@ -47,10 +52,26 @@ export function EmployeeProjectsCell({
         <div className="flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 dark:bg-zinc-800">
           <FolderKanban className="h-3 w-3 shrink-0 text-zinc-500 dark:text-zinc-400" />
           <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-            +{projects.length - 1} more
+            +{projects.length - 2} more
           </span>
         </div>
       )}
     </div>
   );
+}
+
+interface EmployeeProjectsCellContainerProps {
+  employeeId: number;
+}
+
+/**
+ * Container component that fetches employee projects data and renders EmployeeProjectsCell.
+ * This component handles the data fetching logic.
+ */
+export function EmployeeProjectsCellContainer({
+  employeeId,
+}: EmployeeProjectsCellContainerProps) {
+  const { data: projects, isLoading } = useProjectsByEmployee(employeeId);
+
+  return <EmployeeProjectsCell projects={projects} isLoading={isLoading} />;
 }

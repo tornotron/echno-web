@@ -42,7 +42,7 @@ import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
-import { EmployeeProjectsCell } from '@/components/workforce/employee-projects-cell';
+import { EmployeeProjectsCellContainer } from '@/components/workforce/employee-projects-cell';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -115,8 +115,12 @@ export default function EmployeesPage() {
       const matchesStatus =
         statusFilter === 'all' || employee.status === statusFilter;
 
-      // Project filter - kept for future backend support
-      const matchesProject = projectFilter === 'all';
+      // Project filter
+      const matchesProject =
+        projectFilter === 'all' ||
+        employee.currentProjects?.some(
+          (project) => project.id?.toString() === projectFilter
+        );
 
       // Department filter
       const matchesDepartment =
@@ -625,7 +629,9 @@ export default function EmployeesPage() {
                       </TableCell>
                       <TableCell>
                         {employee.id !== undefined && (
-                          <EmployeeProjectsCell employeeId={employee.id} />
+                          <EmployeeProjectsCellContainer
+                            employeeId={employee.id}
+                          />
                         )}
                       </TableCell>
                       <TableCell>
