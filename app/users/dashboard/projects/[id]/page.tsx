@@ -4,8 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
-import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
-import { toast } from '@/lib/styles/toast-styles';
 import {
   Card,
   CardContent,
@@ -14,7 +12,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -35,8 +32,6 @@ import {
   Sheet,
   Box,
   File,
-  Upload,
-  Loader2,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -45,7 +40,10 @@ import {
 import { TaskStatus } from '@/types/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { format } from 'date-fns';
-import { TeamMembersSection } from '@/features/projects/components';
+import {
+  TeamMembersSection,
+  AttachmentsUploader,
+} from '@/features/projects/components';
 
 // Helper function to validate attachment URLs
 function isValidAttachmentUrl(url: string): boolean {
@@ -126,44 +124,9 @@ export default function ProjectDashboardPage() {
     ? Number.parseInt(params.id as string)
     : undefined;
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
-  const updateProjectWithFiles = useUpdateProjectWithFiles();
 
   // Fetch project data
   const { data: project, isLoading, error } = useProject(projectId);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0 || !projectId) return;
-
-    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-    const selectedFiles = [...e.target.files];
-    const validFiles: File[] = [];
-    const invalidFiles: string[] = [];
-
-    for (const file of selectedFiles) {
-      if (file.size > MAX_FILE_SIZE) {
-        invalidFiles.push(file.name);
-      } else {
-        validFiles.push(file);
-      }
-    }
-
-    if (invalidFiles.length > 0) {
-      toast.error(
-        `The following files exceed 10MB and were not uploaded: ${invalidFiles.join(', ')}`
-      );
-    }
-
-    if (validFiles.length > 0) {
-      updateProjectWithFiles.mutate({
-        id: projectId,
-        data: {},
-        files: { attachments: validFiles },
-      });
-    }
-
-    // Reset input so same file can be selected again
-    e.target.value = '';
-  };
 
   if (isLoading) {
     return (
@@ -511,44 +474,11 @@ export default function ProjectDashboardPage() {
                   Files attached to this project
                 </CardDescription>
               </div>
-              <div>
-                <Input
-                  id="attachment-upload"
-                  type="file"
-                  onChange={handleFileUpload}
-                  multiple
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={updateProjectWithFiles.isPending}
-                  onClick={() =>
-                    (
-                      document.querySelector(
-                        '#attachment-upload'
-                      ) as HTMLElement
-                    )?.click()
-                  }
-                >
-                  {updateProjectWithFiles.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload
-                    </>
-                  )}
-                </Button>
-              </div>
+              {projectId && <AttachmentsUploader projectId={projectId} />}
             </CardHeader>
             <CardContent>
               {project.attachments && project.attachments.length > 0 ? (
-                <div className="space-y-2">
+                <div className="flex flex-wrap gap-3">
                   {project.attachments.map((attachment) => {
                     const Icon = getAttachmentIcon(attachment.fileType);
                     const attachmentKey =
@@ -560,53 +490,27 @@ export default function ProjectDashboardPage() {
                     return (
                       <div
                         key={attachmentKey}
-                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                        className="group relative flex h-28 w-28 flex-col items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                       >
-                        <div className="flex min-w-0 flex-1 items-center space-x-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                            <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                              {attachment.fileName}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                              <span>{formatFileSize(attachment.fileSize)}</span>
-                              <span>•</span>
-                              <span>
-                                Uploaded{' '}
-                                {format(attachment.createdAt, 'MMM d, yyyy')}
-                              </span>
-                              <span>•</span>
-                              <span>{attachment.uploadedBy}</span>
-                            </div>
-                            {attachment.description && (
-                              <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">
-                                {attachment.description}
-                              </p>
-                            )}
-                          </div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                          <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          asChild={isValidUrl}
-                          disabled={!isValidUrl}
-                        >
-                          {isValidUrl ? (
-                            <a
-                              href={safeDownloadUrl}
-                              download
-                              aria-label={`Download ${attachment.fileName}`}
-                            >
-                              <Download className="h-4 w-4" />
-                            </a>
-                          ) : (
-                            <span>
-                              <Download className="h-4 w-4" />
-                            </span>
-                          )}
-                        </Button>
+                        <p className="w-full truncate text-center text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                          {attachment.fileName}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {formatFileSize(attachment.fileSize)}
+                        </p>
+                        {isValidUrl && (
+                          <a
+                            href={safeDownloadUrl}
+                            download
+                            aria-label={`Download ${attachment.fileName}`}
+                            className="absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-900/60 opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            <Download className="h-5 w-5 text-white" />
+                          </a>
+                        )}
                       </div>
                     );
                   })}
