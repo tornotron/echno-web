@@ -20,6 +20,7 @@ import { useEmployees } from '@/hooks/employee/use-employee';
 import { useProjects } from '@/hooks/project/use-projects';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
 import { useLeaveRequest } from '@/hooks/leave/use-leave';
+import { useTask } from '@/hooks/task/use-tasks';
 import { useEffect } from 'react';
 
 interface AppLayoutProps {
@@ -49,6 +50,11 @@ function AppLayoutContent({ children }: AppLayoutProps) {
     leaveRequestId ?? 0,
     !!leaveRequestId
   );
+
+  // Extract task ID from path if present
+  const taskIdMatch = pathname.match(/\/tasks\/(\d+)/);
+  const taskId = taskIdMatch ? Number.parseInt(taskIdMatch[1], 10) : undefined;
+  const { data: task } = useTask(taskId);
 
   // Redirect to organizations page if user has no default organization
   useEffect(() => {
@@ -98,6 +104,7 @@ function AppLayoutContent({ children }: AppLayoutProps) {
               projects={projects}
               organizations={organizations}
               leaveRequest={leaveRequest}
+              task={task}
             />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
