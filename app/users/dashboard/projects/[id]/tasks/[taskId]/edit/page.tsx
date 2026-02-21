@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -21,7 +21,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Upload,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   X,
   Save,
   AlertCircle,
@@ -29,38 +36,57 @@ import {
   FileText,
   Tag,
   Trash2,
+  Loader2,
+  Plus,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
-import { mockTasks, mockProjects } from '@/components/shared/mock-data';
+import {
+  useProject,
+  useEmployeesByProject,
+} from '@/hooks/project/use-projects';
+import { useTask, useUpdateTaskWithFiles, useDeleteTask } from '@/hooks/task';
+import {
+  useWorkCategories,
+  useCreateWorkCategory,
+} from '@/hooks/work-category';
+import { abbreviatedName } from '@/types/task/work-category';
+import { useCurrentUserEmployee } from '@/hooks/employee';
 import { toast } from '@/lib/styles/toast-styles';
+import { TaskAttachmentsSection } from '@/features/tasks/components';
 
-const mockCategories = [
-  { id: 1, name: 'Civil Engineering', icon: 'CE' },
-  { id: 2, name: 'Electrical Works', icon: 'EW' },
-  { id: 3, name: 'Mechanical Installation', icon: 'MI' },
-  { id: 4, name: 'Safety & Compliance', icon: 'SC' },
-  { id: 5, name: 'Quality Assurance', icon: 'QA' },
-];
+function formatDateForInput(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
-const mockMembers = [
-  { id: 1, name: 'Rajesh Kumar', department: 'Engineering' },
-  { id: 2, name: 'Priya Sharma', department: 'Engineering' },
-  { id: 3, name: 'Amit Patel', department: 'Engineering' },
-  { id: 4, name: 'Sneha Reddy', department: 'Quality' },
-  { id: 5, name: 'Vikram Singh', department: 'Safety' },
-];
+interface FormState {
+  initialized: boolean;
+  title: string;
+  startDate: string;
+  endDate: string;
+  categoryId: string;
+  status: TaskStatus;
+  progress: string;
+  selectedAssignees: string[];
+  selectedTags: string[];
+  description: string;
+}
 
-const availableTags = [
-  'Urgent',
-  'High Priority',
-  'Documentation',
-  'Testing',
-  'Review Required',
-  'Client Deliverable',
-  'Internal',
-  'Blocked',
-];
+const defaultForm: FormState = {
+  initialized: false,
+  title: '',
+  startDate: '',
+  endDate: '',
+  categoryId: '',
+  status: TaskStatus.upcoming,
+  progress: '0',
+  selectedAssignees: [],
+  selectedTags: [],
+  description: '',
+};
 
 interface PageProps {
   params: Promise<{ id: string; taskId: string }>;
@@ -70,43 +96,94 @@ export default function EditTaskPage({ params }: PageProps) {
   const { id: projectId, taskId: taskIdParam } = use(params);
   const router = useRouter();
   const taskId = Number.parseInt(taskIdParam);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-
-  // Find the task to edit
-  const taskToEdit = mockTasks.find((t) => t.id === taskId);
   const projectIdNum = Number.parseInt(projectId);
-  const project = mockProjects.find((p) => p.id === projectIdNum);
 
-  // Form state - initialize with existing task data
-  const [title, setTitle] = useState(taskToEdit?.title || '');
-  const [startDate, setStartDate] = useState(
-    taskToEdit?.startDate
-      ? taskToEdit.startDate.toISOString().split('T')[0]
-      : ''
-  );
-  const [endDate, setEndDate] = useState(
-    taskToEdit?.endDate ? taskToEdit.endDate.toISOString().split('T')[0] : ''
-  );
-  const [categoryId, setCategoryId] = useState<string>(
-    taskToEdit?.category?.id?.toString() || ''
-  );
-  const [status, setStatus] = useState<TaskStatus>(
-    taskToEdit?.status || TaskStatus.upcoming
-  );
-  const [progress, setProgress] = useState(
-    (taskToEdit?.progress || 0).toString()
-  );
-  const [selectedAssignees, setSelectedAssignees] = useState<string[]>(
-    taskToEdit?.assignees?.map((a) => a.id?.toString() || '') || []
-  );
-  const [selectedTags, setSelectedTags] = useState<string[]>(
-    taskToEdit?.tags || []
-  );
-  const [description, setDescription] = useState('');
+  const { data: taskToEdit, isLoading, isError } = useTask(taskId);
+  const { data: project } = useProject(projectIdNum);
+  const { data: projectMembers = [] } = useEmployeesByProject(projectIdNum);
+  const { data: workCategories = [] } = useWorkCategories();
+  const createWorkCategory = useCreateWorkCategory();
+  const updateTask = useUpdateTaskWithFiles();
+  const deleteTask = useDeleteTask();
+  const { data: currentEmployee } = useCurrentUserEmployee();
+
+  // Create category dialog state
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryDescription, setNewCategoryDescription] = useState('');
+
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) {
+      toast.error('Validation Error', {
+        description: 'Please enter a category name',
+      });
+      return;
+    }
+    if (!newCategoryDescription.trim()) {
+      toast.error('Validation Error', {
+        description: 'Please enter a category description',
+      });
+      return;
+    }
+    createWorkCategory.mutate(
+      {
+        name: newCategoryName.trim(),
+        description: newCategoryDescription.trim() || undefined,
+      },
+      {
+        onSuccess: (created) => {
+          setForm((prev) => ({
+            ...prev,
+            categoryId: created.id?.toString() || '',
+          }));
+          setNewCategoryName('');
+          setNewCategoryDescription('');
+          setShowCreateCategory(false);
+        },
+      }
+    );
+  };
+
+  // Form state (consolidated to satisfy react-hooks/set-state-in-effect)
+  const [form, setForm] = useState<FormState>(defaultForm);
+  const [tagInput, setTagInput] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  if (!taskToEdit) {
+  // Populate form when task data loads.
+  // Wait for workCategories before prefilling so the Select has matching
+  // items available — otherwise Radix Select may not update the trigger text.
+  // Using form.initialized (state, not ref) so React Strict Mode's simulated
+  // unmount/remount correctly resets the flag and allows re-initialization.
+  useEffect(() => {
+    if (!taskToEdit || form.initialized) return;
+    if (taskToEdit.category && workCategories.length === 0) return;
+
+    setForm({
+      initialized: true,
+      title: taskToEdit.title || '',
+      startDate: taskToEdit.startDate
+        ? formatDateForInput(taskToEdit.startDate)
+        : '',
+      endDate: taskToEdit.endDate ? formatDateForInput(taskToEdit.endDate) : '',
+      categoryId: taskToEdit.category?.id?.toString() || '',
+      status: taskToEdit.status || TaskStatus.upcoming,
+      progress: (taskToEdit.progress || 0).toString(),
+      selectedAssignees:
+        taskToEdit.assignees?.map((a) => a.id?.toString() || '') || [],
+      selectedTags: taskToEdit.tags || [],
+      description: taskToEdit.description || '',
+    });
+  }, [taskToEdit, workCategories, form.initialized]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (isError || !taskToEdit) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <Card>
@@ -120,7 +197,7 @@ export default function EditTaskPage({ params }: PageProps) {
             </p>
             <Button
               onClick={() =>
-                router.push(`/dashboard/projects/${projectId}/tasks`)
+                router.push(`/users/dashboard/projects/${projectId}/tasks`)
               }
             >
               Back to Tasks
@@ -132,11 +209,8 @@ export default function EditTaskPage({ params }: PageProps) {
   }
 
   // Handle file upload
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = [...e.target.files];
-      setAttachments([...attachments, ...newFiles]);
-    }
+  const handleAttachmentsChange = (files: File[]) => {
+    setAttachments(files);
   };
 
   // Remove attachment
@@ -146,23 +220,48 @@ export default function EditTaskPage({ params }: PageProps) {
 
   // Toggle assignee
   const toggleAssignee = (memberId: string) => {
-    setSelectedAssignees((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
-    );
+    setForm((prev) => ({
+      ...prev,
+      selectedAssignees: prev.selectedAssignees.includes(memberId)
+        ? prev.selectedAssignees.filter((id) => id !== memberId)
+        : [...prev.selectedAssignees, memberId],
+    }));
   };
 
-  // Toggle tag
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+  const addTag = (value: string) => {
+    const tag = value.trim();
+    if (tag && !form.selectedTags.includes(tag)) {
+      setForm((prev) => ({
+        ...prev,
+        selectedTags: [...prev.selectedTags, tag],
+      }));
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string) => {
+    setForm((prev) => ({
+      ...prev,
+      selectedTags: prev.selectedTags.filter((t) => t !== tag),
+    }));
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(tagInput);
+    } else if (
+      e.key === 'Backspace' &&
+      tagInput === '' &&
+      form.selectedTags.length > 0
+    ) {
+      removeTag(form.selectedTags[form.selectedTags.length - 1]);
+    }
   };
 
   // Handle status change with immediate feedback
   const handleStatusChange = (newStatus: TaskStatus) => {
-    setStatus(newStatus);
+    setForm((prev) => ({ ...prev, status: newStatus }));
     toast.success('Status Updated', {
       description: `Task status changed to ${getTaskStatusLabel(newStatus)}`,
     });
@@ -170,7 +269,7 @@ export default function EditTaskPage({ params }: PageProps) {
 
   // Handle progress change with immediate feedback
   const handleProgressChange = (newProgress: string) => {
-    setProgress(newProgress);
+    setForm((prev) => ({ ...prev, progress: newProgress }));
     // Show toast only at milestones
     const progressNum = Number.parseInt(newProgress);
     if (progressNum % 25 === 0 && progressNum > 0) {
@@ -188,39 +287,51 @@ export default function EditTaskPage({ params }: PageProps) {
       });
       return false;
     }
-    if (!title.trim()) {
+    if (!form.title.trim()) {
       toast.error('Validation Error', {
         description: 'Please enter a task title',
       });
       return false;
     }
-    if (title.trim().length < 5) {
+    if (form.title.trim().length < 5) {
       toast.error('Validation Error', {
         description: 'Title must be at least 5 characters',
       });
       return false;
     }
-    if (!startDate) {
+    if (!form.startDate) {
       toast.error('Validation Error', {
         description: 'Please select a start date',
       });
       return false;
     }
-    if (!endDate) {
+    if (!form.endDate) {
       toast.error('Validation Error', {
         description: 'Please select an end date',
       });
       return false;
     }
-    if (new Date(startDate) > new Date(endDate)) {
+    if (new Date(form.startDate) > new Date(form.endDate)) {
       toast.error('Validation Error', {
         description: 'Start date cannot be after end date',
       });
       return false;
     }
-    if (selectedAssignees.length === 0) {
+    if (!form.categoryId) {
+      toast.error('Validation Error', {
+        description: 'Please select a work category',
+      });
+      return false;
+    }
+    if (form.selectedAssignees.length === 0) {
       toast.error('Validation Error', {
         description: 'Please assign at least one member',
+      });
+      return false;
+    }
+    if (!currentEmployee?.id) {
+      toast.error('Validation Error', {
+        description: 'Unable to identify current user. Please try again.',
       });
       return false;
     }
@@ -237,21 +348,11 @@ export default function EditTaskPage({ params }: PageProps) {
       return;
     }
 
-    setIsDeleting(true);
-    try {
-      // TODO: Implement API call to delete task
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success('Task Deleted', {
-        description: 'The task has been deleted successfully',
-      });
-      router.push(`/dashboard/projects/${projectId}/tasks`);
-    } catch {
-      toast.error('Error', {
-        description: 'Failed to delete task. Please try again.',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
+    deleteTask.mutate(taskId, {
+      onSuccess: () => {
+        router.push(`/users/dashboard/projects/${projectId}/tasks`);
+      },
+    });
   };
 
   // Handle submit
@@ -260,22 +361,40 @@ export default function EditTaskPage({ params }: PageProps) {
 
     if (!validateForm()) return;
 
-    setIsSubmitting(true);
-    try {
-      // TODO: Implement API call to update task
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Task Updated', {
-        description: `Task "${title}" has been updated successfully`,
-      });
-      router.push(`/dashboard/projects/${projectId}/tasks/${taskId}`);
-    } catch {
-      toast.error('Error', {
-        description: 'Failed to update task. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    const selectedCategory = workCategories.find(
+      (c) => c.id?.toString() === form.categoryId
+    );
+
+    updateTask.mutate(
+      {
+        id: taskId,
+        data: {
+          projectId: projectIdNum,
+          title: form.title,
+          description: form.description,
+          startDate: form.startDate ? new Date(form.startDate) : undefined,
+          endDate: form.endDate ? new Date(form.endDate) : undefined,
+          creator: currentEmployee,
+          category: selectedCategory,
+          status: form.status,
+          progress: Number.parseInt(form.progress),
+          tags: form.selectedTags,
+          assignees: form.selectedAssignees
+            .map((sid) => projectMembers.find((m) => m.id?.toString() === sid))
+            .filter(Boolean) as typeof projectMembers,
+        },
+        files: { attachments },
+      },
+      {
+        onSuccess: () => {
+          router.push(`/users/dashboard/projects/${projectId}/tasks/${taskId}`);
+        },
+      }
+    );
   };
+
+  const isSubmitting = updateTask.isPending;
+  const isDeleting = deleteTask.isPending;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -291,7 +410,7 @@ export default function EditTaskPage({ params }: PageProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">
@@ -315,11 +434,13 @@ export default function EditTaskPage({ params }: PageProps) {
                   <Input
                     id="title"
                     placeholder="Enter task title..."
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
+                    value={form.title}
+                    onChange={(e) =>
+                      setForm((prev) => ({ ...prev, title: e.target.value }))
+                    }
                   />
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    Minimum 5 characters ({title.length}/5)
+                    Minimum 5 characters ({form.title.length}/5)
                   </p>
                 </div>
 
@@ -329,8 +450,13 @@ export default function EditTaskPage({ params }: PageProps) {
                   <Textarea
                     id="description"
                     placeholder="Provide detailed information about the task..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    value={form.description}
+                    onChange={(e) =>
+                      setForm((prev) => ({
+                        ...prev,
+                        description: e.target.value,
+                      }))
+                    }
                     rows={5}
                     className="resize-none"
                   />
@@ -345,8 +471,9 @@ export default function EditTaskPage({ params }: PageProps) {
                     <Input
                       id="startDate"
                       type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
+                      value={form.startDate}
+                      readOnly
+                      className="cursor-not-allowed opacity-60"
                     />
                   </div>
                   <div className="space-y-2">
@@ -356,9 +483,14 @@ export default function EditTaskPage({ params }: PageProps) {
                     <Input
                       id="endDate"
                       type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      min={startDate}
+                      value={form.endDate}
+                      onChange={(e) =>
+                        setForm((prev) => ({
+                          ...prev,
+                          endDate: e.target.value,
+                        }))
+                      }
+                      min={form.startDate}
                     />
                   </div>
                 </div>
@@ -367,21 +499,37 @@ export default function EditTaskPage({ params }: PageProps) {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="category">Work Category</Label>
-                    <Select value={categoryId} onValueChange={setCategoryId}>
+                    <Select
+                      key={String(form.initialized)}
+                      value={form.categoryId}
+                      onValueChange={(value) => {
+                        if (value === '__create__') {
+                          setShowCreateCategory(true);
+                        } else {
+                          setForm((prev) => ({ ...prev, categoryId: value }));
+                        }
+                      }}
+                    >
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {workCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id!.toString()}>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                {cat.icon}
+                                {cat.icon || abbreviatedName(cat)}
                               </Badge>
                               {cat.name}
                             </div>
                           </SelectItem>
                         ))}
+                        <SelectItem value="__create__">
+                          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                            <Plus className="h-3 w-3" />
+                            Create new category
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -390,7 +538,8 @@ export default function EditTaskPage({ params }: PageProps) {
                       Status <span className="text-red-500">*</span>
                     </Label>
                     <Select
-                      value={status}
+                      key={String(form.initialized)}
+                      value={form.status}
                       onValueChange={(value) =>
                         handleStatusChange(value as TaskStatus)
                       }
@@ -412,7 +561,7 @@ export default function EditTaskPage({ params }: PageProps) {
                 {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-4">
-                    <Label htmlFor="progress" className="flex-shrink-0">
+                    <Label htmlFor="progress" className="shrink-0">
                       Progress
                     </Label>
                     <div className="flex items-center gap-2">
@@ -420,7 +569,7 @@ export default function EditTaskPage({ params }: PageProps) {
                         type="number"
                         min="0"
                         max="100"
-                        value={progress}
+                        value={form.progress}
                         onChange={(e) => {
                           const value = Math.min(
                             100,
@@ -441,7 +590,7 @@ export default function EditTaskPage({ params }: PageProps) {
                     min="0"
                     max="100"
                     step="5"
-                    value={progress}
+                    value={form.progress}
                     onChange={(e) => handleProgressChange(e.target.value)}
                     className="w-full"
                   />
@@ -449,77 +598,13 @@ export default function EditTaskPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {/* Assignees Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Assign Team Members
-                </CardTitle>
-                <CardDescription>
-                  Update team members working on this task
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {mockMembers.map((member) => (
-                    <div
-                      key={member.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
-                        selectedAssignees.includes(member.id.toString())
-                          ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
-                          : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
-                      }`}
-                      onClick={() => toggleAssignee(member.id.toString())}
-                    >
-                      <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {member.name}
-                        </p>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                          {member.department}
-                        </p>
-                      </div>
-                      {selectedAssignees.includes(member.id.toString()) && (
-                        <Badge className="bg-blue-600">Assigned</Badge>
-                      )}
-                    </div>
-                  ))}
-                </div>
-                {selectedAssignees.length === 0 && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                    * At least one team member must be assigned
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex justify-between">
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={isSubmitting || isDeleting}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {isDeleting ? 'Deleting...' : 'Delete Task'}
-              </Button>
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting || isDeleting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting || isDeleting}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </div>
+            {/* Attachments Section */}
+            <TaskAttachmentsSection
+              existingAttachments={taskToEdit?.attachments}
+              newAttachments={attachments}
+              onAttachmentsChange={handleAttachmentsChange}
+              onRemoveAttachment={removeAttachment}
+            />
           </div>
 
           {/* Sidebar */}
@@ -543,14 +628,14 @@ export default function EditTaskPage({ params }: PageProps) {
                     Assignees
                   </span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {selectedAssignees.length} member
-                    {selectedAssignees.length === 1 ? '' : 's'}
+                    {form.selectedAssignees.length} member
+                    {form.selectedAssignees.length === 1 ? '' : 's'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-600 dark:text-zinc-400">Tags</span>
                   <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {selectedTags.length}
+                    {form.selectedTags.length}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -565,16 +650,78 @@ export default function EditTaskPage({ params }: PageProps) {
                   <span className="text-zinc-600 dark:text-zinc-400">
                     Status
                   </span>
-                  <Badge variant="outline">{getTaskStatusLabel(status)}</Badge>
+                  <Badge variant="outline">
+                    {getTaskStatusLabel(form.status)}
+                  </Badge>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-zinc-600 dark:text-zinc-400">
                     Progress
                   </span>
                   <span className="font-bold text-blue-600 dark:text-blue-400">
-                    {progress}%
+                    {form.progress}%
                   </span>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Assignees Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4" />
+                  Assign Team Members
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Update team members working on this task
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {projectMembers.length > 0 ? (
+                    projectMembers.map((member) => {
+                      const isSelected = form.selectedAssignees.includes(
+                        member.id?.toString() || ''
+                      );
+                      const cardClass = isSelected
+                        ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                        : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700';
+
+                      return (
+                        <div
+                          key={member.id}
+                          className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
+                          onClick={() =>
+                            toggleAssignee(member.id?.toString() || '')
+                          }
+                        >
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {member.name}
+                            </p>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                              {member.designation ||
+                                member.department ||
+                                'Team Member'}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <Badge className="bg-blue-600">Assigned</Badge>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      No team members found for this project
+                    </p>
+                  )}
+                </div>
+                {form.selectedAssignees.length === 0 && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    * At least one team member must be assigned
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -586,96 +733,122 @@ export default function EditTaskPage({ params }: PageProps) {
                   Tags
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => (
+                  {form.selectedTags.map((tag) => (
                     <Badge
                       key={tag}
-                      variant={
-                        selectedTags.includes(tag) ? 'default' : 'outline'
-                      }
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleTag(tag)}
+                      variant="secondary"
+                      className="gap-1 text-xs"
                     >
                       {tag}
-                      {selectedTags.includes(tag) && (
-                        <X className="ml-1 h-3 w-3" />
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="ml-0.5 rounded-full hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                        aria-label={`Remove tag ${tag}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Attachments Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4" />
-                  Add Attachments
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="attachments-sidebar"
-                      type="file"
-                      onChange={handleFileChange}
-                      multiple
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.dwg"
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() =>
-                        (
-                          document.querySelector(
-                            '#attachments-sidebar'
-                          ) as HTMLElement
-                        )?.click()
-                      }
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Files
-                    </Button>
-                  </div>
-                </div>
-
-                {attachments.length > 0 && (
-                  <div className="space-y-2">
-                    {attachments.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800"
-                      >
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <FileText className="h-3 w-3 shrink-0 text-zinc-500" />
-                          <span className="truncate text-xs text-zinc-900 dark:text-zinc-100">
-                            {file.name}
-                          </span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => removeAttachment(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <Input
+                  placeholder="Type a tag and press Enter or comma..."
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  onBlur={() => addTag(tagInput)}
+                />
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Press Enter or comma to add a tag. Backspace removes the last
+                  one.
+                </p>
               </CardContent>
             </Card>
           </div>
         </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between">
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isSubmitting || isDeleting}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {isDeleting ? 'Deleting...' : 'Delete Task'}
+          </Button>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isSubmitting || isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting || isDeleting}>
+              <Save className="mr-2 h-4 w-4" />
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </div>
       </form>
+
+      {/* Create Category Dialog */}
+      <Dialog open={showCreateCategory} onOpenChange={setShowCreateCategory}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Work Category</DialogTitle>
+            <DialogDescription>
+              Add a new work category for your tasks
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="new-category-name">
+                Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="new-category-name"
+                placeholder="e.g. Civil Engineering"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-category-description">
+                Description <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="new-category-description"
+                placeholder="Describe this category..."
+                value={newCategoryDescription}
+                onChange={(e) => setNewCategoryDescription(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateCategory(false)}
+              disabled={createWorkCategory.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateCategory}
+              disabled={createWorkCategory.isPending}
+            >
+              {createWorkCategory.isPending ? 'Creating...' : 'Create Category'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
