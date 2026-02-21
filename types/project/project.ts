@@ -16,6 +16,7 @@ export interface Project {
   startDate?: Date;
   endDate?: Date;
   createdAt?: Date;
+  progress: number;
   members: Employee[];
   tasks: Task[];
   attachments?: Attachment[];
@@ -56,6 +57,7 @@ export function parseProject(json: any): Project {
     startDate: json.startDate ? new Date(json.startDate) : undefined,
     endDate: json.endDate ? new Date(json.endDate) : undefined,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
+    progress: Number(json.progress ?? 0),
     members: json.employees
       ? (json.employees as unknown[]).map((e) => parseEmployee(e))
       : [],
