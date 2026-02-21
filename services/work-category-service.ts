@@ -27,6 +27,21 @@ function safeParseWorkCategory(data: ApiResponse): WorkCategory {
  */
 function safeParseWorkCategories(data: ApiResponse[]): WorkCategory[] {
   if (!Array.isArray(data)) {
+    const dataType = data === null ? 'null' : typeof data;
+    let preview: string;
+    try {
+      const stringified = JSON.stringify(data);
+      preview =
+        stringified.length > 200
+          ? stringified.slice(0, 200) + '...'
+          : stringified;
+    } catch {
+      preview = String(data).slice(0, 200);
+    }
+    logger.warn(
+      'safeParseWorkCategories: API contract violation - expected array but received ' +
+        `${dataType}. Preview: ${preview}. parseWorkCategory will not be called.`
+    );
     return [];
   }
   try {
