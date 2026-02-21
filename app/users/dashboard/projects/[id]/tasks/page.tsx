@@ -2,11 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  mockTasks,
-  mockProjects,
-  mockIssues,
-} from '@/components/shared/mock-data';
+import { useProject } from '@/hooks/project/use-projects';
+import { useTasksByProject } from '@/hooks/task';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -31,7 +28,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ListTodo, Plus, Calendar, AlertCircle, ArrowLeft } from 'lucide-react';
+import {
+  ListTodo,
+  Plus,
+  Calendar,
+  AlertCircle,
+  ArrowLeft,
+  Loader2,
+} from 'lucide-react';
 import Link from 'next/link';
 import { TaskStatus } from '@/types/task';
 import { format } from 'date-fns';
@@ -40,17 +44,17 @@ export default function ProjectTasksPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = Number.parseInt(params.id as string);
-  const project = mockProjects.find((p) => p.id === projectId);
+  const { data: project } = useProject(projectId);
+  const {
+    data: projectTasks = [],
+    isLoading,
+    isError,
+  } = useTasksByProject(projectId);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
-  // Filter tasks by project ID
-  const projectTasks = useMemo(() => {
-    return mockTasks.filter((task) => task.projectId === projectId);
-  }, [projectId]);
 
   // Filter tasks by search and status
   const filteredTasks = useMemo(() => {
@@ -152,6 +156,32 @@ export default function ProjectTasksPage() {
             </Link>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Failed to load tasks
+            </h3>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Something went wrong while fetching tasks. Please try again.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -313,9 +343,7 @@ export default function ProjectTasksPage() {
               </TableHeader>
               <TableBody>
                 {paginatedTasks.map((task) => {
-                  const taskIssues = mockIssues.filter((issue) =>
-                    task.issues?.some((i) => i.id === issue.id)
-                  );
+                  const taskIssues = task.issues || [];
                   const openIssuesCount = taskIssues.filter(
                     (i) => i.status !== 'closed' && i.status !== 'resolved'
                   ).length;
@@ -325,7 +353,7 @@ export default function ProjectTasksPage() {
                       key={task.id}
                       onClick={() =>
                         router.push(
-                          `/dashboard/projects/${projectId}/tasks/${task.id}`
+                          `/users/dashboard/projects/${projectId}/tasks/${task.id}`
                         )
                       }
                       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
@@ -357,29 +385,34 @@ export default function ProjectTasksPage() {
                       </TableCell>
                       <TableCell>
                         {task.assignees && task.assignees.length > 0 ? (
-                          <div className="flex items-center -space-x-2">
-                            {task.assignees
-                              .slice(0, 3)
-                              .map((assignee, index) => {
-                                return (
+                          <div className="flex items-center gap-2">
+                            <div className="flex -space-x-2">
+                              {task.assignees
+                                .slice(0, 3)
+                                .map((assignee, index) => (
                                   <div
                                     key={index}
                                     className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-linear-to-br from-blue-500 to-blue-600 dark:border-zinc-900"
-                                    title={assignee.memberName}
+                                    title={assignee.name}
                                   >
                                     <span className="text-xs font-medium text-white">
-                                      {assignee.memberName?.charAt(0) || '?'}
+                                      {assignee.name?.charAt(0) || '?'}
                                     </span>
                                   </div>
-                                );
-                              })}
-                            {task.assignees.length > 3 && (
-                              <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-zinc-200 dark:border-zinc-900 dark:bg-zinc-700">
-                                <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                                  +{task.assignees.length - 3}
-                                </span>
-                              </div>
-                            )}
+                                ))}
+                              {task.assignees.length > 3 && (
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-zinc-200 dark:border-zinc-900 dark:bg-zinc-700">
+                                  <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
+                                    +{task.assignees.length - 3}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                              {task.assignees.length === 1
+                                ? task.assignees[0].name
+                                : `${task.assignees[0].name} +${task.assignees.length - 1}`}
+                            </span>
                           </div>
                         ) : (
                           <span className="text-sm text-zinc-400">

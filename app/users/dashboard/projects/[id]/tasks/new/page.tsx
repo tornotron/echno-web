@@ -20,28 +20,39 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Upload, X, Save, Send, FileText, Users, Tag } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Upload,
+  X,
+  Save,
+  Send,
+  FileText,
+  Users,
+  Tag,
+  Plus,
+} from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import { mockProjects } from '@/components/shared/mock-data';
+import {
+  useProject,
+  useEmployeesByProject,
+} from '@/hooks/project/use-projects';
+import { useCreateTask } from '@/hooks/task';
+import {
+  useWorkCategories,
+  useCreateWorkCategory,
+} from '@/hooks/work-category';
+import { useCurrentUserEmployee } from '@/hooks/employee';
+import { abbreviatedName } from '@/types/task/work-category';
 
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
 import { toast } from '@/lib/styles/toast-styles';
-
-const mockCategories = [
-  { id: 1, name: 'Civil Engineering', icon: 'CE' },
-  { id: 2, name: 'Electrical Works', icon: 'EW' },
-  { id: 3, name: 'Mechanical Installation', icon: 'MI' },
-  { id: 4, name: 'Safety & Compliance', icon: 'SC' },
-  { id: 5, name: 'Quality Assurance', icon: 'QA' },
-];
-
-const mockMembers = [
-  { id: 1, name: 'Rajesh Kumar', department: 'Engineering' },
-  { id: 2, name: 'Priya Sharma', department: 'Engineering' },
-  { id: 3, name: 'Amit Patel', department: 'Engineering' },
-  { id: 4, name: 'Sneha Reddy', department: 'Quality' },
-  { id: 5, name: 'Vikram Singh', department: 'Safety' },
-];
 
 const availableTags = [
   'Urgent',
@@ -57,11 +68,49 @@ const availableTags = [
 export default function NewTaskPage() {
   const router = useRouter();
   const params = useParams();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const createTask = useCreateTask();
 
   // Get project from URL
   const projectId = Number.parseInt(params.id as string);
-  const project = mockProjects.find((p) => p.id === projectId);
+  const { data: project } = useProject(projectId);
+  const { data: projectMembers = [] } = useEmployeesByProject(projectId);
+  const { data: workCategories = [] } = useWorkCategories();
+  const createWorkCategory = useCreateWorkCategory();
+  const { data: currentEmployee } = useCurrentUserEmployee();
+
+  // Create category dialog state
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newCategoryDescription, setNewCategoryDescription] = useState('');
+
+  const handleCreateCategory = () => {
+    if (!newCategoryName.trim()) {
+      toast.error('Validation Error', {
+        description: 'Please enter a category name',
+      });
+      return;
+    }
+    if (!newCategoryDescription.trim()) {
+      toast.error('Validation Error', {
+        description: 'Please enter a category description',
+      });
+      return;
+    }
+    createWorkCategory.mutate(
+      {
+        name: newCategoryName.trim(),
+        description: newCategoryDescription.trim() || undefined,
+      },
+      {
+        onSuccess: (created) => {
+          setCategoryId(created.id?.toString() || '');
+          setNewCategoryName('');
+          setNewCategoryDescription('');
+          setShowCreateCategory(false);
+        },
+      }
+    );
+  };
 
   // Form state
   const [title, setTitle] = useState('');
@@ -104,6 +153,27 @@ export default function NewTaskPage() {
     );
   };
 
+  // Build task data from form state
+  const buildTaskData = () => {
+    const selectedCategory = workCategories.find(
+      (c) => c.id?.toString() === categoryId
+    );
+    return {
+      projectId,
+      title,
+      startDate: startDate ? new Date(startDate) : undefined,
+      endDate: endDate ? new Date(endDate) : undefined,
+      creator: currentEmployee,
+      category: selectedCategory,
+      status,
+      progress: Number.parseInt(progress),
+      tags: selectedTags,
+      assignees: selectedAssignees
+        .map((sid) => projectMembers.find((m) => m.id?.toString() === sid))
+        .filter(Boolean) as typeof projectMembers,
+    };
+  };
+
   // Validate form
   const validateForm = () => {
     if (!project) {
@@ -142,9 +212,21 @@ export default function NewTaskPage() {
       });
       return false;
     }
+    if (!categoryId) {
+      toast.error('Validation Error', {
+        description: 'Please select a work category',
+      });
+      return false;
+    }
     if (selectedAssignees.length === 0) {
       toast.error('Validation Error', {
         description: 'Please assign at least one member',
+      });
+      return false;
+    }
+    if (!currentEmployee?.id) {
+      toast.error('Validation Error', {
+        description: 'Unable to identify current user. Please try again.',
       });
       return false;
     }
@@ -160,21 +242,11 @@ export default function NewTaskPage() {
       return;
     }
 
-    setIsSubmitting(true);
-    try {
-      // TODO: Implement API call to save draft
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success('Draft Saved', {
-        description: 'Your task has been saved as draft',
-      });
-      router.push(`/dashboard/projects/${projectId}/tasks`);
-    } catch {
-      toast.error('Error', {
-        description: 'Failed to save draft. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    createTask.mutate(buildTaskData(), {
+      onSuccess: () => {
+        router.push(`/users/dashboard/projects/${projectId}/tasks`);
+      },
+    });
   };
 
   // Handle submit
@@ -183,22 +255,14 @@ export default function NewTaskPage() {
 
     if (!validateForm()) return;
 
-    setIsSubmitting(true);
-    try {
-      // TODO: Implement API call to create task
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Task Created', {
-        description: `Task "${title}" has been created successfully`,
-      });
-      router.push(`/dashboard/projects/${projectId}/tasks`);
-    } catch {
-      toast.error('Error', {
-        description: 'Failed to create task. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    createTask.mutate(buildTaskData(), {
+      onSuccess: () => {
+        router.push(`/users/dashboard/projects/${projectId}/tasks`);
+      },
+    });
   };
+
+  const isSubmitting = createTask.isPending;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -290,21 +354,36 @@ export default function NewTaskPage() {
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="category">Work Category</Label>
-                    <Select value={categoryId} onValueChange={setCategoryId}>
+                    <Select
+                      value={categoryId}
+                      onValueChange={(value) => {
+                        if (value === '__create__') {
+                          setShowCreateCategory(true);
+                        } else {
+                          setCategoryId(value);
+                        }
+                      }}
+                    >
                       <SelectTrigger id="category">
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        {mockCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id.toString()}>
+                        {workCategories.map((cat) => (
+                          <SelectItem key={cat.id} value={cat.id!.toString()}>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
-                                {cat.icon}
+                                {cat.icon || abbreviatedName(cat)}
                               </Badge>
                               {cat.name}
                             </div>
                           </SelectItem>
                         ))}
+                        <SelectItem value="__create__">
+                          <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+                            <Plus className="h-3 w-3" />
+                            Create new category
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -383,29 +462,41 @@ export default function NewTaskPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {mockMembers.map((member) => (
-                    <div
-                      key={member.id}
-                      className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
-                        selectedAssignees.includes(member.id.toString())
-                          ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
-                          : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
-                      }`}
-                      onClick={() => toggleAssignee(member.id.toString())}
-                    >
-                      <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {member.name}
-                        </p>
-                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                          {member.department}
-                        </p>
+                  {projectMembers.length > 0 ? (
+                    projectMembers.map((member) => (
+                      <div
+                        key={member.id}
+                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
+                          selectedAssignees.includes(
+                            member.id?.toString() || ''
+                          )
+                            ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                            : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
+                        }`}
+                        onClick={() =>
+                          toggleAssignee(member.id?.toString() || '')
+                        }
+                      >
+                        <div>
+                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {member.name}
+                          </p>
+                          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                            {member.designation ||
+                              member.department ||
+                              'Team Member'}
+                          </p>
+                        </div>
+                        {selectedAssignees.includes(
+                          member.id?.toString() || ''
+                        ) && <Badge className="bg-blue-600">Assigned</Badge>}
                       </div>
-                      {selectedAssignees.includes(member.id.toString()) && (
-                        <Badge className="bg-blue-600">Assigned</Badge>
-                      )}
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      No team members found for this project
+                    </p>
+                  )}
                 </div>
                 {selectedAssignees.length === 0 && (
                   <p className="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -587,6 +678,59 @@ export default function NewTaskPage() {
           </div>
         </div>
       </form>
+
+      {/* Create Category Dialog */}
+      <Dialog open={showCreateCategory} onOpenChange={setShowCreateCategory}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Work Category</DialogTitle>
+            <DialogDescription>
+              Add a new work category for your tasks
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="new-category-name">
+                Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="new-category-name"
+                placeholder="e.g. Civil Engineering"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="new-category-description">
+                Description <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="new-category-description"
+                placeholder="Describe this category..."
+                value={newCategoryDescription}
+                onChange={(e) => setNewCategoryDescription(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateCategory(false)}
+              disabled={createWorkCategory.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateCategory}
+              disabled={createWorkCategory.isPending}
+            >
+              {createWorkCategory.isPending ? 'Creating...' : 'Create Category'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
