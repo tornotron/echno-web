@@ -218,23 +218,6 @@ export default function ProjectDashboardPage() {
     );
   }
 
-  const getProjectProgress = (): number => {
-    if (!project.startDate || !project.endDate) return 0;
-    if (project.status === ProjectStatus.completed) return 100;
-    if (project.status === ProjectStatus.upcoming) return 0;
-
-    const now = new Date();
-    const start = new Date(project.startDate);
-    const end = new Date(project.endDate);
-
-    if (now < start) return 0;
-    if (now > end) return 100;
-
-    const total = end.getTime() - start.getTime();
-    const elapsed = now.getTime() - start.getTime();
-    return Math.round((elapsed / total) * 100);
-  };
-
   const calculateDaysRemaining = (): number => {
     if (!project.endDate) return 0;
     const now = new Date();
@@ -243,7 +226,7 @@ export default function ProjectDashboardPage() {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  const progress = getProjectProgress();
+  const progress = Math.round(project.progress);
   const daysRemaining = calculateDaysRemaining();
 
   // Calculate statistics from real project data

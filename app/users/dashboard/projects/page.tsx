@@ -164,23 +164,6 @@ export default function ProjectsPage() {
     return colors[status];
   };
 
-  const getProjectProgress = (project: Project): number => {
-    if (!project.startDate || !project.endDate) return 0;
-    if (project.status === ProjectStatus.completed) return 100;
-    if (project.status === ProjectStatus.upcoming) return 0;
-
-    const now = new Date();
-    const start = new Date(project.startDate);
-    const end = new Date(project.endDate);
-
-    if (now < start) return 0;
-    if (now > end) return 100;
-
-    const total = end.getTime() - start.getTime();
-    const elapsed = now.getTime() - start.getTime();
-    return Math.round((elapsed / total) * 100);
-  };
-
   // Loading state
   if (isLoading) {
     return (
@@ -382,7 +365,7 @@ export default function ProjectsPage() {
         <CardContent className="space-y-6 p-6">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {paginatedProjects.map((project: Project) => {
-              const progress = getProjectProgress(project);
+              const progress = Math.round(project.progress);
               return (
                 <Link
                   key={project.id}
