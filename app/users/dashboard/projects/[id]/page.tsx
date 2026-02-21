@@ -32,6 +32,7 @@ import {
   Sheet,
   Box,
   File,
+  Trash2,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -44,6 +45,17 @@ import {
   TeamMembersSection,
   AttachmentsUploader,
 } from '@/features/projects/components';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 // Helper function to validate attachment URLs
 function isValidAttachmentUrl(url: string): boolean {
@@ -124,9 +136,26 @@ export default function ProjectDashboardPage() {
     ? Number.parseInt(params.id as string)
     : undefined;
   const [isAddMemberDialogOpen, setIsAddMemberDialogOpen] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<number | null>(
+    null
+  );
 
   // Fetch project data
   const { data: project, isLoading, error } = useProject(projectId);
+
+  // Delete attachment mutation
+  const deleteAttachmentMutation = useDeleteAttachment();
+
+  const handleDeleteAttachment = async () => {
+    if (!attachmentToDelete) return;
+
+    try {
+      await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
+      setAttachmentToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete attachment:', error);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -506,10 +535,25 @@ export default function ProjectDashboardPage() {
                             href={safeDownloadUrl}
                             download
                             aria-label={`Download ${attachment.fileName}`}
-                            className="absolute inset-0 flex items-center justify-center rounded-lg bg-zinc-900/60 opacity-0 transition-opacity group-hover:opacity-100"
+                            className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-zinc-900/60 opacity-0 transition-opacity group-hover:opacity-100"
                           >
                             <Download className="h-5 w-5 text-white" />
                           </a>
+                        )}
+                        {attachment.id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setAttachmentToDelete(attachment.id!);
+                            }}
+                            className="absolute top-1 right-1 h-6 w-6 bg-red-500/90 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                            aria-label={`Delete ${attachment.fileName}`}
+                          >
+                            <Trash2 className="h-3 w-3 text-white" />
+                          </Button>
                         )}
                       </div>
                     );
@@ -657,6 +701,37 @@ export default function ProjectDashboardPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete Attachment Confirmation Dialog */}
+      <AlertDialog
+        open={attachmentToDelete !== null}
+        onOpenChange={(open) => !open && setAttachmentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this attachment? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteAttachmentMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDeleteAttachment();
+              }}
+              disabled={deleteAttachmentMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteAttachmentMutation.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
