@@ -42,7 +42,7 @@ import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
-import { EmployeeProjectsCellContainer } from '@/components/workforce/employee-projects-cell';
+import { EmployeeProjectsCell } from '@/components/workforce/employee-projects-cell';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -628,11 +628,10 @@ export default function EmployeesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {employee.id !== undefined && (
-                          <EmployeeProjectsCellContainer
-                            employeeId={employee.id}
-                          />
-                        )}
+                        <EmployeeProjectsCell
+                          projects={employee.currentProjects}
+                          isLoading={false}
+                        />
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(employee.status)}>
