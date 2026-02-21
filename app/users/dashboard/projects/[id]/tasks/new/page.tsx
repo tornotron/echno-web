@@ -54,17 +54,6 @@ import { abbreviatedName } from '@/types/task/work-category';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
 import { toast } from '@/lib/styles/toast-styles';
 
-const availableTags = [
-  'Urgent',
-  'High Priority',
-  'Documentation',
-  'Testing',
-  'Review Required',
-  'Client Deliverable',
-  'Internal',
-  'Blocked',
-];
-
 export default function NewTaskPage() {
   const router = useRouter();
   const params = useParams();
@@ -121,6 +110,7 @@ export default function NewTaskPage() {
   const [progress, setProgress] = useState('0');
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState('');
   const [description, setDescription] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
 
@@ -146,11 +136,31 @@ export default function NewTaskPage() {
     );
   };
 
-  // Toggle tag
-  const toggleTag = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
+  // Tag management functions
+  const addTag = (value: string) => {
+    const tag = value.trim();
+    if (tag && !selectedTags.includes(tag)) {
+      setSelectedTags((prev) => [...prev, tag]);
+    }
+    setTagInput('');
+  };
+
+  const removeTag = (tag: string) => {
+    setSelectedTags((prev) => prev.filter((t) => t !== tag));
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(tagInput);
+    } else if (
+      e.key === 'Backspace' &&
+      tagInput === '' &&
+      selectedTags.length > 0
+    ) {
+      const lastTag = selectedTags.at(-1);
+      if (lastTag) removeTag(lastTag);
+    }
   };
 
   // Build task data from form state
@@ -588,24 +598,37 @@ export default function NewTaskPage() {
                   Tags
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-2">
                 <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => (
+                  {selectedTags.map((tag) => (
                     <Badge
                       key={tag}
-                      variant={
-                        selectedTags.includes(tag) ? 'default' : 'outline'
-                      }
-                      className="cursor-pointer text-xs"
-                      onClick={() => toggleTag(tag)}
+                      variant="secondary"
+                      className="gap-1 text-xs"
                     >
                       {tag}
-                      {selectedTags.includes(tag) && (
-                        <X className="ml-1 h-3 w-3" />
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="ml-0.5 rounded-full hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                        aria-label={`Remove tag ${tag}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </Badge>
                   ))}
                 </div>
+                <Input
+                  placeholder="Type a tag and press Enter or comma..."
+                  value={tagInput}
+                  onChange={(e) => setTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  onBlur={() => addTag(tagInput)}
+                />
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Press Enter or comma to add a tag. Backspace removes the last
+                  one.
+                </p>
               </CardContent>
             </Card>
 
