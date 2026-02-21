@@ -1,24 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { taskService } from '@/services/task-service';
-import { ApiError } from '@/lib/api/api-client';
-
-/**
- * Determine if an error should trigger a retry.
- * We don't retry on client errors (4xx) except for 408 (timeout) and 429 (rate limit).
- */
-function shouldRetry(failureCount: number, error: Error): boolean {
-  if (failureCount >= 3) return false;
-
-  if (error instanceof ApiError) {
-    if (error.isAuthError || error.isNotFound) return false;
-    if (error.isServerError || error.isTimeout || error.status === 0)
-      return true;
-    if (error.status === 429) return true;
-    if (error.status >= 400 && error.status < 500) return false;
-  }
-
-  return true;
-}
+import { shouldRetry } from '@/lib/utils/retry';
 
 /**
  * Hook to fetch all tasks.
