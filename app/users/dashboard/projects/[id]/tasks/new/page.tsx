@@ -28,16 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  Upload,
-  X,
-  Save,
-  Send,
-  FileText,
-  Users,
-  Tag,
-  Plus,
-} from 'lucide-react';
+import { X, Save, Send, FileText, Users, Tag, Plus } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   useProject,
@@ -53,6 +44,7 @@ import { abbreviatedName } from '@/types/task/work-category';
 
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
 import { toast } from '@/lib/styles/toast-styles';
+import { TaskAttachmentsSection } from '@/features/tasks/components';
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -113,14 +105,6 @@ export default function NewTaskPage() {
   const [tagInput, setTagInput] = useState('');
   const [description, setDescription] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
-
-  // Handle file upload
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = [...e.target.files];
-      setAttachments([...attachments, ...newFiles]);
-    }
-  };
 
   // Remove attachment
   const removeAttachment = (index: number) => {
@@ -288,7 +272,7 @@ export default function NewTaskPage() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">
@@ -422,7 +406,7 @@ export default function NewTaskPage() {
                 {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-4">
-                    <Label htmlFor="progress" className="flex-shrink-0">
+                    <Label htmlFor="progress" className="shrink-0">
                       Progress
                     </Label>
                     <div className="flex items-center gap-2">
@@ -459,87 +443,13 @@ export default function NewTaskPage() {
               </CardContent>
             </Card>
 
-            {/* Assignees Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Assign Team Members
-                </CardTitle>
-                <CardDescription>
-                  Select team members to work on this task
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {projectMembers.length > 0 ? (
-                    projectMembers.map((member) => (
-                      <div
-                        key={member.id}
-                        className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
-                          selectedAssignees.includes(
-                            member.id?.toString() || ''
-                          )
-                            ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
-                            : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
-                        }`}
-                        onClick={() =>
-                          toggleAssignee(member.id?.toString() || '')
-                        }
-                      >
-                        <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {member.name}
-                          </p>
-                          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                            {member.designation ||
-                              member.department ||
-                              'Team Member'}
-                          </p>
-                        </div>
-                        {selectedAssignees.includes(
-                          member.id?.toString() || ''
-                        ) && <Badge className="bg-blue-600">Assigned</Badge>}
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                      No team members found for this project
-                    </p>
-                  )}
-                </div>
-                {selectedAssignees.length === 0 && (
-                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-                    * At least one team member must be assigned
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSaveDraft}
-                disabled={isSubmitting}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save as Draft
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="ml-auto">
-                <Send className="mr-2 h-4 w-4" />
-                {isSubmitting ? 'Creating...' : 'Create Task'}
-              </Button>
-            </div>
+            {/* Attachments Section */}
+            <TaskAttachmentsSection
+              existingAttachments={[]}
+              newAttachments={attachments}
+              onAttachmentsChange={setAttachments}
+              onRemoveAttachment={removeAttachment}
+            />
           </div>
 
           {/* Sidebar */}
@@ -587,6 +497,74 @@ export default function NewTaskPage() {
                   </span>
                   <Badge variant="outline">{getTaskStatusLabel(status)}</Badge>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-zinc-600 dark:text-zinc-400">
+                    Progress
+                  </span>
+                  <span className="font-bold text-blue-600 dark:text-blue-400">
+                    {progress}%
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Assignees Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4" />
+                  Assign Team Members
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Select team members to work on this task
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {projectMembers.length > 0 ? (
+                    projectMembers.map((member) => {
+                      const isSelected = selectedAssignees.includes(
+                        member.id?.toString() || ''
+                      );
+                      const cardClass = isSelected
+                        ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                        : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700';
+
+                      return (
+                        <div
+                          key={member.id}
+                          className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
+                          onClick={() =>
+                            toggleAssignee(member.id?.toString() || '')
+                          }
+                        >
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {member.name}
+                            </p>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                              {member.designation ||
+                                member.department ||
+                                'Team Member'}
+                            </p>
+                          </div>
+                          {isSelected && (
+                            <Badge className="bg-blue-600">Assigned</Badge>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      No team members found for this project
+                    </p>
+                  )}
+                </div>
+                {selectedAssignees.length === 0 && (
+                  <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                    * At least one team member must be assigned
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -631,74 +609,32 @@ export default function NewTaskPage() {
                 </p>
               </CardContent>
             </Card>
-
-            {/* Attachments Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4" />
-                  Attachments
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="attachments-sidebar"
-                      type="file"
-                      onChange={handleFileChange}
-                      multiple
-                      accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.dwg"
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() =>
-                        (
-                          document.querySelector(
-                            '#attachments-sidebar'
-                          ) as HTMLElement
-                        )?.click()
-                      }
-                    >
-                      <Upload className="mr-2 h-4 w-4" />
-                      Upload Files
-                    </Button>
-                  </div>
-                </div>
-
-                {attachments.length > 0 && (
-                  <div className="space-y-2">
-                    {attachments.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg bg-zinc-50 p-2 dark:bg-zinc-800"
-                      >
-                        <div className="flex items-center gap-2 overflow-hidden">
-                          <FileText className="h-3 w-3 shrink-0 text-zinc-500" />
-                          <span className="truncate text-xs text-zinc-900 dark:text-zinc-100">
-                            {file.name}
-                          </span>
-                        </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => removeAttachment(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSaveDraft}
+            disabled={isSubmitting}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save as Draft
+          </Button>
+          <Button type="submit" disabled={isSubmitting} className="ml-auto">
+            <Send className="mr-2 h-4 w-4" />
+            {isSubmitting ? 'Creating...' : 'Create Task'}
+          </Button>
         </div>
       </form>
 
