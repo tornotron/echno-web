@@ -1,12 +1,41 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Upload, FileText, X } from 'lucide-react';
-import type { Attachment } from '@/types/attachment';
+import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Upload,
+  FileText,
+  X,
+  Paperclip,
+  Image as ImageIcon,
+  Sheet,
+  Box,
+  File,
+  Trash2,
+} from 'lucide-react';
+import type { Attachment, AttachmentType } from '@/types/attachment';
+import { formatFileSize } from '@/types/attachment';
 import { toast } from '@/lib/styles/toast-styles';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface AttachmentsSectionProps {
   existingAttachments?: Attachment[];
@@ -17,6 +46,27 @@ interface AttachmentsSectionProps {
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
 
+const getAttachmentIcon = (type: AttachmentType) => {
+  switch (type) {
+    case 'image': {
+      return ImageIcon;
+    }
+    case 'pdf':
+    case 'document': {
+      return FileText;
+    }
+    case 'spreadsheet': {
+      return Sheet;
+    }
+    case 'cad': {
+      return Box;
+    }
+    default: {
+      return File;
+    }
+  }
+};
+
 export function AttachmentsSection({
   existingAttachments,
   newAttachments,
@@ -24,6 +74,10 @@ export function AttachmentsSection({
   onRemoveAttachment,
 }: AttachmentsSectionProps) {
   const attachmentsInputRef = useRef<HTMLInputElement>(null);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<number | null>(
+    null
+  );
+  const deleteAttachmentMutation = useDeleteAttachment();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -60,39 +114,96 @@ export function AttachmentsSection({
     attachmentsInputRef.current?.click();
   };
 
+  const handleDeleteAttachment = async () => {
+    if (!attachmentToDelete) return;
+
+    try {
+      await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
+      toast.success('Attachment deleted successfully');
+      setAttachmentToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete attachment:', error);
+      toast.error('Failed to delete attachment');
+    }
+  };
+
   return (
-    <div className="space-y-2">
-      <Label>Attachments</Label>
-      <div className="space-y-4">
-        {/* Existing Attachments */}
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Paperclip className="h-5 w-5" />
+              Project Attachments
+              {existingAttachments && existingAttachments.length > 0 && (
+                <Badge variant="outline">{existingAttachments.length}</Badge>
+              )}
+            </CardTitle>
+            <CardDescription>Files attached to this project</CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Existing Attachments - Horizontal Layout */}
         {existingAttachments && existingAttachments.length > 0 && (
           <div className="space-y-2">
             <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              Current Attachments ({existingAttachments.length})
+              Current Attachments
             </p>
-            {existingAttachments.map((attachment, index) => (
-              <div
-                key={attachment.id || `existing-${index}`}
-                className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50"
-              >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
+            <div className="flex flex-wrap gap-3">
+              {existingAttachments.map((attachment, index) => {
+                const Icon = getAttachmentIcon(attachment.fileType);
+                const attachmentKey =
+                  attachment.id ||
+                  `${attachment.file}-${attachment.createdAt?.getTime() || 'noDate'}`;
+
+                return (
+                  <div
+                    key={attachmentKey}
+                    className="group relative flex h-28 w-28 flex-col items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                      <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <p className="w-full truncate text-center text-xs font-medium text-zinc-900 dark:text-zinc-100">
                       {attachment.fileName}
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {(attachment.fileSize / 1024 / 1024).toFixed(2)} MB
+                      {formatFileSize(attachment.fileSize)}
                     </p>
+                    {attachment.id && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setAttachmentToDelete(attachment.id!);
+                        }}
+                        className="absolute top-1 right-1 h-6 w-6 bg-red-500/90 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                        aria-label={`Delete ${attachment.fileName}`}
+                      >
+                        <Trash2 className="h-3 w-3 text-white" />
+                      </Button>
+                    )}
                   </div>
-                </div>
-              </div>
-            ))}
+                );
+              })}
+            </div>
           </div>
         )}
 
         {/* New Attachments Upload */}
         <div className="space-y-2">
+          {!existingAttachments || existingAttachments.length === 0 ? (
+            <div className="py-8 text-center">
+              <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                No attachments yet
+              </p>
+            </div>
+          ) : null}
           <Input
             ref={attachmentsInputRef}
             id="attachments"
@@ -152,7 +263,32 @@ export function AttachmentsSection({
             ))}
           </div>
         )}
-      </div>
-    </div>
+      </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!attachmentToDelete}
+        onOpenChange={(open) => !open && setAttachmentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this attachment? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAttachment}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </Card>
   );
 }
