@@ -58,6 +58,32 @@ export function useCreateTask() {
 }
 
 /**
+ * useCreateTaskWithFiles
+ *
+ * Mutation hook to create a new task with file attachments.
+ */
+export function useCreateTaskWithFiles() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ data, files }: { data: Partial<Task>; files: TaskFiles }) =>
+      taskService.createWithFiles(data, files),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      toast.success('Task Created', {
+        description: 'The task has been created successfully',
+      });
+    },
+    onError: (error) => {
+      const title = getErrorTitle(error, 'Failed to Create Task');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to create task with files:', error);
+    },
+  });
+}
+
+/**
  * useUpdateTask
  *
  * Mutation hook to update an existing task.

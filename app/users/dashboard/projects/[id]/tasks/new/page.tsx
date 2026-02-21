@@ -34,7 +34,7 @@ import {
   useProject,
   useEmployeesByProject,
 } from '@/hooks/project/use-projects';
-import { useCreateTask } from '@/hooks/task';
+import { useCreateTaskWithFiles } from '@/hooks/task';
 import {
   useWorkCategories,
   useCreateWorkCategory,
@@ -49,7 +49,7 @@ import { TaskAttachmentsSection } from '@/features/tasks/components';
 export default function NewTaskPage() {
   const router = useRouter();
   const params = useParams();
-  const createTask = useCreateTask();
+  const createTask = useCreateTaskWithFiles();
 
   // Get project from URL
   const projectId = Number.parseInt(params.id as string);
@@ -236,11 +236,17 @@ export default function NewTaskPage() {
       return;
     }
 
-    createTask.mutate(buildTaskData(), {
-      onSuccess: () => {
-        router.push(`/users/dashboard/projects/${projectId}/tasks`);
+    createTask.mutate(
+      {
+        data: buildTaskData(),
+        files: { attachments },
       },
-    });
+      {
+        onSuccess: () => {
+          router.push(`/users/dashboard/projects/${projectId}/tasks`);
+        },
+      }
+    );
   };
 
   // Handle submit
@@ -249,11 +255,17 @@ export default function NewTaskPage() {
 
     if (!validateForm()) return;
 
-    createTask.mutate(buildTaskData(), {
-      onSuccess: () => {
-        router.push(`/users/dashboard/projects/${projectId}/tasks`);
+    createTask.mutate(
+      {
+        data: buildTaskData(),
+        files: { attachments },
       },
-    });
+      {
+        onSuccess: () => {
+          router.push(`/users/dashboard/projects/${projectId}/tasks`);
+        },
+      }
+    );
   };
 
   const isSubmitting = createTask.isPending;

@@ -101,6 +101,40 @@ export const taskService = {
   },
 
   /**
+   * Create a new task with file uploads.
+   * Uses multipart/form-data to send both JSON data and files.
+   *
+   * Backend expects:
+   * - 'data' field: JSON string of task data
+   * - 'attachments' field(s): File objects
+   *
+   * @param {Partial<Task>} taskData - Task data to persist.
+   * @param {TaskFiles} files - Files to upload (attachments).
+   * @returns {Promise<Task>} The created, parsed task.
+   * @throws {ApiError} on network, server, or parsing errors
+   */
+  async createWithFiles(
+    taskData: Partial<Task>,
+    files: TaskFiles
+  ): Promise<Task> {
+    const payload = partialTaskToJson(taskData);
+    const hasFiles = files.attachments && files.attachments.length > 0;
+
+    // Send empty attachments array in JSON when no files,
+    // so the backend doesn't receive null
+    if (!hasFiles) {
+      payload.attachments = [];
+    }
+
+    const data = await api.postMultipart<ApiResponse>(
+      '/tasks/web',
+      payload,
+      hasFiles ? { attachments: files.attachments! } : undefined
+    );
+    return safeParseTask(data);
+  },
+
+  /**
    * Update an existing task.
    * Uses multipart/form-data with 'data' JSON field.
    */
