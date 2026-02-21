@@ -2,12 +2,8 @@
 
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  mockTasks,
-  mockProjects,
-  mockIssues,
-} from '@/components/shared/mock-data';
-import { memberRoleLabel } from '@/types/member/member';
+import { useProject } from '@/hooks/project/use-projects';
+import { useTask } from '@/hooks/task';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -42,12 +38,46 @@ import {
   Box,
   File,
   MessageSquare,
+  Loader2,
+  Trash2,
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task';
 import { getIssueTypeLabel } from '@/types/issue/issue-type';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { TaskAttachmentsUploader } from '@/features/tasks/components';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
+
+function isValidAttachmentUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const parsedUrl = new URL(url);
+    const scheme = parsedUrl.protocol.toLowerCase();
+    const allowedSchemes = ['http:', 'https:'];
+    return allowedSchemes.includes(scheme);
+  } catch {
+    return false;
+  }
+}
+
+function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
+  if (!isValidAttachmentUrl(attachment.file)) {
+    return '#';
+  }
+  return attachment.file;
+}
 
 interface PageProps {
   params: Promise<{ id: string; taskId: string }>;
@@ -58,17 +88,38 @@ export default function TaskDetailPage({ params }: PageProps) {
   const { id: projectId, taskId: taskIdParam } = use(params);
   const taskId = Number.parseInt(taskIdParam);
 
-  const task = mockTasks.find((t) => t.id === taskId);
-  const project = task
-    ? mockProjects.find((p) => p.id === task.projectId)
-    : null;
+  const { data: task, isLoading, isError } = useTask(taskId);
+  const { data: project } = useProject(task?.projectId);
 
-  // Find issues related to this task
-  const relatedIssues = task?.issues
-    ? mockIssues.filter((issue) => task.issues?.some((i) => i.id === issue.id))
-    : [];
+  // Issues come directly from task data
+  const relatedIssues = task?.issues || [];
 
-  if (!task) {
+  // Delete attachment state and mutation
+  const [attachmentToDelete, setAttachmentToDelete] = useState<number | null>(
+    null
+  );
+  const deleteAttachmentMutation = useDeleteAttachment();
+
+  const handleDeleteAttachment = async () => {
+    if (attachmentToDelete === null) return;
+
+    try {
+      await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
+      setAttachmentToDelete(null);
+    } catch (error) {
+      console.error('Failed to delete attachment:', error);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (isError || !task) {
     return (
       <div className="space-y-4 sm:space-y-6">
         <Card>
@@ -231,7 +282,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                         onClick={() =>
                           router.push(
-                            `/dashboard/projects/${task.projectId}/issues/${issue.id}`
+                            `/users/dashboard/projects/${task.projectId}/issues/${issue.id}`
                           )
                         }
                       >
@@ -292,52 +343,59 @@ export default function TaskDetailPage({ params }: PageProps) {
                   </CardTitle>
                   <CardDescription>Files attached to this task</CardDescription>
                 </div>
-                <Button size="sm">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Upload File
-                </Button>
+                {taskId && <TaskAttachmentsUploader taskId={taskId} />}
               </div>
             </CardHeader>
             <CardContent>
               {task.attachments && task.attachments.length > 0 ? (
-                <div className="space-y-2">
-                  {task.attachments.map((attachment, index) => {
+                <div className="flex flex-wrap gap-3">
+                  {task.attachments.map((attachment) => {
                     const Icon = getAttachmentIcon(attachment.fileType);
+                    const attachmentKey =
+                      attachment.id ||
+                      `${attachment.file}-${attachment.createdAt?.getTime() || 'noDate'}`;
+                    const safeDownloadUrl = getSafeDownloadUrl(attachment);
+                    const isValidUrl = isValidAttachmentUrl(attachment.file);
+
                     return (
                       <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                        key={attachmentKey}
+                        className="group relative flex h-28 w-28 flex-col items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                       >
-                        <div className="flex min-w-0 flex-1 items-center space-x-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                            <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                              {attachment.fileName}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-400">
-                              <span>{formatFileSize(attachment.fileSize)}</span>
-                              <span>•</span>
-                              <span>
-                                Uploaded{' '}
-                                {format(attachment.createdAt, 'MMM d, yyyy')}
-                              </span>
-                              <span>•</span>
-                              <span>{attachment.uploadedBy}</span>
-                            </div>
-                            {attachment.description && (
-                              <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-500">
-                                {attachment.description}
-                              </p>
-                            )}
-                          </div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                          <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <Button variant="ghost" size="sm" asChild>
-                          <a href={attachment.file} download>
-                            <Download className="h-4 w-4" />
+                        <p className="w-full truncate text-center text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                          {attachment.fileName}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {formatFileSize(attachment.fileSize)}
+                        </p>
+                        {isValidUrl && (
+                          <a
+                            href={safeDownloadUrl}
+                            download
+                            aria-label={`Download ${attachment.fileName}`}
+                            className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-zinc-900/60 opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            <Download className="h-5 w-5 text-white" />
                           </a>
-                        </Button>
+                        )}
+                        {attachment.id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setAttachmentToDelete(attachment.id!);
+                            }}
+                            className="absolute top-1 right-1 h-6 w-6 bg-red-500/90 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                            aria-label={`Delete ${attachment.fileName}`}
+                          >
+                            <Trash2 className="h-3 w-3 text-white" />
+                          </Button>
+                        )}
                       </div>
                     );
                   })}
@@ -412,17 +470,15 @@ export default function TaskDetailPage({ params }: PageProps) {
                     >
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
                         <span className="text-sm font-medium text-white">
-                          {assignee.memberName?.charAt(0) || '?'}
+                          {assignee.name?.charAt(0) || '?'}
                         </span>
                       </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                          {assignee.memberName}
+                          {assignee.name}
                         </p>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                          {assignee.memberRole
-                            ? memberRoleLabel(assignee)
-                            : 'Team Member'}
+                          {assignee.designation || 'Team Member'}
                         </p>
                       </div>
                     </Link>
@@ -449,17 +505,15 @@ export default function TaskDetailPage({ params }: PageProps) {
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
                     <span className="text-sm font-medium text-white">
-                      {task.creator.memberName?.charAt(0) || '?'}
+                      {task.creator.name?.charAt(0) || '?'}
                     </span>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {task.creator.memberName}
+                      {task.creator.name}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {task.creator.memberRole
-                        ? memberRoleLabel(task.creator)
-                        : 'Project Manager'}
+                      {task.creator.designation || 'Project Manager'}
                     </p>
                   </div>
                 </Link>
@@ -468,6 +522,41 @@ export default function TaskDetailPage({ params }: PageProps) {
           )}
         </div>
       </div>
+
+      {/* Delete Attachment Confirmation Dialog */}
+      <AlertDialog
+        open={attachmentToDelete !== null}
+        onOpenChange={(open) => !open && setAttachmentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this attachment? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteAttachmentMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAttachment}
+              disabled={deleteAttachmentMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteAttachmentMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
