@@ -6,17 +6,20 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useMemo,
   useRef,
 } from 'react';
 import { Organization } from '@/types/organization';
 import { logger } from '@/lib/logger';
 import { useUser } from '@/hooks/user/use-user';
+import { useOrganizations } from '@/hooks/organization/use-organizations';
 import { useUpdateUserOrganization } from '@/hooks/user/use-user-mutations';
 
 interface OrganizationContextType {
   defaultOrganization: Organization | null;
   setDefaultOrganization: (org: Organization | null) => void;
   organizations: Organization[];
+  /** @deprecated - provider now fetches organizations internally; kept for compatibility */
   setOrganizations: (orgs: Organization[]) => void;
 }
 
@@ -24,90 +27,83 @@ const OrganizationContext = createContext<OrganizationContextType | undefined>(
   undefined
 );
 
+function readStoredOrg(): Organization | null {
+  if (globalThis.window === undefined) return null;
+  const stored = localStorage.getItem('defaultOrganization');
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored);
+  } catch (error) {
+    logger.error('Failed to parse stored organization:', error);
+    return null;
+  }
+}
+
 export function OrganizationProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Initialize from localStorage during state creation (not in effect)
-  const [defaultOrganization, setDefaultOrganizationState] =
-    useState<Organization | null>(() => {
-      if (globalThis.window === undefined) return null;
+  // Explicit user selection. Wrapping in an object lets us distinguish
+  // "user explicitly set null" from "no override yet" (undefined).
+  const [manualOrg, setManualOrg] = useState<
+    { value: Organization | null } | undefined
+  >();
 
-      const stored = localStorage.getItem('defaultOrganization');
-      if (stored) {
-        try {
-          return JSON.parse(stored);
-        } catch (error) {
-          logger.error('Failed to parse stored organization:', error);
-        }
-      }
-      return null;
-    });
+  // Read localStorage once on mount — equivalent to useState initializer but
+  // does not store the result in state (avoids needing setState in effects).
+  const storedOrg = useMemo(() => readStoredOrg(), []);
 
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const hasInitialized = useRef(false);
-
-  // Get user data from backend (includes defaultOrganizationId)
   const { data: user } = useUser();
-
-  // Mutation for syncing organization preference to backend
+  // Fetch organizations directly so the sync does not depend on the selector
+  // calling setOrganizations — React Query deduplicates the request.
+  const { data: fetchedOrganizations = [] } = useOrganizations();
   const updateOrganizationMutation = useUpdateUserOrganization();
 
-  // Sync with backend data when user is loaded (only localStorage writes, no setState)
-  useEffect(() => {
-    if (hasInitialized.current || !user || organizations.length === 0) return;
-
-    const userDefaultOrg = organizations.find(
+  // Derive defaultOrganization without calling setState in an effect:
+  // 1. Explicit user selection (via setDefaultOrganization) takes priority.
+  // 2. Once backend data is available, use the user's saved preference.
+  // 3. Fall back to localStorage (fast initial render) or first org.
+  const defaultOrganization = useMemo(() => {
+    if (manualOrg !== undefined) return manualOrg.value;
+    if (!user || fetchedOrganizations.length === 0) return storedOrg;
+    const userDefaultOrg = fetchedOrganizations.find(
       (org) => org.id === user.defaultOrganizationId
     );
+    return userDefaultOrg ?? fetchedOrganizations[0] ?? null;
+  }, [user, fetchedOrganizations, manualOrg, storedOrg]);
 
-    if (userDefaultOrg) {
-      // User has a saved preference in backend - update localStorage to match
-      if (globalThis.window !== undefined) {
-        const stored = localStorage.getItem('defaultOrganization');
-        const currentStored = stored ? JSON.parse(stored) : null;
+  // Sync derived defaultOrganization to localStorage (external system — no setState).
+  useEffect(() => {
+    if (globalThis.window === undefined || !defaultOrganization) return;
+    localStorage.setItem(
+      'defaultOrganization',
+      JSON.stringify(defaultOrganization)
+    );
+  }, [defaultOrganization]);
 
-        // Only update if different to avoid unnecessary writes
-        if (currentStored?.id !== userDefaultOrg.id) {
-          localStorage.setItem(
-            'defaultOrganization',
-            JSON.stringify(userDefaultOrg)
-          );
-          // Use queueMicrotask to update state outside effect synchronous execution
-          queueMicrotask(() => setDefaultOrganizationState(userDefaultOrg));
-        }
-      }
-      hasInitialized.current = true;
-    } else if (organizations.length > 0) {
-      // No preference saved, use first organization
-      const firstOrg = organizations[0];
-
-      // Save to localStorage
-      if (globalThis.window !== undefined) {
-        localStorage.setItem('defaultOrganization', JSON.stringify(firstOrg));
-      }
-
-      // Sync to backend
-      if (user.id && firstOrg.id) {
-        updateOrganizationMutation.mutate({
-          id: user.id,
-          organizationId: firstOrg.id,
-        });
-      }
-
-      // Use queueMicrotask to update state outside effect synchronous execution
-      queueMicrotask(() => setDefaultOrganizationState(firstOrg));
-      hasInitialized.current = true;
+  // One-time: update the backend when we auto-select the first org because the
+  // user has no saved preference. A ref is intentional — we want this guard to
+  // survive React 18 Strict Mode's simulated remount without firing twice.
+  const hasAutoSelectedRef = useRef(false);
+  useEffect(() => {
+    if (!user || fetchedOrganizations.length === 0) return;
+    if (user.defaultOrganizationId) return;
+    if (hasAutoSelectedRef.current) return;
+    const firstOrg = fetchedOrganizations[0];
+    if (firstOrg && user.id && firstOrg.id) {
+      hasAutoSelectedRef.current = true;
+      updateOrganizationMutation.mutate({
+        id: user.id,
+        organizationId: firstOrg.id,
+      });
     }
-  }, [user, organizations, updateOrganizationMutation]);
+  }, [user, fetchedOrganizations, updateOrganizationMutation]);
 
-  // Update organization and sync to backend
   const setDefaultOrganization = useCallback(
     (org: Organization | null) => {
-      setDefaultOrganizationState(org);
+      setManualOrg({ value: org });
 
-      // Save to localStorage
       if (globalThis.window !== undefined) {
         if (org) {
           localStorage.setItem('defaultOrganization', JSON.stringify(org));
@@ -116,7 +112,6 @@ export function OrganizationProvider({
         }
       }
 
-      // Sync to backend
       if (user?.id) {
         updateOrganizationMutation.mutate({
           id: user.id,
@@ -127,12 +122,18 @@ export function OrganizationProvider({
     [user, updateOrganizationMutation]
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const setOrganizations = useCallback((_orgs: Organization[]) => {
+    // No-op: provider now fetches organizations internally via useOrganizations().
+    // Kept in context for backward compatibility with any existing callers.
+  }, []);
+
   return (
     <OrganizationContext.Provider
       value={{
         defaultOrganization,
         setDefaultOrganization,
-        organizations,
+        organizations: fetchedOrganizations,
         setOrganizations,
       }}
     >
