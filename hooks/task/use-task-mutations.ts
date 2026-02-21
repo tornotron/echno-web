@@ -2,34 +2,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskService, TaskFiles } from '@/services/task-service';
 import { Task } from '@/types/task/task';
 import { toast } from '@/lib/styles/toast-styles';
-import { ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-
-/**
- * Get a user-friendly error message from an error.
- */
-function getErrorMessage(error: unknown): string {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return 'An unexpected error occurred. Please try again.';
-}
-
-/**
- * Get appropriate toast title based on error type.
- */
-function getErrorTitle(error: unknown, defaultTitle: string): string {
-  if (error instanceof ApiError) {
-    if (error.isAuthError) return 'Authentication Required';
-    if (error.isTimeout) return 'Request Timeout';
-    if (error.isServerError) return 'Server Error';
-    if (error.status === 0) return 'Network Error';
-  }
-  return defaultTitle;
-}
+import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 
 /**
  * useCreateTask
