@@ -303,7 +303,7 @@ export default function TaskDetailPage({ params }: PageProps) {
                         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                         onClick={() =>
                           router.push(
-                            `/users/dashboard/projects/${task.projectId}/issues/${issue.id}`
+                            `/users/dashboard/projects/${task.projectId}/issues/${issue.id}?from=task&taskId=${task.id}`
                           )
                         }
                       >
