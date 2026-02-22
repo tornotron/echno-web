@@ -38,7 +38,7 @@ import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
-import { TaskStatus } from '@/types/task';
+import { TaskStatus, getTaskStatusLabel } from '@/types/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { format } from 'date-fns';
 import {
@@ -107,6 +107,20 @@ const getStatusBadgeColor = (status: ProjectStatus): string => {
       'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
   };
   return colors[status];
+};
+
+const getTaskStatusColor = (status: TaskStatus): string => {
+  const colors: Record<TaskStatus, string> = {
+    [TaskStatus.upcoming]:
+      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
+    [TaskStatus.onGoing]:
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    [TaskStatus.onHold]:
+      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    [TaskStatus.completed]:
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+  };
+  return colors[status] ?? '';
 };
 
 const getAttachmentIcon = (type: AttachmentType) => {
@@ -444,14 +458,12 @@ export default function ProjectDashboardPage() {
                       key={task.id ?? index}
                       className="flex items-center justify-between rounded-lg border p-3"
                     >
-                      <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {task.title}
-                        </p>
-                        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {task.status}
-                        </p>
-                      </div>
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {task.title}
+                      </p>
+                      <Badge className={getTaskStatusColor(task.status)}>
+                        {getTaskStatusLabel(task.status)}
+                      </Badge>
                     </div>
                   ))}
                 </div>
