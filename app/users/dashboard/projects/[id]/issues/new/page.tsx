@@ -1,7 +1,7 @@
 'use client';
 
-import { use } from 'react';
-import { useState, useEffect } from 'react';
+import { use, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -22,14 +22,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Upload,
-  X,
   Save,
   Send,
   AlertCircle,
-  FileText,
   AlertTriangle,
+  Loader2,
+  Users,
+  ListTodo,
+  Search,
+  CheckCircle2,
 } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   IssueType,
@@ -37,32 +40,16 @@ import {
   getIssueTypeColor,
 } from '@/types/issue/issue-type';
 import { IssueStatus, getIssueStatusLabel } from '@/types/issue/issue-status';
+import {
+  getTaskStatusLabel,
+  getTaskStatusColor,
+} from '@/types/task/task-status';
+import { useCreateIssueWithFiles } from '@/hooks/issue';
+import { useTasksByProject } from '@/hooks/task';
+import { useUser, useUserEmployees } from '@/hooks/user/use-user';
+import { useEmployeesByProject } from '@/hooks/project/use-projects';
+import { IssueAttachmentsSection } from '@/features/issues/components';
 import { toast } from '@/lib/styles/toast-styles';
-
-// Mock data for tasks
-const mockTasks = [
-  {
-    id: 1,
-    title: 'Foundation Work Phase 1',
-    projectName: 'Metro Station Construction',
-  },
-  {
-    id: 2,
-    title: 'Electrical Installation',
-    projectName: 'Highway Expansion Project',
-  },
-  {
-    id: 3,
-    title: 'Structural Assessment',
-    projectName: 'Bridge Reconstruction',
-  },
-  {
-    id: 4,
-    title: 'Safety Inspection',
-    projectName: 'Airport Terminal Development',
-  },
-  { id: 5, title: 'Quality Review', projectName: 'Metro Station Construction' },
-];
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -71,50 +58,51 @@ interface PageProps {
 export default function NewIssuePage({ params }: PageProps) {
   const { id: projectId } = use(params);
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const searchParams = useSearchParams();
 
-  // Form state
-  const [taskId, setTaskId] = useState<string>('');
+  // If navigated from a task page, taskId is in the URL
+  const fromTaskId = searchParams.get('taskId') || '';
+  const isTaskLocked = !!fromTaskId;
+
+  const createMutation = useCreateIssueWithFiles();
+  const { data: tasks = [] } = useTasksByProject(Number.parseInt(projectId));
+  const { data: projectMembers = [] } = useEmployeesByProject(
+    Number.parseInt(projectId)
+  );
+  const { data: user } = useUser();
+  const { data: employees = [] } = useUserEmployees();
+  const currentEmployee = employees.find(
+    (emp) => emp.organizationId === user?.defaultOrganizationId
+  );
+
+  // Form state — taskId pre-seeded from URL when navigating from a task
+  const [taskId, setTaskId] = useState<string>(fromTaskId);
+  const [taskSearch, setTaskSearch] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [issueType, setIssueType] = useState<IssueType>(IssueType.technical);
   const [status, setStatus] = useState<IssueStatus>(IssueStatus.open);
   const [priority, setPriority] = useState<string>('medium');
+  const [assigneeId, setAssigneeId] = useState<string>('');
   const [attachments, setAttachments] = useState<File[]>([]);
 
-  // Pre-fill task from URL parameters (client-side only)
-  useEffect(() => {
-    if (globalThis.window !== undefined) {
-      const params = new URLSearchParams(globalThis.location.search);
-      const taskIdParam = params.get('taskId');
-      const taskTitleParam = params.get('taskTitle');
-
-      if (taskIdParam) {
-        setTaskId(taskIdParam);
-      }
-
-      if (taskTitleParam) {
-        // Optionally pre-fill the title with context
-        setTitle(`Issue in: ${taskTitleParam}`);
-      }
-    }
-  }, []);
-
-  // Handle file upload
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = [...e.target.files];
-      setAttachments([...attachments, ...newFiles]);
-    }
-  };
-
-  // Remove attachment
   const removeAttachment = (index: number) => {
     setAttachments(attachments.filter((_, i) => i !== index));
   };
 
-  // Validate form
+  const filteredTasks = useMemo(() => {
+    if (!taskSearch.trim()) return tasks;
+    const q = taskSearch.toLowerCase();
+    return tasks.filter((t) => t.title.toLowerCase().includes(q));
+  }, [tasks, taskSearch]);
+
   const validateForm = () => {
+    if (!taskId) {
+      toast.error('Validation Error', {
+        description: 'Please select a related task',
+      });
+      return false;
+    }
     if (!title.trim()) {
       toast.error('Validation Error', {
         description: 'Please enter an issue title',
@@ -142,7 +130,6 @@ export default function NewIssuePage({ params }: PageProps) {
     return true;
   };
 
-  // Handle save as draft
   const handleSaveDraft = async () => {
     if (!title.trim()) {
       toast.error('Validation Error', {
@@ -151,45 +138,53 @@ export default function NewIssuePage({ params }: PageProps) {
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      // TODO: Implement API call to save draft
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await createMutation.mutateAsync({
+        data: {
+          taskId: taskId ? Number(taskId) : undefined,
+          title,
+          description,
+          type: issueType,
+          status: IssueStatus.open,
+          creatorId: currentEmployee?.id,
+          assigneeId: assigneeId ? Number(assigneeId) : undefined,
+        },
+        files: { attachments },
+      });
       toast.success('Draft Saved', {
         description: 'Your issue has been saved as draft',
       });
-      router.push(`/dashboard/projects/${projectId}/issues`);
+      router.push(`/users/dashboard/projects/${projectId}/issues`);
     } catch {
-      toast.error('Error', {
-        description: 'Failed to save draft. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
+      // error toast already shown by mutation hook
     }
   };
 
-  // Handle submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    setIsSubmitting(true);
     try {
-      // TODO: Implement API call to create issue
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Issue Created', {
-        description: `Issue "${title}" has been created successfully`,
+      await createMutation.mutateAsync({
+        data: {
+          taskId: taskId ? Number(taskId) : undefined,
+          title,
+          description,
+          type: issueType,
+          status,
+          creatorId: currentEmployee?.id,
+          assigneeId: assigneeId ? Number(assigneeId) : undefined,
+        },
+        files: { attachments },
       });
-      router.push(`/dashboard/projects/${projectId}/issues`);
+      router.push(`/users/dashboard/projects/${projectId}/issues`);
     } catch {
-      toast.error('Error', {
-        description: 'Failed to create issue. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
+      // error toast already shown by mutation hook
     }
   };
+
+  const selectedTask = tasks.find((t) => t.id?.toString() === taskId);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -205,27 +200,7 @@ export default function NewIssuePage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Task Context Alert */}
-      {taskId && (
-        <Card className="mb-6 border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400" />
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                  Reporting issue for task
-                </p>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                  {mockTasks.find((t) => t.id.toString() === taskId)?.title ||
-                    'Selected Task'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">
@@ -241,26 +216,105 @@ export default function NewIssuePage({ params }: PageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Related Task (Optional) */}
+                {/* Related Task */}
                 <div className="space-y-2">
-                  <Label htmlFor="task">Related Task (Optional)</Label>
-                  <Select value={taskId} onValueChange={setTaskId}>
-                    <SelectTrigger id="task">
-                      <SelectValue placeholder="Select a task (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockTasks.map((task) => (
-                        <SelectItem key={task.id} value={task.id.toString()}>
-                          <div className="flex flex-col">
-                            <span>{task.title}</span>
-                            <span className="text-xs text-zinc-500">
-                              {task.projectName}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>
+                    Related Task <span className="text-red-500">*</span>
+                  </Label>
+                  {isTaskLocked && selectedTask ? (
+                    // Locked tile — task pre-determined by navigation context
+                    <div className="flex items-center gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900/50">
+                      <div
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+                        style={{
+                          backgroundColor: `${getTaskStatusColor(selectedTask.status)}20`,
+                        }}
+                      >
+                        <ListTodo
+                          className="h-4 w-4"
+                          style={{
+                            color: getTaskStatusColor(selectedTask.status),
+                          }}
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {selectedTask.title}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {getTaskStatusLabel(selectedTask.status)} ·{' '}
+                          {selectedTask.progress}% complete
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    // Interactive task picker
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                        <Input
+                          placeholder="Search tasks..."
+                          value={taskSearch}
+                          onChange={(e) => setTaskSearch(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                      <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 p-1.5 dark:border-zinc-800">
+                        {filteredTasks.length > 0 ? (
+                          filteredTasks.map((task) => {
+                            const isSelected = taskId === task.id?.toString();
+                            const statusColor = getTaskStatusColor(task.status);
+                            return (
+                              <button
+                                key={task.id}
+                                type="button"
+                                onClick={() =>
+                                  setTaskId(task.id?.toString() || '')
+                                }
+                                className={`flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-colors ${
+                                  isSelected
+                                    ? 'border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
+                                    : 'border border-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800/60'
+                                }`}
+                              >
+                                <div
+                                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+                                  style={{
+                                    backgroundColor: `${statusColor}20`,
+                                  }}
+                                >
+                                  <ListTodo
+                                    className="h-4 w-4"
+                                    style={{ color: statusColor }}
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                                    {task.title}
+                                  </p>
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {getTaskStatusLabel(task.status)}
+                                  </p>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-2">
+                                  <span className="text-xs text-zinc-400 tabular-nums">
+                                    {task.progress}%
+                                  </span>
+                                  {isSelected && (
+                                    <CheckCircle2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          })
+                        ) : (
+                          <p className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                            No tasks found
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Issue Title */}
@@ -361,30 +415,11 @@ export default function NewIssuePage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSaveDraft}
-                disabled={isSubmitting}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save as Draft
-              </Button>
-              <Button type="submit" disabled={isSubmitting} className="ml-auto">
-                <Send className="mr-2 h-4 w-4" />
-                {isSubmitting ? 'Creating...' : 'Create Issue'}
-              </Button>
-            </div>
+            <IssueAttachmentsSection
+              newAttachments={attachments}
+              onAttachmentsChange={setAttachments}
+              onRemoveAttachment={removeAttachment}
+            />
           </div>
 
           {/* Sidebar */}
@@ -421,95 +456,98 @@ export default function NewIssuePage({ params }: PageProps) {
                     {priority.charAt(0).toUpperCase() + priority.slice(1)}
                   </Badge>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    Attachments
-                  </span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {attachments.length}
-                  </span>
-                </div>
-                {taskId && (
-                  <div className="border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                    <p className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      Linked to:
+                {selectedTask && (
+                  <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                    <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      Related Task
                     </p>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {mockTasks.find((t) => t.id.toString() === taskId)?.title}
-                    </p>
+                    <Link
+                      href={`/users/dashboard/projects/${projectId}/tasks/${selectedTask.id}`}
+                    >
+                      <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
+                        <div
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
+                          style={{
+                            backgroundColor: `${getTaskStatusColor(selectedTask.status)}20`,
+                          }}
+                        >
+                          <ListTodo
+                            className="h-4 w-4"
+                            style={{
+                              color: getTaskStatusColor(selectedTask.status),
+                            }}
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {selectedTask.title}
+                          </p>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                            {getTaskStatusLabel(selectedTask.status)} ·{' '}
+                            {selectedTask.progress}%
+                          </p>
+                        </div>
+                      </div>
+                    </Link>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Attachments */}
+            {/* Assign Member */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">Attachments</CardTitle>
+                <CardTitle className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4" />
+                  Assign Member
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Assign a team member to handle this issue
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent>
                 <div className="space-y-2">
-                  <Input
-                    id="attachments-sidebar"
-                    type="file"
-                    onChange={handleFileChange}
-                    multiple
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() =>
-                      (
-                        document.querySelector(
-                          '#attachments-sidebar'
-                        ) as HTMLElement
-                      )?.click()
-                    }
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Files
-                  </Button>
-                </div>
-
-                {attachments.length > 0 ? (
-                  <div className="space-y-2">
-                    {attachments.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"
-                      >
-                        <div className="flex min-w-0 flex-1 items-center gap-2">
-                          <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                              {file.name}
+                  {projectMembers.length > 0 ? (
+                    projectMembers.map((member) => {
+                      const isSelected = assigneeId === member.id?.toString();
+                      return (
+                        <div
+                          key={member.id}
+                          className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
+                            isSelected
+                              ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                              : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
+                          }`}
+                          onClick={() =>
+                            setAssigneeId(
+                              isSelected ? '' : member.id?.toString() || ''
+                            )
+                          }
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              {member.name}
                             </p>
-                            <p className="text-xs text-zinc-500">
-                              {(file.size / 1024).toFixed(1)} KB
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {member.designation ||
+                                member.department ||
+                                'Team Member'}
                             </p>
                           </div>
+                          {isSelected && (
+                            <Badge className="bg-blue-600 text-xs">
+                              Assigned
+                            </Badge>
+                          )}
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 shrink-0 p-0"
-                          onClick={() => removeAttachment(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                    No attachments yet
-                  </p>
-                )}
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      No team members found for this project
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -553,6 +591,44 @@ export default function NewIssuePage({ params }: PageProps) {
               </Card>
             )}
           </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.back()}
+            disabled={createMutation.isPending}
+          >
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleSaveDraft}
+            disabled={createMutation.isPending}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            Save as Draft
+          </Button>
+          <Button
+            type="submit"
+            disabled={createMutation.isPending}
+            className="ml-auto"
+          >
+            {createMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Create Issue
+              </>
+            )}
+          </Button>
         </div>
       </form>
     </div>
