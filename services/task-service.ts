@@ -53,14 +53,17 @@ export function partialTaskToJson(
   if (task.id !== undefined) payload.id = task.id;
   if (task.projectId !== undefined) payload.projectId = task.projectId;
   if (task.title !== undefined) payload.title = task.title;
+  if (task.description !== undefined) payload.description = task.description;
   if (task.startDate !== undefined)
     payload.startDate = task.startDate.toISOString();
   if (task.endDate !== undefined) payload.endDate = task.endDate.toISOString();
-  if (task.creator !== undefined) payload.creatorId = task.creator?.id;
+  if (task.creator?.id !== undefined) payload.creatorId = task.creator.id;
   if (task.assignees !== undefined) {
-    payload.assigneeIds = task.assignees.map((a) => a.id);
+    payload.assigneeIds = task.assignees
+      .filter((a) => a.id !== undefined)
+      .map((a) => a.id);
   }
-  if (task.category !== undefined) payload.categoryId = task.category?.id;
+  if (task.category?.id !== undefined) payload.categoryId = task.category.id;
   if (task.progress !== undefined) payload.progress = task.progress;
   if (task.tags !== undefined) payload.tags = task.tags ?? [];
   if (task.status !== undefined) payload.status = task.status;
