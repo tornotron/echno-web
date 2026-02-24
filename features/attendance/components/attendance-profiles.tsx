@@ -138,11 +138,13 @@ export function AttendanceProfiles({
                     )}
                   </div>
                   <CardDescription className="mt-1">
-                    {getCycleLabel(profile.checkInOutCycles)} ·{' '}
-                    {
-                      shifts.find((s) => s.id === profile.defaultShiftId)
-                        ?.shiftName
-                    }
+                    {getCycleLabel(profile.checkInOutCycles)}
+                    {(() => {
+                      const matched = shifts.find(
+                        (s) => s.id === profile.defaultShiftId
+                      );
+                      return matched ? ` · ${matched.shiftName}` : '';
+                    })()}
                   </CardDescription>
                 </div>
                 <DropdownMenu>

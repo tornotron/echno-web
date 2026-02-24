@@ -120,11 +120,13 @@ export function ProfileDialog({
                   <SelectValue placeholder="Select a shift template" />
                 </SelectTrigger>
                 <SelectContent>
-                  {shifts.map((s) => (
-                    <SelectItem key={s.id} value={s.id!.toString()}>
-                      {s.shiftName} ({s.startTime} – {s.endTime})
-                    </SelectItem>
-                  ))}
+                  {shifts
+                    .filter((s) => s.id !== undefined)
+                    .map((s) => (
+                      <SelectItem key={s.id} value={s.id!.toString()}>
+                        {s.shiftName} ({s.startTime} – {s.endTime})
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
