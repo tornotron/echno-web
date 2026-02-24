@@ -40,7 +40,85 @@ import {
   getNameForId,
   truncateText,
   applyBreadcrumbOverrides,
+  type FallbackNameResolver,
 } from '@/lib/utils/breadcrumb-utils';
+import { Budget } from '@/types/finance/budget';
+import {
+  mockInspections,
+  mockLabour,
+  mockAssets,
+  mockBudgets,
+  mockLocations,
+  mockPurchaseOrders,
+  mockMaterialRequests,
+  mockTransfers,
+  mockStockAdjustments,
+  mockGoodsReceipts,
+  mockReceipts,
+  mockPayments,
+  mockInvoices,
+  mockExpenses,
+} from '@/components/shared/mock-data';
+
+/**
+ * Maps parent URL segments to mock-data lookups.
+ * Used as the `fallbackResolver` for `getNameForId` until these modules
+ * are backed by real API data.
+ */
+const mockFallbackResolver: FallbackNameResolver = (
+  parentSegment,
+  numericId
+) => {
+  switch (parentSegment) {
+    case 'inspections': {
+      return mockInspections.find((i) => i.id === numericId)?.title;
+    }
+    case 'labour': {
+      return mockLabour.find((l) => l.id === numericId)?.name;
+    }
+    case 'assets': {
+      return mockAssets.find((a) => a.id === numericId)?.name;
+    }
+    case 'budgets': {
+      return mockBudgets.find((b: Budget) => b.id === numericId)?.budgetNumber;
+    }
+    case 'locations': {
+      return mockLocations.find((l) => l.id === numericId)?.name;
+    }
+    case 'purchase-orders': {
+      return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber;
+    }
+    case 'material-requests': {
+      return mockMaterialRequests.find((m) => m.id === numericId)
+        ?.requestNumber;
+    }
+    case 'transfers': {
+      return mockTransfers.find((t) => t.id === numericId)?.transferNumber;
+    }
+    case 'stock-adjustments': {
+      return mockStockAdjustments.find((s) => s.id === numericId)
+        ?.adjustmentNumber;
+    }
+    case 'goods-receipts': {
+      return mockGoodsReceipts.find((g) => g.id === numericId)?.receiptNumber;
+    }
+    case 'receipts': {
+      return mockReceipts.find((r) => r.id === numericId)?.receiptNumber;
+    }
+    case 'payments': {
+      return mockPayments.find((p) => p.id === numericId)?.paymentNumber;
+    }
+    case 'invoices': {
+      return mockInvoices.find((i) => i.id === numericId)?.invoiceNumber;
+    }
+    case 'expenses': {
+      return mockExpenses.find((e) => e.id === numericId)?.expenseNumber;
+    }
+    default: {
+      return;
+    }
+  }
+};
 
 interface BreadcrumbsProps {
   employees?: Employee[];
@@ -131,8 +209,9 @@ export function Breadcrumbs({
             organizations,
             projects,
             task,
-            issue
+            issue,
             // chatRoomName // temporarily disabled – moving chat to separate branch
+            mockFallbackResolver
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
