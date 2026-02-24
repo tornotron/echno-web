@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, use, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -21,15 +21,16 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Upload,
-  X,
   Save,
   AlertCircle,
-  FileText,
   AlertTriangle,
   Trash2,
+  Loader2,
+  Users,
+  ListTodo,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   IssueType,
   getIssueTypeLabel,
@@ -37,10 +38,16 @@ import {
 } from '@/types/issue/issue-type';
 import { IssueStatus, getIssueStatusLabel } from '@/types/issue/issue-status';
 import {
-  mockIssues,
-  mockTasks as allMockTasks,
-  mockProjects,
-} from '@/components/shared/mock-data';
+  useIssue,
+  useUpdateIssueWithFiles,
+  useDeleteIssue,
+} from '@/hooks/issue';
+import { useTask } from '@/hooks/task';
+import {
+  useProject,
+  useEmployeesByProject,
+} from '@/hooks/project/use-projects';
+import { TaskAttachmentsSection } from '@/features/tasks/components';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface PageProps {
@@ -50,74 +57,39 @@ interface PageProps {
 export default function EditIssuePage({ params }: PageProps) {
   const { id: projectId, issueId } = use(params);
   const router = useRouter();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Find the issue to edit
-  const issueToEdit = mockIssues.find((i) => i.id?.toString() === issueId);
+  const { data: issue, isLoading: issueLoading } = useIssue(
+    Number.parseInt(issueId)
+  );
+  const { data: project } = useProject(Number.parseInt(projectId));
+  const { data: relatedTask } = useTask(issue?.taskId);
+  const { data: projectMembers = [] } = useEmployeesByProject(
+    Number.parseInt(projectId)
+  );
+  const updateMutation = useUpdateIssueWithFiles();
+  const deleteMutation = useDeleteIssue();
 
-  // Get project and filter tasks by projectId
-  const project = mockProjects.find((p) => p.id?.toString() === projectId);
-  const mockTasks = allMockTasks.filter(
-    (t) => t.projectId?.toString() === projectId
-  );
-
-  // Find the task that contains this issue
-  const relatedTask = issueToEdit
-    ? allMockTasks.find((task) =>
-        task.issues?.some((i) => i.id === issueToEdit.id)
-      )
-    : null;
-
-  // Form state - initialize with existing issue data
-  const [taskId, setTaskId] = useState<string>(
-    relatedTask?.id?.toString() || ''
-  );
-  const [title, setTitle] = useState(issueToEdit?.title || '');
-  const [description, setDescription] = useState(
-    issueToEdit?.description || ''
-  );
-  const [issueType, setIssueType] = useState<IssueType>(
-    issueToEdit?.type || IssueType.technical
-  );
-  const [status, setStatus] = useState<IssueStatus>(
-    issueToEdit?.status || IssueStatus.open
-  );
+  // Form state — initialized from loaded issue
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [issueType, setIssueType] = useState<IssueType>(IssueType.technical);
+  const [status, setStatus] = useState<IssueStatus>(IssueStatus.open);
   const [priority, setPriority] = useState<string>('medium');
+  const [assigneeId, setAssigneeId] = useState<string>('');
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [initialized, setInitialized] = useState(false);
 
-  if (!issueToEdit) {
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              Issue not found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              The issue you&apos;re looking for doesn&apos;t exist.
-            </p>
-            <Button
-              onClick={() =>
-                router.push(`/dashboard/projects/${projectId}/issues`)
-              }
-            >
-              Back to Issues
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  // Sync form state once issue loads (adjust state during render to avoid
+  // calling setState inside an effect – see React docs on "adjusting state
+  // when props change").
+  if (issue && !initialized) {
+    setTitle(issue.title);
+    setDescription(issue.description || '');
+    setIssueType(issue.type);
+    setStatus(issue.status);
+    setAssigneeId(issue.assigneeId?.toString() || '');
+    setInitialized(true);
   }
-
-  // Handle file upload
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const newFiles = [...e.target.files];
-      setAttachments([...attachments, ...newFiles]);
-    }
-  };
 
   // Remove attachment
   const removeAttachment = (index: number) => {
@@ -171,20 +143,13 @@ export default function EditIssuePage({ params }: PageProps) {
       return;
     }
 
-    setIsDeleting(true);
+    if (!issue?.id) return;
+
     try {
-      // TODO: Implement API call to delete issue
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      toast.success('Issue Deleted', {
-        description: 'The issue has been deleted successfully',
-      });
-      router.push(`/dashboard/projects/${projectId}/issues`);
+      await deleteMutation.mutateAsync(issue.id);
+      router.push(`/users/dashboard/projects/${projectId}/issues`);
     } catch {
-      toast.error('Error', {
-        description: 'Failed to delete issue. Please try again.',
-      });
-    } finally {
-      setIsDeleting(false);
+      // error toast already shown by mutation hook
     }
   };
 
@@ -192,24 +157,60 @@ export default function EditIssuePage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm() || !issue?.id) return;
 
-    setIsSubmitting(true);
     try {
-      // TODO: Implement API call to update issue
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      toast.success('Issue Updated', {
-        description: `Issue "${title}" has been updated successfully`,
+      await updateMutation.mutateAsync({
+        id: issue.id,
+        data: {
+          title,
+          description,
+          type: issueType,
+          status,
+          assigneeId: assigneeId ? Number(assigneeId) : undefined,
+        },
+        files: { attachments },
       });
-      router.push(`/dashboard/projects/${projectId}/issues/${issueId}`);
+      router.push(`/users/dashboard/projects/${projectId}/issues/${issueId}`);
     } catch {
-      toast.error('Error', {
-        description: 'Failed to update issue. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
+      // error toast already shown by mutation hook
     }
   };
+
+  const isPending = updateMutation.isPending || deleteMutation.isPending;
+
+  if (issueLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (!issue) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Issue not found
+            </h3>
+            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+              The issue you&apos;re looking for doesn&apos;t exist.
+            </p>
+            <Button
+              onClick={() =>
+                router.push(`/users/dashboard/projects/${projectId}/issues`)
+              }
+            >
+              Back to Issues
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -225,7 +226,7 @@ export default function EditIssuePage({ params }: PageProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">
@@ -241,31 +242,6 @@ export default function EditIssuePage({ params }: PageProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Related Task (Optional) */}
-                <div className="space-y-2">
-                  <Label htmlFor="task">Related Task (Optional)</Label>
-                  <Select value={taskId} onValueChange={setTaskId}>
-                    <SelectTrigger id="task">
-                      <SelectValue placeholder="Select a task (optional)" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {mockTasks.map((task) => (
-                        <SelectItem
-                          key={task.id}
-                          value={task.id?.toString() || ''}
-                        >
-                          <div className="flex flex-col">
-                            <span>{task.title}</span>
-                            <span className="text-xs text-zinc-500">
-                              {project?.projectName || 'Project'}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
                 {/* Issue Title */}
                 <div className="space-y-2">
                   <Label htmlFor="title">
@@ -366,32 +342,12 @@ export default function EditIssuePage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            {/* Action Buttons */}
-            <div className="flex justify-between">
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={isSubmitting || isDeleting}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {isDeleting ? 'Deleting...' : 'Delete Issue'}
-              </Button>
-              <div className="flex gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.back()}
-                  disabled={isSubmitting || isDeleting}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting || isDeleting}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isSubmitting ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </div>
+            <TaskAttachmentsSection
+              existingAttachments={issue?.attachments}
+              newAttachments={attachments}
+              onAttachmentsChange={setAttachments}
+              onRemoveAttachment={removeAttachment}
+            />
           </div>
 
           {/* Sidebar */}
@@ -428,101 +384,89 @@ export default function EditIssuePage({ params }: PageProps) {
                     {priority.charAt(0).toUpperCase() + priority.slice(1)}
                   </Badge>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-zinc-600 dark:text-zinc-400">
-                    New Attachments
-                  </span>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {attachments.length}
-                  </span>
-                </div>
-                {taskId && (
-                  <div className="border-t border-zinc-200 pt-2 dark:border-zinc-700">
-                    <p className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
-                      Linked to:
+                {relatedTask && (
+                  <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                    <p className="mb-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      Related Task
                     </p>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {
-                        mockTasks.find((t) => t.id?.toString() === taskId)
-                          ?.title
-                      }
-                    </p>
+                    <Link
+                      href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                    >
+                      <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
+                        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
+                          <ListTodo className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {relatedTask.title}
+                          </p>
+                          {project && (
+                            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                              {project.projectName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Add More Attachments */}
+            {/* Assign Member */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4" />
-                  Add Attachments
+                  <Users className="h-4 w-4" />
+                  Assign Member
                 </CardTitle>
+                <CardDescription className="text-xs">
+                  Assign a team member to handle this issue
+                </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent>
                 <div className="space-y-2">
-                  <Input
-                    id="attachments-sidebar"
-                    type="file"
-                    onChange={handleFileChange}
-                    multiple
-                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.mp4,.mov"
-                    className="hidden"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={() =>
-                      (
-                        document.querySelector(
-                          '#attachments-sidebar'
-                        ) as HTMLElement
-                      )?.click()
-                    }
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Files
-                  </Button>
-                </div>
-
-                {attachments.length > 0 ? (
-                  <div className="space-y-2">
-                    {attachments.map((file, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 dark:border-zinc-800"
-                      >
-                        <div className="flex min-w-0 flex-1 items-center gap-2">
-                          <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                              {file.name}
+                  {projectMembers.length > 0 ? (
+                    projectMembers.map((member) => {
+                      const isSelected = assigneeId === member.id?.toString();
+                      return (
+                        <div
+                          key={member.id}
+                          className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${
+                            isSelected
+                              ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                              : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700'
+                          }`}
+                          onClick={() =>
+                            setAssigneeId(
+                              isSelected ? '' : member.id?.toString() || ''
+                            )
+                          }
+                        >
+                          <div>
+                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              {member.name}
                             </p>
-                            <p className="text-xs text-zinc-500">
-                              {(file.size / 1024).toFixed(1)} KB
+                            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {member.designation ||
+                                member.department ||
+                                'Team Member'}
                             </p>
                           </div>
+                          {isSelected && (
+                            <Badge className="bg-blue-600 text-xs">
+                              Assigned
+                            </Badge>
+                          )}
                         </div>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 shrink-0 p-0"
-                          onClick={() => removeAttachment(index)}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                    No new attachments
-                  </p>
-                )}
+                      );
+                    })
+                  ) : (
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                      No team members found for this project
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
@@ -565,6 +509,51 @@ export default function EditIssuePage({ params }: PageProps) {
                 </CardContent>
               </Card>
             )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex justify-between">
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleDelete}
+            disabled={isPending}
+          >
+            {deleteMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              <>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Issue
+              </>
+            )}
+          </Button>
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </form>

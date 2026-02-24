@@ -3,11 +3,8 @@
 import { use } from 'react';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  mockIssues,
-  mockProjects,
-  mockTasks,
-} from '@/components/shared/mock-data';
+import { useProject } from '@/hooks/project/use-projects';
+import { useIssuesByProject } from '@/hooks/issue';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle, Plus, Calendar } from 'lucide-react';
+import { AlertCircle, Plus, Calendar, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { IssueStatus, IssueType } from '@/types/issue';
 import { format } from 'date-fns';
@@ -44,7 +41,10 @@ interface PageProps {
 export default function IssuesPage({ params }: PageProps) {
   const router = useRouter();
   const { id: projectId } = use(params);
-  const project = mockProjects.find((p) => p.id === Number.parseInt(projectId));
+  const { data: project } = useProject(Number.parseInt(projectId));
+  const { data: issues = [], isLoading } = useIssuesByProject(
+    Number.parseInt(projectId)
+  );
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -52,28 +52,15 @@ export default function IssuesPage({ params }: PageProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // Filter issues
+  // Filter issues (already scoped to this project by the API)
   const filteredIssues = useMemo(() => {
-    // Get tasks for this project
-    const projectTasks = mockTasks.filter(
-      (task) => task.projectId === Number.parseInt(projectId)
-    );
-
-    // Get issues linked to these tasks
-    const projectIssueIds = new Set(
-      projectTasks.flatMap((task) => task.issues?.map((i) => i.id) || [])
-    );
-
-    return mockIssues.filter((issue) => {
-      // Check if issue belongs to this project
-      if (!projectIssueIds.has(issue.id)) return false;
-
+    return issues.filter((issue) => {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
         issue.title.toLowerCase().includes(searchLower) ||
         issue.description?.toLowerCase().includes(searchLower) ||
-        issue.creator?.memberName?.toLowerCase().includes(searchLower);
+        issue.creator?.name?.toLowerCase().includes(searchLower);
 
       const matchesStatus =
         statusFilter === 'all' || issue.status === statusFilter;
@@ -81,7 +68,7 @@ export default function IssuesPage({ params }: PageProps) {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [projectId, searchQuery, statusFilter, typeFilter]);
+  }, [issues, searchQuery, statusFilter, typeFilter]);
 
   // Pagination
   const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
@@ -97,7 +84,7 @@ export default function IssuesPage({ params }: PageProps) {
     }
   }, [searchQuery, statusFilter, typeFilter, itemsPerPage, currentPage]);
 
-  // Statistics - use filteredIssues for project-specific counts
+  // Statistics
   const totalIssues = filteredIssues.length;
   const openIssues = filteredIssues.filter(
     (i) => i.status === IssueStatus.open
@@ -225,6 +212,14 @@ export default function IssuesPage({ params }: PageProps) {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -401,94 +396,87 @@ export default function IssuesPage({ params }: PageProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedIssues.map((issue) => {
-                  // Find the task that contains this issue
-                  const relatedTask = mockTasks.find((task) =>
-                    task.issues?.some((i) => i.id === issue.id)
-                  );
-
-                  return (
-                    <TableRow
-                      key={issue.id}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                      onClick={() =>
-                        router.push(
-                          `/dashboard/projects/${projectId}/issues/${issue.id}`
-                        )
-                      }
-                    >
-                      <TableCell>
-                        <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {issue.title}
+                {paginatedIssues.map((issue) => (
+                  <TableRow
+                    key={issue.id}
+                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                    onClick={() =>
+                      router.push(
+                        `/users/dashboard/projects/${projectId}/issues/${issue.id}`
+                      )
+                    }
+                  >
+                    <TableCell>
+                      <div>
+                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {issue.title}
+                        </p>
+                        {issue.description && (
+                          <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
+                            {issue.description}
                           </p>
-                          {issue.description && (
-                            <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
-                              {issue.description}
-                            </p>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getTypeColor(issue.type)}>
-                          {getTypeLabel(issue.type)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {relatedTask ? (
-                          <div
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              router.push(
-                                `/dashboard/projects/${projectId}/tasks/${relatedTask.id}`
-                              );
-                            }}
-                            className="cursor-pointer hover:underline"
-                          >
-                            <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                              {relatedTask.title}
-                            </p>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-zinc-400">No task</span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
-                            <span className="text-xs font-medium text-white">
-                              {issue.creator?.memberName?.charAt(0) || '?'}
-                            </span>
-                          </div>
-                          {issue.creator ? (
-                            <Link
-                              href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
-                              className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {issue.creator.memberName}
-                            </Link>
-                          ) : (
-                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                              Unknown
-                            </span>
-                          )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getTypeColor(issue.type)}>
+                        {getTypeLabel(issue.type)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {issue.taskName && issue.taskId ? (
+                        <div
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(
+                              `/users/dashboard/projects/${projectId}/tasks/${issue.taskId}`
+                            );
+                          }}
+                          className="cursor-pointer hover:underline"
+                        >
+                          <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                            {issue.taskName}
+                          </p>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                          <Calendar className="h-3 w-3" />
-                          <span>{format(issue.createdAt, 'MMM d, yyyy')}</span>
+                      ) : (
+                        <span className="text-sm text-zinc-400">No task</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                          <span className="text-xs font-medium text-white">
+                            {issue.creator?.name?.charAt(0) || '?'}
+                          </span>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(issue.status)}>
-                          {getStatusLabel(issue.status)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                        {issue.creator ? (
+                          <Link
+                            href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
+                            className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {issue.creator.name}
+                          </Link>
+                        ) : (
+                          <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                            Unknown
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
+                        <Calendar className="h-3 w-3" />
+                        <span>{format(issue.createdAt, 'MMM d, yyyy')}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(issue.status)}>
+                        {getStatusLabel(issue.status)}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>

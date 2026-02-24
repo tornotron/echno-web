@@ -1,13 +1,22 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useMemo } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
-  mockIssues,
-  mockTasks,
-  mockProjects,
-} from '@/components/shared/mock-data';
+  useProject,
+  useEmployeesByProject,
+} from '@/hooks/project/use-projects';
+import {
+  useIssue,
+  useCreateIssueComment,
+  useUpdateIssueWithFiles,
+} from '@/hooks/issue';
+import { useTask } from '@/hooks/task';
+import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Card,
   CardContent,
@@ -16,6 +25,16 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   ArrowLeft,
   Calendar,
   User,
@@ -23,6 +42,8 @@ import {
   AlertCircle,
   Edit,
   MessageSquare,
+  Loader2,
+  Send,
   Paperclip,
   Download,
   FileText,
@@ -30,41 +51,29 @@ import {
   Sheet,
   Box,
   File,
-  Upload,
-  X,
+  Trash2,
+  Search,
+  UserCheck,
+  UserPlus,
+  CheckCircle2,
 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
 import { IssueStatus } from '@/types/issue';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
+import { IssueAttachmentsUploader } from '@/features/issues/components';
 
 interface PageProps {
   params: Promise<{ id: string; issueId: string }>;
-}
-
-// Helper function to get attachment icon based on file type
-function getAttachmentIcon(fileType: AttachmentType) {
-  switch (fileType) {
-    case AttachmentType.image: {
-      return ImageIcon;
-    }
-    case AttachmentType.pdf: {
-      return FileText;
-    }
-    case AttachmentType.document: {
-      return FileText;
-    }
-    case AttachmentType.spreadsheet: {
-      return Sheet;
-    }
-    case AttachmentType.cad: {
-      return Box;
-    }
-    default: {
-      return File;
-    }
-  }
 }
 
 const getStatusColor = (status: IssueStatus) => {
@@ -94,54 +103,175 @@ const getStatusLabel = (status: IssueStatus) => {
   return labelMap[status] || status;
 };
 
+function isValidAttachmentUrl(url: string): boolean {
+  if (!url) return false;
+  try {
+    const parsedUrl = new URL(url);
+    return ['http:', 'https:'].includes(parsedUrl.protocol.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
+function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
+  return isValidAttachmentUrl(attachment.file) ? attachment.file : '#';
+}
+
+const getAttachmentIcon = (type: AttachmentType) => {
+  switch (type) {
+    case AttachmentType.image: {
+      return ImageIcon;
+    }
+    case AttachmentType.pdf:
+    case AttachmentType.document: {
+      return FileText;
+    }
+    case AttachmentType.spreadsheet: {
+      return Sheet;
+    }
+    case AttachmentType.cad: {
+      return Box;
+    }
+    default: {
+      return File;
+    }
+  }
+};
+
+const AVATAR_GRADIENTS = [
+  'from-blue-500 to-blue-600',
+  'from-purple-500 to-purple-600',
+  'from-teal-500 to-teal-600',
+  'from-orange-500 to-orange-600',
+  'from-rose-500 to-rose-600',
+  'from-green-500 to-green-600',
+  'from-indigo-500 to-indigo-600',
+];
+
+function getAvatarGradient(name: string | undefined): string {
+  if (!name) return 'from-zinc-400 to-zinc-500';
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (name.codePointAt(i) ?? 0) + ((hash << 5) - hash);
+  }
+  return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+}
+
 export default function IssueDetailPage({ params }: PageProps) {
   const { id: projectId, issueId: issueIdParam } = use(params);
-  const issue = mockIssues.find((i) => i.id === Number.parseInt(issueIdParam));
+  const searchParams = useSearchParams();
 
-  // State for attachment uploads
-  const [newAttachments, setNewAttachments] = useState<File[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
+  const { data: issue, isLoading: issueLoading } = useIssue(
+    Number.parseInt(issueIdParam)
+  );
+  const { data: relatedTask } = useTask(issue?.taskId);
+  const { data: project } = useProject(Number.parseInt(projectId));
 
-  // Find the task that contains this issue
-  const relatedTask = issue
-    ? mockTasks.find((task) => task.issues?.some((i) => i.id === issue.id))
-    : null;
+  // Forward navigation context to the edit page so breadcrumbs stay correct
+  const fromParam = searchParams.get('from');
+  const taskIdParam = searchParams.get('taskId');
+  const editHref = (() => {
+    const base = `/users/dashboard/projects/${projectId}/issues/${issueIdParam}/edit`;
+    if (fromParam && taskIdParam)
+      return `${base}?from=${fromParam}&taskId=${taskIdParam}`;
+    return base;
+  })();
 
-  const project = relatedTask
-    ? mockProjects.find((p) => p.id === relatedTask.projectId)
-    : null;
+  const [attachmentToDelete, setAttachmentToDelete] = useState<number | null>(
+    null
+  );
+  const [commentText, setCommentText] = useState('');
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assignSearch, setAssignSearch] = useState('');
 
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = [...e.target.files];
-      setNewAttachments([...newAttachments, ...files]);
-    }
-  };
+  const deleteAttachmentMutation = useDeleteAttachment();
+  const createCommentMutation = useCreateIssueComment();
+  const updateIssueMutation = useUpdateIssueWithFiles();
+  const { data: currentEmployee } = useCurrentUserEmployee();
+  const { data: projectMembers = [] } = useEmployeesByProject(
+    Number.parseInt(projectId)
+  );
 
-  // Remove attachment from new uploads
-  const removeNewAttachment = (index: number) => {
-    setNewAttachments(newAttachments.filter((_, i) => i !== index));
-  };
+  const filteredMembers = useMemo(() => {
+    if (!assignSearch.trim()) return projectMembers;
+    const q = assignSearch.toLowerCase();
+    return projectMembers.filter((m) => m.name?.toLowerCase().includes(q));
+  }, [projectMembers, assignSearch]);
 
-  // Handle upload
-  const handleUpload = async () => {
-    if (newAttachments.length === 0) return;
-
-    setIsUploading(true);
+  const handleAssign = async (memberId: number) => {
+    if (!issue?.id) return;
     try {
-      // TODO: Implement API call to upload attachments
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      // After successful upload, clear the new attachments
-      setNewAttachments([]);
-      // Show success message (could use toast here)
-      alert('Attachments uploaded successfully!');
+      await updateIssueMutation.mutateAsync({
+        id: issue.id,
+        data: { assigneeId: memberId },
+        files: { attachments: [] },
+      });
+      setAssignDialogOpen(false);
+      setAssignSearch('');
     } catch {
-      alert('Failed to upload attachments. Please try again.');
-    } finally {
-      setIsUploading(false);
+      // error toast shown by mutation
     }
   };
+
+  const handleUnassign = async () => {
+    if (!issue?.id) return;
+    try {
+      await updateIssueMutation.mutateAsync({
+        id: issue.id,
+        data: { assigneeId: undefined },
+        files: { attachments: [] },
+      });
+      setAssignDialogOpen(false);
+      setAssignSearch('');
+    } catch {
+      // error toast shown by mutation
+    }
+  };
+
+  const handleDeleteAttachment = async () => {
+    if (attachmentToDelete === null) return;
+    try {
+      await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
+      setAttachmentToDelete(null);
+    } catch {
+      // error toast shown by mutation
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !issue?.id) return;
+
+    try {
+      await createCommentMutation.mutateAsync({
+        issueId: issue.id,
+        data: {
+          comment: commentText.trim(),
+          author: currentEmployee,
+          createdAt: new Date(),
+        },
+      });
+      setCommentText('');
+    } catch {
+      // error toast already shown by mutation hook
+    }
+  };
+
+  const handleCommentKeyDown = (
+    e: React.KeyboardEvent<HTMLTextAreaElement>
+  ) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleAddComment();
+    }
+  };
+
+  if (issueLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
   if (!issue) {
     return (
@@ -192,9 +322,7 @@ export default function IssueDetailPage({ params }: PageProps) {
               </Badge>
             </div>
           </div>
-          <Link
-            href={`/users/dashboard/projects/${projectId}/issues/${issue.id}/edit`}
-          >
+          <Link href={editHref}>
             <Button className="mt-4 md:mt-0">
               <Edit className="mr-2 h-4 w-4" />
               Edit Issue
@@ -224,327 +352,84 @@ export default function IssueDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          {/* Related Task */}
-          {relatedTask && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <ListTodo className="h-5 w-5" />
-                  <span>Related Task</span>
-                </CardTitle>
-                <CardDescription>
-                  This issue is linked to the following task
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Link
-                  href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
-                >
-                  <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <h3 className="mb-1 font-medium text-zinc-900 dark:text-zinc-100">
-                          {relatedTask.title}
-                        </h3>
-                        {project && (
-                          <p className="mb-2 text-sm text-zinc-600 dark:text-zinc-400">
-                            {project.projectName}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-2">
-                          {relatedTask.tags?.slice(0, 3).map((tag, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                      <Button variant="ghost" size="sm">
-                        View Task
-                      </Button>
-                    </div>
-                  </div>
-                </Link>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Comments */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center space-x-2">
-                    <MessageSquare className="h-5 w-5" />
-                    <span>Comments</span>
-                    {issue.comments && issue.comments.length > 0 && (
-                      <Badge variant="outline">{issue.comments.length}</Badge>
-                    )}
-                  </CardTitle>
-                  <CardDescription>Discussion about this issue</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {issue.comments && issue.comments.length > 0 ? (
-                <div className="space-y-4">
-                  {issue.comments.map((comment, index) => (
-                    <div
-                      key={index}
-                      className="border-l-2 border-zinc-200 pl-4 dark:border-zinc-800"
-                    >
-                      <div className="mb-2 flex items-center space-x-2">
-                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                          <span className="text-xs font-medium text-white">
-                            {comment.author?.memberName?.charAt(0) || '?'}
-                          </span>
-                        </div>
-                        {comment.author ? (
-                          <Link
-                            href={`/users/dashboard/workforce/employees/${comment.author.id}`}
-                            className="text-sm font-medium text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
-                          >
-                            {comment.author.memberName}
-                          </Link>
-                        ) : (
-                          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                            Unknown
-                          </span>
-                        )}
-                        <span className="text-xs text-zinc-500 dark:text-zinc-500">
-                          {format(comment.createdAt, 'MMM d, yyyy HH:mm')}
-                        </span>
-                      </div>
-                      <p className="text-sm text-zinc-700 dark:text-zinc-300">
-                        {comment.comment}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-8 text-center">
-                  <MessageSquare className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
-                  <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                    No comments yet
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                <Calendar className="mr-2 inline h-4 w-4" />
-                Timeline
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Created
-                </label>
-                <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                  {format(issue.createdAt, 'MMM d, yyyy HH:mm')}
-                </p>
-              </div>
-              {issue.updatedAt && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Last Updated
-                  </label>
-                  <p className="text-sm text-zinc-900 dark:text-zinc-100">
-                    {format(issue.updatedAt, 'MMM d, yyyy HH:mm')}
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
           {/* Attachments */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center space-x-2">
                     <Paperclip className="h-5 w-5" />
-                    Attachments
+                    <span>Attachments</span>
+                    {issue.attachments && issue.attachments.length > 0 && (
+                      <Badge variant="outline">
+                        {issue.attachments.length}
+                      </Badge>
+                    )}
                   </CardTitle>
                   <CardDescription>
                     Files attached to this issue
                   </CardDescription>
                 </div>
-                <Button
-                  onClick={() =>
-                    (
-                      document.querySelector(
-                        '#attachment-upload'
-                      ) as HTMLInputElement
-                    )?.click()
-                  }
-                  disabled={isUploading}
-                >
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload File
-                </Button>
+                {issue.id && <IssueAttachmentsUploader issueId={issue.id} />}
               </div>
             </CardHeader>
             <CardContent>
-              <input
-                id="attachment-upload"
-                type="file"
-                multiple
-                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              {/* Show existing attachments or new uploads */}
               {issue.attachments && issue.attachments.length > 0 ? (
-                <div className="space-y-2">
-                  {issue.attachments.map((attachment, index) => {
-                    const IconComponent = getAttachmentIcon(
-                      attachment.fileType
-                    );
+                <div className="flex flex-wrap gap-3">
+                  {issue.attachments.map((attachment) => {
+                    const Icon = getAttachmentIcon(attachment.fileType);
+                    const attachmentKey =
+                      attachment.id ||
+                      `${attachment.file}-${attachment.createdAt?.getTime() || 'noDate'}`;
+                    const safeDownloadUrl = getSafeDownloadUrl(attachment);
+                    const isValidUrl = isValidAttachmentUrl(attachment.file);
+
                     return (
                       <div
-                        key={index}
-                        className="flex items-center justify-between rounded-lg border border-zinc-200 p-2 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
+                        key={attachmentKey}
+                        className="group relative flex h-28 w-28 flex-col items-center justify-between rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
                       >
-                        <div className="flex min-w-0 flex-1 items-center space-x-2">
-                          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                            <IconComponent className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                              {attachment.fileName}
-                            </p>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                              {formatFileSize(attachment.fileSize)}
-                            </p>
-                          </div>
+                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                          <Icon className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 shrink-0 p-0"
-                          asChild
-                        >
+                        <p className="w-full truncate text-center text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                          {attachment.fileName}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {formatFileSize(attachment.fileSize)}
+                        </p>
+                        {isValidUrl && (
                           <a
-                            href={attachment.file}
-                            download={attachment.fileName}
+                            href={safeDownloadUrl}
+                            download
+                            aria-label={`Download ${attachment.fileName}`}
+                            className="absolute inset-0 flex items-center justify-center gap-2 rounded-lg bg-zinc-900/60 opacity-0 transition-opacity group-hover:opacity-100"
                           >
-                            <Download className="h-3 w-3" />
+                            <Download className="h-5 w-5 text-white" />
                           </a>
-                        </Button>
+                        )}
+                        {attachment.id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setAttachmentToDelete(attachment.id!);
+                            }}
+                            className="absolute top-1 right-1 h-6 w-6 bg-red-500/90 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
+                            aria-label={`Delete ${attachment.fileName}`}
+                          >
+                            <Trash2 className="h-3 w-3 text-white" />
+                          </Button>
+                        )}
                       </div>
                     );
                   })}
-
-                  {/* Show pending uploads if any */}
-                  {newAttachments.length > 0 && (
-                    <div className="space-y-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-                      <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                        Pending Uploads ({newAttachments.length})
-                      </p>
-                      {newAttachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800/50"
-                        >
-                          <div className="flex min-w-0 flex-1 items-center space-x-2">
-                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                                {file.name}
-                              </p>
-                              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                                {(file.size / 1024).toFixed(1)} KB
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 shrink-0 p-0"
-                            onClick={() => removeNewAttachment(index)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      ))}
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="w-full"
-                        onClick={handleUpload}
-                        disabled={isUploading}
-                      >
-                        <Upload className="mr-2 h-4 w-4" />
-                        {isUploading
-                          ? 'Uploading...'
-                          : `Upload ${newAttachments.length} File${newAttachments.length > 1 ? 's' : ''}`}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              ) : newAttachments.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                    Pending Uploads ({newAttachments.length})
-                  </p>
-                  {newAttachments.map((file, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800/50"
-                    >
-                      <div className="flex min-w-0 flex-1 items-center space-x-2">
-                        <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-xs font-medium text-zinc-900 dark:text-zinc-100">
-                            {file.name}
-                          </p>
-                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            {(file.size / 1024).toFixed(1)} KB
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 shrink-0 p-0"
-                        onClick={() => removeNewAttachment(index)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    size="sm"
-                    className="w-full"
-                    onClick={handleUpload}
-                    disabled={isUploading}
-                  >
-                    <Upload className="mr-2 h-4 w-4" />
-                    {isUploading
-                      ? 'Uploading...'
-                      : `Upload ${newAttachments.length} File${newAttachments.length > 1 ? 's' : ''}`}
-                  </Button>
                 </div>
               ) : (
-                <div className="py-12 text-center">
-                  <Paperclip className="mx-auto mb-3 h-12 w-12 text-zinc-400 dark:text-zinc-600" />
+                <div className="py-8 text-center">
+                  <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
                   <p className="text-sm text-zinc-600 dark:text-zinc-400">
                     No attachments yet
                   </p>
@@ -553,7 +438,240 @@ export default function IssueDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          {/* Creator */}
+          {/* Comments */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                <span>Comments</span>
+                {issue.comments && issue.comments.length > 0 && (
+                  <Badge variant="outline" className="ml-1">
+                    {issue.comments.length}
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Discussion and updates about this issue
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-0 px-6 pb-6">
+              {/* Comment list */}
+              {issue.comments && issue.comments.length > 0 ? (
+                <div className="mb-6 space-y-1">
+                  {issue.comments.map((comment, index) => {
+                    const gradient = getAvatarGradient(comment.author?.name);
+                    const initial =
+                      comment.author?.name?.charAt(0).toUpperCase() || '?';
+                    const isLast = index === issue.comments!.length - 1;
+                    return (
+                      <div key={comment.id ?? index} className="flex gap-3">
+                        {/* Avatar + thread line */}
+                        <div className="flex flex-col items-center">
+                          <div
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br ${gradient}`}
+                          >
+                            <span className="text-xs font-semibold text-white">
+                              {initial}
+                            </span>
+                          </div>
+                          {!isLast && (
+                            <div className="mt-1 w-px flex-1 bg-zinc-200 dark:bg-zinc-800" />
+                          )}
+                        </div>
+
+                        {/* Comment body */}
+                        <div className={`flex-1 pb-5 ${isLast ? 'pb-0' : ''}`}>
+                          <div className="rounded-lg border border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900/50">
+                            {/* Comment header */}
+                            <div className="flex items-center justify-between rounded-t-lg border-b border-zinc-200 bg-zinc-100 px-4 py-2 dark:border-zinc-800 dark:bg-zinc-800/60">
+                              <div className="flex items-center gap-2">
+                                {comment.author ? (
+                                  <Link
+                                    href={`/users/dashboard/workforce/employees/${comment.author.id}`}
+                                    className="text-sm font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
+                                  >
+                                    {comment.author.name}
+                                  </Link>
+                                ) : (
+                                  <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                    Unknown
+                                  </span>
+                                )}
+                                <span className="text-zinc-400">·</span>
+                                <span
+                                  className="text-xs text-zinc-500 dark:text-zinc-400"
+                                  title={format(
+                                    comment.createdAt,
+                                    'MMM d, yyyy HH:mm'
+                                  )}
+                                >
+                                  {formatDistanceToNow(comment.createdAt, {
+                                    addSuffix: true,
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            {/* Comment text */}
+                            <div className="px-4 py-3">
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+                                {comment.comment}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="mb-6 rounded-lg border border-dashed border-zinc-300 py-10 text-center dark:border-zinc-700">
+                  <MessageSquare className="mx-auto mb-3 h-9 w-9 text-zinc-300 dark:text-zinc-600" />
+                  <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                    No comments yet
+                  </p>
+                  <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+                    Be the first to leave a comment
+                  </p>
+                </div>
+              )}
+
+              {/* Comment composer */}
+              <div className="flex gap-3">
+                <div
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-linear-to-br ${getAvatarGradient(currentEmployee?.name)}`}
+                >
+                  <span className="text-xs font-semibold text-white">
+                    {currentEmployee?.name?.charAt(0).toUpperCase() || '?'}
+                  </span>
+                </div>
+                <div className="flex flex-1 flex-col gap-2">
+                  {currentEmployee?.name && (
+                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                      Commenting as{' '}
+                      <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                        {currentEmployee.name}
+                      </span>
+                    </p>
+                  )}
+                  <Textarea
+                    placeholder="Leave a comment…"
+                    value={commentText}
+                    onChange={(e) => setCommentText(e.target.value)}
+                    onKeyDown={handleCommentKeyDown}
+                    rows={3}
+                    className="resize-none"
+                    disabled={createCommentMutation.isPending}
+                  />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                      <kbd className="rounded border border-zinc-300 px-1 py-0.5 font-mono text-[10px] dark:border-zinc-700">
+                        Ctrl
+                      </kbd>
+                      {' + '}
+                      <kbd className="rounded border border-zinc-300 px-1 py-0.5 font-mono text-[10px] dark:border-zinc-700">
+                        Enter
+                      </kbd>
+                      {' to submit'}
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {commentText.trim() && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setCommentText('')}
+                          disabled={createCommentMutation.isPending}
+                        >
+                          Cancel
+                        </Button>
+                      )}
+                      <Button
+                        size="sm"
+                        onClick={handleAddComment}
+                        disabled={
+                          !commentText.trim() || createCommentMutation.isPending
+                        }
+                      >
+                        {createCommentMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
+                            Posting…
+                          </>
+                        ) : (
+                          <>
+                            <Send className="mr-2 h-3.5 w-3.5" />
+                            Comment
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Issue Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Issue Summary</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    Created
+                  </label>
+                  <p className="flex items-center gap-1.5 text-sm text-zinc-900 dark:text-zinc-100">
+                    <Calendar className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                    {format(issue.createdAt, 'MMM d, yyyy HH:mm')}
+                  </p>
+                </div>
+                {issue.updatedAt && (
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                      Last Updated
+                    </label>
+                    <p className="flex items-center gap-1.5 text-sm text-zinc-900 dark:text-zinc-100">
+                      <Calendar className="h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                      {format(issue.updatedAt, 'MMM d, yyyy HH:mm')}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {relatedTask && (
+                <div className="border-t border-zinc-200 pt-3 dark:border-zinc-800">
+                  <label className="mb-2 block text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                    Related Task
+                  </label>
+                  <Link
+                    href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                  >
+                    <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
+                        <ListTodo className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {relatedTask.title}
+                        </p>
+                        {project && (
+                          <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                            {project.projectName}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Reported By */}
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
@@ -568,17 +686,19 @@ export default function IssueDetailPage({ params }: PageProps) {
                   className="block rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br ${getAvatarGradient(issue.creator.name)}`}
+                    >
                       <span className="text-sm font-medium text-white">
-                        {issue.creator.memberName?.charAt(0) || '?'}
+                        {issue.creator.name?.charAt(0) || '?'}
                       </span>
                     </div>
                     <div>
                       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {issue.creator.memberName}
+                        {issue.creator.name}
                       </p>
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                        Issue Reporter
+                        {issue.creator.designation || 'Issue Reporter'}
                       </p>
                     </div>
                   </div>
@@ -591,31 +711,208 @@ export default function IssueDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
+          {/* Assigned To */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                Add Comment
-              </Button>
-              {relatedTask && (
-                <Link
-                  href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
-                  className="block"
-                >
-                  <Button variant="outline" className="w-full justify-start">
-                    <ListTodo className="mr-2 h-4 w-4" />
-                    View Parent Task
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <CardTitle className="text-base">
+                  <User className="mr-2 inline h-4 w-4" />
+                  Assigned To
+                </CardTitle>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {issue.assignee && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleUnassign}
+                      disabled={updateIssueMutation.isPending}
+                      className="h-7 gap-1.5 text-xs text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20"
+                    >
+                      {updateIssueMutation.isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                      Unassign
+                    </Button>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAssignDialogOpen(true)}
+                    className="h-7 gap-1.5 text-xs"
+                  >
+                    {issue.assignee ? (
+                      <>
+                        <UserCheck className="h-3.5 w-3.5" />
+                        Reassign
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-3.5 w-3.5" />
+                        Assign
+                      </>
+                    )}
                   </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {issue.assignee ? (
+                <Link
+                  href={`/users/dashboard/workforce/employees/${issue.assignee.id}`}
+                  className="block rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                >
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br ${getAvatarGradient(issue.assignee.name)}`}
+                    >
+                      <span className="text-sm font-medium text-white">
+                        {issue.assignee.name?.charAt(0) || '?'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                        {issue.assignee.name}
+                      </p>
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                        {issue.assignee.designation || 'Assignee'}
+                      </p>
+                    </div>
+                  </div>
                 </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAssignDialogOpen(true)}
+                  className="flex w-full items-center gap-2 rounded-lg border border-dashed border-zinc-300 p-3 text-sm text-zinc-500 transition-colors hover:border-zinc-400 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:border-zinc-600 dark:hover:bg-zinc-800/50"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  Click to assign a member
+                </button>
               )}
             </CardContent>
           </Card>
+
+          {/* Assign / Reassign Dialog */}
+          <Dialog
+            open={assignDialogOpen}
+            onOpenChange={(open) => {
+              setAssignDialogOpen(open);
+              if (!open) setAssignSearch('');
+            }}
+          >
+            <DialogContent className="sm:max-w-sm">
+              <DialogHeader>
+                <DialogTitle>
+                  {issue.assignee ? 'Reassign Issue' : 'Assign Issue'}
+                </DialogTitle>
+                <DialogDescription>
+                  Select a project member to{' '}
+                  {issue.assignee ? 'reassign' : 'assign'} this issue to.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-3">
+                <div className="relative">
+                  <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-zinc-400" />
+                  <Input
+                    placeholder="Search members..."
+                    value={assignSearch}
+                    onChange={(e) => setAssignSearch(e.target.value)}
+                    className="pl-9"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="max-h-64 space-y-1 overflow-y-auto">
+                  {filteredMembers.length > 0 ? (
+                    filteredMembers.map((member) => {
+                      const isCurrent = issue.assignee?.id === member.id;
+                      return (
+                        <button
+                          key={member.id}
+                          type="button"
+                          onClick={() => member.id && handleAssign(member.id)}
+                          disabled={updateIssueMutation.isPending || isCurrent}
+                          className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors disabled:cursor-not-allowed ${
+                            isCurrent
+                              ? 'border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
+                              : 'hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                          }`}
+                        >
+                          <div
+                            className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br ${getAvatarGradient(member.name)}`}
+                          >
+                            <span className="text-sm font-medium text-white">
+                              {member.name?.charAt(0) || '?'}
+                            </span>
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              {member.name}
+                            </p>
+                            <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+                              {member.designation ||
+                                member.department ||
+                                'Team Member'}
+                            </p>
+                          </div>
+                          {isCurrent && (
+                            <CheckCircle2 className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                          )}
+                          {updateIssueMutation.isPending && !isCurrent && (
+                            <Loader2 className="h-4 w-4 shrink-0 animate-spin text-zinc-400" />
+                          )}
+                        </button>
+                      );
+                    })
+                  ) : (
+                    <p className="py-6 text-center text-sm text-zinc-500 dark:text-zinc-400">
+                      No members found
+                    </p>
+                  )}
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
+
+      {/* Delete Attachment Confirmation Dialog */}
+      <AlertDialog
+        open={attachmentToDelete !== null}
+        onOpenChange={(open) => !open && setAttachmentToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this attachment? This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteAttachmentMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteAttachment}
+              disabled={deleteAttachmentMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteAttachmentMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
