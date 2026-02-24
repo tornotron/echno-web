@@ -59,6 +59,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
+import { toast } from '@/lib/styles/toast-styles';
 
 function isValidAttachmentUrl(url: string): boolean {
   if (!url) return false;
@@ -108,6 +109,10 @@ export default function TaskDetailPage({ params }: PageProps) {
       setAttachmentToDelete(null);
     } catch (error) {
       console.error('Failed to delete attachment:', error);
+      toast.error('Failed to delete attachment', {
+        description:
+          error instanceof Error ? error.message : 'Please try again.',
+      });
     }
   };
 

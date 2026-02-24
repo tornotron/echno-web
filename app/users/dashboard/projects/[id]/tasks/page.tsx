@@ -44,12 +44,19 @@ export default function ProjectTasksPage() {
   const params = useParams();
   const router = useRouter();
   const projectId = Number.parseInt(params.id as string);
-  const { data: project } = useProject(projectId);
+  const {
+    data: project,
+    isLoading: isProjectLoading,
+    isError: isProjectError,
+  } = useProject(projectId);
   const {
     data: projectTasks = [],
-    isLoading,
-    isError,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
   } = useTasksByProject(projectId);
+
+  const isLoading = isProjectLoading || isTasksLoading;
+  const isError = isProjectError || isTasksError;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -140,26 +147,6 @@ export default function ProjectTasksPage() {
     }
   };
 
-  if (!project) {
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Project not found
-            </p>
-            <Link href="/users/dashboard/projects">
-              <Button className="mt-4">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Projects
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -182,6 +169,26 @@ export default function ProjectTasksPage() {
             </p>
           </CardContent>
         </Card>
+      </div>
+    );
+  }
+
+  if (!project) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Project not found
+            </p>
+            <Link href="/users/dashboard/projects">
+              <Button className="mt-4">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Projects
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

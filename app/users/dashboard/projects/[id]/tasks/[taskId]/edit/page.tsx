@@ -255,7 +255,7 @@ export default function EditTaskPage({ params }: PageProps) {
       tagInput === '' &&
       form.selectedTags.length > 0
     ) {
-      removeTag(form.selectedTags[form.selectedTags.length - 1]);
+      removeTag(form.selectedTags.at(-1)!);
     }
   };
 
@@ -352,6 +352,15 @@ export default function EditTaskPage({ params }: PageProps) {
       onSuccess: () => {
         router.push(`/users/dashboard/projects/${projectId}/tasks`);
       },
+      onError: (error) => {
+        console.error('Failed to delete task:', error);
+        toast.error('Delete Failed', {
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Could not delete the task. Please try again.',
+        });
+      },
     });
   };
 
@@ -388,6 +397,15 @@ export default function EditTaskPage({ params }: PageProps) {
       {
         onSuccess: () => {
           router.push(`/users/dashboard/projects/${projectId}/tasks/${taskId}`);
+        },
+        onError: (error) => {
+          console.error('Failed to update task:', error);
+          toast.error('Save Failed', {
+            description:
+              error instanceof Error
+                ? error.message
+                : 'Could not save the task. Please try again.',
+          });
         },
       }
     );
@@ -679,38 +697,38 @@ export default function EditTaskPage({ params }: PageProps) {
               <CardContent>
                 <div className="space-y-2">
                   {projectMembers.length > 0 ? (
-                    projectMembers.map((member) => {
-                      const isSelected = form.selectedAssignees.includes(
-                        member.id?.toString() || ''
-                      );
-                      const cardClass = isSelected
-                        ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
-                        : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700';
+                    projectMembers
+                      .filter((member) => member.id != null)
+                      .map((member) => {
+                        const memberId = member.id!.toString();
+                        const isSelected =
+                          form.selectedAssignees.includes(memberId);
+                        const cardClass = isSelected
+                          ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                          : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700';
 
-                      return (
-                        <div
-                          key={member.id}
-                          className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
-                          onClick={() =>
-                            toggleAssignee(member.id?.toString() || '')
-                          }
-                        >
-                          <div>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {member.name}
-                            </p>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                              {member.designation ||
-                                member.department ||
-                                'Team Member'}
-                            </p>
+                        return (
+                          <div
+                            key={memberId}
+                            className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
+                            onClick={() => toggleAssignee(memberId)}
+                          >
+                            <div>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {member.name}
+                              </p>
+                              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                                {member.designation ||
+                                  member.department ||
+                                  'Team Member'}
+                              </p>
+                            </div>
+                            {isSelected && (
+                              <Badge className="bg-blue-600">Assigned</Badge>
+                            )}
                           </div>
-                          {isSelected && (
-                            <Badge className="bg-blue-600">Assigned</Badge>
-                          )}
-                        </div>
-                      );
-                    })
+                        );
+                      })
                   ) : (
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       No team members found for this project
