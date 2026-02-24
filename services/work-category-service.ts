@@ -42,7 +42,10 @@ function safeParseWorkCategories(data: ApiResponse[]): WorkCategory[] {
       'safeParseWorkCategories: API contract violation - expected array but received ' +
         `${dataType}. Preview: ${preview}. parseWorkCategory will not be called.`
     );
-    return [];
+    throw new ApiError(
+      `Expected array from API but received ${dataType}. Preview: ${preview}`,
+      422
+    );
   }
   try {
     return data.map((item) => parseWorkCategory(item));
@@ -81,8 +84,12 @@ export const workCategoryService = {
    * Create a new work category.
    */
   async create(category: Partial<WorkCategory>): Promise<WorkCategory> {
+    if (!category.name?.trim()) {
+      throw new ApiError('Work category name is required.', 400);
+    }
+
     const payload: Record<string, unknown> = {
-      name: category.name ?? '',
+      name: category.name,
       description: category.description ?? '',
     };
     if (category.icon) {
