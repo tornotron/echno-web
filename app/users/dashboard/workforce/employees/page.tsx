@@ -42,7 +42,7 @@ import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
-import { EmployeeProjectsCell } from '@/features/employee/employee-projects-cell';
+import { EmployeeProjectsCell } from '@/features/employee/components/employee-projects-cell';
 
 const getStatusColor = (status: string) => {
   switch (status) {
