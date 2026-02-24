@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { MarketingNav } from '@/components/home/marketing-nav';
-import { MarketingFooter } from '@/components/home/marketing-footer';
+import { MarketingNav } from '@/features/home/components/marketing-nav';
+import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { Button } from '@/components/ui/button';
 import { Mail, Phone, MapPin, Send, CheckCircle2, HardHat } from 'lucide-react';
 
