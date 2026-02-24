@@ -115,7 +115,7 @@ export function TaskAttachmentsSection({
   };
 
   const handleDeleteAttachment = async () => {
-    if (!attachmentToDelete) return;
+    if (attachmentToDelete == null) return;
 
     try {
       await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
@@ -223,7 +223,7 @@ export function TaskAttachmentsSection({
             Upload New Files
           </Button>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            PDF, DOC, DOCX, JPG, PNG, XLSX, DWG, DXF (Max 10MB each)
+            PDF, DOC, DOCX, JPG, JPEG, PNG, XLS, XLSX, DWG, DXF (Max 10MB each)
           </p>
         </div>
 

@@ -30,7 +30,7 @@ function safeParseAttachment(data: ApiResponse): Attachment {
  * Expected backend structure:
  * - GET /attachment/web/entityId/{entityId}/entityType/{entityType} - Fetch attachment
  * - POST /attachment/web/entityId/{entityId}/entityType/{entityType} - Upload attachment
- * - DELETE /attachment/web/{id} - Delete attachment by ID
+ * - DELETE /attachment/web/attachmentId/{id} - Delete attachment by ID
  */
 export const attachmentService = {
   /**
