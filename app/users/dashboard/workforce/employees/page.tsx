@@ -630,7 +630,7 @@ export default function EmployeesPage() {
                       <TableCell>
                         <EmployeeProjectsCell
                           employeeId={employee.id}
-                          projects={employee.currentProjects}
+                          projects={employee.currentProjects ?? []}
                         />
                       </TableCell>
                       <TableCell>
