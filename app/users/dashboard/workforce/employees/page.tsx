@@ -34,7 +34,6 @@ import {
   User,
   Loader2,
   AlertCircle,
-  FolderKanban,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,8 +42,7 @@ import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
-import { EmployeeProjectsCell } from '@/components/workforce/employee-projects-cell';
-import { EmployeeProjectsCellContainer } from '@/features/employee';
+import { EmployeeProjectsCell } from '@/features/employee/employee-projects-cell';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -630,21 +628,10 @@ export default function EmployeesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {employee.currentProjects ? (
-                          <EmployeeProjectsCell
-                            projects={employee.currentProjects}
-                            isLoading={false}
-                          />
-                        ) : employee.id === undefined ? (
-                          <div className="flex items-center gap-1.5 text-xs text-zinc-400">
-                            <FolderKanban className="h-3 w-3" />
-                            <span>No projects</span>
-                          </div>
-                        ) : (
-                          <EmployeeProjectsCellContainer
-                            employeeId={employee.id}
-                          />
-                        )}
+                        <EmployeeProjectsCell
+                          employeeId={employee.id}
+                          projects={employee.currentProjects}
+                        />
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(employee.status)}>

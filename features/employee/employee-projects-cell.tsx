@@ -2,21 +2,30 @@
 
 import { FolderKanban, Loader2 } from 'lucide-react';
 import type { Project } from '@/types/project';
+import { useProjectsByEmployee } from '@/hooks/project';
 
 interface EmployeeProjectsCellProps {
-  projects: Project[] | undefined;
-  isLoading: boolean;
+  /** Employee ID — used to fetch projects when `projects` is not provided. */
+  employeeId?: number;
+  /** Pre-loaded projects — when provided, skips the fetch. */
+  projects?: Project[];
 }
 
 /**
- * Pure presentational component that displays employee projects.
- * Accepts projects data and loading state as props.
+ * Displays employee projects in a compact cell.
+ * Pass `projects` directly to skip fetching, or pass `employeeId` to fetch automatically.
  */
 export function EmployeeProjectsCell({
-  projects,
-  isLoading,
+  employeeId,
+  projects: initialProjects,
 }: EmployeeProjectsCellProps) {
-  if (isLoading) {
+  const { data: fetchedProjects, isLoading } = useProjectsByEmployee(
+    initialProjects ? undefined : employeeId
+  );
+
+  const projects = initialProjects ?? fetchedProjects;
+
+  if (isLoading && !projects) {
     return (
       <div className="flex items-center gap-1.5 text-xs text-zinc-400">
         <Loader2 className="h-3 w-3 animate-spin" />
