@@ -74,7 +74,7 @@ import {
 import { useAuthorization } from '@/hooks/use-authorization';
 import { useProjectsByEmployee } from '@/hooks/project';
 import { EmployeeLeaveSection } from '@/components/leave/employee-leave-section';
-import { CurrentProjectsCard } from '@/features/employee/current-projects-card';
+import { CurrentProjectsCard } from '@/features/employee/components/current-projects-card';
 
 interface EmployeeDetailPageProps {
   params: Promise<{
