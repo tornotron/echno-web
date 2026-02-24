@@ -4,8 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, Suspense } from 'react';
-import { MarketingNav } from '@/components/home/marketing-nav';
-import { MarketingFooter } from '@/components/home/marketing-footer';
+import { MarketingNav } from '@/features/home/components/marketing-nav';
+import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/lib/styles/toast-styles';
 import {

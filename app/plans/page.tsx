@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { MarketingNav } from '@/components/home/marketing-nav';
-import { MarketingFooter } from '@/components/home/marketing-footer';
+import { MarketingNav } from '@/features/home/components/marketing-nav';
+import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { Button } from '@/components/ui/button';
 import {
   CheckCircle2,

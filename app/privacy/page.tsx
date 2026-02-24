@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { MarketingNav } from '@/components/home/marketing-nav';
-import { MarketingFooter } from '@/components/home/marketing-footer';
+import { MarketingNav } from '@/features/home/components/marketing-nav';
+import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { Shield, ArrowRight } from 'lucide-react';
 
 export default function PrivacyPage() {
