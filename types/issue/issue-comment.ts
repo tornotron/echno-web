@@ -1,6 +1,7 @@
 // types/issue/issue-comment.ts
 
 import { Employee } from '@/types/employee/employee';
+import { parseUTCDate } from '@/types/date-helpers';
 
 /**
  * IssueComment – shape only
@@ -24,7 +25,7 @@ export function parseIssueComment(json: any): IssueComment {
     id: json.id ?? undefined,
     comment: json.comment ?? '',
     authorId: json.authorId ?? undefined,
-    createdAt: new Date(json.createdAt),
+    createdAt: parseUTCDate(json.createdAt) ?? new Date(),
   };
 }
 

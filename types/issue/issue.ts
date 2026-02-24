@@ -4,6 +4,7 @@ import { IssueStatus, issueStatusFromString } from './issue-status';
 import { IssueComment, parseIssueComment } from './issue-comment';
 import { Attachment, parseAttachment } from '@/types/attachment';
 import { Employee } from '@/types/employee/employee';
+import { parseUTCDate } from '@/types/date-helpers';
 
 export interface Issue {
   id?: number;
@@ -38,8 +39,10 @@ export function parseIssue(json: any): Issue {
     description: json.description ?? undefined,
     type: issueTypeFromString(json.type),
     status: issueStatusFromString(json.status),
-    createdAt: new Date(json.createdAt),
-    updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
+    createdAt: parseUTCDate(json.createdAt) ?? new Date(),
+    updatedAt: json.updatedAt
+      ? (parseUTCDate(json.updatedAt) ?? undefined)
+      : undefined,
     creatorId: json.createdById ?? undefined,
     assigneeId: json.assignedToId ?? undefined,
     comments: json.issueComments

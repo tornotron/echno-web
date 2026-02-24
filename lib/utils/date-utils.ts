@@ -7,6 +7,10 @@
 
 import { format, formatDistanceToNow } from 'date-fns';
 
+// Re-export parseUTCDate from the types layer so lib consumers can still
+// import it from here without violating boundary rules.
+export { parseUTCDate } from '@/types/date-helpers';
+
 /**
  * Safely converts a value to a Date object
  * @param date - Date, string, or undefined
