@@ -31,7 +31,8 @@ function safeParseIssue(data: ApiResponse): Issue {
  */
 function safeParseIssues(data: ApiResponse[]): Issue[] {
   if (!Array.isArray(data)) {
-    return [];
+    logger.error('Invalid issues payload: expected array, received:', data);
+    throw new ApiError('Invalid issues payload: expected array.', 422);
   }
   try {
     return data.map((item) => parseIssue(item));

@@ -27,7 +27,10 @@ function safeParseIssueComment(data: ApiResponse): IssueComment {
  */
 function safeParseIssueComments(data: ApiResponse[]): IssueComment[] {
   if (!Array.isArray(data)) {
-    return [];
+    throw new ApiError(
+      'Expected an array of issue comments but received an invalid response shape.',
+      422
+    );
   }
   try {
     return data.map((item) => parseIssueComment(item));
