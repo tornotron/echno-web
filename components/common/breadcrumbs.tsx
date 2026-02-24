@@ -2,11 +2,11 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Budget } from '@/types/finance/budget';
 import { Employee } from '@/types/employee/employee';
 import { LeaveRequest } from '@/types/leave';
 import { Organization } from '@/types/organization';
 import { Task } from '@/types/task';
+import { Issue } from '@/types/issue/issue';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -29,226 +29,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Project } from '@/types/project/project';
+// import { ChatRoom, ChatRoomType } from '@/types/chat'; // temporarily disabled – moving chat to separate branch
 import {
-  mockIssues,
-  mockInspections,
-  mockLabour,
-  mockAssets,
-  mockBudgets,
-  mockLocations,
-  mockPurchaseOrders,
-  mockMaterialRequests,
-  mockTransfers,
-  mockStockAdjustments,
-  mockGoodsReceipts,
-  mockReceipts,
-  mockPayments,
-  mockInvoices,
-  mockExpenses,
-} from '@/components/shared/mock-data';
-
-interface BreadcrumbConfig {
-  [key: string]: string;
-}
-
-// Map of route segments to display names
-const breadcrumbNameMap: BreadcrumbConfig = {
-  dashboard: 'Dashboard',
-  profile: 'Profile',
-  login: 'Login',
-  settings: 'Settings',
-  admin: 'Administrator',
-  employees: 'Employees',
-  organizations: 'Organizations',
-  tasks: 'Tasks',
-  issues: 'Issues',
-  attendance: 'Attendance',
-  leaves: 'Leave Management',
-  'leave-requests': 'Leave Requests',
-  requests: 'My Requests',
-  apply: 'Apply for Leave',
-  calendar: 'Leave Calendar',
-  balance: 'Leave Balance',
-  policies: 'Leave Policies',
-  approvals: 'LeaveApprovals',
-  'organization-requests': 'Organization Requests',
-
-  inspections: 'Inspections',
-  new: 'New',
-  edit: 'Edit',
-  workforce: 'Workforce',
-  'third-party': 'Third Party',
-  'sub-contracts': 'Sub-Contracts',
-  labour: 'Labour',
-  vendors: 'Vendors',
-  resources: 'Resources',
-  inventory: 'Inventory',
-  locations: 'Locations',
-  'purchase-orders': 'Purchase Orders',
-  'material-requests': 'Material Requests',
-  'stock-adjustments': 'Stock Adjustments',
-  transfers: 'Transfers',
-  'goods-receipts': 'Goods Receipts',
-  finance: 'Finance',
-  receipts: 'Receipts',
-  payments: 'Payments',
-  invoices: 'Invoices',
-  expenses: 'Expenses',
-  budgets: 'Budgets',
-};
-
-// Segments that should NEVER appear in breadcrumbs
-const hiddenSegments = new Set(['users', 'dashboard']);
-
-// Segments that should appear but not be clickable
-const nonInteractiveSegments = new Set([
-  'workforce',
-  'third-party',
-  'resources',
-]);
-
-// Helper function to check if a string is likely an ID
-function isIdSegment(segment: string): boolean {
-  return (
-    /^\d+$/.test(segment) ||
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      segment
-    )
-  );
-}
-
-// Helper function to get the name for an ID based on context
-function getNameForId(
-  id: string,
-  context: string[],
-  employees?: Employee[],
-  leaveRequests?: LeaveRequest[],
-  organizations?: Organization[],
-  projects?: Project[],
-  task?: Task
-): string {
-  const numericId = Number.parseInt(id, 10);
-  const parentSegment = context.at(-1);
-
-  if (parentSegment === 'projects') {
-    return (
-      projects?.find((p) => p.id === numericId)?.projectName ?? `Project ${id}`
-    );
-  }
-  if (parentSegment === 'tasks') {
-    return task?.title ?? `Task ${id}`;
-  }
-  if (parentSegment === 'issues') {
-    return mockIssues.find((i) => i.id === numericId)?.title ?? id;
-  }
-  if (parentSegment === 'employees' || parentSegment === 'attendance') {
-    // Use real employee data if available, filtering out undefined IDs
-    return (
-      employees?.find((e) => e.id !== undefined && e.id === numericId)?.name ??
-      'Employee'
-    );
-  }
-  if (parentSegment === 'requests' && context.includes('leaves')) {
-    // Use real leave request data if available
-    return (
-      leaveRequests?.find((r) => r.id === numericId)?.requestNumber ??
-      `Request #${id}`
-    );
-  }
-  if (parentSegment === 'organizations') {
-    // Use real organization data if available
-    return (
-      organizations?.find((o) => o.id === numericId)?.organizationName ??
-      `Organization ${id}`
-    );
-  }
-  if (parentSegment === 'inspections') {
-    return mockInspections.find((i) => i.id === numericId)?.title ?? id;
-  }
-  if (parentSegment === 'labour') {
-    return mockLabour.find((l) => l.id === numericId)?.name ?? id;
-  }
-  if (parentSegment === 'assets') {
-    return mockAssets.find((a) => a.id === numericId)?.name ?? id;
-  }
-  if (parentSegment === 'budgets') {
-    return (
-      mockBudgets.find((b: Budget) => b.id === numericId)?.budgetNumber ?? id
-    );
-  }
-  if (parentSegment === 'locations') {
-    return mockLocations.find((l) => l.id === numericId)?.name ?? id;
-  }
-  if (parentSegment === 'purchase-orders') {
-    return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber ?? id;
-  }
-  if (parentSegment === 'material-requests') {
-    return (
-      mockMaterialRequests.find((m) => m.id === numericId)?.requestNumber ?? id
-    );
-  }
-  if (parentSegment === 'transfers') {
-    return mockTransfers.find((t) => t.id === numericId)?.transferNumber ?? id;
-  }
-  if (parentSegment === 'stock-adjustments') {
-    return (
-      mockStockAdjustments.find((s) => s.id === numericId)?.adjustmentNumber ??
-      id
-    );
-  }
-  if (parentSegment === 'goods-receipts') {
-    return (
-      mockGoodsReceipts.find((g) => g.id === numericId)?.receiptNumber ?? id
-    );
-  }
-  if (parentSegment === 'receipts') {
-    return mockReceipts.find((r) => r.id === numericId)?.receiptNumber ?? id;
-  }
-  if (parentSegment === 'payments') {
-    return mockPayments.find((p) => p.id === numericId)?.paymentNumber ?? id;
-  }
-  if (parentSegment === 'invoices') {
-    return mockInvoices.find((i) => i.id === numericId)?.invoiceNumber ?? id;
-  }
-  if (parentSegment === 'expenses') {
-    return mockExpenses.find((e) => e.id === numericId)?.expenseNumber ?? id;
-  }
-
-  return id;
-}
-
-// Helper function to truncate text
-function truncateText(text: string, maxLength: number = 30): string {
-  return text.length <= maxLength ? text : text.slice(0, maxLength) + '...';
-}
-
-// Map of `from` query param values to breadcrumb overrides for leave request details
-const leaveFromMap: Record<string, { label: string; href: string }> = {
-  'my-requests': {
-    label: 'My Requests',
-    href: '/users/dashboard/workforce/leaves/requests',
-  },
-  'org-requests': {
-    label: 'Organization Requests',
-    href: '/users/dashboard/workforce/leaves/organization-requests',
-  },
-  approvals: {
-    label: 'Pending Approvals',
-    href: '/users/dashboard/workforce/leaves/approvals',
-  },
-  'employee-dashboard': {
-    label: 'Leave Management',
-    href: '/users/dashboard/workforce/leaves',
-  },
-  'manager-dashboard': {
-    label: 'Leave Management',
-    href: '/users/dashboard/workforce/leaves',
-  },
-  'admin-dashboard': {
-    label: 'Leave Management',
-    href: '/users/dashboard/workforce/leaves',
-  },
-};
+  breadcrumbNameMap,
+  isHiddenSegment,
+  isNonInteractiveSegment,
+  isIdSegment,
+} from '@/lib/utils/navigation-utils';
+import {
+  getNameForId,
+  truncateText,
+  applyBreadcrumbOverrides,
+} from '@/lib/utils/breadcrumb-utils';
 
 interface BreadcrumbsProps {
   employees?: Employee[];
@@ -256,7 +48,24 @@ interface BreadcrumbsProps {
   organizations?: Organization[];
   leaveRequest?: LeaveRequest;
   task?: Task;
+  issue?: Issue;
+  // chatRoom?: ChatRoom; // temporarily disabled – moving chat to separate branch
 }
+
+// temporarily disabled – moving chat to separate branch
+// /** Derive a human-readable display name for a chat room. */
+// function getChatRoomName(room: ChatRoom): string {
+//   if (room.name) return room.name;
+//   if (room.type === ChatRoomType.ai) return 'AI Assistant';
+//   if (room.type === ChatRoomType.direct) {
+//     const names = (room.participants ?? [])
+//       .map((p) => p.employee?.name)
+//       .filter(Boolean)
+//       .join(', ');
+//     return names || `Room ${room.id}`;
+//   }
+//   return `Room ${room.id}`;
+// }
 
 export function Breadcrumbs({
   employees,
@@ -264,7 +73,10 @@ export function Breadcrumbs({
   organizations,
   leaveRequest,
   task,
+  issue,
+  // chatRoom, // temporarily disabled – moving chat to separate branch
 }: BreadcrumbsProps) {
+  // const chatRoomName = undefined; // temporarily disabled – moving chat to separate branch
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -287,9 +99,9 @@ export function Breadcrumbs({
     );
   }
 
-  const filteredSegments = pathSegments.filter((segment, index) => {
+  const filteredSegments = pathSegments.filter((segment) => {
     // Hide standard segments
-    if (hiddenSegments.has(segment)) return false;
+    if (isHiddenSegment(segment)) return false;
 
     return true;
   });
@@ -299,7 +111,7 @@ export function Breadcrumbs({
       const actualIndex = pathSegments.findIndex((seg, idx) => {
         const visibleUpToNow = pathSegments.slice(0, idx + 1).filter((s) => {
           // Hide standard segments
-          if (hiddenSegments.has(s)) return false;
+          if (isHiddenSegment(s)) return false;
 
           return true;
         }).length;
@@ -318,7 +130,9 @@ export function Breadcrumbs({
             leaveRequests,
             organizations,
             projects,
-            task
+            task,
+            issue
+            // chatRoomName // temporarily disabled – moving chat to separate branch
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
@@ -330,7 +144,7 @@ export function Breadcrumbs({
         label,
         fullName,
         isLast,
-        isNonInteractive: nonInteractiveSegments.has(segment),
+        isNonInteractive: isNonInteractiveSegment(segment),
         isTruncated: label !== fullName,
       };
     })
@@ -340,54 +154,8 @@ export function Breadcrumbs({
         arr[index - 1].label.toLowerCase() !== item.label.toLowerCase()
     );
 
-  // Override the "My Requests" breadcrumb on leave request detail pages based on `from` param
-  const fromParam = searchParams.get('from');
-  const isLeaveRequestDetail = pathname.match(
-    /\/workforce\/leaves\/requests\/\d+$/
-  );
-  if (isLeaveRequestDetail && fromParam && leaveFromMap[fromParam]) {
-    const override = leaveFromMap[fromParam];
-    const requestsIndex = breadcrumbItems.findIndex(
-      (item) => item.label === 'Requests' || item.label === 'My Requests'
-    );
-    if (requestsIndex !== -1) {
-      if (override.label === 'Leave Management') {
-        // From a dashboard — remove the "My Requests" breadcrumb since
-        // "Leave Management" is already shown from the `leaves` segment
-        breadcrumbItems.splice(requestsIndex, 1);
-        // Recalculate isLast after removal
-        for (const [i, item] of breadcrumbItems.entries()) {
-          item.isLast = i === breadcrumbItems.length - 1;
-        }
-      } else {
-        // From a different list page — override the label and href
-        breadcrumbItems[requestsIndex] = {
-          ...breadcrumbItems[requestsIndex],
-          label: override.label,
-          fullName: override.label,
-          href: override.href,
-          isTruncated: false,
-        };
-      }
-    }
-  }
-
-  // Override "Apply for Leave" breadcrumb when editing a leave request
-  const isLeaveApplyPage = pathname.endsWith('/workforce/leaves/apply');
-  const editParam = searchParams.get('edit');
-  if (isLeaveApplyPage && editParam) {
-    const applyIndex = breadcrumbItems.findIndex(
-      (item) => item.label === 'Apply for Leave'
-    );
-    if (applyIndex !== -1) {
-      breadcrumbItems[applyIndex] = {
-        ...breadcrumbItems[applyIndex],
-        label: 'Edit Leave Request',
-        fullName: 'Edit Leave Request',
-        isTruncated: false,
-      };
-    }
-  }
+  // Apply contextual breadcrumb overrides (leave detail, issue-from-task, etc.)
+  applyBreadcrumbOverrides(breadcrumbItems, pathname, searchParams, task);
 
   // For mobile: show first item, ellipsis dropdown for middle items, and last 2 items
   const ITEMS_TO_SHOW_ON_MOBILE = 2;
@@ -477,7 +245,7 @@ export function Breadcrumbs({
           )}
 
           {/* Desktop: Show all items */}
-          {breadcrumbItems.map((item, index) => (
+          {breadcrumbItems.map((item) => (
             <div
               key={item.href}
               className="hidden md:flex md:items-center md:gap-1.5"

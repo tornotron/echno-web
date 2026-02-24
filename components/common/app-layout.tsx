@@ -84,6 +84,8 @@ function AppLayoutContent({ children }: AppLayoutProps) {
               organizations={breadcrumbData.organizations}
               leaveRequest={breadcrumbData.leaveRequest}
               task={breadcrumbData.task}
+              issue={breadcrumbData.issue}
+              // chatRoom={breadcrumbData.chatRoom} // temporarily disabled – moving chat to separate branch
             />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
