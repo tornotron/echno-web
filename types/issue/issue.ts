@@ -1,57 +1,70 @@
 // types/issue/issue.ts
 import { IssueType, issueTypeFromString } from './issue-type';
 import { IssueStatus, issueStatusFromString } from './issue-status';
-import { IssueComment } from './issue-comment';
-import { Attachment } from '@/types/attachment';
-import { Member, memberToJson, parseMember } from '@/types/member';
+import { IssueComment, parseIssueComment } from './issue-comment';
+import { Attachment, parseAttachment } from '@/types/attachment';
+import { Employee } from '@/types/employee/employee';
 
 export interface Issue {
   id?: number;
-  taskId?: number; // Link to parent task
+  taskId?: number;
+  taskName?: string;
   title: string;
   description?: string;
   type: IssueType;
   status: IssueStatus;
   createdAt: Date;
   updatedAt?: Date;
-  creator?: Member;
+  creatorId?: number;
+  creator?: Employee; // resolved at hook level from creatorId
+  assigneeId?: number;
+  assignee?: Employee; // resolved at hook level from assigneeId
   comments?: IssueComment[];
   attachments?: Attachment[];
 }
 
-/** JSON → Issue */
+/** JSON → Issue
+ *  API shape:
+ *  { createdById, assignedToId, issueComments, taskName, ... }
+ *  creator/assignee are NOT embedded — they are resolved by the hooks.
+ */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseIssue(json: any): Issue {
   return {
     id: json.id ?? undefined,
     taskId: json.taskId ?? undefined,
+    taskName: json.taskName ?? undefined,
     title: json.title ?? '',
     description: json.description ?? undefined,
     type: issueTypeFromString(json.type),
     status: issueStatusFromString(json.status),
     createdAt: new Date(json.createdAt),
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
-    creator: json.creator ? parseMember(json.creator) : undefined,
-    comments: json.comments
-      ? (json.comments as unknown[]).map((c) => parseIssueComment(c))
+    creatorId: json.createdById ?? undefined,
+    assigneeId: json.assignedToId ?? undefined,
+    comments: json.issueComments
+      ? (json.issueComments as unknown[]).map((c) => parseIssueComment(c))
+      : [],
+    attachments: json.attachments
+      ? (json.attachments as unknown[]).map((a) => parseAttachment(a))
       : [],
   };
 }
-
-import { parseIssueComment } from './issue-comment'; // for nested parsing
 
 /** Issue → JSON */
 export function issueToJson(issue: Issue): Record<string, unknown> {
   return {
     id: issue.id,
+    taskId: issue.taskId,
     title: issue.title,
     description: issue.description,
     type: issue.type,
     status: issue.status,
     createdAt: issue.createdAt.toISOString(),
     updatedAt: issue.updatedAt?.toISOString(),
-    creator: issue.creator ? memberToJson(issue.creator) : undefined,
-    // comments are not sent on update
+    createdById: issue.creatorId ?? issue.creator?.id,
+    assignedToId: issue.assigneeId ?? issue.assignee?.id,
+    // comments and attachments are not sent on update
   };
 }
 
@@ -59,7 +72,10 @@ export function issueToJson(issue: Issue): Record<string, unknown> {
 export function copyIssue(
   issue: Issue,
   updates: Partial<
-    Pick<Issue, 'title' | 'description' | 'type' | 'status' | 'creator'>
+    Pick<
+      Issue,
+      'title' | 'description' | 'type' | 'status' | 'creator' | 'assignee'
+    >
   >
 ): Issue {
   return {
@@ -78,6 +94,7 @@ export function areIssuesEqual(a: Issue, b: Issue): boolean {
     a.status === b.status &&
     a.createdAt.getTime() === b.createdAt.getTime() &&
     a.updatedAt?.getTime() === b.updatedAt?.getTime() &&
-    a.creator?.id === b.creator?.id
+    a.creatorId === b.creatorId &&
+    a.assigneeId === b.assigneeId
   );
 }

@@ -1,6 +1,6 @@
 // types/issue/issue-comment.ts
 
-import { Member, memberToJson, parseMember } from '@/types/member';
+import { Employee } from '@/types/employee/employee';
 
 /**
  * IssueComment – shape only
@@ -8,20 +8,23 @@ import { Member, memberToJson, parseMember } from '@/types/member';
 export interface IssueComment {
   id?: number;
   comment: string;
-  author?: Member;
+  authorId?: number;
+  author?: Employee; // resolved at hook level from authorId
   createdAt: Date;
 }
 
 /** -------------------------------------------------------------
  *  JSON → IssueComment
+ *  API shape: { id, comment, authorId, createdAt }
+ *  author is NOT embedded — resolved by hooks.
  *  ------------------------------------------------------------- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseIssueComment(json: any): IssueComment {
   return {
     id: json.id ?? undefined,
     comment: json.comment ?? '',
-    author: json.author ? parseMember(json.author) : undefined,
-    createdAt: new Date(json.createdAt), // assumes ISO string
+    authorId: json.authorId ?? undefined,
+    createdAt: new Date(json.createdAt),
   };
 }
 
@@ -34,7 +37,7 @@ export function issueCommentToJson(
   return {
     id: comment.id,
     comment: comment.comment,
-    author: comment.author ? memberToJson(comment.author) : undefined,
+    authorId: comment.authorId ?? comment.author?.id,
     createdAt: comment.createdAt.toISOString(),
   };
 }
@@ -51,7 +54,7 @@ export function areIssueCommentsEqual(
   return (
     a.id === b.id &&
     a.comment === b.comment &&
-    a.author?.id === b.author?.id &&
+    a.authorId === b.authorId &&
     a.createdAt.getTime() === b.createdAt.getTime()
   );
 }
