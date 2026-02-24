@@ -155,6 +155,7 @@ export default function NewTaskPage() {
     return {
       projectId,
       title,
+      description,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
       creator: currentEmployee,
