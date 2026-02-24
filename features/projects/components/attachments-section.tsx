@@ -115,7 +115,7 @@ export function AttachmentsSection({
   };
 
   const handleDeleteAttachment = async () => {
-    if (!attachmentToDelete) return;
+    if (attachmentToDelete == null) return;
 
     try {
       await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
