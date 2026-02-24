@@ -43,10 +43,8 @@ import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
-import {
-  EmployeeProjectsCell,
-  EmployeeProjectsCellContainer,
-} from '@/components/workforce/employee-projects-cell';
+import { EmployeeProjectsCell } from '@/components/workforce/employee-projects-cell';
+import { EmployeeProjectsCellContainer } from '@/features/employee';
 
 const getStatusColor = (status: string) => {
   switch (status) {
