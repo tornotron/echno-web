@@ -238,7 +238,7 @@ export function useAttendanceSettings() {
         description: profileForm.settingName,
       });
     } else {
-      const newId = Math.max(0, ...profiles.map((p) => p.id)) + 1;
+      const newId = Math.max(0, ...profiles.map((p) => p.id ?? 0)) + 1;
       setProfiles((prev) => [...prev, { ...profileForm, id: newId }]);
       toast.success('Profile created', {
         description: profileForm.settingName,
