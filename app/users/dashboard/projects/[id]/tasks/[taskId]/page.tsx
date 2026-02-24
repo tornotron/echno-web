@@ -60,25 +60,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
-
-function isValidAttachmentUrl(url: string): boolean {
-  if (!url) return false;
-  try {
-    const parsedUrl = new URL(url);
-    const scheme = parsedUrl.protocol.toLowerCase();
-    const allowedSchemes = ['http:', 'https:'];
-    return allowedSchemes.includes(scheme);
-  } catch {
-    return false;
-  }
-}
-
-function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
-  if (!isValidAttachmentUrl(attachment.file)) {
-    return '#';
-  }
-  return attachment.file;
-}
+import {
+  isValidAttachmentUrl,
+  getSafeDownloadUrl,
+} from '@/lib/utils/attachment-url';
 
 interface PageProps {
   params: Promise<{ id: string; taskId: string }>;
