@@ -129,8 +129,9 @@ export function useDeleteTask() {
 
   return useMutation({
     mutationFn: taskService.delete,
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
       toast.success('Task Deleted', {
         description: 'The task has been deleted successfully',
       });
