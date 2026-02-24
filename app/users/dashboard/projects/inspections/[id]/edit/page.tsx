@@ -22,11 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Save } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import {
-  mockProjects,
-  mockEmployees,
-  mockInspections,
-} from '@/components/shared/mock-data';
+import { mockEmployees, mockInspections } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 import {
   InspectionStatus,
   InspectionType,
@@ -41,6 +38,7 @@ import { format } from 'date-fns';
 export default function EditInspectionPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: projects = [] } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -145,9 +143,7 @@ export default function EditInspectionPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const project = mockProjects.find(
-        (p) => p.id === Number.parseInt(projectId)
-      );
+      const project = projects.find((p) => p.id === Number.parseInt(projectId));
       const inspector = mockEmployees.find(
         (emp) => emp.id === Number.parseInt(inspectorId)
       );
@@ -322,7 +318,7 @@ export default function EditInspectionPage() {
                     <SelectValue placeholder="Select project" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockProjects.map((project) => (
+                    {projects.map((project) => (
                       <SelectItem
                         key={project.id}
                         value={project.id.toString()}
