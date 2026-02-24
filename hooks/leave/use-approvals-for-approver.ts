@@ -27,13 +27,13 @@ export function useApprovalsForApprover(employeeId: number) {
     );
   }, [pendingApprovalsRaw, employeeId]);
 
-  // Calculate urgent approvals (starting in 3 days or less)
+  // Calculate urgent approvals (starting in 0–3 days)
   const urgentApprovals = useMemo(() => {
     return pendingApprovals.filter((r) => {
       const daysUntilStart = Math.ceil(
         (r.startDate.getTime() - now) / (1000 * 60 * 60 * 24)
       );
-      return daysUntilStart <= 3;
+      return daysUntilStart >= 0 && daysUntilStart <= 3;
     });
   }, [pendingApprovals, now]);
 
