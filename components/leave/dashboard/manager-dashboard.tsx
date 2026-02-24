@@ -15,7 +15,6 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Card,
@@ -30,47 +29,21 @@ import { Calendar, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { LeaveRequestCard } from '@/components/leave/leave-request-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard } from '@/components/leave/stat-card';
-import {
-  usePendingApprovals,
-  usePendingApprovalsCount,
-} from '@/hooks/leave/use-leave';
 import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useApprovalsForApprover } from '@/hooks/leave/use-approvals-for-approver';
 
 export function ManagerDashboard() {
   const router = useRouter();
   const { data: employee } = useCurrentUserEmployee();
   const employeeId = employee?.id || 0;
 
-  const { data: pendingApprovalsRaw, isLoading: approvalsLoading } =
-    usePendingApprovals(employeeId);
-  const { data: pendingCount } = usePendingApprovalsCount(employeeId);
-
-  // Capture current time once on mount (pure during render)
-  const [now] = useState(() => Date.now());
-
-  // Filter approvals matching approverId = employee.id
-  const pendingApprovals = useMemo(() => {
-    return (
-      pendingApprovalsRaw?.filter((r) => r.currentApproverId === employeeId) ||
-      []
-    );
-  }, [pendingApprovalsRaw, employeeId]);
-
-  // Calculate urgent approvals (starting in 3 days or less)
-  const urgentApprovals = useMemo(() => {
-    return pendingApprovals.filter((r) => {
-      const daysUntilStart = Math.ceil(
-        (r.startDate.getTime() - now) / (1000 * 60 * 60 * 24)
-      );
-      return daysUntilStart <= 3;
-    });
-  }, [pendingApprovals, now]);
-
-  // Non-urgent approvals (to avoid duplicates)
-  const nonUrgentApprovals = useMemo(() => {
-    const urgentIds = new Set(urgentApprovals.map((r) => r.id));
-    return pendingApprovals.filter((r) => !urgentIds.has(r.id));
-  }, [pendingApprovals, urgentApprovals]);
+  const {
+    pendingApprovals,
+    urgentApprovals,
+    nonUrgentApprovals,
+    pendingCount,
+    approvalsLoading,
+  } = useApprovalsForApprover(employeeId);
 
   return (
     <div className="space-y-6">
