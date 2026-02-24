@@ -59,9 +59,14 @@ export function useBreadcrumbData(): BreadcrumbData {
       ? Number.parseInt(taskIdMatch[1], 10)
       : undefined;
     const taskIdFromQuery = searchParams.get('taskId');
+    const parsedTaskIdFromQuery = taskIdFromQuery
+      ? Number.parseInt(taskIdFromQuery, 10)
+      : undefined;
     const taskId =
       taskIdFromPath ??
-      (taskIdFromQuery ? Number.parseInt(taskIdFromQuery, 10) : undefined);
+      (Number.isFinite(parsedTaskIdFromQuery)
+        ? parsedTaskIdFromQuery
+        : undefined);
 
     // Extract issue ID from path if present
     const issueIdMatch = pathname.match(/\/issues\/(\d+)/);
