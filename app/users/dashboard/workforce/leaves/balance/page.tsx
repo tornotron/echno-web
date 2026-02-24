@@ -25,8 +25,8 @@ import {
   useTransactionHistory,
 } from '@/hooks/leave/use-leave';
 import { TransactionType } from '@/types/leave';
-import { StatCard } from '@/components/leave/stat-card';
-import { TableSkeleton } from '@/components/leave/skeletons';
+import { StatCard } from '@/features/leave/components/stat-card';
+import { TableSkeleton } from '@/features/leave/components/skeletons';
 import {
   TrendingUp,
   TrendingDown,

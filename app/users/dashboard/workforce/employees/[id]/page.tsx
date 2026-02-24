@@ -73,7 +73,7 @@ import {
 } from '@/hooks/role-management/use-role-management-mutations';
 import { useAuthorization } from '@/hooks/use-authorization';
 import { useProjectsByEmployee } from '@/hooks/project';
-import { EmployeeLeaveSection } from '@/components/leave/employee-leave-section';
+import { EmployeeLeaveSection } from '@/features/leave/components/employee-leave-section';
 import { CurrentProjectsCard } from '@/features/employee/components/current-projects-card';
 
 interface EmployeeDetailPageProps {

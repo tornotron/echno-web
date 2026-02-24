@@ -26,9 +26,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, CheckCircle, AlertCircle } from 'lucide-react';
-import { LeaveRequestCard } from '@/components/leave/leave-request-card';
+import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { StatCard } from '@/components/leave/stat-card';
+import { StatCard } from '@/features/leave/components/stat-card';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { useApprovalsForApprover } from '@/hooks/leave/use-approvals-for-approver';
 
