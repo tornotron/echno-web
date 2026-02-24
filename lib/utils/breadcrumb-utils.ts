@@ -5,30 +5,24 @@
  * human-readable names for dynamic ID segments in the URL.
  */
 
-import { Budget } from '@/types/finance/budget';
 import { Employee } from '@/types/employee/employee';
 import { LeaveRequest } from '@/types/leave';
 import { Organization } from '@/types/organization';
 import { Task } from '@/types/task';
 import { Issue } from '@/types/issue/issue';
 import { Project } from '@/types/project/project';
-import {
-  mockInspections,
-  mockLabour,
-  mockAssets,
-  mockBudgets,
-  mockLocations,
-  mockPurchaseOrders,
-  mockMaterialRequests,
-  mockTransfers,
-  mockStockAdjustments,
-  mockGoodsReceipts,
-  mockReceipts,
-  mockPayments,
-  mockInvoices,
-  mockExpenses,
-} from '@/components/shared/mock-data';
 import { leaveFromMap } from '@/lib/utils/leave-path-map';
+
+/**
+ * Optional callback used by `getNameForId` to resolve names for segments
+ * that are not yet backed by real API data (e.g. mock/placeholder modules).
+ * Receives the parent segment and the numeric ID, and should return a
+ * human-readable name or `undefined` to fall back to the raw ID.
+ */
+export type FallbackNameResolver = (
+  parentSegment: string,
+  numericId: number
+) => string | undefined;
 
 /** Data structure for breadcrumb items used in the UI.
  *
@@ -58,8 +52,9 @@ export interface BreadcrumbItemData {
  * @param leaveRequests – Optional list of leave requests for lookup.
  * @param organizations – Optional list of organizations for lookup.
  * @param projects      – Optional list of projects for lookup.
- * @param task          – Optional single task for lookup.
- * @param issue         – Optional single issue for lookup.
+ * @param task              – Optional single task for lookup.
+ * @param issue             – Optional single issue for lookup.
+ * @param fallbackResolver  – Optional callback for segments backed by mock/placeholder data.
  */
 export function getNameForId(
   id: string,
@@ -69,8 +64,9 @@ export function getNameForId(
   organizations?: Organization[],
   projects?: Project[],
   task?: Task,
-  issue?: Issue
+  issue?: Issue,
   // chatRoomName param temporarily removed – moving chat to separate branch
+  fallbackResolver?: FallbackNameResolver
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
@@ -112,56 +108,10 @@ export function getNameForId(
       `Organization ${id}`
     );
   }
-  if (parentSegment === 'inspections') {
-    return mockInspections.find((i) => i.id === numericId)?.title ?? id;
-  }
-  if (parentSegment === 'labour') {
-    return mockLabour.find((l) => l.id === numericId)?.name ?? id;
-  }
-  if (parentSegment === 'assets') {
-    return mockAssets.find((a) => a.id === numericId)?.name ?? id;
-  }
-  if (parentSegment === 'budgets') {
-    return (
-      mockBudgets.find((b: Budget) => b.id === numericId)?.budgetNumber ?? id
-    );
-  }
-  if (parentSegment === 'locations') {
-    return mockLocations.find((l) => l.id === numericId)?.name ?? id;
-  }
-  if (parentSegment === 'purchase-orders') {
-    return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber ?? id;
-  }
-  if (parentSegment === 'material-requests') {
-    return (
-      mockMaterialRequests.find((m) => m.id === numericId)?.requestNumber ?? id
-    );
-  }
-  if (parentSegment === 'transfers') {
-    return mockTransfers.find((t) => t.id === numericId)?.transferNumber ?? id;
-  }
-  if (parentSegment === 'stock-adjustments') {
-    return (
-      mockStockAdjustments.find((s) => s.id === numericId)?.adjustmentNumber ??
-      id
-    );
-  }
-  if (parentSegment === 'goods-receipts') {
-    return (
-      mockGoodsReceipts.find((g) => g.id === numericId)?.receiptNumber ?? id
-    );
-  }
-  if (parentSegment === 'receipts') {
-    return mockReceipts.find((r) => r.id === numericId)?.receiptNumber ?? id;
-  }
-  if (parentSegment === 'payments') {
-    return mockPayments.find((p) => p.id === numericId)?.paymentNumber ?? id;
-  }
-  if (parentSegment === 'invoices') {
-    return mockInvoices.find((i) => i.id === numericId)?.invoiceNumber ?? id;
-  }
-  if (parentSegment === 'expenses') {
-    return mockExpenses.find((e) => e.id === numericId)?.expenseNumber ?? id;
+  // Delegate to the fallback resolver for segments backed by mock/placeholder data
+  if (parentSegment && fallbackResolver) {
+    const resolved = fallbackResolver(parentSegment, numericId);
+    if (resolved !== undefined) return resolved;
   }
 
   return id;
