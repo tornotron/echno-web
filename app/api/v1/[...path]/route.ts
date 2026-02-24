@@ -34,7 +34,11 @@ function sanitizeResponseBody(data: string): string {
   try {
     const parsed = JSON.parse(data);
     const sanitized = redactSensitiveFields(parsed);
-    return JSON.stringify(sanitized);
+    const json = JSON.stringify(sanitized);
+    if (json.length > MAX_LOG_BODY_LENGTH) {
+      return json.slice(0, Math.max(0, MAX_LOG_BODY_LENGTH)) + '…(truncated)';
+    }
+    return json;
   } catch {
     // Not JSON, truncate the string
     if (data.length > MAX_LOG_BODY_LENGTH) {
