@@ -26,11 +26,8 @@ import {
   Cloud,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import {
-  mockInspections,
-  mockProjects,
-  mockEmployees,
-} from '@/components/shared/mock-data';
+import { mockInspections, mockEmployees } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 import {
   InspectionStatus,
   InspectionResult,
@@ -101,6 +98,7 @@ const getCheckItemIcon = (status: CheckItemStatus) => {
 export default function InspectionDetailsPage() {
   const router = useRouter();
   const params = useParams();
+  const { data: projects = [] } = useProjects();
   const [loading, setLoading] = useState(true);
   const [inspection, setInspection] = useState<Inspection | null>(null);
 
@@ -148,7 +146,7 @@ export default function InspectionDetailsPage() {
     return null;
   }
 
-  const project = mockProjects.find((p) => p.id === inspection.projectId);
+  const project = projects.find((p) => p.id === inspection.projectId);
   const inspector = mockEmployees.find(
     (emp) => emp.id === inspection.inspectorId
   );

@@ -29,7 +29,8 @@ import {
   inspectionTypeLabels,
   inspectionResultLabels,
 } from '@/types/inspection';
-import { mockInspections, mockProjects } from '@/components/shared/mock-data';
+import { mockInspections } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
   const colors = {
@@ -58,6 +59,7 @@ const getResultBadgeColor = (result: InspectionResult): string => {
 };
 
 export default function InspectionsPage() {
+  const { data: projects = [] } = useProjects();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -299,7 +301,7 @@ export default function InspectionsPage() {
             placeholder: 'Project',
             options: [
               { value: 'all', label: 'All Projects' },
-              ...mockProjects.map((project) => ({
+              ...projects.map((project) => ({
                 value: project.id.toString(),
                 label: project.projectName,
               })),

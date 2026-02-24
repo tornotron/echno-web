@@ -22,7 +22,8 @@ import {
 } from '@/components/ui/select';
 import { Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { mockProjects, mockEmployees } from '@/components/shared/mock-data';
+import { mockEmployees } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 import {
   InspectionStatus,
   InspectionType,
@@ -32,6 +33,7 @@ import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewInspectionPage() {
   const router = useRouter();
+  const { data: projects = [] } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
@@ -76,9 +78,7 @@ export default function NewInspectionPage() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const project = mockProjects.find(
-        (p) => p.id === Number.parseInt(projectId)
-      );
+      const project = projects.find((p) => p.id === Number.parseInt(projectId));
       const inspector = mockEmployees.find(
         (emp) => emp.id === Number.parseInt(inspectorId)
       );
@@ -198,7 +198,7 @@ export default function NewInspectionPage() {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map((project) => (
+                      {projects.map((project) => (
                         <SelectItem
                           key={project.id}
                           value={project.id.toString()}
