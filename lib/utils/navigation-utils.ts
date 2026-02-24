@@ -66,15 +66,24 @@ export function findNavItemBySegment(segment: string): NavItem | undefined {
  * Build a `segment → label` map that mirrors the old `breadcrumbNameMap`.
  * Merges labels from the navigation tree with the standalone `segmentLabels`.
  *
- * Priority: `navItem.breadcrumb` > `navItem.label` > `segmentLabels[segment]`
+ * Priority: `segmentLabels` > top-level nav items > nested nav items.
+ * Top-level items are processed first so that a generic label (e.g. "Settings")
+ * is not shadowed by a child with the same segment (e.g. "Attendance Settings").
  */
 export function buildBreadcrumbNameMap(): Record<string, string> {
   const map: Record<string, string> = { ...segmentLabels };
 
-  for (const item of allNavItems) {
-    // Use `breadcrumb` override if present, otherwise fall back to `label`
+  // First pass: top-level items take priority for shared segments
+  for (const item of navigation) {
     const label = item.breadcrumb ?? item.label;
-    // Only set if not already defined (first-come wins for duplicate segments)
+    if (!map[item.segment]) {
+      map[item.segment] = label;
+    }
+  }
+
+  // Second pass: fill in any remaining segments from nested items
+  for (const item of allNavItems) {
+    const label = item.breadcrumb ?? item.label;
     if (!map[item.segment]) {
       map[item.segment] = label;
     }
