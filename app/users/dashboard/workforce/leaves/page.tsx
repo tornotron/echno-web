@@ -13,13 +13,13 @@
 
 import { useState, useEffect } from 'react';
 import { useCurrentUserEmployee } from '@/hooks/employee';
-import { DashboardSkeleton } from '@/components/leave/skeletons';
+import { DashboardSkeleton } from '@/features/leave/components/skeletons';
 import { useLeaveRole, LeaveRole } from '@/hooks/leave/use-leave-role';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
-import { EmployeeDashboard } from '@/components/leave/dashboard/employee-dashboard';
-import { ManagerDashboard } from '@/components/leave/dashboard/manager-dashboard';
-import { AdminDashboard } from '@/components/leave/dashboard/admin-dashboard';
-import { DashboardSwitcher } from '@/components/leave/dashboard/dashboard-switcher';
+import { EmployeeDashboard } from '@/features/leave/components/dashboard/employee-dashboard';
+import { ManagerDashboard } from '@/features/leave/components/dashboard/manager-dashboard';
+import { AdminDashboard } from '@/features/leave/components/dashboard/admin-dashboard';
+import { DashboardSwitcher } from '@/features/leave/components/dashboard/dashboard-switcher';
 
 const DASHBOARD_PREFERENCE_KEY = 'leave-dashboard-preference';
 

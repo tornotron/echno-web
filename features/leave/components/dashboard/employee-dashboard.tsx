@@ -32,10 +32,10 @@ import {
   CheckCircle,
   Clock,
 } from 'lucide-react';
-import { BalanceCard } from '@/components/leave/balance-card';
-import { StatCard } from '@/components/leave/stat-card';
+import { BalanceCard } from '@/features/leave/components/balance-card';
+import { StatCard } from '@/features/leave/components/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { LeaveRequestCard } from '@/components/leave/leave-request-card';
+import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
 import {
   useEmployeeBalanceSummary,
   useEmployeeRequests,

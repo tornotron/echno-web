@@ -35,8 +35,8 @@ import {
   Settings,
   AlertCircle,
 } from 'lucide-react';
-import { LeaveRequestCard } from '@/components/leave/leave-request-card';
-import { StatCard } from '@/components/leave/stat-card';
+import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
+import { StatCard } from '@/features/leave/components/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   useOrganizationRequests,

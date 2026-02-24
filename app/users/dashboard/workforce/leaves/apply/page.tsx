@@ -53,11 +53,11 @@ import {
   useCheckConflicts,
 } from '@/hooks/leave/use-leave-mutations';
 import { HalfDayType } from '@/types/leave';
-import { BalanceCard } from '@/components/leave/balance-card';
+import { BalanceCard } from '@/features/leave/components/balance-card';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
 import { useCurrentUserEmployee } from '@/hooks/employee';
-import { FormSkeleton } from '@/components/leave/skeletons';
+import { FormSkeleton } from '@/features/leave/components/skeletons';
 
 export default function ApplyLeavePage() {
   const router = useRouter();

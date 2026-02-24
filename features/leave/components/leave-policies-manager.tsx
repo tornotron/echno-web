@@ -49,7 +49,7 @@ import {
 } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
 import { Separator } from '@/components/ui/separator';
-import { ConfirmationDialog } from '@/components/leave/confirmation-dialog';
+import { ConfirmationDialog } from '@/features/leave/components/confirmation-dialog';
 
 interface LeavePoliciesManagerProps {
   organizationId: number;

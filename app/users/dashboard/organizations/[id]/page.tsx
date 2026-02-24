@@ -37,7 +37,7 @@ import { format } from 'date-fns';
 import { useOrganization as useOrganizationQuery } from '@/hooks/organization/use-organizations';
 import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
-import { LeavePoliciesManager } from '@/components/leave/leave-policies-manager';
+import { LeavePoliciesManager } from '@/features/leave/components/leave-policies-manager';
 
 interface OrganizationDetailPageProps {
   params: Promise<{

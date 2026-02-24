@@ -19,10 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Pagination, SearchAndFilter } from '@/components/common';
-import { LeaveStatusBadge } from '@/components/leave/leave-status-badge';
-import { StatCard } from '@/components/leave/stat-card';
-import { TableSkeleton } from '@/components/leave/skeletons';
-import { EmptyState } from '@/components/leave/empty-state';
+import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
+import { StatCard } from '@/features/leave/components/stat-card';
+import { TableSkeleton } from '@/features/leave/components/skeletons';
+import { EmptyState } from '@/features/leave/components/empty-state';
 import { useOrganizationRequests } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
 import { FileText, AlertCircle, Calendar, Clock } from 'lucide-react';

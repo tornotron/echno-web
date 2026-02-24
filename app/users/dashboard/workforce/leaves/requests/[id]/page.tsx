@@ -52,7 +52,7 @@ import {
   Forward,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { LeaveStatusBadge } from '@/components/leave/leave-status-badge';
+import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 import {
   useLeaveRequest,
   useEmployeeRequests,

@@ -17,7 +17,7 @@ import {
   useDepartmentCalendar,
 } from '@/hooks/leave/use-leave';
 import { Calendar, Users, Download, Filter } from 'lucide-react';
-import { DashboardSkeleton } from '@/components/leave/skeletons';
+import { DashboardSkeleton } from '@/features/leave/components/skeletons';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
@@ -25,7 +25,7 @@ import { useCurrentUserEmployee } from '@/hooks/employee';
 import {
   LeaveCalendarGrid,
   CalendarView,
-} from '@/components/leave/calendar/leave-calendar-grid';
+} from '@/features/leave/components/calendar/leave-calendar-grid';
 
 export default function LeaveCalendarPage() {
   const { data: employee, isLoading: employeeLoading } =

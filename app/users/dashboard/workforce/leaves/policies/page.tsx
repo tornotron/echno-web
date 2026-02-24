@@ -28,9 +28,9 @@ import {
   Users,
   AlertCircle,
 } from 'lucide-react';
-import { LeavePoliciesManager } from '@/components/leave/leave-policies-manager';
-import { TableSkeleton } from '@/components/leave/skeletons';
-import { StatCard } from '@/components/leave/stat-card';
+import { LeavePoliciesManager } from '@/features/leave/components/leave-policies-manager';
+import { TableSkeleton } from '@/features/leave/components/skeletons';
+import { StatCard } from '@/features/leave/components/stat-card';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useAllLeavePolicies } from '@/hooks/leave/use-leave';
 import { useUser } from '@/hooks/user/use-user';

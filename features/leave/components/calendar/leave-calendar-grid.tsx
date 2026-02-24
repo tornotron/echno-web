@@ -39,7 +39,7 @@ import {
 } from '@/components/ui/dialog';
 import { LeaveCalendarEntry, LeaveStatus } from '@/types/leave';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { LeaveStatusBadge } from '@/components/leave/leave-status-badge';
+import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 
 export type CalendarView = 'month' | 'week' | 'day';
 
