@@ -70,59 +70,66 @@ export function ShiftTimings({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {shifts.map((shift) => (
-              <TableRow key={shift.id}>
-                <TableCell className="font-medium">{shift.shiftName}</TableCell>
-                <TableCell className="text-zinc-600 dark:text-zinc-400">
-                  {shift.startTime} – {shift.endTime}
-                </TableCell>
-                <TableCell className="text-zinc-600 dark:text-zinc-400">
-                  {shift.lunchBreakStart} – {shift.lunchBreakEnd}
-                </TableCell>
-                <TableCell className="hidden text-zinc-600 sm:table-cell dark:text-zinc-400">
-                  {shift.gracePeriodMinutes} min
-                </TableCell>
-                <TableCell className="hidden text-zinc-600 md:table-cell dark:text-zinc-400">
-                  {shift.minimumWorkHours} h
-                </TableCell>
-                <TableCell className="hidden text-zinc-600 md:table-cell dark:text-zinc-400">
-                  {shift.overtimeThreshold} h
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => openEditShift(shift)}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => duplicateShift(shift)}>
-                        <Copy className="mr-2 h-4 w-4" />
-                        Duplicate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => {
-                          setDeleteTarget({
-                            type: 'shift',
-                            id: shift.id!,
-                            name: shift.shiftName,
-                          });
-                          setDeleteDialogOpen(true);
-                        }}
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+            {shifts
+              .filter(
+                (shift): shift is ShiftTiming & { id: number } =>
+                  shift.id !== undefined
+              )
+              .map((shift) => (
+                <TableRow key={shift.id}>
+                  <TableCell className="font-medium">
+                    {shift.shiftName}
+                  </TableCell>
+                  <TableCell className="text-zinc-600 dark:text-zinc-400">
+                    {shift.startTime} – {shift.endTime}
+                  </TableCell>
+                  <TableCell className="text-zinc-600 dark:text-zinc-400">
+                    {shift.lunchBreakStart} – {shift.lunchBreakEnd}
+                  </TableCell>
+                  <TableCell className="hidden text-zinc-600 sm:table-cell dark:text-zinc-400">
+                    {shift.gracePeriodMinutes} min
+                  </TableCell>
+                  <TableCell className="hidden text-zinc-600 md:table-cell dark:text-zinc-400">
+                    {shift.minimumWorkHours} h
+                  </TableCell>
+                  <TableCell className="hidden text-zinc-600 md:table-cell dark:text-zinc-400">
+                    {shift.overtimeThreshold} h
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditShift(shift)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => duplicateShift(shift)}>
+                          <Copy className="mr-2 h-4 w-4" />
+                          Duplicate
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => {
+                            setDeleteTarget({
+                              type: 'shift',
+                              id: shift.id,
+                              name: shift.shiftName,
+                            });
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </Card>
