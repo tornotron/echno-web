@@ -436,7 +436,7 @@ export default function OrganizationDetailPage({
             </CardContent>
           </Card>
 
-          <div className="mt-6">
+          <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
                 <CardTitle>Leave Policies</CardTitle>
@@ -453,6 +453,27 @@ export default function OrganizationDetailPage({
                   <Button>
                     <Settings className="mr-2 h-4 w-4" />
                     Go to Leave Policy Management
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Attendance Settings</CardTitle>
+                <CardDescription>
+                  Configure attendance rules and shift templates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                  Set up check-in/check-out cycles, photo and geolocation
+                  requirements, movement tracking, and regularization rules.
+                </p>
+                <Link href="/users/dashboard/attendance/settings">
+                  <Button>
+                    <User className="mr-2 h-4 w-4" />
+                    Go to Attendance Settings
                   </Button>
                 </Link>
               </CardContent>

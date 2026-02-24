@@ -6,6 +6,7 @@ import { ClockEvent } from './clock-event';
 import { MovementRecord } from './movement-type';
 
 export interface ShiftTiming {
+  id?: number;
   shiftName: string;
   startTime: string; // HH:MM format, e.g., "09:00"
   endTime: string; // HH:MM format, e.g., "18:00"
@@ -15,6 +16,27 @@ export interface ShiftTiming {
   minimumWorkHours: number; // Minimum hours for full day
   halfDayWorkHours: number; // Minimum hours for half day
   overtimeThreshold: number; // Hours after which overtime is calculated
+}
+
+export interface AttendanceProfile {
+  id: number;
+  settingName: string;
+  projectId?: number;
+  projectName?: string;
+  checkInOutCycles: number;
+  photoRequiredOnCheckIn: boolean;
+  photoRequiredOnCheckOut: boolean;
+  geolocationRequired: boolean;
+  geofenceRadiusMeters: number;
+  movementTrackingEnabled: boolean;
+  movementPhotoRequired: boolean;
+  movementGeolocationRequired: boolean;
+  autoMarkAbsentAfterHours: number;
+  allowSelfRegularization: boolean;
+  regularizationApprovalRequired: boolean;
+  maxRegularizationDaysPerMonth: number;
+  defaultShiftId?: number;
+  isActive: boolean;
 }
 
 export interface WorkDuration {
