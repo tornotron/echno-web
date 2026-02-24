@@ -1,46 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
-import { OrgRole, isManagerOrAbove } from '@/types/employee';
+import { isManagerOrAbove } from '@/types/employee';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
+// import { useChatRooms } from '@/hooks/chat/use-chat-rooms'; // temporarily disabled – moving chat to separate branch
 import { Badge } from '@/components/ui/badge';
 import {
-  Home,
-  Users,
-  Calendar,
-  FileText,
-  UserCheck,
-  Mail,
-  Handshake,
-  HardHat,
-  ClipboardList,
-  Package,
-  Boxes,
-  ShoppingCart,
-  TrendingUp,
-  ArrowLeftRight,
-  Warehouse,
-  PackageCheck,
-  Wallet,
-  Receipt,
-  CreditCard,
-  FileSpreadsheet,
-  TrendingDown,
-  PiggyBank,
-  MapPin,
-  ChevronRight,
-  ChevronLeft,
-  ClipboardCheck,
-  FolderKanban,
-  Shield,
-  UserCog,
-  Blocks,
-  Settings,
-  Lock,
-  KeyRound,
-} from 'lucide-react';
+  getSidebarItems,
+  isPathActive,
+  type NavItem as CentralNavItem,
+} from '@/lib/utils/navigation-utils';
+import { ChevronRight, Lock } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -71,201 +43,64 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface NavItem {
+// ---------------------------------------------------------------------------
+// Sidebar NavItem — local shape consumed by the sidebar rendering logic.
+// Derived from the centralized CentralNavItem at runtime via `toSidebarItem`.
+// ---------------------------------------------------------------------------
+
+interface SidebarNavItem {
   title: string;
   url: string;
   icon: React.ComponentType<{ className?: string }>;
-  requiredRoles?: string[]; // Roles required to see this item (empty/undefined = all roles can see)
-  hideForRoles?: string[]; // Roles that should NOT see this item
-  hideWhenLocked?: boolean; // If true, hide completely instead of showing locked state
+  requiredRoles?: string[];
+  hideForRoles?: string[];
+  hideWhenLocked?: boolean;
   items?: {
     title: string;
     url: string;
     icon: React.ComponentType<{ className?: string }>;
-    requiredRoles?: string[]; // Roles required to see this sub-item
+    requiredRoles?: string[];
   }[];
 }
 
-const navItems: NavItem[] = [
-  { title: 'Dashboard', url: '/users/dashboard', icon: Home },
-  {
-    title: 'Projects',
-    url: '/users/dashboard/projects',
-    icon: FolderKanban,
-    items: [
-      {
-        title: 'All Projects',
-        url: '/users/dashboard/projects',
-        icon: FolderKanban,
-      },
-      {
-        title: 'Inspections',
-        url: '/users/dashboard/projects/inspections',
-        icon: ClipboardCheck,
-      },
-    ],
-  },
-  // ==================== WORKFORCE SECTION ====================
-  {
-    title: 'Workforce',
-    url: '/users/dashboard/workforce',
-    icon: Users,
-    items: [
-      {
-        title: 'Employees',
-        url: '/users/dashboard/workforce/employees',
-        icon: Users,
-      },
-      {
-        title: 'Invitations',
-        url: '/users/dashboard/workforce/invitations',
-        icon: Mail,
-      },
-      // Leave Requests with dynamic sub-items (handled in component)
-      {
-        title: 'Leave Management',
-        url: '/users/dashboard/workforce/leaves',
-        icon: Calendar,
-      },
-    ],
-  },
-  // ==================== ATTENDANCE SECTION ====================
-  {
-    title: 'Attendance',
-    url: '/users/dashboard/attendance',
-    icon: UserCheck,
-    items: [
-      {
-        title: 'All Attendance',
-        url: '/users/dashboard/attendance',
-        icon: ClipboardCheck,
-      },
-      {
-        title: 'Mark Attendance',
-        url: '/users/dashboard/attendance/mark',
-        icon: UserCheck,
-      },
-    ],
-  },
-  // ==================== THIRD PARTY SECTION ====================
-  {
-    title: 'Third Party',
-    url: '/users/dashboard/third-party',
-    icon: Handshake,
-    items: [
-      {
-        title: 'Labour',
-        url: '/users/dashboard/third-party/labour',
-        icon: HardHat,
-      },
-      {
-        title: 'Sub-Contracts',
-        url: '/users/dashboard/third-party/sub-contracts',
-        icon: ClipboardList,
-      },
-      {
-        title: 'Vendors',
-        url: '/users/dashboard/third-party/vendors',
-        icon: Package,
-      },
-    ],
-  },
-  // ==================== RESOURCES SECTION ====================
-  {
-    title: 'Resources',
-    url: '/users/dashboard/resources',
-    icon: Boxes,
-    items: [
-      {
-        title: 'Inventory',
-        url: '/users/dashboard/resources/inventory',
-        icon: Warehouse,
-      },
-      {
-        title: 'Assets',
-        url: '/users/dashboard/resources/assets',
-        icon: PackageCheck,
-      },
-      {
-        title: 'Locations',
-        url: '/users/dashboard/resources/locations',
-        icon: MapPin,
-      },
-      {
-        title: 'Purchase Orders',
-        url: '/users/dashboard/resources/purchase-orders',
-        icon: ShoppingCart,
-      },
-      {
-        title: 'Goods Receipts',
-        url: '/users/dashboard/resources/goods-receipts',
-        icon: PackageCheck,
-      },
-      {
-        title: 'Material Requests',
-        url: '/users/dashboard/resources/material-requests',
-        icon: ClipboardList,
-      },
-      {
-        title: 'Transfers',
-        url: '/users/dashboard/resources/transfers',
-        icon: ArrowLeftRight,
-      },
-      {
-        title: 'Stock Adjustments',
-        url: '/users/dashboard/resources/stock-adjustments',
-        icon: TrendingUp,
-      },
-    ],
-  },
-  // ==================== FINANCE SECTION ====================
-  {
-    title: 'Finance',
-    url: '/users/dashboard/finance',
-    icon: Wallet,
-    items: [
-      {
-        title: 'Receipts',
-        url: '/users/dashboard/finance/receipts',
-        icon: Receipt,
-      },
-      {
-        title: 'Payments',
-        url: '/users/dashboard/finance/payments',
-        icon: CreditCard,
-      },
-      {
-        title: 'Invoices',
-        url: '/users/dashboard/finance/invoices',
-        icon: FileSpreadsheet,
-      },
-      {
-        title: 'Expenses',
-        url: '/users/dashboard/finance/expenses',
-        icon: TrendingDown,
-      },
-      {
-        title: 'Budgets',
-        url: '/users/dashboard/finance/budgets',
-        icon: PiggyBank,
-      },
-    ],
-  },
-];
-
-// Helper function to check if a path is active
-// Returns true if pathname matches exactly or is a sub-route (with /)
-function isPathActive(itemUrl: string, currentPath: string) {
-  if (currentPath === itemUrl) return true;
-  // Check if it's a sub-route (must be followed by /)
-  return currentPath.startsWith(itemUrl + '/');
+/**
+ * Convert a centralized NavItem into the local SidebarNavItem shape.
+ * Recursively maps children → items.
+ */
+function toSidebarItem(item: CentralNavItem): SidebarNavItem {
+  // Lucide icons satisfy React.ComponentType<{ className?: string }>
+  const Icon = item.icon as
+    | React.ComponentType<{ className?: string }>
+    | undefined;
+  return {
+    title: item.label,
+    url: item.path,
+    // Provide a transparent fallback so the sidebar never receives `undefined` as icon
+    icon: Icon ?? ((() => null) as React.ComponentType<{ className?: string }>),
+    requiredRoles: item.roles,
+    hideForRoles: item.hideForRoles,
+    hideWhenLocked: item.hideWhenLocked,
+    items: item.children?.map((child) => ({
+      title: child.label,
+      url: child.path,
+      icon:
+        (child.icon as React.ComponentType<{ className?: string }>) ??
+        ((() => null) as React.ComponentType<{ className?: string }>),
+      requiredRoles: child.roles,
+    })),
+  };
 }
+
+/** Sidebar items derived from the centralized navigation config. */
+const navItems: SidebarNavItem[] = getSidebarItems().map((item) =>
+  toSidebarItem(item)
+);
 
 export function AppSidebar() {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
-  const { state, toggleSidebar } = useSidebar();
+  const { state } = useSidebar();
 
   // Get employee roles for authorization checks
   const { orgRoles, employee } = useEmployeeRoles();
@@ -275,6 +110,11 @@ export function AppSidebar() {
   const { data: leavePendingCount } = usePendingApprovalsCount(
     canApproveLeaves ? employee?.id || 0 : 0
   );
+
+  // Total unread chat messages across all rooms (temporarily disabled – moving chat to separate branch)
+  // const { data: chatRooms = [] } = useChatRooms();
+  // const chatUnreadCount = chatRooms.reduce((sum, r) => sum + r.unreadCount, 0);
+  const chatUnreadCount = 0;
 
   // Helper to check if user can see item (module access + role check)
   const canSeeItem = (item: {
@@ -341,8 +181,25 @@ export function AppSidebar() {
           }
         }
 
-        // Parent is only active if current path matches exactly AND no child is active
-        const isActive = pathname === item.url && !isChildActive && hasAccess;
+        // For items without children, use prefix matching so sub-routes
+        // still highlight the parent — but only when
+        // no *other* nav item has a longer, more specific URL that also
+        // matches (prevents Dashboard from highlighting when on Chat).
+        let isActive = false;
+        if (hasAccess && !isChildActive) {
+          if (hasChildren) {
+            isActive = pathname === item.url;
+          } else if (isPathActive(item.url, pathname)) {
+            // Check that no sibling nav item has a more specific match
+            const moreSpecificSibling = navItems.some(
+              (other) =>
+                other.url !== item.url &&
+                other.url.length > item.url.length &&
+                isPathActive(other.url, pathname)
+            );
+            isActive = !moreSpecificSibling;
+          }
+        }
 
         return {
           ...item,
@@ -413,16 +270,30 @@ export function AppSidebar() {
                 }
 
                 if (!item.hasChildren) {
+                  const isChat = item.title === 'Chat';
+                  const showChatBadge = isChat && chatUnreadCount > 0;
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
                         isActive={item.isActive}
-                        tooltip={item.title}
+                        tooltip={
+                          showChatBadge
+                            ? `${item.title} (${chatUnreadCount} unread)`
+                            : item.title
+                        }
                       >
-                        <Link href={item.url}>
+                        <Link href={item.url} className="relative">
                           <item.icon />
                           <span>{item.title}</span>
+                          {showChatBadge && (
+                            <Badge
+                              variant="destructive"
+                              className="ml-auto h-5 min-w-5 px-1 text-xs"
+                            >
+                              {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
+                            </Badge>
+                          )}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
