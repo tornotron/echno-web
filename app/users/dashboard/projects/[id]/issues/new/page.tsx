@@ -103,6 +103,13 @@ export default function NewIssuePage({ params }: PageProps) {
       });
       return false;
     }
+    if (!tasks.some((t) => t.id?.toString() === taskId)) {
+      toast.error('Validation Error', {
+        description:
+          'The selected task no longer exists. Please choose another.',
+      });
+      return false;
+    }
     if (!title.trim()) {
       toast.error('Validation Error', {
         description: 'Please enter an issue title',
