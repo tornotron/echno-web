@@ -57,37 +57,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-
-// Helper function to validate attachment URLs
-function isValidAttachmentUrl(url: string): boolean {
-  if (!url) return false;
-
-  try {
-    const parsedUrl = new URL(url);
-    const scheme = parsedUrl.protocol.toLowerCase();
-
-    // Only allow http, https protocols
-    // Reject dangerous schemes like javascript:, data:, vbscript:, etc.
-    const allowedSchemes = ['http:', 'https:'];
-    return allowedSchemes.includes(scheme);
-  } catch {
-    // If URL parsing fails, reject it
-    return false;
-  }
-}
-
-// Helper function to get safe download URL
-function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
-  // Validate the URL
-  if (!isValidAttachmentUrl(attachment.file)) {
-    return '#'; // Return a safe fallback
-  }
-
-  // In a real application, you would return a proxy endpoint like:
-  // return `/api/attachments/${attachment.id}/download`;
-  // For now, return the validated URL
-  return attachment.file;
-}
+import {
+  isValidAttachmentUrl,
+  getSafeDownloadUrl,
+} from '@/lib/utils/attachment-url';
 
 const getStatusBadgeColor = (status: ProjectStatus): string => {
   const colors = {

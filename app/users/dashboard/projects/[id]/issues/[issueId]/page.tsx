@@ -70,6 +70,10 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
 import { IssueStatus } from '@/types/issue';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
+import {
+  isValidAttachmentUrl,
+  getSafeDownloadUrl,
+} from '@/lib/utils/attachment-url';
 import { IssueAttachmentsUploader } from '@/features/issues/components';
 
 interface PageProps {
@@ -102,20 +106,6 @@ const getStatusLabel = (status: IssueStatus) => {
   };
   return labelMap[status] || status;
 };
-
-function isValidAttachmentUrl(url: string): boolean {
-  if (!url) return false;
-  try {
-    const parsedUrl = new URL(url);
-    return ['http:', 'https:'].includes(parsedUrl.protocol.toLowerCase());
-  } catch {
-    return false;
-  }
-}
-
-function getSafeDownloadUrl(attachment: { id?: number; file: string }): string {
-  return isValidAttachmentUrl(attachment.file) ? attachment.file : '#';
-}
 
 const getAttachmentIcon = (type: AttachmentType) => {
   switch (type) {
