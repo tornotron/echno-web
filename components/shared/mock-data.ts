@@ -100,7 +100,7 @@ import {
   InspectionType,
   InspectionResult,
 } from '@/types/inspection/inspection';
-import { Attachment, AttachmentType } from '@/types/attachment';
+import { AttachmentType } from '@/types/attachment';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1. USERS
@@ -251,19 +251,19 @@ const mockIssueComments: IssueComment[] = [
   {
     id: 1,
     comment: 'This needs immediate attention. The crack is spreading.',
-    author: mockMembers[1], // Priya Sharma
+    author: mockEmployees[1], // Priya Sharma
     createdAt: new Date('2025-01-12T10:30:00'),
   },
   {
     id: 2,
     comment: 'I have inspected the site. It appears to be a structural issue.',
-    author: mockMembers[0], // Rajesh Kumar
+    author: mockEmployees[0], // Rajesh Kumar
     createdAt: new Date('2025-01-12T14:15:00'),
   },
   {
     id: 3,
     comment: 'Contractor has been notified. Will fix by EOD tomorrow.',
-    author: mockMembers[5], // Anjali Verma
+    author: mockEmployees[5], // Anjali Verma
     createdAt: new Date('2025-01-13T09:00:00'),
   },
 ];
@@ -282,7 +282,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.inProgress,
     createdAt: new Date('2025-01-12T08:00:00'),
     updatedAt: new Date('2025-01-13T09:00:00'),
-    creator: mockMembers[1], // Priya Sharma
+    creator: mockEmployees[1], // Priya Sharma
     comments: mockIssueComments.slice(0, 3),
   },
   {
@@ -294,7 +294,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.open,
     createdAt: new Date('2025-01-10T11:30:00'),
     updatedAt: new Date('2025-01-10T11:30:00'),
-    creator: mockMembers[2], // Amit Patel
+    creator: mockEmployees[2], // Amit Patel
     comments: [],
   },
   {
@@ -306,7 +306,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.pending,
     createdAt: new Date('2025-01-08T15:20:00'),
     updatedAt: new Date('2025-01-09T10:00:00'),
-    creator: mockMembers[0], // Rajesh Kumar
+    creator: mockEmployees[0], // Rajesh Kumar
     comments: [],
   },
   {
@@ -318,7 +318,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.resolved,
     createdAt: new Date('2025-01-05T08:00:00'),
     updatedAt: new Date('2025-01-07T17:00:00'),
-    creator: mockMembers[5], // Anjali Verma
+    creator: mockEmployees[5], // Anjali Verma
     comments: [],
   },
   {
@@ -330,7 +330,7 @@ const mockIssues: Issue[] = [
     status: IssueStatus.blocked,
     createdAt: new Date('2025-01-03T09:00:00'),
     updatedAt: new Date('2025-01-05T14:00:00'),
-    creator: mockMembers[0], // Rajesh Kumar
+    creator: mockEmployees[0], // Rajesh Kumar
     comments: [],
   },
   {
@@ -480,7 +480,7 @@ const mockTasks: Task[] = [
     status: TaskStatus.upcoming,
     issues: [],
   },
-];
+] as unknown as Task[];
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 9. PROJECTS
@@ -498,6 +498,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2024-12-01'),
     endDate: new Date('2026-11-30'),
     createdAt: new Date('2024-11-01'),
+    progress: 35,
     members: mockEmployees.slice(0, 4),
     tasks: mockTasks.filter((t) => t.projectId === 1),
     attachments: [
@@ -550,6 +551,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2025-01-15'),
     endDate: new Date('2027-01-14'),
     createdAt: new Date('2024-12-10'),
+    progress: 15,
     members: mockEmployees,
     tasks: mockTasks.filter((t) => t.projectId === 2),
     attachments: [
@@ -591,6 +593,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2025-03-01'),
     endDate: new Date('2027-02-28'),
     createdAt: new Date('2025-01-05'),
+    progress: 0,
     members: [mockEmployees[0], mockEmployees[1], mockEmployees[4]],
     tasks: [],
     attachments: [
@@ -619,6 +622,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2023-06-01'),
     endDate: new Date('2024-12-31'),
     createdAt: new Date('2023-05-01'),
+    progress: 100,
     members: [mockEmployees[0], mockEmployees[5]],
     tasks: [],
     attachments: [
@@ -671,6 +675,7 @@ const mockProjects: Project[] = [
     startDate: new Date('2024-08-01'),
     endDate: new Date('2026-07-31'),
     createdAt: new Date('2024-07-01'),
+    progress: 25,
     members: [mockEmployees[0], mockEmployees[1]],
     tasks: [],
     attachments: [],
@@ -7941,7 +7946,3 @@ export const mockBudgets: Budget[] = [
     updatedAt: new Date('2024-12-20'),
   },
 ];
-
-// ═════════════════════════════════════════════════════════════════════════════
-// MODULE ENTITLEMENTS
-// ═════════════════════════════════════════════════════════════════════════════
