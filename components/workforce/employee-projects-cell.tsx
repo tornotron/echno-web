@@ -1,7 +1,6 @@
 'use client';
 
 import { FolderKanban, Loader2 } from 'lucide-react';
-import { useProjectsByEmployee } from '@/hooks/project';
 import type { Project } from '@/types/project';
 
 interface EmployeeProjectsCellProps {
@@ -58,20 +57,4 @@ export function EmployeeProjectsCell({
       )}
     </div>
   );
-}
-
-interface EmployeeProjectsCellContainerProps {
-  employeeId: number;
-}
-
-/**
- * Container component that fetches employee projects data and renders EmployeeProjectsCell.
- * This component handles the data fetching logic.
- */
-export function EmployeeProjectsCellContainer({
-  employeeId,
-}: EmployeeProjectsCellContainerProps) {
-  const { data: projects, isLoading } = useProjectsByEmployee(employeeId);
-
-  return <EmployeeProjectsCell projects={projects} isLoading={isLoading} />;
 }
