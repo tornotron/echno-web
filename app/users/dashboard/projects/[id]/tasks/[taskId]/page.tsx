@@ -188,6 +188,24 @@ export default function TaskDetailPage({ params }: PageProps) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Content */}
         <div className="space-y-6 lg:col-span-2">
+          {/* Description */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Description</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {task.description ? (
+                <p className="whitespace-pre-wrap text-zinc-700 dark:text-zinc-300">
+                  {task.description}
+                </p>
+              ) : (
+                <p className="text-zinc-500 italic dark:text-zinc-500">
+                  No description provided
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
           {/* Task Details */}
           <Card>
             <CardHeader>
