@@ -81,8 +81,9 @@ export function useDeleteIssue() {
 
   return useMutation({
     mutationFn: issueService.delete,
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: ['issues', id] });
       toast.success('Issue Deleted', {
         description: 'The issue has been deleted successfully',
       });
