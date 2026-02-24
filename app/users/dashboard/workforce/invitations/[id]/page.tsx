@@ -46,7 +46,7 @@ import { useManagerName } from '@/hooks/employee';
 import {
   InvitationQRCode,
   InvitationQRCodeDialog,
-} from '@/components/invitation/invitation-qr-code';
+} from '@/features/invitation/components/invitation-qr-code';
 
 export default function InvitationPage() {
   const params = useParams();
