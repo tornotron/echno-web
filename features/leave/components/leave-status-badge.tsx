@@ -55,6 +55,18 @@ export function getLeaveStatusClasses(status: LeaveStatus): string {
 
 export function LeaveStatusBadge({ status }: LeaveStatusBadgeProps) {
   const config = statusConfig[status];
+
+  if (!config) {
+    return (
+      <Badge
+        variant="secondary"
+        className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+      >
+        {getLeaveStatusLabel(status)}
+      </Badge>
+    );
+  }
+
   const Icon = config.icon;
 
   return (
