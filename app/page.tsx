@@ -352,15 +352,7 @@ function HomeContent() {
       {/* Stats Band */}
       <section className="border-y border-zinc-200 bg-zinc-50 px-4 py-16 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mx-auto max-w-5xl">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            <div className="text-center">
-              <div className="mb-2 text-4xl font-black text-indigo-600 dark:text-amber-500">
-                2021
-              </div>
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                Founded
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
             <div className="text-center">
               <div className="mb-2 text-4xl font-black text-indigo-600 dark:text-amber-500">
                 IITM
@@ -371,7 +363,7 @@ function HomeContent() {
             </div>
             <div className="text-center">
               <div className="mb-2 text-4xl font-black text-indigo-600 dark:text-amber-500">
-                2025
+                2026
               </div>
               <div className="text-sm text-zinc-600 dark:text-zinc-400">
                 MVP Launched
