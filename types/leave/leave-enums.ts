@@ -76,7 +76,7 @@ export function getLeaveStatusLabel(status: LeaveStatus): string {
     [LeaveStatus.CANCELLED]: 'Cancelled',
     [LeaveStatus.WITHDRAWN]: 'Withdrawn',
   };
-  return labels[status];
+  return labels[status] ?? String(status);
 }
 
 /**
