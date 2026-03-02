@@ -6,14 +6,14 @@ import { useOrganizations } from '@/hooks/organization/use-organizations';
 import { useLeaveRequest } from '@/hooks/leave/use-leave';
 import { useTask } from '@/hooks/task/use-tasks';
 import { useIssue } from '@/hooks/issue/use-issues';
-// import { useChatRoom } from '@/hooks/chat/use-chat-rooms'; // temporarily disabled – moving chat to separate branch
+import { useChatRoom } from '@/hooks/chat/use-chat-rooms';
 import { Employee } from '@/types/employee/employee';
 import { Project } from '@/types/project/project';
 import { Organization } from '@/types/organization';
 import { LeaveRequest } from '@/types/leave';
 import { Task } from '@/types/task';
 import { Issue } from '@/types/issue/issue';
-// import { ChatRoom } from '@/types/chat'; // temporarily disabled – moving chat to separate branch
+import { ChatRoom } from '@/types/chat';
 
 interface BreadcrumbData {
   employees?: Employee[];
@@ -22,7 +22,7 @@ interface BreadcrumbData {
   leaveRequest?: LeaveRequest;
   task?: Task;
   issue?: Issue;
-  // chatRoom?: ChatRoom; // temporarily disabled – moving chat to separate branch
+  chatRoom?: ChatRoom;
 }
 
 /**
@@ -45,7 +45,7 @@ export function useBreadcrumbData(): BreadcrumbData {
   const searchParams = useSearchParams();
 
   // Parse pathname and query params for entity IDs
-  const { leaveRequestId, taskId, issueId } = useMemo(() => {
+  const { leaveRequestId, taskId, issueId, chatRoomId } = useMemo(() => {
     // Extract leave request ID from path if present
     const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
     const leaveRequestId = leaveRequestIdMatch
@@ -74,13 +74,13 @@ export function useBreadcrumbData(): BreadcrumbData {
       ? Number.parseInt(issueIdMatch[1], 10)
       : undefined;
 
-    // Extract chat room ID from path if present (temporarily disabled – moving chat to separate branch)
-    // const chatRoomIdMatch = pathname.match(/\/chat\/(\d+)/);
-    // const chatRoomId = chatRoomIdMatch
-    //   ? Number.parseInt(chatRoomIdMatch[1], 10)
-    //   : undefined;
+    const chatRoomIdMatch = pathname.match(/\/chat\/(\d+)/);
 
-    return { leaveRequestId, taskId, issueId };
+    const chatRoomId = chatRoomIdMatch
+      ? Number.parseInt(chatRoomIdMatch[1], 10)
+      : undefined;
+
+    return { leaveRequestId, taskId, issueId, chatRoomId };
   }, [pathname, searchParams]);
 
   // Fetch data for breadcrumbs
@@ -102,8 +102,8 @@ export function useBreadcrumbData(): BreadcrumbData {
   // Conditionally fetch issue details only when ID exists
   const { data: issue } = useIssue(issueId);
 
-  // Conditionally fetch chat room details only when ID exists (temporarily disabled – moving chat to separate branch)
-  // const { data: chatRoom } = useChatRoom(chatRoomId);
+  // Conditionally fetch chat room details only when ID exists
+  const { data: chatRoom } = useChatRoom(chatRoomId);
 
   return {
     employees,
@@ -112,6 +112,6 @@ export function useBreadcrumbData(): BreadcrumbData {
     leaveRequest,
     task,
     issue,
-    // chatRoom, // temporarily disabled – moving chat to separate branch
+    chatRoom,
   };
 }

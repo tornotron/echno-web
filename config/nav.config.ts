@@ -14,7 +14,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Home,
-  // MessagesSquare, // temporarily disabled – moving chat to separate branch
+  MessagesSquare,
   FolderKanban,
   ClipboardCheck,
   Users,
@@ -130,13 +130,13 @@ export const navigation: NavItem[] = [
     breadcrumbHidden: true, // "users > dashboard" is always hidden
   },
 
-  // ====================== CHAT (temporarily disabled – moving to separate branch)
-  // {
-  //   label: 'Chat',
-  //   segment: 'chat',
-  //   path: d('chat'),
-  //   icon: MessagesSquare,
-  // },
+  // ====================== CHAT =============================================
+  {
+    label: 'Chat',
+    segment: 'chat',
+    path: d('chat'),
+    icon: MessagesSquare,
+  },
 
   // ====================== PROJECTS =========================================
   {

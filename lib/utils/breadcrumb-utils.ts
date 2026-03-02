@@ -65,16 +65,15 @@ export function getNameForId(
   projects?: Project[],
   task?: Task,
   issue?: Issue,
-  // chatRoomName param temporarily removed – moving chat to separate branch
+  chatRoomName?: string,
   fallbackResolver?: FallbackNameResolver
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
 
-  // temporarily disabled – moving chat to separate branch
-  // if (parentSegment === 'chat') {
-  //   return chatRoomName ?? `Room ${id}`;
-  // }
+  if (parentSegment === 'chat') {
+    return chatRoomName ?? `Room ${id}`;
+  }
 
   if (parentSegment === 'projects') {
     return (
