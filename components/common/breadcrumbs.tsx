@@ -29,7 +29,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Project } from '@/types/project/project';
-// import { ChatRoom, ChatRoomType } from '@/types/chat'; // temporarily disabled – moving chat to separate branch
+import { ChatRoom, ChatRoomType } from '@/types/chat';
 import {
   breadcrumbNameMap,
   isHiddenSegment,
@@ -127,23 +127,22 @@ interface BreadcrumbsProps {
   leaveRequest?: LeaveRequest;
   task?: Task;
   issue?: Issue;
-  // chatRoom?: ChatRoom; // temporarily disabled – moving chat to separate branch
+  chatRoom?: ChatRoom;
 }
 
-// temporarily disabled – moving chat to separate branch
 // /** Derive a human-readable display name for a chat room. */
-// function getChatRoomName(room: ChatRoom): string {
-//   if (room.name) return room.name;
-//   if (room.type === ChatRoomType.ai) return 'AI Assistant';
-//   if (room.type === ChatRoomType.direct) {
-//     const names = (room.participants ?? [])
-//       .map((p) => p.employee?.name)
-//       .filter(Boolean)
-//       .join(', ');
-//     return names || `Room ${room.id}`;
-//   }
-//   return `Room ${room.id}`;
-// }
+function getChatRoomName(room: ChatRoom): string {
+  if (room.name) return room.name;
+  if (room.type === ChatRoomType.ai) return 'AI Assistant';
+  if (room.type === ChatRoomType.direct) {
+    const names = (room.participants ?? [])
+      .map((p) => p.employee?.name)
+      .filter(Boolean)
+      .join(', ');
+    return names || `Room ${room.id}`;
+  }
+  return `Room ${room.id}`;
+}
 
 export function Breadcrumbs({
   employees,
@@ -152,9 +151,9 @@ export function Breadcrumbs({
   leaveRequest,
   task,
   issue,
-  // chatRoom, // temporarily disabled – moving chat to separate branch
+  chatRoom,
 }: BreadcrumbsProps) {
-  // const chatRoomName = undefined; // temporarily disabled – moving chat to separate branch
+  const chatRoomName = undefined;
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -210,7 +209,7 @@ export function Breadcrumbs({
             projects,
             task,
             issue,
-            // chatRoomName // temporarily disabled – moving chat to separate branch
+            chatRoomName,
             mockFallbackResolver
           )
         : (breadcrumbNameMap[segment] ??

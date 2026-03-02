@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
 import { isManagerOrAbove } from '@/types/employee';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
-// import { useChatRooms } from '@/hooks/chat/use-chat-rooms'; // temporarily disabled – moving chat to separate branch
+import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
 import { Badge } from '@/components/ui/badge';
 import {
   getSidebarItems,

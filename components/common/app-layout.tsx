@@ -18,6 +18,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { useEffect } from 'react';
+import { FloatingChat } from '@/features/chat/components/floating';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -85,7 +86,7 @@ function AppLayoutContent({ children }: AppLayoutProps) {
               leaveRequest={breadcrumbData.leaveRequest}
               task={breadcrumbData.task}
               issue={breadcrumbData.issue}
-              // chatRoom={breadcrumbData.chatRoom} // temporarily disabled – moving chat to separate branch
+              chatRoom={breadcrumbData.chatRoom}
             />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
@@ -112,6 +113,9 @@ function AppLayoutContent({ children }: AppLayoutProps) {
 
         {/* Footer */}
         <Footer />
+
+        {/* Floating Chat — freely draggable within the layout */}
+        {!pathname.startsWith('/users/dashboard/chat') && <FloatingChat />}
       </SidebarInset>
     </>
   );
