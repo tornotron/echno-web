@@ -7,6 +7,7 @@ import { UserProfileView } from '@/features/user-profile/user-profile-view';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/lib/styles/toast-styles';
 import { AppLayout } from '@/components/common/app-layout';
+import { FloatingChat } from '@/features/chat/components/floating';
 
 /**
  * Loading skeleton for profile page
@@ -92,7 +93,7 @@ export default function ProfilePage() {
   // Show loading skeleton while fetching
   if (isLoading) {
     return (
-      <AppLayout>
+      <AppLayout floatingChat={<FloatingChat />}>
         <div className="px-4 py-8">
           <ProfileSkeleton />
         </div>
@@ -103,7 +104,7 @@ export default function ProfilePage() {
   // Show error state
   if (error || !user) {
     return (
-      <AppLayout>
+      <AppLayout floatingChat={<FloatingChat />}>
         <div className="px-4 py-8">
           <Card>
             <CardContent className="py-8 text-center">
@@ -118,7 +119,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout floatingChat={<FloatingChat />}>
       <div className="px-4 py-8">
         <UserProfileView
           user={user}

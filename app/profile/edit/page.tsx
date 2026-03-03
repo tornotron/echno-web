@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
 import { AppLayout } from '@/components/common/app-layout';
+import { FloatingChat } from '@/features/chat/components/floating';
 
 /**
  * Loading skeleton for edit profile page
@@ -56,7 +57,7 @@ export default function EditProfilePage() {
   // Show loading skeleton while fetching
   if (isLoading) {
     return (
-      <AppLayout>
+      <AppLayout floatingChat={<FloatingChat />}>
         <div className="px-4 py-8">
           <EditProfileSkeleton />
         </div>
@@ -67,7 +68,7 @@ export default function EditProfilePage() {
   // Show error state
   if (error || !user) {
     return (
-      <AppLayout>
+      <AppLayout floatingChat={<FloatingChat />}>
         <div className="px-4 py-8">
           <Card>
             <CardContent className="py-8 text-center">
@@ -86,7 +87,7 @@ export default function EditProfilePage() {
   }
 
   return (
-    <AppLayout>
+    <AppLayout floatingChat={<FloatingChat />}>
       <div className="px-4 py-8">
         <div className="space-y-6">
           <div>

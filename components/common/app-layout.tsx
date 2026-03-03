@@ -18,16 +18,17 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { useEffect } from 'react';
-import { FloatingChat } from '@/features/chat/components/floating';
 
 interface AppLayoutProps {
   children: React.ReactNode;
   title?: string;
+  /** Slot for a floating chat widget — injected from the app layer to keep this component feature-agnostic. */
+  floatingChat?: React.ReactNode;
 }
 
 const ORGANIZATIONS_PATH = '/users/dashboard/organizations';
 
-function AppLayoutContent({ children }: AppLayoutProps) {
+function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   const { state, toggleSidebar, isMobile } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
@@ -114,18 +115,20 @@ function AppLayoutContent({ children }: AppLayoutProps) {
         {/* Footer */}
         <Footer />
 
-        {/* Floating Chat — freely draggable within the layout */}
-        {!pathname.startsWith('/users/dashboard/chat') && <FloatingChat />}
+        {/* Floating Chat — injected via prop to keep this component feature-agnostic */}
+        {floatingChat}
       </SidebarInset>
     </>
   );
 }
 
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout({ children, floatingChat }: AppLayoutProps) {
   return (
     <OrganizationProvider>
       <SidebarProvider>
-        <AppLayoutContent>{children}</AppLayoutContent>
+        <AppLayoutContent floatingChat={floatingChat}>
+          {children}
+        </AppLayoutContent>
       </SidebarProvider>
     </OrganizationProvider>
   );
