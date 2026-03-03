@@ -97,6 +97,25 @@ export const chatMessageService = {
           return { ...msg };
         }
       }
+
+      // Fall back to mockChatMessages — copy into sessionMessages before mutating
+      for (const [roomIdStr, messages] of Object.entries(mockChatMessages)) {
+        const mockMsg = messages.find((m) => m.id === id);
+        if (mockMsg) {
+          const roomId = Number(roomIdStr);
+          const edited: ChatMessage = {
+            ...mockMsg,
+            content,
+            isEdited: true,
+            editedAt: new Date(),
+            updatedAt: new Date(),
+          };
+          if (!sessionMessages[roomId]) sessionMessages[roomId] = [];
+          sessionMessages[roomId].push(edited);
+          return { ...edited };
+        }
+      }
+
       throw new Error(`Message ${id} not found or cannot be edited`);
     } catch (error) {
       logger.error(`Failed to edit message ${id}:`, error);
@@ -110,8 +129,34 @@ export const chatMessageService = {
   async deleteMessage(id: number): Promise<void> {
     try {
       // TODO: replace with api.delete(`/chat/messages/${id}`)
-      void id;
-      return;
+
+      // Soft-delete in sessionMessages
+      for (const messages of Object.values(sessionMessages)) {
+        const msg = messages.find((m) => m.id === id);
+        if (msg) {
+          msg.isDeleted = true;
+          msg.updatedAt = new Date();
+          return;
+        }
+      }
+
+      // Fall back to mockChatMessages — copy into sessionMessages before mutating
+      for (const [roomIdStr, messages] of Object.entries(mockChatMessages)) {
+        const mockMsg = messages.find((m) => m.id === id);
+        if (mockMsg) {
+          const roomId = Number(roomIdStr);
+          const deleted: ChatMessage = {
+            ...mockMsg,
+            isDeleted: true,
+            updatedAt: new Date(),
+          };
+          if (!sessionMessages[roomId]) sessionMessages[roomId] = [];
+          sessionMessages[roomId].push(deleted);
+          return;
+        }
+      }
+
+      throw new Error(`Message ${id} not found`);
     } catch (error) {
       logger.error(`Failed to delete message ${id}:`, error);
       throw error;
@@ -124,9 +169,13 @@ export const chatMessageService = {
   async toggleReaction(messageId: number, emoji: string): Promise<void> {
     try {
       // TODO: replace with api.post(`/chat/messages/${messageId}/reactions`, { emoji })
-      void messageId;
-      void emoji;
-      return;
+      if (!Number.isFinite(messageId) || messageId <= 0) {
+        throw new Error('toggleReaction: messageId must be a positive number');
+      }
+      if (!emoji || typeof emoji !== 'string') {
+        throw new Error('toggleReaction: emoji must be a non-empty string');
+      }
+      throw new Error('toggleReaction not implemented');
     } catch (error) {
       logger.error(`Failed to toggle reaction on message ${messageId}:`, error);
       throw error;
