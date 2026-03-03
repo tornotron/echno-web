@@ -57,12 +57,11 @@ function CompactRoomItem({
         participants[0])
       : null;
 
-  const Icon =
-    room.type === ChatRoomType.ai
-      ? Bot
-      : room.type === ChatRoomType.group
-        ? Folder
-        : User;
+  const ROOM_TYPE_ICONS: Record<string, typeof User> = {
+    [ChatRoomType.ai]: Bot,
+    [ChatRoomType.group]: Folder,
+  };
+  const Icon = ROOM_TYPE_ICONS[room.type] ?? User;
 
   const displayName =
     room.name ??
