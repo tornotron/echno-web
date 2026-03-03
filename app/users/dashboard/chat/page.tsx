@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { MessageSquare } from 'lucide-react';
+import { AlertCircle, MessageSquare } from 'lucide-react';
 import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
 import { useUser } from '@/hooks/user/use-user';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
@@ -12,23 +12,52 @@ import { useOrganizations } from '@/hooks/organization/use-organizations';
  */
 export default function ChatIndexPage() {
   const router = useRouter();
-  const { data: user } = useUser();
-  const { data: organizations = [] } = useOrganizations();
+  const {
+    data: user,
+    isLoading: isUserLoading,
+    isError: isUserError,
+  } = useUser();
+  const {
+    data: organizations = [],
+    isLoading: isOrgsLoading,
+    isError: isOrgsError,
+  } = useOrganizations();
   const currentOrg = organizations.find(
     (o) => o.id === user?.defaultOrganizationId
   );
-  const { data: rooms = [], isLoading } = useChatRooms(currentOrg?.id);
+  const {
+    data: rooms = [],
+    isLoading: isRoomsLoading,
+    isError: isRoomsError,
+  } = useChatRooms(currentOrg?.id);
+
+  const isLoading = isUserLoading || isOrgsLoading || isRoomsLoading;
+  const isError = isUserError || isOrgsError || isRoomsError;
 
   useEffect(() => {
-    if (!isLoading && rooms.length > 0) {
+    if (!isLoading && !isError && rooms.length > 0) {
       router.replace(`/users/dashboard/chat/${rooms[0].id}`);
     }
-  }, [isLoading, rooms, router]);
+  }, [isLoading, isError, rooms, router]);
 
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
         <p className="text-muted-foreground text-sm">Loading…</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-center">
+        <AlertCircle className="text-destructive/60 h-12 w-12" />
+        <div>
+          <h3 className="text-base font-semibold">Something went wrong</h3>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Could not load your conversations. Please try again later.
+          </p>
+        </div>
       </div>
     );
   }
