@@ -12,8 +12,8 @@ interface ChatEntityMentionCardProps {
 }
 
 const ENTITY_HREF: Record<ChatEntityType, (id: number) => string> = {
-  [ChatEntityType.task]: (id) => `/users/dashboard/projects/tasks/${id}`,
-  [ChatEntityType.issue]: (id) => `/users/dashboard/projects/issues/${id}`,
+  [ChatEntityType.task]: (id) => `/users/dashboard/projects/${id}/tasks`,
+  [ChatEntityType.issue]: (id) => `/users/dashboard/projects/${id}/issues`,
   [ChatEntityType.project]: (id) => `/users/dashboard/projects/${id}`,
 };
 
