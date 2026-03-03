@@ -66,6 +66,7 @@ export const chatService = {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
+      mockChatRooms.push(newRoom);
       return newRoom;
     } catch (error) {
       logger.error('Failed to create direct room:', error);
@@ -79,8 +80,11 @@ export const chatService = {
   async markAsRead(roomId: number): Promise<void> {
     try {
       // TODO: replace with api.post<void>(`/chat/rooms/${roomId}/read`)
-      void roomId;
-      return;
+      const room = mockChatRooms.find((r) => r.id === roomId);
+      if (room) {
+        room.unreadCount = 0;
+        room.updatedAt = new Date();
+      }
     } catch (error) {
       logger.error(`Failed to mark room ${roomId} as read:`, error);
       throw error;

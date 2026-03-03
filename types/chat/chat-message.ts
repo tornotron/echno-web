@@ -28,6 +28,19 @@ export interface ChatMessage {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+function parseReplyTo(
+  raw: any
+): Pick<ChatMessage, 'id' | 'senderId' | 'content' | 'sender'> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  return {
+    id: raw.id ?? 0,
+    senderId: raw.senderId ?? raw.sender_id ?? 0,
+    content: raw.content ?? '',
+    sender: raw.sender,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseChatMessage(json: any): ChatMessage {
   return {
     id: json.id ?? 0,
@@ -35,6 +48,7 @@ export function parseChatMessage(json: any): ChatMessage {
     senderId: json.senderId ?? json.sender_id ?? 0,
     content: json.content ?? '',
     replyToId: json.replyToId ?? json.reply_to_id ?? undefined,
+    replyTo: parseReplyTo(json.replyTo ?? json.reply_to),
     mentions: Array.isArray(json.mentions) ? json.mentions : [],
     entityMentions: Array.isArray(json.entityMentions)
       ? json.entityMentions.map((m: unknown) => parseChatEntityMention(m))
