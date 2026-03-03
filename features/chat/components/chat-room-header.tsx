@@ -42,7 +42,7 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
   const visibleParticipants = participants.slice(0, MAX_VISIBLE_AVATARS);
   const overflowCount = Math.max(0, participants.length - MAX_VISIBLE_AVATARS);
 
-  const ROOM_TYPE_ICONS: Record<string, React.ElementType> = {
+  const ROOM_TYPE_ICONS: Record<string, typeof User> = {
     [ChatRoomType.ai]: Bot,
     [ChatRoomType.group]: Folder,
   };
