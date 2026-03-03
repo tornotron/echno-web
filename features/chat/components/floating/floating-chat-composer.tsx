@@ -144,6 +144,7 @@ export function FloatingChatComposer({
             size="icon"
             className="h-4 w-4 shrink-0"
             onClick={onCancelReply}
+            aria-label="Cancel reply"
           >
             <X className="h-2.5 w-2.5" />
           </Button>
@@ -159,6 +160,7 @@ export function FloatingChatComposer({
             size="icon"
             className="h-4 w-4 shrink-0"
             onClick={onCancelEdit}
+            aria-label="Cancel edit"
           >
             <X className="h-2.5 w-2.5" />
           </Button>
@@ -194,6 +196,7 @@ export function FloatingChatComposer({
           className="h-7 w-7 shrink-0"
           onClick={handleSend}
           disabled={disabled || !value.trim()}
+          aria-label="Send message"
         >
           <Send className="h-3 w-3" />
         </Button>

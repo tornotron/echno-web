@@ -32,6 +32,8 @@ function useDraggable(initial: Position) {
   const posStart = useRef<Position>(initial);
   /** Whether the current gesture was a drag (moved > 4px) — used to suppress click */
   const wasDrag = useRef(false);
+  /** Ref to the draggable element — used to read its actual size for clamping */
+  const elementRef = useRef<HTMLDivElement>(null);
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -66,10 +68,15 @@ function useDraggable(initial: Position) {
     dragging.current = false;
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
 
+    // Read the element's actual size for accurate clamping
+    const rect = elementRef.current?.getBoundingClientRect();
+    const elWidth = rect?.width ?? 60;
+    const elHeight = rect?.height ?? 60;
+
     // Clamp within viewport
     setPos((prev) => ({
-      x: Math.max(0, Math.min(prev.x, window.innerWidth - 60)),
-      y: Math.max(0, Math.min(prev.y, window.innerHeight - 60)),
+      x: Math.max(0, Math.min(prev.x, window.innerWidth - elWidth)),
+      y: Math.max(0, Math.min(prev.y, window.innerHeight - elHeight)),
     }));
   }, []);
 
@@ -77,6 +84,7 @@ function useDraggable(initial: Position) {
     pos,
     setPos,
     wasDrag,
+    elementRef,
     handleProps: {
       onPointerDown,
       onPointerMove,
@@ -135,6 +143,7 @@ export function FloatingChat() {
       {/* ── Floating Panel ─────────────────────────────────────── */}
       {isOpen && (
         <div
+          ref={panel.elementRef}
           className="border-border/80 bg-background animate-in fade-in-0 slide-in-from-bottom-4 fixed z-50 flex flex-col overflow-hidden rounded-xl border text-[10px] shadow-[0_8px_40px_rgba(0,0,0,0.25)] ring-1 ring-black/10 duration-200 dark:ring-white/10"
           style={{
             width: PANEL_W,
@@ -210,6 +219,7 @@ export function FloatingChat() {
 
       {/* ── FAB Bubble (draggable) ─────────────────────────────── */}
       <div
+        ref={fab.elementRef}
         className="fixed z-50"
         style={{
           right: fab.pos.x,
