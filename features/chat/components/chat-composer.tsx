@@ -153,6 +153,7 @@ export function ChatComposer({
             size="icon"
             className="h-5 w-5 shrink-0"
             onClick={onCancelReply}
+            aria-label="Cancel reply"
           >
             <X className="h-3 w-3" />
           </Button>
@@ -168,6 +169,7 @@ export function ChatComposer({
             size="icon"
             className="h-5 w-5 shrink-0 text-yellow-700 hover:text-yellow-900 dark:text-yellow-400"
             onClick={onCancelEdit}
+            aria-label="Cancel edit"
           >
             <X className="h-3 w-3" />
           </Button>
@@ -182,6 +184,7 @@ export function ChatComposer({
           className="text-muted-foreground h-9 w-9 shrink-0"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
+          aria-label="Attach file"
         >
           <Paperclip className="h-4 w-4" />
         </Button>
@@ -220,6 +223,7 @@ export function ChatComposer({
           className="h-9 w-9 shrink-0"
           onClick={handleSend}
           disabled={disabled || !value.trim()}
+          aria-label="Send message"
         >
           <Send className="h-4 w-4" />
         </Button>
