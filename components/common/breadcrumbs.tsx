@@ -153,7 +153,7 @@ export function Breadcrumbs({
   issue,
   chatRoom,
 }: BreadcrumbsProps) {
-  const chatRoomName = undefined;
+  const chatRoomName = chatRoom ? getChatRoomName(chatRoom) : undefined;
   const pathname = usePathname();
   const searchParams = useSearchParams();
 

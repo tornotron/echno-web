@@ -5,7 +5,6 @@ import { useSession } from 'next-auth/react';
 import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
 import { isManagerOrAbove } from '@/types/employee';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
-import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
 import { Badge } from '@/components/ui/badge';
 import {
   getSidebarItems,
@@ -96,7 +95,12 @@ const navItems: SidebarNavItem[] = getSidebarItems().map((item) =>
   toSidebarItem(item)
 );
 
-export function AppSidebar() {
+interface AppSidebarProps {
+  /** Total unread chat messages across all rooms, injected by the app layer. */
+  chatUnreadCount?: number;
+}
+
+export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
   const router = useRouter();
@@ -110,11 +114,6 @@ export function AppSidebar() {
   const { data: leavePendingCount } = usePendingApprovalsCount(
     canApproveLeaves ? employee?.id || 0 : 0
   );
-
-  // Total unread chat messages across all rooms (temporarily disabled – moving chat to separate branch)
-  // const { data: chatRooms = [] } = useChatRooms();
-  // const chatUnreadCount = chatRooms.reduce((sum, r) => sum + r.unreadCount, 0);
-  const chatUnreadCount = 0;
 
   // Helper to check if user can see item (module access + role check)
   const canSeeItem = (item: {
