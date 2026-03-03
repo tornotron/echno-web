@@ -89,6 +89,31 @@ export function buildMentionToken(name: string, employeeId: number): string {
   return `@[${name}](${employeeId})`;
 }
 
+const AVATAR_COLORS = [
+  'bg-red-500 text-white',
+  'bg-orange-500 text-white',
+  'bg-amber-500 text-white',
+  'bg-green-600 text-white',
+  'bg-teal-500 text-white',
+  'bg-cyan-600 text-white',
+  'bg-blue-500 text-white',
+  'bg-indigo-500 text-white',
+  'bg-violet-500 text-white',
+  'bg-pink-500 text-white',
+];
+
+/**
+ * Returns a deterministic Tailwind color class pair (bg + text) for a given name.
+ * The same name always maps to the same color.
+ */
+export function getAvatarColor(name: string): string {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = (name.codePointAt(i) ?? 0) + ((hash << 5) - hash);
+  }
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
 /**
  * Build an entity mention token string.
  */

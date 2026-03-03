@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import { CornerUpLeft, Pencil, Trash2, Smile } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -15,6 +16,7 @@ import { ChatMessage } from '@/types/chat';
 import {
   parseMentions,
   stripMentions,
+  getAvatarColor,
 } from '@/features/chat/utils/message-parser';
 import { ChatEntityMentionCard } from './chat-entity-mention-card';
 
@@ -216,12 +218,21 @@ export function ChatMessageItem({
         onMouseLeave={handleMouseLeave}
       >
         {/* Avatar */}
-        <Avatar className="mt-0.5 h-10 w-10 shrink-0 cursor-pointer">
-          <AvatarImage src={avatarSrc} alt={senderName} />
-          <AvatarFallback className="text-xs font-medium">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <div
+          className={`mt-0.5 flex h-10 w-10 flex-none cursor-pointer items-center justify-center self-start overflow-hidden rounded-full text-xs font-semibold ${getAvatarColor(senderName)}`}
+        >
+          {avatarSrc ? (
+            <Image
+              src={avatarSrc}
+              alt={senderName}
+              width={40}
+              height={40}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            initials
+          )}
+        </div>
 
         {/* Message body */}
         <div className="min-w-0 flex-1">

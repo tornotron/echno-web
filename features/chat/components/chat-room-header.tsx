@@ -94,7 +94,7 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
                   return (
                     <Avatar
                       key={p.employeeId}
-                      className="border-background h-6 w-6 border-2"
+                      className="border-background size-6 border-2"
                     >
                       <AvatarImage
                         src={p.employee?.profilePicture?.file}
@@ -107,7 +107,7 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
                   );
                 })}
                 {overflowCount > 0 && (
-                  <div className="border-background bg-muted flex h-6 w-6 items-center justify-center rounded-full border-2 text-[10px] font-medium">
+                  <div className="border-background bg-muted flex size-6 items-center justify-center rounded-full border-2 text-[10px] font-medium">
                     +{overflowCount}
                   </div>
                 )}
@@ -212,7 +212,7 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
                       key={p.employeeId}
                       className="group hover:bg-muted flex items-center gap-3 px-4 py-2.5 transition-colors"
                     >
-                      <Avatar className="h-9 w-9 shrink-0">
+                      <Avatar className="size-9 shrink-0">
                         <AvatarImage
                           src={p.employee?.profilePicture?.file}
                           alt={name}

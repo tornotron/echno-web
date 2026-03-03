@@ -138,7 +138,7 @@ export function FloatingChatRoomView({
         </Button>
 
         {room.type === ChatRoomType.direct && otherParticipant ? (
-          <Avatar className="h-5 w-5 shrink-0">
+          <Avatar className="size-5 shrink-0">
             <AvatarImage
               src={otherParticipant.employee?.profilePicture?.file}
               alt={roomName}
