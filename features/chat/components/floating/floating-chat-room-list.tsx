@@ -89,7 +89,7 @@ function CompactRoomItem({
       className="hover:bg-muted flex w-full items-start gap-1.5 rounded-md px-2.5 py-2 text-left transition-colors"
     >
       {room.type === ChatRoomType.direct && otherParticipant ? (
-        <Avatar className="mt-0.5 h-6 w-6 shrink-0">
+        <Avatar className="mt-0.5 size-6 shrink-0">
           <AvatarImage
             src={otherParticipant.employee?.profilePicture?.file}
             alt={displayName}
@@ -233,7 +233,7 @@ export function FloatingChatRoomList({
                   disabled={createDm.isPending}
                   className="hover:bg-muted flex w-full items-center gap-1.5 px-3 py-2 text-left transition-colors disabled:opacity-60"
                 >
-                  <Avatar className="h-6 w-6 shrink-0">
+                  <Avatar className="size-6 shrink-0">
                     <AvatarImage
                       src={emp.profilePicture?.file}
                       alt={emp.name}

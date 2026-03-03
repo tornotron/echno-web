@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   Search,
@@ -18,7 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 import {
   Sheet,
   SheetContent,
@@ -35,7 +36,10 @@ import { useUserEmployees } from '@/hooks/user/use-user';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
 import { ChatRoom, ChatRoomType } from '@/types/chat';
 import { format } from 'date-fns';
-import { stripMentions } from '@/features/chat/utils/message-parser';
+import {
+  stripMentions,
+  getAvatarColor,
+} from '@/features/chat/utils/message-parser';
 
 interface ChatSidebarProps {
   onRoomSelect?: () => void;
@@ -54,10 +58,12 @@ function RoomItem({
   room,
   isActive,
   currentEmployeeId,
+  onSelect,
 }: {
   room: ChatRoom;
   isActive: boolean;
   currentEmployeeId?: number;
+  onSelect?: () => void;
 }) {
   const participants = room.participants ?? [];
   const lastMsg = room.lastMessage;
@@ -98,6 +104,7 @@ function RoomItem({
   return (
     <Link
       href={`/users/dashboard/chat/${room.id}`}
+      onClick={onSelect}
       className={`flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors ${
         isActive
           ? 'bg-accent text-accent-foreground hover:bg-accent'
@@ -106,15 +113,21 @@ function RoomItem({
     >
       {/* Avatar for DMs, icon for groups/AI */}
       {room.type === ChatRoomType.direct && otherParticipant ? (
-        <Avatar className="mt-0.5 h-8 w-8 shrink-0">
-          <AvatarImage
-            src={otherParticipant.employee?.profilePicture?.file}
-            alt={displayName}
-          />
-          <AvatarFallback className="text-xs">
-            {getInitials(displayName)}
-          </AvatarFallback>
-        </Avatar>
+        <div
+          className={`mt-0.5 flex h-8 w-8 flex-none items-center justify-center overflow-hidden rounded-full text-xs font-semibold ${getAvatarColor(displayName)}`}
+        >
+          {otherParticipant.employee?.profilePicture?.file ? (
+            <Image
+              src={otherParticipant.employee.profilePicture.file}
+              alt={displayName}
+              width={32}
+              height={32}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            getInitials(displayName)
+          )}
+        </div>
       ) : (
         <div className="bg-muted-foreground/10 mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full">
           <Icon className="text-muted-foreground h-4 w-4" />
@@ -142,7 +155,7 @@ function RoomItem({
   );
 }
 
-export function ChatSidebar({ onRoomSelect: _onRoomSelect }: ChatSidebarProps) {
+export function ChatSidebar({ onRoomSelect }: ChatSidebarProps) {
   const pathname = usePathname();
   const [search, setSearch] = useState('');
   const [dmSheetOpen, setDmSheetOpen] = useState(false);
@@ -254,6 +267,7 @@ export function ChatSidebar({ onRoomSelect: _onRoomSelect }: ChatSidebarProps) {
                 room={room}
                 isActive={String(room.id) === activeRoomId}
                 currentEmployeeId={currentEmployeeId}
+                onSelect={onRoomSelect}
               />
             ))}
           </div>
@@ -271,6 +285,7 @@ export function ChatSidebar({ onRoomSelect: _onRoomSelect }: ChatSidebarProps) {
                 room={room}
                 isActive={String(room.id) === activeRoomId}
                 currentEmployeeId={currentEmployeeId}
+                onSelect={onRoomSelect}
               />
             ))}
           </div>
@@ -288,6 +303,7 @@ export function ChatSidebar({ onRoomSelect: _onRoomSelect }: ChatSidebarProps) {
                 room={room}
                 isActive={String(room.id) === activeRoomId}
                 currentEmployeeId={currentEmployeeId}
+                onSelect={onRoomSelect}
               />
             ))}
           </div>
@@ -397,15 +413,21 @@ export function ChatSidebar({ onRoomSelect: _onRoomSelect }: ChatSidebarProps) {
                           disabled={createDm.isPending}
                           className="group hover:bg-muted flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors disabled:cursor-wait disabled:opacity-60"
                         >
-                          <Avatar className="h-9 w-9 shrink-0">
-                            <AvatarImage
-                              src={emp.profilePicture?.file}
-                              alt={emp.name}
-                            />
-                            <AvatarFallback className="text-sm">
-                              {initials}
-                            </AvatarFallback>
-                          </Avatar>
+                          <div
+                            className={`flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-full text-sm font-semibold ${getAvatarColor(emp.name)}`}
+                          >
+                            {emp.profilePicture?.file ? (
+                              <Image
+                                src={emp.profilePicture.file}
+                                alt={emp.name}
+                                width={36}
+                                height={36}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              initials
+                            )}
+                          </div>
 
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium">

@@ -198,7 +198,7 @@ function CompactMessageItem({
       onMouseLeave={handleMouseLeave}
     >
       {/* Avatar — smaller */}
-      <Avatar className="mt-0.5 h-5 w-5 shrink-0">
+      <Avatar className="mt-0.5 size-5 shrink-0">
         <AvatarImage src={avatarSrc} alt={senderName} />
         <AvatarFallback className="text-[8px] font-medium">
           {initials}

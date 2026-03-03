@@ -40,7 +40,7 @@ function MemberRow({
 
   return (
     <div className="flex items-center gap-2">
-      <Avatar className="h-6 w-6">
+      <Avatar className="size-6">
         {item.avatar && <AvatarImage src={item.avatar} alt={item.name} />}
         <AvatarFallback className="text-[10px]">{initials}</AvatarFallback>
       </Avatar>
