@@ -136,6 +136,7 @@ export const navigation: NavItem[] = [
     segment: 'chat',
     path: d('chat'),
     icon: MessagesSquare,
+    sidebarHidden: true,
   },
 
   // ====================== PROJECTS =========================================
@@ -249,6 +250,7 @@ export const navigation: NavItem[] = [
     segment: 'attendance',
     path: d('attendance'),
     icon: UserCheck,
+    sidebarHidden: true,
     children: [
       {
         label: 'All Attendance',
@@ -280,18 +282,21 @@ export const navigation: NavItem[] = [
     path: d('third-party'),
     icon: Handshake,
     nonInteractive: true,
+    sidebarHidden: true,
     children: [
       {
         label: 'Labour',
         segment: 'labour',
         path: d('third-party/labour'),
         icon: HardHat,
+        sidebarHidden: true,
       },
       {
         label: 'Sub-Contracts',
         segment: 'sub-contracts',
         path: d('third-party/sub-contracts'),
         icon: ClipboardList,
+        sidebarHidden: true,
       },
       {
         label: 'Vendors',
@@ -309,6 +314,7 @@ export const navigation: NavItem[] = [
     path: d('resources'),
     icon: Boxes,
     nonInteractive: true,
+    sidebarHidden: true,
     children: [
       {
         label: 'Inventory',
@@ -367,6 +373,7 @@ export const navigation: NavItem[] = [
     segment: 'finance',
     path: d('finance'),
     icon: Wallet,
+    sidebarHidden: true,
     children: [
       {
         label: 'Receipts',
