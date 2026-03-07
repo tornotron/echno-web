@@ -150,7 +150,9 @@ export function ProfileEditForm({
 
   const handleRemoveProfilePicture = () => {
     setProfilePictureFile(null);
-    setProfilePicturePreview(null);
+    // Restore the original persisted preview rather than clearing it,
+    // because the API cannot signal file deletion to the backend.
+    setProfilePicturePreview(user.profilePicture?.file || null);
     if (profilePictureInputRef.current) {
       profilePictureInputRef.current.value = '';
     }
@@ -158,8 +160,10 @@ export function ProfileEditForm({
 
   const handleRemoveCv = () => {
     setCvFile(null);
-    setCvPreview(null);
-    setCvFileName(null);
+    // Restore the original persisted preview rather than clearing it,
+    // because the API cannot signal file deletion to the backend.
+    setCvPreview(user.cv?.file || null);
+    setCvFileName(user.cv?.fileName || null);
     if (cvInputRef.current) {
       cvInputRef.current.value = '';
     }
@@ -375,25 +379,27 @@ export function ProfileEditForm({
             <Label>Profile Picture</Label>
             <div className="flex items-start space-x-4">
               {/* Picture Preview */}
-              <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-                {profilePicturePreview ? (
-                  <>
+              <div className="relative h-32 w-32">
+                <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+                  {profilePicturePreview ? (
                     <Image
                       src={profilePicturePreview}
                       alt="Profile picture preview"
                       fill
-                      className="object-cover"
+                      className="rounded-full object-cover"
                     />
-                    <button
-                      type="button"
-                      onClick={handleRemoveProfilePicture}
-                      className="absolute -top-2 -right-2 z-10 rounded-full bg-red-500 p-1.5 text-white shadow-md transition-colors hover:bg-red-600"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </>
-                ) : (
-                  <UserIcon className="h-12 w-12 text-zinc-400" />
+                  ) : (
+                    <UserIcon className="h-12 w-12 text-zinc-400" />
+                  )}
+                </div>
+                {profilePicturePreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveProfilePicture}
+                    className="absolute right-0 bottom-0 z-10 rounded-full bg-red-500 p-1 text-white shadow-md transition-colors hover:bg-red-600"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 )}
               </div>
 
