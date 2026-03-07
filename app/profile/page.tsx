@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
-import { UserProfileView } from '@/features/user-profile/user-profile-view';
+import { UserProfileView } from '@/features/user/components/user-profile-view';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/lib/styles/toast-styles';
 import { AppLayout } from '@/components/common/app-layout';
@@ -125,7 +125,6 @@ export default function ProfilePage() {
           user={user}
           showEditButton={true}
           onEdit={handleEdit}
-          variant="detailed"
         />
       </div>
     </AppLayout>
