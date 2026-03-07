@@ -21,8 +21,8 @@ const onSignOut = () => {
 };
 
 export function UserMenu() {
-  const { data: session } = useSession();
-  const { data: user } = useUser();
+  const { data: session, status } = useSession();
+  const { data: user } = useUser({ enabled: status === 'authenticated' });
 
   if (!session) {
     return null;
