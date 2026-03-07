@@ -6,7 +6,7 @@ import { useUser } from '@/hooks/user/use-user';
 import { UserProfileView } from '@/features/user/components/user-profile-view';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from '@/lib/styles/toast-styles';
-import { AppLayout } from '@/components/common/app-layout';
+import { AppLayout } from '@/features/common/components/app-layout';
 import { FloatingChat } from '@/features/chat/components/floating';
 
 /**
