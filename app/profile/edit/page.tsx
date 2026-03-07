@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
-import { ProfileEditForm } from '@/features/user-profile/profile-edit-form';
+import { ProfileEditForm } from '@/features/user/components/profile-edit-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
