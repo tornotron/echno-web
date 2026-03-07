@@ -38,7 +38,6 @@ interface UserProfileViewProps {
   onEdit?: () => void;
   showEditButton?: boolean;
   className?: string;
-  variant?: 'default' | 'compact' | 'detailed';
 }
 
 export function UserProfileView({
