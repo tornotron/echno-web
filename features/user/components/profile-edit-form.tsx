@@ -62,9 +62,10 @@ export function ProfileEditForm({
   });
 
   // File state - store both File object and preview URL
-  const [profilePictureUrlFile, setprofilePictureUrlFile] =
-    useState<File | null>(null);
-  const [profilePictureUrlPreview, setprofilePictureUrlPreview] = useState<
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(
+    null
+  );
+  const [profilePicturePreview, setProfilePicturePreview] = useState<
     string | null
   >(user.profilePicture?.file || null);
 
@@ -76,7 +77,7 @@ export function ProfileEditForm({
     user.cv?.fileName || null
   );
 
-  const profilePictureUrlInputRef = useRef<HTMLInputElement>(null);
+  const profilePictureInputRef = useRef<HTMLInputElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
@@ -90,7 +91,7 @@ export function ProfileEditForm({
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleprofilePictureUrlChange = (
+  const handleProfilePictureChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
@@ -113,10 +114,10 @@ export function ProfileEditForm({
     }
 
     // Store the file and create preview
-    setprofilePictureUrlFile(file);
+    setProfilePictureFile(file);
     const reader = new FileReader();
     reader.onloadend = () => {
-      setprofilePictureUrlPreview(reader.result as string);
+      setProfilePicturePreview(reader.result as string);
     };
     reader.readAsDataURL(file);
   };
@@ -147,11 +148,11 @@ export function ProfileEditForm({
     setCvPreview('uploaded'); // Just a flag to show uploaded state
   };
 
-  const handleRemoveprofilePictureUrl = () => {
-    setprofilePictureUrlFile(null);
-    setprofilePictureUrlPreview(null);
-    if (profilePictureUrlInputRef.current) {
-      profilePictureUrlInputRef.current.value = '';
+  const handleRemoveProfilePicture = () => {
+    setProfilePictureFile(null);
+    setProfilePicturePreview(null);
+    if (profilePictureInputRef.current) {
+      profilePictureInputRef.current.value = '';
     }
   };
 
@@ -203,8 +204,8 @@ export function ProfileEditForm({
 
     // Prepare files for upload
     const files = {
-      profilePictureUrl: profilePictureUrlFile || undefined,
-      cvUrl: cvFile || undefined,
+      profilePicture: profilePictureFile || undefined,
+      cv: cvFile || undefined,
     };
 
     updateUserWithFiles.mutate(
@@ -375,17 +376,17 @@ export function ProfileEditForm({
             <div className="flex items-start space-x-4">
               {/* Picture Preview */}
               <div className="relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-                {profilePictureUrlPreview ? (
+                {profilePicturePreview ? (
                   <>
                     <Image
-                      src={profilePictureUrlPreview}
+                      src={profilePicturePreview}
                       alt="Profile picture preview"
                       fill
                       className="object-cover"
                     />
                     <button
                       type="button"
-                      onClick={handleRemoveprofilePictureUrl}
+                      onClick={handleRemoveProfilePicture}
                       className="absolute -top-2 -right-2 z-10 rounded-full bg-red-500 p-1.5 text-white shadow-md transition-colors hover:bg-red-600"
                     >
                       <X className="h-3 w-3" />
@@ -399,22 +400,20 @@ export function ProfileEditForm({
               {/* Upload Button */}
               <div className="flex-1 space-y-2">
                 <input
-                  ref={profilePictureUrlInputRef}
+                  ref={profilePictureInputRef}
                   type="file"
                   accept="image/*"
-                  onChange={handleprofilePictureUrlChange}
+                  onChange={handleProfilePictureChange}
                   className="hidden"
                 />
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => profilePictureUrlInputRef.current?.click()}
+                  onClick={() => profilePictureInputRef.current?.click()}
                   className="w-full"
                 >
                   <Upload className="mr-2 h-4 w-4" />
-                  {profilePictureUrlPreview
-                    ? 'Change Picture'
-                    : 'Upload Picture'}
+                  {profilePicturePreview ? 'Change Picture' : 'Upload Picture'}
                 </Button>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   PNG, JPG up to 5MB. Recommended size: 400x400px
