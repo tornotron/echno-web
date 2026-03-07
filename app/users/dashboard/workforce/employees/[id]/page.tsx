@@ -4,15 +4,10 @@ import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+  AssignManagerDialog,
+  AssignRoleDialog,
+  RemoveRoleDialog,
+} from '@/features/employee/components/employee-alert-dialogs';
 import {
   Card,
   CardContent,
@@ -22,13 +17,6 @@ import {
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Mail,
   Phone,
@@ -127,8 +115,7 @@ export default function EmployeeDetailPage({
   const assignManagerMutation = useAssignManager();
   const { data: currentUserEmployee } = useCurrentUserEmployee();
   const { isAdmin } = useAuthorization();
-  const [isChangingManager, setIsChangingManager] = useState(false);
-  const [selectedManagerId, setSelectedManagerId] = useState<string>('');
+  const [showAssignManagerDialog, setShowAssignManagerDialog] = useState(false);
 
   // Projects
   const { data: employeeProjects, isLoading: projectsLoading } =
@@ -138,8 +125,7 @@ export default function EmployeeDetailPage({
   const { currentRoles, availableRoles } = useRoleManagement(employeeId);
   const assignRole = useAssignRole();
   const unassignRole = useUnassignRole();
-  const [isAssigningRole, setIsAssigningRole] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<string>('');
+  const [showAssignRoleDialog, setShowAssignRoleDialog] = useState(false);
   const [roleToRemove, setRoleToRemove] = useState<OrgRole | null>(null);
 
   if (isLoading) {
@@ -467,122 +453,42 @@ export default function EmployeeDetailPage({
                         Direct reporting structure
                       </CardDescription>
                     </div>
-                    {!isChangingManager && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedManagerId(
-                            employee.managerId?.toString() || ''
-                          );
-                          setIsChangingManager(true);
-                        }}
-                      >
-                        {employee.managerName ? (
-                          <>
-                            <ArrowRightLeft className="mr-1.5 h-3.5 w-3.5" />
-                            Change
-                          </>
-                        ) : (
-                          <>
-                            <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                            Assign
-                          </>
-                        )}
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowAssignManagerDialog(true)}
+                    >
+                      {employee.managerName ? (
+                        <>
+                          <ArrowRightLeft className="mr-1.5 h-3.5 w-3.5" />
+                          Change
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="mr-1.5 h-3.5 w-3.5" />
+                          Assign
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  {isChangingManager ? (
-                    <div className="space-y-3">
-                      <Select
-                        value={selectedManagerId}
-                        onValueChange={setSelectedManagerId}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue
-                            placeholder={
-                              managersLoading
-                                ? 'Loading managers...'
-                                : 'Select a manager'
-                            }
-                          />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {managers.length === 0 && !managersLoading && (
-                            <SelectItem value="none" disabled>
-                              No managers available
-                            </SelectItem>
-                          )}
-                          {managers.map((manager) => (
-                            <SelectItem
-                              key={manager.id}
-                              value={manager.id?.toString() || ''}
-                              disabled={manager.id === employee.id}
-                            >
-                              {manager.name} - {manager.designation}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          disabled={
-                            !selectedManagerId ||
-                            assignManagerMutation.isPending
-                          }
-                          onClick={() => {
-                            if (!selectedManagerId || !employee.id) return;
-                            assignManagerMutation.mutate(
-                              {
-                                employeeId: employee.id,
-                                managerId: Number.parseInt(
-                                  selectedManagerId,
-                                  10
-                                ),
-                              },
-                              {
-                                onSuccess: () => setIsChangingManager(false),
-                              }
-                            );
-                          }}
-                        >
-                          {assignManagerMutation.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : null}
-                          Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setIsChangingManager(false)}
-                          disabled={assignManagerMutation.isPending}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
+                      <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                     </div>
-                  ) : (
-                    <div className="flex items-center space-x-3">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-900/20">
-                        <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                      </div>
-                      {employee.managerName ? (
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                            {employee.managerName}
-                          </p>
-                        </div>
-                      ) : (
-                        <p className="text-sm text-zinc-400 italic dark:text-zinc-500">
-                          No manager assigned
+                    {employee.managerName ? (
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
+                          {employee.managerName}
                         </p>
-                      )}
-                    </div>
-                  )}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-zinc-400 italic dark:text-zinc-500">
+                        No manager assigned
+                      </p>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -602,83 +508,19 @@ export default function EmployeeDetailPage({
                         Organization roles &amp; permissions
                       </CardDescription>
                     </div>
-                    {isAdmin &&
-                      !isAssigningRole &&
-                      availableRoles.length > 0 && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRole('');
-                            setIsAssigningRole(true);
-                          }}
-                        >
-                          <Plus className="mr-1.5 h-3.5 w-3.5" />
-                          Assign
-                        </Button>
-                      )}
+                    {isAdmin && availableRoles.length > 0 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowAssignRoleDialog(true)}
+                      >
+                        <Plus className="mr-1.5 h-3.5 w-3.5" />
+                        Assign
+                      </Button>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {/* Assign role inline form */}
-                  {isAdmin && isAssigningRole && (
-                    <div className="space-y-2">
-                      <Select
-                        value={selectedRole}
-                        onValueChange={setSelectedRole}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a role to assign" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {availableRoles.map((role) => (
-                            <SelectItem key={role} value={role}>
-                              {getOrgRoleLabel(role as OrgRole)}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          className="flex-1"
-                          disabled={!selectedRole || assignRole.isPending}
-                          onClick={() => {
-                            if (!selectedRole || !employee.id) return;
-                            assignRole.mutate(
-                              {
-                                employeeId: employee.id,
-                                orgRole: selectedRole as OrgRole,
-                              },
-                              {
-                                onSuccess: () => {
-                                  setIsAssigningRole(false);
-                                  setSelectedRole('');
-                                },
-                              }
-                            );
-                          }}
-                        >
-                          {assignRole.isPending ? (
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          ) : null}
-                          Save
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setIsAssigningRole(false);
-                            setSelectedRole('');
-                          }}
-                          disabled={assignRole.isPending}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
                   {/* Current roles */}
                   {currentRoles.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
@@ -810,48 +652,53 @@ export default function EmployeeDetailPage({
         )}
       </Tabs>
 
-      {/* Role removal confirmation dialog */}
-      <AlertDialog
+      <AssignManagerDialog
+        open={showAssignManagerDialog}
+        onOpenChange={setShowAssignManagerDialog}
+        managers={managers}
+        managersLoading={managersLoading}
+        currentEmployeeId={employee.id!}
+        defaultManagerId={employee.managerId}
+        isPending={assignManagerMutation.isPending}
+        onConfirm={(managerId) => {
+          if (!employee.id) return;
+          assignManagerMutation.mutate(
+            { employeeId: employee.id, managerId },
+            { onSuccess: () => setShowAssignManagerDialog(false) }
+          );
+        }}
+      />
+
+      <AssignRoleDialog
+        open={showAssignRoleDialog}
+        onOpenChange={setShowAssignRoleDialog}
+        availableRoles={availableRoles}
+        isPending={assignRole.isPending}
+        onConfirm={(role) => {
+          if (!employee.id) return;
+          assignRole.mutate(
+            { employeeId: employee.id, orgRole: role },
+            { onSuccess: () => setShowAssignRoleDialog(false) }
+          );
+        }}
+      />
+
+      <RemoveRoleDialog
         open={roleToRemove !== null}
         onOpenChange={(open) => {
           if (!open) setRoleToRemove(null);
         }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Role</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove the{' '}
-              <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                {roleToRemove ? getOrgRoleLabel(roleToRemove) : ''}
-              </span>{' '}
-              role from {employee.name}? This will immediately affect their
-              access and permissions.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={unassignRole.isPending}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
-              disabled={unassignRole.isPending}
-              onClick={() => {
-                if (!roleToRemove || !employee.id) return;
-                unassignRole.mutate(
-                  { employeeId: employee.id, orgRole: roleToRemove },
-                  { onSettled: () => setRoleToRemove(null) }
-                );
-              }}
-            >
-              {unassignRole.isPending ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : null}
-              Remove Role
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        roleName={roleToRemove ? getOrgRoleLabel(roleToRemove) : ''}
+        employeeName={employee.name}
+        isPending={unassignRole.isPending}
+        onConfirm={() => {
+          if (!roleToRemove || !employee.id) return;
+          unassignRole.mutate(
+            { employeeId: employee.id, orgRole: roleToRemove },
+            { onSettled: () => setRoleToRemove(null) }
+          );
+        }}
+      />
     </div>
   );
 }
