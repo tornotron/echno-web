@@ -3,6 +3,7 @@ import { employeeService } from '@/services/employee-service';
 import { useUser, useUserEmployees } from '@/hooks/user/use-user';
 import { useMemo } from 'react';
 import { shouldRetry } from '@/lib/utils/retry';
+import { employeeKeys } from './employee-keys';
 
 /**
  * Hook to fetch all employees.
@@ -10,7 +11,7 @@ import { shouldRetry } from '@/lib/utils/retry';
  */
 export function useEmployees() {
   return useQuery({
-    queryKey: ['employees'],
+    queryKey: employeeKeys.all,
     queryFn: () => employeeService.getAll(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
@@ -24,7 +25,7 @@ export function useEmployees() {
  */
 export function useEmployee(id: number) {
   return useQuery({
-    queryKey: ['employees', id],
+    queryKey: employeeKeys.detail(id),
     queryFn: () => employeeService.getById(id),
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -83,7 +84,7 @@ export function useCurrentUserEmployee() {
  */
 export function useSubordinates(managerId?: number) {
   return useQuery({
-    queryKey: ['employees', 'subordinates', managerId],
+    queryKey: employeeKeys.subordinates(managerId),
     queryFn: () => {
       if (!managerId) {
         throw new Error('Manager ID is required');
@@ -105,7 +106,7 @@ export function useSubordinates(managerId?: number) {
  */
 export function useManagers() {
   return useQuery({
-    queryKey: ['employees', 'managers'],
+    queryKey: employeeKeys.managers(),
     queryFn: () => employeeService.getManagers(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
