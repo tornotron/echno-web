@@ -16,6 +16,7 @@ import {
 import { Pagination } from '@/components/common';
 import { Users, UserPlus, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { EmployeeProjectsCell } from './employee-projects-cell';
 import { EmployeeStatusBadge } from './employee-status-badge';
 import { EmployeeAvatar } from './employee-avatar';
@@ -45,6 +46,8 @@ export function EmployeeTable({
   onPageChange,
   hasActiveFilters,
 }: EmployeeTableProps) {
+  const router = useRouter();
+
   if (filteredEmployees.length === 0) {
     return (
       <Card className="hidden lg:block">
@@ -99,7 +102,9 @@ export function EmployeeTable({
                   key={employee.id}
                   className="hover:bg-muted/50 cursor-pointer"
                   onClick={() =>
-                    (globalThis.location.href = `/users/dashboard/workforce/employees/${employee.id}`)
+                    router.push(
+                      `/users/dashboard/workforce/employees/${employee.id}`
+                    )
                   }
                 >
                   <TableCell onClick={(e) => e.stopPropagation()}>
