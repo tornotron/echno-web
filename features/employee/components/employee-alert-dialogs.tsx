@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -134,7 +133,7 @@ export function AssignManagerDialog({
 interface AssignRoleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  availableRoles: string[];
+  availableRoles: OrgRole[];
   isPending: boolean;
   onConfirm: (role: OrgRole) => void;
 }
@@ -146,7 +145,7 @@ export function AssignRoleDialog({
   isPending,
   onConfirm,
 }: AssignRoleDialogProps) {
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState<OrgRole | ''>('');
 
   const handleOpenChange = (next: boolean) => {
     if (!next) setSelectedRole('');
@@ -163,14 +162,17 @@ export function AssignRoleDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <Select value={selectedRole} onValueChange={setSelectedRole}>
+        <Select
+          value={selectedRole}
+          onValueChange={(value) => setSelectedRole(value as OrgRole)}
+        >
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Select a role to assign" />
           </SelectTrigger>
           <SelectContent>
             {availableRoles.map((role) => (
               <SelectItem key={role} value={role}>
-                {getOrgRoleLabel(role as OrgRole)}
+                {getOrgRoleLabel(role)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -187,7 +189,7 @@ export function AssignRoleDialog({
           <Button
             disabled={!selectedRole || isPending}
             onClick={() => {
-              if (selectedRole) onConfirm(selectedRole as OrgRole);
+              if (selectedRole) onConfirm(selectedRole);
             }}
           >
             {isPending ? (
@@ -221,7 +223,13 @@ export function SaveEmployeeDialog({
   onConfirm,
 }: SaveEmployeeDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (isPending) return;
+        onOpenChange(next);
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Save Changes</AlertDialogTitle>
@@ -235,12 +243,12 @@ export function SaveEmployeeDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={isPending} onClick={onConfirm}>
+          <Button disabled={isPending} onClick={onConfirm}>
             {isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
             Save Changes
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -269,7 +277,13 @@ export function RemoveRoleDialog({
   onConfirm,
 }: RemoveRoleDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (isPending) return;
+        onOpenChange(next);
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Remove Role</AlertDialogTitle>
@@ -284,8 +298,8 @@ export function RemoveRoleDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+          <Button
+            variant="destructive"
             disabled={isPending}
             onClick={onConfirm}
           >
@@ -293,7 +307,7 @@ export function RemoveRoleDialog({
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
             Remove Role
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
