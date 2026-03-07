@@ -1,4 +1,4 @@
-import { AppLayout } from '@/components/common/app-layout';
+import { AppLayout } from '@/features/common/components/app-layout';
 import { FloatingChatSlot } from './floating-chat-slot';
 
 export default function DashboardLayout({

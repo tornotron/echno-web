@@ -6,7 +6,7 @@ import { ProfileEditForm } from '@/features/user/components/profile-edit-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
-import { AppLayout } from '@/components/common/app-layout';
+import { AppLayout } from '@/features/common/components/app-layout';
 import { FloatingChat } from '@/features/chat/components/floating';
 
 /**
