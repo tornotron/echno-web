@@ -79,6 +79,7 @@ export function ProfileEditForm({
 
   const profilePictureInputRef = useRef<HTMLInputElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
+  const profilePictureReadIdRef = useRef(0);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -115,9 +116,12 @@ export function ProfileEditForm({
 
     // Store the file and create preview
     setProfilePictureFile(file);
+    const readId = ++profilePictureReadIdRef.current;
     const reader = new FileReader();
     reader.onloadend = () => {
-      setProfilePicturePreview(reader.result as string);
+      if (readId === profilePictureReadIdRef.current) {
+        setProfilePicturePreview(reader.result as string);
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -150,6 +154,8 @@ export function ProfileEditForm({
 
   const handleRemoveProfilePicture = () => {
     setProfilePictureFile(null);
+    // Invalidate any in-flight FileReader callbacks
+    profilePictureReadIdRef.current++;
     // Restore the original persisted preview rather than clearing it,
     // because the API cannot signal file deletion to the backend.
     setProfilePicturePreview(user.profilePicture?.file || null);
@@ -396,6 +402,7 @@ export function ProfileEditForm({
                   <button
                     type="button"
                     onClick={handleRemoveProfilePicture}
+                    aria-label="Remove profile picture"
                     className="absolute right-0 bottom-0 z-10 rounded-full bg-red-500 p-1 text-white shadow-md transition-colors hover:bg-red-600"
                   >
                     <X className="h-3 w-3" />
