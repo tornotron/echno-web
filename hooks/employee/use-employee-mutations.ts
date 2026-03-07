@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeService } from '@/services/employee-service';
 import { Employee } from '@/types/employee/employee';
 import { toast } from '@/lib/styles/toast-styles';
+import { employeeKeys } from './employee-keys';
 
 /**
  * Hook to create a new employee.
@@ -14,8 +15,7 @@ export function useCreateEmployee() {
     mutationFn: (employee: Partial<Employee>) =>
       employeeService.create(employee),
     onSuccess: (newEmployee) => {
-      // Invalidate employees list
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       toast.success('Employee Created', {
         description: `${newEmployee.name} has been added successfully.`,
       });
@@ -39,9 +39,8 @@ export function useUpdateEmployee() {
     mutationFn: ({ id, data }: { id: number; data: Partial<Employee> }) =>
       employeeService.update(id, data),
     onSuccess: (updatedEmployee, { id }) => {
-      // Invalidate both the specific employee and the list
-      queryClient.invalidateQueries({ queryKey: ['employees', id] });
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       toast.success('Employee Updated', {
         description: `${updatedEmployee.name}'s information has been updated.`,
       });
@@ -64,9 +63,8 @@ export function useDeleteEmployee() {
   return useMutation({
     mutationFn: (id: number) => employeeService.delete(id),
     onSuccess: (_, id) => {
-      // Invalidate employees list and remove the specific employee from cache
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
-      queryClient.removeQueries({ queryKey: ['employees', id] });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
+      queryClient.removeQueries({ queryKey: employeeKeys.detail(id) });
       toast.success('Employee Deleted', {
         description: 'The employee has been removed successfully.',
       });
@@ -95,8 +93,7 @@ export function useJoinOrganization() {
       organizationId: number;
     }) => employeeService.joinOrganization(userId, organizationId),
     onSuccess: (employee) => {
-      // Invalidate employees, user, and organizations data
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       queryClient.invalidateQueries({ queryKey: ['user'] });
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       toast.success('Joined Organization', {
@@ -127,12 +124,11 @@ export function useAssignManager() {
       managerId: number;
     }) => employeeService.assignManager(employeeId, managerId),
     onSuccess: (employee, { employeeId }) => {
-      // Invalidate the specific employee and subordinates list
-      queryClient.invalidateQueries({ queryKey: ['employees', employeeId] });
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
       queryClient.invalidateQueries({
-        queryKey: ['employees', 'subordinates'],
+        queryKey: employeeKeys.detail(employeeId),
       });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.subordinates() });
       toast.success('Manager Assigned', {
         description: `${employee.managerName || 'Manager'} has been assigned successfully.`,
       });
@@ -156,12 +152,11 @@ export function useRemoveManager() {
     mutationFn: (employeeId: number) =>
       employeeService.removeManager(employeeId),
     onSuccess: (employee, employeeId) => {
-      // Invalidate the specific employee and subordinates list
-      queryClient.invalidateQueries({ queryKey: ['employees', employeeId] });
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
       queryClient.invalidateQueries({
-        queryKey: ['employees', 'subordinates'],
+        queryKey: employeeKeys.detail(employeeId),
       });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.subordinates() });
       toast.success('Manager Removed', {
         description: 'The reporting manager has been removed successfully.',
       });
