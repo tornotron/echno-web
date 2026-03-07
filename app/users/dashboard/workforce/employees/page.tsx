@@ -2,9 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { Pagination, SearchAndFilter } from '@/components/common';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
   Card,
   CardContent,
@@ -12,71 +10,21 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Users,
-  UserPlus,
-  Mail,
-  Phone,
-  User,
-  Loader2,
-  AlertCircle,
-} from 'lucide-react';
-import Link from 'next/link';
-import Image from 'next/image';
+import { Users, Loader2, AlertCircle } from 'lucide-react';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
 import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
-import { EmployeeProjectsCell } from '@/features/employee/components/employee-projects-cell';
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active': {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case 'inactive': {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case 'onLeave': {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'active': {
-      return 'Active';
-    }
-    case 'inactive': {
-      return 'Inactive';
-    }
-    case 'onLeave': {
-      return 'On Leave';
-    }
-    default: {
-      return status;
-    }
-  }
-};
+import { EmployeeStatusBadge } from '@/features/employee/components/employee-status-badge';
+import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
+import { EmployeeTable } from '@/features/employee/components/employee-table';
 
 export default function EmployeesPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -456,22 +404,7 @@ export default function EmployeesPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    {employee.profilePicture?.file ? (
-                      <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                        <Image
-                          src={employee.profilePicture.file}
-                          alt={employee.name}
-                          fill
-                          className="object-cover"
-                          sizes="40px"
-                          unoptimized
-                        />
-                      </div>
-                    ) : (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                        <User className="h-5 w-5 text-white" />
-                      </div>
-                    )}
+                    <EmployeeAvatar employee={employee} />
                     <div>
                       <p className="font-medium text-zinc-900 dark:text-zinc-100">
                         {employee.name}
@@ -483,9 +416,7 @@ export default function EmployeesPage() {
                       )}
                     </div>
                   </div>
-                  <Badge className={getStatusColor(employee.status)}>
-                    {getStatusLabel(employee.status)}
-                  </Badge>
+                  <EmployeeStatusBadge status={employee.status} />
                 </div>
                 <div className="mt-3 space-y-1.5 text-sm">
                   <div className="flex items-center justify-between">
@@ -523,158 +454,18 @@ export default function EmployeesPage() {
       </div>
 
       {/* Employees Table */}
-      {filteredEmployees.length > 0 ? (
-        <Card className="hidden lg:block">
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={isAllSelected}
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Designation</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Projects</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedEmployees.map((employee) => {
-                  return (
-                    <TableRow
-                      key={employee.id}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        (globalThis.location.href = `/users/dashboard/workforce/employees/${employee.id}`)
-                      }
-                    >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <Checkbox
-                          checked={
-                            employee.id !== undefined &&
-                            selectedIds.includes(employee.id)
-                          }
-                          onCheckedChange={(checked) =>
-                            employee.id !== undefined &&
-                            handleSelectOne(employee.id, checked as boolean)
-                          }
-                          aria-label={`Select ${employee.name}`}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          {employee.profilePicture?.file ? (
-                            <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-full">
-                              <Image
-                                src={employee.profilePicture.file}
-                                alt={employee.name}
-                                fill
-                                className="object-cover"
-                                sizes="40px"
-                                unoptimized
-                              />
-                            </div>
-                          ) : (
-                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                              <User className="h-5 w-5 text-white" />
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {employee.name}
-                            </p>
-                            {employee.employeeId && (
-                              <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                                ID: {employee.employeeId}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-zinc-700 dark:text-zinc-300">
-                          {employee.designation}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        {employee.department ? (
-                          <Badge variant="outline">
-                            {getDepartmentLabel(employee.department)}
-                          </Badge>
-                        ) : (
-                          <span className="text-zinc-400">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-2 text-sm">
-                            <Mail className="h-3 w-3 text-zinc-400" />
-                            <span className="max-w-[200px] truncate text-zinc-600 dark:text-zinc-400">
-                              {employee.email}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm">
-                            <Phone className="h-3 w-3 text-zinc-400" />
-                            <span className="text-zinc-600 dark:text-zinc-400">
-                              {employee.phone}
-                            </span>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <EmployeeProjectsCell
-                          employeeId={employee.id}
-                          projects={employee.currentProjects ?? []}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(employee.status)}>
-                          {getStatusLabel(employee.status)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-
-          {/* Pagination Controls */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </Card>
-      ) : (
-        <Card className="hidden lg:block">
-          <CardContent className="py-12 text-center">
-            <Users className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              No employees found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              {hasActiveFilters
-                ? 'Try adjusting your search or filters'
-                : 'Get started by adding your first employee'}
-            </p>
-            {!hasActiveFilters && (
-              <Link href="/users/dashboard/workforce/invitations/new">
-                <Button>
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Create Invitation
-                </Button>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-      )}
+      <EmployeeTable
+        filteredEmployees={filteredEmployees}
+        paginatedEmployees={paginatedEmployees}
+        selectedIds={selectedIds}
+        isAllSelected={isAllSelected}
+        onSelectAll={handleSelectAll}
+        onSelectOne={handleSelectOne}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={hasActiveFilters}
+      />
     </div>
   );
 }
