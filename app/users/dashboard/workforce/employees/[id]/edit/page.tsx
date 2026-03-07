@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { use, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { SaveEmployeeDialog } from '@/features/employee/components/employee-alert-dialogs';
 import { useEmployees } from '@/hooks/employee';
 import { useUpdateEmployee } from '@/hooks/employee/use-employee-mutations';
 import {
@@ -103,6 +104,11 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
 
   // Form state - initialized with employee data
   const [formData, setFormData] = useState(() => getInitialFormData(employee));
+  const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
+  const [pendingUpdate, setPendingUpdate] = useState<{
+    id: number;
+    data: Partial<Employee>;
+  } | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,17 +145,8 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
       updateData.designation = formData.designation;
     }
 
-    updateEmployee.mutate(
-      {
-        id: employee.id!,
-        data: updateData,
-      },
-      {
-        onSuccess: () => {
-          router.push(`/users/dashboard/workforce/employees/${employee.id}`);
-        },
-      }
-    );
+    setPendingUpdate({ id: employee.id!, data: updateData });
+    setShowConfirmUpdate(true);
   };
 
   const handleCancel = () => {
@@ -382,6 +379,30 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
             </Button>
           </div>
         </form>
+
+        <SaveEmployeeDialog
+          open={showConfirmUpdate}
+          onOpenChange={(open) => {
+            setShowConfirmUpdate(open);
+            if (!open) setPendingUpdate(null);
+          }}
+          employeeName={employee.name}
+          isPending={updateEmployee.isPending}
+          onConfirm={() => {
+            if (!pendingUpdate) return;
+            updateEmployee.mutate(pendingUpdate, {
+              onSuccess: () => {
+                router.push(
+                  `/users/dashboard/workforce/employees/${employee.id}`
+                );
+              },
+              onSettled: () => {
+                setShowConfirmUpdate(false);
+                setPendingUpdate(null);
+              },
+            });
+          }}
+        />
       </div>
     </div>
   );
