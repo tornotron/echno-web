@@ -33,39 +33,11 @@ export interface User {
 
 // ────── Helper Functions ──────
 
-/**
- * Get attachment by entity type from user's attachments array
- */
-export function getUserAttachment(
-  user: User,
-  entityType: string
-): Attachment | undefined {
-  return user.attachments?.find((att) => att.entityType === entityType);
-}
-
-/**
- * Get user's profile picture from attachments
- */
-export function getUserProfilePicture(user: User): Attachment | undefined {
-  return user.profilePicture ?? getUserAttachment(user, 'USER_PROFILE_PICTURE');
-}
-
-/**
- * Get user's CV from attachments
- */
-export function getUserCV(user: User): Attachment | undefined {
-  return user.cv ?? getUserAttachment(user, 'USER_CV');
-}
-
 export function userInitials(user: User): string {
   const words = user.name.trim().split(/\s+/);
   let initials = '';
   for (const w of words) if (w) initials += w[0].toUpperCase();
   return initials.length > 2 ? initials.slice(0, 2) : initials;
-}
-
-export function skillsAsString(user: User): string {
-  return user.skills?.join(', ') ?? '';
 }
 
 /**

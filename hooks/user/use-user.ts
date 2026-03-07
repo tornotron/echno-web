@@ -16,6 +16,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
 import { shouldRetry } from '@/lib/utils/retry';
+import { userKeys } from './user-keys';
 
 /**
  * Hook to fetch the current authenticated user's profile.
@@ -51,7 +52,7 @@ import { shouldRetry } from '@/lib/utils/retry';
  */
 export function useUser() {
   return useQuery({
-    queryKey: ['user'],
+    queryKey: userKeys.all,
     queryFn: () => userService.getCurrentUser(),
     staleTime: 10 * 60 * 1000, // 10 minutes - matches prefetch staleTime
     gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
@@ -78,7 +79,7 @@ export function useUser() {
  */
 export function useUserEmployees() {
   return useQuery({
-    queryKey: ['user', 'employees'],
+    queryKey: userKeys.employees(),
     queryFn: () => userService.getUserEmployees(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
