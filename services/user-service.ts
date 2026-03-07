@@ -42,8 +42,8 @@ function safeParseEmployees(data: ApiResponse[]): Employee[] {
  * Files that can be uploaded for a user profile.
  */
 export interface UserFiles {
-  profilePictureUrl?: File;
-  cvUrl?: File;
+  profilePicture?: File;
+  cv?: File;
 }
 
 /**
@@ -98,7 +98,7 @@ export const userService = {
    *
    * @param {number} id - User ID to update.
    * @param {Partial<User>} userData - User data to update.
-   * @param {UserFiles} files - Files to upload (profilePictureUrl, cvUrl).
+   * @param {UserFiles} files - Files to upload (profilePicture, cv).
    * @returns {Promise<User>} The updated, parsed user profile.
    * @throws {ApiError} on network, server, or parsing errors
    */
@@ -111,11 +111,11 @@ export const userService = {
 
     // Build files map with correct field names expected by backend
     const fileMap: Record<string, File[]> = {};
-    if (files.profilePictureUrl) {
-      fileMap['profilePicture'] = [files.profilePictureUrl];
+    if (files.profilePicture) {
+      fileMap['profilePicture'] = [files.profilePicture];
     }
-    if (files.cvUrl) {
-      fileMap['cv'] = [files.cvUrl];
+    if (files.cv) {
+      fileMap['cv'] = [files.cv];
     }
 
     const data = await api.patchMultipart<ApiResponse>(
@@ -135,21 +135,6 @@ export const userService = {
    * @returns {Promise<User>} The updated, parsed user profile.
    * @throws {ApiError} on network, server, or parsing errors
    */
-
-  /**
-   * services/user-service.ts
-   *
-   * Robust, typed wrapper around user-related backend endpoints.
-   *
-   * This module centralizes REST interactions for user CRUD operations and
-   * file uploads. It converts raw server payloads into typed `User` objects
-   * via parsing helpers and ensures consistent error wrapping using `ApiError`.
-   *
-   * Conventions:
-   * - Use `safeParse*` helpers to validate and normalize responses.
-   * - Use multipart endpoints for file uploads via `patchMultipart`.
-   */
-
   async updateUserOrganization(
     id: number,
     organizationId: number | null
