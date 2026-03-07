@@ -98,6 +98,19 @@ export function ProfileEditForm({
     user.cv?.fileName || null
   );
 
+  // Persisted baseline — tracks the last known server state so that
+  // discarding a staged file after a server-side delete falls back to
+  // null rather than the stale user prop.
+  const [persistedProfilePicture, setPersistedProfilePicture] = useState<
+    string | null
+  >(user.profilePicture?.file || null);
+  const [persistedCv, setPersistedCv] = useState<string | null>(
+    user.cv?.file || null
+  );
+  const [persistedCvFileName, setPersistedCvFileName] = useState<string | null>(
+    user.cv?.fileName || null
+  );
+
   const profilePictureInputRef = useRef<HTMLInputElement>(null);
   const cvInputRef = useRef<HTMLInputElement>(null);
   const profilePictureReadIdRef = useRef(0);
@@ -178,9 +191,9 @@ export function ProfileEditForm({
     if (profilePictureInputRef.current)
       profilePictureInputRef.current.value = '';
     if (profilePictureFile) {
-      // Staged file — discard and revert, no confirmation needed
+      // Staged file — discard and revert to persisted baseline
       setProfilePictureFile(null);
-      setProfilePicturePreview(user.profilePicture?.file || null);
+      setProfilePicturePreview(persistedProfilePicture);
     } else {
       // Saved attachment — ask for confirmation
       setShowRemovePictureDialog(true);
@@ -194,6 +207,7 @@ export function ProfileEditForm({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: userKeys.all });
         setProfilePicturePreview(null);
+        setPersistedProfilePicture(null);
       },
     });
     setShowRemovePictureDialog(false);
@@ -202,10 +216,10 @@ export function ProfileEditForm({
   const handleRemoveCv = () => {
     if (cvInputRef.current) cvInputRef.current.value = '';
     if (cvFile) {
-      // Staged file — discard and revert, no confirmation needed
+      // Staged file — discard and revert to persisted baseline
       setCvFile(null);
-      setCvPreview(user.cv?.file || null);
-      setCvFileName(user.cv?.fileName || null);
+      setCvPreview(persistedCv);
+      setCvFileName(persistedCvFileName);
     } else {
       // Saved attachment — ask for confirmation
       setShowRemoveCvDialog(true);
@@ -220,6 +234,8 @@ export function ProfileEditForm({
         queryClient.invalidateQueries({ queryKey: userKeys.all });
         setCvPreview(null);
         setCvFileName(null);
+        setPersistedCv(null);
+        setPersistedCvFileName(null);
       },
     });
     setShowRemoveCvDialog(false);
