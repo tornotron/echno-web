@@ -50,7 +50,7 @@ import { userKeys } from './user-keys';
  * }
  * ```
  */
-export function useUser() {
+export function useUser(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: userKeys.all,
     queryFn: () => userService.getCurrentUser(),
@@ -58,6 +58,7 @@ export function useUser() {
     gcTime: 15 * 60 * 1000, // 15 minutes - keep in cache longer
     retry: shouldRetry,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
+    enabled: options?.enabled ?? true,
   });
 }
 
