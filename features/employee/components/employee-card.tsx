@@ -3,47 +3,15 @@
 import { Employee, getDepartmentLabel } from '@/types/employee';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Mail, Phone, Building, User, IdCard } from 'lucide-react';
+import { Mail, Phone, Building, IdCard } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { EmployeeStatusBadge } from './employee-status-badge';
+import { EmployeeAvatar } from './employee-avatar';
 
 interface EmployeeCardProps {
   employee: Employee;
 }
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'active': {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case 'inactive': {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case 'onLeave': {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case 'active': {
-      return 'Active';
-    }
-    case 'inactive': {
-      return 'Inactive';
-    }
-    case 'onLeave': {
-      return 'On Leave';
-    }
-    default: {
-      return status;
-    }
-  }
-};
 
 export function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
@@ -56,9 +24,11 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
           {/* Header with Avatar and Status */}
           <div className="mb-4 flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                <User className="h-6 w-6 text-white" />
-              </div>
+              <EmployeeAvatar
+                employee={employee}
+                size="sm"
+                className="size-12"
+              />
               <div>
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
                   {employee.name}
@@ -68,9 +38,7 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
                 </p>
               </div>
             </div>
-            <Badge className={getStatusColor(employee.status)}>
-              {getStatusLabel(employee.status)}
-            </Badge>
+            <EmployeeStatusBadge status={employee.status} />
           </div>
 
           {/* Department and Employee ID */}
