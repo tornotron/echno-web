@@ -32,7 +32,7 @@ import {
   Loader2,
   AlertCircle,
 } from 'lucide-react';
-import Image from 'next/image';
+import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import {
   EmployeeStatus,
@@ -160,22 +160,7 @@ function EditEmployeeForm({ employee }: { employee: Employee }) {
     <div className="space-y-4 sm:space-y-6">
       <div className="mx-auto max-w-5xl">
         <div className="mb-8 flex items-center space-x-4">
-          {employee.profilePicture?.file ? (
-            <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full">
-              <Image
-                src={employee.profilePicture.file}
-                alt={employee.name}
-                fill
-                className="object-cover"
-                sizes="64px"
-                unoptimized
-              />
-            </div>
-          ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-              <User className="h-8 w-8 text-white" />
-            </div>
-          )}
+          <EmployeeAvatar employee={employee} size="md" />
           <div>
             <h1 className="mb-1 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
               Edit Employee

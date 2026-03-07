@@ -56,7 +56,6 @@ import {
   Plus,
 } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { format } from 'date-fns';
 import { getDepartmentLabel } from '@/types/employee';
 import { OrgRole, getOrgRoleLabel } from '@/types/employee/org-role';
@@ -75,6 +74,7 @@ import { useAuthorization } from '@/hooks/use-authorization';
 import { useProjectsByEmployee } from '@/hooks/project';
 import { EmployeeLeaveSection } from '@/features/leave/components/employee-leave-section';
 import { CurrentProjectsCard } from '@/features/employee/components/current-projects-card';
+import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
 
 interface EmployeeDetailPageProps {
   params: Promise<{
@@ -173,22 +173,7 @@ export default function EmployeeDetailPage({
       <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="flex items-start space-x-4">
-            {employee.profilePicture?.file ? (
-              <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full">
-                <Image
-                  src={employee.profilePicture.file}
-                  alt={employee.name}
-                  fill
-                  className="object-cover"
-                  sizes="80px"
-                  unoptimized
-                />
-              </div>
-            ) : (
-              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                <User className="h-10 w-10 text-white" />
-              </div>
-            )}
+            <EmployeeAvatar employee={employee} size="lg" />
             <div>
               <div className="mb-2 flex items-center space-x-3">
                 <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
