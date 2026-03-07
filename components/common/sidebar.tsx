@@ -41,6 +41,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 // ---------------------------------------------------------------------------
 // Sidebar NavItem — local shape consumed by the sidebar rendering logic.
@@ -455,11 +456,15 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
         <SidebarMenu>
           <SidebarMenuItem>
             <div className="flex items-center gap-2 px-2 py-2">
-              <div className="flex size-8 items-center justify-center rounded-full bg-linear-to-br from-zinc-400 to-zinc-600">
-                <span className="text-sm font-medium text-white">
+              <Avatar className="size-8">
+                <AvatarImage
+                  src={employee?.profilePicture?.file}
+                  alt={session.user?.name || 'User'}
+                />
+                <AvatarFallback className="bg-zinc-500 text-sm font-medium text-white">
                   {session.user?.name?.charAt(0)?.toUpperCase() || 'U'}
-                </span>
-              </div>
+                </AvatarFallback>
+              </Avatar>
               <div className="flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
                 <p className="truncate text-sm font-medium">
                   {session.user?.name || 'User'}
