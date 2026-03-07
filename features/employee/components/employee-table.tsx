@@ -16,7 +16,6 @@ import {
 import { Pagination } from '@/components/common';
 import { Users, UserPlus, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { EmployeeProjectsCell } from './employee-projects-cell';
 import { EmployeeStatusBadge } from './employee-status-badge';
 import { EmployeeAvatar } from './employee-avatar';
@@ -46,8 +45,6 @@ export function EmployeeTable({
   onPageChange,
   hasActiveFilters,
 }: EmployeeTableProps) {
-  const router = useRouter();
-
   if (filteredEmployees.length === 0) {
     return (
       <Card className="hidden lg:block">
@@ -62,12 +59,12 @@ export function EmployeeTable({
               : 'Get started by adding your first employee'}
           </p>
           {!hasActiveFilters && (
-            <Link href="/users/dashboard/workforce/invitations/new">
-              <Button>
+            <Button asChild>
+              <Link href="/users/dashboard/workforce/invitations/new">
                 <UserPlus className="mr-2 h-4 w-4" />
                 Create Invitation
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
         </CardContent>
       </Card>
@@ -98,16 +95,8 @@ export function EmployeeTable({
           <TableBody>
             {paginatedEmployees.map((employee) => {
               return (
-                <TableRow
-                  key={employee.id}
-                  className="hover:bg-muted/50 cursor-pointer"
-                  onClick={() =>
-                    router.push(
-                      `/users/dashboard/workforce/employees/${employee.id}`
-                    )
-                  }
-                >
-                  <TableCell onClick={(e) => e.stopPropagation()}>
+                <TableRow key={employee.id} className="hover:bg-muted/50">
+                  <TableCell>
                     <Checkbox
                       checked={
                         employee.id !== undefined &&
@@ -121,10 +110,13 @@ export function EmployeeTable({
                     />
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-3">
+                    <Link
+                      href={`/users/dashboard/workforce/employees/${employee.id}`}
+                      className="focus-visible:ring-ring flex items-center space-x-3 rounded-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                    >
                       <EmployeeAvatar employee={employee} />
                       <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        <p className="font-medium text-zinc-900 hover:underline dark:text-zinc-100">
                           {employee.name}
                         </p>
                         {employee.employeeId && (
@@ -133,7 +125,7 @@ export function EmployeeTable({
                           </p>
                         )}
                       </div>
-                    </div>
+                    </Link>
                   </TableCell>
                   <TableCell>
                     <span className="text-zinc-700 dark:text-zinc-300">
@@ -168,7 +160,7 @@ export function EmployeeTable({
                   <TableCell>
                     <EmployeeProjectsCell
                       employeeId={employee.id}
-                      projects={employee.currentProjects ?? []}
+                      projects={employee.currentProjects}
                     />
                   </TableCell>
                   <TableCell>
