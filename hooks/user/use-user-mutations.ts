@@ -4,6 +4,7 @@ import { User } from '@/types/user/user';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { userKeys } from './user-keys';
 
 /**
  * useUpdateUser
@@ -21,7 +22,7 @@ export function useUpdateUser() {
     mutationFn: ({ id, data }: { id: number; data: Partial<User> }) =>
       userService.updateCurrentUser(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
       toast.success('Profile Updated', {
         description: 'Your profile has been updated successfully',
       });
@@ -56,7 +57,7 @@ export function useUpdateUserWithFiles() {
       files: UserFiles;
     }) => userService.updateCurrentUserWithFiles(id, data, files),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
       toast.success('Profile Updated', {
         description: 'Your profile has been updated successfully',
       });
@@ -91,14 +92,14 @@ export function useUpdateUserOrganization() {
     // Optimistically update the cache
     onMutate: async ({ organizationId }) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({ queryKey: ['user'] });
+      await queryClient.cancelQueries({ queryKey: userKeys.all });
 
       // Snapshot previous value
-      const previousUser = queryClient.getQueryData<User>(['user']);
+      const previousUser = queryClient.getQueryData<User>(userKeys.all);
 
       // Optimistically update
       if (previousUser) {
-        queryClient.setQueryData<User>(['user'], {
+        queryClient.setQueryData<User>(userKeys.all, {
           ...previousUser,
           defaultOrganizationId: organizationId ?? undefined,
         });
@@ -108,12 +109,12 @@ export function useUpdateUserOrganization() {
     },
     onSuccess: () => {
       // Silently invalidate to ensure consistency
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: userKeys.all });
     },
     onError: (error, _variables, context) => {
       // Rollback on error
       if (context?.previousUser) {
-        queryClient.setQueryData(['user'], context.previousUser);
+        queryClient.setQueryData(userKeys.all, context.previousUser);
       }
       // Silent error - just log it
       logger.error('Failed to update user organization preference:', error);
