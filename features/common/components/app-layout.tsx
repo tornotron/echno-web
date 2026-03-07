@@ -1,10 +1,10 @@
 'use client';
 
 import { OrganizationProvider } from '@/components/providers/organization-provider';
-import { AppSidebar } from '@/components/common/sidebar';
+import { AppSidebar } from '@/features/common/components/sidebar';
 import { Footer } from '@/components/common/footer';
-import { UserMenu } from '@/components/common/user-menu';
-import { Breadcrumbs } from '@/components/common/breadcrumbs';
+import { UserMenu } from '@/features/common/components/user-menu';
+import { Breadcrumbs } from '@/features/common/components/breadcrumbs';
 import {
   SidebarProvider,
   SidebarInset,
