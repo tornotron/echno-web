@@ -102,7 +102,7 @@ export const organizationService = {
 
   /**
    * Update an existing organization.
-   * Uses multipart/form-data when a file is provided, JSON PATCH otherwise.
+   * Always uses multipart/form-data (backend requirement).
    *
    * @param {number} id - Organization id to update.
    * @param {Organization} org - Organization data to persist.
@@ -116,19 +116,11 @@ export const organizationService = {
     logoFile?: File
   ): Promise<Organization> {
     const payload = organizationToJsonWithIds(org);
-
-    if (logoFile) {
-      const data = await api.patchMultipart<ApiResponse>(
-        `/organization/web/${id}`,
-        payload,
-        { attachments: [logoFile] }
-      );
-      return safeParseOrganization(data);
-    }
-
-    const data = await api.patch<ApiResponse>(
+    const files = logoFile ? { attachments: [logoFile] } : undefined;
+    const data = await api.patchMultipart<ApiResponse>(
       `/organization/web/${id}`,
-      payload
+      payload,
+      files
     );
     return safeParseOrganization(data);
   },

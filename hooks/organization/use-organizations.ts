@@ -10,6 +10,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { organizationService } from '@/services/organization-service';
 import { shouldRetry } from '@/lib/utils/retry';
+import { organizationKeys } from './organization-keys';
 
 /**
  * Hook to fetch all organizations for the current user.
@@ -17,7 +18,7 @@ import { shouldRetry } from '@/lib/utils/retry';
  */
 export function useOrganizations() {
   return useQuery({
-    queryKey: ['organizations'],
+    queryKey: organizationKeys.all,
     queryFn: () => organizationService.getAll(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
@@ -31,7 +32,7 @@ export function useOrganizations() {
  */
 export function useOrganization(id: number) {
   return useQuery({
-    queryKey: ['organizations', id],
+    queryKey: organizationKeys.detail(id),
     queryFn: () => organizationService.getById(id),
     enabled: !!id,
     staleTime: 5 * 60 * 1000, // 5 minutes
