@@ -4,7 +4,9 @@ import { notFound } from 'next/navigation';
 import { useState, use } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getDepartmentLabel } from '@/types/employee/departments';
+import { Department, getDepartmentLabel } from '@/types/employee/departments';
+import type { Employee } from '@/types/employee';
+import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
 import {
   Card,
   CardContent,
@@ -39,6 +41,70 @@ import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
 import { LeavePoliciesManager } from '@/features/leave/components/leave-policies-manager';
 
+// ---------------------------------------------------------------------------
+// Hierarchy tree helpers
+// ---------------------------------------------------------------------------
+
+type TreeNode = Employee & { children: TreeNode[] };
+
+function buildTree(employees: Employee[]): TreeNode[] {
+  const nodeMap = new Map<number, TreeNode>();
+  for (const emp of employees) {
+    if (emp.id !== undefined) nodeMap.set(emp.id, { ...emp, children: [] });
+  }
+  const roots: TreeNode[] = [];
+  for (const node of nodeMap.values()) {
+    if (node.managerId !== undefined && nodeMap.has(node.managerId)) {
+      nodeMap.get(node.managerId)!.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+  return roots;
+}
+
+function EmployeeTreeNode({
+  node,
+  isLast,
+}: {
+  node: TreeNode;
+  isLast: boolean;
+}) {
+  return (
+    <div className="relative">
+      <div className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+        <EmployeeAvatar employee={node} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            {node.name}
+          </p>
+          <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">
+            {node.designation}
+          </p>
+        </div>
+        {node.children.length > 0 && (
+          <Badge variant="outline" className="shrink-0 text-xs">
+            {node.children.length}{' '}
+            {node.children.length === 1 ? 'report' : 'reports'}
+          </Badge>
+        )}
+      </div>
+
+      {node.children.length > 0 && (
+        <div className="mt-1 ml-5 border-l-2 border-zinc-200 pl-4 dark:border-zinc-700">
+          {node.children.map((child, i) => (
+            <EmployeeTreeNode
+              key={child.id}
+              node={child}
+              isLast={i === node.children.length - 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface OrganizationDetailPageProps {
   params: Promise<{
     id: string;
@@ -53,6 +119,8 @@ export default function OrganizationDetailPage({
   const [activeTab, setActiveTab] = useState<
     'overview' | 'settings' | 'hierarchy'
   >('overview');
+  const [selectedDepartment, setSelectedDepartment] =
+    useState<Department | null>(null);
 
   const {
     data: organization,
@@ -107,6 +175,20 @@ export default function OrganizationDetailPage({
     { id: 'hierarchy', label: 'Hierarchy', icon: Network },
   ];
 
+  const hierarchyEmployees = orgEmployees;
+  const hierarchyDepartments = [
+    ...new Set(
+      hierarchyEmployees
+        .map((emp) => emp.department)
+        .filter((d): d is Department => !!d)
+    ),
+  ];
+  const activeDept = selectedDepartment ?? hierarchyDepartments[0] ?? null;
+  const deptEmployees = activeDept
+    ? hierarchyEmployees.filter((emp) => emp.department === activeDept)
+    : [];
+  const treeRoots = buildTree(deptEmployees);
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
@@ -116,7 +198,11 @@ export default function OrganizationDetailPage({
             {organization.logo ? (
               <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                 <Image
-                  src={organization.logo.file}
+                  src={
+                    organization.logo.file.includes('?')
+                      ? organization.logo.file
+                      : `${organization.logo.file}?v=${organization.logo.updatedAt.getTime()}`
+                  }
                   alt={organization.organizationName}
                   fill
                   className="object-cover"
@@ -484,84 +570,89 @@ export default function OrganizationDetailPage({
 
       {activeTab === 'hierarchy' && (
         <div>
-          <Card>
-            <CardHeader>
-              <CardTitle>Organization Hierarchy</CardTitle>
-              <CardDescription>
-                View the organizational structure and reporting relationships
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <h3 className="mb-4 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-                    Departments
-                  </h3>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    {[
-                      ...new Set(orgEmployees.map((emp) => emp.department)),
-                    ].map((dept) => {
-                      const deptEmployees = orgEmployees.filter(
-                        (emp) => emp.department === dept
-                      );
-                      return (
-                        <div
-                          key={dept}
-                          className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50"
-                        >
-                          <div className="mb-3 flex items-start justify-between">
-                            <div>
-                              <h4 className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {getDepartmentLabel(dept)}
-                              </h4>
-                              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                                {deptEmployees.length}{' '}
-                                {deptEmployees.length === 1
-                                  ? 'employee'
-                                  : 'employees'}
-                              </p>
-                            </div>
-                            <Badge variant="outline">
-                              {deptEmployees.length}
-                            </Badge>
-                          </div>
-                          <div className="space-y-2">
-                            {deptEmployees.slice(0, 3).map((emp) => (
-                              <div
-                                key={emp.id}
-                                className="flex items-center space-x-2 text-sm"
-                              >
-                                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                                  <User className="h-3 w-3 text-white" />
-                                </div>
-                                <span className="text-zinc-700 dark:text-zinc-300">
-                                  {emp.name}
-                                </span>
-                              </div>
-                            ))}
-                            {deptEmployees.length > 3 && (
-                              <p className="ml-8 text-xs text-zinc-500">
-                                +{deptEmployees.length - 3} more
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+          {hierarchyDepartments.length === 0 ? (
+            <div className="py-16 text-center">
+              <Network className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
+              <p className="text-zinc-600 dark:text-zinc-400">
+                No hierarchy data available
+              </p>
+            </div>
+          ) : (
+            <div className="flex min-h-[500px] overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
+              {/* Left — department sidebar */}
+              <div className="w-56 shrink-0 border-r border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="p-3 text-xs font-semibold tracking-wide text-zinc-500 uppercase dark:text-zinc-400">
+                  Departments
                 </div>
+                <nav className="space-y-0.5 px-2 pb-4">
+                  {hierarchyDepartments.map((dept) => {
+                    const count = hierarchyEmployees.filter(
+                      (e) => e.department === dept
+                    ).length;
+                    const isActive = dept === activeDept;
+                    return (
+                      <button
+                        key={dept}
+                        type="button"
+                        onClick={() => setSelectedDepartment(dept)}
+                        className={`flex w-full items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                          isActive
+                            ? 'bg-white font-medium text-zinc-900 shadow-sm dark:bg-zinc-800 dark:text-zinc-100'
+                            : 'text-zinc-600 hover:bg-white/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100'
+                        }`}
+                      >
+                        <span className="truncate">
+                          {getDepartmentLabel(dept)}
+                        </span>
+                        <Badge
+                          variant={isActive ? 'default' : 'outline'}
+                          className="ml-2 shrink-0 text-xs"
+                        >
+                          {count}
+                        </Badge>
+                      </button>
+                    );
+                  })}
+                </nav>
+              </div>
 
-                {orgEmployees.length === 0 && (
-                  <div className="py-12 text-center">
-                    <Network className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-                    <p className="text-zinc-600 dark:text-zinc-400">
-                      No hierarchy data available
-                    </p>
-                  </div>
+              {/* Right — hierarchy tree */}
+              <div className="min-w-0 flex-1 overflow-y-auto bg-white p-6 dark:bg-zinc-950">
+                {activeDept && (
+                  <>
+                    <div className="mb-4 flex items-center gap-2">
+                      <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                        {getDepartmentLabel(activeDept)}
+                      </h3>
+                      <span className="text-sm text-zinc-400">
+                        · {deptEmployees.length}{' '}
+                        {deptEmployees.length === 1 ? 'employee' : 'employees'}
+                      </span>
+                    </div>
+
+                    {treeRoots.length > 0 ? (
+                      <div className="space-y-3">
+                        {treeRoots.map((root, i) => (
+                          <EmployeeTreeNode
+                            key={root.id}
+                            node={root}
+                            isLast={i === treeRoots.length - 1}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="py-12 text-center">
+                        <Users className="mx-auto mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600" />
+                        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                          No employees in this department
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </div>
       )}
     </div>
