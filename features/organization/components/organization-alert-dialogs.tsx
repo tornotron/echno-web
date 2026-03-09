@@ -27,9 +27,15 @@ export function RemoveOrgLogoDialog({
   open,
   onOpenChange,
   onConfirm,
-}: BaseDialogProps) {
+  isPending = false,
+}: BaseDialogProps & { isPending?: boolean }) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!isPending) onOpenChange(v);
+      }}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Remove Logo</AlertDialogTitle>
@@ -39,11 +45,15 @@ export function RemoveOrgLogoDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            disabled={isPending}
             onClick={onConfirm}
           >
+            {isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : null}
             Remove Logo
           </AlertDialogAction>
         </AlertDialogFooter>
