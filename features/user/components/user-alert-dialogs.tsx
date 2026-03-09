@@ -10,6 +10,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
 interface BaseDialogProps {
@@ -98,12 +99,12 @@ export function SaveProfileDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction disabled={isPending} onClick={onConfirm}>
+          <Button disabled={isPending} onClick={onConfirm}>
             {isPending ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : null}
             Save Changes
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
