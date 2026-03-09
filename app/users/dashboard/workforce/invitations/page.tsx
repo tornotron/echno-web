@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { SearchAndFilter } from '@/components/common';
 import {
   Card,
   CardContent,
@@ -9,78 +9,19 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Plus,
   Mail,
   Clock,
   CheckCircle,
-  XCircle,
   AlertCircle,
-  User,
-  LucideIcon,
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
-import { format } from 'date-fns';
 import { getInvitationStatus } from '@/types/invitation/invitation';
 import { useInvitationsByOrganization } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
-
-const getStatusBadge = (status: string) => {
-  const config: Record<
-    string,
-    { label: string; className: string; icon: LucideIcon }
-  > = {
-    pending: {
-      label: 'Pending',
-      className:
-        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300',
-      icon: Clock,
-    },
-    accepted: {
-      label: 'Accepted',
-      className:
-        'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300',
-      icon: CheckCircle,
-    },
-    rejected: {
-      label: 'Rejected',
-      className: 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300',
-      icon: XCircle,
-    },
-    expired: {
-      label: 'Expired',
-      className:
-        'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-      icon: AlertCircle,
-    },
-  };
-
-  const { label, className, icon: Icon } = config[status] || config.pending;
-  return (
-    <Badge className={className}>
-      <Icon className="mr-1 h-3 w-3" />
-      {label}
-    </Badge>
-  );
-};
+import { InvitationTable } from '@/features/invitation';
 
 export default function InvitationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,7 +40,6 @@ export default function InvitationsPage() {
 
   const invitationsList = invitations || [];
 
-  // Filter invitations
   const filteredInvitations = invitationsList.filter((inv) => {
     const matchesSearch =
       searchQuery === '' ||
@@ -123,7 +63,6 @@ export default function InvitationsPage() {
     return matchesSearch && matchesStatus && matchesDepartment;
   });
 
-  // Calculate statistics
   const totalInvitations = invitationsList.length;
   const pendingInvitations = invitationsList.filter(
     (i) => getInvitationStatus(i) === 'pending'
@@ -135,7 +74,6 @@ export default function InvitationsPage() {
     (i) => getInvitationStatus(i) === 'expired'
   ).length;
 
-  // Pagination
   const totalPages = Math.ceil(filteredInvitations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -152,23 +90,16 @@ export default function InvitationsPage() {
     setCurrentPage(1);
   };
 
-  // Checkbox selection handlers
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedInvitations(currentInvitations.map((inv) => inv.inviteCode));
-    } else {
-      setSelectedInvitations([]);
-    }
+    setSelectedInvitations(
+      checked ? currentInvitations.map((inv) => inv.inviteCode) : []
+    );
   };
 
   const handleSelectOne = (inviteCode: string, checked: boolean) => {
-    if (checked) {
-      setSelectedInvitations((prev) => [...prev, inviteCode]);
-    } else {
-      setSelectedInvitations((prev) =>
-        prev.filter((code) => code !== inviteCode)
-      );
-    }
+    setSelectedInvitations((prev) =>
+      checked ? [...prev, inviteCode] : prev.filter((c) => c !== inviteCode)
+    );
   };
 
   const isAllSelected =
@@ -345,223 +276,26 @@ export default function InvitationsPage() {
         ]}
       />
 
-      {/* Table Header Info - Outside Card */}
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {startIndex + 1} to{' '}
-          {Math.min(endIndex, filteredInvitations.length)} of{' '}
-          {filteredInvitations.length} invitation records
-        </p>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(val) => setItemsPerPage(Number(val))}
-          >
-            <SelectTrigger className="h-8 w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="25">25</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Mobile Card View */}
-      <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
-        {currentInvitations.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-zinc-500">
-              No invitation records found
-            </CardContent>
-          </Card>
-        ) : (
-          currentInvitations.map((invitation) => (
-            <Card
-              key={invitation.inviteCode}
-              className="cursor-pointer"
-              onClick={() =>
-                (globalThis.location.href = `/users/dashboard/workforce/invitations/${invitation.inviteCode}`)
-              }
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
-                      <User className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {invitation.employeeDetails.employeeName || 'N/A'}
-                      </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {invitation.inviteCode}
-                      </div>
-                    </div>
-                  </div>
-                  {getStatusBadge(getInvitationStatus(invitation))}
-                </div>
-                <div className="mt-3 space-y-1.5 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500 dark:text-zinc-400">
-                      Designation
-                    </span>
-                    <span className="text-zinc-700 dark:text-zinc-300">
-                      {invitation.employeeDetails.designation}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500 dark:text-zinc-400">
-                      Expires
-                    </span>
-                    <span className="text-zinc-700 dark:text-zinc-300">
-                      {invitation.expiryDate
-                        ? format(invitation.expiryDate, 'MMM dd, yyyy')
-                        : 'N/A'}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-        {filteredInvitations.length > 0 && (
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        )}
-      </div>
-
-      {/* Invitations Table */}
-      <Card className="hidden lg:block">
-        <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-b border-zinc-200 hover:bg-transparent dark:border-zinc-800">
-                <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onCheckedChange={handleSelectAll}
-                    aria-label="Select all"
-                    className={
-                      isSomeSelected ? 'data-[state=checked]:bg-primary/50' : ''
-                    }
-                  />
-                </TableHead>
-                <TableHead>Employee</TableHead>
-                <TableHead>Designation</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Expires</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {currentInvitations.length > 0 ? (
-                currentInvitations.map((invitation) => (
-                  <TableRow
-                    key={invitation.inviteCode}
-                    className="hover:bg-muted/50 cursor-pointer border-b border-zinc-200 dark:border-zinc-800"
-                    onClick={() =>
-                      (globalThis.location.href = `/users/dashboard/workforce/invitations/${invitation.inviteCode}`)
-                    }
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        checked={selectedInvitations.includes(
-                          invitation.inviteCode
-                        )}
-                        onCheckedChange={(checked) =>
-                          handleSelectOne(
-                            invitation.inviteCode,
-                            checked as boolean
-                          )
-                        }
-                        aria-label={`Select ${invitation.employeeDetails.employeeName || 'invitation'}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
-                          <User className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {invitation.employeeDetails.employeeName || 'N/A'}
-                          </div>
-                          <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                            {invitation.employeeDetails.employeeId ||
-                              'Not Assigned'}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-zinc-900 dark:text-zinc-100">
-                        {invitation.employeeDetails.designation}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(getInvitationStatus(invitation))}
-                    </TableCell>
-                    <TableCell>
-                      {invitation.expiryDate ? (
-                        <>
-                          <div className="text-sm text-zinc-900 dark:text-zinc-100">
-                            {format(invitation.expiryDate, 'MMM dd, yyyy')}
-                          </div>
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {format(invitation.expiryDate, 'h:mm a')}
-                          </div>
-                        </>
-                      ) : (
-                        <span className="text-sm text-zinc-500">N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {invitation.expiryDate ? (
-                        <>
-                          <div className="text-sm text-zinc-900 dark:text-zinc-100">
-                            {format(invitation.expiryDate, 'MMM dd, yyyy')}
-                          </div>
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {format(invitation.expiryDate, 'h:mm a')}
-                          </div>
-                        </>
-                      ) : (
-                        <span className="text-sm text-zinc-400">—</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center">
-                    <AlertCircle className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                      No invitations found
-                    </p>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination - Inside Card at bottom */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </CardContent>
-      </Card>
+      {/* Table */}
+      <InvitationTable
+        invitations={currentInvitations}
+        totalCount={filteredInvitations.length}
+        startIndex={startIndex}
+        endIndex={endIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(n) => {
+          setItemsPerPage(n);
+          setCurrentPage(1);
+        }}
+        selectedInvitations={selectedInvitations}
+        isAllSelected={isAllSelected}
+        isSomeSelected={isSomeSelected}
+        onSelectAll={handleSelectAll}
+        onSelectOne={handleSelectOne}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+      />
     </div>
   );
 }
