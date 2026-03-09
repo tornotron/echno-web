@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { OrganizationForm } from '@/features/organization/organization-form';
+import { OrganizationForm } from '@/features/organization';
 import { Organization } from '@/types/organization';
 import { toast } from '@/lib/styles/toast-styles';
 import { useUser } from '@/hooks/user/use-user';

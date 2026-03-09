@@ -1,11 +1,16 @@
 'use client';
 
 import { useRouter, notFound } from 'next/navigation';
-import { use } from 'react';
-import { OrganizationForm } from '@/features/organization/organization-form';
+import { use, useState } from 'react';
+import {
+  SaveOrganizationDialog,
+  OrganizationForm,
+} from '@/features/organization';
 import { Organization } from '@/types/organization';
 import { useOrganization } from '@/hooks/organization/use-organizations';
 import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface EditOrganizationPageProps {
   params: Promise<{
@@ -27,6 +32,13 @@ export default function EditOrganizationPage({
   } = useOrganization(id);
   const { mutate: updateOrganization, isPending: isUpdating } =
     useUpdateOrganization();
+  const { mutate: deleteAttachment } = useDeleteAttachment();
+  const queryClient = useQueryClient();
+  const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
+  const [pendingData, setPendingData] = useState<{
+    data: Partial<Organization>;
+    logoFile?: File;
+  } | null>(null);
 
   if (isLoadingOrg) {
     return (
@@ -56,19 +68,42 @@ export default function EditOrganizationPage({
     notFound();
   }
 
-  const handleSubmit = async (data: Partial<Organization>, logoFile?: File) => {
+  const handleSubmit = (data: Partial<Organization>, logoFile?: File) => {
     if (!organization) return;
+    setPendingData({ data, logoFile });
+    setShowConfirmUpdate(true);
+  };
 
-    const updatedOrg = { ...organization, ...data };
-
+  const handleConfirmUpdate = () => {
+    if (!organization || !pendingData) return;
+    const updatedOrg = { ...organization, ...pendingData.data };
     updateOrganization(
-      { id: organization.id!, data: updatedOrg, logoFile },
+      {
+        id: organization.id!,
+        data: updatedOrg,
+        logoFile: pendingData.logoFile,
+      },
       {
         onSuccess: () => {
           router.push(`/users/dashboard/organizations/${organization.id}`);
         },
+        onSettled: () => {
+          setShowConfirmUpdate(false);
+          setPendingData(null);
+        },
       }
     );
+  };
+
+  const handleRemoveLogo = () => {
+    const logoId = organization?.logo?.id;
+    if (!logoId) return;
+    deleteAttachment(logoId, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['organizations'] });
+        queryClient.invalidateQueries({ queryKey: ['organizations', id] });
+      },
+    });
   };
 
   const handleCancel = () => {
@@ -83,9 +118,21 @@ export default function EditOrganizationPage({
           organization={organization}
           onSubmit={handleSubmit}
           onCancel={handleCancel}
+          onRemoveLogo={handleRemoveLogo}
           isLoading={isUpdating}
         />
       )}
+
+      <SaveOrganizationDialog
+        open={showConfirmUpdate}
+        onOpenChange={(open) => {
+          setShowConfirmUpdate(open);
+          if (!open) setPendingData(null);
+        }}
+        organizationName={organization?.organizationName ?? ''}
+        isPending={isUpdating}
+        onConfirm={handleConfirmUpdate}
+      />
     </div>
   );
 }
