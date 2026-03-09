@@ -10,7 +10,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   ArrowLeft,
   Mail,
@@ -21,7 +20,6 @@ import {
   Check,
   Clock,
   CheckCircle,
-  XCircle,
   AlertCircle,
   Calendar,
   User,
@@ -29,7 +27,6 @@ import {
   Briefcase,
   Phone,
   AtSign,
-  LucideIcon,
   Loader2,
 } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
@@ -46,7 +43,8 @@ import { useManagerName } from '@/hooks/employee';
 import {
   InvitationQRCode,
   InvitationQRCodeDialog,
-} from '@/features/invitation/components/invitation-qr-code';
+  InvitationStatusBadge,
+} from '@/features/invitation';
 
 export default function InvitationPage() {
   const params = useParams();
@@ -359,43 +357,7 @@ export default function InvitationPage() {
     }
   };
 
-  // Determine status display
-  const getStatusDisplay = () => {
-    const statusMap: Record<
-      string,
-      { label: string; icon: LucideIcon; className: string }
-    > = {
-      pending: {
-        label: 'Pending',
-        icon: Clock,
-        className:
-          'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-300',
-      },
-      accepted: {
-        label: 'Accepted',
-        icon: CheckCircle,
-        className:
-          'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-300',
-      },
-      rejected: {
-        label: 'Rejected',
-        icon: XCircle,
-        className:
-          'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-300',
-      },
-      expired: {
-        label: 'Expired',
-        icon: AlertCircle,
-        className:
-          'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300',
-      },
-    };
-
-    return statusMap[getInvitationStatus(invitation)] || statusMap.pending;
-  };
-
-  const statusDisplay = getStatusDisplay();
-  const StatusIcon = statusDisplay.icon;
+  const currentStatus = getInvitationStatus(invitation);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -409,10 +371,7 @@ export default function InvitationPage() {
             {invitation.inviteCode}
           </p>
         </div>
-        <Badge className={statusDisplay.className}>
-          <StatusIcon className="mr-1 h-3 w-3" />
-          {statusDisplay.label}
-        </Badge>
+        <InvitationStatusBadge status={currentStatus} />
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
