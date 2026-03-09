@@ -7,6 +7,7 @@ import { userService } from '@/services/user-service';
 import { organizationService } from '@/services/organization-service';
 import { logger } from '@/lib/logger';
 import { ApiError } from '@/lib/api/api-client';
+import { organizationKeys } from '@/hooks/organization/organization-keys';
 
 /**
  * UserPrefetcher
@@ -78,7 +79,7 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
             organizationService
               .getAll()
               .then((organizations) => {
-                queryClient.setQueryData(['organizations'], organizations);
+                queryClient.setQueryData(organizationKeys.all, organizations);
                 logger.debug('User organizations prefetched successfully');
               })
               .catch((error) => {
