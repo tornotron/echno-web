@@ -702,6 +702,16 @@ export function ProfileEditForm({
           if (!pendingMutateArgs) return;
           updateUserWithFiles.mutate(pendingMutateArgs, {
             onSuccess: () => {
+              // Promote staged uploads into persisted baselines
+              if (profilePictureFile && profilePicturePreview) {
+                setPersistedProfilePicture(profilePicturePreview);
+                setProfilePictureFile(null);
+              }
+              if (cvFile && cvPreview) {
+                setPersistedCv(cvPreview);
+                setPersistedCvFileName(cvFileName);
+                setCvFile(null);
+              }
               if (onSuccess) onSuccess();
             },
             onSettled: () => {
