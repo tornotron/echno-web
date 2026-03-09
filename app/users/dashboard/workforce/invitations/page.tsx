@@ -2,26 +2,13 @@
 
 import { useState } from 'react';
 import { SearchAndFilter } from '@/components/common';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import {
-  Plus,
-  Mail,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-} from 'lucide-react';
-import Link from 'next/link';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { getInvitationStatus } from '@/types/invitation/invitation';
 import { useInvitationsByOrganization } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
 import { InvitationTable } from '@/features/invitation';
+import { InvitationHeader } from '@/features/invitation/components/invitation-header';
+import { InvitationStats } from '@/features/invitation/components/invitation-stats';
 
 export default function InvitationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -146,89 +133,15 @@ export default function InvitationsPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Employee Invitations
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Manage and track employee invitation status
-          </p>
-        </div>
-        <Link href="/users/dashboard/workforce/invitations/new">
-          <Button className="mt-4 md:mt-0">
-            <Plus className="mr-2 h-4 w-4" />
-            Create Invitation
-          </Button>
-        </Link>
-      </div>
+      <InvitationHeader />
 
       {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Invitations</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Mail className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {totalInvitations}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Pending</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
-                <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {pendingInvitations}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Accepted</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {acceptedInvitations}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Expired</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                <AlertCircle className="h-6 w-6 text-zinc-600 dark:text-zinc-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {expiredInvitations}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <InvitationStats
+        total={totalInvitations}
+        pending={pendingInvitations}
+        accepted={acceptedInvitations}
+        expired={expiredInvitations}
+      />
 
       {/* Search & Filters */}
       <SearchAndFilter
