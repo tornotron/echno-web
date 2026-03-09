@@ -21,6 +21,7 @@ import {
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { invitationKeys } from './invitation-keys';
 
 /**
  * Hook to generate a new invite code.
@@ -57,7 +58,7 @@ export function useGenerateInviteCode() {
     onSuccess: (invitation, variables) => {
       // Invalidate invitations list for the organization
       queryClient.invalidateQueries({
-        queryKey: ['invitations', 'organization', variables.organizationId],
+        queryKey: invitationKeys.byOrganization(variables.organizationId),
       });
 
       toast.success('Invite Code Generated', {
@@ -166,7 +167,7 @@ export function useResendInvitation() {
     onSuccess: (invitation, variables) => {
       // Invalidate invitations list for the organization
       queryClient.invalidateQueries({
-        queryKey: ['invitations', 'organization', variables.organizationId],
+        queryKey: invitationKeys.byOrganization(variables.organizationId),
       });
 
       toast.success('Invitation Resent', {

@@ -15,6 +15,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { invitationService } from '@/services/invitation-service';
 import { shouldRetry } from '@/lib/utils/retry';
+import { invitationKeys } from './invitation-keys';
 
 /**
  * Hook to fetch invitations by organization ID.
@@ -30,7 +31,7 @@ import { shouldRetry } from '@/lib/utils/retry';
  */
 export function useInvitationsByOrganization(organizationId?: number) {
   return useQuery({
-    queryKey: ['invitations', 'organization', organizationId],
+    queryKey: invitationKeys.byOrganization(organizationId),
     queryFn: () => {
       if (!organizationId) {
         throw new Error('Organization ID is required');
@@ -67,7 +68,7 @@ export function useValidateInviteCode(
   enabled = true
 ) {
   return useQuery({
-    queryKey: ['invitations', 'validate', userId, inviteCode],
+    queryKey: invitationKeys.validate(userId, inviteCode),
     queryFn: () => {
       if (!userId) {
         throw new Error('User ID is required');
