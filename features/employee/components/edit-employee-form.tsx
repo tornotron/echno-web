@@ -77,18 +77,17 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
     if (formData.department) {
       updateData.department = formData.department as Department;
     }
-    if (formData.joiningDate) {
-      updateData.joiningDate = formData.joiningDate;
-    }
+    // Always send joiningDate so clearing it propagates to the server
+    updateData.joiningDate = formData.joiningDate || undefined;
+    // Always send salary so clearing it propagates to the server
     if (formData.salary) {
-      // Parse as float and ensure it's a decimal number
       const salaryValue = Number.parseFloat(formData.salary);
-      // Force decimal precision to ensure Java treats it as Double
       updateData.salary = salaryValue;
+    } else {
+      updateData.salary = undefined;
     }
-    if (formData.shiftTiming) {
-      updateData.shiftTiming = formData.shiftTiming;
-    }
+    // Always send shiftTiming so clearing it propagates to the server
+    updateData.shiftTiming = formData.shiftTiming || undefined;
     if (formData.status) {
       updateData.status = formData.status as EmployeeStatus;
     }
