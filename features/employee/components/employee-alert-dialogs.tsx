@@ -59,6 +59,16 @@ export function AssignManagerDialog({
     defaultManagerId?.toString() ?? ''
   );
 
+  // Adjust state during render when props change (React-idiomatic, no useEffect)
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevDefaultManagerId, setPrevDefaultManagerId] =
+    useState(defaultManagerId);
+  if (open !== prevOpen || defaultManagerId !== prevDefaultManagerId) {
+    setPrevOpen(open);
+    setPrevDefaultManagerId(defaultManagerId);
+    setSelectedManagerId(defaultManagerId?.toString() ?? '');
+  }
+
   const handleOpenChange = (next: boolean) => {
     if (!next) setSelectedManagerId(defaultManagerId?.toString() ?? '');
     onOpenChange(next);
@@ -146,6 +156,15 @@ export function AssignRoleDialog({
   onConfirm,
 }: AssignRoleDialogProps) {
   const [selectedRole, setSelectedRole] = useState<OrgRole | ''>('');
+
+  // Adjust state during render when dialog closes (React-idiomatic, no useEffect)
+  const [prevRoleDialogOpen, setPrevRoleDialogOpen] = useState(open);
+  if (open !== prevRoleDialogOpen) {
+    setPrevRoleDialogOpen(open);
+    if (!open) {
+      setSelectedRole('');
+    }
+  }
 
   const handleOpenChange = (next: boolean) => {
     if (!next) setSelectedRole('');
