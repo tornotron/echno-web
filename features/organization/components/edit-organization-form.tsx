@@ -7,14 +7,15 @@ import { Organization } from '@/types/organization';
 import { useOrganization } from '@/hooks/organization/use-organizations';
 import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { organizationKeys } from '@/hooks/organization/organization-keys';
 import { SaveOrganizationDialog } from './organization-alert-dialogs';
 import { OrganizationForm } from './organization-form';
 
-interface EditOrganizationFeatureProps {
+interface EditOrganizationFormProps {
   id: number;
 }
 
-export function EditOrganizationFeature({ id }: EditOrganizationFeatureProps) {
+export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -81,8 +82,10 @@ export function EditOrganizationFeature({ id }: EditOrganizationFeatureProps) {
     if (!logoId) return;
     deleteAttachment(logoId, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['organizations'] });
-        queryClient.invalidateQueries({ queryKey: ['organizations', id] });
+        queryClient.invalidateQueries({ queryKey: organizationKeys.all });
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.detail(id),
+        });
       },
     });
   };

@@ -2,8 +2,7 @@
 
 import { use } from 'react';
 import { notFound } from 'next/navigation';
-import { EditOrganizationFeature } from '@/features/organization';
-
+import { EditOrganizationForm } from '@/features/organization';
 interface EditOrganizationPageProps {
   params: Promise<{
     id: string;
@@ -20,5 +19,5 @@ export default function EditOrganizationPage({
     notFound();
   }
 
-  return <EditOrganizationFeature id={id} />;
+  return <EditOrganizationForm id={id} />;
 }
