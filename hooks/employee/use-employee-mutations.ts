@@ -3,6 +3,7 @@ import { employeeService } from '@/services/employee-service';
 import { Employee } from '@/types/employee/employee';
 import { toast } from '@/lib/styles/toast-styles';
 import { employeeKeys } from './employee-keys';
+import { organizationKeys } from '@/hooks/organization/organization-keys';
 
 /**
  * Hook to create a new employee.
@@ -95,7 +96,7 @@ export function useJoinOrganization() {
     onSuccess: (employee) => {
       queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       queryClient.invalidateQueries({ queryKey: ['user'] });
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all });
       toast.success('Joined Organization', {
         description: `Successfully joined as ${employee.designation || 'employee'}.`,
       });

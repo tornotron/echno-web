@@ -22,6 +22,7 @@ import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import { invitationKeys } from './invitation-keys';
+import { organizationKeys } from '@/hooks/organization/organization-keys';
 
 /**
  * Hook to generate a new invite code.
@@ -110,7 +111,7 @@ export function useValidateInviteCodeMutation() {
     onSuccess: (result) => {
       if (result.valid) {
         // Invalidate organizations and user data since validate also joins
-        queryClient.invalidateQueries({ queryKey: ['organizations'] });
+        queryClient.invalidateQueries({ queryKey: organizationKeys.all });
         queryClient.invalidateQueries({ queryKey: ['user'] });
         queryClient.invalidateQueries({ queryKey: ['employees'] });
         toast.success('Joined Organization', {
