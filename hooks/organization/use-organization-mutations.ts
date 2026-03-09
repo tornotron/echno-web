@@ -4,6 +4,7 @@ import { Organization } from '@/types/organization/organization';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { organizationKeys } from './organization-keys';
 
 /**
  * useCreateOrganization
@@ -19,7 +20,7 @@ export function useCreateOrganization() {
     mutationFn: ({ data, logoFile }: { data: Organization; logoFile?: File }) =>
       organizationService.create(data, logoFile),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all });
       toast.success('Organization Created', {
         description: 'The organization has been created successfully',
       });
@@ -53,8 +54,8 @@ export function useUpdateOrganization() {
       logoFile?: File;
     }) => organizationService.update(id, data, logoFile),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
-      queryClient.invalidateQueries({ queryKey: ['organizations', id] });
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all });
+      queryClient.invalidateQueries({ queryKey: organizationKeys.detail(id) });
       toast.success('Organization Updated', {
         description: 'The organization has been updated successfully',
       });
@@ -80,7 +81,7 @@ export function useDeleteOrganization() {
   return useMutation({
     mutationFn: organizationService.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all });
       toast.success('Organization Deleted', {
         description: 'The organization has been deleted successfully',
       });
