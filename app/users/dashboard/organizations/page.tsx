@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { OrganizationCard } from '@/features/organization/organization-card';
+import { OrganizationCard } from '@/features/organization';
 import { SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Plus, Search, Building2, UserPlus } from 'lucide-react';
