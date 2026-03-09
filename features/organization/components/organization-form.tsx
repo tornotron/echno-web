@@ -47,7 +47,7 @@ interface OrganizationFormProps {
   organization?: Organization;
   onSubmit: (data: Partial<Organization>, logoFile?: File) => void;
   onCancel: () => void;
-  onRemoveLogo?: () => void;
+  onRemoveLogo?: () => Promise<void>;
   isLoading?: boolean;
 }
 
@@ -69,10 +69,12 @@ export function OrganizationForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(
+  const [savedLogoUrl, setSavedLogoUrl] = useState<string | null>(
     organization?.logo?.file || null
   );
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [showRemoveLogoDialog, setShowRemoveLogoDialog] = useState(false);
+  const [isRemoving, setIsRemoving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateForm = () => {
@@ -177,7 +179,7 @@ export function OrganizationForm({
 
   const handleRemoveLogo = () => {
     if (logoFile) {
-      // Staged file — just clear local state, no API call needed
+      // Staged file — just clear local staged state, saved URL stays intact
       setLogoFile(null);
       setLogoPreview(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -187,17 +189,29 @@ export function OrganizationForm({
     }
   };
 
-  const confirmRemoveLogo = () => {
-    onRemoveLogo?.();
-    setLogoFile(null);
-    setLogoPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    setShowRemoveLogoDialog(false);
+  const confirmRemoveLogo = async () => {
+    if (!onRemoveLogo) return;
+    setIsRemoving(true);
+    try {
+      await onRemoveLogo();
+      setSavedLogoUrl(null);
+      setLogoFile(null);
+      setLogoPreview(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setShowRemoveLogoDialog(false);
+    } catch {
+      toast.error('Failed to remove logo. Please try again.');
+    } finally {
+      setIsRemoving(false);
+    }
   };
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
+
+  // Display the staged preview if present, otherwise fall back to the saved URL
+  const displayLogo = logoPreview ?? savedLogoUrl;
 
   return (
     <>
@@ -333,17 +347,17 @@ export function OrganizationForm({
               <div className="flex items-start space-x-4">
                 {/* Logo Preview */}
                 <div className="group relative flex h-32 w-32 items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-zinc-300 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-                  {logoPreview ? (
+                  {displayLogo ? (
                     <>
                       <Image
-                        src={logoPreview}
+                        src={displayLogo}
                         alt="Organization logo preview"
                         fill
                         className="object-cover"
                       />
-                      {isValidAttachmentUrl(logoPreview) && (
+                      {isValidAttachmentUrl(displayLogo) && (
                         <a
-                          href={logoPreview}
+                          href={displayLogo}
                           download
                           aria-label="Download logo"
                           onClick={(e) => e.stopPropagation()}
@@ -386,7 +400,7 @@ export function OrganizationForm({
                     className="w-full"
                   >
                     <Upload className="mr-2 h-4 w-4" />
-                    {logoPreview ? 'Change Logo' : 'Upload Logo'}
+                    {displayLogo ? 'Change Logo' : 'Upload Logo'}
                   </Button>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     PNG, JPG up to 5MB. Recommended size: 400x400px
@@ -438,6 +452,7 @@ export function OrganizationForm({
         open={showRemoveLogoDialog}
         onOpenChange={(open) => setShowRemoveLogoDialog(open)}
         onConfirm={confirmRemoveLogo}
+        isPending={isRemoving}
       />
     </>
   );
