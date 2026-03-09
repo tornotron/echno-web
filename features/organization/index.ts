@@ -6,3 +6,6 @@ export {
   RemoveOrgLogoDialog,
   SaveOrganizationDialog,
 } from './components/organization-alert-dialogs';
+export { OrganizationOverviewTab } from './components/organization-overview-tab';
+export { OrganizationSettingsTab } from './components/organization-settings-tab';
+export { OrganizationHierarchyTab } from './components/organization-hierarchy-tab';
