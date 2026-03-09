@@ -26,7 +26,7 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
   } = useOrganization(id);
   const { mutate: updateOrganization, isPending: isUpdating } =
     useUpdateOrganization();
-  const { mutate: deleteAttachment } = useDeleteAttachment();
+  const { mutateAsync: deleteAttachmentAsync } = useDeleteAttachment();
 
   const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
   const [pendingData, setPendingData] = useState<{
@@ -77,17 +77,12 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
     );
   };
 
-  const handleRemoveLogo = () => {
+  const handleRemoveLogo = async () => {
     const logoId = organization?.logo?.id;
     if (!logoId) return;
-    deleteAttachment(logoId, {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: organizationKeys.all });
-        queryClient.invalidateQueries({
-          queryKey: organizationKeys.detail(id),
-        });
-      },
-    });
+    await deleteAttachmentAsync(logoId);
+    queryClient.invalidateQueries({ queryKey: organizationKeys.all });
+    queryClient.invalidateQueries({ queryKey: organizationKeys.detail(id) });
   };
 
   const handleCancel = () => {
