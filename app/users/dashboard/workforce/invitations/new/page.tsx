@@ -42,7 +42,7 @@ import type { Invitation } from '@/types/invitation';
 import { useGenerateInviteCode } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
 import { useManagers } from '@/hooks/employee';
-import { InvitationQRCode } from '@/features/invitation/components/invitation-qr-code';
+import { InvitationQRCode } from '@/features/invitation';
 
 export default function NewInvitationPage() {
   const { data: user } = useUser();
