@@ -18,11 +18,38 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Copy, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { Invitation, getInvitationStatus } from '@/types/invitation/invitation';
+import { useState } from 'react';
 import { InvitationStatusBadge } from './invitation-status-badge';
 import { InvitationAvatar } from './invitation-avatar';
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
+      aria-label={copied ? 'Copied' : 'Copy invite code'}
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-green-500" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" />
+      )}
+    </button>
+  );
+}
 
 interface InvitationTableProps {
   invitations: Invitation[];
@@ -106,6 +133,20 @@ export function InvitationTable({
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex items-center"
+                    >
+                      <Checkbox
+                        checked={selectedInvitations.includes(
+                          invitation.inviteCode
+                        )}
+                        onCheckedChange={(checked) =>
+                          onSelectOne(invitation.inviteCode, checked as boolean)
+                        }
+                        aria-label={`Select ${invitation.employeeDetails.employeeName || 'invitation'}`}
+                      />
+                    </div>
                     <InvitationAvatar
                       name={invitation.employeeDetails.employeeName}
                     />
@@ -163,18 +204,21 @@ export function InvitationTable({
               <TableRow className="border-b border-zinc-200 hover:bg-transparent dark:border-zinc-800">
                 <TableHead className="w-[50px]">
                   <Checkbox
-                    checked={isAllSelected}
+                    checked={
+                      isAllSelected
+                        ? true
+                        : isSomeSelected
+                          ? 'indeterminate'
+                          : false
+                    }
                     onCheckedChange={onSelectAll}
                     aria-label="Select all"
-                    className={
-                      isSomeSelected ? 'data-[state=checked]:bg-primary/50' : ''
-                    }
                   />
                 </TableHead>
                 <TableHead>Employee</TableHead>
                 <TableHead>Designation</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Invite Code</TableHead>
                 <TableHead>Expires</TableHead>
               </TableRow>
             </TableHeader>
@@ -225,19 +269,13 @@ export function InvitationTable({
                         status={getInvitationStatus(invitation)}
                       />
                     </TableCell>
-                    <TableCell>
-                      {invitation.expiryDate ? (
-                        <>
-                          <div className="text-sm text-zinc-900 dark:text-zinc-100">
-                            {format(invitation.expiryDate, 'MMM dd, yyyy')}
-                          </div>
-                          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                            {format(invitation.expiryDate, 'h:mm a')}
-                          </div>
-                        </>
-                      ) : (
-                        <span className="text-sm text-zinc-500">N/A</span>
-                      )}
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-sm text-zinc-700 dark:text-zinc-300">
+                          {invitation.inviteCode}
+                        </span>
+                        <CopyButton text={invitation.inviteCode} />
+                      </div>
                     </TableCell>
                     <TableCell>
                       {invitation.expiryDate ? (
