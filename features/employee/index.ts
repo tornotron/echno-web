@@ -5,3 +5,4 @@ export { EmployeeStatusBadge } from './components/employee-status-badge';
 export { EmployeeAvatar } from './components/employee-avatar';
 export { EmployeeTable } from './components/employee-table';
 export { EmployeeTreeNode } from './components/employee-tree-node';
+export { EmployeeOverviewTab } from './components/employee-overview-tab';
