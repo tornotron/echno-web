@@ -4,11 +4,11 @@ import { useState, useMemo } from 'react';
 import {
   mockPayments,
   mockProjects,
-  mockVendors,
   mockEmployees,
   mockSubContracts,
   mockLabour,
 } from '@/components/shared/mock-data';
+import { useVendors } from '@/hooks/vendors';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -108,9 +108,11 @@ const getTypeColor = (type: PaymentType) => {
 };
 
 export default function PaymentsPage() {
+  const { data: vendors = [] } = useVendors();
+
   // Create datasets object for utility functions
   const payeeDatasets = {
-    vendors: mockVendors,
+    vendors,
     employees: mockEmployees,
     subContracts: mockSubContracts,
     labour: mockLabour,

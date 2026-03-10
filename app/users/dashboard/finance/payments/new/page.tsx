@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   mockProjects,
-  mockVendors,
   mockEmployees,
   mockSubContracts,
   mockLabour,
 } from '@/components/shared/mock-data';
+import { useVendors } from '@/hooks/vendors';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -50,10 +50,11 @@ import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewPaymentPage() {
   const router = useRouter();
+  const { data: vendors = [] } = useVendors();
 
   // Create datasets object for utility functions
   const payeeDatasets = {
-    vendors: mockVendors,
+    vendors,
     employees: mockEmployees,
     subContracts: mockSubContracts,
     labour: mockLabour,
