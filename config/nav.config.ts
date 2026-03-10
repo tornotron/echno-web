@@ -269,12 +269,6 @@ export const navigation: NavItem[] = [
         icon: ClipboardList,
       },
       {
-        label: 'Vendors',
-        segment: 'vendors',
-        path: d('resources/vendors'),
-        icon: Package,
-      },
-      {
         label: 'Purchase Orders',
         segment: 'purchase-orders',
         path: d('resources/purchase-orders'),

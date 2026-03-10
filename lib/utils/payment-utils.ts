@@ -1,6 +1,6 @@
 import { Payment, PayeeType } from '@/types/finance/payment';
 import type { Employee } from '@/types/employee/employee';
-import type { Vendor } from '@/types/third-party/vendor';
+import type { Vendor } from '@/types/vendor/vendor';
 import type { SubContract } from '@/types/third-party/sub-contract';
 import type { Labour } from '@/types/third-party/labour';
 
@@ -59,9 +59,9 @@ export function getPayeeInfo(
     if (vendor) {
       return {
         type: PayeeType.vendor,
-        name: vendor.contactPerson,
-        company: vendor.companyName,
-        details: vendor.vendorId,
+        name: vendor.contactPerson || vendor.name,
+        company: vendor.name,
+        details: vendor.address,
       };
     }
   }
@@ -140,8 +140,8 @@ export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
     case PayeeType.vendor: {
       return datasets.vendors.map((v) => ({
         id: v.id,
-        name: v.companyName,
-        label: `${v.companyName} - ${v.contactPerson}`,
+        name: v.name,
+        label: `${v.name} - ${v.contactPerson}`,
       }));
     }
 
