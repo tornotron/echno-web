@@ -51,13 +51,13 @@ export interface Employee {
   organizationName?: string;
   designation: string;
   department?: Department;
-  salary?: number;
+  salary?: number | null;
   managerId?: number;
   managerName?: string;
-  shiftTiming?: string;
+  shiftTiming?: string | null;
   status: EmployeeStatus;
   certifications?: string[];
-  joiningDate?: Date;
+  joiningDate?: Date | null;
   currentProjects?: Project[];
 
   // Timestamps
@@ -179,13 +179,17 @@ export function employeeToJson(
     result.organizationName = emp.organizationName;
   if (emp.designation !== undefined) result.designation = emp.designation;
   if (emp.department !== undefined) result.department = emp.department;
-  if (emp.joiningDate !== undefined)
-    result.joiningDate = emp.joiningDate.toISOString();
+  if (emp.joiningDate !== undefined) {
+    result.joiningDate =
+      emp.joiningDate === null ? null : emp.joiningDate.toISOString();
+  }
   // Ensure salary is treated as a floating-point number by the backend
   if (emp.salary !== undefined) {
     // Parse as float with fixed precision to ensure Java backend treats it as Double
-    // This works because it ensures the value is properly typed as a float
-    result.salary = Number.parseFloat(Number(emp.salary).toFixed(1));
+    result.salary =
+      emp.salary === null
+        ? null
+        : Number.parseFloat(Number(emp.salary).toFixed(1));
   }
   if (emp.managerId !== undefined) result.managerId = emp.managerId;
   if (emp.managerName !== undefined) result.managerName = emp.managerName;
