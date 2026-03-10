@@ -114,6 +114,7 @@ export function OrganizationSettingsTab({
             <h3 className="mb-4 text-lg font-medium text-zinc-900 dark:text-zinc-100">
               Permissions & Access
             </h3>
+            {/* TODO: Wire to real permission data from organization.permissions or API */}
             <div className="space-y-3">
               <div className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/50">
                 <span className="text-sm text-zinc-700 dark:text-zinc-300">
