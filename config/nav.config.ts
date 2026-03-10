@@ -136,7 +136,6 @@ export const navigation: NavItem[] = [
     segment: 'chat',
     path: d('chat'),
     icon: MessagesSquare,
-    sidebarHidden: true,
   },
 
   // ====================== PROJECTS =========================================
@@ -195,114 +194,44 @@ export const navigation: NavItem[] = [
             path: d('workforce/leaves/requests'),
             icon: FileText,
             breadcrumb: 'My Requests',
-            sidebarHidden: true,
           },
           {
             label: 'Organization Requests',
             segment: 'organization-requests',
             path: d('workforce/leaves/organization-requests'),
             icon: FileText,
-            sidebarHidden: true,
           },
           {
             label: 'Apply for Leave',
             segment: 'apply',
             path: d('workforce/leaves/apply'),
             icon: Plus,
-            sidebarHidden: true,
           },
           {
             label: 'Leave Calendar',
             segment: 'calendar',
             path: d('workforce/leaves/calendar'),
             icon: Calendar,
-            sidebarHidden: true,
           },
           {
             label: 'Leave Balance',
             segment: 'balance',
             path: d('workforce/leaves/balance'),
             icon: TrendingUp,
-            sidebarHidden: true,
           },
           {
             label: 'Leave Policies',
             segment: 'policies',
             path: d('workforce/leaves/policies'),
             icon: Settings,
-            sidebarHidden: true,
           },
           {
             label: 'Leave Approvals',
             segment: 'approvals',
             path: d('workforce/leaves/approvals'),
             icon: ClipboardCheck,
-            sidebarHidden: true,
           },
         ],
-      },
-    ],
-  },
-
-  // ====================== ATTENDANCE =======================================
-  {
-    label: 'Attendance',
-    segment: 'attendance',
-    path: d('attendance'),
-    icon: UserCheck,
-    sidebarHidden: true,
-    children: [
-      {
-        label: 'All Attendance',
-        segment: 'attendance',
-        path: d('attendance'),
-        icon: ClipboardCheck,
-        breadcrumb: 'Attendance',
-      },
-      {
-        label: 'Mark Attendance',
-        segment: 'mark',
-        path: d('attendance/mark'),
-        icon: UserCheck,
-      },
-      {
-        label: 'Settings',
-        segment: 'settings',
-        path: d('attendance/settings'),
-        icon: Settings,
-        breadcrumb: 'Attendance Settings',
-      },
-    ],
-  },
-
-  // ====================== THIRD PARTY ======================================
-  {
-    label: 'Third Party',
-    segment: 'third-party',
-    path: d('third-party'),
-    icon: Handshake,
-    nonInteractive: true,
-    sidebarHidden: true,
-    children: [
-      {
-        label: 'Labour',
-        segment: 'labour',
-        path: d('third-party/labour'),
-        icon: HardHat,
-        sidebarHidden: true,
-      },
-      {
-        label: 'Sub-Contracts',
-        segment: 'sub-contracts',
-        path: d('third-party/sub-contracts'),
-        icon: ClipboardList,
-        sidebarHidden: true,
-      },
-      {
-        label: 'Vendors',
-        segment: 'vendors',
-        path: d('third-party/vendors'),
-        icon: Package,
       },
     ],
   },
@@ -314,7 +243,6 @@ export const navigation: NavItem[] = [
     path: d('resources'),
     icon: Boxes,
     nonInteractive: true,
-    sidebarHidden: true,
     children: [
       {
         label: 'Materials',
@@ -379,7 +307,6 @@ export const navigation: NavItem[] = [
     segment: 'finance',
     path: d('finance'),
     icon: Wallet,
-    sidebarHidden: true,
     children: [
       {
         label: 'Receipts',
@@ -410,6 +337,65 @@ export const navigation: NavItem[] = [
         segment: 'budgets',
         path: d('finance/budgets'),
         icon: PiggyBank,
+      },
+    ],
+  },
+
+  // ====================== THIRD PARTY ======================================
+  {
+    label: 'Third Party',
+    segment: 'third-party',
+    path: d('third-party'),
+    icon: Handshake,
+    nonInteractive: true,
+    children: [
+      {
+        label: 'Labour',
+        segment: 'labour',
+        path: d('third-party/labour'),
+        icon: HardHat,
+      },
+      {
+        label: 'Sub-Contracts',
+        segment: 'sub-contracts',
+        path: d('third-party/sub-contracts'),
+        icon: ClipboardList,
+      },
+      {
+        label: 'Vendors',
+        segment: 'vendors',
+        path: d('third-party/vendors'),
+        icon: Package,
+      },
+    ],
+  },
+
+  // ====================== ATTENDANCE =======================================
+  {
+    label: 'Attendance',
+    segment: 'attendance',
+    path: d('attendance'),
+    icon: UserCheck,
+    children: [
+      {
+        label: 'All Attendance',
+        segment: 'attendance',
+        path: d('attendance'),
+        icon: ClipboardCheck,
+        breadcrumb: 'Attendance',
+      },
+      {
+        label: 'Mark Attendance',
+        segment: 'mark',
+        path: d('attendance/mark'),
+        icon: UserCheck,
+      },
+      {
+        label: 'Settings',
+        segment: 'settings',
+        path: d('attendance/settings'),
+        icon: Settings,
+        breadcrumb: 'Attendance Settings',
       },
     ],
   },
