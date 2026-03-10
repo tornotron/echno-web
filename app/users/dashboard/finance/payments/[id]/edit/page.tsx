@@ -22,11 +22,11 @@ import {
 import {
   mockPayments,
   mockProjects,
-  mockVendors,
   mockEmployees,
   mockSubContracts,
   mockLabour,
 } from '@/components/shared/mock-data';
+import { useVendors } from '@/hooks/vendors';
 import {
   Payment,
   PaymentType,
@@ -59,10 +59,11 @@ interface EditPaymentPageProps {
 export default function EditPaymentPage({ params }: EditPaymentPageProps) {
   const resolvedParams = use(params);
   const router = useRouter();
+  const { data: vendors = [] } = useVendors();
 
   // Create datasets object for utility functions
   const payeeDatasets = {
-    vendors: mockVendors,
+    vendors,
     employees: mockEmployees,
     subContracts: mockSubContracts,
     labour: mockLabour,

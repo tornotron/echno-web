@@ -2,11 +2,8 @@
 
 import { notFound } from 'next/navigation';
 import { use } from 'react';
-import {
-  mockInvoices,
-  mockMembers,
-  mockVendors,
-} from '@/components/shared/mock-data';
+import { mockInvoices, mockMembers } from '@/components/shared/mock-data';
+import { useVendors } from '@/hooks/vendors';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -109,13 +106,15 @@ const getUserName = (userId: number): string => {
   return member?.memberName || `User #${userId}`;
 };
 
-const getVendorName = (vendorId: number): string => {
-  const vendor = mockVendors.find((v) => v.id === vendorId);
-  return vendor?.name || `Vendor #${vendorId}`;
-};
-
 export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const resolvedParams = use(params);
+  const { data: vendors = [] } = useVendors();
+
+  const getVendorName = (vendorId: number): string => {
+    const vendor = vendors.find((v) => v.id === vendorId);
+    return vendor?.name || `Vendor #${vendorId}`;
+  };
+
   const invoice = mockInvoices.find(
     (i) => i.id === Number.parseInt(resolvedParams.id)
   );

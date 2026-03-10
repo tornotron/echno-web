@@ -69,13 +69,6 @@ import {
   DeliveryStatus,
 } from '@/types/resource/purchase-order';
 import {
-  MaterialRequest,
-  MaterialRequestStatus,
-  MaterialRequestPriority,
-  MaterialRequestType,
-  FulfillmentMethod,
-} from '@/types/resource/material-request';
-import {
   Transfer,
   TransferType,
   TransferStatus,
@@ -3835,15 +3828,10 @@ export function getInventoryItemById(id: number): InventoryItem | undefined {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// THIRD PARTY - LABOUR, VENDORS, SUB-CONTRACTS
+// THIRD PARTY - LABOUR, SUB-CONTRACTS
 // ═════════════════════════════════════════════════════════════════════════════
-// NOTE: Comprehensive mock data for vendors, labour, and subcontracts with
-// finance relationships is defined later in this file after organization overview
-// functions. See lines ~6900+ for mockVendors, mockLabour, and mockSubContracts.
-
-// OLD DATA REMOVED - USING NEW COMPREHENSIVE DEFINITIONS BELOW
-// mockLabour, mockVendors, and mockSubContracts are defined later with full relationships
-// See lines ~7000+ for comprehensive definitions
+// NOTE: Vendors now use real API via useVendors() hook from @/hooks/vendors.
+// Mock data for labour and subcontracts is defined later in this file.
 
 // Mock inventory count per location
 // Helper function to get location by ID
@@ -4932,298 +4920,6 @@ export function getGoodsReceiptById(id: number) {
 }
 
 // ============================================
-// MATERIAL REQUESTS
-// ============================================
-
-export const mockMaterialRequests: MaterialRequest[] = [
-  {
-    id: 1,
-    requestNumber: 'MR-2024-001',
-    type: MaterialRequestType.project,
-    status: MaterialRequestStatus.approved,
-    priority: MaterialRequestPriority.high,
-    projectId: 1,
-    locationId: 1,
-    organizationId: 1,
-    requestDate: new Date('2024-11-01'),
-    requiredByDate: new Date('2024-11-10'),
-    lineItems: [
-      {
-        id: 1,
-        description: 'Cement Bags (50kg)',
-        specifications: 'Grade 53, OPC Cement',
-        quantityRequested: 200,
-        quantityApproved: 200,
-        quantityFulfilled: 150,
-        quantityPending: 50,
-        unit: 'bags',
-        fulfillmentMethod: FulfillmentMethod.purchase,
-        estimatedCost: 600_000,
-        actualCost: 580_000,
-        requiredByDate: new Date('2024-11-08'),
-        purpose: 'Foundation work - Building A',
-      },
-      {
-        id: 2,
-        description: 'Steel TMT Bars (12mm)',
-        specifications: 'Fe 500D Grade',
-        quantityRequested: 5000,
-        quantityApproved: 5000,
-        quantityFulfilled: 5000,
-        quantityPending: 0,
-        unit: 'kg',
-        fulfillmentMethod: FulfillmentMethod.fromStock,
-        estimatedCost: 350_000,
-        actualCost: 350_000,
-        requiredByDate: new Date('2024-11-10'),
-        fulfilledDate: new Date('2024-11-05'),
-        purpose: 'Column reinforcement',
-      },
-    ],
-    estimatedTotalCost: 950_000,
-    actualTotalCost: 930_000,
-    fulfillmentMethod: FulfillmentMethod.mixed,
-    partialFulfillmentAllowed: true,
-    purchaseOrderIds: [1],
-    transferIds: [],
-    expenseIds: [],
-    requestedBy: 5,
-    requestedByDepartment: 'Construction',
-    contactPhone: '+91 98765 43210',
-    contactEmail: 'supervisor@example.com',
-    approvedBy: 2,
-    approvedAt: new Date('2024-11-02'),
-    purpose: 'Site A - Building Construction Phase 1',
-    justification:
-      'Required for foundation and structural work as per project schedule',
-    createdBy: 5,
-    createdAt: new Date('2024-11-01'),
-    updatedAt: new Date('2024-11-05'),
-  },
-  {
-    id: 2,
-    requestNumber: 'MR-2024-002',
-    type: MaterialRequestType.emergency,
-    status: MaterialRequestStatus.underReview,
-    priority: MaterialRequestPriority.urgent,
-    projectId: 2,
-    locationId: 2,
-    organizationId: 1,
-    requestDate: new Date('2024-11-06'),
-    requiredByDate: new Date('2024-11-07'),
-    lineItems: [
-      {
-        id: 3,
-        description: 'Safety Helmets',
-        specifications: 'ISI marked, adjustable',
-        quantityRequested: 50,
-        quantityApproved: 0,
-        quantityFulfilled: 0,
-        quantityPending: 0,
-        unit: 'pcs',
-        estimatedCost: 25_000,
-        requiredByDate: new Date('2024-11-07'),
-        purpose: 'New workers joining site',
-      },
-      {
-        id: 4,
-        description: 'Safety Harnesses',
-        specifications: 'Full body harness, EN standard',
-        quantityRequested: 20,
-        quantityApproved: 0,
-        quantityFulfilled: 0,
-        quantityPending: 0,
-        unit: 'pcs',
-        estimatedCost: 60_000,
-        requiredByDate: new Date('2024-11-07'),
-        purpose: 'Height work safety compliance',
-      },
-    ],
-    estimatedTotalCost: 85_000,
-    actualTotalCost: 0,
-    partialFulfillmentAllowed: false,
-    purchaseOrderIds: [],
-    transferIds: [],
-    expenseIds: [],
-    requestedBy: 8,
-    requestedByDepartment: 'Safety',
-    contactPhone: '+91 99887 76655',
-    contactEmail: 'safety@example.com',
-    reviewedBy: 3,
-    reviewedAt: new Date('2024-11-06'),
-    purpose: 'Emergency safety equipment for new crew',
-    justification: 'Urgent requirement as 50 new workers are joining tomorrow',
-    notes: 'Please expedite - safety critical',
-    tags: ['safety', 'urgent', 'emergency'],
-    createdBy: 8,
-    createdAt: new Date('2024-11-06'),
-    updatedAt: new Date('2024-11-06'),
-  },
-  {
-    id: 3,
-    requestNumber: 'MR-2024-003',
-    type: MaterialRequestType.maintenance,
-    status: MaterialRequestStatus.fulfilled,
-    priority: MaterialRequestPriority.medium,
-    projectId: 1,
-    locationId: 3,
-    organizationId: 1,
-    requestDate: new Date('2024-10-25'),
-    requiredByDate: new Date('2024-11-01'),
-    lineItems: [
-      {
-        id: 5,
-        description: 'Hydraulic Oil',
-        specifications: 'ISO VG 68',
-        quantityRequested: 200,
-        quantityApproved: 200,
-        quantityFulfilled: 200,
-        quantityPending: 0,
-        unit: 'liters',
-        fulfillmentMethod: FulfillmentMethod.purchase,
-        estimatedCost: 40_000,
-        actualCost: 38_000,
-        requiredByDate: new Date('2024-11-01'),
-        fulfilledDate: new Date('2024-10-30'),
-        purpose: 'Excavator maintenance',
-      },
-    ],
-    estimatedTotalCost: 40_000,
-    actualTotalCost: 38_000,
-    fulfillmentMethod: FulfillmentMethod.purchase,
-    partialFulfillmentAllowed: true,
-    purchaseOrderIds: [4],
-    transferIds: [],
-    expenseIds: [],
-    requestedBy: 12,
-    requestedByDepartment: 'Maintenance',
-    contactPhone: '+91 98888 77777',
-    contactEmail: 'maintenance@example.com',
-    approvedBy: 2,
-    approvedAt: new Date('2024-10-26'),
-    fulfilledBy: 2,
-    fulfilledAt: new Date('2024-10-30'),
-    purpose: 'Regular maintenance - Heavy equipment',
-    createdBy: 12,
-    createdAt: new Date('2024-10-25'),
-    updatedAt: new Date('2024-10-30'),
-  },
-  {
-    id: 4,
-    requestNumber: 'MR-2024-004',
-    type: MaterialRequestType.replenishment,
-    status: MaterialRequestStatus.rejected,
-    priority: MaterialRequestPriority.low,
-    locationId: 1,
-    organizationId: 1,
-    requestDate: new Date('2024-11-03'),
-    requiredByDate: new Date('2024-11-15'),
-    lineItems: [
-      {
-        id: 6,
-        description: 'Paint - White Emulsion',
-        specifications: '20L cans, weather resistant',
-        quantityRequested: 100,
-        quantityApproved: 0,
-        quantityFulfilled: 0,
-        quantityPending: 0,
-        unit: 'cans',
-        estimatedCost: 150_000,
-        requiredByDate: new Date('2024-11-15'),
-        purpose: 'Stock replenishment',
-      },
-    ],
-    estimatedTotalCost: 150_000,
-    actualTotalCost: 0,
-    partialFulfillmentAllowed: true,
-    purchaseOrderIds: [],
-    transferIds: [],
-    expenseIds: [],
-    requestedBy: 7,
-    requestedByDepartment: 'Procurement',
-    contactPhone: '+91 97777 66666',
-    contactEmail: 'procurement@example.com',
-    rejectedBy: 2,
-    rejectedAt: new Date('2024-11-04'),
-    rejectionReason:
-      'Sufficient stock available in Warehouse B. Request transfer instead.',
-    purpose: 'Warehouse A stock replenishment',
-    createdBy: 7,
-    createdAt: new Date('2024-11-03'),
-    updatedAt: new Date('2024-11-04'),
-  },
-  {
-    id: 5,
-    requestNumber: 'MR-2024-005',
-    type: MaterialRequestType.project,
-    status: MaterialRequestStatus.partiallyFulfilled,
-    priority: MaterialRequestPriority.high,
-    projectId: 3,
-    locationId: 4,
-    organizationId: 1,
-    requestDate: new Date('2024-11-04'),
-    requiredByDate: new Date('2024-11-12'),
-    lineItems: [
-      {
-        id: 7,
-        description: 'Concrete Mix (M25 Grade)',
-        specifications: 'Ready mix concrete',
-        quantityRequested: 100,
-        quantityApproved: 100,
-        quantityFulfilled: 60,
-        quantityPending: 40,
-        unit: 'cubic meters',
-        fulfillmentMethod: FulfillmentMethod.purchase,
-        estimatedCost: 600_000,
-        actualCost: 360_000,
-        requiredByDate: new Date('2024-11-12'),
-        purpose: 'Slab casting - Floor 3',
-      },
-      {
-        id: 8,
-        description: 'Reinforcement Mesh',
-        specifications: '6mm, welded mesh',
-        quantityRequested: 500,
-        quantityApproved: 500,
-        quantityFulfilled: 500,
-        quantityPending: 0,
-        unit: 'sqm',
-        fulfillmentMethod: FulfillmentMethod.transfer,
-        sourceLocationId: 1,
-        estimatedCost: 200_000,
-        actualCost: 200_000,
-        requiredByDate: new Date('2024-11-10'),
-        fulfilledDate: new Date('2024-11-08'),
-        purpose: 'Slab reinforcement',
-      },
-    ],
-    estimatedTotalCost: 800_000,
-    actualTotalCost: 560_000,
-    fulfillmentMethod: FulfillmentMethod.mixed,
-    partialFulfillmentAllowed: true,
-    purchaseOrderIds: [6],
-    transferIds: [1],
-    expenseIds: [],
-    requestedBy: 9,
-    requestedByDepartment: 'Construction',
-    contactPhone: '+91 96666 55555',
-    contactEmail: 'site3@example.com',
-    approvedBy: 2,
-    approvedAt: new Date('2024-11-05'),
-    purpose: 'Bridge Construction - Deck work',
-    justification: 'Critical path activity, delay will impact project schedule',
-    notes: 'Coordinate delivery with concrete pump availability',
-    createdBy: 9,
-    createdAt: new Date('2024-11-04'),
-    updatedAt: new Date('2024-11-08'),
-  },
-];
-
-export function getMaterialRequestById(id: number) {
-  return mockMaterialRequests.find((mr) => mr.id === id);
-}
-
-// ============================================
 // TRANSFERS
 // ============================================
 
@@ -5858,11 +5554,6 @@ export function getAssetById(id: number) {
 export function getLabourById(id: number) {
   return mockLabour.find((labour) => labour.id === id);
 }
-
-export function getVendorById(id: number) {
-  return mockVendors.find((vendor) => vendor.id === id);
-}
-
 export function getContractById(id: number) {
   return mockSubContracts.find((contract) => contract.id === id);
 }
@@ -6358,15 +6049,9 @@ export function getOrganizationOverview(organizationId: number) {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// THIRD-PARTY ENTITIES (Vendors, Labour, SubContracts)
+// THIRD-PARTY ENTITIES (Labour, SubContracts)
+// Vendors now use real API via useVendors() hook from @/hooks/vendors
 // ═════════════════════════════════════════════════════════════════════════════
-
-import {
-  Vendor,
-  VendorType,
-  VendorStatus,
-  PaymentTerms as VendorPaymentTerms,
-} from '@/types/third-party/vendor';
 import {
   Labour,
   LabourType,
@@ -6379,124 +6064,6 @@ import {
   ContractStatus,
   ContractPaymentStatus,
 } from '@/types/third-party/sub-contract';
-
-export const mockVendors: Vendor[] = [
-  {
-    id: 1,
-    vendorId: 'VEN-2024-001',
-    companyName: 'Supreme Steel Industries',
-    contactPerson: 'Ramesh Gupta',
-    phone: '+91 9876543210',
-    email: 'ramesh@supremesteel.com',
-    alternatePhone: '+91 9876543211',
-    website: 'https://supremesteel.com',
-    address: 'Plot 45, Industrial Area Phase-II',
-    city: 'Mumbai',
-    state: 'Maharashtra',
-    pincode: '400001',
-    country: 'India',
-    type: VendorType.material,
-    status: VendorStatus.active,
-    category: ['Steel', 'TMT Bars', 'Structural Steel'],
-    gstNumber: '27AABCS1234F1Z5',
-    panNumber: 'AABCS1234F',
-    bankName: 'HDFC Bank',
-    accountNumber: '50200012345678',
-    ifscCode: 'HDFC0001234',
-    accountHolderName: 'Supreme Steel Industries',
-    paymentTerms: VendorPaymentTerms.net30,
-    creditLimit: 5_000_000,
-    creditDays: 30,
-    totalPurchaseValue: 12_500_000,
-    totalPaid: 10_000_000,
-    totalOutstanding: 2_500_000,
-    lastPaymentDate: new Date('2024-12-15'),
-    lastPaymentAmount: 500_000,
-    rating: 4.5,
-    totalOrders: 45,
-    completedOrders: 42,
-    cancelledOrders: 3,
-    onTimeDeliveryRate: 93.3,
-    contractStartDate: new Date('2023-01-01'),
-    accountManagerName: 'Vikram Singh',
-    accountManagerPhone: '+91 9123456789',
-    notes:
-      'Reliable supplier for structural steel. Good quality and timely delivery.',
-    createdAt: new Date('2023-01-01'),
-    updatedAt: new Date('2024-12-20'),
-  },
-  {
-    id: 2,
-    vendorId: 'VEN-2024-002',
-    companyName: 'Shree Cement Suppliers',
-    contactPerson: 'Suresh Patel',
-    phone: '+91 9876543220',
-    email: 'suresh@shreecement.com',
-    address: 'Warehouse 12, APMC Market',
-    city: 'Pune',
-    state: 'Maharashtra',
-    pincode: '411001',
-    country: 'India',
-    type: VendorType.material,
-    status: VendorStatus.active,
-    category: ['Cement', 'Concrete', 'Aggregates'],
-    gstNumber: '27AABCS5678G1Z5',
-    panNumber: 'AABCS5678G',
-    bankName: 'State Bank of India',
-    accountNumber: '12345678901234',
-    ifscCode: 'SBIN0001234',
-    accountHolderName: 'Shree Cement Suppliers',
-    paymentTerms: VendorPaymentTerms.net15,
-    creditLimit: 3_000_000,
-    creditDays: 15,
-    totalPurchaseValue: 8_500_000,
-    totalPaid: 8_200_000,
-    totalOutstanding: 300_000,
-    lastPaymentDate: new Date('2024-12-18'),
-    lastPaymentAmount: 250_000,
-    rating: 4.8,
-    totalOrders: 62,
-    completedOrders: 61,
-    cancelledOrders: 1,
-    onTimeDeliveryRate: 98.4,
-    contractStartDate: new Date('2022-06-01'),
-    notes: 'Excellent cement quality. Preferred supplier for bulk orders.',
-    createdAt: new Date('2022-06-01'),
-    updatedAt: new Date('2024-12-20'),
-  },
-  {
-    id: 3,
-    vendorId: 'VEN-2024-003',
-    companyName: 'Powertech Equipment Rentals',
-    contactPerson: 'Manoj Kumar',
-    phone: '+91 9876543230',
-    email: 'manoj@powertech.com',
-    website: 'https://powertech-rentals.com',
-    address: 'Depot 5, Equipment Park',
-    city: 'Bangalore',
-    state: 'Karnataka',
-    pincode: '560001',
-    country: 'India',
-    type: VendorType.equipment,
-    status: VendorStatus.active,
-    category: ['Heavy Equipment', 'Generators', 'Cranes'],
-    gstNumber: '29AABCS9012H1Z5',
-    panNumber: 'AABCS9012H',
-    bankName: 'ICICI Bank',
-    accountNumber: '00001234567890',
-    ifscCode: 'ICIC0001234',
-    accountHolderName: 'Powertech Equipment Rentals',
-    paymentTerms: VendorPaymentTerms.immediate,
-    rating: 4.2,
-    totalOrders: 28,
-    completedOrders: 26,
-    cancelledOrders: 2,
-    onTimeDeliveryRate: 92.8,
-    notes: 'Good for equipment rentals. Timely maintenance and support.',
-    createdAt: new Date('2023-03-15'),
-    updatedAt: new Date('2024-12-20'),
-  },
-];
 
 export const mockLabour: Labour[] = [
   {
