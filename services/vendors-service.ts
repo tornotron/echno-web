@@ -54,6 +54,29 @@ function safeParseVendors(data: Raw): Vendor[] {
   }
 }
 
+function parseVendorContact(c: Raw): VendorContact {
+  return {
+    id: c.id,
+    contactPerson: c.contactPerson ?? undefined,
+    email: c.email ?? undefined,
+    phone: c.phone ?? undefined,
+    alternatePhone: c.alternatePhone ?? undefined,
+    primary: c.primary ?? false,
+  };
+}
+
+function parseVendorBankAccount(b: Raw): VendorBankAccount {
+  return {
+    id: b.id,
+    bankName: b.bankName ?? undefined,
+    accountNumber: b.accountNumber ?? undefined,
+    ifscCode: b.ifscCode ?? undefined,
+    accountHolderName: b.accountHolderName ?? undefined,
+    swift: b.swift ?? undefined,
+    default: b.default ?? false,
+  };
+}
+
 // Maps frontend DTO (name/address/email) to backend field names (vendorName/vendorAddress/vendorEmail)
 function toApiPayload(vendor: CreateVendorInput): Raw {
   return {
@@ -137,14 +160,7 @@ export const vendorsService = {
   async getContacts(vendorId: number): Promise<VendorContact[]> {
     const data = await api.get<Raw>(`/vendors/web/${vendorId}/contacts`);
     const items = extractArray(data);
-    return items.map((c: Raw) => ({
-      id: c.id,
-      contactPerson: c.contactPerson ?? undefined,
-      email: c.email ?? undefined,
-      phone: c.phone ?? undefined,
-      alternatePhone: c.alternatePhone ?? undefined,
-      primary: c.primary ?? false,
-    }));
+    return items.map((c: Raw) => parseVendorContact(c));
   },
 
   async addContact(
@@ -155,14 +171,7 @@ export const vendorsService = {
       `/vendors/web/${vendorId}/contacts`,
       vendor
     );
-    return {
-      id: data.id,
-      contactPerson: data.contactPerson ?? undefined,
-      email: data.email ?? undefined,
-      phone: data.phone ?? undefined,
-      alternatePhone: data.alternatePhone ?? undefined,
-      primary: data.primary ?? false,
-    };
+    return parseVendorContact(data);
   },
 
   async updateContact(
@@ -174,14 +183,7 @@ export const vendorsService = {
       `/vendors/web/${vendorId}/contacts/${contactId}`,
       vendor
     );
-    return {
-      id: data.id,
-      contactPerson: data.contactPerson ?? undefined,
-      email: data.email ?? undefined,
-      phone: data.phone ?? undefined,
-      alternatePhone: data.alternatePhone ?? undefined,
-      primary: data.primary ?? false,
-    };
+    return parseVendorContact(data);
   },
 
   async deleteContact(vendorId: number, contactId: number): Promise<void> {
@@ -228,15 +230,7 @@ export const vendorsService = {
   async getBankAccounts(vendorId: number): Promise<VendorBankAccount[]> {
     const data = await api.get<Raw>(`/vendors/web/${vendorId}/bank-accounts`);
     const items = extractArray(data);
-    return items.map((b: Raw) => ({
-      id: b.id,
-      bankName: b.bankName ?? undefined,
-      accountNumber: b.accountNumber ?? undefined,
-      ifscCode: b.ifscCode ?? undefined,
-      accountHolderName: b.accountHolderName ?? undefined,
-      swift: b.swift ?? undefined,
-      default: b.default ?? false,
-    }));
+    return items.map((b: Raw) => parseVendorBankAccount(b));
   },
 
   async addBankAccount(
@@ -247,15 +241,7 @@ export const vendorsService = {
       `/vendors/web/${vendorId}/bank-accounts`,
       vendor
     );
-    return {
-      id: data.id,
-      bankName: data.bankName ?? undefined,
-      accountNumber: data.accountNumber ?? undefined,
-      ifscCode: data.ifscCode ?? undefined,
-      accountHolderName: data.accountHolderName ?? undefined,
-      swift: data.swift ?? undefined,
-      default: data.default ?? false,
-    };
+    return parseVendorBankAccount(data);
   },
 
   async updateBankAccount(
@@ -267,15 +253,7 @@ export const vendorsService = {
       `/vendors/web/${vendorId}/bank-accounts/${accountId}`,
       vendor
     );
-    return {
-      id: data.id,
-      bankName: data.bankName ?? undefined,
-      accountNumber: data.accountNumber ?? undefined,
-      ifscCode: data.ifscCode ?? undefined,
-      accountHolderName: data.accountHolderName ?? undefined,
-      swift: data.swift ?? undefined,
-      default: data.default ?? false,
-    };
+    return parseVendorBankAccount(data);
   },
 
   async deleteBankAccount(vendorId: number, accountId: number): Promise<void> {

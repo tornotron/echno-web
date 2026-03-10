@@ -7,6 +7,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { vendorsService } from '@/services/vendors-service';
 import { vendorKeys } from './vendor-keys';
+import { toast } from '@/lib/styles/toast-styles';
+import { logger } from '@/lib/logger';
+import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import {
   CreateVendorInput,
   CreateVendorContactInput,
@@ -24,6 +27,12 @@ export const useCreateVendor = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
     },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Create Vendor'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to create vendor:', error);
+    },
   });
 };
 
@@ -36,6 +45,12 @@ export const useUpdateVendor = () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
     },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Update Vendor'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to update vendor:', error);
+    },
   });
 };
 
@@ -46,6 +61,12 @@ export const useDeleteVendor = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
     },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Delete Vendor'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to delete vendor:', error);
+    },
   });
 };
 
@@ -54,13 +75,19 @@ export const useDeleteVendor = () => {
 export const useAddVendorContact = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vendor: CreateVendorContactInput) =>
-      vendorsService.addContact(vendorId, vendor),
+    mutationFn: (contactInput: CreateVendorContactInput) =>
+      vendorsService.addContact(vendorId, contactInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.contacts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Add Contact'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to add vendor contact:', error);
     },
   });
 };
@@ -70,16 +97,22 @@ export const useUpdateVendorContact = (vendorId: number) => {
   return useMutation({
     mutationFn: ({
       contactId,
-      vendor,
+      contactInput,
     }: {
       contactId: number;
-      vendor: CreateVendorContactInput;
-    }) => vendorsService.updateContact(vendorId, contactId, vendor),
+      contactInput: CreateVendorContactInput;
+    }) => vendorsService.updateContact(vendorId, contactId, contactInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.contacts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Update Contact'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to update vendor contact:', error);
     },
   });
 };
@@ -95,6 +128,12 @@ export const useDeleteVendorContact = (vendorId: number) => {
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
     },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Delete Contact'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to delete vendor contact:', error);
+    },
   });
 };
 
@@ -103,13 +142,19 @@ export const useDeleteVendorContact = (vendorId: number) => {
 export const useAddVendorTaxIdentifier = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vendor: CreateVendorTaxIdentifierInput) =>
-      vendorsService.addTaxIdentifier(vendorId, vendor),
+    mutationFn: (taxIdentifierInput: CreateVendorTaxIdentifierInput) =>
+      vendorsService.addTaxIdentifier(vendorId, taxIdentifierInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.taxIdentifiers(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Add Tax Identifier'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to add vendor tax identifier:', error);
     },
   });
 };
@@ -119,16 +164,23 @@ export const useUpdateVendorTaxIdentifier = (vendorId: number) => {
   return useMutation({
     mutationFn: ({
       taxIdId,
-      vendor,
+      taxIdentifierInput,
     }: {
       taxIdId: number;
-      vendor: CreateVendorTaxIdentifierInput;
-    }) => vendorsService.updateTaxIdentifier(vendorId, taxIdId, vendor),
+      taxIdentifierInput: CreateVendorTaxIdentifierInput;
+    }) =>
+      vendorsService.updateTaxIdentifier(vendorId, taxIdId, taxIdentifierInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.taxIdentifiers(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Update Tax Identifier'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to update vendor tax identifier:', error);
     },
   });
 };
@@ -144,6 +196,12 @@ export const useDeleteVendorTaxIdentifier = (vendorId: number) => {
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
     },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Delete Tax Identifier'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to delete vendor tax identifier:', error);
+    },
   });
 };
 
@@ -152,13 +210,19 @@ export const useDeleteVendorTaxIdentifier = (vendorId: number) => {
 export const useAddVendorBankAccount = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vendor: CreateVendorBankAccountInput) =>
-      vendorsService.addBankAccount(vendorId, vendor),
+    mutationFn: (bankAccountInput: CreateVendorBankAccountInput) =>
+      vendorsService.addBankAccount(vendorId, bankAccountInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.bankAccounts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Add Bank Account'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to add vendor bank account:', error);
     },
   });
 };
@@ -168,16 +232,23 @@ export const useUpdateVendorBankAccount = (vendorId: number) => {
   return useMutation({
     mutationFn: ({
       accountId,
-      vendor,
+      bankAccountInput,
     }: {
       accountId: number;
-      vendor: CreateVendorBankAccountInput;
-    }) => vendorsService.updateBankAccount(vendorId, accountId, vendor),
+      bankAccountInput: CreateVendorBankAccountInput;
+    }) =>
+      vendorsService.updateBankAccount(vendorId, accountId, bankAccountInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.bankAccounts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Update Bank Account'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to update vendor bank account:', error);
     },
   });
 };
@@ -193,6 +264,12 @@ export const useDeleteVendorBankAccount = (vendorId: number) => {
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
     },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Delete Bank Account'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to delete vendor bank account:', error);
+    },
   });
 };
 
@@ -201,11 +278,16 @@ export const useDeleteVendorBankAccount = (vendorId: number) => {
 export const useSetVendorPaymentTerms = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vendor: CreateVendorPaymentTermsInput) =>
-      vendorsService.setPaymentTerms(vendorId, vendor),
+    mutationFn: (paymentTermsInput: CreateVendorPaymentTermsInput) =>
+      vendorsService.setPaymentTerms(vendorId, paymentTermsInput),
     onSuccess: (data) => {
       queryClient.setQueryData(vendorKeys.paymentTerms(vendorId), data);
-      queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Save Payment Terms'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to set vendor payment terms:', error);
     },
   });
 };
@@ -217,6 +299,12 @@ export const useDeleteVendorPaymentTerms = (vendorId: number) => {
     onSuccess: () => {
       queryClient.setQueryData(vendorKeys.paymentTerms(vendorId), null);
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Remove Payment Terms'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to delete vendor payment terms:', error);
     },
   });
 };

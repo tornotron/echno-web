@@ -60,7 +60,7 @@ export function getPayeeInfo(
       return {
         type: PayeeType.vendor,
         name: vendor.contactPerson || vendor.name,
-        company: vendor.name,
+        company: vendor.contactPerson ? vendor.name : undefined,
         details: vendor.address,
       };
     }
@@ -141,7 +141,7 @@ export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
       return datasets.vendors.map((v) => ({
         id: v.id,
         name: v.name,
-        label: `${v.name} - ${v.contactPerson}`,
+        label: v.contactPerson ? `${v.name} - ${v.contactPerson}` : v.name,
       }));
     }
 
