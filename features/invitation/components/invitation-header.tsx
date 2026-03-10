@@ -13,12 +13,12 @@ export function InvitationHeader() {
           Manage and track employee invitation status
         </p>
       </div>
-      <Link href="/users/dashboard/workforce/invitations/new">
-        <Button className="mt-4 md:mt-0">
+      <Button asChild className="mt-4 md:mt-0">
+        <Link href="/users/dashboard/workforce/invitations/new">
           <Plus className="mr-2 h-4 w-4" />
           Create Invitation
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

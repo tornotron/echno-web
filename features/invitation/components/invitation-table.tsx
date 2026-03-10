@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/common';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -84,13 +85,15 @@ export function InvitationTable({
   totalPages,
   onPageChange,
 }: InvitationTableProps) {
+  const router = useRouter();
+
   return (
     <>
       {/* Row count + page size */}
       <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {startIndex + 1} to {Math.min(endIndex, totalCount)} of{' '}
-          {totalCount} invitation records
+          Showing {totalCount === 0 ? 0 : startIndex + 1} to{' '}
+          {Math.min(endIndex, totalCount)} of {totalCount} invitation records
         </p>
         <div className="flex items-center gap-2">
           <span className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -127,7 +130,9 @@ export function InvitationTable({
               key={invitation.inviteCode}
               className="cursor-pointer"
               onClick={() =>
-                (globalThis.location.href = `/users/dashboard/workforce/invitations/${invitation.inviteCode}`)
+                router.push(
+                  `/users/dashboard/workforce/invitations/${invitation.inviteCode}`
+                )
               }
             >
               <CardContent className="p-4">
@@ -203,17 +208,20 @@ export function InvitationTable({
             <TableHeader>
               <TableRow className="border-b border-zinc-200 hover:bg-transparent dark:border-zinc-800">
                 <TableHead className="w-[50px]">
-                  <Checkbox
-                    checked={
-                      isAllSelected
-                        ? true
-                        : isSomeSelected
-                          ? 'indeterminate'
-                          : false
-                    }
-                    onCheckedChange={onSelectAll}
-                    aria-label="Select all"
-                  />
+                  {(() => {
+                    const checkboxState = isAllSelected
+                      ? true
+                      : isSomeSelected
+                        ? 'indeterminate'
+                        : false;
+                    return (
+                      <Checkbox
+                        checked={checkboxState}
+                        onCheckedChange={onSelectAll}
+                        aria-label="Select all"
+                      />
+                    );
+                  })()}
                 </TableHead>
                 <TableHead>Employee</TableHead>
                 <TableHead>Designation</TableHead>
@@ -229,7 +237,9 @@ export function InvitationTable({
                     key={invitation.inviteCode}
                     className="hover:bg-muted/50 cursor-pointer border-b border-zinc-200 dark:border-zinc-800"
                     onClick={() =>
-                      (globalThis.location.href = `/users/dashboard/workforce/invitations/${invitation.inviteCode}`)
+                      router.push(
+                        `/users/dashboard/workforce/invitations/${invitation.inviteCode}`
+                      )
                     }
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
