@@ -88,10 +88,6 @@ const mockFallbackResolver: FallbackNameResolver = (
     case 'purchase-orders': {
       return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber;
     }
-    // case 'material-requests': {
-    //   return mockMaterialRequests.find((m) => m.id === numericId)
-    //     ?.requestNumber;
-    // }
     case 'transfers': {
       return mockTransfers.find((t) => t.id === numericId)?.transferNumber;
     }

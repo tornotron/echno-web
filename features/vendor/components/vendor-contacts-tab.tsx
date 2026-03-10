@@ -34,12 +34,6 @@ import {
 } from '@/hooks/vendors';
 import type { VendorContact, CreateVendorContactInput } from '@/types/vendor';
 
-function handleMutationError(fallback: string) {
-  return (err: unknown) => {
-    toast.error(err instanceof Error ? err.message : fallback);
-  };
-}
-
 interface VendorContactsTabProps {
   vendorId: number;
 }
@@ -75,17 +69,18 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
 
   function submit() {
     if (addContact.isPending || updateContact.isPending) return;
+    if (!form.contactPerson?.trim() && !form.email?.trim()) {
+      toast.error('At least a contact person or email is required.');
+      return;
+    }
     const onSuccess = () => {
       toast.success(dialog.editing ? 'Contact updated.' : 'Contact added.');
       setDialog({ open: false });
     };
-    const mutateOptions = {
-      onSuccess,
-      onError: handleMutationError('Failed to save contact.'),
-    };
+    const mutateOptions = { onSuccess };
     if (dialog.editing) {
       updateContact.mutate(
-        { contactId: dialog.editing.id, vendor: form },
+        { contactId: dialog.editing.id, contactInput: form },
         mutateOptions
       );
     } else {
@@ -279,8 +274,6 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                     toast.success('Contact removed.');
                     setToDelete(null);
                   },
-                  onError: (e) =>
-                    toast.error(e instanceof Error ? e.message : 'Failed.'),
                 });
               }}
             >

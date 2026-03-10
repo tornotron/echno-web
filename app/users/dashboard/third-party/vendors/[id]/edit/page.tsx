@@ -75,15 +75,11 @@ export default function VendorEditPage({ params }: PageProps) {
     };
   }, [vendor]);
 
-  const [form, setForm] = useState<CreateVendorInput>(EMPTY_FORM);
+  const [form, setForm] = useState<CreateVendorInput>(initialForm);
   const [prevVendor, setPrevVendor] = useState(vendor);
-
-  // Sync form when vendor data changes (setState during render — React recommended pattern)
   if (vendor !== prevVendor) {
     setPrevVendor(vendor);
-    if (vendor) {
-      setForm(initialForm);
-    }
+    setForm(initialForm);
   }
 
   function set(field: keyof CreateVendorInput, value: string | undefined) {
