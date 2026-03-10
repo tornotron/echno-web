@@ -111,7 +111,7 @@ const getUserName = (userId: number): string => {
 
 const getVendorName = (vendorId: number): string => {
   const vendor = mockVendors.find((v) => v.id === vendorId);
-  return vendor?.companyName || `Vendor #${vendorId}`;
+  return vendor?.name || `Vendor #${vendorId}`;
 };
 
 export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
