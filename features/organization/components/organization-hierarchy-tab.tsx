@@ -3,14 +3,15 @@ import { Badge } from '@/components/ui/badge';
 import { Network, Users } from 'lucide-react';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import type { TreeNode } from '@/lib/utils/hierarchy';
+import type { Employee } from '@/types/employee';
 
 interface OrganizationHierarchyTabProps {
   hierarchyDepartments: Department[];
   activeDept: Department | null;
-  deptEmployees: { length: number };
+  deptEmployees: Employee[];
   treeRoots: TreeNode[];
   onSelectDepartment: (dept: Department) => void;
-  hierarchyEmployees: { department?: Department | null }[];
+  hierarchyEmployees: Employee[];
   renderNode: (node: TreeNode) => ReactNode;
 }
 
@@ -87,8 +88,10 @@ export function OrganizationHierarchyTab({
 
             {treeRoots.length > 0 ? (
               <div className="space-y-3">
-                {treeRoots.map((root) => (
-                  <div key={root.id}>{renderNode(root)}</div>
+                {treeRoots.map((root, index) => (
+                  <div key={root.id ?? root.employeeId ?? index}>
+                    {renderNode(root)}
+                  </div>
                 ))}
               </div>
             ) : (

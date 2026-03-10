@@ -42,7 +42,7 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
     );
   }
 
-  if ((error || !organization) && !isLoadingOrg && error) {
+  if (!isLoadingOrg && (error || !organization)) {
     return (
       <div className="flex h-screen items-center justify-center text-red-500">
         Error loading organization
