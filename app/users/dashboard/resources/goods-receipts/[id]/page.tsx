@@ -30,9 +30,9 @@ import {
 import { LocationType, getLocationTypeLabel } from '@/types/resource/location';
 import {
   mockGoodsReceipts,
-  mockVendors,
   mockLocations,
 } from '@/components/shared/mock-data';
+import { useVendor } from '@/hooks/vendors';
 
 const getStatusBadgeColor = (status: GoodsReceiptStatus): string => {
   const baseColors = goodsReceiptStatusColors[status];
@@ -66,7 +66,7 @@ export default function GoodsReceiptDetailPage() {
   const params = useParams();
   const grnId = Number.parseInt(params.id as string);
   const grn = mockGoodsReceipts.find((g) => g.id === grnId);
-  const vendor = grn ? mockVendors.find((v) => v.id === grn.vendorId) : null;
+  const { data: vendor } = useVendor(grn?.vendorId ?? 0);
   const location = grn
     ? mockLocations.find((l) => l.id === grn.destinationLocationId)
     : null;
@@ -449,12 +449,12 @@ export default function GoodsReceiptDetailPage() {
                 >
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-purple-500 to-purple-600">
                     <span className="text-sm font-medium text-white">
-                      {vendor.companyName?.charAt(0) || 'V'}
+                      {vendor.name?.charAt(0) || 'V'}
                     </span>
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {vendor.companyName}
+                      {vendor.name}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       {vendor.contactPerson}

@@ -6,7 +6,6 @@ export * from './asset';
 // Inventory management
 export * from './purchase-order';
 export * from './goods-receipt';
-export * from './material-request';
 export * from './transfer';
 export * from './stock-adjustment';
 
