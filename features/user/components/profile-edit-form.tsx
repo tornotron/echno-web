@@ -701,17 +701,29 @@ export function ProfileEditForm({
         onConfirm={() => {
           if (!pendingMutateArgs) return;
           updateUserWithFiles.mutate(pendingMutateArgs, {
-            onSuccess: () => {
-              // Promote staged uploads into persisted baselines
-              if (profilePictureFile && profilePicturePreview) {
-                setPersistedProfilePicture(profilePicturePreview);
-                setProfilePictureFile(null);
+            onSuccess: async () => {
+              // Refetch user data from the server and update persisted baselines
+              // from the actual server response, not from client-side previews.
+              await queryClient.invalidateQueries({ queryKey: userKeys.all });
+              const freshUser = queryClient.getQueryData<User>(userKeys.all);
+
+              if (freshUser) {
+                setPersistedProfilePicture(
+                  freshUser.profilePicture?.file || null
+                );
+                setProfilePicturePreview(
+                  freshUser.profilePicture?.file || null
+                );
+                setPersistedCv(freshUser.cv?.file || null);
+                setCvPreview(freshUser.cv?.file || null);
+                setPersistedCvFileName(freshUser.cv?.fileName || null);
+                setCvFileName(freshUser.cv?.fileName || null);
               }
-              if (cvFile && cvPreview) {
-                setPersistedCv(cvPreview);
-                setPersistedCvFileName(cvFileName);
-                setCvFile(null);
-              }
+
+              // Clear staged files
+              setProfilePictureFile(null);
+              setCvFile(null);
+
               if (onSuccess) onSuccess();
             },
             onSettled: () => {
