@@ -1,6 +1,7 @@
 // types/vendor/vendor.ts
 
 import { Attachment } from '@/types/attachment/attachment';
+import { parseUTCDate } from '@/types/date-helpers';
 import { VendorType, VendorStatus, PaymentTerms } from './enums';
 import { VendorContact } from './contacts';
 import { VendorTaxIdentifier } from './tax-identifiers';
@@ -70,6 +71,16 @@ export interface CreateVendorInput {
 }
 
 export function parseVendor(raw: Raw): Vendor {
+  const id = Number(raw.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(`parseVendor: invalid or missing id (got ${raw.id})`);
+  }
+  const name = raw.vendorName ?? raw.name ?? '';
+  const email = raw.vendorEmail ?? raw.email ?? '';
+  if (!name) {
+    throw new Error(`parseVendor: vendor id=${id} has no name`);
+  }
+
   const contacts: VendorContact[] = raw.contacts ?? [];
   const contact = contacts.find((c) => c.primary) ?? contacts[0];
 
@@ -83,9 +94,9 @@ export function parseVendor(raw: Raw): Vendor {
       : null;
 
   return {
-    id: raw.id,
-    name: raw.vendorName ?? raw.name ?? '',
-    email: raw.vendorEmail ?? raw.email ?? '',
+    id,
+    name,
+    email,
     address: raw.vendorAddress ?? raw.address,
     website: raw.website,
     city: raw.city,
@@ -116,16 +127,14 @@ export function parseVendor(raw: Raw): Vendor {
     totalPurchaseValue: raw.totalPurchaseValue,
     totalPaid: raw.totalPaid,
     totalOutstanding: raw.totalOutstanding,
-    lastPaymentDate: raw.lastPaymentDate
-      ? new Date(raw.lastPaymentDate)
-      : undefined,
+    lastPaymentDate: parseUTCDate(raw.lastPaymentDate) ?? undefined,
     lastPaymentAmount: raw.lastPaymentAmount,
     totalOrders: raw.totalOrders,
     pendingOrders: raw.pendingOrders,
     completedOrders: raw.completedOrders,
     cancelledOrders: raw.cancelledOrders,
     attachments: raw.attachments,
-    createdAt: raw.createdAt ? new Date(raw.createdAt) : undefined,
-    updatedAt: raw.updatedAt ? new Date(raw.updatedAt) : undefined,
+    createdAt: parseUTCDate(raw.createdAt) ?? undefined,
+    updatedAt: parseUTCDate(raw.updatedAt) ?? undefined,
   };
 }
