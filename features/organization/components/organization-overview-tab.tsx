@@ -93,35 +93,63 @@ export function OrganizationOverviewTab({
             <CardDescription>Quick overview</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Link
-              href={`/users/dashboard/workforce/employees?organizationId=${organization.id}`}
-              className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              <div className="flex items-center space-x-2">
-                <Users className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Employees
+            {organization.id == null ? (
+              <div className="flex items-center justify-between rounded-lg p-2">
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Employees
+                  </span>
+                </div>
+                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {orgEmployeesCount}
                 </span>
               </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {orgEmployeesCount}
-              </span>
-            </Link>
+            ) : (
+              <Link
+                href={`/users/dashboard/workforce/employees?organizationId=${organization.id}`}
+                className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <div className="flex items-center space-x-2">
+                  <Users className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Employees
+                  </span>
+                </div>
+                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {orgEmployeesCount}
+                </span>
+              </Link>
+            )}
             <Separator />
-            <Link
-              href={`/users/dashboard/projects?organizationId=${organization.id}`}
-              className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              <div className="flex items-center space-x-2">
-                <Briefcase className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Projects
+            {organization.id == null ? (
+              <div className="flex items-center justify-between rounded-lg p-2">
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Projects
+                  </span>
+                </div>
+                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {orgProjectsCount}
                 </span>
               </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {orgProjectsCount}
-              </span>
-            </Link>
+            ) : (
+              <Link
+                href={`/users/dashboard/projects?organizationId=${organization.id}`}
+                className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <div className="flex items-center space-x-2">
+                  <Briefcase className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                    Projects
+                  </span>
+                </div>
+                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {orgProjectsCount}
+                </span>
+              </Link>
+            )}
           </CardContent>
         </Card>
       </div>
