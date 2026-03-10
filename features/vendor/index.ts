@@ -1,0 +1,8 @@
+export { VendorStatusBadge } from './components/vendor-status-badge';
+export { VendorAvatar } from './components/vendor-avatar';
+export { VendorTable } from './components/vendor-table';
+export { VendorField } from './components/vendor-field';
+export { VendorOverviewTab } from './components/vendor-overview-tab';
+export { VendorContactsTab } from './components/vendor-contacts-tab';
+export { VendorBankingTab } from './components/vendor-banking-tab';
+export { VendorTaxTab } from './components/vendor-tax-tab';
