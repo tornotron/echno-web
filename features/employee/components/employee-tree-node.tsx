@@ -26,7 +26,7 @@ export function EmployeeTreeNode({ node }: { node: TreeNode }) {
       {node.children.length > 0 && (
         <div className="mt-1 ml-5 border-l-2 border-zinc-200 pl-4 dark:border-zinc-700">
           {node.children.map((child) => (
-            <EmployeeTreeNode key={child.id} node={child} />
+            <EmployeeTreeNode key={child.id ?? child.employeeId} node={child} />
           ))}
         </div>
       )}

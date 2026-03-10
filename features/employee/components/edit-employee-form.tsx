@@ -78,16 +78,16 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
       updateData.department = formData.department as Department;
     }
     // Always send joiningDate so clearing it propagates to the server
-    updateData.joiningDate = formData.joiningDate || undefined;
+    updateData.joiningDate = formData.joiningDate ?? null;
     // Always send salary so clearing it propagates to the server
     if (formData.salary) {
       const salaryValue = Number.parseFloat(formData.salary);
       updateData.salary = salaryValue;
     } else {
-      updateData.salary = undefined;
+      updateData.salary = null;
     }
     // Always send shiftTiming so clearing it propagates to the server
-    updateData.shiftTiming = formData.shiftTiming || undefined;
+    updateData.shiftTiming = formData.shiftTiming ?? null;
     if (formData.status) {
       updateData.status = formData.status as EmployeeStatus;
     }
