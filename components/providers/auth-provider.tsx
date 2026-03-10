@@ -3,6 +3,7 @@
 import { SessionProvider, signOut, useSession } from 'next-auth/react';
 import { QueryProvider } from './query-provider';
 import { UserPrefetcher } from './user-prefetcher';
+import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
@@ -200,12 +201,23 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+/**
+ * Runs feature-level prefetch hooks that must execute inside
+ * QueryProvider + SessionProvider context.
+ */
+function FeaturePrefetcher({ children }: { children: React.ReactNode }) {
+  useOrganizationPrefetch();
+  return <>{children}</>;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <SessionMonitor>
         <QueryProvider>
-          <UserPrefetcher>{children}</UserPrefetcher>
+          <UserPrefetcher>
+            <FeaturePrefetcher>{children}</FeaturePrefetcher>
+          </UserPrefetcher>
         </QueryProvider>
       </SessionMonitor>
     </SessionProvider>
