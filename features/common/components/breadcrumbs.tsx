@@ -43,6 +43,7 @@ import {
   type FallbackNameResolver,
 } from '@/lib/utils/breadcrumb-utils';
 import { Budget } from '@/types/finance/budget';
+import { Vendor } from '@/types/vendor';
 import {
   mockInspections,
   mockLabour,
@@ -50,7 +51,6 @@ import {
   mockBudgets,
   mockLocations,
   mockPurchaseOrders,
-  mockMaterialRequests,
   mockTransfers,
   mockStockAdjustments,
   mockGoodsReceipts,
@@ -88,10 +88,10 @@ const mockFallbackResolver: FallbackNameResolver = (
     case 'purchase-orders': {
       return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber;
     }
-    case 'material-requests': {
-      return mockMaterialRequests.find((m) => m.id === numericId)
-        ?.requestNumber;
-    }
+    // case 'material-requests': {
+    //   return mockMaterialRequests.find((m) => m.id === numericId)
+    //     ?.requestNumber;
+    // }
     case 'transfers': {
       return mockTransfers.find((t) => t.id === numericId)?.transferNumber;
     }
@@ -128,6 +128,7 @@ interface BreadcrumbsProps {
   task?: Task;
   issue?: Issue;
   chatRoom?: ChatRoom;
+  vendor?: Vendor;
 }
 
 // /** Derive a human-readable display name for a chat room. */
@@ -152,6 +153,7 @@ export function Breadcrumbs({
   task,
   issue,
   chatRoom,
+  vendor,
 }: BreadcrumbsProps) {
   const chatRoomName = chatRoom ? getChatRoomName(chatRoom) : undefined;
   const pathname = usePathname();
@@ -210,7 +212,8 @@ export function Breadcrumbs({
             task,
             issue,
             chatRoomName,
-            mockFallbackResolver
+            mockFallbackResolver,
+            vendor
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
@@ -303,7 +306,7 @@ export function Breadcrumbs({
           {/* Mobile: Collapsed items in dropdown */}
           {shouldCollapse && (
             <>
-              <BreadcrumbSeparator className="hidden sm:block" />
+              <BreadcrumbSeparator className="hidden sm:block md:hidden" />
               <BreadcrumbItem className="hidden sm:inline-flex md:hidden">
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center gap-1">

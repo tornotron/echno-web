@@ -11,6 +11,7 @@ import { Organization } from '@/types/organization';
 import { Task } from '@/types/task';
 import { Issue } from '@/types/issue/issue';
 import { Project } from '@/types/project/project';
+import { Vendor } from '@/types/vendor';
 import { leaveFromMap } from '@/lib/utils/leave-path-map';
 
 /**
@@ -66,13 +67,18 @@ export function getNameForId(
   task?: Task,
   issue?: Issue,
   chatRoomName?: string,
-  fallbackResolver?: FallbackNameResolver
+  fallbackResolver?: FallbackNameResolver,
+  vendor?: Vendor
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
 
   if (parentSegment === 'chat') {
     return chatRoomName ?? `Room ${id}`;
+  }
+
+  if (parentSegment === 'vendors') {
+    return vendor?.name ?? `Vendor ${id}`;
   }
 
   if (parentSegment === 'projects') {

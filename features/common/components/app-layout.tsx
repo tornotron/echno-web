@@ -88,6 +88,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               task={breadcrumbData.task}
               issue={breadcrumbData.issue}
               chatRoom={breadcrumbData.chatRoom}
+              vendor={breadcrumbData.vendor}
             />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>
