@@ -25,7 +25,7 @@ export enum PaymentTerms {
 
 export const VENDOR_TYPE_LABELS: Record<VendorType, string> = {
   [VendorType.MATERIALS]: 'Materials',
-  [VendorType.EQUIPMENTS]: 'Equipments',
+  [VendorType.EQUIPMENTS]: 'Equipment',
   [VendorType.SERVICES]: 'Services',
   [VendorType.TRANSPORT]: 'Transport',
   [VendorType.OTHERS]: 'Others',

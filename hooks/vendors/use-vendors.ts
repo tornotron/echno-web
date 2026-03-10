@@ -8,8 +8,6 @@ import { useQuery } from '@tanstack/react-query';
 import { vendorsService } from '@/services/vendors-service';
 import { vendorKeys } from './vendor-keys';
 
-// Re-export for backward compatibility
-
 export const useVendors = () =>
   useQuery({
     queryKey: vendorKeys.lists(),
