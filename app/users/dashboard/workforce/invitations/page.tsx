@@ -94,7 +94,10 @@ export default function InvitationsPage() {
     currentInvitations.every((inv) =>
       selectedInvitations.includes(inv.inviteCode)
     );
-  const isSomeSelected = selectedInvitations.length > 0 && !isAllSelected;
+  const isSomeSelected =
+    currentInvitations.some((inv) =>
+      selectedInvitations.includes(inv.inviteCode)
+    ) && !isAllSelected;
 
   if (isLoading) {
     return (
