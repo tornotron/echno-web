@@ -30,10 +30,29 @@ export default function VendorDetailPage({ params }: PageProps) {
   const router = useRouter();
   const vendorId = Number(id);
 
+  const isValidId = Number.isFinite(vendorId) && vendorId > 0;
+
   const { data: vendor, isLoading, isError, error } = useVendor(vendorId);
   // Fetched here only for tab badge counts — tab components re-use the same cache
   const { data: contacts = [] } = useVendorContacts(vendorId);
   const { data: bankAccounts = [] } = useVendorBankAccounts(vendorId);
+
+  if (!isValidId) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
+        <AlertCircle className="h-12 w-12 text-red-500" />
+        <h2 className="text-xl font-semibold">Invalid Vendor ID</h2>
+        <p className="text-zinc-500">
+          &quot;{id}&quot; is not a valid vendor identifier.
+        </p>
+        <Button
+          onClick={() => router.push('/users/dashboard/third-party/vendors')}
+        >
+          Back to Vendors
+        </Button>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

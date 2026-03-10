@@ -37,12 +37,6 @@ import type {
   CreateVendorBankAccountInput,
 } from '@/types/vendor';
 
-function handleMutationError(fallback: string) {
-  return (err: unknown) => {
-    toast.error(err instanceof Error ? err.message : fallback);
-  };
-}
-
 interface VendorBankingTabProps {
   vendorId: number;
 }
@@ -85,13 +79,10 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
       );
       setDialog({ open: false });
     };
-    const mutateOptions = {
-      onSuccess,
-      onError: handleMutationError('Failed to save bank account.'),
-    };
+    const mutateOptions = { onSuccess };
     if (dialog.editing) {
       updateBank.mutate(
-        { accountId: dialog.editing.id, vendor: form },
+        { accountId: dialog.editing.id, bankAccountInput: form },
         mutateOptions
       );
     } else {
@@ -141,7 +132,10 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
                     {b.accountNumber && (
                       <p className="flex items-center gap-1 text-sm text-zinc-500">
                         <CreditCard className="h-3 w-3" />
-                        ••••{b.accountNumber.slice(-4)}
+                        ••••
+                        {b.accountNumber.length > 4
+                          ? b.accountNumber.slice(-4)
+                          : '••••'}
                       </p>
                     )}
                     <div className="flex gap-4 text-xs text-zinc-400">
@@ -301,8 +295,6 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
                     toast.success('Bank account removed.');
                     setToDelete(null);
                   },
-                  onError: (e) =>
-                    toast.error(e instanceof Error ? e.message : 'Failed.'),
                 });
               }}
             >

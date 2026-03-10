@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -77,25 +77,34 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
   const initialPayeeInfo = payment
     ? getPayeeInfo(payment, payeeDatasets)
     : null;
-  const needsManualEntry = initialPayeeInfo
-    ? [
-        PayeeType.consultant,
-        PayeeType.utility,
-        PayeeType.government,
-        PayeeType.insurance,
-        PayeeType.bank,
-        PayeeType.legal,
-        PayeeType.rental,
-        PayeeType.other,
-      ].includes(initialPayeeInfo.type)
-    : false;
+
+  const manualEntryTypes = new Set([
+    PayeeType.consultant,
+    PayeeType.utility,
+    PayeeType.government,
+    PayeeType.insurance,
+    PayeeType.bank,
+    PayeeType.legal,
+    PayeeType.rental,
+    PayeeType.other,
+  ]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPayeeType, setSelectedPayeeType] = useState<
     PayeeType | undefined
   >(initialPayeeInfo?.type);
-  const [showManualPayeeEntry, setShowManualPayeeEntry] =
-    useState(needsManualEntry);
+  const [showManualPayeeEntry, setShowManualPayeeEntry] = useState(
+    initialPayeeInfo ? manualEntryTypes.has(initialPayeeInfo.type) : false
+  );
+
+  // Re-derive payee info once vendors have loaded
+  useEffect(() => {
+    if (!payment || vendors.length === 0) return;
+    const info = getPayeeInfo(payment, payeeDatasets);
+    setSelectedPayeeType(info.type);
+    setShowManualPayeeEntry(manualEntryTypes.has(info.type));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendors]);
 
   const [formData, setFormData] = useState<Partial<Payment>>({
     paymentNumber: payment?.paymentNumber || '',
