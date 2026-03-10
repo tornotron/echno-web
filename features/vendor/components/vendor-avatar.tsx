@@ -17,8 +17,9 @@ const SIZE_CLASSES: Record<NonNullable<VendorAvatarProps['size']>, string> = {
 };
 
 function vendorInitials(name: string): string {
-  return name
-    .trim()
+  const trimmed = name.trim();
+  if (!trimmed) return '?';
+  return trimmed
     .split(/\s+/)
     .map((w) => w[0])
     .join('')

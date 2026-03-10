@@ -281,13 +281,21 @@ export function VendorOverviewTab({
                   {paymentTerms.creditLimit !== undefined && (
                     <VendorField
                       label="Credit Limit"
-                      value={`₹${paymentTerms.creditLimit.toLocaleString()}`}
+                      value={
+                        paymentTerms.creditLimit === 0
+                          ? 'No limit'
+                          : `₹${paymentTerms.creditLimit.toLocaleString()}`
+                      }
                     />
                   )}
                   {paymentTerms.creditDays !== undefined && (
                     <VendorField
                       label="Credit Days"
-                      value={`${paymentTerms.creditDays} days`}
+                      value={
+                        paymentTerms.creditDays === 0
+                          ? 'Immediate payment'
+                          : `${paymentTerms.creditDays} days`
+                      }
                     />
                   )}
                   <Button

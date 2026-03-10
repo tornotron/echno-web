@@ -45,12 +45,6 @@ import type {
 
 const TAX_ID_TYPES = ['GST', 'PAN', 'TAN', 'TIN', 'CIN', 'OTHER'];
 
-function handleMutationError(fallback: string) {
-  return (err: unknown) => {
-    toast.error(err instanceof Error ? err.message : fallback);
-  };
-}
-
 interface VendorTaxTabProps {
   vendorId: number;
 }
@@ -91,13 +85,10 @@ export function VendorTaxTab({ vendorId }: VendorTaxTabProps) {
       toast.success(dialog.editing ? 'Tax ID updated.' : 'Tax ID added.');
       setDialog({ open: false });
     };
-    const mutateOptions = {
-      onSuccess,
-      onError: handleMutationError('Failed to save tax identifier.'),
-    };
+    const mutateOptions = { onSuccess };
     if (dialog.editing) {
       updateTax.mutate(
-        { taxIdId: dialog.editing.id, vendor: form },
+        { taxIdId: dialog.editing.id, taxIdentifierInput: form },
         mutateOptions
       );
     } else {
@@ -242,8 +233,6 @@ export function VendorTaxTab({ vendorId }: VendorTaxTabProps) {
                     toast.success('Tax identifier removed.');
                     setToDelete(null);
                   },
-                  onError: (e) =>
-                    toast.error(e instanceof Error ? e.message : 'Failed.'),
                 });
               }}
             >
