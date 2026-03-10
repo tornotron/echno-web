@@ -24,10 +24,12 @@ import { useOrganization as useOrganizationQuery } from '@/hooks/organization/us
 import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
 import { buildTree } from '@/lib/utils/hierarchy';
-import { OrganizationOverviewTab } from '@/features/organization/components/organization-overview-tab';
-import { OrganizationSettingsTab } from '@/features/organization/components/organization-settings-tab';
-import { OrganizationHierarchyTab } from '@/features/organization/components/organization-hierarchy-tab';
-import { EmployeeTreeNode } from '@/features/employee/components/employee-tree-node';
+import {
+  OrganizationOverviewTab,
+  OrganizationSettingsTab,
+  OrganizationHierarchyTab,
+} from '@/features/organization';
+import { EmployeeTreeNode } from '@/features/employee';
 
 interface OrganizationDetailPageProps {
   params: Promise<{
