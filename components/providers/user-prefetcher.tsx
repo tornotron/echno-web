@@ -4,10 +4,8 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
-import { organizationService } from '@/services/organization-service';
 import { logger } from '@/lib/logger';
 import { ApiError } from '@/lib/api/api-client';
-import { organizationKeys } from '@/hooks/organization/organization-keys';
 
 /**
  * UserPrefetcher
@@ -15,7 +13,9 @@ import { organizationKeys } from '@/hooks/organization/organization-keys';
  * Prefetches user-related data when the user is authenticated:
  * 1. User profile data
  * 2. Employee data (if user is an employee)
- * 3. Organizations created by the user
+ *
+ * Organization prefetching is handled separately by
+ * `useOrganizationPrefetch` in `features/organization/hooks/use-organization-prefetch.ts`.
  *
  * This ensures all user-related data is available in the React Query cache
  * before navigating to pages that need them.
@@ -73,17 +73,6 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
                 } else {
                   logger.error('Failed to prefetch employee profiles:', error);
                 }
-              });
-
-            // Prefetch organizations for the current user
-            organizationService
-              .getAll()
-              .then((organizations) => {
-                queryClient.setQueryData(organizationKeys.all, organizations);
-                logger.debug('User organizations prefetched successfully');
-              })
-              .catch((error) => {
-                logger.error('Failed to prefetch user organizations:', error);
               });
           }
         })
