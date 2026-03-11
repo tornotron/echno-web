@@ -21,14 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   X,
   Save,
   AlertCircle,
@@ -53,7 +45,12 @@ import {
 import { abbreviatedName } from '@/types/task/work-category';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { toast } from '@/lib/styles/toast-styles';
-import { TaskAttachmentsSection } from '@/features/tasks/components';
+import {
+  TaskAttachmentsSection,
+  DeleteTaskDialog,
+  SaveTaskDialog,
+  CreateCategoryDialog,
+} from '@/features/tasks/components';
 
 function formatDateForInput(date: Date): string {
   const y = date.getFullYear();
@@ -107,10 +104,15 @@ export default function EditTaskPage({ params }: PageProps) {
   const deleteTask = useDeleteTask();
   const { data: currentEmployee } = useCurrentUserEmployee();
 
-  // Create category dialog state
+  // Dialog state
   const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newCategoryDescription, setNewCategoryDescription] = useState('');
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [pendingSubmitData, setPendingSubmitData] = useState<
+    Parameters<typeof updateTask.mutate>[0] | null
+  >(null);
 
   const handleCreateCategory = () => {
     if (!newCategoryName.trim()) {
@@ -339,28 +341,16 @@ export default function EditTaskPage({ params }: PageProps) {
   };
 
   // Handle delete
-  const handleDelete = async () => {
-    if (
-      !confirm(
-        'Are you sure you want to delete this task? This action cannot be undone.'
-      )
-    ) {
-      return;
-    }
+  const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
 
+  const confirmDelete = () => {
     deleteTask.mutate(taskId, {
       onSuccess: () => {
         router.push(`/users/dashboard/projects/${projectId}/tasks`);
       },
-      onError: (error) => {
-        console.error('Failed to delete task:', error);
-        toast.error('Delete Failed', {
-          description:
-            error instanceof Error
-              ? error.message
-              : 'Could not delete the task. Please try again.',
-        });
-      },
+      onSettled: () => setShowDeleteDialog(false),
     });
   };
 
@@ -374,41 +364,26 @@ export default function EditTaskPage({ params }: PageProps) {
       (c) => c.id?.toString() === form.categoryId
     );
 
-    updateTask.mutate(
-      {
-        id: taskId,
-        data: {
-          projectId: projectIdNum,
-          title: form.title,
-          description: form.description,
-          startDate: form.startDate ? new Date(form.startDate) : undefined,
-          endDate: form.endDate ? new Date(form.endDate) : undefined,
-          creator: currentEmployee,
-          category: selectedCategory,
-          status: form.status,
-          progress: Number.parseInt(form.progress),
-          tags: form.selectedTags,
-          assignees: form.selectedAssignees
-            .map((sid) => projectMembers.find((m) => m.id?.toString() === sid))
-            .filter(Boolean) as typeof projectMembers,
-        },
-        files: { attachments },
+    setPendingSubmitData({
+      id: taskId,
+      data: {
+        projectId: projectIdNum,
+        title: form.title,
+        description: form.description,
+        startDate: form.startDate ? new Date(form.startDate) : undefined,
+        endDate: form.endDate ? new Date(form.endDate) : undefined,
+        creator: currentEmployee,
+        category: selectedCategory,
+        status: form.status,
+        progress: Number.parseInt(form.progress),
+        tags: form.selectedTags,
+        assignees: form.selectedAssignees
+          .map((sid) => projectMembers.find((m) => m.id?.toString() === sid))
+          .filter(Boolean) as typeof projectMembers,
       },
-      {
-        onSuccess: () => {
-          router.push(`/users/dashboard/projects/${projectId}/tasks/${taskId}`);
-        },
-        onError: (error) => {
-          console.error('Failed to update task:', error);
-          toast.error('Save Failed', {
-            description:
-              error instanceof Error
-                ? error.message
-                : 'Could not save the task. Please try again.',
-          });
-        },
-      }
-    );
+      files: { attachments },
+    });
+    setShowSaveDialog(true);
   };
 
   const isSubmitting = updateTask.isPending;
@@ -815,58 +790,47 @@ export default function EditTaskPage({ params }: PageProps) {
         </div>
       </form>
 
-      {/* Create Category Dialog */}
-      <Dialog open={showCreateCategory} onOpenChange={setShowCreateCategory}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Work Category</DialogTitle>
-            <DialogDescription>
-              Add a new work category for your tasks
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="new-category-name">
-                Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="new-category-name"
-                placeholder="e.g. Civil Engineering"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-category-description">
-                Description <span className="text-red-500">*</span>
-              </Label>
-              <Textarea
-                id="new-category-description"
-                placeholder="Describe this category..."
-                value={newCategoryDescription}
-                onChange={(e) => setNewCategoryDescription(e.target.value)}
-                rows={3}
-                className="resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateCategory(false)}
-              disabled={createWorkCategory.isPending}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateCategory}
-              disabled={createWorkCategory.isPending}
-            >
-              {createWorkCategory.isPending ? 'Creating...' : 'Create Category'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <CreateCategoryDialog
+        open={showCreateCategory}
+        onOpenChange={setShowCreateCategory}
+        name={newCategoryName}
+        description={newCategoryDescription}
+        onNameChange={setNewCategoryName}
+        onDescriptionChange={setNewCategoryDescription}
+        isPending={createWorkCategory.isPending}
+        onConfirm={handleCreateCategory}
+      />
+
+      <SaveTaskDialog
+        open={showSaveDialog}
+        onOpenChange={(open) => {
+          setShowSaveDialog(open);
+          if (!open) setPendingSubmitData(null);
+        }}
+        isPending={isSubmitting}
+        onConfirm={() => {
+          if (!pendingSubmitData) return;
+          updateTask.mutate(pendingSubmitData, {
+            onSuccess: () => {
+              router.push(
+                `/users/dashboard/projects/${projectId}/tasks/${taskId}`
+              );
+            },
+            onSettled: () => {
+              setShowSaveDialog(false);
+              setPendingSubmitData(null);
+            },
+          });
+        }}
+      />
+
+      <DeleteTaskDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        taskTitle={taskToEdit.title}
+        isPending={isDeleting}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
