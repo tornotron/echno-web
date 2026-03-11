@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge';
-import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import type { TreeNode } from '@/lib/utils/hierarchy';
 
 export function EmployeeTreeNode({ node }: { node: TreeNode }) {

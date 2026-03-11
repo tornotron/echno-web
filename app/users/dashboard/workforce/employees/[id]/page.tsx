@@ -33,7 +33,7 @@ import {
 import { useAuthorization } from '@/hooks/use-authorization';
 import { useProjectsByEmployee } from '@/hooks/project';
 import { EmployeeLeaveSection } from '@/features/leave/components/employee-leave-section';
-import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { EmployeeOverviewTab } from '@/features/employee/components/employee-overview-tab';
 
 interface EmployeeDetailPageProps {
