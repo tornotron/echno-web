@@ -109,32 +109,51 @@ export default function IssuesPage({ params }: PageProps) {
 
       {/* Statistics */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          { label: 'Total Issues', count: totalIssues, color: 'blue' },
-          { label: 'Open', count: openIssues, color: 'red' },
-          { label: 'In Progress', count: inProgressIssues, color: 'blue' },
-          { label: 'Resolved', count: resolvedIssues, color: 'green' },
-        ].map(({ label, count, color }) => (
-          <Card key={label}>
-            <CardHeader className="pb-3">
-              <CardDescription>{label}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center justify-between">
-                <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-lg bg-${color}-100 dark:bg-${color}-900/20`}
-                >
-                  <AlertCircle
-                    className={`h-6 w-6 text-${color}-600 dark:text-${color}-400`}
-                  />
+        {(
+          [
+            { label: 'Total Issues', count: totalIssues, color: 'blue' },
+            { label: 'Open', count: openIssues, color: 'red' },
+            { label: 'In Progress', count: inProgressIssues, color: 'blue' },
+            { label: 'Resolved', count: resolvedIssues, color: 'green' },
+          ] as const
+        ).map(({ label, count, color }) => {
+          const colorClasses = {
+            blue: {
+              bg: 'bg-blue-100 dark:bg-blue-900/20',
+              text: 'text-blue-600 dark:text-blue-400',
+            },
+            red: {
+              bg: 'bg-red-100 dark:bg-red-900/20',
+              text: 'text-red-600 dark:text-red-400',
+            },
+            green: {
+              bg: 'bg-green-100 dark:bg-green-900/20',
+              text: 'text-green-600 dark:text-green-400',
+            },
+          } satisfies Record<string, { bg: string; text: string }>;
+
+          const classes = colorClasses[color];
+
+          return (
+            <Card key={label}>
+              <CardHeader className="pb-3">
+                <CardDescription>{label}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-lg ${classes.bg}`}
+                  >
+                    <AlertCircle className={`h-6 w-6 ${classes.text}`} />
+                  </div>
+                  <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    {count}
+                  </span>
                 </div>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {count}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Search and Filters */}

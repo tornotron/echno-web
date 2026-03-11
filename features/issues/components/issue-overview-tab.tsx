@@ -129,7 +129,7 @@ export function IssueOverviewTab({
     try {
       await updateIssueMutation.mutateAsync({
         id: issue.id,
-        data: { assigneeId: undefined },
+        data: { assigneeId: null },
         files: { attachments: [] },
       });
       setAssignDialogOpen(false);

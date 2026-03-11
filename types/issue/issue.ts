@@ -18,7 +18,7 @@ export interface Issue {
   updatedAt?: Date;
   creatorId?: number;
   creator?: Employee; // resolved at hook level from creatorId
-  assigneeId?: number;
+  assigneeId?: number | null;
   assignee?: Employee; // resolved at hook level from assigneeId
   comments?: IssueComment[];
   attachments?: Attachment[];
