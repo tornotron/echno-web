@@ -30,7 +30,7 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
   const { data: currentEmployee } = useCurrentUserEmployee();
 
   const handleAddComment = async () => {
-    if (!commentText.trim() || !issue.id) return;
+    if (!commentText.trim() || !issue.id || !currentEmployee) return;
     try {
       await createCommentMutation.mutateAsync({
         issueId: issue.id,
@@ -212,7 +212,9 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
                   size="sm"
                   onClick={handleAddComment}
                   disabled={
-                    !commentText.trim() || createCommentMutation.isPending
+                    !commentText.trim() ||
+                    !currentEmployee ||
+                    createCommentMutation.isPending
                   }
                 >
                   {createCommentMutation.isPending ? (
