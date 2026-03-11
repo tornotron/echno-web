@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { taskService } from '@/services/task-service';
 import { shouldRetry } from '@/lib/utils/retry';
+import { taskKeys } from './task-keys';
 
 /**
  * Hook to fetch all tasks.
  */
 export function useTasks() {
   return useQuery({
-    queryKey: ['tasks'],
+    queryKey: taskKeys.all,
     queryFn: () => taskService.getAll(),
     staleTime: 5 * 60 * 1000,
     retry: shouldRetry,
@@ -20,7 +21,7 @@ export function useTasks() {
  */
 export function useTask(id?: number) {
   return useQuery({
-    queryKey: ['tasks', id],
+    queryKey: taskKeys.detail(id ?? 0),
     queryFn: () => {
       if (!id) {
         throw new Error('Task ID is required');
@@ -40,7 +41,7 @@ export function useTask(id?: number) {
  */
 export function useTasksByProject(projectId?: number) {
   return useQuery({
-    queryKey: ['tasks', 'project', projectId],
+    queryKey: taskKeys.byProject(projectId ?? 0),
     queryFn: async () => {
       if (!projectId) {
         throw new Error('Project ID is required');

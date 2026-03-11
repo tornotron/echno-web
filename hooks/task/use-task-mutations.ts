@@ -4,6 +4,7 @@ import { Task } from '@/types/task/task';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { taskKeys } from './task-keys';
 
 /**
  * useCreateTask
@@ -17,7 +18,7 @@ export function useCreateTask() {
   return useMutation({
     mutationFn: (taskData: Partial<Task>) => taskService.create(taskData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
       toast.success('Task Created', {
         description: 'The task has been created successfully',
       });
@@ -43,7 +44,7 @@ export function useCreateTaskWithFiles() {
     mutationFn: ({ data, files }: { data: Partial<Task>; files: TaskFiles }) =>
       taskService.createWithFiles(data, files),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
       toast.success('Task Created', {
         description: 'The task has been created successfully',
       });
@@ -69,8 +70,8 @@ export function useUpdateTask() {
     mutationFn: ({ id, data }: { id: number; data: Partial<Task> }) =>
       taskService.update(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.detail(id) });
       toast.success('Task Updated', {
         description: 'The task has been updated successfully',
       });
@@ -103,8 +104,8 @@ export function useUpdateTaskWithFiles() {
       files: TaskFiles;
     }) => taskService.updateWithFiles(id, data, files),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.detail(id) });
       toast.success('Task Updated', {
         description: 'The task has been updated successfully',
       });
@@ -130,8 +131,8 @@ export function useDeleteTask() {
   return useMutation({
     mutationFn: taskService.delete,
     onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
-      queryClient.invalidateQueries({ queryKey: ['tasks', id] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.all });
+      queryClient.invalidateQueries({ queryKey: taskKeys.detail(id) });
       toast.success('Task Deleted', {
         description: 'The task has been deleted successfully',
       });
