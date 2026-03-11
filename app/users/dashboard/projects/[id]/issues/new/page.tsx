@@ -62,6 +62,7 @@ export default function NewIssuePage({ params }: PageProps) {
 
   // If navigated from a task page, taskId is in the URL
   const fromTaskId = searchParams.get('taskId') || '';
+  const fromTaskTitle = searchParams.get('taskTitle') || '';
   const isTaskLocked = !!fromTaskId;
 
   const createMutation = useCreateIssueWithFiles();
@@ -78,7 +79,7 @@ export default function NewIssuePage({ params }: PageProps) {
   // Form state — taskId pre-seeded from URL when navigating from a task
   const [taskId, setTaskId] = useState<string>(fromTaskId);
   const [taskSearch, setTaskSearch] = useState('');
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState(fromTaskTitle);
   const [description, setDescription] = useState('');
   const [issueType, setIssueType] = useState<IssueType>(IssueType.technical);
   const [status, setStatus] = useState<IssueStatus>(IssueStatus.open);
