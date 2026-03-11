@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { toast } from '@/lib/styles/toast-styles';
 import { Building2, Save, X } from 'lucide-react';
 import { useUpdateVendor } from '@/hooks/vendors';
 import {
