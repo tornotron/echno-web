@@ -23,7 +23,6 @@ import {
   ListTodo,
   AlertCircle,
   Activity,
-  Briefcase,
   ClipboardCheck,
   Paperclip,
   Download,
@@ -582,16 +581,6 @@ export default function ProjectDashboardPage() {
                 >
                   <AlertCircle className="mr-2 h-4 w-4" />
                   Report Issue
-                </Link>
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                asChild
-              >
-                <Link href="/users/dashboard/resources/material-requests/new">
-                  <Briefcase className="mr-2 h-4 w-4" />
-                  Material Request
                 </Link>
               </Button>
             </CardContent>
