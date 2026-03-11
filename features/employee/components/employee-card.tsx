@@ -7,7 +7,7 @@ import { Mail, Phone, Building, IdCard } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { EmployeeStatusBadge } from './employee-status-badge';
-import { EmployeeAvatar } from './employee-avatar';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 
 interface EmployeeCardProps {
   employee: Employee;
