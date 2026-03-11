@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, X, Loader2 } from 'lucide-react';
 import type { Employee } from '@/types/employee';
 import { getDepartmentLabel } from '@/types/employee/departments';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { useEmployees } from '@/hooks/employee/use-employee';
 import {
   useAddEmployeeToProject,
@@ -103,14 +104,7 @@ export function TeamMembersSection({
                   className="hover:bg-accent flex items-center justify-between rounded-lg border p-3"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
-                      {employee.name
-                        .split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()
-                        .slice(0, 2)}
-                    </div>
+                    <EmployeeAvatar employee={employee} size="sm" />
                     <div>
                       <p className="font-medium">{employee.name}</p>
                       <p className="text-muted-foreground text-sm">
@@ -190,14 +184,7 @@ export function TeamMembersSection({
               className="flex items-center justify-between rounded-lg border p-3"
             >
               <div className="flex items-center gap-3">
-                <div className="bg-primary/10 text-primary flex h-10 w-10 items-center justify-center rounded-full font-semibold">
-                  {employee.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .join('')
-                    .toUpperCase()
-                    .slice(0, 2)}
-                </div>
+                <EmployeeAvatar employee={employee} size="sm" />
                 <div>
                   <p className="font-medium">{employee.name}</p>
                   <p className="text-muted-foreground text-sm">

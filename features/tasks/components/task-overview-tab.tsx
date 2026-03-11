@@ -127,7 +127,7 @@ export function TaskOverviewTab({
                   <Tag className="mr-1 inline h-4 w-4" />
                   Category
                 </label>
-                <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-gradient-to-br from-zinc-50 to-zinc-100 p-4 transition-all hover:shadow-md dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900">
+                <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-linear-to-br from-zinc-50 to-zinc-100 p-4 transition-all hover:shadow-md dark:border-zinc-700 dark:from-zinc-800 dark:to-zinc-900">
                   {task.category.image ? (
                     <Image
                       src={task.category.image}
@@ -137,7 +137,7 @@ export function TaskOverviewTab({
                       className="h-12 w-12 rounded-md object-cover"
                     />
                   ) : (
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-gradient-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-sm">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-linear-to-br from-blue-500 to-blue-600 text-lg font-bold text-white shadow-sm">
                       {task.category.icon}
                     </div>
                   )}

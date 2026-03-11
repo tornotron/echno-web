@@ -23,7 +23,7 @@ import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project';
 import { useUser } from '@/hooks/user/use-user';
 import { EmployeeStatusBadge } from '@/features/employee/components/employee-status-badge';
-import { EmployeeAvatar } from '@/features/employee/components/employee-avatar';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { EmployeeTable } from '@/features/employee/components/employee-table';
 
 export default function EmployeesPage() {

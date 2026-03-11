@@ -29,7 +29,7 @@ import {
   Save,
   X,
 } from 'lucide-react';
-import { EmployeeAvatar } from './employee-avatar';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import {
   EmployeeStatus,

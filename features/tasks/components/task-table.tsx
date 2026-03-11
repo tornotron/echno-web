@@ -25,6 +25,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import type { Task } from '@/types/task/task';
 import { TaskStatus } from '@/types/task/task-status';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -199,18 +200,15 @@ export function TaskTable({
                           <div className="flex items-center gap-2">
                             <div className="flex -space-x-2">
                               {task.assignees.slice(0, 3).map((assignee, i) => (
-                                <div
+                                <EmployeeAvatar
                                   key={i}
-                                  className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-linear-to-br from-blue-500 to-blue-600 dark:border-zinc-900"
-                                  title={assignee.name}
-                                >
-                                  <span className="text-xs font-medium text-white">
-                                    {assignee.name?.charAt(0) || '?'}
-                                  </span>
-                                </div>
+                                  employee={assignee}
+                                  size="sm"
+                                  className="!size-8 ring-2 ring-white dark:ring-zinc-900"
+                                />
                               ))}
                               {task.assignees.length > 3 && (
-                                <div className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-zinc-200 dark:border-zinc-900 dark:bg-zinc-700">
+                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-200 ring-2 ring-white dark:bg-zinc-700 dark:ring-zinc-900">
                                   <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">
                                     +{task.assignees.length - 3}
                                   </span>

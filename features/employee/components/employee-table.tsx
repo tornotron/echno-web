@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { EmployeeProjectsCell } from './employee-projects-cell';
 import { EmployeeStatusBadge } from './employee-status-badge';
-import { EmployeeAvatar } from './employee-avatar';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 
 interface EmployeeTableProps {
   filteredEmployees: Employee[];
