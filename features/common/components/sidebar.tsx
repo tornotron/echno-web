@@ -455,8 +455,8 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-2 px-2 py-2">
-              <Avatar className="size-8">
+            <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+              <Avatar className="size-8 shrink-0">
                 <AvatarImage
                   src={employee?.profilePicture?.file}
                   alt={session.user?.name || 'User'}
