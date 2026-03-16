@@ -24,21 +24,21 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
-import { LocationType, locationTypeLabels } from '@/types/resource/location';
 import {
-  mockLocations,
-  mockLocationInventory,
-} from '@/components/shared/mock-data';
+  StorageLocationType,
+  STORAGE_LOCATION_TYPE_LABELS,
+} from '@/types/storage-locations';
+import { useStorageLocations } from '@/hooks/storage-locations';
 
 interface LocationFilters {
   search: string;
-  type: LocationType | 'all';
+  type: StorageLocationType | 'all';
   status: 'all' | 'active' | 'inactive';
 }
 
 export default function LocationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(9); // 3 columns x 3 rows
+  const [itemsPerPage, setItemsPerPage] = useState(9);
 
   const [filters, setFilters] = useState<LocationFilters>({
     search: '',
@@ -46,28 +46,30 @@ export default function LocationsPage() {
     status: 'active',
   });
 
-  // Filter locations
-  const filteredLocations = mockLocations.filter((location) => {
+  const { data: locations = [], isLoading } = useStorageLocations();
+
+  const filteredLocations = locations.filter((location) => {
     const matchesSearch =
-      location.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+      location.locationName
+        .toLowerCase()
+        .includes(filters.search.toLowerCase()) ||
       location.address?.toLowerCase().includes(filters.search.toLowerCase());
     const matchesType =
-      filters.type === 'all' || location.type === filters.type;
+      filters.type === 'all' || location.locationType === filters.type;
     const matchesStatus =
       filters.status === 'all' ||
-      (filters.status === 'active' && location.isActive) ||
-      (filters.status === 'inactive' && !location.isActive);
-
+      (filters.status === 'active' && location.active) ||
+      (filters.status === 'inactive' && !location.active);
     return matchesSearch && matchesType && matchesStatus;
   });
 
-  // Pagination calculations
   const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedLocations = filteredLocations.slice(startIndex, endIndex);
+  const paginatedLocations = filteredLocations.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
 
-  // Handle filter changes - reset to page 1
   const handleFilterChange = (
     key: keyof LocationFilters,
     value: string | number | boolean
@@ -76,27 +78,26 @@ export default function LocationsPage() {
     setCurrentPage(1);
   };
 
-  // Statistics
-  const totalLocations = mockLocations.length;
-  const activeLocations = mockLocations.filter((l) => l.isActive).length;
-  const totalCapacity = mockLocations.reduce(
-    (sum, l) => sum + (l.capacity || 0),
+  const totalLocations = locations.length;
+  const activeLocations = locations.filter((l) => l.active).length;
+  const locationTypes = new Set(locations.map((l) => l.locationType)).size;
+  const totalCapacity = locations.reduce(
+    (sum, l) => sum + (l.capacity ?? 0),
     0
   );
-  const locationTypes = new Set(mockLocations.map((l) => l.type)).size;
 
-  const getLocationIcon = (type: LocationType) => {
+  const getLocationIcon = (type: StorageLocationType) => {
     switch (type) {
-      case 'godown': {
+      case StorageLocationType.GODOWN: {
         return <Warehouse className="h-5 w-5" />;
       }
-      case 'head-office': {
+      case StorageLocationType.HEAD_OFFICE: {
         return <Building2 className="h-5 w-5" />;
       }
-      case 'project-site': {
+      case StorageLocationType.PROJECT_SITE: {
         return <Home className="h-5 w-5" />;
       }
-      case 'warehouse': {
+      case StorageLocationType.WAREHOUSE: {
         return <Box className="h-5 w-5" />;
       }
       default: {
@@ -110,13 +111,13 @@ export default function LocationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Locations</h1>
+          <h1 className="text-3xl font-bold">Storage Locations</h1>
           <p className="text-muted-foreground">
             Manage storage locations and warehouses
           </p>
         </div>
         <Button asChild>
-          <Link href="/users/dashboard/resources/locations/new">
+          <Link href="/users/dashboard/resources/storage-locations/new">
             <Plus className="mr-2 h-4 w-4" />
             Add Location
           </Link>
@@ -148,7 +149,11 @@ export default function LocationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {(totalCapacity / 1000).toFixed(1)}K
+              {totalCapacity > 0
+                ? totalCapacity >= 1000
+                  ? `${(totalCapacity / 1000).toFixed(1)}K`
+                  : totalCapacity.toLocaleString()
+                : '—'}
             </div>
             <p className="text-muted-foreground text-xs">
               units across all locations
@@ -169,14 +174,14 @@ export default function LocationsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg. Capacity</CardTitle>
-            <Box className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Active</CardTitle>
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {Math.round(totalCapacity / totalLocations)}
-            </div>
-            <p className="text-muted-foreground text-xs">units per location</p>
+            <div className="text-2xl font-bold">{activeLocations}</div>
+            <p className="text-muted-foreground text-xs">
+              {totalLocations - activeLocations} inactive
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -199,14 +204,13 @@ export default function LocationsPage() {
             placeholder: 'Type',
             options: [
               { value: 'all', label: 'All Types' },
-              ...Object.entries(locationTypeLabels).map(([value, label]) => ({
-                value,
-                label,
-              })),
+              ...Object.entries(STORAGE_LOCATION_TYPE_LABELS).map(
+                ([value, label]) => ({ value, label })
+              ),
             ],
             value: filters.type,
             onChange: (value) =>
-              handleFilterChange('type', value as LocationType | 'all'),
+              handleFilterChange('type', value as StorageLocationType | 'all'),
           },
           {
             placeholder: 'Status',
@@ -226,10 +230,10 @@ export default function LocationsPage() {
       />
 
       {/* Results Summary */}
-      <div className="mb-6 flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {startIndex + 1} to{' '}
-          {Math.min(endIndex, filteredLocations.length)} of{' '}
+          Showing {filteredLocations.length > 0 ? startIndex + 1 : 0} to{' '}
+          {Math.min(startIndex + itemsPerPage, filteredLocations.length)} of{' '}
           {filteredLocations.length} locations
         </p>
         <div className="flex items-center space-x-2">
@@ -258,88 +262,91 @@ export default function LocationsPage() {
       </div>
 
       {/* Locations Grid */}
-      {filteredLocations.length > 0 ? (
+      {isLoading ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Loading locations...</p>
+          </CardContent>
+        </Card>
+      ) : filteredLocations.length > 0 ? (
         <Card>
           <CardContent className="p-6">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {paginatedLocations.map((location) => {
-                const inventoryCount = mockLocationInventory[location.id] || 0;
-                return (
-                  <Link
-                    key={location.id}
-                    href={`/users/dashboard/resources/locations/${location.id}`}
-                    className="block"
-                  >
-                    <Card className="transition-shadow hover:shadow-md">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`rounded-lg p-2 ${getTypeColor(location.type)}`}
-                            >
-                              {getLocationIcon(location.type)}
-                            </div>
-                            <div>
-                              <CardTitle className="text-base">
-                                {location.name}
-                              </CardTitle>
-                              <Badge variant="outline" className="mt-1">
-                                {locationTypeLabels[location.type]}
-                              </Badge>
-                            </div>
-                          </div>
-                          <Badge
-                            variant={
-                              location.isActive ? 'default' : 'secondary'
-                            }
+              {paginatedLocations.map((location) => (
+                <Link
+                  key={location.id}
+                  href={`/users/dashboard/resources/storage-locations/${location.id}`}
+                  className="block"
+                >
+                  <Card className="transition-shadow hover:shadow-md">
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <div
+                            className={`rounded-lg p-2 ${getTypeColor(location.locationType)}`}
                           >
-                            {location.isActive ? (
-                              <>
-                                <CheckCircle2 className="mr-1 h-3 w-3" /> Active
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="mr-1 h-3 w-3" /> Inactive
-                              </>
-                            )}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {location.address && (
-                          <div className="text-muted-foreground text-sm">
-                            <MapPin className="mr-1 inline h-3 w-3" />
-                            {location.address}
-                          </div>
-                        )}
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-muted-foreground text-xs">
-                              Capacity
-                            </div>
-                            <div className="text-lg font-bold">
-                              {location.capacity?.toLocaleString()}
-                            </div>
+                            {getLocationIcon(location.locationType)}
                           </div>
                           <div>
-                            <div className="text-muted-foreground text-xs">
-                              Items Stored
-                            </div>
-                            <div className="text-lg font-bold text-blue-600">
-                              {inventoryCount}
-                            </div>
+                            <CardTitle className="text-base">
+                              {location.locationName}
+                            </CardTitle>
+                            <Badge variant="outline" className="mt-1">
+                              {
+                                STORAGE_LOCATION_TYPE_LABELS[
+                                  location.locationType
+                                ]
+                              }
+                            </Badge>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
+                        <Badge
+                          variant={location.active ? 'default' : 'secondary'}
+                        >
+                          {location.active ? (
+                            <>
+                              <CheckCircle2 className="mr-1 h-3 w-3" /> Active
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="mr-1 h-3 w-3" /> Inactive
+                            </>
+                          )}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {location.address && (
+                        <div className="text-muted-foreground text-sm">
+                          <MapPin className="mr-1 inline h-3 w-3" />
+                          {location.address}
+                        </div>
+                      )}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <div className="text-muted-foreground text-xs">
+                            Capacity
+                          </div>
+                          <div className="text-lg font-bold">
+                            {location.capacity?.toLocaleString() ?? '—'}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground text-xs">
+                            Items Stored
+                          </div>
+                          <div className="text-lg font-bold text-blue-600">
+                            {location.storageItemCount ?? 0}
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
             </div>
           </CardContent>
 
-          {/* Pagination */}
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -357,7 +364,7 @@ export default function LocationsPage() {
               Try adjusting your filters or add a new location.
             </p>
             <Button asChild>
-              <Link href="/users/dashboard/resources/locations/new">
+              <Link href="/users/dashboard/resources/storage-locations/new">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Location
               </Link>
@@ -369,19 +376,22 @@ export default function LocationsPage() {
   );
 }
 
-const getTypeColor = (type: LocationType) => {
+const getTypeColor = (type: StorageLocationType) => {
   switch (type) {
-    case 'godown': {
+    case StorageLocationType.GODOWN: {
       return 'bg-blue-100 text-blue-600';
     }
-    case 'head-office': {
+    case StorageLocationType.HEAD_OFFICE: {
       return 'bg-purple-100 text-purple-600';
     }
-    case 'project-site': {
+    case StorageLocationType.PROJECT_SITE: {
       return 'bg-green-100 text-green-600';
     }
-    case 'warehouse': {
+    case StorageLocationType.WAREHOUSE: {
       return 'bg-yellow-100 text-yellow-600';
+    }
+    case StorageLocationType.PROCESSING_PLANT: {
+      return 'bg-orange-100 text-orange-600';
     }
     default: {
       return 'bg-gray-100 text-gray-600';
