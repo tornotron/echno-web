@@ -26,18 +26,24 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Save, Upload, FileText, MapPin, Loader2, X } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
+import { StorageLocationType } from '@/types/storage-locations';
+import { useCreateStorageLocation } from '@/hooks/storage-locations';
 import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewProjectPage() {
   const router = useRouter();
   const { data: currentUser, isLoading: isUserLoading } = useUser();
   const createProjectWithFiles = useCreateProjectWithFiles();
+  const createStorageLocation = useCreateStorageLocation();
   const { isLoading: isGettingLocation, getCurrentLocation } = useGeolocation();
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [createLocationForProject, setCreateLocationForProject] =
+    useState(false);
 
   const [formData, setFormData] = useState({
     projectName: '',
@@ -157,6 +163,23 @@ export default function NewProjectPage() {
         { data: projectData, files },
         {
           onSuccess: (createdProject) => {
+            if (createLocationForProject) {
+              createStorageLocation.mutate(
+                {
+                  locationName: formData.projectName,
+                  locationType: StorageLocationType.PROJECT_SITE,
+                  address: formData.projectAddress,
+                  latitude:
+                    Number.parseFloat(formData.projectLatitude) || undefined,
+                  longitude:
+                    Number.parseFloat(formData.projectLongitude) || undefined,
+                  projectId: createdProject.id,
+                  projectName: createdProject.projectName,
+                  active: true,
+                },
+                {}
+              );
+            }
             router.push(`/users/dashboard/projects/${createdProject.id}`);
           },
         }
@@ -431,6 +454,29 @@ export default function NewProjectPage() {
                     ))}
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Create Storage Location */}
+            <div className="flex items-start gap-3 rounded-lg border p-4">
+              <Checkbox
+                id="createLocation"
+                checked={createLocationForProject}
+                onCheckedChange={(checked) =>
+                  setCreateLocationForProject(checked === true)
+                }
+              />
+              <div>
+                <label
+                  htmlFor="createLocation"
+                  className="cursor-pointer text-sm leading-none font-medium"
+                >
+                  Create storage location for this project
+                </label>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  Automatically creates a Project Site storage location using
+                  the same name, address, and coordinates.
+                </p>
               </div>
             </div>
 
