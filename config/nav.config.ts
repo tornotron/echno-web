@@ -257,9 +257,9 @@ export const navigation: NavItem[] = [
         icon: PackageCheck,
       },
       {
-        label: 'Locations',
-        segment: 'locations',
-        path: d('resources/locations'),
+        label: 'Storage Locations',
+        segment: 'storage-locations',
+        path: d('resources/storage-locations'),
         icon: MapPin,
       },
       {
