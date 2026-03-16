@@ -30,7 +30,7 @@ export interface StorageLocation {
   capacity?: number;
   latitude?: number;
   longitude?: number;
-  storageItemCount?: number;
+  storageItemsCount?: number;
   active: boolean;
 }
 
@@ -63,7 +63,7 @@ export function parseStorageLocation(raw: Raw): StorageLocation {
     capacity: raw.capacity ?? undefined,
     latitude: raw.latitude ?? undefined,
     longitude: raw.longitude ?? undefined,
-    storageItemCount: raw.storageItemCount ?? undefined,
+    storageItemsCount: raw.storageItemsCount ?? undefined,
     active: raw.active ?? true,
   };
 }

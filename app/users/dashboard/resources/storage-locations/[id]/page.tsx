@@ -151,7 +151,7 @@ export default function ViewLocationPage() {
           <CardHeader className="pb-3">
             <CardDescription>Items Stored</CardDescription>
             <CardTitle className="text-3xl text-blue-600">
-              {location.storageItemCount ?? 0}
+              {location.storageItemsCount ?? 0}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -167,7 +167,7 @@ export default function ViewLocationPage() {
             <CardDescription>Utilization</CardDescription>
             <CardTitle className="text-3xl text-green-600">
               {location.capacity
-                ? `${Math.round(((location.storageItemCount ?? 0) / location.capacity) * 100)}%`
+                ? `${Math.round(((location.storageItemsCount ?? 0) / location.capacity) * 100)}%`
                 : '—'}
             </CardTitle>
           </CardHeader>
