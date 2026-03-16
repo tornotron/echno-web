@@ -22,8 +22,11 @@ export const useUpdateStorageLocation = () => {
       id: number;
       input: CreateStorageLocationInput;
     }) => storageLocationsService.update(id, input),
-    onSuccess: () => {
+    onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: storageLocationKeys.detail(id),
+      });
       toast.success('Location Updated', {
         description: 'The storage location has been updated successfully',
       });
@@ -41,8 +44,11 @@ export const useDeleteStorageLocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => storageLocationsService.delete(id),
-    onSuccess: () => {
+    onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: storageLocationKeys.detail(id),
+      });
       toast.success('Location Deleted', {
         description: 'The storage location has been deleted successfully',
       });

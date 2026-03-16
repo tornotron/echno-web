@@ -51,6 +51,11 @@ export const storageLocationsService = {
     return safeParseAll(data);
   },
 
+  async getById(id: number): Promise<StorageLocation> {
+    const data = await api.get<Raw>(`/storage-locations/web/${id}`);
+    return safeParse(data);
+  },
+
   async update(
     id: number,
     input: CreateStorageLocationInput
