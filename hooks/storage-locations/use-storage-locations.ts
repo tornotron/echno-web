@@ -13,3 +13,10 @@ export const useStorageLocations = () =>
     queryKey: storageLocationKeys.lists(),
     queryFn: () => storageLocationsService.getAll(),
   });
+
+export const useStorageLocation = (id: number) =>
+  useQuery({
+    queryKey: storageLocationKeys.detail(id),
+    queryFn: () => storageLocationsService.getById(id),
+    enabled: !!id,
+  });
