@@ -336,7 +336,7 @@ export default function LocationsPage() {
                             Items Stored
                           </div>
                           <div className="text-lg font-bold text-blue-600">
-                            {location.storageItemCount ?? 0}
+                            {location.storageItemsCount ?? 0}
                           </div>
                         </div>
                       </div>
