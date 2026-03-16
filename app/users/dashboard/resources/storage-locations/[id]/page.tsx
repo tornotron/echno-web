@@ -30,14 +30,13 @@ import {
   StorageLocationType,
   STORAGE_LOCATION_TYPE_LABELS,
 } from '@/types/storage-locations';
-import { useStorageLocations } from '@/hooks/storage-locations';
+import { useStorageLocation } from '@/hooks/storage-locations';
 
 export default function ViewLocationPage() {
   const params = useParams();
   const locationId = Number(params.id);
 
-  const { data: locations = [], isLoading } = useStorageLocations();
-  const location = locations.find((l) => l.id === locationId);
+  const { data: location, isLoading } = useStorageLocation(locationId);
 
   const getLocationIcon = (type: StorageLocationType) => {
     switch (type) {

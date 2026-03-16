@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { MapPin, ArrowLeft, Trash2 } from 'lucide-react';
 import { CreateStorageLocationInput } from '@/types/storage-locations';
 import {
-  useStorageLocations,
+  useStorageLocation,
   useUpdateStorageLocation,
   useDeleteStorageLocation,
 } from '@/hooks/storage-locations';
@@ -26,8 +26,7 @@ export default function EditLocationPage() {
   const router = useRouter();
   const locationId = Number(params.id);
 
-  const { data: locations = [], isLoading } = useStorageLocations();
-  const location = locations.find((l) => l.id === locationId);
+  const { data: location, isLoading } = useStorageLocation(locationId);
   const updateLocation = useUpdateStorageLocation();
   const deleteLocation = useDeleteStorageLocation();
 
