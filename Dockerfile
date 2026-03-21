@@ -40,6 +40,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Update CA certificates
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
