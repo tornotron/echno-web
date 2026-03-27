@@ -37,6 +37,7 @@ export const authService = {
           throw new ApiError(
             'An account with this email or username already exists.',
             409,
+            undefined,
             error.errors
           );
         }
@@ -44,6 +45,7 @@ export const authService = {
           throw new ApiError(
             'Please check your registration details.',
             422,
+            undefined,
             error.errors
           );
         }

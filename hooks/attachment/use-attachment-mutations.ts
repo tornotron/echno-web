@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { attachmentService } from '@/services/attachment-service';
 import { Attachment } from '@/types/attachment';
+import { toast } from '@/lib/styles/toast-styles';
+import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 
 /**
  * Hook to upload an attachment for an entity.
@@ -43,7 +45,14 @@ export function useUploadAttachment() {
         ['attachments', 'entity', variables.entityId, variables.entityType],
         attachment
       );
+      toast.success('Attachment Uploaded', {
+        description: 'The file has been uploaded successfully.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Upload Attachment'), {
+        description: getErrorMessage(err),
+      }),
   });
 }
 
@@ -83,6 +92,13 @@ export function useDeleteAttachment() {
         queryKey: ['tasks'],
         refetchType: 'active',
       });
+      toast.success('Attachment Deleted', {
+        description: 'The attachment has been removed.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Delete Attachment'), {
+        description: getErrorMessage(err),
+      }),
   });
 }

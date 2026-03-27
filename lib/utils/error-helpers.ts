@@ -21,6 +21,9 @@ import { ApiError } from '@/lib/api/api-client';
  * ```
  */
 export function getErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.details ?? error.message;
+  }
   if (error instanceof Error) {
     return error.message;
   }
@@ -55,6 +58,8 @@ export function getErrorTitle(error: unknown, defaultTitle: string): string {
     if (error.isTimeout) return 'Request Timeout';
     if (error.isServerError) return 'Server Error';
     if (error.status === 0) return 'Network Error';
+    // Use the backend's message as the title when details provides the description
+    if (error.details) return error.message;
   }
   return defaultTitle;
 }
