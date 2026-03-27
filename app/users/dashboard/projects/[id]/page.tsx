@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
@@ -131,7 +131,7 @@ const getAttachmentIcon = (type: AttachmentType) => {
 export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
-  const now = useMemo(() => new Date(), []);
+  const now = new Date();
   const projectId = params.id
     ? Number.parseInt(params.id as string)
     : undefined;
@@ -201,7 +201,7 @@ export default function ProjectDashboardPage() {
     ? Math.ceil(
         (new Date(project.endDate).getTime() - now.getTime()) / 86_400_000
       )
-    : 0;
+    : null;
 
   const projectTasks = project.tasks ?? [];
   const completedTasks = projectTasks.filter(
@@ -332,12 +332,16 @@ export default function ProjectDashboardPage() {
                     </div>
                     <div
                       className={`text-sm font-medium ${
-                        daysRemaining < 30
+                        daysRemaining !== null && daysRemaining < 30
                           ? 'text-red-600'
                           : 'text-zinc-900 dark:text-zinc-100'
                       }`}
                     >
-                      {daysRemaining > 0 ? `${daysRemaining} days` : 'Overdue'}
+                      {daysRemaining === null
+                        ? 'Not set'
+                        : daysRemaining > 0
+                          ? `${daysRemaining} days`
+                          : 'Overdue'}
                     </div>
                   </div>
                   <div>
