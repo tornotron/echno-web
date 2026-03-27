@@ -33,7 +33,7 @@ export default function MaterialDetailPage({
   const id = Number(rawId);
   const router = useRouter();
 
-  const { data: material, isLoading } = useMaterial(id);
+  const { data: material, isLoading, isError } = useMaterial(id);
   const { data: materialStock } = useMaterialStock(id);
   const { mutate: deleteMaterial, isPending: isDeleting } = useDeleteMaterial();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -54,6 +54,22 @@ export default function MaterialDetailPage({
           </p>
         </div>
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
+          <h3 className="mb-2 text-lg font-medium">Failed to load material</h3>
+          <Button
+            onClick={() => router.push('/users/dashboard/resources/materials')}
+          >
+            Back to Materials
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -127,6 +143,7 @@ export default function MaterialDetailPage({
           <Button
             variant="destructive"
             size="sm"
+            aria-label="Delete material"
             onClick={() => setShowDeleteDialog(true)}
             disabled={isDeleting}
           >

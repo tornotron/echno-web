@@ -372,12 +372,14 @@ export default function NewMaterialPage() {
 
         {/* Action Buttons — task page style */}
         <div className="flex gap-3">
-          <Link href="/users/dashboard/resources/materials">
-            <Button type="button" variant="outline" disabled={isPending}>
-              Cancel
-            </Button>
-          </Link>
-          <Button type="submit" disabled={isPending} className="ml-auto">
+          <Button type="button" variant="outline" disabled={isPending} asChild>
+            <Link href="/users/dashboard/resources/materials">Cancel</Link>
+          </Button>
+          <Button
+            type="submit"
+            disabled={isPending || !currentEmployee?.id}
+            className="ml-auto"
+          >
             <Save className="mr-2 h-4 w-4" />
             {isPending ? 'Saving...' : 'Create Material'}
           </Button>

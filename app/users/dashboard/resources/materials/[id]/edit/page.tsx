@@ -276,11 +276,11 @@ export default function EditMaterialPage({
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Link href={`/users/dashboard/resources/materials/${id}`}>
-            <Button type="button" variant="outline" disabled={isPending}>
+          <Button type="button" variant="outline" disabled={isPending} asChild>
+            <Link href={`/users/dashboard/resources/materials/${id}`}>
               Cancel
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button type="submit" disabled={isPending} className="ml-auto">
             <Save className="mr-2 h-4 w-4" />
             {isPending ? 'Saving...' : 'Save Changes'}
