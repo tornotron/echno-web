@@ -15,7 +15,7 @@ export const useCreateIndent = () => {
   return useMutation({
     mutationFn: (indent: CreateIndentInput) => indentsService.create(indent),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: indentsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: indentsKeys.all });
       toast.success('Indent created successfully.');
     },
     onError: (err) =>
@@ -47,7 +47,7 @@ export const useDeleteIndent = () => {
   return useMutation({
     mutationFn: (id: number) => indentsService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: indentsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: indentsKeys.all });
       toast.success('Indent deleted.');
     },
     onError: (err) =>

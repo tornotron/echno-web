@@ -49,7 +49,11 @@ const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
 export default function IndentsPage() {
   const router = useRouter();
-  const { data: indents = [], isLoading } = useIndentsPaginated(0, 200);
+  const {
+    data: indents = [],
+    isLoading,
+    isError,
+  } = useIndentsPaginated(0, 200);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -108,6 +112,17 @@ export default function IndentsPage() {
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <ClipboardList className="mx-auto mb-4 h-12 w-12 text-red-400" />
+          <h3 className="mb-2 text-lg font-medium">Failed to load indents</h3>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -288,12 +303,21 @@ export default function IndentsPage() {
                   return (
                     <TableRow
                       key={indent.id}
+                      role="link"
+                      tabIndex={0}
                       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                       onClick={() =>
                         router.push(
                           `/users/dashboard/resources/indents/${indent.id}`
                         )
                       }
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          router.push(
+                            `/users/dashboard/resources/indents/${indent.id}`
+                          );
+                        }
+                      }}
                     >
                       <TableCell className="pl-6 font-medium">
                         {indent.indentNumber}
