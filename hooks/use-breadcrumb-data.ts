@@ -8,6 +8,9 @@ import { useTask } from '@/hooks/task/use-tasks';
 import { useIssue } from '@/hooks/issue/use-issues';
 import { useChatRoom } from '@/hooks/chat/use-chat-rooms';
 import { useVendor } from '@/hooks/vendors/use-vendors';
+import { useMaterial } from '@/hooks/materials/use-materials';
+import { useIndent } from '@/hooks/indents';
+import { useStorageLocation } from '@/hooks/storage-locations/use-storage-locations';
 import { Employee } from '@/types/employee/employee';
 import { Project } from '@/types/project/project';
 import { Organization } from '@/types/organization';
@@ -16,6 +19,9 @@ import { Task } from '@/types/task';
 import { Issue } from '@/types/issue/issue';
 import { ChatRoom } from '@/types/chat';
 import { Vendor } from '@/types/vendor';
+import { Material } from '@/types/materials';
+import { Indent } from '@/types/indents';
+import { StorageLocation } from '@/types/storage-locations/storage-location';
 
 interface BreadcrumbData {
   employees?: Employee[];
@@ -26,6 +32,9 @@ interface BreadcrumbData {
   issue?: Issue;
   chatRoom?: ChatRoom;
   vendor?: Vendor;
+  material?: Material;
+  indent?: Indent;
+  storageLocation?: StorageLocation;
 }
 
 /**
@@ -48,48 +57,80 @@ export function useBreadcrumbData(): BreadcrumbData {
   const searchParams = useSearchParams();
 
   // Parse pathname and query params for entity IDs
-  const { leaveRequestId, taskId, issueId, chatRoomId, vendorId } =
-    useMemo(() => {
-      // Extract leave request ID from path if present
-      const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
-      const leaveRequestId = leaveRequestIdMatch
-        ? Number.parseInt(leaveRequestIdMatch[1], 10)
-        : undefined;
+  const {
+    leaveRequestId,
+    taskId,
+    issueId,
+    chatRoomId,
+    vendorId,
+    materialId,
+    indentId,
+    storageLocationId,
+  } = useMemo(() => {
+    // Extract leave request ID from path if present
+    const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
+    const leaveRequestId = leaveRequestIdMatch
+      ? Number.parseInt(leaveRequestIdMatch[1], 10)
+      : undefined;
 
-      // Extract task ID from path, falling back to ?taskId= query param
-      // (used when navigating to an issue from a task details page)
-      const taskIdMatch = pathname.match(/\/tasks\/(\d+)/);
-      const taskIdFromPath = taskIdMatch
-        ? Number.parseInt(taskIdMatch[1], 10)
-        : undefined;
-      const taskIdFromQuery = searchParams.get('taskId');
-      const parsedTaskIdFromQuery = taskIdFromQuery
-        ? Number.parseInt(taskIdFromQuery, 10)
-        : undefined;
-      const taskId =
-        taskIdFromPath ??
-        (Number.isFinite(parsedTaskIdFromQuery)
-          ? parsedTaskIdFromQuery
-          : undefined);
+    // Extract task ID from path, falling back to ?taskId= query param
+    // (used when navigating to an issue from a task details page)
+    const taskIdMatch = pathname.match(/\/tasks\/(\d+)/);
+    const taskIdFromPath = taskIdMatch
+      ? Number.parseInt(taskIdMatch[1], 10)
+      : undefined;
+    const taskIdFromQuery = searchParams.get('taskId');
+    const parsedTaskIdFromQuery = taskIdFromQuery
+      ? Number.parseInt(taskIdFromQuery, 10)
+      : undefined;
+    const taskId =
+      taskIdFromPath ??
+      (Number.isFinite(parsedTaskIdFromQuery)
+        ? parsedTaskIdFromQuery
+        : undefined);
 
-      // Extract issue ID from path if present
-      const issueIdMatch = pathname.match(/\/issues\/(\d+)/);
-      const issueId = issueIdMatch
-        ? Number.parseInt(issueIdMatch[1], 10)
-        : undefined;
+    // Extract issue ID from path if present
+    const issueIdMatch = pathname.match(/\/issues\/(\d+)/);
+    const issueId = issueIdMatch
+      ? Number.parseInt(issueIdMatch[1], 10)
+      : undefined;
 
-      const chatRoomIdMatch = pathname.match(/\/chat\/(\d+)/);
-      const chatRoomId = chatRoomIdMatch
-        ? Number.parseInt(chatRoomIdMatch[1], 10)
-        : undefined;
+    const chatRoomIdMatch = pathname.match(/\/chat\/(\d+)/);
+    const chatRoomId = chatRoomIdMatch
+      ? Number.parseInt(chatRoomIdMatch[1], 10)
+      : undefined;
 
-      const vendorIdMatch = pathname.match(/\/vendors\/(\d+)/);
-      const vendorId = vendorIdMatch
-        ? Number.parseInt(vendorIdMatch[1], 10)
-        : undefined;
+    const vendorIdMatch = pathname.match(/\/vendors\/(\d+)/);
+    const vendorId = vendorIdMatch
+      ? Number.parseInt(vendorIdMatch[1], 10)
+      : undefined;
 
-      return { leaveRequestId, taskId, issueId, chatRoomId, vendorId };
-    }, [pathname, searchParams]);
+    const materialIdMatch = pathname.match(/\/materials\/(\d+)/);
+    const materialId = materialIdMatch
+      ? Number.parseInt(materialIdMatch[1], 10)
+      : undefined;
+
+    const indentIdMatch = pathname.match(/\/indents\/(\d+)/);
+    const indentId = indentIdMatch
+      ? Number.parseInt(indentIdMatch[1], 10)
+      : undefined;
+
+    const storageLocationIdMatch = pathname.match(/\/storage-locations\/(\d+)/);
+    const storageLocationId = storageLocationIdMatch
+      ? Number.parseInt(storageLocationIdMatch[1], 10)
+      : undefined;
+
+    return {
+      leaveRequestId,
+      taskId,
+      issueId,
+      chatRoomId,
+      vendorId,
+      materialId,
+      indentId,
+      storageLocationId,
+    };
+  }, [pathname, searchParams]);
 
   // Fetch data for breadcrumbs
   // Note: These full lists are needed for name lookups in breadcrumbs
@@ -116,6 +157,15 @@ export function useBreadcrumbData(): BreadcrumbData {
   // Conditionally fetch vendor details only when ID exists
   const { data: vendor } = useVendor(vendorId ?? 0);
 
+  // Conditionally fetch material details only when ID exists
+  const { data: material } = useMaterial(materialId ?? 0);
+
+  // Conditionally fetch indent details only when ID exists
+  const { data: indent } = useIndent(indentId ?? 0);
+
+  // Conditionally fetch storage location details only when ID exists
+  const { data: storageLocation } = useStorageLocation(storageLocationId ?? 0);
+
   return {
     employees,
     projects,
@@ -125,5 +175,8 @@ export function useBreadcrumbData(): BreadcrumbData {
     issue,
     chatRoom,
     vendor,
+    material,
+    indent,
+    storageLocation,
   };
 }
