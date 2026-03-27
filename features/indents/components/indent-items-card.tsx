@@ -188,9 +188,12 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isBusy}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => {
-                setConfirm((s) => ({ ...s, open: false }));
-                confirm.onConfirm();
+              onClick={async () => {
+                try {
+                  await confirm.onConfirm();
+                } finally {
+                  setConfirm((s) => ({ ...s, open: false }));
+                }
               }}
               disabled={isBusy}
               className={
@@ -316,6 +319,7 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
                         <Button
                           size="sm"
                           variant="ghost"
+                          aria-label="Save item"
                           className="h-8 w-8 p-0 text-green-600 hover:text-green-700"
                           onClick={handleSaveItem}
                         >
@@ -324,6 +328,7 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
                         <Button
                           size="sm"
                           variant="ghost"
+                          aria-label="Cancel edit"
                           className="h-8 w-8 p-0"
                           onClick={() => setEditingItemId(null)}
                         >
@@ -375,6 +380,7 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
                           <Button
                             size="sm"
                             variant="ghost"
+                            aria-label="Edit item"
                             className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                             onClick={() => startEditItem(item)}
                           >
@@ -383,6 +389,7 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
                           <Button
                             size="sm"
                             variant="ghost"
+                            aria-label="Delete item"
                             className="h-8 w-8 p-0 text-zinc-400 hover:text-red-500"
                             onClick={() => handleDeleteItem(item.id)}
                           >

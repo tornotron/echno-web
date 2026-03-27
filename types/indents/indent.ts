@@ -40,7 +40,7 @@ export interface UpdateIndentInput {
 export function parseIndent(raw: Raw): Indent {
   return {
     id: raw.id,
-    indentNumber: raw.indentNumber ?? raw.indentNumber,
+    indentNumber: raw.indentNumber ?? '',
     createdAt: raw.createdAt,
     createdBy: {
       id: raw.createdBy?.id ?? 0,

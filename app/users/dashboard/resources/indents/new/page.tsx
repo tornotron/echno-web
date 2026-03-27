@@ -122,6 +122,10 @@ export default function NewIndentPage() {
       return;
     }
     const filledItems = items.filter((it) => it.materialId !== 0);
+    if (filledItems.length === 0) {
+      toast.error('At least one material must be selected.');
+      return;
+    }
     const hasInvalidItems = filledItems.some((it) => it.requestedQuantity <= 0);
     if (hasInvalidItems) {
       toast.error('All added items must have a quantity greater than 0.');

@@ -61,7 +61,7 @@ export const indentItemsService = {
     purchaseOrderNumber: string
   ): Promise<IndentItem> {
     const data = await api.put<Raw>(
-      `/indent-items/${id}/mark-converted`,
+      `/indent-items/web/${id}/mark-converted`,
       {},
       { purchaseOrderNumber }
     );

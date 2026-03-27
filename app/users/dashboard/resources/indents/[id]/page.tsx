@@ -42,7 +42,7 @@ export default function IndentDetailPage({
   const id = Number(rawId);
   const router = useRouter();
 
-  const { data: indent, isLoading } = useIndent(id);
+  const { data: indent, isLoading, isError } = useIndent(id);
   const { mutate: deleteIndent, isPending: isDeleting } = useDeleteIndent();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
@@ -54,6 +54,22 @@ export default function IndentDetailPage({
           <p className="text-zinc-600 dark:text-zinc-400">Loading indent...</p>
         </div>
       </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
+          <h3 className="mb-2 text-lg font-medium">Failed to load indent</h3>
+          <Button
+            onClick={() => router.push('/users/dashboard/resources/indents')}
+          >
+            Back to Indents
+          </Button>
+        </CardContent>
+      </Card>
     );
   }
 
@@ -147,6 +163,7 @@ export default function IndentDetailPage({
           <Button
             variant="destructive"
             size="sm"
+            aria-label="Delete indent"
             onClick={() => setShowDeleteDialog(true)}
             disabled={isDeleting}
           >

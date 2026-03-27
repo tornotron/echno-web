@@ -90,7 +90,6 @@ export function IndentInfoCard({ indent }: IndentInfoCardProps) {
             ? new Date(form.expectedOn).toISOString()
             : undefined,
           projectId: form.projectId ? Number(form.projectId) : undefined,
-          remarks: indent.remarks,
         },
       });
       setIsEditing(false);
