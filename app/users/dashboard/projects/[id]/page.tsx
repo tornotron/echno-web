@@ -223,8 +223,7 @@ export default function ProjectDashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Sticky header */}
-      <div className="sticky top-0 z-10 -mx-4 bg-white px-4 pb-0 sm:-mx-6 sm:px-6 dark:bg-zinc-950">
+      <div>
         <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
