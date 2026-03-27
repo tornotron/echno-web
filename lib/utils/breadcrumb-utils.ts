@@ -12,6 +12,9 @@ import { Task } from '@/types/task';
 import { Issue } from '@/types/issue/issue';
 import { Project } from '@/types/project/project';
 import { Vendor } from '@/types/vendor';
+import { Material } from '@/types/materials';
+import { Indent } from '@/types/indents';
+import { StorageLocation } from '@/types/storage-locations/storage-location';
 import { leaveFromMap } from '@/lib/utils/leave-path-map';
 
 /**
@@ -68,7 +71,10 @@ export function getNameForId(
   issue?: Issue,
   chatRoomName?: string,
   fallbackResolver?: FallbackNameResolver,
-  vendor?: Vendor
+  vendor?: Vendor,
+  material?: Material,
+  indent?: Indent,
+  storageLocation?: StorageLocation
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
@@ -79,6 +85,18 @@ export function getNameForId(
 
   if (parentSegment === 'vendors') {
     return vendor?.name ?? `Vendor ${id}`;
+  }
+
+  if (parentSegment === 'materials') {
+    return material?.materialName ?? `Material ${id}`;
+  }
+
+  if (parentSegment === 'indents') {
+    return indent?.indentNumber ?? `Indent ${id}`;
+  }
+
+  if (parentSegment === 'storage-locations') {
+    return storageLocation?.locationName ?? `Location ${id}`;
   }
 
   if (parentSegment === 'projects') {

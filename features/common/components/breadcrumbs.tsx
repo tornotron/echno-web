@@ -44,6 +44,9 @@ import {
 } from '@/lib/utils/breadcrumb-utils';
 import { Budget } from '@/types/finance/budget';
 import { Vendor } from '@/types/vendor';
+import { Material } from '@/types/materials';
+import { Indent } from '@/types/indents';
+import { StorageLocation } from '@/types/storage-locations/storage-location';
 import {
   mockInspections,
   mockLabour,
@@ -125,6 +128,9 @@ interface BreadcrumbsProps {
   issue?: Issue;
   chatRoom?: ChatRoom;
   vendor?: Vendor;
+  material?: Material;
+  indent?: Indent;
+  storageLocation?: StorageLocation;
 }
 
 // /** Derive a human-readable display name for a chat room. */
@@ -150,6 +156,9 @@ export function Breadcrumbs({
   issue,
   chatRoom,
   vendor,
+  material,
+  indent,
+  storageLocation,
 }: BreadcrumbsProps) {
   const chatRoomName = chatRoom ? getChatRoomName(chatRoom) : undefined;
   const pathname = usePathname();
@@ -209,7 +218,10 @@ export function Breadcrumbs({
             issue,
             chatRoomName,
             mockFallbackResolver,
-            vendor
+            vendor,
+            material,
+            indent,
+            storageLocation
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
