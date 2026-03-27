@@ -1,0 +1,65 @@
+export enum InventoryTransactionType {
+  openingBalance = 'OPENING_BALANCE',
+  grn = 'GRN',
+  purchaseReturn = 'PURCHASE_RETURN',
+  use = 'USE',
+  productionConsume = 'PRODUCTION_CONSUME',
+  productionOutput = 'PRODUCTION_OUTPUT',
+  scrap = 'SCRAP',
+  damage = 'DAMAGE',
+  expire = 'EXPIRE',
+  loss = 'LOSS',
+  transferOut = 'TRANSFER_OUT',
+  transferIn = 'TRANSFER_IN',
+  customerReturn = 'CUSTOMER_RETURN',
+  stockTakeGain = 'STOCK_TAKE_GAIN',
+  stockTakeLoss = 'STOCK_TAKE_LOSS',
+  writeOff = 'WRITE_OFF',
+  adjust = 'ADJUST',
+}
+
+export const inventoryTransactionTypeLabels: Record<
+  InventoryTransactionType,
+  string
+> = {
+  [InventoryTransactionType.openingBalance]: 'Opening Balance',
+  [InventoryTransactionType.grn]: 'GRN',
+  [InventoryTransactionType.purchaseReturn]: 'Purchase Return',
+  [InventoryTransactionType.use]: 'Usage',
+  [InventoryTransactionType.productionConsume]: 'Production Consume',
+  [InventoryTransactionType.productionOutput]: 'Production Output',
+  [InventoryTransactionType.scrap]: 'Scrap',
+  [InventoryTransactionType.damage]: 'Damage',
+  [InventoryTransactionType.expire]: 'Expire',
+  [InventoryTransactionType.loss]: 'Loss',
+  [InventoryTransactionType.transferOut]: 'Transfer Out',
+  [InventoryTransactionType.transferIn]: 'Transfer In',
+  [InventoryTransactionType.customerReturn]: 'Customer Return',
+  [InventoryTransactionType.stockTakeGain]: 'Stock Take Gain',
+  [InventoryTransactionType.stockTakeLoss]: 'Stock Take Loss',
+  [InventoryTransactionType.writeOff]: 'Write Off',
+  [InventoryTransactionType.adjust]: 'Adjustment',
+};
+
+export const inventoryTransactionTypeBadgeColors: Record<
+  InventoryTransactionType,
+  string
+> = {
+  [InventoryTransactionType.openingBalance]: 'bg-gray-100 text-gray-700',
+  [InventoryTransactionType.grn]: 'bg-green-100 text-green-700',
+  [InventoryTransactionType.purchaseReturn]: 'bg-orange-100 text-orange-700',
+  [InventoryTransactionType.use]: 'bg-red-100 text-red-700',
+  [InventoryTransactionType.productionConsume]: 'bg-red-100 text-red-700',
+  [InventoryTransactionType.productionOutput]: 'bg-green-100 text-green-700',
+  [InventoryTransactionType.scrap]: 'bg-zinc-100 text-zinc-700',
+  [InventoryTransactionType.damage]: 'bg-rose-100 text-rose-700',
+  [InventoryTransactionType.expire]: 'bg-amber-100 text-amber-700',
+  [InventoryTransactionType.loss]: 'bg-red-100 text-red-700',
+  [InventoryTransactionType.transferOut]: 'bg-purple-100 text-purple-700',
+  [InventoryTransactionType.transferIn]: 'bg-indigo-100 text-indigo-700',
+  [InventoryTransactionType.customerReturn]: 'bg-teal-100 text-teal-700',
+  [InventoryTransactionType.stockTakeGain]: 'bg-green-100 text-green-700',
+  [InventoryTransactionType.stockTakeLoss]: 'bg-red-100 text-red-700',
+  [InventoryTransactionType.writeOff]: 'bg-zinc-100 text-zinc-700',
+  [InventoryTransactionType.adjust]: 'bg-blue-100 text-blue-700',
+};
