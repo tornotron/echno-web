@@ -18,9 +18,10 @@ export interface FilterOption {
 }
 
 export interface FilterConfig {
+  type?: 'select' | 'date';
   placeholder?: string;
   icon?: boolean;
-  options: FilterOption[];
+  options?: FilterOption[];
   value: string;
   onChange: (value: string) => void;
   width?: string;
@@ -81,24 +82,38 @@ export function SearchAndFilter({
 
             {/* Filters - grouped together */}
             <div className="flex flex-wrap gap-2">
-              {filters.map((filter, index) => (
-                <Select
-                  key={index}
-                  value={filter.value}
-                  onValueChange={filter.onChange}
-                >
-                  <SelectTrigger className="w-full truncate sm:w-[180px]">
-                    <SelectValue placeholder={filter.placeholder || 'Filter'} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filter.options.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ))}
+              {filters.map((filter, index) =>
+                filter.type === 'date' ? (
+                  <Input
+                    key={index}
+                    type="date"
+                    value={filter.value}
+                    onChange={(e) => filter.onChange(e.target.value)}
+                    className={filter.width || 'w-full sm:w-[160px]'}
+                  />
+                ) : (
+                  <Select
+                    key={index}
+                    value={filter.value}
+                    onValueChange={filter.onChange}
+                  >
+                    <SelectTrigger
+                      className={`truncate ${filter.width || 'w-full sm:w-[180px]'}`}
+                    >
+                      <SelectValue
+                        placeholder={filter.placeholder || 'Filter'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {filter.options?.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )
+              )}
             </div>
           </div>
         </CardContent>
@@ -121,25 +136,35 @@ export function SearchAndFilter({
       </div>
 
       {/* Filters */}
-      {filters.map((filter, index) => (
-        <Select
-          key={index}
-          value={filter.value}
-          onValueChange={filter.onChange}
-        >
-          <SelectTrigger className={filter.width || 'w-full sm:w-[180px]'}>
-            {filter.icon !== false && <Filter className="mr-2 h-4 w-4" />}
-            <SelectValue placeholder={filter.placeholder || 'Filter'} />
-          </SelectTrigger>
-          <SelectContent>
-            {filter.options.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      ))}
+      {filters.map((filter, index) =>
+        filter.type === 'date' ? (
+          <Input
+            key={index}
+            type="date"
+            value={filter.value}
+            onChange={(e) => filter.onChange(e.target.value)}
+            className={filter.width || 'w-full sm:w-[160px]'}
+          />
+        ) : (
+          <Select
+            key={index}
+            value={filter.value}
+            onValueChange={filter.onChange}
+          >
+            <SelectTrigger className={filter.width || 'w-full sm:w-[180px]'}>
+              {filter.icon !== false && <Filter className="mr-2 h-4 w-4" />}
+              <SelectValue placeholder={filter.placeholder || 'Filter'} />
+            </SelectTrigger>
+            <SelectContent>
+              {filter.options?.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )
+      )}
     </div>
   );
 }

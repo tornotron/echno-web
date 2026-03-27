@@ -26,6 +26,9 @@ export const useCreateVendor = () => {
     mutationFn: (vendor: CreateVendorInput) => vendorsService.create(vendor),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
+      toast.success('Vendor Created', {
+        description: 'The vendor has been created successfully.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Create Vendor'), {
@@ -44,6 +47,9 @@ export const useUpdateVendor = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
+      toast.success('Vendor Updated', {
+        description: 'The vendor has been updated successfully.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Update Vendor'), {
@@ -60,6 +66,9 @@ export const useDeleteVendor = () => {
     mutationFn: (id: number) => vendorsService.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
+      toast.success('Vendor Deleted', {
+        description: 'The vendor has been deleted.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Delete Vendor'), {
@@ -82,6 +91,9 @@ export const useAddVendorContact = (vendorId: number) => {
         queryKey: vendorKeys.contacts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Contact Added', {
+        description: 'The contact has been added to this vendor.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Add Contact'), {
@@ -107,6 +119,9 @@ export const useUpdateVendorContact = (vendorId: number) => {
         queryKey: vendorKeys.contacts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Contact Updated', {
+        description: 'The contact has been updated.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Update Contact'), {
@@ -127,6 +142,9 @@ export const useDeleteVendorContact = (vendorId: number) => {
         queryKey: vendorKeys.contacts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Contact Removed', {
+        description: 'The contact has been removed.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Delete Contact'), {
@@ -149,6 +167,9 @@ export const useAddVendorTaxIdentifier = (vendorId: number) => {
         queryKey: vendorKeys.taxIdentifiers(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Tax Identifier Added', {
+        description: 'The tax identifier has been added.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Add Tax Identifier'), {
@@ -175,6 +196,9 @@ export const useUpdateVendorTaxIdentifier = (vendorId: number) => {
         queryKey: vendorKeys.taxIdentifiers(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Tax Identifier Updated', {
+        description: 'The tax identifier has been updated.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Update Tax Identifier'), {
@@ -195,6 +219,9 @@ export const useDeleteVendorTaxIdentifier = (vendorId: number) => {
         queryKey: vendorKeys.taxIdentifiers(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Tax Identifier Removed', {
+        description: 'The tax identifier has been removed.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Delete Tax Identifier'), {
@@ -217,6 +244,9 @@ export const useAddVendorBankAccount = (vendorId: number) => {
         queryKey: vendorKeys.bankAccounts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Bank Account Added', {
+        description: 'The bank account has been added.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Add Bank Account'), {
@@ -243,6 +273,9 @@ export const useUpdateVendorBankAccount = (vendorId: number) => {
         queryKey: vendorKeys.bankAccounts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Bank Account Updated', {
+        description: 'The bank account has been updated.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Update Bank Account'), {
@@ -263,6 +296,9 @@ export const useDeleteVendorBankAccount = (vendorId: number) => {
         queryKey: vendorKeys.bankAccounts(vendorId),
       });
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Bank Account Removed', {
+        description: 'The bank account has been removed.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Delete Bank Account'), {
@@ -282,6 +318,9 @@ export const useSetVendorPaymentTerms = (vendorId: number) => {
       vendorsService.setPaymentTerms(vendorId, paymentTermsInput),
     onSuccess: (data) => {
       queryClient.setQueryData(vendorKeys.paymentTerms(vendorId), data);
+      toast.success('Payment Terms Saved', {
+        description: 'The payment terms have been saved.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Save Payment Terms'), {
@@ -299,6 +338,9 @@ export const useDeleteVendorPaymentTerms = (vendorId: number) => {
     onSuccess: () => {
       queryClient.setQueryData(vendorKeys.paymentTerms(vendorId), null);
       queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendorId) });
+      toast.success('Payment Terms Removed', {
+        description: 'The payment terms have been removed.',
+      });
     },
     onError: (error) => {
       toast.error(getErrorTitle(error, 'Failed to Remove Payment Terms'), {

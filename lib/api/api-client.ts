@@ -25,6 +25,7 @@ export interface ApiResponse<T = unknown> {
 export interface ApiErrorData {
   message: string;
   status: number;
+  details?: string;
   errors?: Record<string, string[]>;
 }
 
@@ -33,6 +34,7 @@ export interface ApiErrorData {
  */
 export class ApiError extends Error {
   status: number;
+  details?: string;
   isAuthError: boolean;
   isNotFound: boolean;
   isServerError: boolean;
@@ -42,11 +44,13 @@ export class ApiError extends Error {
   constructor(
     message: string,
     status: number,
+    details?: string,
     errors?: Record<string, string[]>
   ) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.details = details;
     this.errors = errors;
     this.isAuthError = status === 401 || status === 403;
     this.isNotFound = status === 404;
@@ -101,6 +105,14 @@ class ApiClient {
   }
 
   /**
+   * Set or update a default header sent with every request.
+   * Call this after session is established (e.g. to set X-Organization-Id).
+   */
+  setDefaultHeader(key: string, value: string): void {
+    (this.headers as Record<string, string>)[key] = value;
+  }
+
+  /**
    * Handle fetch `Response` objects. Throws on non-ok responses and
    * returns parsed JSON otherwise.
    *
@@ -116,6 +128,7 @@ class ApiClient {
       throw new ApiError(
         errorData.message || this.getDefaultErrorMessage(response.status),
         response.status,
+        errorData.details,
         errorData.errors
       );
     }

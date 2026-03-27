@@ -5,6 +5,7 @@ import { QueryProvider } from './query-provider';
 import { UserPrefetcher } from './user-prefetcher';
 import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { SESSION_WARNINGS } from '@/lib/auth/constants';
@@ -114,6 +115,16 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
 
     return () => clearInterval(interval);
   }, [session, status, update]);
+
+  // Sync organization ID header with every session change
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.defaultOrganizationId) {
+      apiClient.setDefaultHeader(
+        'X-Organization-Id',
+        String(session.user.defaultOrganizationId)
+      );
+    }
+  }, [status, session?.user?.defaultOrganizationId]);
 
   // Reset logout flag when session becomes authenticated again
   useEffect(() => {
