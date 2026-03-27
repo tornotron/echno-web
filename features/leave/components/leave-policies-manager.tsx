@@ -47,7 +47,6 @@ import {
   XCircle,
   Loader2,
 } from 'lucide-react';
-import { toast } from '@/lib/styles/toast-styles';
 import { Separator } from '@/components/ui/separator';
 import { ConfirmationDialog } from '@/features/leave/components/confirmation-dialog';
 
@@ -121,16 +120,8 @@ export function LeavePoliciesManager({
       },
       {
         onSuccess: () => {
-          toast.success('Leave Policy Created', {
-            description: 'The leave policy has been created successfully.',
-          });
           setIsCreateDialogOpen(false);
           resetForm();
-        },
-        onError: (error) => {
-          toast.error('Failed to Create Policy', {
-            description: error.message || 'Please try again.',
-          });
         },
       }
     );
@@ -146,17 +137,9 @@ export function LeavePoliciesManager({
       },
       {
         onSuccess: () => {
-          toast.success('Leave Policy Updated', {
-            description: 'The leave policy has been updated successfully.',
-          });
           setIsEditDialogOpen(false);
           setEditingPolicy(null);
           resetForm();
-        },
-        onError: (error) => {
-          toast.error('Failed to Update Policy', {
-            description: error.message || 'Please try again.',
-          });
         },
       }
     );
@@ -171,33 +154,16 @@ export function LeavePoliciesManager({
 
     deleteMutation.mutate(deactivatingPolicyId, {
       onSuccess: () => {
-        toast.success('Leave Policy Deactivated', {
-          description: 'The leave policy has been deactivated.',
-        });
         setDeactivatingPolicyId(null);
       },
-      onError: (error) => {
-        toast.error('Failed to Deactivate Policy', {
-          description: error.message || 'Please try again.',
-        });
+      onError: () => {
         setDeactivatingPolicyId(null);
       },
     });
   };
 
   const handleActivate = (policyId: number) => {
-    activateMutation.mutate(policyId, {
-      onSuccess: () => {
-        toast.success('Leave Policy Activated', {
-          description: 'The leave policy has been activated.',
-        });
-      },
-      onError: (error) => {
-        toast.error('Failed to Activate Policy', {
-          description: error.message || 'Please try again.',
-        });
-      },
-    });
+    activateMutation.mutate(policyId);
   };
 
   const openEditDialog = (policy: LeavePolicy) => {

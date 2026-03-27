@@ -14,6 +14,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { leaveService } from '@/services/leave-service';
 import { leaveKeys } from '@/hooks/leave/use-leave';
+import { toast } from '@/lib/styles/toast-styles';
+import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 import {
   LeavePolicyCreation,
   LeavePolicy,
@@ -31,9 +33,16 @@ export const useCreateLeavePolicy = () => {
 
   return useMutation({
     mutationFn: (dto: LeavePolicyCreation) => leaveService.createPolicy(dto),
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      toast.success('Leave Policy Created', {
+        description: 'The leave policy has been created successfully.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Create Leave Policy'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -51,7 +60,14 @@ export const useUpdateLeavePolicy = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policy(data.id) });
       queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      toast.success('Leave Policy Updated', {
+        description: 'The leave policy has been updated successfully.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Update Leave Policy'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -63,7 +79,14 @@ export const useDeleteLeavePolicy = () => {
     onSuccess: (_, policyId) => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policy(policyId) });
       queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      toast.success('Leave Policy Deleted', {
+        description: 'The leave policy has been deleted.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Delete Leave Policy'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -75,7 +98,14 @@ export const useActivateLeavePolicy = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policy(data.id) });
       queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      toast.success('Leave Policy Activated', {
+        description: 'The leave policy is now active.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Activate Leave Policy'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -90,9 +120,16 @@ export const useDuplicateLeavePolicy = () => {
       policyId: number;
       targetOrganizationId: number;
     }) => leaveService.duplicatePolicy(policyId, targetOrganizationId),
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      toast.success('Leave Policy Duplicated', {
+        description: 'A copy of the leave policy has been created.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Duplicate Leave Policy'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -114,7 +151,14 @@ export const useRecalculateBalances = () => {
       queryClient.invalidateQueries({
         queryKey: leaveKeys.transactions(employeeId),
       });
+      toast.success('Balances Recalculated', {
+        description: 'Leave balances have been recalculated successfully.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Recalculate Balances'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -140,7 +184,14 @@ export const useAdjustBalance = () => {
       queryClient.invalidateQueries({
         queryKey: leaveKeys.transactions(data.employeeId),
       });
+      toast.success('Balance Adjusted', {
+        description: 'The leave balance has been adjusted successfully.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Adjust Balance'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -159,7 +210,14 @@ export const useCreateLeaveRequest = () => {
       queryClient.invalidateQueries({
         queryKey: [...leaveKeys.balances(), 'employee', data.employeeId],
       });
+      toast.success('Leave Request Created', {
+        description: 'Your leave request has been created.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Create Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -181,7 +239,14 @@ export const useUpdateLeaveRequest = () => {
       queryClient.invalidateQueries({
         queryKey: leaveKeys.employeeRequests(data.employeeId),
       });
+      toast.success('Leave Request Updated', {
+        description: 'The leave request has been updated.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Update Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -207,7 +272,14 @@ export const useSubmitLeaveRequest = () => {
       });
       // Invalidate pending approvals for potential approvers
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
+      toast.success('Leave Request Submitted', {
+        description: 'Your leave request has been submitted for approval.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Submit Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -228,7 +300,14 @@ export const useCancelLeaveRequest = () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
+      toast.success('Leave Request Cancelled', {
+        description: 'The leave request has been cancelled.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Cancel Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -241,7 +320,14 @@ export const useWithdrawLeaveRequest = () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
+      toast.success('Leave Request Withdrawn', {
+        description: 'The leave request has been withdrawn.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Withdraw Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -294,7 +380,14 @@ export const useApproveLeaveRequest = () => {
       });
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
       queryClient.invalidateQueries({ queryKey: leaveKeys.calendar() });
+      toast.success('Leave Request Approved', {
+        description: 'The leave request has been approved.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Approve Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -324,7 +417,14 @@ export const useRejectLeaveRequest = () => {
         queryKey: leaveKeys.pendingApprovalsCount(dto.approverId),
       });
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
+      toast.success('Leave Request Rejected', {
+        description: 'The leave request has been rejected.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Reject Leave Request'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 
@@ -361,7 +461,14 @@ export const useDelegateApproval = () => {
           queryKey: leaveKeys.pendingApprovalsCount(dto.delegateToId),
         });
       }
+      toast.success('Approval Delegated', {
+        description: 'The approval has been delegated successfully.',
+      });
     },
+    onError: (err) =>
+      toast.error(getErrorTitle(err, 'Failed to Delegate Approval'), {
+        description: getErrorMessage(err),
+      }),
   });
 };
 

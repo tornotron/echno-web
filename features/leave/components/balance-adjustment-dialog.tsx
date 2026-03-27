@@ -75,16 +75,8 @@ export function BalanceAdjustmentDialog({
       },
       {
         onSuccess: () => {
-          toast.success('Balance Adjusted', {
-            description: `Successfully adjusted balance by ${days} days`,
-          });
           resetForm();
           onOpenChange(false);
-        },
-        onError: (error) => {
-          toast.error('Adjustment Failed', {
-            description: error.message || 'Failed to adjust balance',
-          });
         },
       }
     );
