@@ -38,7 +38,9 @@ export default function MaterialsPage() {
       const matchesSearch =
         m.materialName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (m.sku ?? '').toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesUnit = unitFilter === 'all' || m.unit === unitFilter;
+      const matchesUnit =
+        unitFilter === 'all' ||
+        m.unit.toLowerCase() === unitFilter.toLowerCase();
       return matchesSearch && matchesUnit;
     });
   }, [materials, searchQuery, unitFilter]);
@@ -225,6 +227,33 @@ export default function MaterialsPage() {
       </Card>
     );
 
+  let materialsPane: React.ReactNode;
+  if (isLoading) {
+    materialsPane = (
+      <Card>
+        <CardContent className="flex justify-center py-12">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-600" />
+        </CardContent>
+      </Card>
+    );
+  } else if (isError) {
+    materialsPane = (
+      <Card>
+        <CardContent className="py-12 text-center">
+          <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
+          <h3 className="mb-2 text-lg font-medium">Failed to load materials</h3>
+          <p className="text-muted-foreground mb-4 text-sm">
+            {error instanceof Error
+              ? error.message
+              : 'An unexpected error occurred.'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  } else {
+    materialsPane = materialsContent;
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
@@ -328,29 +357,7 @@ export default function MaterialsPage() {
         ]}
       />
 
-      {isLoading ? (
-        <Card>
-          <CardContent className="flex justify-center py-12">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-600" />
-          </CardContent>
-        </Card>
-      ) : isError ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
-            <h3 className="mb-2 text-lg font-medium">
-              Failed to load materials
-            </h3>
-            <p className="text-muted-foreground mb-4 text-sm">
-              {error instanceof Error
-                ? error.message
-                : 'An unexpected error occurred.'}
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        materialsContent
-      )}
+      {materialsPane}
     </div>
   );
 }
