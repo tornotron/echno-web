@@ -21,7 +21,7 @@ export const useCreateMaterial = () => {
     mutationFn: (material: CreateMaterialInput) =>
       materialsService.create(material),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: materialsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: materialsKeys.all });
       toast.success('Material Created', {
         description: 'The material has been created successfully.',
       });
@@ -45,11 +45,8 @@ export const useUpdateMaterial = () => {
       id: number;
       material: CreateMaterialInput;
     }) => materialsService.update(id, material),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: materialsKeys.detail(data.id),
-      });
-      queryClient.invalidateQueries({ queryKey: materialsKeys.lists() });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: materialsKeys.all });
       toast.success('Material Updated', {
         description: 'The material has been updated successfully.',
       });
@@ -68,7 +65,7 @@ export const useDeleteMaterial = () => {
   return useMutation({
     mutationFn: (id: number) => materialsService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: materialsKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: materialsKeys.all });
       toast.success('Material Deleted', {
         description: 'The material has been deleted successfully.',
       });
