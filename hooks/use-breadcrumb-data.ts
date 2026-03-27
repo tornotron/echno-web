@@ -52,6 +52,11 @@ interface BreadcrumbData {
  *
  * @returns {BreadcrumbData} Object containing data needed for breadcrumbs
  */
+function parseIdFromPath(pathname: string, regex: RegExp): number | undefined {
+  const match = pathname.match(regex);
+  return match ? Number.parseInt(match[1], 10) : undefined;
+}
+
 export function useBreadcrumbData(): BreadcrumbData {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,18 +72,14 @@ export function useBreadcrumbData(): BreadcrumbData {
     indentId,
     storageLocationId,
   } = useMemo(() => {
-    // Extract leave request ID from path if present
-    const leaveRequestIdMatch = pathname.match(/\/leaves\/requests\/(\d+)/);
-    const leaveRequestId = leaveRequestIdMatch
-      ? Number.parseInt(leaveRequestIdMatch[1], 10)
-      : undefined;
+    const leaveRequestId = parseIdFromPath(
+      pathname,
+      /\/leaves\/requests\/(\d+)/
+    );
 
     // Extract task ID from path, falling back to ?taskId= query param
     // (used when navigating to an issue from a task details page)
-    const taskIdMatch = pathname.match(/\/tasks\/(\d+)/);
-    const taskIdFromPath = taskIdMatch
-      ? Number.parseInt(taskIdMatch[1], 10)
-      : undefined;
+    const taskIdFromPath = parseIdFromPath(pathname, /\/tasks\/(\d+)/);
     const taskIdFromQuery = searchParams.get('taskId');
     const parsedTaskIdFromQuery = taskIdFromQuery
       ? Number.parseInt(taskIdFromQuery, 10)
@@ -89,36 +90,15 @@ export function useBreadcrumbData(): BreadcrumbData {
         ? parsedTaskIdFromQuery
         : undefined);
 
-    // Extract issue ID from path if present
-    const issueIdMatch = pathname.match(/\/issues\/(\d+)/);
-    const issueId = issueIdMatch
-      ? Number.parseInt(issueIdMatch[1], 10)
-      : undefined;
-
-    const chatRoomIdMatch = pathname.match(/\/chat\/(\d+)/);
-    const chatRoomId = chatRoomIdMatch
-      ? Number.parseInt(chatRoomIdMatch[1], 10)
-      : undefined;
-
-    const vendorIdMatch = pathname.match(/\/vendors\/(\d+)/);
-    const vendorId = vendorIdMatch
-      ? Number.parseInt(vendorIdMatch[1], 10)
-      : undefined;
-
-    const materialIdMatch = pathname.match(/\/materials\/(\d+)/);
-    const materialId = materialIdMatch
-      ? Number.parseInt(materialIdMatch[1], 10)
-      : undefined;
-
-    const indentIdMatch = pathname.match(/\/indents\/(\d+)/);
-    const indentId = indentIdMatch
-      ? Number.parseInt(indentIdMatch[1], 10)
-      : undefined;
-
-    const storageLocationIdMatch = pathname.match(/\/storage-locations\/(\d+)/);
-    const storageLocationId = storageLocationIdMatch
-      ? Number.parseInt(storageLocationIdMatch[1], 10)
-      : undefined;
+    const issueId = parseIdFromPath(pathname, /\/issues\/(\d+)/);
+    const chatRoomId = parseIdFromPath(pathname, /\/chat\/(\d+)/);
+    const vendorId = parseIdFromPath(pathname, /\/vendors\/(\d+)/);
+    const materialId = parseIdFromPath(pathname, /\/materials\/(\d+)/);
+    const indentId = parseIdFromPath(pathname, /\/indents\/(\d+)/);
+    const storageLocationId = parseIdFromPath(
+      pathname,
+      /\/storage-locations\/(\d+)/
+    );
 
     return {
       leaveRequestId,
