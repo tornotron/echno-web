@@ -1,10 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,881 +23,651 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Save, X } from 'lucide-react';
 import {
-  PurchaseOrderType,
-  PurchaseOrderStatus,
-  DeliveryStatus,
-  purchaseOrderTypeLabels,
-  purchaseOrderStatusLabels,
-  deliveryStatusLabels,
-} from '@/types/resource/purchase-order';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  FileText,
+  ShoppingCart,
+  Send,
+  Plus,
+  Trash2,
+  AlertTriangle,
+  FolderOpen,
+} from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
+import { useVendors } from '@/hooks/vendors/use-vendors';
+import { useProjects } from '@/hooks/project/use-projects';
+import {
+  useIndent,
+  useIndents,
+  indentsKeys,
+} from '@/hooks/indents/use-indents';
+import {
+  useMaterials,
+  useMaterialWithStock,
+  materialsKeys,
+} from '@/hooks/materials/use-materials';
+import type { Indent } from '@/types/indents';
+import type { Material } from '@/types/materials';
+import { usePurchaseOrders } from '@/hooks/purchase-orders/use-purchase-orders';
+import { useCreatePurchaseOrder } from '@/hooks/purchase-orders/use-purchase-orders-mutations';
+import { useCurrentUserEmployee } from '@/hooks/employee';
+import {
+  PurchaseOrderStatus,
+  purchaseOrderStatusLabels,
+  type InlinePurchaseOrderItemInput,
+} from '@/types/purchase-orders';
+import { generatePoNumber } from '@/lib/utils/document-number-utils';
 
-interface LineItem {
-  id: string;
-  description: string;
-  specifications: string;
-  quantity: number;
-  unit: string;
+interface ItemRow {
+  materialId: number;
+  materialName: string;
+  indentItemId?: number;
+  orderedQuantity: number;
   unitPrice: number;
-  taxRate: number;
-  discount: number;
-  notes: string;
+  remarks: string;
 }
 
-export default function CreatePurchaseOrderPage() {
-  const router = useRouter();
-
-  // Basic Information
-  const [poNumber, setPoNumber] = useState(
-    () =>
-      `PO-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`
+function StockDisplay({ materialId }: { materialId: number }) {
+  const { data } = useMaterialWithStock(materialId);
+  if (!data) return <span className="text-xs text-zinc-400">—</span>;
+  const stock = data.currentStock ?? 0;
+  return (
+    <span
+      className={`text-xs font-medium ${stock <= 0 ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}
+    >
+      {stock <= 0 && <AlertTriangle className="mr-0.5 inline h-3 w-3" />}
+      {stock} {data.unit}
+    </span>
   );
-  const [type, setType] = useState<PurchaseOrderType>(
-    PurchaseOrderType.materials
-  );
-  const [status, setStatus] = useState<PurchaseOrderStatus>(
-    PurchaseOrderStatus.draft
-  );
-  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>(
-    DeliveryStatus.pending
-  );
-  const [poDate, setPoDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+}
 
-  // Vendor Information
-  const [vendorName, setVendorName] = useState('');
-  const [vendorContactPerson, setVendorContactPerson] = useState('');
-  const [vendorPhone, setVendorPhone] = useState('');
-  const [vendorEmail, setVendorEmail] = useState('');
-  const [vendorAddress, setVendorAddress] = useState('');
-  const [vendorGstNumber, setVendorGstNumber] = useState('');
+const emptyItemRow: ItemRow = {
+  materialId: 0,
+  materialName: '',
+  orderedQuantity: 1,
+  unitPrice: 0,
+  remarks: '',
+};
 
-  // Line Items
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    {
-      id: '1',
-      description: '',
-      specifications: '',
-      quantity: 1,
-      unit: 'pcs',
-      unitPrice: 0,
-      taxRate: 18,
-      discount: 0,
-      notes: '',
-    },
-  ]);
-
-  // Delivery Information
-  const [deliveryAddress, setDeliveryAddress] = useState('');
-  const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
-  const [qualityCheckRequired, setQualityCheckRequired] = useState(false);
-
-  // Payment Information
-  const [paymentTerms, setPaymentTerms] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('');
-  const [advancePaymentRequired, setAdvancePaymentRequired] = useState(false);
-  const [advancePaymentPercentage, setAdvancePaymentPercentage] = useState(0);
-
-  // Additional
-  const [shippingCost, setShippingCost] = useState(0);
-  const [otherCharges, setOtherCharges] = useState(0);
-  const [internalNotes, setInternalNotes] = useState('');
-  const [termsAndConditions, setTermsAndConditions] = useState('');
-
-  // Add new line item
-  const addLineItem = () => {
-    const newItem: LineItem = {
-      id: String(lineItems.length + 1),
-      description: '',
-      specifications: '',
-      quantity: 1,
-      unit: 'pcs',
-      unitPrice: 0,
-      taxRate: 18,
-      discount: 0,
-      notes: '',
-    };
-    setLineItems([...lineItems, newItem]);
-  };
-
-  // Remove line item
-  const removeLineItem = (id: string) => {
-    if (lineItems.length > 1) {
-      setLineItems(lineItems.filter((item) => item.id !== id));
-    } else {
-      toast.error('At least one line item is required');
-    }
-  };
-
-  // Update line item
-  const updateLineItem = (
-    id: string,
-    field: keyof LineItem,
-    value: string | number
-  ) => {
-    setLineItems(
-      lineItems.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-      )
-    );
-  };
-
-  // Calculate line item total
-  const calculateLineItemTotal = (item: LineItem) => {
-    const subtotal = item.quantity * item.unitPrice;
-    const discountAmount = subtotal * (item.discount / 100);
-    const afterDiscount = subtotal - discountAmount;
-    const taxAmount = afterDiscount * (item.taxRate / 100);
-    return afterDiscount + taxAmount;
-  };
-
-  // Calculate overall totals
-  const calculateTotals = () => {
-    let itemsSubtotal = 0;
-    for (const item of lineItems) {
-      itemsSubtotal += item.quantity * item.unitPrice;
-    }
-
-    let totalDiscount = 0;
-    for (const item of lineItems) {
-      const subtotal = item.quantity * item.unitPrice;
-      totalDiscount += subtotal * (item.discount / 100);
-    }
-
-    const afterDiscount = itemsSubtotal - totalDiscount;
-
-    let totalTax = 0;
-    for (const item of lineItems) {
-      const subtotal = item.quantity * item.unitPrice;
-      const discountAmount = subtotal * (item.discount / 100);
-      const afterDiscount = subtotal - discountAmount;
-      totalTax += afterDiscount * (item.taxRate / 100);
-    }
-
-    const grandTotal = afterDiscount + totalTax + shippingCost + otherCharges;
-
+function buildItemRows(indent: Indent, mats: Material[]): ItemRow[] {
+  if (indent.items.length === 0) return [emptyItemRow];
+  return indent.items.map((item) => {
+    const mat = mats.find((m) => m.id === item.material.id);
     return {
-      subtotal: itemsSubtotal,
-      discount: totalDiscount,
-      tax: totalTax,
-      shipping: shippingCost,
-      other: otherCharges,
-      total: grandTotal,
-      advanceAmount: advancePaymentRequired
-        ? (grandTotal * advancePaymentPercentage) / 100
-        : 0,
+      materialId: item.material.id,
+      materialName: item.material.materialName || mat?.materialName || '',
+      indentItemId: item.id,
+      orderedQuantity: item.requestedQuantity,
+      unitPrice: 0,
+      remarks: '',
     };
-  };
+  });
+}
 
-  const totals = calculateTotals();
+export default function NewPurchaseOrderPage() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const fromIndentId = searchParams.get('fromIndent')
+    ? Number(searchParams.get('fromIndent'))
+    : undefined;
 
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const { data: currentEmployee } = useCurrentUserEmployee();
+  const { data: vendors = [] } = useVendors();
+  const { data: projects = [] } = useProjects();
+  const { data: indents = [] } = useIndents();
+  const { data: materials = [] } = useMaterials();
+  const { data: existingOrders = [] } = usePurchaseOrders();
+  const { data: sourceIndent } = useIndent(fromIndentId ?? 0);
+  const { mutateAsync: createPO, isPending } = useCreatePurchaseOrder();
 
-    // Basic validation
-    if (!vendorName.trim()) {
-      toast.error('Vendor name is required');
-      return;
-    }
-
-    if (!deliveryAddress.trim()) {
-      toast.error('Delivery address is required');
-      return;
-    }
-
-    const hasEmptyItems = lineItems.some(
-      (item) =>
-        !item.description.trim() || item.quantity <= 0 || item.unitPrice <= 0
+  // Read cache synchronously so navigation pre-fill works without waiting for an effect
+  const [form, setForm] = useState(() => {
+    const cachedIndent = fromIndentId
+      ? queryClient.getQueryData<Indent>(indentsKeys.detail(fromIndentId))
+      : undefined;
+    return {
+      poNumber: generatePoNumber([]),
+      vendorId: 0,
+      projectId: cachedIndent?.projectId ?? 0,
+      indentId: cachedIndent?.id ?? fromIndentId ?? 0,
+      status: PurchaseOrderStatus.draft,
+      expectedDeliveryDate: '',
+      remarks: '',
+    };
+  });
+  const [items, setItems] = useState<ItemRow[]>(() => {
+    if (!fromIndentId) return [emptyItemRow];
+    const cachedIndent = queryClient.getQueryData<Indent>(
+      indentsKeys.detail(fromIndentId)
     );
-    if (hasEmptyItems) {
-      toast.error(
-        'All line items must have description, quantity, and unit price'
-      );
+    const cachedMaterials =
+      queryClient.getQueryData<Material[]>(materialsKeys.lists()) ?? [];
+    if (!cachedIndent?.items.length) return [emptyItemRow];
+    return buildItemRows(cachedIndent, cachedMaterials);
+  });
+  // Only needed as fallback when cache is empty (e.g. hard refresh)
+  const [prefilled, setPrefilled] = useState(
+    !!(
+      fromIndentId &&
+      queryClient.getQueryData<Indent>(indentsKeys.detail(fromIndentId))?.items
+        .length
+    )
+  );
+
+  const [prevExistingOrders, setPrevExistingOrders] = useState(existingOrders);
+  if (prevExistingOrders !== existingOrders && existingOrders.length > 0) {
+    setPrevExistingOrders(existingOrders);
+    setForm((prev) => ({
+      ...prev,
+      poNumber: generatePoNumber(existingOrders.map((po) => po.poNumber)),
+    }));
+  }
+
+  // Pre-fill from indent — wait for both indent AND a non-empty items list to be ready
+  if (
+    !prefilled &&
+    sourceIndent &&
+    materials.length > 0 &&
+    sourceIndent.items.length > 0
+  ) {
+    setPrefilled(true);
+    setForm((prev) => ({
+      ...prev,
+      indentId: sourceIndent.id,
+      projectId: prev.projectId || sourceIndent.projectId || 0,
+    }));
+    setItems(
+      sourceIndent.items.map((item) => {
+        const mat = materials.find((m) => m.id === item.material.id);
+        return {
+          materialId: item.material.id,
+          materialName: item.material.materialName || mat?.materialName || '',
+          indentItemId: item.id,
+          orderedQuantity: item.requestedQuantity,
+          unitPrice: 0,
+          remarks: '',
+        };
+      })
+    );
+  }
+
+  const totalAmount = items.reduce(
+    (sum, item) => sum + item.orderedQuantity * item.unitPrice,
+    0
+  );
+
+  function addItem() {
+    setItems([
+      ...items,
+      {
+        materialId: 0,
+        materialName: '',
+        orderedQuantity: 1,
+        unitPrice: 0,
+        remarks: '',
+      },
+    ]);
+  }
+
+  function removeItem(index: number) {
+    if (items.length === 1) {
+      toast.error('At least one item is required.');
+      return;
+    }
+    setItems(items.filter((_, i) => i !== index));
+  }
+
+  function updateItem(
+    index: number,
+    field: keyof ItemRow,
+    value: string | number
+  ) {
+    setItems(
+      items.map((item, i) => {
+        if (i !== index) return item;
+        const updated = { ...item, [field]: value };
+        if (field === 'materialId') {
+          const mat = materials.find((m) => m.id === Number(value));
+          updated.materialName = mat?.materialName ?? '';
+        }
+        return updated;
+      })
+    );
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!form.poNumber.trim()) {
+      toast.error('PO number is required.');
+      return;
+    }
+    if (!form.vendorId) {
+      toast.error('Vendor is required.');
+      return;
+    }
+    if (!form.projectId) {
+      toast.error('Project is required.');
+      return;
+    }
+    if (!currentEmployee?.id) {
+      toast.error('Unable to determine current user.');
+      return;
+    }
+    if (items.some((it) => !it.materialId || it.orderedQuantity <= 0)) {
+      toast.error('All items must have a material and quantity.');
       return;
     }
 
-    toast.success('Purchase order created successfully');
-    router.push('/dashboard/resources/purchase-orders');
-  };
+    try {
+      const po = await createPO({
+        poNumber: form.poNumber.trim(),
+        vendorId: form.vendorId,
+        projectId: form.projectId,
+        indentId: form.indentId || undefined,
+        status: form.status,
+        createdBy: currentEmployee.id,
+        expectedDeliveryDate: form.expectedDeliveryDate
+          ? new Date(form.expectedDeliveryDate).toISOString()
+          : undefined,
+        remarks: form.remarks.trim() || undefined,
+        totalAmount: totalAmount || undefined,
+        items: items.map(
+          (item): InlinePurchaseOrderItemInput => ({
+            materialId: item.materialId,
+            indentItemId: item.indentItemId,
+            orderedQuantity: item.orderedQuantity,
+            unitPrice: item.unitPrice || undefined,
+            totalPrice: item.unitPrice
+              ? item.orderedQuantity * item.unitPrice
+              : undefined,
+            remarks: item.remarks.trim() || undefined,
+          })
+        ),
+      });
 
-  const handleCancel = () => {
-    router.push('/dashboard/resources/purchase-orders');
-  };
+      router.push(`/users/dashboard/resources/purchase-orders/${po.id}`);
+    } catch {
+      // errors handled by mutation hook
+    }
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              Create Purchase Order
-            </h1>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              Fill in the details below to create a new purchase order
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              <X className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-            <Button type="submit">
-              <Save className="mr-2 h-4 w-4" />
-              Create PO
-            </Button>
-          </div>
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
+          Create Purchase Order
+        </h1>
+        <p className="text-zinc-600 dark:text-zinc-400">
+          Create a new vendor purchase order
+        </p>
+      </div>
+
+      {/* Pre-filled from indent banner */}
+      {sourceIndent && (
+        <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+          <FolderOpen className="h-4 w-4 flex-shrink-0" />
+          <span>
+            Pre-filled from indent{' '}
+            <Badge
+              variant="outline"
+              className="mx-1 border-blue-300 text-blue-700 dark:border-blue-600 dark:text-blue-300"
+            >
+              {sourceIndent.indentNumber}
+            </Badge>
+            — review quantities against current stock before creating.
+          </span>
+          <Link
+            href={`/users/dashboard/resources/indents/${sourceIndent.id}`}
+            className="ml-auto flex-shrink-0 font-medium underline-offset-2 hover:underline"
+          >
+            View indent
+          </Link>
         </div>
+      )}
 
-        {/* Main Content Grid */}
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Left Column - Main Info */}
-          <div className="space-y-6 md:col-span-2">
-            {/* Basic Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="poNumber">PO Number</Label>
-                    <Input
-                      id="poNumber"
-                      value={poNumber}
-                      onChange={(e) => setPoNumber(e.target.value)}
-                      placeholder="PO-2024-001"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="poDate">PO Date</Label>
-                    <Input
-                      id="poDate"
-                      type="date"
-                      value={poDate}
-                      onChange={(e) => setPoDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="type">Type</Label>
-                    <Select
-                      value={type}
-                      onValueChange={(value) =>
-                        setType(value as PurchaseOrderType)
-                      }
-                    >
-                      <SelectTrigger id="type">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(PurchaseOrderType).map((t) => (
-                          <SelectItem key={t} value={t}>
-                            {purchaseOrderTypeLabels[t]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select
-                      value={status}
-                      onValueChange={(value) =>
-                        setStatus(value as PurchaseOrderStatus)
-                      }
-                    >
-                      <SelectTrigger id="status">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(PurchaseOrderStatus).map((s) => (
-                          <SelectItem key={s} value={s}>
-                            {purchaseOrderStatusLabels[s]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* PO Details Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              PO Details
+            </CardTitle>
+            <CardDescription>
+              Basic information about this purchase order
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="poNumber">
+                  PO Number <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="poNumber"
+                  value={form.poNumber}
+                  onChange={(e) =>
+                    setForm({ ...form, poNumber: e.target.value })
+                  }
+                  required
+                />
+              </div>
 
-            {/* Vendor Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Vendor Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <Label htmlFor="vendorName">Vendor Name *</Label>
-                    <Input
-                      id="vendorName"
-                      value={vendorName}
-                      onChange={(e) => setVendorName(e.target.value)}
-                      placeholder="ABC Suppliers Ltd."
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vendorContactPerson">Contact Person</Label>
-                    <Input
-                      id="vendorContactPerson"
-                      value={vendorContactPerson}
-                      onChange={(e) => setVendorContactPerson(e.target.value)}
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vendorPhone">Phone</Label>
-                    <Input
-                      id="vendorPhone"
-                      value={vendorPhone}
-                      onChange={(e) => setVendorPhone(e.target.value)}
-                      placeholder="+91 98765 43210"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vendorEmail">Email</Label>
-                    <Input
-                      id="vendorEmail"
-                      type="email"
-                      value={vendorEmail}
-                      onChange={(e) => setVendorEmail(e.target.value)}
-                      placeholder="vendor@example.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="vendorGstNumber">GST Number</Label>
-                    <Input
-                      id="vendorGstNumber"
-                      value={vendorGstNumber}
-                      onChange={(e) => setVendorGstNumber(e.target.value)}
-                      placeholder="29ABCDE1234F1Z5"
-                    />
-                  </div>
-                  <div className="col-span-2">
-                    <Label htmlFor="vendorAddress">Address</Label>
-                    <Textarea
-                      id="vendorAddress"
-                      value={vendorAddress}
-                      onChange={(e) => setVendorAddress(e.target.value)}
-                      placeholder="Enter vendor address"
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              <div className="space-y-2">
+                <Label htmlFor="vendorId">
+                  Vendor <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={form.vendorId ? String(form.vendorId) : ''}
+                  onValueChange={(v) =>
+                    setForm({ ...form, vendorId: Number(v) })
+                  }
+                >
+                  <SelectTrigger id="vendorId">
+                    <SelectValue placeholder="Select vendor" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vendors.map((v) => (
+                      <SelectItem key={v.id} value={String(v.id)}>
+                        {v.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {/* Line Items */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle>Order Items</CardTitle>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={addLineItem}
-                  >
-                    <Plus className="mr-2 h-4 w-4" />
-                    Add Item
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {lineItems.map((item, index) => (
-                  <div
-                    key={item.id}
-                    className="space-y-4 rounded-lg border p-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        Item {index + 1}
-                        <p className="mt-2 text-sm text-zinc-500 italic">
-                          Description: &quot;{item.description}&quot;
-                        </p>
-                      </h4>
-                      {lineItems.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeLineItem(item.id)}
-                          className="text-red-600 hover:text-red-700"
+              <div className="space-y-2">
+                <Label htmlFor="projectId">
+                  Project <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={form.projectId ? String(form.projectId) : ''}
+                  onValueChange={(v) =>
+                    setForm({ ...form, projectId: Number(v) })
+                  }
+                >
+                  <SelectTrigger id="projectId">
+                    <SelectValue placeholder="Select project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {projects.map((p) => (
+                      <SelectItem key={p.id} value={String(p.id)}>
+                        {p.projectName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={form.status}
+                  onValueChange={(v) =>
+                    setForm({ ...form, status: v as PurchaseOrderStatus })
+                  }
+                >
+                  <SelectTrigger id="status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(PurchaseOrderStatus).map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {purchaseOrderStatusLabels[s]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="indentId">
+                  Linked Indent{' '}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
+                <Select
+                  value={form.indentId ? String(form.indentId) : 'none'}
+                  onValueChange={(v) =>
+                    setForm({ ...form, indentId: v === 'none' ? 0 : Number(v) })
+                  }
+                >
+                  <SelectTrigger id="indentId">
+                    <SelectValue placeholder="None" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {indents.map((i) => (
+                      <SelectItem key={i.id} value={String(i.id)}>
+                        {i.indentNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="expectedDeliveryDate">
+                  Expected Delivery{' '}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
+                <Input
+                  id="expectedDeliveryDate"
+                  type="date"
+                  value={form.expectedDeliveryDate}
+                  onChange={(e) =>
+                    setForm({ ...form, expectedDeliveryDate: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="remarks">
+                  Remarks{' '}
+                  <span className="text-muted-foreground text-xs">
+                    (optional)
+                  </span>
+                </Label>
+                <Textarea
+                  id="remarks"
+                  placeholder="Additional notes for this purchase order..."
+                  value={form.remarks}
+                  onChange={(e) =>
+                    setForm({ ...form, remarks: e.target.value })
+                  }
+                  rows={3}
+                  className="resize-none"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Items Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Ordered Items
+            </CardTitle>
+            <CardDescription>
+              {sourceIndent
+                ? 'Items pre-filled from indent — adjust quantities based on current stock'
+                : 'Add the materials for this purchase order'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-8 pl-6">#</TableHead>
+                    <TableHead className="min-w-[200px]">
+                      Material <span className="text-red-500">*</span>
+                    </TableHead>
+                    <TableHead className="w-32">Current Stock</TableHead>
+                    <TableHead className="w-32">
+                      Quantity <span className="text-red-500">*</span>
+                    </TableHead>
+                    <TableHead className="w-40">Unit Price (₹)</TableHead>
+                    <TableHead className="w-40">Line Total</TableHead>
+                    <TableHead className="min-w-[140px]">Remarks</TableHead>
+                    <TableHead className="w-12 pr-6" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map((item, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="pl-6 text-sm text-zinc-500">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={
+                            item.materialId > 0 ? String(item.materialId) : ''
+                          }
+                          onValueChange={(v) =>
+                            updateItem(index, 'materialId', Number(v))
+                          }
                         >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <Label>Description *</Label>
-                        <Input
-                          value={item.description}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'description',
-                              e.target.value
-                            )
-                          }
-                          placeholder="Item description"
-                          required
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Specifications</Label>
-                        <Textarea
-                          value={item.specifications}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'specifications',
-                              e.target.value
-                            )
-                          }
-                          placeholder="Technical specifications (optional)"
-                          rows={2}
-                        />
-                      </div>
-                      <div>
-                        <Label>Quantity *</Label>
+                          <SelectTrigger className="w-full">
+                            {item.materialId > 0 ? (
+                              <span className="truncate">
+                                {item.materialName ||
+                                  materials.find(
+                                    (m) => m.id === item.materialId
+                                  )?.materialName ||
+                                  'Select material'}
+                              </span>
+                            ) : (
+                              <SelectValue placeholder="Select material" />
+                            )}
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materials.map((m) => (
+                              <SelectItem key={m.id} value={String(m.id)}>
+                                {m.materialName} ({m.unit})
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        {item.materialId > 0 && (
+                          <StockDisplay materialId={item.materialId} />
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <Input
                           type="number"
-                          value={item.quantity}
+                          min="1"
+                          step="1"
+                          value={item.orderedQuantity}
                           onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'quantity',
-                              Number.parseFloat(e.target.value) || 0
+                            updateItem(
+                              index,
+                              'orderedQuantity',
+                              Number.parseInt(e.target.value) || 0
                             )
                           }
+                          className="w-full"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          type="number"
                           min="0"
                           step="0.01"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <Label>Unit</Label>
-                        <Input
-                          value={item.unit}
+                          value={item.unitPrice || ''}
                           onChange={(e) =>
-                            updateLineItem(item.id, 'unit', e.target.value)
-                          }
-                          placeholder="pcs, kg, m, etc."
-                        />
-                      </div>
-                      <div>
-                        <Label>Unit Price (₹) *</Label>
-                        <Input
-                          type="number"
-                          value={item.unitPrice}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
+                            updateItem(
+                              index,
                               'unitPrice',
                               Number.parseFloat(e.target.value) || 0
                             )
                           }
-                          min="0"
-                          step="0.01"
-                          required
+                          placeholder="0.00"
+                          className="w-full"
                         />
-                      </div>
-                      <div>
-                        <Label>Tax Rate (%)</Label>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {item.unitPrice
+                          ? `₹${(item.orderedQuantity * item.unitPrice).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`
+                          : '—'}
+                      </TableCell>
+                      <TableCell>
                         <Input
-                          type="number"
-                          value={item.taxRate}
+                          value={item.remarks}
                           onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'taxRate',
-                              Number.parseFloat(e.target.value) || 0
-                            )
+                            updateItem(index, 'remarks', e.target.value)
                           }
-                          min="0"
-                          max="100"
-                          step="0.01"
+                          placeholder="Optional note"
                         />
-                      </div>
-                      <div>
-                        <Label>Discount (%)</Label>
-                        <Input
-                          type="number"
-                          value={item.discount}
-                          onChange={(e) =>
-                            updateLineItem(
-                              item.id,
-                              'discount',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          min="0"
-                          max="100"
-                          step="0.01"
-                        />
-                      </div>
-                      <div>
-                        <Label>Item Total</Label>
-                        <Input
-                          value={`₹${calculateLineItemTotal(item).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                          disabled
-                          className="bg-zinc-50 dark:bg-zinc-900"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Notes</Label>
-                        <Textarea
-                          value={item.notes}
-                          onChange={(e) =>
-                            updateLineItem(item.id, 'notes', e.target.value)
-                          }
-                          placeholder="Additional notes (optional)"
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+                      </TableCell>
+                      <TableCell className="pr-6">
+                        <div className="flex items-center gap-1">
+                          {index === items.length - 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
+                              onClick={addItem}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-zinc-400 hover:text-red-500"
+                            onClick={() => removeItem(index)}
+                            disabled={items.length === 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {totalAmount > 0 && (
+              <div className="flex justify-end border-t px-6 py-4 text-sm font-semibold">
+                Total: ₹
+                {totalAmount.toLocaleString('en-IN', {
+                  minimumFractionDigits: 2,
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-            {/* Delivery Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Delivery Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="deliveryAddress">Delivery Address *</Label>
-                  <Textarea
-                    id="deliveryAddress"
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Enter delivery address"
-                    rows={3}
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="expectedDeliveryDate">
-                      Expected Delivery Date
-                    </Label>
-                    <Input
-                      id="expectedDeliveryDate"
-                      type="date"
-                      value={expectedDeliveryDate}
-                      onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="deliveryStatus">Delivery Status</Label>
-                    <Select
-                      value={deliveryStatus}
-                      onValueChange={(value) =>
-                        setDeliveryStatus(value as DeliveryStatus)
-                      }
-                    >
-                      <SelectTrigger id="deliveryStatus">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(DeliveryStatus).map((ds) => (
-                          <SelectItem key={ds} value={ds}>
-                            {deliveryStatusLabels[ds]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="qualityCheckRequired"
-                    checked={qualityCheckRequired}
-                    onChange={(e) => setQualityCheckRequired(e.target.checked)}
-                    className="rounded border-zinc-300"
-                  />
-                  <Label
-                    htmlFor="qualityCheckRequired"
-                    className="cursor-pointer"
-                  >
-                    Quality check required upon delivery
-                  </Label>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Payment Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="paymentTerms">Payment Terms</Label>
-                    <Select
-                      value={paymentTerms}
-                      onValueChange={setPaymentTerms}
-                    >
-                      <SelectTrigger id="paymentTerms">
-                        <SelectValue placeholder="Select payment terms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="net_30">Net 30 Days</SelectItem>
-                        <SelectItem value="net_60">Net 60 Days</SelectItem>
-                        <SelectItem value="net_90">Net 90 Days</SelectItem>
-                        <SelectItem value="advance">Advance Payment</SelectItem>
-                        <SelectItem value="on_delivery">
-                          Payment on Delivery
-                        </SelectItem>
-                        <SelectItem value="partial">Partial Payment</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="paymentMethod">Payment Method</Label>
-                    <Select
-                      value={paymentMethod}
-                      onValueChange={setPaymentMethod}
-                    >
-                      <SelectTrigger id="paymentMethod">
-                        <SelectValue placeholder="Select payment method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="bank_transfer">
-                          Bank Transfer
-                        </SelectItem>
-                        <SelectItem value="cheque">Cheque</SelectItem>
-                        <SelectItem value="credit_card">Credit Card</SelectItem>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="letter_of_credit">
-                          Letter of Credit
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="advancePaymentRequired"
-                    checked={advancePaymentRequired}
-                    onChange={(e) =>
-                      setAdvancePaymentRequired(e.target.checked)
-                    }
-                    className="rounded border-zinc-300"
-                  />
-                  <Label
-                    htmlFor="advancePaymentRequired"
-                    className="cursor-pointer"
-                  >
-                    Advance payment required
-                  </Label>
-                </div>
-
-                {advancePaymentRequired && (
-                  <div>
-                    <Label htmlFor="advancePaymentPercentage">
-                      Advance Payment Percentage (%)
-                    </Label>
-                    <Input
-                      id="advancePaymentPercentage"
-                      type="number"
-                      value={advancePaymentPercentage}
-                      onChange={(e) =>
-                        setAdvancePaymentPercentage(
-                          Number.parseFloat(e.target.value) || 0
-                        )
-                      }
-                      min="0"
-                      max="100"
-                      step="1"
-                    />
-                    <p className="mt-1 text-sm text-zinc-500">
-                      Advance Amount: ₹
-                      {totals.advanceAmount.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Additional Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <Label htmlFor="internalNotes">Internal Notes</Label>
-                  <Textarea
-                    id="internalNotes"
-                    value={internalNotes}
-                    onChange={(e) => setInternalNotes(e.target.value)}
-                    placeholder="Notes for internal use only (not visible to vendor)"
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="termsAndConditions">
-                    Terms and Conditions
-                  </Label>
-                  <Textarea
-                    id="termsAndConditions"
-                    value={termsAndConditions}
-                    onChange={(e) => setTermsAndConditions(e.target.value)}
-                    placeholder="Enter terms and conditions for this purchase order"
-                    rows={4}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column - Sidebar */}
-          <div className="space-y-6">
-            {/* Financial Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Financial Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      Subtotal
-                    </span>
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ₹
-                      {totals.subtotal.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                  {totals.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>
-                        -₹
-                        {totals.discount.toLocaleString('en-IN', {
-                          minimumFractionDigits: 2,
-                        })}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-zinc-600 dark:text-zinc-400">
-                      Tax Amount
-                    </span>
-                    <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                      ₹
-                      {totals.tax.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                      })}
-                    </span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <div>
-                    <Label htmlFor="shippingCost">Shipping Cost (₹)</Label>
-                    <Input
-                      id="shippingCost"
-                      type="number"
-                      value={shippingCost}
-                      onChange={(e) =>
-                        setShippingCost(Number.parseFloat(e.target.value) || 0)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="otherCharges">Other Charges (₹)</Label>
-                    <Input
-                      id="otherCharges"
-                      type="number"
-                      value={otherCharges}
-                      onChange={(e) =>
-                        setOtherCharges(Number.parseFloat(e.target.value) || 0)
-                      }
-                      min="0"
-                      step="0.01"
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="flex justify-between text-lg font-bold">
-                  <span className="text-zinc-900 dark:text-zinc-100">
-                    Total Amount
-                  </span>
-                  <span className="text-zinc-900 dark:text-zinc-100">
-                    ₹
-                    {totals.total.toLocaleString('en-IN', {
-                      minimumFractionDigits: 2,
-                    })}
-                  </span>
-                </div>
-
-                {advancePaymentRequired && totals.advanceAmount > 0 && (
-                  <>
-                    <Separator />
-                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 dark:border-orange-800 dark:bg-orange-900/20">
-                      <p className="text-sm font-medium text-orange-900 dark:text-orange-100">
-                        Advance Payment
-                      </p>
-                      <p className="text-lg font-bold text-orange-900 dark:text-orange-100">
-                        ₹
-                        {totals.advanceAmount.toLocaleString('en-IN', {
-                          minimumFractionDigits: 2,
-                        })}
-                      </p>
-                      <p className="text-xs text-orange-700 dark:text-orange-300">
-                        {advancePaymentPercentage}% of total amount
-                      </p>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Tips</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <p>• Fill in all required fields marked with *</p>
-                <p>
-                  • Add multiple line items using the &quot;Add Item&quot;
-                  button
-                </p>
-                <p>• Tax and totals are calculated automatically</p>
-                <p>• Save as draft to continue later</p>
-              </CardContent>
-            </Card>
-          </div>
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          <Button variant="outline" type="button" asChild disabled={isPending}>
+            <Link href="/users/dashboard/resources/purchase-orders">
+              Cancel
+            </Link>
+          </Button>
+          <Button type="submit" disabled={isPending} className="ml-auto">
+            <Send className="mr-2 h-4 w-4" />
+            {isPending ? 'Creating...' : 'Create Purchase Order'}
+          </Button>
         </div>
       </form>
     </div>
