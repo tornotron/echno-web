@@ -25,7 +25,10 @@ function safeParseGRN(data: Raw): GoodsReceivedNote {
 }
 
 function safeParseGRNs(data: Raw[]): GoodsReceivedNote[] {
-  if (!Array.isArray(data)) return [];
+  if (!Array.isArray(data)) {
+    logger.error('safeParseGRNs: expected array, received:', typeof data);
+    throw new ApiError('Invalid response: expected array of GRN records.', 422);
+  }
   try {
     return data.map((item) => parseGoodsReceivedNote(item));
   } catch (error) {

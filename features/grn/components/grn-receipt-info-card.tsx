@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Receipt } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 import type { GoodsReceivedNote } from '@/types/grn';
 
 interface GRNReceiptInfoCardProps {
@@ -26,7 +26,10 @@ export function GRNReceiptInfoCard({ grn }: GRNReceiptInfoCardProps) {
         <div className="flex justify-between border-b pb-2">
           <span className="text-muted-foreground">Received On</span>
           <span className="font-medium">
-            {format(new Date(grn.receivedOn), 'MMM dd, yyyy')}
+            {(() => {
+              const d = parseISO(grn.receivedOn);
+              return isValid(d) ? format(d, 'MMM dd, yyyy') : '—';
+            })()}
           </span>
         </div>
         <div className="flex justify-between border-b pb-2">
