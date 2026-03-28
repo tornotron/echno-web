@@ -39,9 +39,6 @@ export function PORemarksCard({ po }: PORemarksCardProps) {
     try {
       await updatePO({
         id: po.id,
-        status: po.status,
-        expectedDeliveryDate: po.expectedDeliveryDate || undefined,
-        totalAmount: po.totalAmount,
         remarks: remarksText.trim() || undefined,
       });
       setIsEditing(false);

@@ -1,4 +1,4 @@
-import type { PurchaseOrderStatus } from './enums';
+import { PurchaseOrderStatus } from './enums';
 import type {
   PurchaseOrderItem,
   InlinePurchaseOrderItemInput,
@@ -7,6 +7,8 @@ import { parsePurchaseOrderItem } from './purchase-order-item';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
+
+const VALID_PO_STATUSES = new Set<string>(Object.values(PurchaseOrderStatus));
 
 export interface PurchaseOrder {
   id: number;
@@ -49,6 +51,11 @@ export interface UpdatePurchaseOrderInput {
 }
 
 export function parsePurchaseOrder(raw: Raw): PurchaseOrder {
+  if (!raw.id || !raw.poNumber || !raw.vendorId) {
+    throw new Error(
+      `Invalid PurchaseOrder data: missing required fields (id=${raw.id}, poNumber=${raw.poNumber}, vendorId=${raw.vendorId})`
+    );
+  }
   return {
     id: raw.id,
     poNumber: raw.poNumber,
@@ -58,7 +65,9 @@ export function parsePurchaseOrder(raw: Raw): PurchaseOrder {
     indentNumber: raw.indentNumber ?? undefined,
     projectId: raw.projectId ?? undefined,
     projectName: raw.projectName ?? undefined,
-    status: raw.status as PurchaseOrderStatus,
+    status: VALID_PO_STATUSES.has(raw.status)
+      ? (raw.status as PurchaseOrderStatus)
+      : PurchaseOrderStatus.draft,
     createdAt: raw.createdAt,
     createdBy:
       typeof raw.createdBy === 'string'

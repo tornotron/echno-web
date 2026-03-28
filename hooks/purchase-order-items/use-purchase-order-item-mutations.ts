@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { purchaseOrderItemsService } from '@/services/purchase-order-items-service';
 import { poItemKeys } from './purchase-order-item-keys';
-import { poKeys } from '@/hooks/purchase-orders/use-purchase-orders';
+import { poKeys } from '@/hooks/purchase-orders/purchase-order-keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { CreatePurchaseOrderItemInput } from '@/types/purchase-orders';
 
