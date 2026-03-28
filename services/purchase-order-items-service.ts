@@ -37,7 +37,7 @@ export const purchaseOrderItemsService = {
       `/purchase-order-items/purchase-order/${purchaseOrderId}`
     );
     if (!Array.isArray(data)) return [];
-    return data.map((item) => parsePurchaseOrderItem(item));
+    return data.map((item) => safeParsePurchaseOrderItem(item));
   },
 
   async getByMaterial(materialId: number): Promise<PurchaseOrderItem[]> {
@@ -45,7 +45,7 @@ export const purchaseOrderItemsService = {
       `/purchase-order-items/material/${materialId}`
     );
     if (!Array.isArray(data)) return [];
-    return data.map((item) => parsePurchaseOrderItem(item));
+    return data.map((item) => safeParsePurchaseOrderItem(item));
   },
 
   async create(item: CreatePurchaseOrderItemInput): Promise<PurchaseOrderItem> {
