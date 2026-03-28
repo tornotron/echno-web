@@ -92,6 +92,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               material={breadcrumbData.material}
               indent={breadcrumbData.indent}
               storageLocation={breadcrumbData.storageLocation}
+              purchaseOrder={breadcrumbData.purchaseOrder}
             />
             <div className="flex items-center gap-2 sm:gap-4">
               <Button variant="outline" asChild>

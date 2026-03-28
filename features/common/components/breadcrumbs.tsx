@@ -47,13 +47,13 @@ import { Vendor } from '@/types/vendor';
 import { Material } from '@/types/materials';
 import { Indent } from '@/types/indents';
 import { StorageLocation } from '@/types/storage-locations/storage-location';
+import { PurchaseOrder } from '@/types/purchase-orders';
 import {
   mockInspections,
   mockLabour,
   mockAssets,
   mockBudgets,
   mockLocations,
-  mockPurchaseOrders,
   mockTransfers,
   mockStockAdjustments,
   mockGoodsReceipts,
@@ -87,9 +87,6 @@ const mockFallbackResolver: FallbackNameResolver = (
     }
     case 'locations': {
       return mockLocations.find((l) => l.id === numericId)?.name;
-    }
-    case 'purchase-orders': {
-      return mockPurchaseOrders.find((p) => p.id === numericId)?.poNumber;
     }
     case 'transfers': {
       return mockTransfers.find((t) => t.id === numericId)?.transferNumber;
@@ -131,6 +128,7 @@ interface BreadcrumbsProps {
   material?: Material;
   indent?: Indent;
   storageLocation?: StorageLocation;
+  purchaseOrder?: PurchaseOrder;
 }
 
 // /** Derive a human-readable display name for a chat room. */
@@ -159,6 +157,7 @@ export function Breadcrumbs({
   material,
   indent,
   storageLocation,
+  purchaseOrder,
 }: BreadcrumbsProps) {
   const chatRoomName = chatRoom ? getChatRoomName(chatRoom) : undefined;
   const pathname = usePathname();
@@ -221,7 +220,8 @@ export function Breadcrumbs({
             vendor,
             material,
             indent,
-            storageLocation
+            storageLocation,
+            purchaseOrder
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
