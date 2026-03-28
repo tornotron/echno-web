@@ -11,6 +11,7 @@ import { useVendor } from '@/hooks/vendors/use-vendors';
 import { useMaterial } from '@/hooks/materials/use-materials';
 import { useIndent } from '@/hooks/indents';
 import { useStorageLocation } from '@/hooks/storage-locations/use-storage-locations';
+import { usePurchaseOrder } from '@/hooks/purchase-orders/use-purchase-orders';
 import { Employee } from '@/types/employee/employee';
 import { Project } from '@/types/project/project';
 import { Organization } from '@/types/organization';
@@ -22,6 +23,7 @@ import { Vendor } from '@/types/vendor';
 import { Material } from '@/types/materials';
 import { Indent } from '@/types/indents';
 import { StorageLocation } from '@/types/storage-locations/storage-location';
+import { PurchaseOrder } from '@/types/purchase-orders';
 
 interface BreadcrumbData {
   employees?: Employee[];
@@ -35,6 +37,7 @@ interface BreadcrumbData {
   material?: Material;
   indent?: Indent;
   storageLocation?: StorageLocation;
+  purchaseOrder?: PurchaseOrder;
 }
 
 /**
@@ -71,6 +74,7 @@ export function useBreadcrumbData(): BreadcrumbData {
     materialId,
     indentId,
     storageLocationId,
+    purchaseOrderId,
   } = useMemo(() => {
     const leaveRequestId = parseIdFromPath(
       pathname,
@@ -99,6 +103,10 @@ export function useBreadcrumbData(): BreadcrumbData {
       pathname,
       /\/storage-locations\/(\d+)/
     );
+    const purchaseOrderId = parseIdFromPath(
+      pathname,
+      /\/purchase-orders\/(\d+)/
+    );
 
     return {
       leaveRequestId,
@@ -109,6 +117,7 @@ export function useBreadcrumbData(): BreadcrumbData {
       materialId,
       indentId,
       storageLocationId,
+      purchaseOrderId,
     };
   }, [pathname, searchParams]);
 
@@ -146,6 +155,9 @@ export function useBreadcrumbData(): BreadcrumbData {
   // Conditionally fetch storage location details only when ID exists
   const { data: storageLocation } = useStorageLocation(storageLocationId ?? 0);
 
+  // Conditionally fetch purchase order details only when ID exists
+  const { data: purchaseOrder } = usePurchaseOrder(purchaseOrderId ?? 0);
+
   return {
     employees,
     projects,
@@ -158,5 +170,6 @@ export function useBreadcrumbData(): BreadcrumbData {
     material,
     indent,
     storageLocation,
+    purchaseOrder,
   };
 }
