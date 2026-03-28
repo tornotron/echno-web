@@ -196,7 +196,7 @@ export default function NewGRNPage() {
       toast.error('Vendor is required.');
       return;
     }
-    if (!currentEmployee) {
+    if (!currentEmployee?.id) {
       toast.error('Unable to determine current employee.');
       return;
     }
@@ -216,7 +216,7 @@ export default function NewGRNPage() {
       {
         grnNumber: form.grnNumber.trim(),
         receivedOn: new Date(form.receivedOn).toISOString(),
-        receivedByEmployeeId: currentEmployee.id!,
+        receivedByEmployeeId: currentEmployee.id,
         vendorId: form.vendorId,
         purchaseOrderId: form.purchaseOrderId || undefined,
         projectId: form.projectId || undefined,

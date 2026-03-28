@@ -42,6 +42,9 @@ export function GRNItemsCard({ grn }: GRNItemsCardProps) {
           <TableBody>
             {grn.items.map((item) => {
               const variance = item.receivedQuantity - item.orderedQuantity;
+              let varianceClass = 'text-muted-foreground';
+              if (variance < 0) varianceClass = 'text-red-600';
+              else if (variance > 0) varianceClass = 'text-blue-600';
               return (
                 <TableRow key={item.id}>
                   <TableCell className="pl-6 font-medium">
@@ -58,15 +61,7 @@ export function GRNItemsCard({ grn }: GRNItemsCardProps) {
                       ? '—'
                       : `₹${item.unitCost.toLocaleString('en-IN')}`}
                   </TableCell>
-                  <TableCell
-                    className={`pr-6 font-medium ${
-                      variance < 0
-                        ? 'text-red-600'
-                        : variance > 0
-                          ? 'text-blue-600'
-                          : 'text-muted-foreground'
-                    }`}
-                  >
+                  <TableCell className={`pr-6 font-medium ${varianceClass}`}>
                     {variance === 0
                       ? '—'
                       : `${variance > 0 ? '+' : ''}${variance}`}
