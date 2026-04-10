@@ -104,7 +104,7 @@ export default function NewGRNPage() {
       ? queryClient.getQueryData<PurchaseOrder>(poKeys.detail(fromPOId))
       : undefined;
     return {
-      grnNumber: generateGrnNumber([]),
+      grnNumber: generateGrnNumber(existingGRNs.map((g) => g.grnNumber)),
       receivedOn: new Date().toISOString().slice(0, 10),
       vendorId: cached?.vendorId ?? 0,
       purchaseOrderId: fromPOId,
