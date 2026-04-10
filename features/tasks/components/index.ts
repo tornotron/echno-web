@@ -3,6 +3,7 @@ export { TaskAttachmentsUploader } from './task-attachments-uploader';
 export { TaskTable } from './task-table';
 export { TaskOverviewTab } from './task-overview-tab';
 export { TaskIssuesTab } from './task-issues-tab';
+export { TaskConsumptionsTab } from './task-consumptions-tab';
 export {
   DeleteTaskDialog,
   SaveTaskDialog,
