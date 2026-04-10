@@ -42,6 +42,12 @@ export const useMaterialWithStock = (id: number) =>
     enabled: !!id,
   });
 
+export const useAllMaterialConsumptions = () =>
+  useQuery({
+    queryKey: materialsKeys.consumptions(),
+    queryFn: () => materialsService.getAllConsumptions(),
+  });
+
 export const useMaterialConsumptions = (pageNo = 0, pageSize = 10) =>
   useQuery({
     queryKey: materialsKeys.consumptionsPaginated(pageNo, pageSize),
@@ -67,6 +73,13 @@ export const useConsumptionsByType = (type: ConsumptionType) =>
     queryKey: materialsKeys.consumptionsByType(type),
     queryFn: () => materialsService.getConsumptionsByType(type),
     enabled: !!type,
+  });
+
+export const useConsumptionsByTask = (taskId: number) =>
+  useQuery({
+    queryKey: materialsKeys.consumptionsByTask(taskId),
+    queryFn: () => materialsService.getConsumptionsByTask(taskId),
+    enabled: taskId > 0,
   });
 
 export const useConsumptionsByDateRange = (
