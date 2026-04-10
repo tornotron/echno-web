@@ -1,4 +1,4 @@
-import type { SiteTransferStatus } from './enums';
+import { SiteTransferStatus } from './enums';
 import type {
   SiteTransferItem,
   CreateSiteTransferItemInput,
@@ -54,7 +54,9 @@ export function parseSiteTransfer(raw: Raw): SiteTransfer {
     receivingProjectName: raw.receivingProjectName ?? undefined,
     receivingStorageLocationId: raw.receivingStorageLocationId ?? undefined,
     receivingStorageLocationName: raw.receivingStorageLocationName ?? undefined,
-    status: raw.status as SiteTransferStatus,
+    status: Object.values(SiteTransferStatus).includes(raw.status)
+      ? (raw.status as SiteTransferStatus)
+      : SiteTransferStatus.pending,
     items: Array.isArray(raw.items)
       ? raw.items.map((item: Raw) => parseSiteTransferItem(item))
       : [],
