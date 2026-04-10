@@ -30,7 +30,7 @@ export function GRNVendorPOCard({ grn }: GRNVendorPOCardProps) {
               href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
               className="font-medium text-blue-600 hover:underline"
             >
-              {grn.purchaseOrderNumber}
+              {grn.purchaseOrderNumber ?? `PO #${grn.purchaseOrderId}`}
             </Link>
           </div>
         )}
