@@ -20,6 +20,7 @@ import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations
 import {
   TaskOverviewTab,
   TaskIssuesTab,
+  TaskConsumptionsTab,
   DeleteAttachmentDialog,
 } from '@/features/tasks/components';
 
@@ -141,6 +142,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="consumptions">Material Consumptions</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -153,6 +155,10 @@ export default function TaskDetailPage({ params }: PageProps) {
 
         <TabsContent value="issues" className="mt-4">
           <TaskIssuesTab task={task} />
+        </TabsContent>
+
+        <TabsContent value="consumptions" className="mt-4">
+          <TaskConsumptionsTab task={task} />
         </TabsContent>
       </Tabs>
 
