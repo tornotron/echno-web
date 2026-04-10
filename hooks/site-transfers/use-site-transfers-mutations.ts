@@ -39,7 +39,7 @@ export const useCreateSiteTransfer = () => {
     mutationFn: (dto: CreateSiteTransferInput) =>
       siteTransfersService.create(dto),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: siteTransferKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: siteTransferKeys.all });
       // Site transfer immediately decrements stock — invalidate all material stocks
       for (const item of data.items) {
         queryClient.invalidateQueries({
@@ -52,13 +52,16 @@ export const useCreateSiteTransfer = () => {
       });
     },
     onError: (err) => {
-      if (err instanceof ApiError && err.status === 400) {
-        toast.error('Insufficient Stock', {
-          description: getErrorMessage(err),
-        });
+      const message = getErrorMessage(err);
+      const isInsufficientStock =
+        err instanceof ApiError &&
+        err.status === 400 &&
+        message.toLowerCase().includes('insufficient stock');
+      if (isInsufficientStock) {
+        toast.error('Insufficient Stock', { description: message });
       } else {
         toast.error(getErrorTitle(err, 'Failed to Create Transfer'), {
-          description: getErrorMessage(err),
+          description: message,
         });
       }
     },
@@ -71,10 +74,10 @@ export const useUpdateSiteTransferStatus = () => {
     mutationFn: ({ id, status }: { id: number; status: SiteTransferStatus }) =>
       siteTransfersService.updateStatus(id, status),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: siteTransferKeys.all });
       queryClient.invalidateQueries({
         queryKey: siteTransferKeys.detail(data.id),
       });
-      queryClient.invalidateQueries({ queryKey: siteTransferKeys.lists() });
       toast.success('Status Updated', {
         description: 'The transfer status has been updated.',
       });

@@ -18,10 +18,10 @@ export interface CreateSiteTransferItemInput {
 
 export function parseSiteTransferItem(raw: Raw): SiteTransferItem {
   return {
-    id: raw.id,
-    materialId: raw.materialId,
+    id: raw.id ?? 0,
+    materialId: raw.materialId ?? 0,
     materialName: raw.materialName ?? '',
-    sentQuantity: raw.sentQuantity,
+    sentQuantity: raw.sentQuantity ?? 0,
     transferValue: raw.transferValue ?? undefined,
     remarks: raw.remarks ?? undefined,
   };

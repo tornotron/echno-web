@@ -41,6 +41,16 @@ export function SiteTransferItemsCard({
             </TableRow>
           </TableHeader>
           <TableBody>
+            {transfer.items.length === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={4}
+                  className="text-muted-foreground py-6 text-center text-sm"
+                >
+                  No items
+                </TableCell>
+              </TableRow>
+            )}
             {transfer.items.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="pl-6 font-medium">

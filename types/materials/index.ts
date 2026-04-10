@@ -122,7 +122,11 @@ export function parseMaterialConsumption(raw: Raw): MaterialConsumption {
     materialId: raw.materialId,
     materialName: raw.materialName,
     quantity: raw.quantity,
-    consumptionType: raw.consumptionType as ConsumptionType,
+    consumptionType: Object.values(ConsumptionType).includes(
+      raw.consumptionType
+    )
+      ? (raw.consumptionType as ConsumptionType)
+      : ConsumptionType.usedFromStock,
     details: raw.details ?? undefined,
     projectId: raw.projectId ?? undefined,
     projectName: raw.projectName ?? undefined,

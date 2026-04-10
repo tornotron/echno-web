@@ -88,7 +88,7 @@ export default function NewConsumptionPage() {
       toast.error('Material is required.');
       return;
     }
-    if (!form.quantity || Number.parseInt(form.quantity) <= 0) {
+    if (!form.quantity || Number.parseInt(form.quantity, 10) <= 0) {
       toast.error('Quantity must be greater than 0.');
       return;
     }
@@ -97,7 +97,7 @@ export default function NewConsumptionPage() {
       {
         consumptionDate: new Date(form.consumptionDate).toISOString(),
         materialId: form.materialId,
-        quantity: Number.parseInt(form.quantity),
+        quantity: Number.parseInt(form.quantity, 10),
         consumptionType: form.consumptionType,
         projectId: form.projectId || undefined,
         storageLocationId: form.storageLocationId || undefined,
