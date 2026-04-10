@@ -173,6 +173,13 @@ export const materialsService = {
     return safeParseMaterialConsumptions(data);
   },
 
+  async getConsumptionsByTask(taskId: number): Promise<MaterialConsumption[]> {
+    const data = await api.get<Raw[]>(
+      `/material-consumptions/web/task/${taskId}`
+    );
+    return safeParseMaterialConsumptions(data);
+  },
+
   async getConsumptionsByDateRange(
     startDate: string,
     endDate: string

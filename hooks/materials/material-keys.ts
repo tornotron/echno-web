@@ -23,6 +23,8 @@ export const materialsKeys = {
       startDate,
       endDate,
     ] as const,
+  consumptionsByTask: (taskId: number) =>
+    [...materialsKeys.consumptions(), 'task', taskId] as const,
   consumptionsPaginated: (pageNo: number, pageSize: number) =>
     [
       ...materialsKeys.consumptions(),
