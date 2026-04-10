@@ -574,6 +574,7 @@ export default function NewSiteTransferPage() {
                               size="sm"
                               className="h-8 w-8 p-0 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                               onClick={addItem}
+                              aria-label="Add item"
                             >
                               <Plus className="h-4 w-4" />
                             </Button>
@@ -585,6 +586,7 @@ export default function NewSiteTransferPage() {
                             className="h-8 w-8 p-0 text-zinc-400 hover:text-red-500"
                             onClick={() => removeItem(index)}
                             disabled={items.length === 1}
+                            aria-label="Remove item"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
