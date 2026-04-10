@@ -134,7 +134,7 @@ export default function NewPurchaseOrderPage() {
       ? queryClient.getQueryData<Indent>(indentsKeys.detail(fromIndentId))
       : undefined;
     return {
-      poNumber: generatePoNumber([]),
+      poNumber: generatePoNumber(existingOrders.map((po) => po.poNumber)),
       vendorId: 0,
       projectId: cachedIndent?.projectId ?? 0,
       indentId: cachedIndent?.id ?? fromIndentId ?? 0,

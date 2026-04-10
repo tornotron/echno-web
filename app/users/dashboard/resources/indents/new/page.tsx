@@ -56,7 +56,9 @@ export default function NewIndentPage() {
   const [prevExistingIndents, setPrevExistingIndents] =
     useState(existingIndents);
   const [form, setForm] = useState({
-    indentNumber: generateIndentNumber([]),
+    indentNumber: generateIndentNumber(
+      existingIndents.map((i) => i.indentNumber)
+    ),
     status: IndentStatus.pending,
     expectedOn: '',
     remarks: '',
