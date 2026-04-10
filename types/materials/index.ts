@@ -47,7 +47,13 @@ export interface MaterialConsumption {
   quantity: number;
   consumptionType: ConsumptionType;
   details?: string;
-  createdBy: { id: number; name: string; email?: string };
+  projectId?: number;
+  projectName?: string;
+  storageLocationId?: number;
+  storageLocationName?: string;
+  taskId?: number;
+  taskTitle?: string;
+  createdBy: { id: number; name: string };
 }
 
 export interface CreateMaterialInput {
@@ -74,7 +80,10 @@ export interface CreateMaterialConsumptionInput {
   quantity: number;
   consumptionType: ConsumptionType;
   details?: string;
-  createdBy: string; // username string
+  projectId?: number;
+  storageLocationId?: number;
+  taskId?: number;
+  createdBy: number;
 }
 
 export function parseMaterial(raw: Raw): Material {
@@ -115,10 +124,15 @@ export function parseMaterialConsumption(raw: Raw): MaterialConsumption {
     quantity: raw.quantity,
     consumptionType: raw.consumptionType as ConsumptionType,
     details: raw.details ?? undefined,
+    projectId: raw.projectId ?? undefined,
+    projectName: raw.projectName ?? undefined,
+    storageLocationId: raw.storageLocationId ?? undefined,
+    storageLocationName: raw.storageLocationName ?? undefined,
+    taskId: raw.taskId ?? undefined,
+    taskTitle: raw.taskTitle ?? undefined,
     createdBy: {
       id: raw.createdBy?.id ?? 0,
-      name: raw.createdBy?.name ?? '',
-      email: raw.createdBy?.email,
+      name: raw.createdBy?.employeeName ?? raw.createdBy?.name ?? '',
     },
   };
 }
