@@ -129,19 +129,16 @@ const unicornRules = {
       {
         "cases": {
           "kebabCase": true,
-          "pascalCase": true, // Allow PascalCase
+          "pascalCase": true, // Allow PascalCase for React components
         },
         "ignore": [
-          // We must ignore these to allow React components (PascalCase)
-          // and Next.js files (lowercase).
+          // Ignore Next.js dynamic route filenames like [id].tsx and [...all].tsx
           /\[...all\]\.tsx?$/,
           /\[.+\]\.tsx?$/,
         ],
       }
     ],
 
-    // Next.js 'app' router uses files with `page.tsx` etc.
-    // We must disable this rule for the 'app' directory.
     "unicorn/prevent-abbreviations": "off",
     "unicorn/no-null": "off", // 'null' is often needed in Next.js
   }
@@ -151,6 +148,8 @@ const unicornRules = {
 // We must allow `page.tsx`, `layout.tsx`, etc.
 const nextFileOverrides = {
   files: [
+    // Next.js 'app' router uses files with `page.tsx` etc.
+    // We must disable this rule for the 'app' directory.
     "app/**/{page,layout,template,loading,error,global-error,not-found}.tsx"
   ],
   rules: {
