@@ -1,18 +1,19 @@
-# Echno Attendance - Web Interface
+# Echno - Web Interface
 
 <div align="center">
   <img src="public/echno.png" alt="Echno Logo" width="120" height="120">
   
-  <h3>Next.js 16 Web Application</h3>
-  <p>Modern web interface for the Echno Attendance Management System</p>
+  <h3>A Complete Construction Management Solution</h3>
+  <p>An Open Source modern web interface built with Next.js 16</p>
 
-  [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-  [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-  [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
-  [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
-  [![Keycloak](https://img.shields.io/badge/Keycloak-OIDC-000000?style=for-the-badge&logo=keycloak)](https://www.keycloak.org/)
-  [![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-Components-18181b?style=for-the-badge)](https://ui.shadcn.com/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=springboot)](https://spring.io/projects/spring-boot)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
+[![Keycloak](https://img.shields.io/badge/Keycloak-OIDC-000000?style=for-the-badge&logo=keycloak)](https://www.keycloak.org/)
+[![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-Components-18181b?style=for-the-badge)](https://ui.shadcn.com/)
+
 </div>
 
 ---
@@ -54,18 +55,21 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 ## ✨ Features
 
 ### 🔐 Authentication & Authorization
+
 - Secure login via Keycloak OpenID Connect flows
-- Role-based access control (Admin, Manager, Employee) mapped from Keycloak roles
+- Role-based access control (Admin, Manager, Employee, etc.) mapped from Keycloak roles
 - Short-lived access tokens with refresh token rotation
 - Self-service account management through Keycloak console
 
 ### 👥 Organization Management
+
 - Create and manage multiple organizations
 - Organization profile with logo upload
 - Employee invitation system with secure codes
 - Department and designation management
 
 ### 📅 Attendance Tracking
+
 - Real-time attendance submissions via Spring Boot REST endpoints
 - GPS-based location verification with backend geofencing rules
 - QR code-based check-in/check-out integrated with the API
@@ -73,6 +77,7 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - Calendar view with aggregated status indicators
 
 ### 📊 Analytics & Reporting
+
 - Comprehensive attendance analytics sourced from PostgreSQL views
 - Export reports (PDF, CSV, Excel)
 - Visual dashboards with charts
@@ -80,6 +85,7 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - Employee productivity metrics
 
 ### 🏢 Employee Management
+
 - Employee profiles and details
 - Department-wise employee listing
 - Reporting hierarchy visualization
@@ -87,12 +93,14 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - Salary information (admin only)
 
 ### 📋 Leave Management
+
 - Leave application and approval workflow
 - Leave balance tracking
 - Leave history and calendar
 - Multiple leave types support
 
 ### 📦 Additional Modules
+
 - Project management integration
 - Task assignment and tracking
 - Inventory management
@@ -103,36 +111,43 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 ## 🛠 Tech Stack
 
 ### Core Framework
+
 - **Next.js 16** - React framework with App Router
 - **React 19** - UI library with Server Components
 - **TypeScript 5.0+** - Type-safe development
 
 ### Backend & Database
+
 - **Spring Boot 3.x** - REST API and business services
 - **PostgreSQL 16** - Relational database
 - **Flyway** or **Liquibase** - Database migrations
 - **Keycloak** - OpenID Connect identity provider
 
 ### State Management
+
 - **React Context API** - Global state management
 - **Zustand** or **Redux Toolkit** - Complex state management
 - **TanStack Query (React Query)** - Server state management
 
 ### UI & Styling
+
 - **Tailwind CSS** - Utility-first CSS framework
 - **shadcn/ui** - Re-usable component library
 - **Framer Motion** - Animation library
 - **Lucide Icons** - Icon set
 
 ### Form Handling & Validation
+
 - **React Hook Form** - Performant form library
 - **Zod** - TypeScript-first schema validation
 
 ### Data Visualization
+
 - **Recharts** or **Chart.js** - Chart libraries
 - **FullCalendar** - Calendar component
 
 ### Development Tools
+
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
 - **Husky** - Git hooks
@@ -151,7 +166,7 @@ Before you begin, ensure you have the following installed:
 ### System Requirements
 
 | Component | Minimum | Recommended |
-|-----------|---------|-------------|
+| --------- | ------- | ----------- |
 | Node.js   | v18.17  | v20.x LTS   |
 | RAM       | 4 GB    | 8 GB        |
 | Storage   | 500 MB  | 1 GB        |
@@ -324,10 +339,7 @@ The `next.config.js` file contains important configurations:
 const nextConfig = {
   reactStrictMode: true,
   images: {
-    domains: [
-      'cdn.echno.com',
-      'assets.echno.com'
-    ],
+    domains: ['cdn.echno.com', 'assets.echno.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -342,9 +354,9 @@ const nextConfig = {
   },
   // PWA Configuration
   // Add next-pwa if needed
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;
 ```
 
 ### API Client Configuration
@@ -361,11 +373,12 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   // Inject access token from Keycloak session storage
-  const token = typeof window !== 'undefined' ? localStorage.getItem('kc-token') : null;
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('kc-token') : null;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-    
+
   return config;
 });
 ```
@@ -413,6 +426,7 @@ npm run type-check
 ### Code Style
 
 This project follows:
+
 - **ESLint** for code linting
 - **Prettier** for code formatting
 - **TypeScript** strict mode
@@ -520,7 +534,7 @@ export const organizationApi = {
     const response = await fetch(`${API_URL}/organizations/user/${userId}`);
     return response.json();
   },
-  
+
   // Create organization
   createOrganization: async (data: CreateOrganizationDto) => {
     const response = await fetch(`${API_URL}/organizations`, {
@@ -530,7 +544,7 @@ export const organizationApi = {
     });
     return response.json();
   },
-  
+
   // Update organization
   updateOrganization: async (id: number, data: UpdateOrganizationDto) => {
     const response = await fetch(`${API_URL}/organizations/${id}`, {
@@ -597,7 +611,7 @@ describe('OrganizationCard', () => {
       organizationName: 'Test Org',
       organizationEmail: 'test@org.com',
     };
-    
+
     render(<OrganizationCard organization={org} />);
     expect(screen.getByText('Test Org')).toBeInTheDocument();
   });
