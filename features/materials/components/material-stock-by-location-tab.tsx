@@ -17,6 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import {
   Loader2,
@@ -327,90 +335,69 @@ export function MaterialStockByLocationTab({
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-zinc-50 dark:bg-zinc-900/40">
-                    <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                      Project
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                      Storage Location
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Stock
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Stock Value
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Track
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {paginatedLocations.map((ls) => {
-                    const isEmpty = ls.stock === 0;
-                    const isLow =
-                      !isEmpty &&
-                      reorderLevel !== undefined &&
-                      ls.stock <= reorderLevel;
-                    return (
-                      <tr
-                        key={`${ls.projectId}-${ls.storageLocationId}`}
-                        className={`transition-colors ${
-                          isEmpty
-                            ? 'bg-zinc-50/50 dark:bg-zinc-900/20'
-                            : 'hover:bg-accent/40'
-                        }`}
-                      >
-                        <td className="px-4 py-3">
-                          <div className="font-medium">{ls.projectName}</div>
-                        </td>
-                        <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                          {ls.storageLocationName}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span
-                            className={`font-semibold tabular-nums ${
-                              isEmpty
-                                ? 'text-zinc-400'
-                                : isLow
-                                  ? 'text-amber-600 dark:text-amber-400'
-                                  : ''
-                            }`}
-                          >
-                            {ls.stock} {unit}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right text-zinc-700 tabular-nums dark:text-zinc-300">
-                          ₹{ls.stockValue.toLocaleString('en-IN')}
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <StockStatusBadge
-                            stock={ls.stock}
-                            reorderLevel={reorderLevel}
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 gap-1.5 text-xs"
-                            onClick={() => openLocationHistory(ls)}
-                          >
-                            <History className="h-3.5 w-3.5" />
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project</TableHead>
+                  <TableHead>Storage Location</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Stock Value</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                  <TableHead className="text-right">Track</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedLocations.map((ls) => {
+                  const isEmpty = ls.stock === 0;
+                  const isLow =
+                    !isEmpty &&
+                    reorderLevel !== undefined &&
+                    ls.stock <= reorderLevel;
+                  return (
+                    <TableRow key={`${ls.projectId}-${ls.storageLocationId}`}>
+                      <TableCell className="font-medium">
+                        {ls.projectName}
+                      </TableCell>
+                      <TableCell className="text-zinc-600 dark:text-zinc-400">
+                        {ls.storageLocationName}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span
+                          className={`font-semibold tabular-nums ${
+                            isEmpty
+                              ? 'text-zinc-400'
+                              : isLow
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : ''
+                          }`}
+                        >
+                          {ls.stock} {unit}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right text-zinc-700 tabular-nums dark:text-zinc-300">
+                        ₹{ls.stockValue.toLocaleString('en-IN')}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <StockStatusBadge
+                          stock={ls.stock}
+                          reorderLevel={reorderLevel}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 gap-1.5 text-xs"
+                          onClick={() => openLocationHistory(ls)}
+                        >
+                          <History className="h-3.5 w-3.5" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
 
@@ -564,134 +551,115 @@ export function MaterialStockByLocationTab({
                       </Button>
                     </div>
                   ) : (
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b bg-zinc-50 dark:bg-zinc-900/40">
-                            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                              Date
-                            </th>
-                            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                              Type
-                            </th>
-                            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                              Opening
-                            </th>
-                            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                              Change
-                            </th>
-                            <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                              Closing
-                            </th>
-                            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                              Reference
-                            </th>
-                            <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                              By
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y">
-                          {paginatedTx.map((tx) => {
-                            const isPositive = tx.quantityChanged > 0;
-                            const isZero = tx.quantityChanged === 0;
-                            const counterpart = getTransferCounterpart(
-                              tx.transactionType,
-                              tx.remarks
-                            );
-                            return (
-                              <tr
-                                key={tx.id}
-                                className="hover:bg-accent/40 transition-colors"
-                              >
-                                <td className="text-muted-foreground px-4 py-3 whitespace-nowrap">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead className="text-right">Opening</TableHead>
+                          <TableHead className="text-right">Change</TableHead>
+                          <TableHead className="text-right">Closing</TableHead>
+                          <TableHead>Reference</TableHead>
+                          <TableHead>By</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginatedTx.map((tx) => {
+                          const isPositive = tx.quantityChanged > 0;
+                          const isZero = tx.quantityChanged === 0;
+                          const counterpart = getTransferCounterpart(
+                            tx.transactionType,
+                            tx.remarks
+                          );
+                          return (
+                            <TableRow key={tx.id}>
+                              <TableCell className="text-muted-foreground whitespace-nowrap">
+                                {format(
+                                  new Date(tx.transactionDate),
+                                  'MMM dd, yyyy'
+                                )}
+                                <div className="text-xs">
                                   {format(
                                     new Date(tx.transactionDate),
-                                    'MMM dd, yyyy'
+                                    'HH:mm'
                                   )}
-                                  <div className="text-xs">
-                                    {format(
-                                      new Date(tx.transactionDate),
-                                      'HH:mm'
-                                    )}
-                                  </div>
-                                </td>
-                                <td className="px-4 py-3">
-                                  <Badge
-                                    className={
-                                      inventoryTransactionTypeBadgeColors[
-                                        tx.transactionType
-                                      ]
-                                    }
-                                  >
-                                    {
-                                      inventoryTransactionTypeLabels[
-                                        tx.transactionType
-                                      ]
-                                    }
-                                  </Badge>
-                                  {counterpart && (
-                                    <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
-                                      {tx.transactionType ===
-                                      InventoryTransactionType.transferOut ? (
-                                        <ArrowRight className="h-3 w-3" />
-                                      ) : (
-                                        <ArrowLeft className="h-3 w-3" />
-                                      )}
-                                      {counterpart}
-                                    </div>
-                                  )}
-                                </td>
-                                <td className="text-muted-foreground px-4 py-3 text-right tabular-nums">
-                                  {tx.openingStock}
-                                </td>
-                                <td className="px-4 py-3 text-right">
-                                  <div
-                                    className={`flex items-center justify-end gap-1 font-semibold tabular-nums ${
-                                      isZero
-                                        ? 'text-muted-foreground'
-                                        : isPositive
-                                          ? 'text-green-600 dark:text-green-400'
-                                          : 'text-red-600 dark:text-red-400'
-                                    }`}
-                                  >
-                                    {isZero ? (
-                                      <Minus className="h-3.5 w-3.5" />
-                                    ) : isPositive ? (
-                                      <TrendingUp className="h-3.5 w-3.5" />
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <Badge
+                                  className={
+                                    inventoryTransactionTypeBadgeColors[
+                                      tx.transactionType
+                                    ]
+                                  }
+                                >
+                                  {
+                                    inventoryTransactionTypeLabels[
+                                      tx.transactionType
+                                    ]
+                                  }
+                                </Badge>
+                                {counterpart && (
+                                  <div className="text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                                    {tx.transactionType ===
+                                    InventoryTransactionType.transferOut ? (
+                                      <ArrowRight className="h-3 w-3" />
                                     ) : (
-                                      <TrendingDown className="h-3.5 w-3.5" />
+                                      <ArrowLeft className="h-3 w-3" />
                                     )}
-                                    {isPositive
-                                      ? `+${tx.quantityChanged}`
-                                      : tx.quantityChanged}
+                                    {counterpart}
                                   </div>
-                                </td>
-                                <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                                  {tx.closingStock}
-                                </td>
-                                <td className="px-4 py-3">
-                                  <div className="text-muted-foreground">
-                                    {tx.referenceNumber ?? '—'}
-                                  </div>
-                                  {tx.remarks && (
-                                    <div
-                                      className="text-muted-foreground max-w-[180px] truncate text-xs"
-                                      title={tx.remarks}
-                                    >
-                                      {tx.remarks}
-                                    </div>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground text-right tabular-nums">
+                                {tx.openingStock}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <div
+                                  className={`flex items-center justify-end gap-1 font-semibold tabular-nums ${
+                                    isZero
+                                      ? 'text-muted-foreground'
+                                      : isPositive
+                                        ? 'text-green-600 dark:text-green-400'
+                                        : 'text-red-600 dark:text-red-400'
+                                  }`}
+                                >
+                                  {isZero ? (
+                                    <Minus className="h-3.5 w-3.5" />
+                                  ) : isPositive ? (
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <TrendingDown className="h-3.5 w-3.5" />
                                   )}
-                                </td>
-                                <td className="text-muted-foreground px-4 py-3 whitespace-nowrap">
-                                  {tx.createdBy.name}
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
+                                  {isPositive
+                                    ? `+${tx.quantityChanged}`
+                                    : tx.quantityChanged}
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right font-semibold tabular-nums">
+                                {tx.closingStock}
+                              </TableCell>
+                              <TableCell>
+                                <div className="text-muted-foreground">
+                                  {tx.referenceNumber ?? '—'}
+                                </div>
+                                {tx.remarks && (
+                                  <div
+                                    className="text-muted-foreground max-w-[180px] truncate text-xs"
+                                    title={tx.remarks}
+                                  >
+                                    {tx.remarks}
+                                  </div>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-muted-foreground whitespace-nowrap">
+                                {tx.createdBy.name}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
                   )}
                 </CardContent>
                 {txTotalPages > 1 && (
