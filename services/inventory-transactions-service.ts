@@ -12,8 +12,10 @@ import {
   InventoryTransaction,
   InventoryTransactionType,
   MaterialStock,
+  StorageLocationStock,
   parseInventoryTransaction,
   parseMaterialStock,
+  parseStorageLocationStock,
 } from '@/types/inventory-transactions';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,6 +103,15 @@ export const inventoryTransactionsService = {
       `/inventory-transactions/web/storage-location/${storageLocationId}`
     );
     return safeParseAll(data);
+  },
+
+  async getStorageLocationStock(
+    storageLocationId: number
+  ): Promise<StorageLocationStock> {
+    const data = await api.get<Raw>(
+      `/inventory-transactions/web/storage-location/${storageLocationId}/stock`
+    );
+    return parseStorageLocationStock(data);
   },
 
   async getByStorageLocationAndMaterial(
