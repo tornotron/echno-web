@@ -21,6 +21,13 @@ export const inventoryTransactionKeys = {
       'storage-location',
       storageLocationId,
     ] as const,
+  storageLocationStock: (storageLocationId: number) =>
+    [
+      ...inventoryTransactionKeys.all,
+      'storage-location',
+      storageLocationId,
+      'stock',
+    ] as const,
   byStorageLocationAndMaterial: (
     storageLocationId: number,
     materialId: number,

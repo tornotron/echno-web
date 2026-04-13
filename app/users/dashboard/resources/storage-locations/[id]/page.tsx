@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   MapPin,
   Edit,
@@ -31,6 +32,7 @@ import {
   STORAGE_LOCATION_TYPE_LABELS,
 } from '@/types/storage-locations';
 import { useStorageLocation } from '@/hooks/storage-locations';
+import { StorageLocationStockTab } from '@/features/storage-locations/components';
 
 export default function ViewLocationPage() {
   const params = useParams();
@@ -128,133 +130,153 @@ export default function ViewLocationPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Capacity</CardDescription>
-            <CardTitle className="text-3xl">
-              {location.capacity == null
-                ? '—'
-                : location.capacity.toLocaleString()}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-muted-foreground flex items-center gap-1 text-sm">
-              <Package className="h-4 w-4" />
-              Units
-            </div>
-          </CardContent>
-        </Card>
+      {/* Tabs: Details | Stock */}
+      <Tabs defaultValue="details">
+        <TabsList className="w-full">
+          <TabsTrigger value="details" className="flex items-center gap-1.5">
+            <Building2 className="h-4 w-4" />
+            Details
+          </TabsTrigger>
+          <TabsTrigger value="stock" className="flex items-center gap-1.5">
+            <Package className="h-4 w-4" />
+            Stock
+          </TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Items Stored</CardDescription>
-            <CardTitle className="text-3xl text-blue-600">
-              {location.storageItemsCount ?? 0}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-muted-foreground flex items-center gap-1 text-sm">
-              <Box className="h-4 w-4" />
-              Total Items
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Utilization</CardDescription>
-            <CardTitle className="text-3xl text-green-600">
-              {location.capacity
-                ? `${Math.round(((location.storageItemsCount ?? 0) / location.capacity) * 100)}%`
-                : '—'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-muted-foreground flex items-center gap-1 text-sm">
-              <TrendingUp className="h-4 w-4" />
-              Capacity Used
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Details */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Location Information</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {location.address ? (
-              <div>
-                <div className="text-muted-foreground mb-1 text-sm font-medium">
-                  Address
+        <TabsContent value="details" className="mt-6 space-y-6">
+          {/* Stats Cards */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Total Capacity</CardDescription>
+                <CardTitle className="text-3xl">
+                  {location.capacity == null
+                    ? '—'
+                    : location.capacity.toLocaleString()}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                  <Package className="h-4 w-4" />
+                  Units
                 </div>
-                <div className="flex items-start gap-2 text-base">
-                  <MapPin className="mt-1 h-4 w-4 shrink-0" />
-                  <span>{location.address}</span>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Items Stored</CardDescription>
+                <CardTitle className="text-3xl text-blue-600">
+                  {location.storageItemsCount ?? 0}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                  <Box className="h-4 w-4" />
+                  Total Items
                 </div>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-sm">
-                No address provided
-              </p>
-            )}
+              </CardContent>
+            </Card>
 
-            {(location.latitude != null || location.longitude != null) && (
-              <div>
-                <div className="text-muted-foreground mb-1 text-sm font-medium">
-                  Coordinates
+            <Card>
+              <CardHeader className="pb-3">
+                <CardDescription>Utilization</CardDescription>
+                <CardTitle className="text-3xl text-green-600">
+                  {location.capacity
+                    ? `${Math.round(((location.storageItemsCount ?? 0) / location.capacity) * 100)}%`
+                    : '—'}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-muted-foreground flex items-center gap-1 text-sm">
+                  <TrendingUp className="h-4 w-4" />
+                  Capacity Used
                 </div>
-                <div className="text-base">
-                  {location.latitude ?? '—'}, {location.longitude ?? '—'}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Info</CardTitle>
-            <CardDescription>Status and type details</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="text-muted-foreground h-4 w-4" />
-                <span className="text-sm">Type</span>
-              </div>
-              <span className="font-semibold">
-                {STORAGE_LOCATION_TYPE_LABELS[location.locationType]}
-              </span>
-            </div>
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Location Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {location.address ? (
+                  <div>
+                    <div className="text-muted-foreground mb-1 text-sm font-medium">
+                      Address
+                    </div>
+                    <div className="flex items-start gap-2 text-base">
+                      <MapPin className="mt-1 h-4 w-4 shrink-0" />
+                      <span>{location.address}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground text-sm">
+                    No address provided
+                  </p>
+                )}
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Calendar className="text-muted-foreground h-4 w-4" />
-                <span className="text-sm">Status</span>
-              </div>
-              <Badge variant={location.active ? 'default' : 'secondary'}>
-                {location.active ? 'Active' : 'Inactive'}
-              </Badge>
-            </div>
+                {(location.latitude != null || location.longitude != null) && (
+                  <div>
+                    <div className="text-muted-foreground mb-1 text-sm font-medium">
+                      Coordinates
+                    </div>
+                    <div className="text-base">
+                      {location.latitude ?? '—'}, {location.longitude ?? '—'}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
-            {location.locationType === StorageLocationType.PROJECT_SITE &&
-              location.projectName && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quick Info</CardTitle>
+                <CardDescription>Status and type details</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <FolderOpen className="text-muted-foreground h-4 w-4" />
-                    <span className="text-sm">Project</span>
+                    <Building2 className="text-muted-foreground h-4 w-4" />
+                    <span className="text-sm">Type</span>
                   </div>
-                  <span className="font-semibold">{location.projectName}</span>
+                  <span className="font-semibold">
+                    {STORAGE_LOCATION_TYPE_LABELS[location.locationType]}
+                  </span>
                 </div>
-              )}
-          </CardContent>
-        </Card>
-      </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="text-muted-foreground h-4 w-4" />
+                    <span className="text-sm">Status</span>
+                  </div>
+                  <Badge variant={location.active ? 'default' : 'secondary'}>
+                    {location.active ? 'Active' : 'Inactive'}
+                  </Badge>
+                </div>
+
+                {location.projectName && (
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FolderOpen className="text-muted-foreground h-4 w-4" />
+                      <span className="text-sm">Project</span>
+                    </div>
+                    <span className="font-semibold">
+                      {location.projectName}
+                    </span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="stock" className="mt-6 space-y-4">
+          <StorageLocationStockTab storageLocationId={locationId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
