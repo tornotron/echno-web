@@ -57,6 +57,14 @@ export const useMaterialStock = (materialId: number) =>
     enabled: !!materialId,
   });
 
+export const useStorageLocationStock = (storageLocationId: number) =>
+  useQuery({
+    queryKey: inventoryTransactionKeys.storageLocationStock(storageLocationId),
+    queryFn: () =>
+      inventoryTransactionsService.getStorageLocationStock(storageLocationId),
+    enabled: !!storageLocationId,
+  });
+
 export const useInventoryTransactionsByStorageLocation = (
   storageLocationId: number
 ) =>
