@@ -12,6 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Loader2, Package, ExternalLink } from 'lucide-react';
 import { useStorageLocationStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
@@ -233,80 +241,57 @@ export function StorageLocationStockTab({
               </Button>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-zinc-50 dark:bg-zinc-900/40">
-                    <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                      Material
-                    </th>
-                    <th className="px-4 py-3 text-left font-medium text-zinc-600 dark:text-zinc-400">
-                      Unit
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Stock
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Stock Value
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      Status
-                    </th>
-                    <th className="px-4 py-3 text-right font-medium text-zinc-600 dark:text-zinc-400">
-                      View
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {paginatedMaterials.map((m) => (
-                    <tr
-                      key={m.materialId}
-                      className={`transition-colors ${
-                        m.stock === 0
-                          ? 'bg-zinc-50/50 dark:bg-zinc-900/20'
-                          : 'hover:bg-accent/40'
-                      }`}
-                    >
-                      <td className="px-4 py-3 font-medium">
-                        {m.materialName}
-                      </td>
-                      <td className="px-4 py-3 text-zinc-600 dark:text-zinc-400">
-                        {m.unit}
-                      </td>
-                      <td className="px-4 py-3 text-right tabular-nums">
-                        <span
-                          className={`font-semibold ${
-                            m.stock === 0 ? 'text-zinc-400' : ''
-                          }`}
-                        >
-                          {m.stock.toLocaleString()}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right text-zinc-700 tabular-nums dark:text-zinc-300">
-                        ₹{m.stockValue.toLocaleString('en-IN')}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <StockStatusBadge stock={m.stock} />
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 gap-1.5 text-xs"
-                          onClick={() =>
-                            router.push(
-                              `/users/dashboard/resources/materials/${m.materialId}`
-                            )
-                          }
-                        >
-                          <ExternalLink className="h-3.5 w-3.5" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Material</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="text-right">Stock Value</TableHead>
+                  <TableHead className="text-right">Status</TableHead>
+                  <TableHead className="text-right">View</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedMaterials.map((m) => (
+                  <TableRow key={m.materialId}>
+                    <TableCell className="font-medium">
+                      {m.materialName}
+                    </TableCell>
+                    <TableCell className="text-zinc-600 dark:text-zinc-400">
+                      {m.unit}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      <span
+                        className={`font-semibold ${m.stock === 0 ? 'text-zinc-400' : ''}`}
+                      >
+                        {m.stock.toLocaleString()}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right text-zinc-700 tabular-nums dark:text-zinc-300">
+                      ₹{m.stockValue.toLocaleString('en-IN')}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <StockStatusBadge stock={m.stock} />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 gap-1.5 text-xs"
+                        onClick={() =>
+                          router.push(
+                            `/users/dashboard/resources/materials/${m.materialId}`
+                          )
+                        }
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
 
