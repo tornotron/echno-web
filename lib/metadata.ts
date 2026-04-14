@@ -3,7 +3,18 @@ import type { Metadata } from 'next';
 const APP_NAME = 'Echno Console';
 const APP_DESCRIPTION =
   'Construction project management platform by Tornotron E-Commerce Private Limited';
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://console.echno.in';
+const FALLBACK_URL = 'https://console.echno.in';
+function safeAppUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_APP_URL;
+  if (!raw) return FALLBACK_URL;
+  try {
+    new URL(raw);
+    return raw.replace(/\/$/, '');
+  } catch {
+    return FALLBACK_URL;
+  }
+}
+const APP_URL = safeAppUrl();
 const OG_IMAGE = `${APP_URL}/og-image.png`;
 
 /**
