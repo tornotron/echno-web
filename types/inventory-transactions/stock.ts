@@ -24,19 +24,25 @@ export interface StorageLocationStock {
 }
 
 export function parseStorageLocationStock(raw: Raw): StorageLocationStock {
+  const safeRaw = raw != null && typeof raw === 'object' ? raw : {};
   return {
-    storageLocationId: raw.storageLocationId,
-    storageLocationName: raw.storageLocationName ?? '',
-    projectId: raw.projectId,
-    materialStock: (raw.materialStock ?? []).map((ms: Raw) => ({
-      materialId: ms.materialId,
-      materialName: ms.materialName ?? '',
-      unit: ms.unit ?? '',
-      stock: ms.stock ?? 0,
-      stockValue: ms.stockValue ?? 0,
-    })),
-    totalStock: raw.totalStock ?? 0,
-    totalStockValue: raw.totalStockValue ?? 0,
+    storageLocationId: safeRaw.storageLocationId ?? 0,
+    storageLocationName: safeRaw.storageLocationName ?? '',
+    projectId: safeRaw.projectId ?? 0,
+    materialStock: Array.isArray(safeRaw.materialStock)
+      ? safeRaw.materialStock.map((ms: Raw) => {
+          const safeMs = ms != null && typeof ms === 'object' ? ms : {};
+          return {
+            materialId: safeMs.materialId ?? 0,
+            materialName: safeMs.materialName ?? '',
+            unit: safeMs.unit ?? '',
+            stock: safeMs.stock ?? 0,
+            stockValue: safeMs.stockValue ?? 0,
+          };
+        })
+      : [],
+    totalStock: safeRaw.totalStock ?? 0,
+    totalStockValue: safeRaw.totalStockValue ?? 0,
   };
 }
 

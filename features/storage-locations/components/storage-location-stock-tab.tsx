@@ -75,6 +75,11 @@ export function StorageLocationStockTab({
 
   const filteredMaterials = useMemo((): LocationMaterialStock[] => {
     if (!locationStock) return [];
+    if (
+      projectFilter !== 'all' &&
+      locationStock.projectId !== Number(projectFilter)
+    )
+      return [];
     const q = search.toLowerCase();
     return locationStock.materialStock.filter(
       (m) =>
@@ -82,7 +87,7 @@ export function StorageLocationStockTab({
         m.materialName.toLowerCase().includes(q) ||
         m.unit.toLowerCase().includes(q)
     );
-  }, [locationStock, search]);
+  }, [locationStock, search, projectFilter]);
 
   const totalPages = Math.ceil(filteredMaterials.length / perPage);
   const startIndex = (page - 1) * perPage;
@@ -279,6 +284,7 @@ export function StorageLocationStockTab({
                         variant="ghost"
                         size="sm"
                         className="h-7 gap-1.5 text-xs"
+                        aria-label="View material"
                         onClick={() =>
                           router.push(
                             `/users/dashboard/resources/materials/${m.materialId}`
