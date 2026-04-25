@@ -11,6 +11,7 @@ interface InvitationStatsProps {
   pending: number;
   accepted: number;
   expired: number;
+  onFilterChange?: (status: string) => void;
 }
 
 export function InvitationStats({
@@ -18,17 +19,21 @@ export function InvitationStats({
   pending,
   accepted,
   expired,
+  onFilterChange,
 }: InvitationStatsProps) {
   return (
     <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-      <Card>
+      <Card
+        className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+        onClick={() => onFilterChange?.('all')}
+      >
         <CardHeader className="pb-3">
           <CardDescription>Total Invitations</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-              <Mail className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
+              <Mail className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
             </div>
             <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               {total}
@@ -37,7 +42,10 @@ export function InvitationStats({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card
+        className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+        onClick={() => onFilterChange?.('pending')}
+      >
         <CardHeader className="pb-3">
           <CardDescription>Pending</CardDescription>
         </CardHeader>
@@ -53,7 +61,10 @@ export function InvitationStats({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card
+        className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+        onClick={() => onFilterChange?.('accepted')}
+      >
         <CardHeader className="pb-3">
           <CardDescription>Accepted</CardDescription>
         </CardHeader>
@@ -69,7 +80,10 @@ export function InvitationStats({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card
+        className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+        onClick={() => onFilterChange?.('expired')}
+      >
         <CardHeader className="pb-3">
           <CardDescription>Expired</CardDescription>
         </CardHeader>
