@@ -24,7 +24,7 @@ import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -38,6 +38,7 @@ import {
   Plus,
   Users,
   ListTodo,
+  AlertCircle,
   CheckCircle2,
   Clock,
   XCircle,
@@ -170,7 +171,7 @@ export default function ProjectsPage() {
       <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500"></div>
             <p className="text-zinc-600 dark:text-zinc-400">
               Loading projects...
             </p>
@@ -204,29 +205,27 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold">Projects</h1>
-          </div>
-          <p className="text-muted-foreground">
-            Manage and monitor all construction projects
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader
+        title="Projects"
+        description="Manage and monitor all construction projects"
+        actions={
           <Button asChild>
             <Link href="/users/dashboard/projects/new">
               <Plus className="mr-2 h-4 w-4" />
               Add Project
             </Link>
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            handleFilterChange('status', 'all');
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Total Projects
@@ -239,7 +238,12 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            handleFilterChange('status', ProjectStatus.open);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Active Projects
@@ -254,7 +258,12 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            handleFilterChange('status', ProjectStatus.completed);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Completed</CardTitle>
             <CheckCircle2 className="h-4 w-4 text-purple-600" />
@@ -269,7 +278,12 @@ export default function ProjectsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            handleFilterChange('status', ProjectStatus.upcoming);
+          }}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
             <Clock className="h-4 w-4 text-blue-600" />
@@ -281,6 +295,37 @@ export default function ProjectsPage() {
             <p className="text-muted-foreground text-xs">Not started yet</p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Quick Access Cards */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <Link href="/users/dashboard/projects/tasks">
+          <Card className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Tasks</CardTitle>
+              <ListTodo className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-xs">
+                View and manage all tasks across projects
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/users/dashboard/projects/issues">
+          <Card className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Issues</CardTitle>
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-xs">
+                Track and resolve issues across projects
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Filters */}
@@ -371,7 +416,7 @@ export default function ProjectsPage() {
                   key={project.id}
                   href={`/users/dashboard/projects/${project.id}`}
                 >
-                  <Card className="hover:border-primary/50 h-full cursor-pointer transition-all hover:shadow-md">
+                  <Card className="h-full cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div className="flex flex-1 items-start gap-3">
