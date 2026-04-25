@@ -35,7 +35,13 @@ export default function ChatIndexPage() {
   const isError = isUserError || isOrgsError || isRoomsError;
 
   useEffect(() => {
-    if (!isLoading && !isError && rooms.length > 0) {
+    // On desktop (lg+, ≥1024px): auto-open the first room since the sidebar
+    // is always visible and an empty right panel looks broken.
+    // On mobile: stay on this page — the layout shows the room list full-screen
+    // and the user taps a room to open it.
+    const isDesktop =
+      globalThis.window !== undefined && window.innerWidth >= 1024;
+    if (!isLoading && !isError && rooms.length > 0 && isDesktop) {
       router.replace(`/users/dashboard/chat/${rooms[0].id}`);
     }
   }, [isLoading, isError, rooms, router]);
