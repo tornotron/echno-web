@@ -191,7 +191,7 @@ export default function EditInspectionPage() {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500"></div>
           <p className="text-zinc-600 dark:text-zinc-400">
             Loading inspection...
           </p>
