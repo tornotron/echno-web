@@ -137,7 +137,7 @@ export function ChatComposer({
   };
 
   return (
-    <div className="bg-background border-t px-4 py-3">
+    <div className="bg-background border-t px-3 py-2 sm:px-4 sm:py-3">
       {/* Reply preview strip */}
       {replyTo && (
         <div className="border-primary/50 bg-muted mb-2 flex items-center gap-2 rounded-md border-l-2 py-1.5 pr-2 pl-2">
@@ -177,11 +177,11 @@ export function ChatComposer({
       )}
 
       {/* Input row */}
-      <div className="relative flex items-end gap-2">
+      <div className="relative flex items-end gap-1.5 sm:gap-2">
         <Button
           variant="ghost"
           size="icon"
-          className="text-muted-foreground h-9 w-9 shrink-0"
+          className="text-muted-foreground h-10 w-10 shrink-0 sm:h-9 sm:w-9"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled}
           aria-label="Attach file"
@@ -215,12 +215,12 @@ export function ChatComposer({
           disabled={disabled}
           rows={1}
           className="flex-1 resize-none overflow-hidden"
-          style={{ minHeight: '36px', maxHeight: '160px' }}
+          style={{ minHeight: '40px', maxHeight: '160px' }}
         />
 
         <Button
           size="icon"
-          className="h-9 w-9 shrink-0"
+          className="h-10 w-10 shrink-0 sm:h-9 sm:w-9"
           onClick={handleSend}
           disabled={disabled || !value.trim()}
           aria-label="Send message"
@@ -229,7 +229,8 @@ export function ChatComposer({
         </Button>
       </div>
 
-      <p className="text-muted-foreground/60 mt-1.5 text-[11px]">
+      {/* Keyboard hint — desktop only */}
+      <p className="text-muted-foreground/60 mt-1.5 hidden text-[11px] sm:block">
         <kbd className="bg-muted rounded border px-1 font-mono text-[10px]">
           Enter
         </kbd>{' '}
