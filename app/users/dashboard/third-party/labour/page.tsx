@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -154,30 +154,24 @@ export default function LabourPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="flex items-center space-x-3 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            <HardHat className="h-8 w-8" />
-            <span>Labour Management</span>
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Manage daily wage workers and contract labour
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/users/dashboard/third-party/labour/new">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Labour
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Labour Management"
+        description="Manage daily wage workers and contract labour"
+        actions={
+          <>
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/users/dashboard/third-party/labour/new">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Labour
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -187,8 +181,8 @@ export default function LabourPage() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
+                <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               </div>
               <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                 {stats.total}
