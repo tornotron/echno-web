@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   CheckCircle,
   TrendingUp,
+  Plus,
 } from 'lucide-react';
 import { mockBudgets } from '@/components/shared/mock-data';
 import {
@@ -160,18 +161,18 @@ export default function BudgetsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Budgets</h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Manage and track project and organization budgets
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/users/dashboard/finance/budgets/new">Create Budget</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Budgets"
+        description="Manage and track project and organization budgets"
+        actions={
+          <Button asChild>
+            <Link href="/users/dashboard/finance/budgets/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Budget
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -188,8 +189,8 @@ export default function BudgetsPage() {
                   ₹{(totalBudget / 1_000_000).toFixed(1)}M
                 </p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Wallet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
+                <Wallet className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               </div>
             </div>
           </CardContent>
