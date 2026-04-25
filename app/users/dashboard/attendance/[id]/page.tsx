@@ -199,7 +199,7 @@ export default function AttendanceDetailPage({ params }: PageProps) {
                             'border-yellow-500 text-yellow-700 dark:text-yellow-400',
                           teal: 'border-teal-500 text-teal-700 dark:text-teal-400',
                           amber:
-                            'border-amber-500 text-amber-700 dark:text-amber-400',
+                            'border-indigo-500 text-amber-700 dark:text-amber-400',
                         }[getAttendanceStatusColor(attendance.status)] ||
                         'border-zinc-500 text-zinc-700 dark:text-zinc-400'
                       }
