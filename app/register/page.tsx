@@ -6,28 +6,35 @@ import { useEffect } from 'react';
 import { RegistrationForm } from '@/features/auth/registration-form';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Building2, Users, Clock, Lock, HardHat } from 'lucide-react';
+import {
+  Clock,
+  Users,
+  Building2,
+  BarChart3,
+  ShieldCheck,
+  Zap,
+} from 'lucide-react';
 
-const features = [
+const HIGHLIGHTS = [
   {
     icon: Clock,
-    title: 'Attendance Tracking',
-    description: 'Real-time workforce attendance across all sites',
+    label: 'Attendance Tracking',
+    desc: 'GPS-verified check-ins across every site',
   },
   {
     icon: Users,
-    title: 'Team Management',
-    description: 'Manage employees, roles, and hierarchies',
+    label: 'Team Management',
+    desc: 'Roles, hierarchies, and shift scheduling',
   },
   {
     icon: Building2,
-    title: 'Multi-Site Support',
-    description: 'Run multiple projects from one dashboard',
+    label: 'Multi-Site Support',
+    desc: 'Manage all projects from one dashboard',
   },
   {
-    icon: Lock,
-    title: 'Secure & Reliable',
-    description: 'Enterprise-grade access control and security',
+    icon: BarChart3,
+    label: 'Live Analytics',
+    desc: 'Real-time reports and custom dashboards',
   },
 ];
 
@@ -36,108 +43,129 @@ export default function RegisterPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/dashboard');
-    }
+    if (status === 'authenticated') router.push('/dashboard');
   }, [status, router]);
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-zinc-950">
-        <div className="text-center">
-          <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500 dark:border-amber-500"></div>
-          <p className="mt-4 text-zinc-600 dark:text-zinc-400">Loading...</p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-stone-50 dark:bg-zinc-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-amber-500" />
       </div>
     );
   }
 
-  if (status === 'authenticated') {
-    return null;
-  }
+  if (status === 'authenticated') return null;
 
   return (
     <div className="flex min-h-screen">
-      {/* Left Panel - Branding (hidden on mobile) */}
-      <div className="relative hidden w-1/2 bg-white p-12 lg:flex lg:flex-col lg:justify-between dark:bg-zinc-950">
+      {/* ── Left panel — dark brand ───────────────────────────────── */}
+      <div className="relative hidden w-[46%] shrink-0 overflow-hidden bg-zinc-950 p-12 lg:flex lg:flex-col lg:justify-between">
+        {/* Blueprint grid */}
         <div
-          className="pointer-events-none absolute inset-0 dark:hidden"
+          className="pointer-events-none absolute inset-0 opacity-[0.045]"
           style={{
             backgroundImage:
-              'repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(79,70,229,0.1) 59px, rgba(79,70,229,0.1) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(79,70,229,0.1) 59px, rgba(79,70,229,0.1) 60px)',
+              'linear-gradient(rgba(245,158,11,0.7) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.7) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
           }}
+          aria-hidden
+        />
+
+        {/* Amber glow */}
+        <div
+          className="pointer-events-none absolute -top-40 -left-40 h-96 w-96 rounded-full opacity-20 blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, #f59e0b, transparent 70%)',
+          }}
+          aria-hidden
         />
         <div
-          className="pointer-events-none absolute inset-0 hidden opacity-40 dark:block"
+          className="pointer-events-none absolute -right-32 bottom-0 h-72 w-72 rounded-full opacity-10 blur-3xl"
           style={{
-            backgroundImage:
-              'repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(245,158,11,0.12) 59px, rgba(245,158,11,0.12) 60px), repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(245,158,11,0.12) 59px, rgba(245,158,11,0.12) 60px)',
+            background: 'radial-gradient(circle, #ea580c, transparent 70%)',
           }}
+          aria-hidden
         />
-        <div>
+
+        {/* Logo */}
+        <div className="relative">
           <Link href="/">
             <Image
               src="/e-ai-logo.png"
-              alt="Echno Logo"
-              width={120}
-              height={44}
-              className="dark:invert"
+              alt="Echno"
+              width={110}
+              height={40}
+              className="invert"
             />
           </Link>
         </div>
 
-        {/* Center Content */}
-        <div className="space-y-8">
+        {/* Center copy */}
+        <div className="relative space-y-8">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/8 px-3 py-1.5">
+            <Zap className="h-3.5 w-3.5 text-amber-400" />
+            <span className="text-xs font-semibold text-amber-400">
+              Construction-first platform
+            </span>
+          </div>
+
+          {/* Headline */}
           <div>
-            <div className="mb-4 inline-flex items-center rounded-full border border-indigo-300 bg-indigo-50 px-3 py-1.5 text-sm font-medium text-indigo-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500">
-              <HardHat className="mr-2 h-4 w-4" />
-              Join the Platform
-            </div>
-            <h1 className="text-4xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-              Start Managing Your
-              <span className="block text-indigo-600 dark:text-amber-500">
-                Construction Business
+            <h1 className="text-4xl leading-tight font-black tracking-tight text-white">
+              Build Smarter,
+              <br />
+              <span
+                className="text-transparent"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+                  WebkitBackgroundClip: 'text',
+                  backgroundClip: 'text',
+                }}
+              >
+                Manage Better.
               </span>
             </h1>
-            <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
-              Create your account and get access to modern tools designed for
-              construction teams.
+            <p className="mt-3 text-base leading-relaxed text-zinc-400">
+              One platform for attendance, workforce, projects, inventory, and
+              billing — built for the construction industry.
             </p>
           </div>
 
-          {/* Features Grid */}
-          <div className="grid grid-cols-2 gap-4">
-            {features.map((feature) => (
-              <div
-                key={feature.title}
-                className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900"
-              >
-                <feature.icon className="mb-2 h-6 w-6 text-indigo-600 dark:text-amber-500" />
-                <h3 className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {feature.title}
-                </h3>
-                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  {feature.description}
-                </p>
+          {/* Feature list */}
+          <div className="space-y-3">
+            {HIGHLIGHTS.map(({ icon: Icon, label, desc }) => (
+              <div key={label} className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-amber-500/20 bg-amber-500/10">
+                  <Icon className="h-4 w-4 text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-zinc-100">{label}</p>
+                  <p className="text-xs text-zinc-500">{desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Bottom */}
-        <p className="text-sm text-zinc-400 dark:text-zinc-600">
-          Powering construction teams across India
-        </p>
+        {/* Bottom trust line */}
+        <div className="relative flex items-center gap-3">
+          <ShieldCheck className="h-4 w-4 shrink-0 text-zinc-600" />
+          <p className="text-xs text-zinc-600">
+            Enterprise-grade security · GDPR compliant · 99.9% uptime SLA
+          </p>
+        </div>
       </div>
 
-      {/* Right Panel - Registration Form */}
-      <div className="flex w-full flex-col justify-center bg-zinc-50 px-6 py-8 lg:w-1/2 lg:px-16 dark:bg-zinc-900">
-        {/* Mobile Logo */}
-        <div className="mb-6 flex justify-center lg:hidden">
+      {/* ── Right panel — registration form ──────────────────────── */}
+      <div className="flex w-full flex-col justify-center bg-stone-50 px-6 py-10 lg:px-16 dark:bg-zinc-950">
+        {/* Mobile logo */}
+        <div className="mb-8 flex justify-center lg:hidden">
           <Link href="/">
             <Image
               src="/e-ai-logo.png"
-              alt="Echno Logo"
+              alt="Echno"
               width={100}
               height={36}
               className="dark:invert"
@@ -145,20 +173,32 @@ export default function RegisterPage() {
           </Link>
         </div>
 
-        {/* Form Container */}
         <div className="mx-auto w-full max-w-md">
           {/* Header */}
           <div className="mb-6 text-center lg:text-left">
-            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-2xl font-black text-zinc-900 dark:text-white">
               Create your account
             </h2>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Fill in your details to get started
+            <p className="mt-1 text-sm text-zinc-500">
+              Fill in your details to get started — it only takes a minute.
             </p>
           </div>
 
-          {/* Registration Form */}
-          <RegistrationForm />
+          {/* Form card */}
+          <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-white/6 dark:bg-zinc-900 dark:shadow-none">
+            <RegistrationForm />
+          </div>
+
+          {/* Plans CTA */}
+          <p className="mt-5 text-center text-xs text-zinc-500">
+            Looking for team onboarding?{' '}
+            <Link
+              href="/plans"
+              className="font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-500"
+            >
+              View our plans →
+            </Link>
+          </p>
         </div>
       </div>
     </div>
