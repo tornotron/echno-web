@@ -111,12 +111,33 @@ export default function IssuesPage({ params }: PageProps) {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {(
           [
-            { label: 'Total Issues', count: totalIssues, color: 'blue' },
-            { label: 'Open', count: openIssues, color: 'red' },
-            { label: 'In Progress', count: inProgressIssues, color: 'blue' },
-            { label: 'Resolved', count: resolvedIssues, color: 'green' },
+            {
+              label: 'Total Issues',
+              count: totalIssues,
+              color: 'blue',
+              filter: 'all',
+            },
+            {
+              label: 'Open',
+              count: openIssues,
+              color: 'red',
+              filter: IssueStatus.open,
+            },
+            {
+              label: 'In Progress',
+              count: inProgressIssues,
+              color: 'blue',
+              filter: IssueStatus.inProgress,
+            },
+            {
+              label: 'Resolved',
+              count: resolvedIssues,
+              color: 'green',
+              filter: IssueStatus.resolved,
+            },
           ] as const
-        ).map(({ label, count, color }) => {
+        ).map(({ label, count, color, filter }) => {
+          const isActive = statusFilter === filter;
           const colorClasses = {
             blue: {
               bg: 'bg-blue-100 dark:bg-blue-900/20',
@@ -135,7 +156,14 @@ export default function IssuesPage({ params }: PageProps) {
           const classes = colorClasses[color];
 
           return (
-            <Card key={label}>
+            <Card
+              key={label}
+              className={`cursor-pointer transition-all hover:shadow-md ${isActive ? 'ring-primary ring-2' : ''}`}
+              onClick={() => {
+                setStatusFilter(isActive ? 'all' : filter);
+                setCurrentPage(1);
+              }}
+            >
               <CardHeader className="pb-3">
                 <CardDescription>{label}</CardDescription>
               </CardHeader>
