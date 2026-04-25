@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,7 +39,7 @@ const REGISTRATION_ROLES = Object.values(UserRole);
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
 
 const inputClasses =
-  'h-9 border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-indigo-500/50 focus-visible:border-indigo-500 dark:focus-visible:ring-amber-500/50 dark:focus-visible:border-amber-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600';
+  'h-9 border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-amber-500/50 focus-visible:border-amber-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600';
 const inputErrorClasses = 'border-red-500';
 
 export function RegistrationForm() {
@@ -432,7 +431,7 @@ export function RegistrationForm() {
             onCheckedChange={(checked) =>
               handleChange('acceptTerms', checked === true)
             }
-            className={`border-zinc-400 data-[state=checked]:border-indigo-600 data-[state=checked]:bg-indigo-600 dark:border-zinc-600 dark:data-[state=checked]:border-amber-600 dark:data-[state=checked]:bg-amber-600 ${errors.acceptTerms ? 'border-red-500' : ''}`}
+            className={`border-zinc-400 data-[state=checked]:border-amber-500 data-[state=checked]:bg-amber-500 dark:border-zinc-600 ${errors.acceptTerms ? 'border-red-500' : ''}`}
           />
           <Label
             htmlFor="acceptTerms"
@@ -441,14 +440,14 @@ export function RegistrationForm() {
             I agree to the{' '}
             <Link
               href="/terms"
-              className="text-indigo-600 hover:underline dark:text-amber-500"
+              className="font-semibold text-amber-600 hover:text-amber-700 hover:underline dark:text-amber-500"
             >
               Terms
             </Link>{' '}
             and{' '}
             <Link
               href="/privacy"
-              className="text-indigo-600 hover:underline dark:text-amber-500"
+              className="font-semibold text-amber-600 hover:text-amber-700 hover:underline dark:text-amber-500"
             >
               Privacy Policy
             </Link>
@@ -461,20 +460,29 @@ export function RegistrationForm() {
         )}
 
         {/* Submit Button - Full width */}
-        <Button
+        <button
           type="submit"
-          className="col-span-2 mt-2 h-10 w-full bg-indigo-600 text-white hover:bg-indigo-500 dark:bg-amber-600 dark:hover:bg-amber-500"
           disabled={isLoading}
+          className="group relative col-span-2 mt-2 h-10 w-full overflow-hidden rounded-lg text-sm font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.01] disabled:opacity-70"
+          style={{
+            background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+          }}
         >
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating Account...
-            </>
-          ) : (
-            'Create Account'
-          )}
-        </Button>
+          <span className="relative flex items-center justify-center gap-2">
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Creating Account…
+              </>
+            ) : (
+              'Create Account'
+            )}
+          </span>
+          <span
+            className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
+            aria-hidden
+          />
+        </button>
 
         {/* Sign In Link */}
         <p className="col-span-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
@@ -482,7 +490,7 @@ export function RegistrationForm() {
           <button
             type="button"
             onClick={() => signIn('keycloak')}
-            className="font-medium text-indigo-600 hover:underline dark:text-amber-500"
+            className="font-semibold text-amber-600 hover:text-amber-700 hover:underline dark:text-amber-500"
           >
             Sign in
           </button>
