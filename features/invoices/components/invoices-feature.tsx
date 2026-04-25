@@ -215,8 +215,8 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
+                <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               </div>
               <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                 {totalInvoices}
