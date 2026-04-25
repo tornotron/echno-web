@@ -5,273 +5,321 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
-import { Button } from '@/components/ui/button';
-import { Mail, Phone, MapPin, Send, CheckCircle2, HardHat } from 'lucide-react';
+import { useInView } from '@/hooks/use-in-view';
+import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
 
 export default function ContactPage() {
   const { status } = useSession();
   const router = useRouter();
-  const [formState, setFormState] = useState({
+  const { ref, isInView } = useInView<HTMLDivElement>({ threshold: 0.1 });
+
+  const [form, setForm] = useState({
     name: '',
     email: '',
     company: '',
     subject: 'general',
     message: '',
   });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.push('/users/dashboard');
-    }
+    if (status === 'authenticated') router.push('/users/dashboard');
   }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
+    setSubmitting(true);
     try {
-      const response = await fetch('/api/contact', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formState),
+        body: JSON.stringify(form),
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error('Contact form submission failed:', data.error);
-        setIsSubmitting(false);
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('Contact form failed:', data.error);
         return;
       }
-
-      setIsSubmitting(false);
-      setIsSubmitted(true);
+      setSubmitted(true);
     } catch (error) {
-      console.error('Contact form submission error:', error);
-      setIsSubmitting(false);
+      console.error('Contact form error:', error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (status === 'loading' || status === 'authenticated') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white dark:bg-zinc-950">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500 dark:border-amber-500"></div>
-          <p className="mt-4 text-zinc-600 dark:text-zinc-400">
-            {status === 'authenticated' ? 'Redirecting...' : 'Loading...'}
-          </p>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-stone-50 dark:bg-zinc-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-amber-500" />
       </div>
     );
   }
 
+  const inputCls =
+    'w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-amber-500 dark:focus:ring-amber-500/20';
+
+  const contactMethods = [
+    {
+      icon: Mail,
+      label: 'Email Us',
+      sub: 'Send us an email anytime',
+      value: 'support@echnoai.com',
+      accent: '#f59e0b',
+    },
+    {
+      icon: Phone,
+      label: 'Call Us',
+      sub: 'Mon – Fri, 10am – 6pm IST',
+      value: '+91 8590040842',
+      accent: '#38bdf8',
+    },
+    {
+      icon: MapPin,
+      label: 'Location',
+      sub: 'Based in India',
+      value: 'Kerala, India',
+      accent: '#34d399',
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950">
+    <div className="min-h-screen bg-stone-50 dark:bg-zinc-950">
       <MarketingNav currentPage="Contact" />
 
-      {/* Hero Section */}
-      <section className="px-4 pt-32 pb-16">
-        <div className="mx-auto max-w-7xl text-center">
-          <div className="mb-6 inline-flex items-center rounded-full border border-indigo-300 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500">
-            <HardHat className="mr-2 h-4 w-4" />
-            Get in Touch
+      {/* Hero */}
+      <section className="relative overflow-hidden px-6 pt-36 pb-20">
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.04] dark:hidden"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(30,27,75,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(30,27,75,0.4) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 hidden opacity-[0.03] dark:block"
+          style={{
+            backgroundImage:
+              'linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-2xl text-center">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-amber-300/60 bg-amber-50 px-4 py-1.5 dark:border-amber-500/20 dark:bg-amber-500/6">
+            <span className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+              Get in Touch
+            </span>
           </div>
-          <h1 className="mb-6 text-4xl font-black tracking-tight text-zinc-900 sm:text-5xl lg:text-6xl dark:text-zinc-100">
-            We&apos;d Love to
-            <span className="block text-indigo-600 dark:text-amber-500">
-              Hear From You
+          <h1 className="mb-6 text-5xl leading-tight font-black text-zinc-900 sm:text-6xl dark:text-white">
+            Let&apos;s Build
+            <br />
+            <span
+              className="text-transparent"
+              style={{
+                backgroundImage:
+                  'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+              }}
+            >
+              Something Together.
             </span>
           </h1>
-          <p className="mx-auto max-w-2xl text-lg text-zinc-600 dark:text-zinc-400">
-            Have questions about our platform? Need help getting started? Our
-            team is here to help.
+          <p className="text-lg text-zinc-600 dark:text-zinc-400">
+            Questions about Echno? Need a demo? Planning an enterprise rollout?
+            Our team responds within one business day.
           </p>
         </div>
       </section>
 
-      {/* Contact Methods */}
-      <section className="border-t border-zinc-200 bg-zinc-50 px-4 py-16 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto max-w-5xl">
-          <div className="grid gap-6 md:grid-cols-3">
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 dark:bg-amber-500/10">
-                <Mail className="h-6 w-6 text-indigo-600 dark:text-amber-500" />
+      {/* Contact method cards */}
+      <section className="border-t border-stone-200 bg-white px-6 py-16 dark:border-white/5 dark:bg-zinc-900">
+        <div className="mx-auto max-w-4xl">
+          <div className="grid gap-5 md:grid-cols-3">
+            {contactMethods.map(({ icon: Icon, label, sub, value, accent }) => (
+              <div
+                key={label}
+                className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-stone-300 hover:shadow-md dark:border-white/6 dark:bg-zinc-950 dark:hover:border-white/10 dark:hover:shadow-none"
+              >
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 h-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${accent}, transparent)`,
+                  }}
+                  aria-hidden
+                />
+                <div
+                  className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl"
+                  style={{
+                    background: `${accent}12`,
+                    border: `1px solid ${accent}28`,
+                  }}
+                >
+                  <Icon className="h-6 w-6" style={{ color: accent }} />
+                </div>
+                <h3 className="mb-1 font-bold text-zinc-900 dark:text-zinc-100">
+                  {label}
+                </h3>
+                <p className="mb-3 text-xs text-zinc-500">{sub}</p>
+                <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+                  {value}
+                </p>
               </div>
-              <h3 className="mb-1 font-bold text-zinc-900 dark:text-zinc-100">
-                Email Us
-              </h3>
-              <p className="mb-3 text-sm text-zinc-500">
-                Send us an email anytime
-              </p>
-              <p className="font-medium text-zinc-700 dark:text-zinc-300">
-                support@echnoai.com
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 dark:bg-amber-500/10">
-                <Phone className="h-6 w-6 text-indigo-600 dark:text-amber-500" />
-              </div>
-              <h3 className="mb-1 font-bold text-zinc-900 dark:text-zinc-100">
-                Call Us
-              </h3>
-              <p className="mb-3 text-sm text-zinc-500">
-                Monday to Friday, 10am - 6pm IST
-              </p>
-              <p className="font-medium text-zinc-700 dark:text-zinc-300">
-                +91 8590040842
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-zinc-200 bg-white p-6 text-center dark:border-zinc-800 dark:bg-zinc-950">
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 dark:bg-amber-500/10">
-                <MapPin className="h-6 w-6 text-indigo-600 dark:text-amber-500" />
-              </div>
-              <h3 className="mb-1 font-bold text-zinc-900 dark:text-zinc-100">
-                Location
-              </h3>
-              <p className="mb-3 text-sm text-zinc-500">Based in India</p>
-              <p className="font-medium text-zinc-700 dark:text-zinc-300">
-                Kerala, India
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Contact Form */}
-      <section className="px-4 py-24">
-        <div className="mx-auto max-w-2xl">
-          <div className="mb-8 text-center">
-            <h2 className="mb-4 text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-100">
-              Send Us a Message
+      {/* Form */}
+      <section className="bg-stone-50 px-6 py-24 dark:bg-zinc-950">
+        <div ref={ref} className="mx-auto max-w-2xl">
+          <div
+            className={`mb-10 transition-all duration-700 ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+          >
+            <div className="mb-3 text-xs font-semibold tracking-[0.2em] text-amber-600 uppercase dark:text-amber-500">
+              Send a Message
+            </div>
+            <h2 className="text-3xl font-black text-zinc-900 sm:text-4xl dark:text-white">
+              How can we help?
             </h2>
-            <p className="text-zinc-600 dark:text-zinc-400">
-              Fill out the form below and we&apos;ll get back to you within 24
-              hours.
+            <p className="mt-3 text-zinc-500">
+              Fill out the form and we&apos;ll get back to you within 24 hours.
             </p>
           </div>
 
-          {isSubmitted ? (
-            <div className="rounded-lg border border-indigo-300 bg-indigo-50/50 p-8 text-center dark:border-amber-500/20 dark:bg-amber-500/5">
-              <CheckCircle2 className="mx-auto mb-4 h-16 w-16 text-indigo-600 dark:text-amber-500" />
-              <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-zinc-100">
+          {submitted ? (
+            <div
+              className={`flex flex-col items-center rounded-2xl border border-stone-200 bg-white p-12 text-center transition-all delay-200 duration-700 dark:border-white/6 dark:bg-zinc-900 ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+            >
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-500/10">
+                <CheckCircle2 className="h-8 w-8 text-amber-600 dark:text-amber-500" />
+              </div>
+              <h3 className="mb-2 text-xl font-bold text-zinc-900 dark:text-white">
                 Message Sent!
               </h3>
-              <p className="text-zinc-600 dark:text-zinc-400">
+              <p className="text-sm text-zinc-500">
                 Thank you for reaching out. We&apos;ll get back to you soon.
               </p>
             </div>
           ) : (
-            <form
-              onSubmit={handleSubmit}
-              className="space-y-6 rounded-lg border border-zinc-200 bg-zinc-50 p-8 dark:border-zinc-800 dark:bg-zinc-900"
+            <div
+              className={`rounded-2xl border border-stone-200 bg-white p-8 shadow-sm transition-all delay-200 duration-700 dark:border-white/6 dark:bg-zinc-900 dark:shadow-none ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
             >
-              <div className="grid gap-6 sm:grid-cols-2">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={form.name}
+                      onChange={(e) =>
+                        setForm({ ...form, name: e.target.value })
+                      }
+                      placeholder="Your name"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={form.email}
+                      onChange={(e) =>
+                        setForm({ ...form, email: e.target.value })
+                      }
+                      placeholder="you@company.com"
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      Company
+                    </label>
+                    <input
+                      type="text"
+                      value={form.company}
+                      onChange={(e) =>
+                        setForm({ ...form, company: e.target.value })
+                      }
+                      placeholder="Your company"
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      Subject
+                    </label>
+                    <select
+                      value={form.subject}
+                      onChange={(e) =>
+                        setForm({ ...form, subject: e.target.value })
+                      }
+                      className={inputCls}
+                    >
+                      <option value="general">General Inquiry</option>
+                      <option value="sales">Sales</option>
+                      <option value="support">Technical Support</option>
+                      <option value="partnership">Partnership</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Full Name *
+                  <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    Message *
                   </label>
-                  <input
-                    type="text"
+                  <textarea
                     required
-                    value={formState.name}
+                    rows={5}
+                    value={form.message}
                     onChange={(e) =>
-                      setFormState({ ...formState, name: e.target.value })
+                      setForm({ ...form, message: e.target.value })
                     }
-                    placeholder="Your name"
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-transparent focus:ring-2 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:ring-amber-500"
+                    placeholder="How can we help you?"
+                    className={`${inputCls} resize-none`}
                   />
                 </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={formState.email}
-                    onChange={(e) =>
-                      setFormState({ ...formState, email: e.target.value })
-                    }
-                    placeholder="you@company.com"
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-transparent focus:ring-2 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:ring-amber-500"
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="group relative overflow-hidden rounded-xl px-8 py-3.5 text-sm font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.02] disabled:opacity-70"
+                  style={{
+                    background:
+                      'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
+                  }}
+                >
+                  <span className="flex items-center gap-2">
+                    {submitting ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-950 border-t-transparent" />{' '}
+                        Sending…
+                      </>
+                    ) : (
+                      <>
+                        Send Message{' '}
+                        <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                      </>
+                    )}
+                  </span>
+                  <span
+                    className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
+                    aria-hidden
                   />
-                </div>
-              </div>
-
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Company
-                  </label>
-                  <input
-                    type="text"
-                    value={formState.company}
-                    onChange={(e) =>
-                      setFormState({ ...formState, company: e.target.value })
-                    }
-                    placeholder="Your company"
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-transparent focus:ring-2 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:ring-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                    Subject
-                  </label>
-                  <select
-                    value={formState.subject}
-                    onChange={(e) =>
-                      setFormState({ ...formState, subject: e.target.value })
-                    }
-                    className="w-full rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none focus:border-transparent focus:ring-2 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:ring-amber-500"
-                  >
-                    <option value="general">General Inquiry</option>
-                    <option value="sales">Sales</option>
-                    <option value="support">Technical Support</option>
-                    <option value="partnership">Partnership</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Message *
-                </label>
-                <textarea
-                  required
-                  rows={5}
-                  value={formState.message}
-                  onChange={(e) =>
-                    setFormState({ ...formState, message: e.target.value })
-                  }
-                  placeholder="How can we help you?"
-                  className="w-full resize-none rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-transparent focus:ring-2 focus:ring-indigo-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus:ring-amber-500"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                size="lg"
-                className="w-full bg-indigo-600 px-8 text-white hover:bg-indigo-500 sm:w-auto dark:bg-amber-600 dark:hover:bg-amber-500"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <div className="mr-2 h-5 w-5 animate-spin rounded-full border-b-2 border-white" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    Send Message
-                    <Send className="ml-2 h-5 w-5" />
-                  </>
-                )}
-              </Button>
-            </form>
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </section>
