@@ -2,6 +2,7 @@
 
 import { OrganizationProvider } from '@/components/providers/organization-provider';
 import { AppSidebar } from '@/features/common/components/sidebar';
+import { MobileBottomNav } from '@/features/common/components/mobile-bottom-nav';
 import { Footer } from '@/components/common/footer';
 import { UserMenu } from '@/features/common/components/user-menu';
 import { Breadcrumbs } from '@/features/common/components/breadcrumbs';
@@ -56,7 +57,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
       {!isMobile && (
         <button
           onClick={toggleSidebar}
-          className="fixed top-16 z-50 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-2 border-gray-300 bg-gray-400 shadow-md transition-all duration-300 hover:scale-110 hover:bg-gray-500 active:scale-95"
+          className="fixed top-16 z-50 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white shadow-sm transition-all duration-200 hover:border-indigo-300 hover:bg-indigo-50 active:scale-95 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-500/10"
           aria-label="Toggle sidebar"
           style={{
             left:
@@ -66,9 +67,9 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
           }}
         >
           {state === 'expanded' ? (
-            <ChevronLeft className="h-3 w-3 text-white" />
+            <ChevronLeft className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
           ) : (
-            <ChevronRight className="h-3 w-3 text-white" />
+            <ChevronRight className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
           )}
         </button>
       )}
@@ -76,8 +77,8 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
       <SidebarInset className="min-w-0">
         {/* Header */}
         <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          {/* Mobile Sidebar Toggle */}
-          {isMobile && <SidebarTrigger />}
+          {/* Mobile Sidebar Toggle — hidden on mobile (bottom nav handles navigation) */}
+          {isMobile && <SidebarTrigger className="hidden" />}
 
           <div className="flex flex-1 items-center justify-between">
             <Breadcrumbs
@@ -94,14 +95,15 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               storageLocation={breadcrumbData.storageLocation}
               purchaseOrder={breadcrumbData.purchaseOrder}
             />
-            <div className="flex items-center gap-2 sm:gap-4">
-              <Button variant="outline" asChild>
+            <div className="flex items-center gap-2 sm:gap-3">
+              {/* Organizations — hidden on mobile to keep header clean */}
+              <Button variant="outline" asChild className="hidden sm:flex">
                 <Link
                   href="/users/dashboard/organizations"
                   className="flex items-center gap-2"
                 >
                   <Building className="h-4 w-4" />
-                  <span className="hidden sm:inline">Organizations</span>
+                  <span className="hidden md:inline">Organizations</span>
                 </Link>
               </Button>
               <Button variant="ghost" size="icon" asChild>
@@ -114,8 +116,10 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
           </div>
         </header>
 
-        {/* Main Content */}
-        <main className="flex-1 p-3 sm:p-4 lg:p-6">{children}</main>
+        {/* Main Content — pb-16 on mobile so content isn't hidden behind bottom nav */}
+        <main className="flex-1 p-3 pb-20 sm:p-4 sm:pb-20 lg:p-6 lg:pb-6">
+          {children}
+        </main>
 
         {/* Footer */}
         <Footer />
@@ -123,6 +127,9 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
         {/* Floating Chat — injected via prop to keep this component feature-agnostic */}
         {floatingChat}
       </SidebarInset>
+
+      {/* Mobile bottom navigation — replaces hamburger drawer pattern on small screens */}
+      <MobileBottomNav />
     </>
   );
 }
