@@ -158,7 +158,7 @@ export default function ProjectDashboardPage() {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600" />
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500" />
           <p className="text-zinc-600 dark:text-zinc-400">Loading project...</p>
         </div>
       </div>
