@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useIssues, useIssuesByProject } from '@/hooks/issue';
 import { useProjects } from '@/hooks/project/use-projects';
-import { SearchAndFilter } from '@/components/common';
+import { SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -99,38 +99,54 @@ export default function AllIssuesPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Issues
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Track and manage issues across all projects
-          </p>
-        </div>
-        {selectedProjectId && (
-          <Link
-            href={`/users/dashboard/projects/${selectedProjectId}/issues/new`}
-          >
-            <Button className="mt-4 md:mt-0">
-              <Plus className="mr-2 h-4 w-4" />
-              New Issue
+      <PageHeader
+        title="Issues"
+        description="Track and manage issues across all projects"
+        actions={
+          selectedProjectId ? (
+            <Button asChild>
+              <Link
+                href={`/users/dashboard/projects/${selectedProjectId}/issues/new`}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Issue
+              </Link>
             </Button>
-          </Link>
-        )}
-      </div>
+          ) : undefined
+        }
+      />
 
       {/* Statistics */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {(
           [
-            { label: 'Total Issues', count: totalIssues, color: 'blue' },
-            { label: 'Open', count: openIssues, color: 'red' },
-            { label: 'In Progress', count: inProgressIssues, color: 'blue' },
-            { label: 'Resolved', count: resolvedIssues, color: 'green' },
+            {
+              label: 'Total Issues',
+              count: totalIssues,
+              color: 'blue',
+              filter: 'all',
+            },
+            {
+              label: 'Open',
+              count: openIssues,
+              color: 'red',
+              filter: IssueStatus.open,
+            },
+            {
+              label: 'In Progress',
+              count: inProgressIssues,
+              color: 'blue',
+              filter: IssueStatus.inProgress,
+            },
+            {
+              label: 'Resolved',
+              count: resolvedIssues,
+              color: 'green',
+              filter: IssueStatus.resolved,
+            },
           ] as const
-        ).map(({ label, count, color }) => {
+        ).map(({ label, count, color, filter }) => {
+          const isActive = statusFilter === filter;
           const colorClasses = {
             blue: {
               bg: 'bg-blue-100 dark:bg-blue-900/20',
@@ -147,7 +163,14 @@ export default function AllIssuesPage() {
           } satisfies Record<string, { bg: string; text: string }>;
           const classes = colorClasses[color];
           return (
-            <Card key={label}>
+            <Card
+              key={label}
+              className={`cursor-pointer transition-all hover:shadow-md ${isActive ? 'ring-primary ring-2' : ''}`}
+              onClick={() => {
+                setStatusFilter(isActive ? 'all' : filter);
+                setCurrentPage(1);
+              }}
+            >
               <CardHeader className="pb-3">
                 <CardDescription>{label}</CardDescription>
               </CardHeader>

@@ -44,8 +44,6 @@ import {
   Plus,
   GraduationCap,
   LayoutDashboard,
-  ListTodo,
-  AlertCircle,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -153,18 +151,6 @@ export const navigation: NavItem[] = [
         path: d('projects'),
         icon: FolderKanban,
         breadcrumb: 'Projects',
-      },
-      {
-        label: 'Tasks',
-        segment: 'tasks',
-        path: d('projects/tasks'),
-        icon: ListTodo,
-      },
-      {
-        label: 'Issues',
-        segment: 'issues',
-        path: d('projects/issues'),
-        icon: AlertCircle,
       },
       {
         label: 'Inspections',

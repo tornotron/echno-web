@@ -176,12 +176,33 @@ export default function AllTasksPage() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {(
           [
-            { label: 'Total Tasks', count: totalTasks, color: 'blue' },
-            { label: 'Upcoming', count: upcomingTasks, color: 'gray' },
-            { label: 'On Going', count: onGoingTasks, color: 'blue' },
-            { label: 'Completed', count: completedTasks, color: 'green' },
+            {
+              label: 'Total Tasks',
+              count: totalTasks,
+              color: 'blue',
+              filter: 'all',
+            },
+            {
+              label: 'Upcoming',
+              count: upcomingTasks,
+              color: 'gray',
+              filter: TaskStatus.upcoming,
+            },
+            {
+              label: 'On Going',
+              count: onGoingTasks,
+              color: 'blue',
+              filter: TaskStatus.onGoing,
+            },
+            {
+              label: 'Completed',
+              count: completedTasks,
+              color: 'green',
+              filter: TaskStatus.completed,
+            },
           ] as const
-        ).map(({ label, count, color }) => {
+        ).map(({ label, count, color, filter }) => {
+          const isActive = statusFilter === filter;
           const colorClasses = {
             blue: {
               bg: 'bg-blue-100 dark:bg-blue-900/20',
@@ -198,7 +219,14 @@ export default function AllTasksPage() {
           } satisfies Record<string, { bg: string; text: string }>;
           const classes = colorClasses[color];
           return (
-            <Card key={label}>
+            <Card
+              key={label}
+              className={`cursor-pointer transition-all hover:shadow-md ${isActive ? 'ring-primary ring-2' : ''}`}
+              onClick={() => {
+                setStatusFilter(isActive ? 'all' : filter);
+                setCurrentPage(1);
+              }}
+            >
               <CardHeader className="pb-3">
                 <CardDescription>{label}</CardDescription>
               </CardHeader>
