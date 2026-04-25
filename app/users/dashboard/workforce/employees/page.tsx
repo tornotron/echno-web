@@ -1,7 +1,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import {
+  Pagination,
+  SearchAndFilter,
+  PageHeader,
+  EmptyState,
+} from '@/components/common';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,
@@ -159,7 +164,7 @@ export default function EmployeesPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
       </div>
     );
   }
@@ -190,26 +195,27 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Employees
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400">
-          Manage and view all employees in your organizations
-        </p>
-      </div>
+      <PageHeader
+        title="Employees"
+        description="Manage and view all employees in your organizations"
+      />
 
       {/* Statistics Cards */}
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            setStatusFilter('all');
+            setCurrentPage(1);
+          }}
+        >
           <CardHeader className="pb-3">
             <CardDescription>Total Employees</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
+                <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
               </div>
               <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                 {totalEmployees}
@@ -218,7 +224,13 @@ export default function EmployeesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            setStatusFilter(EmployeeStatus.active);
+            setCurrentPage(1);
+          }}
+        >
           <CardHeader className="pb-3">
             <CardDescription>Active</CardDescription>
           </CardHeader>
@@ -234,7 +246,13 @@ export default function EmployeesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            setStatusFilter(EmployeeStatus.inactive);
+            setCurrentPage(1);
+          }}
+        >
           <CardHeader className="pb-3">
             <CardDescription>Inactive</CardDescription>
           </CardHeader>
@@ -250,7 +268,13 @@ export default function EmployeesPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40"
+          onClick={() => {
+            setStatusFilter(EmployeeStatus.onLeave);
+            setCurrentPage(1);
+          }}
+        >
           <CardHeader className="pb-3">
             <CardDescription>On Leave</CardDescription>
           </CardHeader>
@@ -387,11 +411,14 @@ export default function EmployeesPage() {
       {/* Mobile Card View */}
       <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
         {paginatedEmployees.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-zinc-500">
-              No employee records found
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={Users}
+            title="No employees found"
+            description={
+              hasActiveFilters ? 'Try adjusting your filters.' : undefined
+            }
+            className="col-span-2"
+          />
         ) : (
           paginatedEmployees.map((employee) => (
             <Card
