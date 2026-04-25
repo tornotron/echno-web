@@ -76,8 +76,8 @@ export function EmployeeOverviewTab({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <IdCard className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <IdCard className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
               </div>
               <div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -200,8 +200,8 @@ export function EmployeeOverviewTab({
               <>
                 <Separator />
                 <div className="flex items-center space-x-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                    <Building className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                    <Building className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
                   </div>
                   <div>
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -264,8 +264,8 @@ export function EmployeeOverviewTab({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center space-x-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <Mail className="h-5 w-5 text-zinc-500 dark:text-zinc-400" />
               </div>
               <div>
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
