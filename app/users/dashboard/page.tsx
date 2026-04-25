@@ -42,6 +42,15 @@ import {
   RadialBar,
 } from 'recharts';
 import { dashboardData } from '@/components/shared/mock-data';
+import { useEmployees } from '@/hooks/employee';
+import { useProjects } from '@/hooks/project';
+import { useTasks } from '@/hooks/task';
+import { useIssues } from '@/hooks/issue';
+import { useUser } from '@/hooks/user/use-user';
+import { ProjectStatus } from '@/types/project/project-status';
+import { TaskStatus } from '@/types/task/task-status';
+import { IssueStatus } from '@/types/issue/issue-status';
+import Link from 'next/link';
 import {
   Users,
   Calendar,
@@ -61,6 +70,10 @@ import {
   FileText,
   Wrench,
   ArrowRight,
+  FolderKanban,
+  ListTodo,
+  MessageSquare,
+  TriangleAlert,
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -70,6 +83,29 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<
     'attendance' | 'tasks' | 'thirdparty' | 'resources' | 'finance' | 'projects'
   >('finance');
+
+  // Real data hooks
+  const { data: user } = useUser();
+  const { data: employees = [] } = useEmployees();
+  const { data: projects = [] } = useProjects();
+  const { data: tasks = [] } = useTasks();
+  const { data: issues = [] } = useIssues();
+
+  // Derived live counts
+  const activeProjects = projects.filter(
+    (p) => p.status === ProjectStatus.open
+  ).length;
+  const activeTasks = tasks.filter(
+    (t) => t.status === TaskStatus.onGoing || t.status === TaskStatus.upcoming
+  ).length;
+  const openIssues = issues.filter(
+    (i) =>
+      i.status === IssueStatus.open ||
+      i.status === IssueStatus.inProgress ||
+      i.status === IssueStatus.reOpened
+  ).length;
+  const displayName =
+    user?.name?.split(' ')[0] ?? session?.user?.name?.split(' ')[0] ?? 'there';
 
   // Import data from mock-data
   const {
@@ -213,11 +249,8 @@ export default function DashboardPage() {
 
   if (status === 'loading') {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="text-center">
-          <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-zinc-900 dark:border-zinc-100"></div>
-          <p className="mt-4 text-zinc-600 dark:text-zinc-400">Loading...</p>
-        </div>
+      <div className="flex min-h-[400px] items-center justify-center">
+        <div className="mx-auto h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-500"></div>
       </div>
     );
   }
@@ -228,66 +261,91 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Welcome Banner */}
+      <div>
+        <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          Good{' '}
+          {new Date().getHours() < 12
+            ? 'morning'
+            : new Date().getHours() < 17
+              ? 'afternoon'
+              : 'evening'}
+          , {displayName}
+        </h1>
+        <p className="mt-0.5 text-sm text-zinc-500 dark:text-zinc-400">
+          Here&apos;s what&apos;s happening on site today.
+        </p>
+      </div>
+
+      {/* Mobile Quick Actions — visible only on small screens */}
+      <div className="grid grid-cols-4 gap-2 sm:grid-cols-4 lg:hidden">
+        {[
+          {
+            label: 'Attendance',
+            icon: UserCheck,
+            href: '/users/dashboard/attendance',
+            color: 'text-green-600',
+            bg: 'bg-green-50 dark:bg-green-900/20',
+          },
+          {
+            label: 'Projects',
+            icon: FolderKanban,
+            href: '/users/dashboard/projects',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+          },
+          {
+            label: 'Tasks',
+            icon: ListTodo,
+            href: '/users/dashboard/tasks',
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50 dark:bg-indigo-500/10',
+          },
+          {
+            label: 'Chat',
+            icon: MessageSquare,
+            href: '/users/dashboard/chat',
+            color: 'text-purple-600',
+            bg: 'bg-purple-50 dark:bg-purple-900/20',
+          },
+        ].map(({ label, icon: Icon, href, color, bg }) => (
+          <Link
+            key={label}
+            href={href}
+            className="flex flex-col items-center gap-2 rounded-xl border border-zinc-200 bg-white p-3 text-center transition-colors hover:border-indigo-300 active:scale-95 dark:border-zinc-800 dark:bg-zinc-900"
+          >
+            <div
+              className={`flex h-10 w-10 items-center justify-center rounded-lg ${bg}`}
+            >
+              <Icon className={`h-5 w-5 ${color}`} />
+            </div>
+            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+              {label}
+            </span>
+          </Link>
+        ))}
+      </div>
+
       {/* Quick Stats Cards */}
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
         <Card>
           <CardHeader className="pb-2 sm:pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium sm:text-base">
-                Attendance
+                Employees
               </CardTitle>
-              <UserCheck className="h-4 w-4 text-green-600" />
+              <Users className="h-4 w-4 text-amber-600" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-              {stats.attendance.percentage}%
-            </div>
-            <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-              <span className="text-green-600">{stats.attendance.present}</span>{' '}
-              present today
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium sm:text-base">
-                Active Tasks
-              </CardTitle>
-              <ClipboardList className="h-4 w-4 text-blue-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-              {stats.tasks.active}
-            </div>
-            <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-              <span className="text-orange-600">{stats.tasks.critical}</span>{' '}
-              critical priority
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2 sm:pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium sm:text-base">
-                Vendors
-              </CardTitle>
-              <Truck className="h-4 w-4 text-purple-600" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-              {stats.vendors.total}
+              {employees.length}
             </div>
             <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
               <span className="text-green-600">
-                {stats.vendors.onTimeDeliveryPercentage}%
+                {employees.filter((e) => e.status === 'active').length}
               </span>{' '}
-              on-time delivery
+              active
             </p>
           </CardContent>
         </Card>
@@ -296,18 +354,55 @@ export default function DashboardPage() {
           <CardHeader className="pb-2 sm:pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium sm:text-base">
-                Inventory
+                Projects
               </CardTitle>
-              <Package className="h-4 w-4 text-orange-600" />
+              <FolderKanban className="h-4 w-4 text-amber-600" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-              {stats.inventory.total}
+              {projects.length}
             </div>
             <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-              <span className="text-red-600">{stats.inventory.outOfStock}</span>{' '}
-              out of stock
+              <span className="text-green-600">{activeProjects}</span> active
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2 sm:pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium sm:text-base">
+                Tasks
+              </CardTitle>
+              <ClipboardList className="h-4 w-4 text-amber-600" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
+              {activeTasks}
+            </div>
+            <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
+              active tasks
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2 sm:pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-medium sm:text-base">
+                Open Issues
+              </CardTitle>
+              <TriangleAlert className="h-4 w-4 text-red-500" />
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
+              {openIssues}
+            </div>
+            <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
+              require attention
             </p>
           </CardContent>
         </Card>
