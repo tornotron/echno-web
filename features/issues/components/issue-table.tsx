@@ -162,125 +162,219 @@ export function IssueTable({
 
       {/* Table or empty state */}
       {paginatedIssues.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Issue</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Related Task</TableHead>
-                  <TableHead>Creator</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedIssues.map((issue) => (
-                  <TableRow
-                    key={issue.id}
-                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                    onClick={() =>
-                      router.push(
-                        `/users/dashboard/projects/${projectId}/issues/${issue.id}`
-                      )
-                    }
-                  >
-                    {/* Title + description */}
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {issue.title}
-                        </p>
-                        {issue.description && (
-                          <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
-                            {issue.description}
-                          </p>
-                        )}
-                      </div>
-                    </TableCell>
+        <>
+          {/* ── Mobile card list (< md) ──────────────────────────────── */}
+          <div className="flex flex-col gap-3 md:hidden">
+            {paginatedIssues.map((issue) => (
+              <Card
+                key={issue.id}
+                className="cursor-pointer transition-shadow hover:shadow-md active:opacity-80"
+                onClick={() =>
+                  router.push(
+                    `/users/dashboard/projects/${projectId}/issues/${issue.id}`
+                  )
+                }
+              >
+                <CardContent className="p-4">
+                  <div className="mb-1 flex items-start justify-between gap-2">
+                    <p className="leading-snug font-medium text-zinc-900 dark:text-zinc-100">
+                      {issue.title}
+                    </p>
+                    <Badge
+                      className={`shrink-0 ${getStatusColor(issue.status)}`}
+                    >
+                      {getStatusLabel(issue.status)}
+                    </Badge>
+                  </div>
 
-                    {/* Type badge — uses existing type utilities */}
-                    <TableCell>
-                      <Badge
-                        style={{
-                          backgroundColor: `${getIssueTypeColor(issue.type)}20`,
-                          borderColor: getIssueTypeColor(issue.type),
-                          color: getIssueTypeColor(issue.type),
-                        }}
-                        variant="outline"
-                      >
-                        {getIssueTypeLabel(issue.type)}
-                      </Badge>
-                    </TableCell>
+                  {issue.description && (
+                    <p className="mb-3 line-clamp-2 text-sm text-zinc-500 dark:text-zinc-400">
+                      {issue.description}
+                    </p>
+                  )}
 
-                    {/* Related task */}
-                    <TableCell>
-                      {issue.taskName && issue.taskId ? (
-                        <span
-                          className="cursor-pointer text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+                    <Badge
+                      style={{
+                        backgroundColor: `${getIssueTypeColor(issue.type)}20`,
+                        borderColor: getIssueTypeColor(issue.type),
+                        color: getIssueTypeColor(issue.type),
+                      }}
+                      variant="outline"
+                      className="text-xs"
+                    >
+                      {getIssueTypeLabel(issue.type)}
+                    </Badge>
+
+                    {issue.taskName && (
+                      <span
+                        className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (issue.taskId) {
                             router.push(
                               `/users/dashboard/projects/${projectId}/tasks/${issue.taskId}`
                             );
-                          }}
-                        >
-                          {issue.taskName}
-                        </span>
-                      ) : (
-                        <span className="text-sm text-zinc-400">No task</span>
-                      )}
-                    </TableCell>
+                          }
+                        }}
+                      >
+                        {issue.taskName}
+                      </span>
+                    )}
 
-                    {/* Creator with EmployeeAvatar */}
-                    <TableCell>
-                      {issue.creator ? (
-                        <div className="flex items-center gap-2">
-                          <EmployeeAvatar
-                            employee={issue.creator}
-                            size="sm"
-                            className="!size-8"
-                          />
-                          <Link
-                            href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
-                            className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {issue.creator.name}
-                          </Link>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-zinc-400">Unknown</span>
-                      )}
-                    </TableCell>
+                    <span className="flex items-center gap-1 text-xs text-zinc-400">
+                      <Calendar className="h-3 w-3" />
+                      {format(issue.createdAt, 'MMM d, yyyy')}
+                    </span>
+                  </div>
 
-                    {/* Created date */}
-                    <TableCell>
-                      <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                        <Calendar className="h-3 w-3" />
-                        <span>{format(issue.createdAt, 'MMM d, yyyy')}</span>
-                      </div>
-                    </TableCell>
+                  {issue.creator && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <EmployeeAvatar
+                        employee={issue.creator}
+                        size="sm"
+                        className="!size-6"
+                      />
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {issue.creator.name}
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
 
-                    {/* Status badge */}
-                    <TableCell>
-                      <Badge className={getStatusColor(issue.status)}>
-                        {getStatusLabel(issue.status)}
-                      </Badge>
-                    </TableCell>
+          {/* ── Desktop table (≥ md) ─────────────────────────────────── */}
+          <Card className="hidden md:block">
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Issue</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Related Task</TableHead>
+                    <TableHead>Creator</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
+                </TableHeader>
+                <TableBody>
+                  {paginatedIssues.map((issue) => (
+                    <TableRow
+                      key={issue.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      onClick={() =>
+                        router.push(
+                          `/users/dashboard/projects/${projectId}/issues/${issue.id}`
+                        )
+                      }
+                    >
+                      {/* Title + description */}
+                      <TableCell>
+                        <div>
+                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {issue.title}
+                          </p>
+                          {issue.description && (
+                            <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
+                              {issue.description}
+                            </p>
+                          )}
+                        </div>
+                      </TableCell>
 
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </Card>
+                      {/* Type badge — uses existing type utilities */}
+                      <TableCell>
+                        <Badge
+                          style={{
+                            backgroundColor: `${getIssueTypeColor(issue.type)}20`,
+                            borderColor: getIssueTypeColor(issue.type),
+                            color: getIssueTypeColor(issue.type),
+                          }}
+                          variant="outline"
+                        >
+                          {getIssueTypeLabel(issue.type)}
+                        </Badge>
+                      </TableCell>
+
+                      {/* Related task */}
+                      <TableCell>
+                        {issue.taskName && issue.taskId ? (
+                          <span
+                            className="cursor-pointer text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(
+                                `/users/dashboard/projects/${projectId}/tasks/${issue.taskId}`
+                              );
+                            }}
+                          >
+                            {issue.taskName}
+                          </span>
+                        ) : (
+                          <span className="text-sm text-zinc-400">No task</span>
+                        )}
+                      </TableCell>
+
+                      {/* Creator with EmployeeAvatar */}
+                      <TableCell>
+                        {issue.creator ? (
+                          <div className="flex items-center gap-2">
+                            <EmployeeAvatar
+                              employee={issue.creator}
+                              size="sm"
+                              className="!size-8"
+                            />
+                            <Link
+                              href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
+                              className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {issue.creator.name}
+                            </Link>
+                          </div>
+                        ) : (
+                          <span className="text-sm text-zinc-400">Unknown</span>
+                        )}
+                      </TableCell>
+
+                      {/* Created date */}
+                      <TableCell>
+                        <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
+                          <Calendar className="h-3 w-3" />
+                          <span>{format(issue.createdAt, 'MMM d, yyyy')}</span>
+                        </div>
+                      </TableCell>
+
+                      {/* Status badge */}
+                      <TableCell>
+                        <Badge className={getStatusColor(issue.status)}>
+                          {getStatusLabel(issue.status)}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          </Card>
+
+          {/* Pagination for mobile cards */}
+          <div className="md:hidden">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          </div>
+        </>
       ) : (
         <Card>
           <CardContent className="py-12 text-center">

@@ -31,7 +31,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
   const isDefault = defaultOrganization?.id === organization.id;
 
   return (
-    <Card className="group hover:border-primary/50 h-full transition-all duration-200 hover:shadow-lg">
+    <Card className="group h-full transition-all duration-200 hover:border-indigo-300 hover:shadow-lg dark:hover:border-indigo-500/40">
       <Link
         href={`/users/dashboard/organizations/${organization.id}`}
         className="block"
