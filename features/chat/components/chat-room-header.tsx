@@ -11,7 +11,9 @@ import {
   Shield,
   Crown,
   UserCheck,
+  ArrowLeft,
 } from 'lucide-react';
+import Link from 'next/link';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -57,10 +59,22 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
       : `Room ${room.id}`);
 
   return (
-    <div className="bg-background flex h-14 shrink-0 items-center justify-between border-b px-4">
-      {/* Left: room name + icon */}
-      <div className="flex min-w-0 items-center gap-2">
-        <RoomIcon className="text-muted-foreground h-4 w-4 shrink-0" />
+    <div className="bg-background flex h-14 shrink-0 items-center justify-between border-b px-2 sm:px-4">
+      {/* Left: back button (mobile only) + room name + icon */}
+      <div className="flex min-w-0 items-center gap-1 sm:gap-2">
+        {/* Back to room list — mobile only */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0 lg:hidden"
+          asChild
+        >
+          <Link href="/users/dashboard/chat" aria-label="Back to conversations">
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
+        </Button>
+
+        <RoomIcon className="text-muted-foreground hidden h-4 w-4 shrink-0 sm:block" />
         <div className="min-w-0">
           <h2 className="truncate text-sm font-semibold">{roomName}</h2>
           {room.description && (

@@ -105,7 +105,7 @@ function RoomItem({
     <Link
       href={`/users/dashboard/chat/${room.id}`}
       onClick={onSelect}
-      className={`flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors ${
+      className={`flex items-start gap-3 rounded-lg px-3 py-3 transition-colors sm:py-2.5 ${
         isActive
           ? 'bg-accent text-accent-foreground hover:bg-accent'
           : 'hover:bg-muted'
@@ -329,7 +329,7 @@ export function ChatSidebar({ onRoomSelect }: ChatSidebarProps) {
           <SheetTrigger asChild>
             <Button
               variant="outline"
-              className="w-full gap-2 text-xs"
+              className="h-10 w-full gap-2 text-sm sm:h-9 sm:text-xs"
               size="sm"
             >
               <Plus className="h-3.5 w-3.5" />
