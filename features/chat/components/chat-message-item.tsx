@@ -108,6 +108,22 @@ export function ChatMessageItem({
       setShowReactions(false);
     }, 100);
   };
+  // On touch devices: tap the message to reveal the action bar, auto-hide after 3s
+  const handleTouchStart = () => {
+    if (leaveTimer.current) clearTimeout(leaveTimer.current);
+    setHovered((prev) => {
+      if (prev) {
+        // Second tap dismisses
+        setShowReactions(false);
+        return false;
+      }
+      leaveTimer.current = setTimeout(() => {
+        setHovered(false);
+        setShowReactions(false);
+      }, 3000);
+      return true;
+    });
+  };
 
   // ── Deleted message ─────────────────────────────────────────────────
   if (message.isDeleted) {
@@ -130,6 +146,7 @@ export function ChatMessageItem({
           }`}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
         >
           {/* Timestamp gutter — appears on hover */}
           <div className="flex w-10 shrink-0 items-center justify-end">
@@ -216,6 +233,7 @@ export function ChatMessageItem({
         }`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onTouchStart={handleTouchStart}
       >
         {/* Avatar */}
         <div
