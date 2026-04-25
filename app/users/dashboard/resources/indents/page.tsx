@@ -26,8 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { SearchAndFilter } from '@/components/common';
-import { Pagination } from '@/components/common';
+import { SearchAndFilter, Pagination, PageHeader } from '@/components/common';
 import {
   Plus,
   Loader2,
@@ -128,23 +127,18 @@ export default function IndentsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Indents
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Manage material indent requests
-          </p>
-        </div>
-        <Button asChild className="mt-4 md:mt-0">
-          <Link href="/users/dashboard/resources/indents/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Indent
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Indents"
+        description="Manage material indent requests"
+        actions={
+          <Button asChild>
+            <Link href="/users/dashboard/resources/indents/new">
+              <Plus className="mr-2 h-4 w-4" />
+              New Indent
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
