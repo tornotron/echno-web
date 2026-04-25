@@ -26,8 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { SearchAndFilter } from '@/components/common';
-import { Pagination } from '@/components/common';
+import { SearchAndFilter, Pagination, PageHeader } from '@/components/common';
 import {
   Plus,
   Loader2,
@@ -104,23 +103,18 @@ export default function MaterialConsumptionsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Material Consumptions
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Track material usage across projects and tasks
-          </p>
-        </div>
-        <Button asChild className="mt-4 md:mt-0">
-          <Link href="/users/dashboard/resources/material-consumptions/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Record Consumption
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Material Consumptions"
+        description="Track material usage across projects and tasks"
+        actions={
+          <Button asChild>
+            <Link href="/users/dashboard/resources/material-consumptions/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Record Consumption
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
