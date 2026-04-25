@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -169,30 +169,24 @@ export default function SubContractsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="flex items-center space-x-3 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            <ClipboardList className="h-8 w-8" />
-            <span>Sub-Contract Management</span>
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Manage sub-contractor agreements and work orders
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button size="sm" asChild>
-            <Link href="/users/dashboard/third-party/sub-contracts/new">
-              <Plus className="mr-2 h-4 w-4" />
-              New Contract
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        title="Sub-Contract Management"
+        description="Manage sub-contractor agreements and work orders"
+        actions={
+          <>
+            <Button variant="outline" size="sm">
+              <Download className="mr-2 h-4 w-4" />
+              Export
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/users/dashboard/third-party/sub-contracts/new">
+                <Plus className="mr-2 h-4 w-4" />
+                New Contract
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
