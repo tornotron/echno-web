@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -108,21 +108,18 @@ export default function LocationsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Storage Locations</h1>
-          <p className="text-muted-foreground">
-            Manage storage locations and warehouses
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/users/dashboard/resources/storage-locations/new">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Location
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Storage Locations"
+        description="Manage storage locations and warehouses"
+        actions={
+          <Button asChild>
+            <Link href="/users/dashboard/resources/storage-locations/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Location
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
