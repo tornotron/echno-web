@@ -1,14 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { SearchAndFilter } from '@/components/common';
-import { AlertCircle, Loader2 } from 'lucide-react';
+import { SearchAndFilter, PageHeader } from '@/components/common';
+import { AlertCircle, Loader2, Plus } from 'lucide-react';
 import { getInvitationStatus } from '@/types/invitation/invitation';
 import { useInvitationsByOrganization } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
 import { InvitationTable } from '@/features/invitation';
-import { InvitationHeader } from '@/features/invitation/components/invitation-header';
 import { InvitationStats } from '@/features/invitation/components/invitation-stats';
+import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function InvitationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,7 +103,7 @@ export default function InvitationsPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
       </div>
     );
   }
@@ -135,8 +136,18 @@ export default function InvitationsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <InvitationHeader />
+      <PageHeader
+        title="Employee Invitations"
+        description="Manage and track employee invitation status"
+        actions={
+          <Button asChild>
+            <Link href="/users/dashboard/workforce/invitations/new">
+              <Plus className="mr-2 h-4 w-4" />
+              Create Invitation
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
       <InvitationStats
@@ -144,6 +155,10 @@ export default function InvitationsPage() {
         pending={pendingInvitations}
         accepted={acceptedInvitations}
         expired={expiredInvitations}
+        onFilterChange={(status) => {
+          setStatusFilter(status);
+          setCurrentPage(1);
+        }}
       />
 
       {/* Search & Filters */}
