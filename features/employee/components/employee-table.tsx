@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Pagination } from '@/components/common';
+import { Pagination, EmptyState } from '@/components/common';
 import { Users, UserPlus, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -50,27 +50,27 @@ export function EmployeeTable({
 
   if (filteredEmployees.length === 0) {
     return (
-      <Card className="hidden lg:block">
-        <CardContent className="py-12 text-center">
-          <Users className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            No employees found
-          </h3>
-          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-            {hasActiveFilters
-              ? 'Try adjusting your search or filters'
-              : 'Get started by adding your first employee'}
-          </p>
-          {!hasActiveFilters && (
-            <Button asChild>
-              <Link href="/users/dashboard/workforce/invitations/new">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Create Invitation
-              </Link>
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+      <div className="hidden lg:block">
+        <EmptyState
+          icon={Users}
+          title="No employees found"
+          description={
+            hasActiveFilters
+              ? 'Try adjusting your search or filters.'
+              : 'Get started by adding your first employee.'
+          }
+          action={
+            hasActiveFilters ? undefined : (
+              <Button asChild>
+                <Link href="/users/dashboard/workforce/invitations/new">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create Invitation
+                </Link>
+              </Button>
+            )
+          }
+        />
+      </div>
     );
   }
 
