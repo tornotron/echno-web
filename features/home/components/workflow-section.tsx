@@ -1,6 +1,7 @@
 'use client';
 
 import { useInView } from '@/hooks/use-in-view';
+import { Badge } from '@/components/ui/badge';
 
 const PHASES = [
   {
@@ -123,9 +124,12 @@ export function WorkflowSection() {
                   {phase.number}
                 </div>
 
-                <span className="mb-2 rounded-full border border-amber-300/60 bg-amber-50 px-3 py-0.5 text-[10px] font-bold tracking-widest text-amber-700 uppercase dark:border-amber-500/18 dark:bg-amber-500/8 dark:text-amber-500">
+                <Badge
+                  variant="amber"
+                  className="mb-2 px-3 text-[10px] font-bold tracking-widest uppercase"
+                >
                   {phase.label}
-                </span>
+                </Badge>
                 <h3 className="mb-2 text-base font-bold text-zinc-900 dark:text-zinc-100">
                   {phase.title}
                 </h3>

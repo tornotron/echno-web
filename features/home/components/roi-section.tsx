@@ -2,6 +2,7 @@
 
 import { useInView } from '@/hooks/use-in-view';
 import { useCountUp } from '@/hooks/use-count-up';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface StatProps {
   value: number;
@@ -123,9 +124,11 @@ export function RoiSection() {
             The visibility alone justified the entire investment.
           </p>
           <div className="mt-6 flex items-center justify-center gap-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-amber-100 text-sm font-black text-amber-700 dark:bg-amber-500/15 dark:text-amber-500">
-              RK
-            </div>
+            <Avatar className="size-11 bg-amber-100 dark:bg-amber-500/15">
+              <AvatarFallback className="bg-amber-100 text-sm font-black text-amber-700 dark:bg-amber-500/15 dark:text-amber-500">
+                RK
+              </AvatarFallback>
+            </Avatar>
             <div className="text-left">
               <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                 Rajesh Kumar

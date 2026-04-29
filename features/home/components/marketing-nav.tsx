@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AuthButton } from '@/components/common/auth-button';
 import { Menu, X, ArrowRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface MarketingNavProps {
   currentPage?: string;
@@ -78,25 +79,24 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
           <div className="hidden items-center gap-3 md:flex">
             <AuthButton />
             <Link href="/plans">
-              <button
-                className="group inline-flex items-center gap-1.5 rounded-lg px-5 py-2 text-sm font-bold text-zinc-950 shadow-sm shadow-amber-500/20 transition-all duration-300 hover:scale-[1.04] hover:shadow-amber-500/30 active:scale-[0.97]"
-                style={{
-                  background:
-                    'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                }}
+              <Button
+                variant="gradient"
+                className="group rounded-lg px-5 py-2 text-sm shadow-sm shadow-amber-500/20 hover:scale-[1.04] hover:shadow-amber-500/30 active:scale-[0.97]"
               >
                 Get Early Access
                 <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
-              </button>
+              </Button>
             </Link>
           </div>
 
           {/* Mobile toggle */}
           <div className="flex items-center gap-3 md:hidden">
             <AuthButton />
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="rounded-lg p-2 text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/8 dark:hover:text-zinc-100"
+              className="rounded-lg text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/[0.08] dark:hover:text-zinc-100"
               aria-label="Toggle menu"
             >
               {mobileOpen ? (
@@ -104,7 +104,7 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
               ) : (
                 <Menu className="h-5 w-5" />
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -129,15 +129,12 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
             ))}
             <div className="pt-2">
               <Link href="/plans" onClick={() => setMobileOpen(false)}>
-                <button
-                  className="w-full rounded-xl px-4 py-3 text-sm font-bold text-zinc-950"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                  }}
+                <Button
+                  variant="gradient"
+                  className="w-full rounded-xl py-3 text-sm"
                 >
                   Get Early Access
-                </button>
+                </Button>
               </Link>
             </div>
           </div>

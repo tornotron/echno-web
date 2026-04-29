@@ -1,6 +1,8 @@
 'use client';
 
 import { useInView } from '@/hooks/use-in-view';
+import { Card } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const TESTIMONIALS = [
   {
@@ -58,9 +60,10 @@ export function TestimonialsSection() {
 
         <div className="grid gap-6 md:grid-cols-3">
           {TESTIMONIALS.map((t, i) => (
-            <div
+            <Card
               key={t.name}
-              className="reveal-hidden group relative flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 p-8 transition-all duration-500 hover:-translate-y-1 hover:border-stone-300 hover:shadow-lg dark:border-white/6 dark:bg-zinc-900 dark:hover:border-white/10 dark:hover:shadow-none"
+              variant="testimonial"
+              className="reveal-hidden"
               style={{ animationDelay: `${i * 120}ms` }}
               data-visible={isInView}
             >
@@ -88,16 +91,20 @@ export function TestimonialsSection() {
               </p>
 
               <div className="mt-8 flex items-center gap-4">
-                <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-black"
+                <Avatar
+                  className="size-11 shrink-0 bg-transparent"
                   style={{
                     background: `${t.accentColor}14`,
-                    color: t.accentColor,
                     border: `1px solid ${t.accentColor}28`,
                   }}
                 >
-                  {t.initials}
-                </div>
+                  <AvatarFallback
+                    className="bg-transparent text-sm font-black"
+                    style={{ color: t.accentColor }}
+                  >
+                    {t.initials}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200">
                     {t.name}
@@ -107,7 +114,7 @@ export function TestimonialsSection() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
       </div>

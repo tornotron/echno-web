@@ -455,25 +455,34 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <div className="flex items-center gap-2 px-2 py-2 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+            <SidebarMenuButton
+              size="lg"
+              className="group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0"
+            >
               <Avatar className="size-8 shrink-0">
                 <AvatarImage
                   src={employee?.profilePicture?.file}
                   alt={session.user?.name || 'User'}
                 />
-                <AvatarFallback className="bg-zinc-500 text-sm font-medium text-white">
-                  {session.user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                <AvatarFallback className="bg-zinc-500 text-xs font-semibold text-white">
+                  {session.user?.name
+                    ?.split(' ')
+                    .filter(Boolean)
+                    .slice(0, 2)
+                    .map((n) => n[0].toUpperCase())
+                    .join('') || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
-                <p className="truncate text-sm font-medium">
+                <p className="truncate text-sm font-semibold">
                   {session.user?.name || 'User'}
                 </p>
-                <p className="text-muted-foreground truncate text-xs">
+                <p className="truncate text-xs opacity-50">
                   {session.user?.email || ''}
                 </p>
               </div>
-            </div>
+              <ChevronRight className="ml-auto size-4 shrink-0 opacity-50 group-data-[collapsible=icon]:hidden" />
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>

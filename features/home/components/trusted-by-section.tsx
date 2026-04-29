@@ -1,5 +1,7 @@
 'use client';
 
+import { Badge } from '@/components/ui/badge';
+
 export function TrustedBySection() {
   const companies = [
     'Larsen & Toubro',
@@ -41,13 +43,13 @@ export function TrustedBySection() {
               key={i}
               className="flex shrink-0 items-center gap-3 whitespace-nowrap"
             >
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded border border-amber-200 bg-amber-50 text-[10px] font-black text-amber-600 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-500">
+              <Badge variant="brand">
                 {name
                   .split(' ')
                   .map((w) => w[0])
                   .slice(0, 2)
                   .join('')}
-              </span>
+              </Badge>
               <span className="text-sm font-semibold text-zinc-500 dark:text-zinc-500">
                 {name}
               </span>
