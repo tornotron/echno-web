@@ -112,9 +112,7 @@ export default function NewAssetPage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="name" required>
-                      Asset Name
-                    </Label>
+                    <Label htmlFor="name">Asset Name</Label>
                     <Input
                       id="name"
                       placeholder="e.g., Excavator CAT 320D"
@@ -140,9 +138,7 @@ export default function NewAssetPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="type" required>
-                      Asset Type
-                    </Label>
+                    <Label htmlFor="type">Asset Type</Label>
                     <Select
                       value={formData.type}
                       onValueChange={(value) =>
