@@ -651,7 +651,13 @@ export default function DashboardPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={true}
-                      label={({ type, days }) => `${type}: ${days}d`}
+                      label={(props) => {
+                        const { type, days } = props as typeof props & {
+                          type: string;
+                          days: number;
+                        };
+                        return `${type}: ${days}d`;
+                      }}
                       outerRadius={80}
                       innerRadius={40}
                       dataKey="days"
@@ -785,9 +791,14 @@ export default function DashboardPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={true}
-                      label={({ priority, count, percent }) =>
-                        `${priority}: ${count} (${(percent * 100).toFixed(0)}%)`
-                      }
+                      label={(props) => {
+                        const { priority, count, percent } =
+                          props as typeof props & {
+                            priority: string;
+                            count: number;
+                          };
+                        return `${priority}: ${count} (${((percent ?? 0) * 100).toFixed(0)}%)`;
+                      }}
                       outerRadius={80}
                       innerRadius={40}
                       dataKey="count"
@@ -1107,7 +1118,13 @@ export default function DashboardPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={true}
-                      label={({ status, count }) => `${status}: ${count}`}
+                      label={(props) => {
+                        const { status, count } = props as typeof props & {
+                          status: string;
+                          count: number;
+                        };
+                        return `${status}: ${count}`;
+                      }}
                       outerRadius={80}
                       innerRadius={40}
                       dataKey="count"
@@ -1339,7 +1356,13 @@ export default function DashboardPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={true}
-                      label={({ status, items }) => `${status}: ${items}`}
+                      label={(props) => {
+                        const { status, items } = props as typeof props & {
+                          status: string;
+                          items: number;
+                        };
+                        return `${status}: ${items}`;
+                      }}
                       outerRadius={80}
                       innerRadius={40}
                       dataKey="items"
@@ -1722,9 +1745,13 @@ export default function DashboardPage() {
                       cx="50%"
                       cy="50%"
                       labelLine={true}
-                      label={({ category, value }) =>
-                        `${category}: $${(value / 1000).toFixed(0)}k`
-                      }
+                      label={(props) => {
+                        const { category, value } = props as typeof props & {
+                          category: string;
+                          value: number;
+                        };
+                        return `${category}: $${(value / 1000).toFixed(0)}k`;
+                      }}
                       outerRadius={80}
                       innerRadius={40}
                       dataKey="value"
@@ -2115,7 +2142,13 @@ export default function DashboardPage() {
                       innerRadius={60}
                       outerRadius={90}
                       dataKey="count"
-                      label={({ name, count }) => `${name}: ${count}`}
+                      label={(props) => {
+                        const { name, count } = props as typeof props & {
+                          name: string;
+                          count: number;
+                        };
+                        return `${name}: ${count}`;
+                      }}
                       labelLine={{ stroke: 'currentColor', strokeWidth: 1 }}
                     >
                       {projectsByStatus.map((entry, index) => (
