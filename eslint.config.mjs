@@ -172,6 +172,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // shadcn CLI-managed base components — treated as third-party, not linted
+    "components/shadcn/**",
   ]),
 ]);
 
