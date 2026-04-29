@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -37,10 +38,6 @@ import Link from 'next/link';
 const REGISTRATION_ROLES = Object.values(UserRole);
 
 const GENDER_OPTIONS = ['Male', 'Female', 'Other'] as const;
-
-const inputClasses =
-  'h-9 border-zinc-300 bg-white text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-amber-500/50 focus-visible:border-amber-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600';
-const inputErrorClasses = 'border-red-500';
 
 export function RegistrationForm() {
   const [formData, setFormData] = useState<RegistrationFormData>(
@@ -176,7 +173,6 @@ export function RegistrationForm() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
-      {/* Two-column grid layout */}
       <div className="grid grid-cols-2 gap-x-4 gap-y-3">
         {/* Username */}
         <div className="space-y-1">
@@ -187,11 +183,12 @@ export function RegistrationForm() {
             Username <span className="text-red-500">*</span>
           </Label>
           <Input
+            variant="auth"
             id="userName"
             value={formData.userName}
             onChange={(e) => handleChange('userName', e.target.value)}
             placeholder="john_doe"
-            className={`${inputClasses} ${errors.userName ? inputErrorClasses : ''}`}
+            aria-invalid={!!errors.userName}
           />
           {errors.userName && (
             <p className="text-xs text-red-500">{errors.userName}</p>
@@ -207,16 +204,17 @@ export function RegistrationForm() {
             Full Name <span className="text-red-500">*</span>
           </Label>
           <Input
+            variant="auth"
             id="name"
             value={formData.name}
             onChange={(e) => handleChange('name', e.target.value)}
             placeholder="John Doe"
-            className={`${inputClasses} ${errors.name ? inputErrorClasses : ''}`}
+            aria-invalid={!!errors.name}
           />
           {errors.name && <p className="text-xs text-red-500">{errors.name}</p>}
         </div>
 
-        {/* Email - Full width */}
+        {/* Email */}
         <div className="col-span-2 space-y-1">
           <Label
             htmlFor="email"
@@ -225,12 +223,13 @@ export function RegistrationForm() {
             Email <span className="text-red-500">*</span>
           </Label>
           <Input
+            variant="auth"
             id="email"
             type="email"
             value={formData.email}
             onChange={(e) => handleChange('email', e.target.value)}
             placeholder="john@example.com"
-            className={`${inputClasses} ${errors.email ? inputErrorClasses : ''}`}
+            aria-invalid={!!errors.email}
           />
           {errors.email && (
             <p className="text-xs text-red-500">{errors.email}</p>
@@ -247,15 +246,19 @@ export function RegistrationForm() {
           </Label>
           <div className="relative">
             <Input
+              variant="auth"
               id="password"
               type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={(e) => handleChange('password', e.target.value)}
               placeholder="Min 8 characters"
-              className={`${inputClasses} pr-9 ${errors.password ? inputErrorClasses : ''}`}
+              className="pr-9"
+              aria-invalid={!!errors.password}
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
               onClick={() => setShowPassword(!showPassword)}
             >
@@ -264,7 +267,7 @@ export function RegistrationForm() {
               ) : (
                 <Eye className="h-4 w-4" />
               )}
-            </button>
+            </Button>
           </div>
           {errors.password && (
             <p className="text-xs text-red-500">{errors.password}</p>
@@ -281,15 +284,19 @@ export function RegistrationForm() {
           </Label>
           <div className="relative">
             <Input
+              variant="auth"
               id="confirmPassword"
               type={showConfirmPassword ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={(e) => handleChange('confirmPassword', e.target.value)}
               placeholder="Confirm password"
-              className={`${inputClasses} pr-9 ${errors.confirmPassword ? inputErrorClasses : ''}`}
+              className="pr-9"
+              aria-invalid={!!errors.confirmPassword}
             />
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="icon-sm"
               className="absolute top-1/2 right-2 -translate-y-1/2 text-zinc-400 hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-300"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
@@ -298,7 +305,7 @@ export function RegistrationForm() {
               ) : (
                 <Eye className="h-4 w-4" />
               )}
-            </button>
+            </Button>
           </div>
           {errors.confirmPassword && (
             <p className="text-xs text-red-500">{errors.confirmPassword}</p>
@@ -314,12 +321,13 @@ export function RegistrationForm() {
             Phone <span className="text-red-500">*</span>
           </Label>
           <Input
+            variant="auth"
             id="phone"
             type="tel"
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="9876543210"
-            className={`${inputClasses} ${errors.phone ? inputErrorClasses : ''}`}
+            aria-invalid={!!errors.phone}
           />
           {errors.phone && (
             <p className="text-xs text-red-500">{errors.phone}</p>
@@ -335,6 +343,7 @@ export function RegistrationForm() {
             Date of Birth <span className="text-red-500">*</span>
           </Label>
           <Input
+            variant="auth"
             id="dateOfBirth"
             type="date"
             value={
@@ -348,7 +357,7 @@ export function RegistrationForm() {
                 e.target.value ? new Date(e.target.value) : null
               )
             }
-            className={`${inputClasses} ${errors.dateOfBirth ? inputErrorClasses : ''}`}
+            aria-invalid={!!errors.dateOfBirth}
           />
           {errors.dateOfBirth && (
             <p className="text-xs text-red-500">{errors.dateOfBirth}</p>
@@ -423,7 +432,7 @@ export function RegistrationForm() {
           {errors.role && <p className="text-xs text-red-500">{errors.role}</p>}
         </div>
 
-        {/* Terms - Full width */}
+        {/* Terms */}
         <div className="col-span-2 flex items-center space-x-2 pt-2">
           <Checkbox
             id="acceptTerms"
@@ -459,41 +468,38 @@ export function RegistrationForm() {
           </p>
         )}
 
-        {/* Submit Button - Full width */}
-        <button
+        {/* Submit */}
+        <Button
           type="submit"
+          variant="gradient"
           disabled={isLoading}
-          className="group relative col-span-2 mt-2 h-10 w-full overflow-hidden rounded-lg text-sm font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.01] disabled:opacity-70"
-          style={{
-            background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-          }}
+          className="group relative col-span-2 mt-2 h-10 w-full overflow-hidden rounded-lg"
         >
-          <span className="relative flex items-center justify-center gap-2">
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Creating Account…
-              </>
-            ) : (
-              'Create Account'
-            )}
-          </span>
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Creating Account…
+            </>
+          ) : (
+            'Create Account'
+          )}
           <span
             className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
             aria-hidden
           />
-        </button>
+        </Button>
 
         {/* Sign In Link */}
         <p className="col-span-2 text-center text-sm text-zinc-600 dark:text-zinc-400">
           Already have an account?{' '}
-          <button
+          <Button
             type="button"
+            variant="link"
+            className="h-auto p-0 font-semibold text-amber-600 hover:text-amber-700 dark:text-amber-500"
             onClick={() => signIn('keycloak')}
-            className="font-semibold text-amber-600 hover:text-amber-700 hover:underline dark:text-amber-500"
           >
             Sign in
-          </button>
+          </Button>
         </p>
       </div>
     </form>
