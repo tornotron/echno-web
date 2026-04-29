@@ -7,6 +7,12 @@ import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { useInView } from '@/hooks/use-in-view';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input, inputVariants } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils/index';
 
 export default function ContactPage() {
   const { status } = useSession();
@@ -56,9 +62,6 @@ export default function ContactPage() {
       </div>
     );
   }
-
-  const inputCls =
-    'w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-amber-500 dark:focus:ring-amber-500/20';
 
   const contactMethods = [
     {
@@ -141,10 +144,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-4xl">
           <div className="grid gap-5 md:grid-cols-3">
             {contactMethods.map(({ icon: Icon, label, sub, value, accent }) => (
-              <div
-                key={label}
-                className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-stone-50 p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-stone-300 hover:shadow-md dark:border-white/6 dark:bg-zinc-950 dark:hover:border-white/10 dark:hover:shadow-none"
-              >
+              <Card key={label} variant="contact-method">
                 <div
                   className="pointer-events-none absolute inset-x-0 top-0 h-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   style={{
@@ -168,7 +168,7 @@ export default function ContactPage() {
                 <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
                   {value}
                 </p>
-              </div>
+              </Card>
             ))}
           </div>
         </div>
@@ -192,8 +192,9 @@ export default function ContactPage() {
           </div>
 
           {submitted ? (
-            <div
-              className={`flex flex-col items-center rounded-2xl border border-stone-200 bg-white p-12 text-center transition-all delay-200 duration-700 dark:border-white/6 dark:bg-zinc-900 ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+            <Card
+              variant="form"
+              className={`items-center p-12 text-center transition-all delay-200 duration-700 ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
             >
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-500/10">
                 <CheckCircle2 className="h-8 w-8 text-amber-600 dark:text-amber-500" />
@@ -204,18 +205,20 @@ export default function ContactPage() {
               <p className="text-sm text-zinc-500">
                 Thank you for reaching out. We&apos;ll get back to you soon.
               </p>
-            </div>
+            </Card>
           ) : (
-            <div
-              className={`rounded-2xl border border-stone-200 bg-white p-8 shadow-sm transition-all delay-200 duration-700 dark:border-white/6 dark:bg-zinc-900 dark:shadow-none ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+            <Card
+              variant="form"
+              className={`transition-all delay-200 duration-700 ${isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
             >
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                       Full Name *
-                    </label>
-                    <input
+                    </Label>
+                    <Input
+                      variant="marketing"
                       type="text"
                       required
                       value={form.name}
@@ -223,14 +226,14 @@ export default function ContactPage() {
                         setForm({ ...form, name: e.target.value })
                       }
                       placeholder="Your name"
-                      className={inputCls}
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                       Email Address *
-                    </label>
-                    <input
+                    </Label>
+                    <Input
+                      variant="marketing"
                       type="email"
                       required
                       value={form.email}
@@ -238,35 +241,34 @@ export default function ContactPage() {
                         setForm({ ...form, email: e.target.value })
                       }
                       placeholder="you@company.com"
-                      className={inputCls}
                     />
                   </div>
                 </div>
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                       Company
-                    </label>
-                    <input
+                    </Label>
+                    <Input
+                      variant="marketing"
                       type="text"
                       value={form.company}
                       onChange={(e) =>
                         setForm({ ...form, company: e.target.value })
                       }
                       placeholder="Your company"
-                      className={inputCls}
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                       Subject
-                    </label>
+                    </Label>
                     <select
                       value={form.subject}
                       onChange={(e) =>
                         setForm({ ...form, subject: e.target.value })
                       }
-                      className={inputCls}
+                      className={cn(inputVariants({ variant: 'marketing' }))}
                     >
                       <option value="general">General Inquiry</option>
                       <option value="sales">Sales</option>
@@ -277,10 +279,11 @@ export default function ContactPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                  <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                     Message *
-                  </label>
-                  <textarea
+                  </Label>
+                  <Textarea
+                    variant="marketing"
                     required
                     rows={5}
                     value={form.message}
@@ -288,17 +291,14 @@ export default function ContactPage() {
                       setForm({ ...form, message: e.target.value })
                     }
                     placeholder="How can we help you?"
-                    className={`${inputCls} resize-none`}
                   />
                 </div>
-                <button
+                <Button
+                  variant="gradient"
+                  size="lg"
                   type="submit"
                   disabled={submitting}
-                  className="group relative overflow-hidden rounded-xl px-8 py-3.5 text-sm font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.02] disabled:opacity-70"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                  }}
+                  className="group relative h-auto overflow-hidden px-8 py-3.5 font-bold"
                 >
                   <span className="flex items-center gap-2">
                     {submitting ? (
@@ -317,9 +317,9 @@ export default function ContactPage() {
                     className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
                     aria-hidden
                   />
-                </button>
+                </Button>
               </form>
-            </div>
+            </Card>
           )}
         </div>
       </section>
