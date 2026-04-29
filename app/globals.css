@@ -172,6 +172,26 @@
   }
 }
 
+/* ─── Dialog slide-up animation (clip-path wipe, used via .dialog-slide-up) ─ */
+
+@keyframes dialog-slide-in {
+  from { clip-path: inset(100% 0% 0% 0% round 1rem); }
+  to   { clip-path: inset(0%   0% 0% 0% round 1rem); }
+}
+
+@keyframes dialog-slide-out {
+  from { clip-path: inset(0%   0% 0% 0% round 1rem); }
+  to   { clip-path: inset(100% 0% 0% 0% round 1rem); }
+}
+
+.dialog-slide-up[data-state="open"] {
+  animation: dialog-slide-in 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.dialog-slide-up[data-state="closed"] {
+  animation: dialog-slide-out 0.5s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
 /* ─── Marketing page keyframes ───────────────────────────────────────── */
 
 @keyframes echno-fade-up {
