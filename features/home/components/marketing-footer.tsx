@@ -3,6 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export function MarketingFooter() {
   const year = new Date().getFullYear();
@@ -74,12 +76,9 @@ export function MarketingFooter() {
             </p>
             <div className="flex gap-3">
               {['Li', 'Tw', 'Yt'].map((s) => (
-                <div
-                  key={s}
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border border-stone-200 bg-white text-xs font-bold text-zinc-500 transition-all duration-200 hover:border-stone-300 hover:text-zinc-900 dark:border-white/7 dark:bg-white/4 dark:text-zinc-600 dark:hover:bg-white/8 dark:hover:text-zinc-300"
-                >
+                <Button key={s} variant="social" size="icon-sm">
                   {s}
-                </div>
+                </Button>
               ))}
             </div>
           </div>
@@ -112,9 +111,12 @@ export function MarketingFooter() {
             &copy; {year} Tornotron E-Commerce Private Limited. All rights
             reserved.
           </span>
-          <span className="rounded-full border border-amber-300/50 bg-amber-50 px-3 py-1 font-medium text-amber-700 dark:border-amber-500/15 dark:bg-amber-500/8 dark:text-amber-600">
+          <Badge
+            variant="amber"
+            className="px-3 py-1 text-xs font-medium tracking-normal normal-case"
+          >
             Built in India · Powering Construction Nationwide
-          </span>
+          </Badge>
         </div>
       </div>
     </footer>

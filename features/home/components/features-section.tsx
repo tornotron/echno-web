@@ -10,6 +10,7 @@ import {
   MessageSquare,
   BarChart3,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 const STEPS = [
   {
@@ -276,16 +277,17 @@ export function FeaturesSection() {
                       {s.title}
                     </span>
                     {s.tag && active === i && (
-                      <span
-                        className="ml-auto rounded-full px-2.5 py-0.5 text-[10px] font-bold tracking-wide uppercase"
+                      <Badge
+                        variant="outline"
+                        className="ml-auto text-[10px] font-bold tracking-wide uppercase"
                         style={{
                           background: `${s.accent}15`,
                           color: s.accent,
-                          border: `1px solid ${s.accent}35`,
+                          borderColor: `${s.accent}35`,
                         }}
                       >
                         {s.tag}
-                      </span>
+                      </Badge>
                     )}
                   </button>
                 ))}
