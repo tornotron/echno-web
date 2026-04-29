@@ -3,6 +3,11 @@
 import { useState } from 'react';
 import { useInView } from '@/hooks/use-in-view';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Input, inputVariants } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils/tailwind-utils';
 
 const FEATURES = [
   'Attendance & shift management',
@@ -129,7 +134,7 @@ export function PricingCtaSection() {
           </div>
 
           {/* Right — form */}
-          <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm dark:border-white/6 dark:bg-zinc-900 dark:shadow-none">
+          <Card variant="form" className="shadow-sm">
             {submitted ? (
               <div className="flex flex-col items-center py-8 text-center">
                 <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-500/10">
@@ -153,12 +158,12 @@ export function PricingCtaSection() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {/* Name */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <Label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                       Full Name *
-                    </label>
-                    <input
+                    </Label>
+                    <Input
+                      variant="marketing"
                       type="text"
                       required
                       value={form.name}
@@ -166,16 +171,15 @@ export function PricingCtaSection() {
                         setForm({ ...form, name: e.target.value })
                       }
                       placeholder="Your name"
-                      className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-amber-500 dark:focus:ring-amber-500/20"
                     />
                   </div>
 
-                  {/* Email */}
                   <div>
-                    <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                    <Label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                       Work Email *
-                    </label>
-                    <input
+                    </Label>
+                    <Input
+                      variant="marketing"
                       type="email"
                       required
                       value={form.email}
@@ -183,17 +187,16 @@ export function PricingCtaSection() {
                         setForm({ ...form, email: e.target.value })
                       }
                       placeholder="you@company.com"
-                      className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-amber-500 dark:focus:ring-amber-500/20"
                     />
                   </div>
 
-                  {/* Company + Team Size */}
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      <Label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                         Company *
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        variant="marketing"
                         type="text"
                         required
                         value={form.company}
@@ -201,20 +204,19 @@ export function PricingCtaSection() {
                           setForm({ ...form, company: e.target.value })
                         }
                         placeholder="Company name"
-                        className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-zinc-900 transition-all outline-none placeholder:text-zinc-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-amber-500 dark:focus:ring-amber-500/20"
                       />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      <Label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                         Team Size *
-                      </label>
+                      </Label>
                       <select
                         required
                         value={form.teamSize}
                         onChange={(e) =>
                           setForm({ ...form, teamSize: e.target.value })
                         }
-                        className="w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-2.5 text-sm text-zinc-900 transition-all outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:focus:border-amber-500 dark:focus:ring-amber-500/20"
+                        className={cn(inputVariants({ variant: 'marketing' }))}
                       >
                         <option value="">Select…</option>
                         <option value="1-10">1–10</option>
@@ -225,37 +227,32 @@ export function PricingCtaSection() {
                     </div>
                   </div>
 
-                  <button
+                  <Button
                     type="submit"
+                    variant="gradient"
                     disabled={submitting}
-                    className="group relative mt-2 w-full overflow-hidden rounded-lg px-6 py-3.5 text-sm font-bold text-zinc-950 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70"
-                    style={{
-                      background:
-                        'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                    }}
+                    className="group relative mt-2 w-full overflow-hidden rounded-lg py-3.5"
                   >
-                    <span className="flex items-center justify-center gap-2">
-                      {submitting ? (
-                        <>
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-950 border-t-transparent" />
-                          Submitting…
-                        </>
-                      ) : (
-                        <>
-                          Get Early Access
-                          <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                        </>
-                      )}
-                    </span>
+                    {submitting ? (
+                      <>
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-950 border-t-transparent" />
+                        Submitting…
+                      </>
+                    ) : (
+                      <>
+                        Get Early Access
+                        <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                      </>
+                    )}
                     <span
                       className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
                       aria-hidden
                     />
-                  </button>
+                  </Button>
                 </form>
               </>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </section>

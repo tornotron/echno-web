@@ -2,6 +2,7 @@
 
 import { useInView } from '@/hooks/use-in-view';
 import { Clock, FileWarning, TrendingDown, Radio } from 'lucide-react';
+import { Card, CardTitle, CardDescription } from '@/components/ui/card';
 
 interface ProblemCardProps {
   icon: React.ReactNode;
@@ -25,12 +26,13 @@ function ProblemCard({
   accentColor,
 }: ProblemCardProps) {
   return (
-    <div
-      className="reveal-hidden group relative overflow-hidden rounded-2xl border border-stone-200 bg-white p-8 transition-all duration-500 hover:-translate-y-1 hover:border-stone-300 hover:shadow-lg dark:border-white/6 dark:bg-zinc-900 dark:hover:border-white/10 dark:hover:shadow-none"
+    <Card
+      variant="problem"
+      className="reveal-hidden"
       style={{ animationDelay: delay }}
       data-visible={isVisible}
     >
-      {/* Hover glow — dark only */}
+      {/* Hover glow */}
       <div
         className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
         style={{
@@ -61,13 +63,13 @@ function ProblemCard({
         <span style={{ color: accentColor }}>{icon}</span>
       </div>
 
-      <h3 className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+      <CardTitle className="mb-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
         {title}
-      </h3>
-      <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-500">
+      </CardTitle>
+      <CardDescription className="leading-relaxed text-zinc-500 dark:text-zinc-500">
         {description}
-      </p>
-    </div>
+      </CardDescription>
+    </Card>
   );
 }
 

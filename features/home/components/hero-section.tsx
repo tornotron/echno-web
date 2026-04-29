@@ -9,6 +9,8 @@ import {
   TrendingUp,
   ChevronDown,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 /* ── Blueprint grid helpers ─────────────────────────────────────────── */
 const GRID_LIGHT: React.CSSProperties = {
@@ -158,8 +160,9 @@ interface MetricCardProps {
 
 function MetricCard({ icon, value, label, delay = '0s' }: MetricCardProps) {
   return (
-    <div
-      className="animate-float rounded-xl border border-stone-200 bg-white/90 p-4 backdrop-blur-md dark:border-white/8 dark:bg-zinc-900/90"
+    <Card
+      variant="metric"
+      className="animate-float"
       style={{ animationDelay: delay }}
     >
       <div className="mb-2">{icon}</div>
@@ -167,7 +170,7 @@ function MetricCard({ icon, value, label, delay = '0s' }: MetricCardProps) {
         {value}
       </div>
       <div className="mt-0.5 text-xs font-medium text-zinc-500">{label}</div>
-    </div>
+    </Card>
   );
 }
 
@@ -308,12 +311,10 @@ export function HeroSection() {
               className={`mt-10 flex flex-wrap gap-4 transition-all delay-300 duration-700 ${loaded ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'}`}
             >
               <Link href="/plans">
-                <button
-                  className="group relative inline-flex items-center gap-2 overflow-hidden rounded-lg px-8 py-4 text-base font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.03] hover:shadow-amber-500/30 active:scale-[0.98]"
-                  style={{
-                    background:
-                      'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                  }}
+                <Button
+                  variant="gradient"
+                  size="xl"
+                  className="group relative overflow-hidden rounded-lg font-bold hover:shadow-amber-500/30 active:scale-[0.98]"
                 >
                   <span>Book a Demo</span>
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
@@ -321,12 +322,12 @@ export function HeroSection() {
                     className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
                     aria-hidden
                   />
-                </button>
+                </Button>
               </Link>
               <Link href="/features">
-                <button className="inline-flex items-center gap-2 rounded-lg border border-zinc-300 bg-white/80 px-8 py-4 text-base font-semibold text-zinc-700 backdrop-blur-sm transition-all duration-300 hover:border-zinc-400 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/10">
+                <Button variant="glass" size="xl" className="font-semibold">
                   Explore Platform
-                </button>
+                </Button>
               </Link>
             </div>
 
@@ -364,7 +365,7 @@ export function HeroSection() {
               delay="0.8s"
             />
             {/* Live indicator */}
-            <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50/80 px-4 py-3 dark:border-emerald-500/20 dark:bg-emerald-500/5">
+            <Card variant="status">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
@@ -372,7 +373,7 @@ export function HeroSection() {
               <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
                 Platform live · 99.9% uptime
               </span>
-            </div>
+            </Card>
           </div>
         </div>
       </div>
