@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
+import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
 import {
   Clock,
   Users,
@@ -1056,9 +1058,10 @@ function FeatureCard({
 }) {
   const Icon = feature.icon;
   return (
-    <div
+    <Card
+      variant="feature"
       onClick={onClick}
-      className="group relative cursor-pointer overflow-hidden border border-transparent bg-white p-8 transition-all duration-[400ms] hover:-translate-y-1 hover:border-stone-300 hover:shadow-lg dark:bg-zinc-950 dark:hover:border-white/[0.08] dark:hover:bg-zinc-900 dark:hover:shadow-none"
+      className="bg-white dark:bg-zinc-950 dark:hover:bg-zinc-900"
     >
       {/* Icon */}
       <div className="mb-7 h-11 w-11" style={{ color: feature.accent }}>
@@ -1074,19 +1077,19 @@ function FeatureCard({
       </div>
 
       {/* Title */}
-      <h3
-        className="mb-3 font-semibold text-zinc-900 dark:text-zinc-100"
+      <CardTitle
+        className="mb-3 text-zinc-900 dark:text-zinc-100"
         style={{ letterSpacing: '-0.02em' }}
       >
         {feature.title}
-      </h3>
+      </CardTitle>
 
       {/* Description */}
-      <p className="text-sm leading-relaxed text-zinc-500 dark:text-zinc-500">
+      <CardDescription className="leading-relaxed text-zinc-500 dark:text-zinc-500">
         {feature.description.length > 110
           ? feature.description.slice(0, 110) + '…'
           : feature.description}
-      </p>
+      </CardDescription>
 
       {/* "Explore →" hint */}
       <div className="mt-5 flex items-center gap-1 text-xs font-medium text-zinc-400 transition-colors duration-200 group-hover:text-amber-600 dark:text-zinc-600 dark:group-hover:text-amber-500">
@@ -1103,7 +1106,7 @@ function FeatureCard({
           background: `linear-gradient(90deg, transparent, ${feature.accent}, transparent)`,
         }}
       />
-    </div>
+    </Card>
   );
 }
 
@@ -1117,55 +1120,14 @@ function FeatureModal({
   feature: Feature;
   onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setOpen(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  function handleClose() {
-    setOpen(false);
-    setTimeout(onClose, 500);
-  }
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') handleClose();
-    }
-    document.addEventListener('keydown', onKey);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = '';
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8"
-      style={{ pointerEvents: open ? 'auto' : 'none' }}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 backdrop-blur-xl transition-opacity duration-[450ms]"
-        style={{
-          background: 'rgba(0,0,0,0.5)',
-          opacity: open ? 1 : 0,
-        }}
-        onClick={handleClose}
-      />
-
-      {/* Panel */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="relative z-10 max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl dark:border-white/8 dark:bg-zinc-900"
-        style={{
-          clipPath: open
-            ? 'inset(0% 0% 0% 0% round 1rem)'
-            : 'inset(100% 0% 0% 0% round 1rem)',
-          transition: 'clip-path 0.65s cubic-bezier(0.16, 1, 0.3, 1)',
-        }}
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent
+        size="xl"
+        animation="slide-up"
+        overlayBlur="xl"
+        showCloseButton={false}
+        className="max-h-[90vh] overflow-y-auto rounded-2xl border-stone-200 bg-white p-0 shadow-2xl dark:border-white/8 dark:bg-zinc-900"
       >
         {/* Top accent line */}
         <div
@@ -1176,19 +1138,16 @@ function FeatureModal({
         />
 
         {/* Close button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-5 right-5 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-zinc-400 transition-colors hover:border-stone-300 hover:text-zinc-600 dark:border-white/10 dark:text-zinc-500 dark:hover:border-white/20 dark:hover:text-zinc-300"
-        >
+        <DialogClose className="absolute top-5 right-5 z-10 flex h-9 w-9 items-center justify-center rounded-lg border border-stone-200 text-zinc-400 transition-colors hover:border-stone-300 hover:text-zinc-600 dark:border-white/10 dark:text-zinc-500 dark:hover:border-white/20 dark:hover:text-zinc-300">
           <X className="h-4 w-4" />
-        </button>
+        </DialogClose>
 
         {/* Content */}
         <div className="p-8 sm:p-12">
           <FeaturePanel feature={feature} />
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
