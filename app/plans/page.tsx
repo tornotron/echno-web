@@ -6,6 +6,11 @@ import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { useInView } from '@/hooks/use-in-view';
 import { CheckCircle2, ArrowRight, Zap } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input, inputVariants } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils/index';
 
 const INCLUDED = [
   'Attendance & shift management',
@@ -54,9 +59,6 @@ export default function PlansPage() {
       setSubmitting(false);
     }
   };
-
-  const inputCls =
-    'w-full rounded-lg border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-zinc-900 outline-none transition-all placeholder:text-zinc-400 focus:border-amber-400 focus:ring-2 focus:ring-amber-400/20 dark:border-white/8 dark:bg-zinc-800 dark:text-white dark:placeholder:text-zinc-600 dark:focus:border-amber-500 dark:focus:ring-amber-500/20';
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-zinc-950">
@@ -122,15 +124,12 @@ export default function PlansPage() {
               </h2>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {INCLUDED.map((f) => (
-                  <div
-                    key={f}
-                    className="flex items-center gap-3 rounded-xl border border-stone-200 bg-white px-4 py-3.5 dark:border-white/6 dark:bg-zinc-900"
-                  >
+                  <Card key={f} variant="feature-item">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-amber-500" />
                     <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                       {f}
                     </span>
-                  </div>
+                  </Card>
                 ))}
               </div>
 
@@ -154,7 +153,7 @@ export default function PlansPage() {
             </div>
 
             {/* Right — form */}
-            <div className="rounded-2xl border border-stone-200 bg-white p-8 shadow-sm dark:border-white/6 dark:bg-zinc-900 dark:shadow-none">
+            <Card variant="form">
               {submitted ? (
                 <div className="flex flex-col items-center py-10 text-center">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-500/10">
@@ -180,10 +179,11 @@ export default function PlansPage() {
 
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                         Full Name *
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        variant="marketing"
                         type="text"
                         required
                         value={form.name}
@@ -191,14 +191,14 @@ export default function PlansPage() {
                           setForm({ ...form, name: e.target.value })
                         }
                         placeholder="Your name"
-                        className={inputCls}
                       />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                         Work Email *
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        variant="marketing"
                         type="email"
                         required
                         value={form.email}
@@ -206,14 +206,14 @@ export default function PlansPage() {
                           setForm({ ...form, email: e.target.value })
                         }
                         placeholder="you@company.com"
-                        className={inputCls}
                       />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                         Company Name *
-                      </label>
-                      <input
+                      </Label>
+                      <Input
+                        variant="marketing"
                         type="text"
                         required
                         value={form.company}
@@ -221,20 +221,19 @@ export default function PlansPage() {
                           setForm({ ...form, company: e.target.value })
                         }
                         placeholder="Your company"
-                        className={inputCls}
                       />
                     </div>
                     <div>
-                      <label className="mb-1.5 block text-xs font-semibold text-zinc-600 dark:text-zinc-400">
+                      <Label className="mb-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400">
                         Team Size *
-                      </label>
+                      </Label>
                       <select
                         required
                         value={form.teamSize}
                         onChange={(e) =>
                           setForm({ ...form, teamSize: e.target.value })
                         }
-                        className={inputCls}
+                        className={cn(inputVariants({ variant: 'marketing' }))}
                       >
                         <option value="">Select team size…</option>
                         <option value="1-10">1–10 employees</option>
@@ -243,14 +242,12 @@ export default function PlansPage() {
                         <option value="200+">200+ employees</option>
                       </select>
                     </div>
-                    <button
+                    <Button
+                      variant="gradient"
+                      size="xl"
                       type="submit"
                       disabled={submitting}
-                      className="group relative mt-2 w-full overflow-hidden rounded-xl px-6 py-4 text-sm font-bold text-zinc-950 shadow-lg shadow-amber-500/20 transition-all duration-300 hover:scale-[1.02] disabled:opacity-70"
-                      style={{
-                        background:
-                          'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)',
-                      }}
+                      className="group relative mt-2 w-full overflow-hidden font-bold"
                     >
                       <span className="flex items-center justify-center gap-2">
                         {submitting ? (
@@ -269,7 +266,7 @@ export default function PlansPage() {
                         className="absolute inset-0 -translate-x-full skew-x-12 bg-white/20 transition-transform duration-500 group-hover:translate-x-full"
                         aria-hidden
                       />
-                    </button>
+                    </Button>
                   </form>
 
                   <p className="mt-6 text-center text-xs text-zinc-500">
@@ -283,7 +280,7 @@ export default function PlansPage() {
                   </p>
                 </>
               )}
-            </div>
+            </Card>
           </div>
         </div>
       </section>
