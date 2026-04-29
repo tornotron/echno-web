@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   Zap,
 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 const HIGHLIGHTS = [
   {
@@ -103,12 +105,13 @@ export default function RegisterPage() {
         {/* Center copy */}
         <div className="relative space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/8 px-3 py-1.5">
-            <Zap className="h-3.5 w-3.5 text-amber-400" />
-            <span className="text-xs font-semibold text-amber-400">
-              Construction-first platform
-            </span>
-          </div>
+          <Badge
+            variant="outline"
+            className="gap-2 border-amber-500/25 bg-amber-500/8 px-3 py-1.5 text-amber-400"
+          >
+            <Zap className="h-3.5 w-3.5" />
+            Construction-first platform
+          </Badge>
 
           {/* Headline */}
           <div>
@@ -185,9 +188,9 @@ export default function RegisterPage() {
           </div>
 
           {/* Form card */}
-          <div className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-white/6 dark:bg-zinc-900 dark:shadow-none">
+          <Card variant="form" className="p-6 shadow-sm">
             <RegistrationForm />
-          </div>
+          </Card>
 
           {/* Plans CTA */}
           <p className="mt-5 text-center text-xs text-zinc-500">
