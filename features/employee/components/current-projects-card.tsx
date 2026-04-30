@@ -1,11 +1,11 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { Loader2 } from 'lucide-react';
 import type { Project } from '@/types/project';
 
