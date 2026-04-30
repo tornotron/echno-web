@@ -3,9 +3,14 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import {
   Select,
@@ -13,7 +18,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   ClipboardCheck,
   Plus,
