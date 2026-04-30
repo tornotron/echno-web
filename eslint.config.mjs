@@ -34,7 +34,11 @@ const customRulesConfig = {
         capture: ["featureName"],
       },
       {
-        type: "ui",
+        type: "shadcn",   // extension layer — custom CVA variants, consumed by app/features
+        pattern: "components/shadcn/*",
+      },
+      {
+        type: "ui",       // base layer — shadcn CLI target, never imported directly by app/features
         pattern: "components/ui/*",
       },
       {
@@ -65,25 +69,29 @@ const customRulesConfig = {
         rules: [
           {
             from: "app",
-            allow: ["features", "layout", "shared", "ui", "lib", "types"],
+            allow: ["features", "layout", "shared", "shadcn", "lib", "types"],
           },
           {
             from: "features",
-            allow: ["ui", "shared", "lib", "types"],
+            allow: ["shadcn", "shared", "lib", "types"],
           },
           {
             from: "features",
             allow: [
               ["features", { featureName: "${from.featureName}" }],
-              "ui",
+              "shadcn",
               "shared",
               "lib",
               "types",
             ],
           },
           {
-            from: ["ui", "layout", "shared"],
-            allow: ["ui", "layout", "shared", "lib", "types"],
+            from: ["shadcn", "layout", "shared"],
+            allow: ["shadcn", "ui", "layout", "shared", "lib", "types"],
+          },
+          {
+            from: "ui",
+            allow: ["lib", "types"],
           },
           {
             from: "lib",
@@ -173,7 +181,7 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     // shadcn CLI-managed base components — treated as third-party, not linted
-    "components/shadcn/**",
+    "components/ui/**",
   ]),
 ]);
 
