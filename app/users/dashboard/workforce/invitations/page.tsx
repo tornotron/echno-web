@@ -8,7 +8,7 @@ import { useInvitationsByOrganization } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
 import { InvitationTable } from '@/features/invitation';
 import { InvitationStats } from '@/features/invitation/components/invitation-stats';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import Link from 'next/link';
 
 export default function InvitationsPage() {
