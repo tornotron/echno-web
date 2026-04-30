@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
 import { isManagerOrAbove } from '@/types/employee';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import {
   getSidebarItems,
   isPathActive,
@@ -29,19 +29,23 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
-} from '@/components/ui/sidebar';
+} from '@/components/shadcn/sidebar';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from '@/components/shadcn/collapsible';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+} from '@/components/shadcn/dropdown-menu';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/shadcn/avatar';
 
 // ---------------------------------------------------------------------------
 // Sidebar NavItem — local shape consumed by the sidebar rendering logic.

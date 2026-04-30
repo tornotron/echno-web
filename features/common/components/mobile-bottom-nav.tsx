@@ -9,7 +9,7 @@ import {
   FolderKanban,
   LayoutGrid,
 } from 'lucide-react';
-import { useSidebar } from '@/components/ui/sidebar';
+import { useSidebar } from '@/components/shadcn/sidebar';
 
 const PRIMARY_TABS = [
   { label: 'Home', href: '/users/dashboard', icon: Home },
