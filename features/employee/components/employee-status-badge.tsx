@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { EmployeeStatus } from '@/types/employee';
 import { cn } from '@/lib/utils';
 
