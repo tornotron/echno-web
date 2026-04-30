@@ -121,7 +121,7 @@ importers:
         specifier: ^2.0.18
         version: 2.0.18(react@19.2.3)
       react-resizable-panels:
-        specifier: ^4.10.0
+        specifier: ^4
         version: 4.10.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       recharts:
         specifier: 3.8.0
