@@ -3,14 +3,18 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { ChevronDown, CornerUpLeft, Pencil, Trash2, Smile } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/shadcn/avatar';
+import { Button } from '@/components/shadcn/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from '@/components/shadcn/tooltip';
 import { ChatMessage } from '@/types/chat';
 import {
   parseMentions,
