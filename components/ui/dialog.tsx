@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Dialog as DialogPrimitive } from 'radix-ui';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
