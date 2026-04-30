@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Textarea } from '@/components/shadcn/textarea';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +18,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/shadcn/alert-dialog';
 import { Loader2, Pencil, Check, X } from 'lucide-react';
 import { useUpdatePurchaseOrder } from '@/hooks/purchase-orders';
 import type { PurchaseOrder } from '@/types/purchase-orders';
