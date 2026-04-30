@@ -9,8 +9,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
 import { MapPin, ArrowLeft, Trash2 } from 'lucide-react';
 import { CreateStorageLocationInput } from '@/types/storage-locations';
 import {
