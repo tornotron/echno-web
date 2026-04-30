@@ -2,7 +2,11 @@
 
 import { User, userInitials } from '@/types/user/user';
 import { getAvatarColor } from '@/lib/utils/user-profile-utils';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/shadcn/avatar';
 import { cn } from '@/lib/utils';
 
 interface UserAvatarProps {
