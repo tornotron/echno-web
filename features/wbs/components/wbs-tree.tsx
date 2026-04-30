@@ -9,7 +9,7 @@ import {
   Circle,
 } from 'lucide-react';
 import { Task, TaskStatus, getTaskStatusLabel } from '@/types/task';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
