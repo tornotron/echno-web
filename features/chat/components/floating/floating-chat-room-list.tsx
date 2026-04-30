@@ -12,10 +12,14 @@ import {
   ChevronRight,
   Loader2,
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/shadcn/input';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/shadcn/avatar';
 import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
 import { useEmployees } from '@/hooks/employee';
 import { useCreateDirectRoom } from '@/hooks/chat/use-chat-mutations';
