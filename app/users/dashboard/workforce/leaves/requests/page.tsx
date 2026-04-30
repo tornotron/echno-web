@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
 import {
   Table,
   TableBody,
@@ -11,14 +11,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 import { StatCard } from '@/features/leave/components/stat-card';
