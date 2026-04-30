@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { LeaveStatus, getLeaveStatusLabel } from '@/types/leave';
 import { CheckCircle2, Clock, XCircle, Ban, RotateCcw } from 'lucide-react';
 
