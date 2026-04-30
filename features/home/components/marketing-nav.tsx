@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AuthButton } from '@/components/common/auth-button';
 import { Menu, X, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 
 interface MarketingNavProps {
   currentPage?: string;

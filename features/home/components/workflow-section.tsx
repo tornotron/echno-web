@@ -1,7 +1,7 @@
 'use client';
 
 import { useInView } from '@/hooks/use-in-view';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 
 const PHASES = [
   {

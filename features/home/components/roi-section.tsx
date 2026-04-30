@@ -2,7 +2,7 @@
 
 import { useInView } from '@/hooks/use-in-view';
 import { useCountUp } from '@/hooks/use-count-up';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/shadcn/avatar';
 
 interface StatProps {
   value: number;
