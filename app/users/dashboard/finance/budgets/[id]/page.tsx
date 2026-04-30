@@ -3,15 +3,15 @@
 import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockBudgets, mockEmployees } from '@/components/shared/mock-data';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import {
   Table,
   TableBody,
@@ -19,8 +19,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/table';
+import { Separator } from '@/components/shadcn/separator';
 import {
   Edit,
   Download,
