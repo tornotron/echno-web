@@ -21,10 +21,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Separator } from '@/components/shadcn/separator';
 import {
   Calendar,
   Users,
@@ -37,7 +37,7 @@ import {
 } from 'lucide-react';
 import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
 import { StatCard } from '@/features/leave/components/stat-card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import {
   useOrganizationRequests,
   usePendingApprovalsCount,

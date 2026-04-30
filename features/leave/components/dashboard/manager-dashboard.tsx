@@ -22,12 +22,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import { Calendar, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import { StatCard } from '@/features/leave/components/stat-card';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { useApprovalsForApprover } from '@/hooks/leave/use-approvals-for-approver';
