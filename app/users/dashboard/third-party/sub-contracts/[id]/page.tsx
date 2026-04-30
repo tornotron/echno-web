@@ -1,10 +1,15 @@
 'use client';
 
 import { use } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Separator } from '@/components/shadcn/separator';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Edit,
   Trash2,
