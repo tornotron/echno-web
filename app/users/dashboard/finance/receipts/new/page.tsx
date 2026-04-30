@@ -3,23 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useProjects } from '@/lib/hooks/use-projects';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Textarea } from '@/components/shadcn/textarea';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { Save, X, Calendar, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
