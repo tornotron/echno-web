@@ -2,9 +2,9 @@
 
 import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/common';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
+import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { Building2, Loader2 } from 'lucide-react';
 import { getVendorTypeLabel } from '@/types/vendor';
 import type { Vendor } from '@/types/vendor';

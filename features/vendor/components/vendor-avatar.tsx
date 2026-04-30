@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/shadcn/avatar';
 import { getAvatarColor } from '@/lib/utils/user-profile-utils';
 import { cn } from '@/lib/utils';
 

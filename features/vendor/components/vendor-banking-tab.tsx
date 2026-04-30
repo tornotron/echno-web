@@ -2,19 +2,24 @@
 
 import { useState } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Switch } from '@/components/shadcn/switch';
 import {
   Dialog,
   DialogContent,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +29,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/shadcn/alert-dialog';
 import { CreditCard, Edit, Landmark, Plus, Star, Trash2 } from 'lucide-react';
 import {
   useVendorBankAccounts,
