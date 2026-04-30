@@ -13,9 +13,9 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { User, Users, Shield } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 
 interface DashboardSwitcherProps {
   currentRole: LeaveRole;

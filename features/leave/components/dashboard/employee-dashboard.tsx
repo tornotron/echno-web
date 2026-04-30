@@ -21,9 +21,9 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Separator } from '@/components/shadcn/separator';
 import {
   Calendar,
   Plus,
@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { BalanceCard } from '@/features/leave/components/balance-card';
 import { StatCard } from '@/features/leave/components/stat-card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
 import {
   useEmployeeBalanceSummary,
