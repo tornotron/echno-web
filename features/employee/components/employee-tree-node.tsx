@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import type { TreeNode } from '@/lib/utils/hierarchy';
 

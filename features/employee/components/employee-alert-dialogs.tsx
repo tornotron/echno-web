@@ -9,7 +9,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/shadcn/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -17,15 +17,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from '@/components/shadcn/dialog';
+import { Button } from '@/components/shadcn/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { Loader2 } from 'lucide-react';
 import type { Employee } from '@/types/employee';
 import { OrgRole, getOrgRoleLabel } from '@/types/employee/org-role';

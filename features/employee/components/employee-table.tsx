@@ -1,10 +1,10 @@
 'use client';
 
 import { Employee, getDepartmentLabel } from '@/types/employee';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
+import { Checkbox } from '@/components/shadcn/checkbox';
+import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { Pagination, EmptyState } from '@/components/common';
 import { Users, UserPlus, Mail, Phone } from 'lucide-react';
 import Link from 'next/link';
