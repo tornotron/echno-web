@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { useEmployees } from '@/hooks/employee';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { EditEmployeeForm } from '@/features/employee/components/edit-employee-form';
