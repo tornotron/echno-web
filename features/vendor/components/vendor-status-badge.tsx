@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { VendorStatus, getVendorStatusLabel } from '@/types/vendor';
 import { cn } from '@/lib/utils';
 
