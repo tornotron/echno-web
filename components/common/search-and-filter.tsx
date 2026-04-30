@@ -1,15 +1,20 @@
 'use client';
 
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/shadcn/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from '@/components/shadcn/select';
+import { Button } from '@/components/shadcn/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import { Search, Filter } from 'lucide-react';
 
 export interface FilterOption {
