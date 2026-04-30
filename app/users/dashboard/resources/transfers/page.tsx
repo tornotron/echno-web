@@ -8,16 +8,16 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   Table,
   TableBody,
@@ -25,7 +25,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { SearchAndFilter } from '@/components/common';
 import { Pagination } from '@/components/common';
 import {
