@@ -6,10 +6,15 @@ import { useProject } from '@/hooks/project/use-projects';
 import { useIssue } from '@/hooks/issue';
 import { useTask } from '@/hooks/task';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/shadcn/tabs';
 import { AlertCircle, ArrowLeft, Edit, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
