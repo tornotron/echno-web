@@ -3,16 +3,16 @@
 import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockPayments, mockMembers } from '@/components/shared/mock-data';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Separator } from '@/components/shadcn/separator';
 import {
   CreditCard,
   Edit,
