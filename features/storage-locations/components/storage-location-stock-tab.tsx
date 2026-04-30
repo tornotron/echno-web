@@ -2,16 +2,16 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/shadcn/card';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Loader2, Package, ExternalLink } from 'lucide-react';
 import { useStorageLocationStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
