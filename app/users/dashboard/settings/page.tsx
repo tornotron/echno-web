@@ -10,11 +10,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Switch } from '@/components/shadcn/switch';
+import { Label } from '@/components/shadcn/label';
+import { Separator } from '@/components/shadcn/separator';
 import {
   User as UserIcon,
   Moon,

@@ -8,10 +8,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Progress } from '@/components/ui/progress';
+} from '@/components/shadcn/card';
+import { Badge } from '@/components/shadcn/badge';
+import { Checkbox } from '@/components/shadcn/checkbox';
+import { Progress } from '@/components/shadcn/progress';
 import {
   Wrench,
   Clock,
