@@ -4,25 +4,25 @@ import { useState } from 'react';
 import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockExpenses } from '@/components/shared/mock-data';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/select';
+import { Textarea } from '@/components/shadcn/textarea';
+import { Separator } from '@/components/shadcn/separator';
 import { Save, X } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
