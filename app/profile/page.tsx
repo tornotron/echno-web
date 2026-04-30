@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
 import { UserProfileView } from '@/features/user/components/user-profile-view';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { toast } from '@/lib/styles/toast-styles';
 import { AppLayout } from '@/features/common/components/app-layout';
 import { FloatingChat } from '@/features/chat/components/floating';
