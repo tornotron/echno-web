@@ -4,8 +4,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Separator } from '@/components/shadcn/separator';
 import { Mail, Phone, Globe, Users, Briefcase } from 'lucide-react';
 import Link from 'next/link';
 import type { Organization } from '@/types/organization/organization';
