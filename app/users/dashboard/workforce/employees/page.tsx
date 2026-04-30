@@ -7,20 +7,20 @@ import {
   PageHeader,
   EmptyState,
 } from '@/components/common';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { Users, Loader2, AlertCircle } from 'lucide-react';
 import { EmployeeStatus, getDepartmentLabel } from '@/types/employee';
 import { Department } from '@/types/employee';
