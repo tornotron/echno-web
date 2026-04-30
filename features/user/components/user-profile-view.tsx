@@ -13,9 +13,9 @@ import {
 } from '@/lib/utils/user-profile-utils';
 import { UserAvatar } from './user-avatar';
 import { ProfileCard, InfoField, InfoGrid, DataList } from './profile-cards';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
+import { Separator } from '@/components/shadcn/separator';
 import { cn } from '@/lib/utils';
 import {
   Mail,
