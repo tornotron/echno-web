@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { Network, Users } from 'lucide-react';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import type { TreeNode } from '@/lib/utils/hierarchy';

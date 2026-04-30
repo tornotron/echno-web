@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { Building } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
