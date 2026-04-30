@@ -14,12 +14,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Separator } from '@/components/shadcn/separator';
+import { Textarea } from '@/components/shadcn/textarea';
+import { Label } from '@/components/shadcn/label';
 import {
   Dialog,
   DialogContent,
@@ -27,14 +27,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   Calendar,
   User,

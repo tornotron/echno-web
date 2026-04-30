@@ -1,16 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@/components/shadcn/select';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/shadcn/tabs';
 import {
   useOrganizationCalendar,
   useTeamCalendar,
@@ -18,7 +28,7 @@ import {
 } from '@/hooks/leave/use-leave';
 import { Calendar, Users, Download, Filter } from 'lucide-react';
 import { DashboardSkeleton } from '@/features/leave/components/skeletons';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import { useCurrentUserEmployee } from '@/hooks/employee';
