@@ -1,7 +1,12 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Badge } from '@/components/shadcn/badge';
 import { ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
 import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
