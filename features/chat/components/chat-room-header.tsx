@@ -14,9 +14,13 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/shadcn/avatar';
+import { Button } from '@/components/shadcn/button';
+import { Input } from '@/components/shadcn/input';
 import {
   Sheet,
   SheetContent,
@@ -24,8 +28,8 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
+} from '@/components/shadcn/sheet';
+import { Badge } from '@/components/shadcn/badge';
 import { ChatRoom, ChatRoomType } from '@/types/chat';
 import {
   getChatParticipantRoleLabel,

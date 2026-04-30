@@ -2,8 +2,12 @@
 
 import { useEffect, useRef } from 'react';
 import { Users, CheckSquare, AlertCircle } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/shadcn/avatar';
+import { Badge } from '@/components/shadcn/badge';
 import { MentionItem, MentionMode } from '@/hooks/chat/use-mention';
 
 interface ChatMentionPopupProps {

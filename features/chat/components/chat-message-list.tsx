@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { format, isSameDay } from 'date-fns';
 import { ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { ChatMessage } from '@/types/chat';
 import { ChatMessageItem } from './chat-message-item';
 
