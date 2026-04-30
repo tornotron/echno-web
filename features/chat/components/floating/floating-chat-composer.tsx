@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Send, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/shadcn/button';
+import { Textarea } from '@/components/shadcn/textarea';
 import { ChatMessage, ChatParticipant } from '@/types/chat';
 import { Task } from '@/types/task/task';
 import { Issue } from '@/types/issue/issue';

@@ -2,8 +2,12 @@
 
 import { useState } from 'react';
 import { ArrowLeft, Bot, Folder, User, Users } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/shadcn/avatar';
+import { Button } from '@/components/shadcn/button';
 import { useChatRoom } from '@/hooks/chat/use-chat-rooms';
 import { useChatMessages } from '@/hooks/chat/use-chat-messages';
 import {
