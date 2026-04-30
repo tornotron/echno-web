@@ -1,7 +1,12 @@
 'use client';
 
 import { GanttChart as GanttIcon, AlertCircle } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import { GanttChart } from './gantt-chart';
 import type { Project } from '@/types/project';
 import { TaskStatus } from '@/types/task';
