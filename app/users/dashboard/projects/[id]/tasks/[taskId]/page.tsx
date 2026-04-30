@@ -3,10 +3,15 @@
 import { use, useState } from 'react';
 import { useProject } from '@/hooks/project/use-projects';
 import { useTask } from '@/hooks/task';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/shadcn/tabs';
 import {
   AlertCircle,
   ArrowLeft,
