@@ -180,8 +180,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // shadcn CLI-managed base components — treated as third-party, not linted
+    // shadcn CLI-managed files — treated as third-party, not linted
     "components/ui/**",
+    "hooks/use-mobile.ts",
   ]),
 ]);
 
