@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { CheckSquare, AlertCircle, Folder } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { ChatEntityType, getChatEntityTypeLabel } from '@/types/chat';
 
 interface ChatEntityMentionCardProps {
