@@ -3,7 +3,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { Mail, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface InvitationStatsProps {

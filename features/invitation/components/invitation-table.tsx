@@ -2,15 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { Pagination } from '@/components/common';
-import { Card, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent } from '@/components/shadcn/card';
+import { Checkbox } from '@/components/shadcn/checkbox';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   Table,
   TableBody,
@@ -18,7 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { AlertCircle, Copy, Check } from 'lucide-react';
 import { format } from 'date-fns';
 import { Invitation, getInvitationStatus } from '@/types/invitation/invitation';
