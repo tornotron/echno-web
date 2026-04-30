@@ -5,13 +5,13 @@ import { useParams } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
 import { useTasksByProject } from '@/hooks/task';
 import { SearchAndFilter } from '@/components/common';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { ListTodo, Plus, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { TaskStatus } from '@/types/task';

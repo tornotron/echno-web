@@ -6,21 +6,21 @@ import { useTasks } from '@/hooks/task';
 import { useProjects } from '@/hooks/project/use-projects';
 import { SearchAndFilter } from '@/components/common';
 import { Pagination } from '@/components/common';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   Table,
   TableBody,
@@ -28,7 +28,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { ListTodo, Plus, AlertCircle, Calendar, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
