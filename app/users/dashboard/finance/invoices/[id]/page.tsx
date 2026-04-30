@@ -4,16 +4,16 @@ import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockInvoices, mockMembers } from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Separator } from '@/components/shadcn/separator';
 import {
   Table,
   TableBody,
@@ -21,7 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import {
   FileText,
   Edit,
