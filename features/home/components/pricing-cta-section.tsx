@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useInView } from '@/hooks/use-in-view';
 import { ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Input, inputVariants } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/shadcn/card';
+import { Input, inputVariants } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Button } from '@/components/shadcn/button';
 import { cn } from '@/lib/utils/tailwind-utils';
 
 const FEATURES = [

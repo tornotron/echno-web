@@ -10,7 +10,7 @@ import {
   MessageSquare,
   BarChart3,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 
 const STEPS = [
   {
