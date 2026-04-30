@@ -4,13 +4,13 @@ import { use, useState, useMemo, useEffect } from 'react';
 import { useProject } from '@/hooks/project/use-projects';
 import { useIssuesByProject } from '@/hooks/issue';
 import { SearchAndFilter } from '@/components/common';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { AlertCircle, Plus, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { IssueStatus, IssueType } from '@/types/issue';
