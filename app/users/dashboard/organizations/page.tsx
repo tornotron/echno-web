@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { OrganizationCard } from '@/features/organization';
 import { SearchAndFilter } from '@/components/common';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { Plus, Search, Building2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
