@@ -1,6 +1,11 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import { Receipt } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import type { GoodsReceivedNote } from '@/types/grn';
