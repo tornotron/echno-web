@@ -7,11 +7,11 @@ import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { useInView } from '@/hooks/use-in-view';
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input, inputVariants } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { Card } from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Input, inputVariants } from '@/components/shadcn/input';
+import { Textarea } from '@/components/shadcn/textarea';
+import { Label } from '@/components/shadcn/label';
 import { cn } from '@/lib/utils/index';
 
 export default function ContactPage() {
