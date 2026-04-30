@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { InvitationStatus } from '@/types/invitation/invitation';
 import { cn } from '@/lib/utils';
