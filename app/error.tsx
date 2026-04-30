@@ -2,14 +2,14 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 

@@ -1,19 +1,19 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { Home, ArrowLeft, Search } from 'lucide-react';
 
 /**
  * Root Not Found Page (404)
  *
  * Displayed when a user navigates to a non-existent route
- * Matches the app's design system with shadcn/ui components
+ * Matches the app's design system with shadcn-v/shadcn components
  */
 export default function NotFound() {
   return (

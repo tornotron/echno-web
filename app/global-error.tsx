@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
 
 /**
@@ -33,7 +33,7 @@ export default function GlobalError({
             alignItems: 'center',
             justifyContent: 'center',
             padding: '1rem',
-            fontFamily: 'system-ui, sans-serif',
+            fontFamily: 'system-shadcn, sans-serif',
           }}
         >
           <div
