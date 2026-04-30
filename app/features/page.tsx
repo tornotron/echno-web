@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogClose } from '@/components/ui/dialog';
+import { Card, CardTitle, CardDescription } from '@/components/shadcn/card';
+import { Dialog, DialogContent, DialogClose } from '@/components/shadcn/dialog';
 import {
   Clock,
   Users,
