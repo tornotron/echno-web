@@ -1,8 +1,8 @@
 'use client';
 
 import { useInView } from '@/hooks/use-in-view';
-import { Card } from '@/components/ui/card';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Card } from '@/components/shadcn/card';
+import { Avatar, AvatarFallback } from '@/components/shadcn/avatar';
 
 const TESTIMONIALS = [
   {

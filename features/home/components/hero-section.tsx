@@ -9,8 +9,8 @@ import {
   TrendingUp,
   ChevronDown,
 } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
 
 /* ── Blueprint grid helpers ─────────────────────────────────────────── */
 const GRID_LIGHT: React.CSSProperties = {

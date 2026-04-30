@@ -2,7 +2,7 @@
 
 import { useInView } from '@/hooks/use-in-view';
 import { Clock, FileWarning, TrendingDown, Radio } from 'lucide-react';
-import { Card, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardTitle, CardDescription } from '@/components/shadcn/card';
 
 interface ProblemCardProps {
   icon: React.ReactNode;
