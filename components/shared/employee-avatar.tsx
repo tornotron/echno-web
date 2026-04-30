@@ -1,7 +1,11 @@
 'use client';
 
 import { Employee } from '@/types/employee';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/shadcn/avatar';
 import { getAvatarColor } from '@/lib/utils/user-profile-utils';
 import { cn } from '@/lib/utils';
 
