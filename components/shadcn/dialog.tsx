@@ -1,69 +1,102 @@
 'use client';
 
 import * as React from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { XIcon } from 'lucide-react';
-import { Dialog as DialogPrimitive } from 'radix-ui';
+import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils/index';
-import { Button } from '@/components/shadcn/button';
 
-function Dialog({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Root>) {
-  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
-}
+// Re-export primitives unchanged from components/ui base
+export {
+  Dialog,
+  DialogTrigger,
+  DialogPortal,
+  DialogClose,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
-function DialogTrigger({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
-}
+// Extended overlay — add blur variants here, never edit components/components/ui/dialog.tsx
+const dialogOverlayVariants = cva(
+  'fixed inset-0 z-50 bg-black/50 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0',
+  {
+    variants: {
+      blur: {
+        none: '',
+        sm: 'backdrop-blur-sm',
+        md: 'backdrop-blur-md',
+        xl: 'backdrop-blur-xl',
+      },
+    },
+    defaultVariants: {
+      blur: 'none',
+    },
+  }
+);
 
-function DialogPortal({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
-  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
-}
+export interface DialogOverlayProps
+  extends React.ComponentProps<typeof DialogPrimitive.Overlay>,
+    VariantProps<typeof dialogOverlayVariants> {}
 
-function DialogClose({
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Close>) {
-  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
-}
-
-function DialogOverlay({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+function DialogOverlay({ className, blur, ...props }: DialogOverlayProps) {
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
-      className={cn(
-        'data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:animate-in data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50',
-        className
-      )}
+      className={cn(dialogOverlayVariants({ blur }), className)}
       {...props}
     />
   );
+}
+
+// Extended content — add size/animation variants here, never edit components/components/ui/dialog.tsx
+const dialogContentVariants = cva(
+  'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none',
+  {
+    variants: {
+      size: {
+        default: 'sm:max-w-lg',
+        lg: 'sm:max-w-2xl',
+        xl: 'max-w-4xl sm:max-w-4xl',
+        full: 'max-w-[95vw] sm:max-w-[95vw]',
+      },
+      animation: {
+        default:
+          'duration-200 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95',
+        'slide-up': 'dialog-slide-up',
+      },
+    },
+    defaultVariants: {
+      size: 'default',
+      animation: 'default',
+    },
+  }
+);
+
+export interface DialogContentProps
+  extends React.ComponentProps<typeof DialogPrimitive.Content>,
+    VariantProps<typeof dialogContentVariants> {
+  showCloseButton?: boolean;
+  overlayBlur?: VariantProps<typeof dialogOverlayVariants>['blur'];
 }
 
 function DialogContent({
   className,
   children,
   showCloseButton = true,
+  size,
+  animation,
+  overlayBlur,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & {
-  showCloseButton?: boolean;
-}) {
+}: DialogContentProps) {
   return (
-    <DialogPortal data-slot="dialog-portal">
-      <DialogOverlay />
+    <DialogPrimitive.Portal data-slot="dialog-portal">
+      <DialogOverlay blur={overlayBlur} />
       <DialogPrimitive.Content
         data-slot="dialog-content"
-        className={cn(
-          'bg-background data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 outline-none sm:max-w-lg',
-          className
-        )}
+        className={cn(dialogContentVariants({ size, animation }), className)}
         {...props}
       >
         {children}
@@ -77,82 +110,13 @@ function DialogContent({
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
-    </DialogPortal>
-  );
-}
-
-function DialogHeader({ className, ...props }: React.ComponentProps<'div'>) {
-  return (
-    <div
-      data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
-      {...props}
-    />
-  );
-}
-
-function DialogFooter({
-  className,
-  showCloseButton = false,
-  children,
-  ...props
-}: React.ComponentProps<'div'> & {
-  showCloseButton?: boolean;
-}) {
-  return (
-    <div
-      data-slot="dialog-footer"
-      className={cn(
-        'flex flex-col-reverse gap-2 sm:flex-row sm:justify-end',
-        className
-      )}
-      {...props}
-    >
-      {children}
-      {showCloseButton && (
-        <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
-        </DialogPrimitive.Close>
-      )}
-    </div>
-  );
-}
-
-function DialogTitle({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title>) {
-  return (
-    <DialogPrimitive.Title
-      data-slot="dialog-title"
-      className={cn('text-lg leading-none font-semibold', className)}
-      {...props}
-    />
-  );
-}
-
-function DialogDescription({
-  className,
-  ...props
-}: React.ComponentProps<typeof DialogPrimitive.Description>) {
-  return (
-    <DialogPrimitive.Description
-      data-slot="dialog-description"
-      className={cn('text-muted-foreground text-sm', className)}
-      {...props}
-    />
+    </DialogPrimitive.Portal>
   );
 }
 
 export {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogOverlay,
-  DialogPortal,
-  DialogTitle,
-  DialogTrigger,
+  dialogOverlayVariants,
+  DialogContent,
+  dialogContentVariants,
 };
