@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Button } from '@/components/shadcn/button';
+import { Textarea } from '@/components/shadcn/textarea';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,7 +18,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from '@/components/shadcn/alert-dialog';
 import { Pencil, Check, X, Loader2 } from 'lucide-react';
 import { useUpdateIndent } from '@/hooks/indents';
 import type { Indent } from '@/types/indents';
