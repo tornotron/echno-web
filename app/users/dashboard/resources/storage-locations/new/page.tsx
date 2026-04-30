@@ -7,7 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { MapPin } from 'lucide-react';
 import { CreateStorageLocationInput } from '@/types/storage-locations';
 import { useCreateStorageLocation } from '@/hooks/storage-locations';
