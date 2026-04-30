@@ -11,8 +11,8 @@ import {
   SidebarInset,
   useSidebar,
   SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
+} from '@/components/shadcn/sidebar';
+import { Button } from '@/components/shadcn/button';
 import { Settings, Building, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';

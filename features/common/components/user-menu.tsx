@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,8 +9,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+} from '@/components/shadcn/dropdown-menu';
+import {
+  Avatar,
+  AvatarImage,
+  AvatarFallback,
+} from '@/components/shadcn/avatar';
 import { User, LogOut } from 'lucide-react';
 import { handleSignOut } from '@/lib/utils/auth-utils';
 import { useUser } from '@/hooks/user/use-user';
