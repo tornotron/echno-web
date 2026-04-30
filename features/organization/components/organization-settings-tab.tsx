@@ -1,13 +1,13 @@
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
+} from '@/components/shadcn/card';
+import { Separator } from '@/components/shadcn/separator';
 import { Settings, User, Star } from 'lucide-react';
 import Link from 'next/link';
 import type { Organization } from '@/types/organization/organization';
