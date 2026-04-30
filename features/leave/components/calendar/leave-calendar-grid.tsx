@@ -26,9 +26,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/shadcn/button';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
+import { Badge } from '@/components/shadcn/badge';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
@@ -36,9 +41,9 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 import { LeaveCalendarEntry, LeaveStatus } from '@/types/leave';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 
 export type CalendarView = 'month' | 'week' | 'day';

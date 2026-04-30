@@ -23,7 +23,7 @@
 import { ReactNode } from 'react';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { LeaveRole } from '@/types/leave';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
 import { AlertCircle } from 'lucide-react';
 
 interface RoleBasedWrapperProps {

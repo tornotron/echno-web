@@ -3,7 +3,7 @@ import {
   CardContent,
   CardHeader,
   CardDescription,
-} from '@/components/ui/card';
+} from '@/components/shadcn/card';
 import { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
