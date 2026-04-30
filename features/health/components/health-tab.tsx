@@ -7,7 +7,12 @@ import {
   Activity,
   Clock,
 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import { TaskStatus } from '@/types/task';
 import { ProjectStatus } from '@/types/project/project-status';
 import { differenceInDays, format } from 'date-fns';
