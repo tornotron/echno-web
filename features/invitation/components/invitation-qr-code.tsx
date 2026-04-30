@@ -1,7 +1,7 @@
 'use client';
 
 import QRCodeSVG from 'react-qr-code';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { Download } from 'lucide-react';
 import {
   Dialog,
@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 
 interface InvitationQRCodeProps {
   inviteCode: string;
