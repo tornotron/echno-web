@@ -303,7 +303,7 @@ export function Breadcrumbs({
   return (
     <TooltipProvider>
       <Breadcrumb className="text-sm sm:text-base">
-        <BreadcrumbList className="flex-wrap gap-1 sm:gap-1.5">
+        <BreadcrumbList className="flex flex-wrap gap-1 sm:gap-1.5">
           {/* Dashboard - Always visible */}
           <BreadcrumbItem className="hidden sm:inline-flex">
             <BreadcrumbLink asChild>
@@ -337,7 +337,7 @@ export function Breadcrumbs({
           {breadcrumbItems.map((item) => (
             <div
               key={item.href}
-              className="hidden md:flex md:items-center md:gap-1.5"
+              className="hidden md:inline-flex md:items-center md:gap-1.5"
             >
               <BreadcrumbSeparator />
               <BreadcrumbItem>{renderBreadcrumbItem(item)}</BreadcrumbItem>

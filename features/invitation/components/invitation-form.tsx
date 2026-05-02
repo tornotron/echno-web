@@ -38,6 +38,15 @@ import { useUser } from '@/hooks/user/use-user';
 import { useManagers } from '@/hooks/employee';
 import { InvitationQRCode } from './invitation-qr-code';
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#x27;');
+}
+
 export function InvitationForm() {
   const { data: user } = useUser();
   const generateMutation = useGenerateInviteCode();
@@ -203,11 +212,31 @@ export function InvitationForm() {
     const printWindow = window.open('', '_blank');
 
     if (printWindow) {
+      const e = escapeHtml;
+      const orgName = e(invitation.organizationName);
+      const employeeName = e(formData.employeeName);
+      const inviteCode = e(invitation.inviteCode);
+      const designation = e(invitation.employeeDetails.designation);
+      const department = e(invitation.employeeDetails.department);
+      const employeeId = e(invitation.employeeDetails.employeeId);
+      const shiftTiming = invitation.employeeDetails.shiftTiming
+        ? e(invitation.employeeDetails.shiftTiming)
+        : null;
+      const joiningDate = invitation.employeeDetails.joiningDate
+        ? e(
+            new Date(invitation.employeeDetails.joiningDate).toLocaleDateString(
+              'en-GB'
+            )
+          )
+        : null;
+      const expiryDate = e(invitation.expiryDate?.toLocaleDateString('en-GB'));
+      const generatedOn = e(new Date().toLocaleDateString('en-GB'));
+
       const content = `
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Employee Invitation - ${invitation.inviteCode}</title>
+          <title>Employee Invitation - ${inviteCode}</title>
           <style>
             @page { margin: 2cm; }
             body {
@@ -312,54 +341,54 @@ export function InvitationForm() {
         </head>
         <body>
           <div class="header">
-            <h1>${invitation.organizationName}</h1>
+            <h1>${orgName}</h1>
             <p>Employee Invitation Letter</p>
           </div>
 
-          <p>Dear ${formData.employeeName},</p>
+          <p>Dear ${employeeName},</p>
 
-          <p>We are pleased to invite you to join <strong>${invitation.organizationName}</strong> as a <strong>${invitation.employeeDetails.designation}</strong> in our <strong>${invitation.employeeDetails.department}</strong> department.</p>
+          <p>We are pleased to invite you to join <strong>${orgName}</strong> as a <strong>${designation}</strong> in our <strong>${department}</strong> department.</p>
 
           <div class="invite-code">
             <div class="label">Your Invitation Code</div>
-            <div class="code">${invitation.inviteCode}</div>
+            <div class="code">${inviteCode}</div>
           </div>
 
           <div class="details">
             <h2>Employment Details</h2>
             <div class="detail-row">
               <div class="label">Employee ID:</div>
-              <div class="value">${invitation.employeeDetails.employeeId}</div>
+              <div class="value">${employeeId}</div>
             </div>
             <div class="detail-row">
               <div class="label">Position:</div>
-              <div class="value">${invitation.employeeDetails.designation}</div>
+              <div class="value">${designation}</div>
             </div>
             <div class="detail-row">
               <div class="label">Department:</div>
-              <div class="value">${invitation.employeeDetails.department}</div>
+              <div class="value">${department}</div>
             </div>
             ${
-              invitation.employeeDetails.joiningDate
+              joiningDate
                 ? `
             <div class="detail-row">
               <div class="label">Start Date:</div>
-              <div class="value">${new Date(invitation.employeeDetails.joiningDate).toLocaleDateString('en-GB')}</div>
+              <div class="value">${joiningDate}</div>
             </div>`
                 : ''
             }
             ${
-              invitation.employeeDetails.shiftTiming
+              shiftTiming
                 ? `
             <div class="detail-row">
               <div class="label">Shift Timing:</div>
-              <div class="value">${invitation.employeeDetails.shiftTiming}</div>
+              <div class="value">${shiftTiming}</div>
             </div>`
                 : ''
             }
             <div class="detail-row">
               <div class="label">Invitation Valid Until:</div>
-              <div class="value">${invitation.expiryDate?.toLocaleDateString('en-GB')}</div>
+              <div class="value">${expiryDate}</div>
             </div>
           </div>
 
@@ -367,19 +396,19 @@ export function InvitationForm() {
             <h3>How to Join</h3>
             <ol>
               <li>Download the <strong>Echno Attendance</strong> mobile app from Google Play Store or Apple App Store</li>
-              <li>Open the app and select <strong>"Join with Invite Code"</strong></li>
-              <li>Enter your invitation code: <strong>${invitation.inviteCode}</strong></li>
+              <li>Open the app and select <strong>&ldquo;Join with Invite Code&rdquo;</strong></li>
+              <li>Enter your invitation code: <strong>${inviteCode}</strong></li>
               <li>Complete your profile setup and verification</li>
               <li>Start your journey with us!</li>
             </ol>
           </div>
 
-          <p>We look forward to welcoming you to our team. If you have any questions, please don't hesitate to contact our HR department.</p>
+          <p>We look forward to welcoming you to our team. If you have any questions, please don&rsquo;t hesitate to contact our HR department.</p>
 
           <div class="footer">
-            <p><strong>${invitation.organizationName}</strong></p>
+            <p><strong>${orgName}</strong></p>
             <p>This is a system-generated invitation letter.</p>
-            <p>Generated on ${new Date().toLocaleDateString('en-GB')}</p>
+            <p>Generated on ${generatedOn}</p>
           </div>
         </body>
         </html>
@@ -581,14 +610,16 @@ export function InvitationForm() {
                           No managers available
                         </SelectItem>
                       )}
-                      {managers.map((manager) => (
-                        <SelectItem
-                          key={manager.id}
-                          value={manager.id?.toString() || ''}
-                        >
-                          {manager.name} - {manager.designation}
-                        </SelectItem>
-                      ))}
+                      {managers
+                        .filter((manager) => manager.id != null)
+                        .map((manager) => (
+                          <SelectItem
+                            key={manager.id}
+                            value={manager.id!.toString()}
+                          >
+                            {manager.name} - {manager.designation}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -783,12 +814,12 @@ export function InvitationForm() {
                 </Button>
 
                 <div className="border-t pt-4">
-                  <Link href="/users/dashboard/workforce/employees/invitations">
-                    <Button variant="default" className="w-full">
+                  <Button asChild variant="default" className="w-full">
+                    <Link href="/users/dashboard/workforce/employees/invitations">
                       <Save className="mr-2 h-4 w-4" />
                       Save & Go to Invitations
-                    </Button>
-                  </Link>
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>
