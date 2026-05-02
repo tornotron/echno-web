@@ -1,32 +1,46 @@
 'use client';
 
 import { useMemo } from 'react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, OrgGuard } from '@/components/common';
 import { useEmployees } from '@/hooks/employee';
 import { useUser } from '@/hooks/user/use-user';
-import { Employee } from '@/types/employee';
 import { EmployeeOverview } from '@/features/employee/components/employee-overview';
 import { EmployeeCharts } from '@/features/employee/components/employee-charts';
+import { EmployeeEmptyState } from '@/features/employee/components/employee-empty-state';
 
 export default function EmployeesPage() {
-  const { data: user } = useUser();
-  const { data: employees, isLoading } = useEmployees();
+  const { data: user, isLoading: isUserLoading } = useUser();
+  const { data: employees, isLoading, error } = useEmployees();
 
-  const list = useMemo<Employee[]>(() => employees ?? [], [employees]);
+  const list = useMemo(
+    () =>
+      (employees ?? []).filter(
+        (emp) => emp.organizationId === user?.defaultOrganizationId
+      ),
+    [employees, user?.defaultOrganizationId]
+  );
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* ── Page header ──────────────────────────────────────────────── */}
-      <PageHeader
-        title="Employee Overview"
-        description="Workforce insights and analytics for your organization"
-      />
+    <OrgGuard
+      isLoading={isUserLoading || isLoading}
+      error={error}
+      organizationId={user?.defaultOrganizationId}
+    >
+      <div className="space-y-4 sm:space-y-6">
+        <PageHeader
+          title="Employee Overview"
+          description="Workforce insights and analytics for your organization"
+        />
 
-      {/* ── Active employees overview ─────────────────────────────────── */}
-      {!isLoading && list.length > 0 && <EmployeeOverview employees={list} />}
-
-      {/* ── Charts ───────────────────────────────────────────────────── */}
-      {!isLoading && list.length > 0 && <EmployeeCharts employees={list} />}
-    </div>
+        {list.length === 0 ? (
+          <EmployeeEmptyState />
+        ) : (
+          <>
+            <EmployeeOverview employees={list} />
+            <EmployeeCharts employees={list} />
+          </>
+        )}
+      </div>
+    </OrgGuard>
   );
 }

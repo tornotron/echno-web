@@ -32,8 +32,12 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
   }
 
   // Show error state
-  if (error || !employee) {
-    return <EmployeeErrorState employeeId={employeeId} />;
+  if (error) {
+    return <EmployeeErrorState employeeId={employeeId} variant="fetch-error" />;
+  }
+
+  if (!employee) {
+    return <EmployeeErrorState employeeId={employeeId} variant="not-found" />;
   }
 
   return (
