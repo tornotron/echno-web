@@ -60,13 +60,11 @@ export function Pagination({
   const pageNumbers = getPageNumbers();
 
   return (
-    <div
-      className={`flex items-center justify-between border-t border-zinc-200 px-6 py-4 dark:border-zinc-800 ${className}`}
-    >
+    <div className={`flex items-center justify-between px-6 py-4 ${className}`}>
       <div className="text-sm text-zinc-600 dark:text-zinc-400">
         Page {currentPage} of {totalPages}
       </div>
-      <div className="flex items-center space-x-1">
+      <div className="ml-4 flex items-center space-x-1">
         {/* First Page */}
         <Button
           variant="outline"
