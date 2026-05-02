@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { MessageCircle, X, Maximize2, GripVertical } from 'lucide-react';
+import { MessagesSquare, X, Maximize2, GripVertical } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -159,7 +159,7 @@ export function FloatingChat() {
           >
             <div className="pointer-events-none flex items-center gap-1 select-none">
               <GripVertical className="h-3 w-3 text-zinc-500" />
-              <MessageCircle className="text-primary-foreground h-3 w-3" />
+              <MessagesSquare className="text-primary-foreground h-3 w-3" />
               <span className="text-[10px] font-semibold tracking-tight text-white">
                 Chat
               </span>
@@ -247,7 +247,7 @@ export function FloatingChat() {
               {isOpen ? (
                 <X className="h-5 w-5" />
               ) : (
-                <MessageCircle className="h-5 w-5" />
+                <MessagesSquare className="h-5 w-5" />
               )}
             </button>
           </TooltipTrigger>
