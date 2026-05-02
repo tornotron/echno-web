@@ -116,7 +116,11 @@ export function getNameForId(
   if (parentSegment === 'issues') {
     return issue?.title ?? `Issue ${id}`;
   }
-  if (parentSegment === 'employees' || parentSegment === 'attendance') {
+  if (
+    parentSegment === 'employees' ||
+    parentSegment === 'employee-management' ||
+    parentSegment === 'attendance'
+  ) {
     // Use real employee data if available, filtering out undefined IDs
     return (
       employees?.find((e) => e.id !== undefined && e.id === numericId)?.name ??
