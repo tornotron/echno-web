@@ -58,6 +58,11 @@
 :root {
   --radius: 0.625rem;
 
+  /* ── Page header typography ───────────────────────────────────── */
+  --page-header-title-size:    1.25rem;   /* h1 */
+  --page-header-title-weight:  700;
+  --page-header-desc-size:     0.8rem;   /* subtitle */
+
   /* ── Brand tokens (amber) ─────────────────────────────────────── */
   --brand:            oklch(0.703 0.164 61.5);   /* amber-600 */
   --brand-foreground: oklch(0.15  0.03  60);     /* near-black for contrast */
@@ -164,6 +169,9 @@
 }
 
 @layer base {
+  html {
+    font-size: 85%;
+  }
   * {
     @apply border-border outline-ring/50;
   }
