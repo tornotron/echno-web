@@ -165,10 +165,18 @@ export function InvitationForm() {
   };
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success('Copied to clipboard!');
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopied(true);
+        toast.success('Copied to clipboard!');
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((error) => {
+        setCopied(false);
+        toast.error('Failed to copy');
+        console.error('clipboard write failed:', error);
+      });
   };
 
   const sendViaWhatsApp = () => {
@@ -222,14 +230,20 @@ export function InvitationForm() {
       const shiftTiming = invitation.employeeDetails.shiftTiming
         ? e(invitation.employeeDetails.shiftTiming)
         : null;
-      const joiningDate = invitation.employeeDetails.joiningDate
-        ? e(
-            new Date(invitation.employeeDetails.joiningDate).toLocaleDateString(
-              'en-GB'
-            )
-          )
+      const _jd = invitation.employeeDetails.joiningDate
+        ? new Date(invitation.employeeDetails.joiningDate)
         : null;
-      const expiryDate = e(invitation.expiryDate?.toLocaleDateString('en-GB'));
+      const joiningDate =
+        _jd && !Number.isNaN(_jd.getTime())
+          ? e(_jd.toLocaleDateString('en-GB'))
+          : null;
+      const _ed = invitation.expiryDate
+        ? new Date(invitation.expiryDate)
+        : null;
+      const expiryDate =
+        _ed && !Number.isNaN(_ed.getTime())
+          ? e(_ed.toLocaleDateString('en-GB'))
+          : null;
       const generatedOn = e(new Date().toLocaleDateString('en-GB'));
 
       const content = `

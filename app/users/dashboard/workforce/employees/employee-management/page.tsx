@@ -9,8 +9,8 @@ import { EmployeeEmptyState } from '@/features/employee/components/employee-empt
 import { Employee } from '@/types/employee';
 
 export default function EmployeesPage() {
-  const { data: user, isLoading: isUserLoading } = useUser();
-  const { data: employees, isLoading, error } = useEmployees();
+  const { data: user, isLoading: isUserLoading, error: userError } = useUser();
+  const { data: employees, isLoading, error: employeesError } = useEmployees();
 
   const employeesList = useMemo<Employee[]>(
     () =>
@@ -23,7 +23,7 @@ export default function EmployeesPage() {
   return (
     <OrgGuard
       isLoading={isUserLoading || isLoading}
-      error={error}
+      error={userError ?? employeesError}
       organizationId={user?.defaultOrganizationId}
     >
       {employeesList.length === 0 ? (
