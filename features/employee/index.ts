@@ -5,3 +5,8 @@ export { EmployeeStatusBadge } from './components/employee-status-badge';
 export { EmployeeTable } from './components/employee-table';
 export { EmployeeTreeNode } from './components/employee-tree-node';
 export { EmployeeOverviewTab } from './components/employee-overview-tab';
+export { EmployeeEmptyState } from './components/employee-empty-state';
+export { EmployeeErrorState as EmployeeNotFoundEmpty } from './components/employee-error-state';
+export { EmployeeDetailsHeader } from './components/employee-details-header';
+export { EmployeeCharts } from './components/employee-charts';
+export { EmployeeOverview } from './components/employee-overview';
