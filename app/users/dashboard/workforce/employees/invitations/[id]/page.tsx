@@ -10,12 +10,12 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common/page-header';
 import {
   ArrowLeft,
   Mail,
   MessageSquare,
   Printer,
-  QrCode,
   Copy,
   Check,
   Clock,
@@ -40,11 +40,8 @@ import { format } from 'date-fns';
 import { useInvitationsByOrganization } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
 import { useManagerName } from '@/hooks/employee';
-import {
-  InvitationQRCode,
-  InvitationQRCodeDialog,
-  InvitationStatusBadge,
-} from '@/features/invitation';
+import { InvitationQRCode, InvitationStatusBadge } from '@/features/invitation';
+import { InvitationErrorState } from '@/features/invitation/components/invitation-error-state';
 
 export default function InvitationPage() {
   const params = useParams();
@@ -79,22 +76,7 @@ export default function InvitationPage() {
 
   // If invitation not found, show error
   if (error || !invitation) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center">
-        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-        <h2 className="mb-2 text-xl font-semibold">Invitation Not Found</h2>
-        <p className="mb-4 text-zinc-500">
-          The invitation code &quot;{inviteCode}&quot; could not be found or is
-          invalid.
-        </p>
-        <Button
-          onClick={() => router.push('/users/dashboard/workforce/invitations')}
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Invitations
-        </Button>
-      </div>
-    );
+    return <InvitationErrorState inviteCode={inviteCode} />;
   }
 
   // Copy to clipboard
@@ -362,17 +344,12 @@ export default function InvitationPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Invitation Details
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            {invitation.inviteCode}
-          </p>
-        </div>
-        <InvitationStatusBadge status={currentStatus} />
-      </div>
+      <PageHeader
+        title="Invitation Details"
+        badge={<InvitationStatusBadge status={currentStatus} />}
+        description={invitation.inviteCode}
+        className="mb-8"
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Details */}
