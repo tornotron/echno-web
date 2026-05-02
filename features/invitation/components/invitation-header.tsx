@@ -14,7 +14,7 @@ export function InvitationHeader() {
         </p>
       </div>
       <Button asChild className="mt-4 md:mt-0">
-        <Link href="/users/dashboard/workforce/invitations/new">
+        <Link href="/users/dashboard/workforce/employees/invitations/new">
           <Plus className="mr-2 h-4 w-4" />
           Create Invitation
         </Link>
