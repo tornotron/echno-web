@@ -26,21 +26,18 @@ export default function EmployeesPage() {
       error={error}
       organizationId={user?.defaultOrganizationId}
     >
-      <div className="space-y-4 sm:space-y-6">
-        <PageHeader
-          title="Employee Overview"
-          description="Workforce insights and analytics for your organization"
-        />
-
-        {list.length === 0 ? (
-          <EmployeeEmptyState />
-        ) : (
-          <>
-            <EmployeeOverview employees={list} />
-            <EmployeeCharts employees={list} />
-          </>
-        )}
-      </div>
+      {list.length === 0 ? (
+        <EmployeeEmptyState />
+      ) : (
+        <div className="space-y-4 sm:space-y-6">
+          <PageHeader
+            title="Employee Overview"
+            description="Workforce insights and analytics for your organization"
+          />
+          <EmployeeOverview employees={list} />
+          <EmployeeCharts employees={list} />
+        </div>
+      )}
     </OrgGuard>
   );
 }
