@@ -17,7 +17,7 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
     <Card className="transition-shadow hover:shadow-lg">
       <Link
-        href={`/users/dashboard/workforce/employees/${employee.id}`}
+        href={`/users/dashboard/workforce/employees/employee-management/${employee.id}`}
         className="block"
       >
         <CardContent className="p-6">

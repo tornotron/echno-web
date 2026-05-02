@@ -2,10 +2,12 @@
 
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/shadcn/button';
 import { useEmployees } from '@/hooks/employee';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { EditEmployeeForm } from '@/features/employee/components/edit-employee-form';
+import { EmployeeErrorState } from '@/features/employee/components/employee-error-state';
+import { PageHeader } from '@/components/common';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 
 interface EditEmployeePageProps {
   params: Promise<{
@@ -31,21 +33,18 @@ export default function EditEmployeePage({ params }: EditEmployeePageProps) {
 
   // Show error state
   if (error || !employee) {
-    return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center">
-        <AlertCircle className="mb-4 h-12 w-12 text-red-500" />
-        <h2 className="mb-2 text-xl font-semibold">Employee Not Found</h2>
-        <p className="mb-4 text-zinc-500">
-          The employee with ID {employeeId} could not be found.
-        </p>
-        <Button
-          onClick={() => router.push('/users/dashboard/workforce/employees')}
-        >
-          Back to Employees
-        </Button>
-      </div>
-    );
+    return <EmployeeErrorState employeeId={employeeId} />;
   }
 
-  return <EditEmployeeForm employee={employee} />;
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <PageHeader
+        avatar={<EmployeeAvatar employee={employee} size="md" />}
+        title="Edit Employee"
+        subtitle={`Update ${employee.name}'s information`}
+      />
+
+      <EditEmployeeForm employee={employee} />
+    </div>
+  );
 }
