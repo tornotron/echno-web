@@ -18,7 +18,6 @@ import {
   FolderKanban,
   ClipboardCheck,
   Users,
-  Mail,
   Calendar,
   UserCheck,
   Handshake,
@@ -174,12 +173,6 @@ export const navigation: NavItem[] = [
         segment: 'employees',
         path: d('workforce/employees'),
         icon: Users,
-      },
-      {
-        label: 'Invitations',
-        segment: 'invitations',
-        path: d('workforce/invitations'),
-        icon: Mail,
       },
       {
         label: 'Leave Management',
@@ -501,6 +494,8 @@ export const segmentLabels: Record<string, string> = {
   login: 'Login',
   admin: 'Administrator',
   'leave-requests': 'Leave Requests',
+  'employee-management': 'Employee Management',
+  invitations: 'Invitations',
 };
 
 // ---------------------------------------------------------------------------

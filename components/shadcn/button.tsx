@@ -12,11 +12,11 @@ const buttonExtendedVariants = cva('', {
   variants: {
     variant: {
       gradient:
-        'rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20 duration-300 hover:scale-[1.02]',
+        'rounded-sm bg-gradient-to-br from-amber-400 to-orange-600 text-zinc-950 shadow-lg shadow-amber-500/20 duration-300 hover:scale-[1.02]',
       glass:
-        'rounded-lg border border-zinc-300 bg-white/80 text-zinc-700 backdrop-blur-sm hover:border-zinc-400 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/10',
+        'rounded-sm border border-zinc-300 bg-white/80 text-zinc-700 backdrop-blur-sm hover:border-zinc-400 hover:bg-white dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/10',
       social:
-        'rounded-lg border border-stone-200 bg-white text-xs font-bold text-zinc-500 duration-200 hover:border-stone-300 hover:text-zinc-900 dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-zinc-600 dark:hover:bg-white/[0.08] dark:hover:text-zinc-300',
+        'rounded-sm border border-stone-200 bg-white text-xs font-bold text-zinc-500 duration-200 hover:border-stone-300 hover:text-zinc-900 dark:border-white/[0.07] dark:bg-white/[0.04] dark:text-zinc-600 dark:hover:bg-white/[0.08] dark:hover:text-zinc-300',
     },
     size: {
       xl: 'h-auto px-8 py-4 text-base has-[>svg]:px-6',

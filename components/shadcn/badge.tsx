@@ -41,10 +41,15 @@ function Badge({
   const classes = EXTENDED_BADGE_VARIANTS.has(variant)
     ? cn(
         badgeVariants(),
+        'rounded-lg',
         badgeExtendedVariants({ variant: variant as ExtendedVariant }),
         className
       )
-    : cn(badgeVariants({ variant: variant as BaseVariant }), className);
+    : cn(
+        badgeVariants({ variant: variant as BaseVariant }),
+        'rounded-lg',
+        className
+      );
 
   return (
     <Comp
