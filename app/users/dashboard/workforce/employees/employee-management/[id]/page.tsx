@@ -66,8 +66,12 @@ export default function EmployeeDetailPage({
     );
   }
 
-  if (error || !employee) {
-    return <EmployeeErrorState employeeId={employeeId} />;
+  if (error) {
+    return <EmployeeErrorState employeeId={employeeId} variant="fetch-error" />;
+  }
+
+  if (!employee) {
+    return <EmployeeErrorState employeeId={employeeId} variant="not-found" />;
   }
 
   return (

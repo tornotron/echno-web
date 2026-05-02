@@ -235,6 +235,8 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
               alt="Echno Logo"
               width={110}
               height={40}
+              priority
+              style={{ width: 'auto', height: 'auto' }}
               className="dark:invert"
             />
           </div>
@@ -246,6 +248,7 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
             alt="Echno Logo"
             width={40}
             height={40}
+            style={{ width: 'auto', height: 'auto' }}
             className="dark:invert"
           />
         </div>
