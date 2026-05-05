@@ -37,12 +37,12 @@ export function ProfileCard({
       <CardHeader>
         <div className="flex items-start justify-between">
           <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              {icon && <span className="text-primary">{icon}</span>}
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              {icon && <span className="text-lg">{icon}</span>}
               {title}
             </CardTitle>
             {description && (
-              <CardDescription className="text-sm">
+              <CardDescription className="text-muted-foreground text-xs">
                 {description}
               </CardDescription>
             )}
