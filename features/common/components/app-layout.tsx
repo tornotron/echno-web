@@ -117,7 +117,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
         </header>
 
         {/* Main Content — pb-16 on mobile so content isn't hidden behind bottom nav */}
-        <main className="mx-auto w-full max-w-7xl flex-1 bg-slate-100 p-3 pb-20 sm:p-4 sm:pb-20 lg:p-6 lg:pb-6 dark:bg-slate-800/50">
+        <main className="flex-1 bg-slate-100 p-3 pb-20 sm:p-4 sm:pb-20 lg:p-6 lg:pb-6 dark:bg-slate-800/50">
           {children}
         </main>
 
