@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Input } from '@/components/shadcn/input';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import {
@@ -133,13 +134,10 @@ export default function LabourFormPage() {
                     <Label htmlFor="phone">
                       Phone Number <span className="text-red-500">*</span>
                     </Label>
-                    <Input
+                    <PhoneInput
                       id="phone"
-                      type="tel"
                       value={formData.phone}
-                      onChange={(e) => handleChange('phone', e.target.value)}
-                      placeholder="+91 98765 43210"
-                      required
+                      onChange={(value) => handleChange('phone', value || '')}
                     />
                   </div>
                   <div>
@@ -281,14 +279,12 @@ export default function LabourFormPage() {
                   </div>
                   <div>
                     <Label htmlFor="contractorPhone">Contractor Phone</Label>
-                    <Input
+                    <PhoneInput
                       id="contractorPhone"
-                      type="tel"
                       value={formData.contractorPhone}
-                      onChange={(e) =>
-                        handleChange('contractorPhone', e.target.value)
+                      onChange={(value) =>
+                        handleChange('contractorPhone', value || '')
                       }
-                      placeholder="+91 98765 00000"
                     />
                   </div>
                 </div>
@@ -373,14 +369,12 @@ export default function LabourFormPage() {
                 </div>
                 <div>
                   <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
-                  <Input
+                  <PhoneInput
                     id="emergencyContactPhone"
-                    type="tel"
                     value={formData.emergencyContactPhone}
-                    onChange={(e) =>
-                      handleChange('emergencyContactPhone', e.target.value)
+                    onChange={(value) =>
+                      handleChange('emergencyContactPhone', value || '')
                     }
-                    placeholder="+91 98765 11111"
                   />
                 </div>
               </CardContent>

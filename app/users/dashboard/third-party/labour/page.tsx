@@ -39,6 +39,7 @@ import {
 
 import Link from 'next/link';
 import { mockLabour } from '@/components/shared/mock-data';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 
 const typeLabels = {
   daily: 'Daily Wage',
@@ -480,9 +481,10 @@ export default function LabourPage() {
                           <p className="font-medium text-zinc-900 dark:text-zinc-100">
                             {labour.name}
                           </p>
-                          <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                            {labour.phone}
-                          </p>
+                          <PhoneDisplay
+                            value={labour.phone}
+                            className="text-zinc-500 dark:text-zinc-500"
+                          />
                         </div>
                       </div>
                     </TableCell>

@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Input } from '@/components/shadcn/input';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import {
@@ -202,15 +203,12 @@ export default function SubContractNewPage() {
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone *</Label>
-                    <Input
+                    <PhoneInput
                       id="phone"
-                      type="tel"
                       value={formData.phone}
-                      onChange={(e) =>
-                        handleInputChange('phone', e.target.value)
+                      onChange={(value) =>
+                        handleInputChange('phone', value || '')
                       }
-                      placeholder="+91 98765 43210"
-                      required
                     />
                   </div>
                   <div>
