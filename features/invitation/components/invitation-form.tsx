@@ -10,6 +10,7 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import {
   Select,
@@ -506,13 +507,12 @@ export function InvitationForm() {
 
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input
+                  <PhoneInput
                     id="phone"
-                    type="tel"
-                    placeholder="+91-9876543210"
+                    placeholder="+1 (555) 000-0000"
                     value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
+                    onChange={(value) =>
+                      setFormData({ ...formData, phone: value || '' })
                     }
                     disabled={isGenerated}
                   />
