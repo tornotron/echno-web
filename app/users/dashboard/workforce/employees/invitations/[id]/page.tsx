@@ -29,6 +29,7 @@ import {
   AtSign,
   Loader2,
 } from 'lucide-react';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   whatsappMessage,
@@ -443,9 +444,11 @@ export default function InvitationPage() {
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
                       Phone
                     </p>
-                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.employeeDetails.phone || 'N/A'}
-                    </p>
+                    <PhoneDisplay
+                      value={invitation.employeeDetails.phone}
+                      asLink
+                      numberClassName="font-medium text-zinc-900 dark:text-zinc-100"
+                    />
                   </div>
                 </div>
               </div>
