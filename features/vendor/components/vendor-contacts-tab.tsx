@@ -31,6 +31,7 @@ import {
   AlertDialogTitle,
 } from '@/components/shadcn/alert-dialog';
 import { Edit, Mail, Phone, Plus, Star, Trash2 } from 'lucide-react';
+import { PhoneDisplay, PhoneInput } from '@/components/shadcn/phone-input';
 import {
   useVendorContacts,
   useAddVendorContact,
@@ -134,11 +135,20 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                       </p>
                     )}
                     {c.phone && (
-                      <p className="flex items-center gap-1 text-sm text-zinc-500">
-                        <Phone className="h-3 w-3" />
-                        {c.phone}
-                        {c.alternatePhone && ` / ${c.alternatePhone}`}
-                      </p>
+                      <div className="flex flex-col gap-0.5">
+                        <PhoneDisplay
+                          value={c.phone}
+                          asLink
+                          className="text-zinc-500"
+                        />
+                        {c.alternatePhone && (
+                          <PhoneDisplay
+                            value={c.alternatePhone}
+                            asLink
+                            className="text-zinc-500"
+                          />
+                        )}
+                      </div>
                     )}
                   </div>
                   <div className="flex items-center gap-1">
@@ -200,27 +210,23 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
             </div>
             <div>
               <Label>Phone</Label>
-              <Input
-                type="tel"
+              <PhoneInput
                 value={form.phone ?? ''}
-                onChange={(e) =>
-                  setForm((p) => ({ ...p, phone: e.target.value || undefined }))
+                onChange={(value) =>
+                  setForm((p) => ({ ...p, phone: value || undefined }))
                 }
-                placeholder="+91 98765 43210"
               />
             </div>
             <div className="col-span-2">
               <Label>Alternate Phone</Label>
-              <Input
-                type="tel"
+              <PhoneInput
                 value={form.alternatePhone ?? ''}
-                onChange={(e) =>
+                onChange={(value) =>
                   setForm((p) => ({
                     ...p,
-                    alternatePhone: e.target.value || undefined,
+                    alternatePhone: value || undefined,
                   }))
                 }
-                placeholder="+91 98765 43211"
               />
             </div>
             <div className="col-span-2 flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-700">

@@ -12,13 +12,13 @@ import { Button } from '@/components/shadcn/button';
 import {
   Building,
   Mail,
-  Phone,
   Globe,
   Users,
   Calendar,
   MapPin,
   Star,
 } from 'lucide-react';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
 import Image from 'next/image';
 import { format } from 'date-fns';
@@ -87,10 +87,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
               <Mail className="h-4 w-4 shrink-0" />
               <span className="truncate">{organization.organizationEmail}</span>
             </div>
-            <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-              <Phone className="h-4 w-4 shrink-0" />
-              <span>{organization.organizationPhone}</span>
-            </div>
+            <PhoneDisplay
+              value={organization.organizationPhone}
+              className="text-sm text-zinc-600 dark:text-zinc-400"
+            />
             {organization.organizationWebsite && (
               <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
                 <Globe className="h-4 w-4 shrink-0" />
