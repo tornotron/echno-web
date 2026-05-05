@@ -11,6 +11,7 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import {
@@ -266,7 +267,7 @@ export function LeaveApplyForm({
             toast.success('Draft Updated', {
               description: 'Your leave request has been updated',
             });
-            router.push('/users/dashboard/workforce/leaves/requests');
+            router.push('/users/dashboard/workforce/leaves/manage/requests');
           },
           onError: (error) => {
             toast.error('Error', {
@@ -295,7 +296,7 @@ export function LeaveApplyForm({
             toast.success('Draft Saved', {
               description: 'Your leave request has been saved as draft',
             });
-            router.push('/users/dashboard/workforce/leaves');
+            router.push('/users/dashboard/workforce/leaves/manage/requests');
           },
           onError: (error) => {
             toast.error('Error', {
@@ -336,7 +337,9 @@ export function LeaveApplyForm({
                   toast.success('Leave Request Submitted', {
                     description: `Your leave request for ${calculatedDays} day(s) has been submitted`,
                   });
-                  router.push('/users/dashboard/workforce/leaves/requests');
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/requests'
+                  );
                 },
                 onError: (error) => {
                   toast.error('Error', {
@@ -377,7 +380,9 @@ export function LeaveApplyForm({
                   toast.success('Leave Request Submitted', {
                     description: `Your leave request for ${calculatedDays} day(s) has been submitted`,
                   });
-                  router.push('/users/dashboard/workforce/leaves');
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/requests'
+                  );
                 },
                 onError: (error) => {
                   toast.error('Error', {
@@ -413,7 +418,7 @@ export function LeaveApplyForm({
           });
           setShowCancelDialog(false);
           setCancelReason('');
-          router.push('/users/dashboard/workforce/leaves/requests');
+          router.push('/users/dashboard/workforce/leaves/manage/requests');
         },
         onError: (error) => {
           toast.error('Error', {
@@ -607,14 +612,14 @@ export function LeaveApplyForm({
 
                 <div className="space-y-2">
                   <Label htmlFor="contact">Contact During Leave</Label>
-                  <Input
+                  <PhoneInput
                     id="contact"
-                    placeholder="+91-9876543210"
+                    placeholder="+1 (555) 000-0000"
                     value={formData.contactDuringLeave}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       setFormData({
                         ...formData,
-                        contactDuringLeave: e.target.value,
+                        contactDuringLeave: value || '',
                       })
                     }
                   />
