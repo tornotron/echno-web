@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 
+const MARKETING_PATHS = new Set(['/', '/about', '/features', '/plans', '/contact']);
+
 /**
  * proxy middleware
  *
@@ -86,6 +88,17 @@ export default auth((req) => {
     logger.debug(
       'Middleware: No sessionId in auth object for revocation check'
     );
+  }
+
+  // ========== MARKETING PAGE REDIRECT ==========
+  // Authenticated users without session errors are sent to the dashboard.
+  // Skip if ?error= is present so the home page can show the error toast.
+  if (
+    isLoggedIn &&
+    MARKETING_PATHS.has(pathname) &&
+    !req.nextUrl.searchParams.has('error')
+  ) {
+    return NextResponse.redirect(new URL('/users/dashboard', req.url));
   }
 
   const isProtected =

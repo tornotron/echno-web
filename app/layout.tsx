@@ -6,8 +6,6 @@ import { Toaster } from '@/components/shadcn/sonner';
 // Auth validation handled by Keycloak provider at runtime
 // Missing/invalid env vars will produce descriptive errors when authentication is attempted
 
-export const dynamic = 'force-dynamic';
-
 export default function RootLayout({
   children,
 }: Readonly<{

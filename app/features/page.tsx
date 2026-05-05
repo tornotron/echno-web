@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Link from 'next/link';
 import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
@@ -1155,21 +1153,7 @@ function FeatureModal({
    PAGE
 ══════════════════════════════════════════════════════════════════════ */
 export default function FeaturesPage() {
-  const { status } = useSession();
-  const router = useRouter();
   const [selected, setSelected] = useState<Feature | null>(null);
-
-  useEffect(() => {
-    if (status === 'authenticated') router.push('/users/dashboard');
-  }, [status, router]);
-
-  if (status === 'loading' || status === 'authenticated') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50 dark:bg-zinc-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-amber-500" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-zinc-950">
