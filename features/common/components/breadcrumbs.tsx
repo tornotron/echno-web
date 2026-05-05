@@ -175,7 +175,7 @@ export function Breadcrumbs({
       <Breadcrumb className="text-base">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbPage>Dashboard</BreadcrumbPage>
+            <BreadcrumbPage>Home</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -307,7 +307,7 @@ export function Breadcrumbs({
           {/* Dashboard - Always visible */}
           <BreadcrumbItem className="hidden sm:inline-flex">
             <BreadcrumbLink asChild>
-              <Link href="/users/dashboard">Dashboard</Link>
+              <Link href="/users/dashboard">Home</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
 
