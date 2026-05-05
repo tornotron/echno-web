@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import {
   Card,
   CardContent,
@@ -19,19 +20,21 @@ import { cn } from '@/lib/utils';
 interface BalanceCardProps {
   balance: LeaveBalance;
   showTrends?: boolean;
+  compact?: boolean;
 }
 
-export function BalanceCard({ balance, showTrends = true }: BalanceCardProps) {
+export function BalanceCard({
+  balance,
+  showTrends = true,
+  compact = false,
+}: BalanceCardProps) {
   // Calculate percentages and metrics
   const totalQuota = balance.openingBalance + balance.carryForwardFromPrevious;
   const usedPercentage = totalQuota > 0 ? (balance.used / totalQuota) * 100 : 0;
   const availablePercentage =
     totalQuota > 0 ? (balance.availableBalance / totalQuota) * 100 : 0;
-  const pendingPercentage =
-    totalQuota > 0 ? (balance.pending / totalQuota) * 100 : 0;
 
   const totalAvailable = balance.availableBalance;
-  const usageRate = totalQuota > 0 ? balance.used / totalQuota : 0;
 
   // Status classification
   const isHealthy = totalAvailable >= totalQuota * 0.5;
@@ -43,27 +46,106 @@ export function BalanceCard({ balance, showTrends = true }: BalanceCardProps) {
   const isDepleting = balance.used > balance.accrued && balance.used > 0;
 
   // Color coding based on status
-  const statusColor = isDepleted
-    ? 'text-red-600'
-    : isLow
-      ? 'text-yellow-600'
-      : 'text-green-600';
+  let statusColor = 'text-green-600';
+  if (isDepleted) {
+    statusColor = 'text-red-600';
+  } else if (isLow) {
+    statusColor = 'text-yellow-600';
+  }
 
-  const progressClassName = isDepleted
-    ? 'h-3 [&>[data-slot=progress-indicator]]:bg-red-500'
-    : isLow
-      ? 'h-3 [&>[data-slot=progress-indicator]]:bg-yellow-500'
-      : 'h-3 [&>[data-slot=progress-indicator]]:bg-green-500';
+  let progressClassName = 'h-3 [&>[data-slot=progress-indicator]]:bg-green-500';
+  if (isDepleted) {
+    progressClassName = 'h-3 [&>[data-slot=progress-indicator]]:bg-red-500';
+  } else if (isLow) {
+    progressClassName = 'h-3 [&>[data-slot=progress-indicator]]:bg-yellow-500';
+  }
+
+  let compactProgressColor = '#22c55e';
+  if (isDepleted) {
+    compactProgressColor = '#ef4444';
+  } else if (isLow) {
+    compactProgressColor = '#eab308';
+  }
+
+  const borderClass = cn(
+    isDepleted && 'border-red-200',
+    isLow && 'border-yellow-200',
+    isHealthy && 'border-green-200'
+  );
+
+  let trendIcon: ReactNode = null;
+  if (showTrends) {
+    if (isAccruing && !isDepleting) {
+      trendIcon = (
+        <TrendingUp className="h-3.5 w-3.5 shrink-0 text-green-600" />
+      );
+    } else if (isDepleting) {
+      trendIcon = (
+        <TrendingDown className="h-3.5 w-3.5 shrink-0 text-red-600" />
+      );
+    } else if (balance.used === 0) {
+      trendIcon = (
+        <Minus className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+      );
+    }
+  }
+
+  if (compact) {
+    return (
+      <Card className={cn('transition-all', borderClass)}>
+        <CardContent className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex items-center gap-1.5">
+                <span className="truncate text-sm font-medium">
+                  {balance.leaveTypeName}
+                </span>
+                {trendIcon}
+              </div>
+              <Progress
+                value={availablePercentage}
+                className="h-1.5 [&>[data-slot=progress-indicator]]:bg-current"
+                style={{ color: compactProgressColor }}
+              />
+              <div className="flex items-center gap-3 text-xs">
+                <span className="text-muted-foreground">
+                  Quota{' '}
+                  <span className="font-medium text-zinc-700 dark:text-zinc-300">
+                    {balance.openingBalance}
+                  </span>
+                </span>
+                <span className="text-muted-foreground">
+                  Used{' '}
+                  <span className="font-medium text-red-600">
+                    {balance.used}
+                  </span>
+                </span>
+                {balance.pending > 0 && (
+                  <span className="text-muted-foreground">
+                    Pending{' '}
+                    <span className="font-medium text-yellow-600">
+                      {balance.pending}
+                    </span>
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className={cn('text-2xl leading-none font-bold', statusColor)}>
+                {totalAvailable}
+              </p>
+              <p className="text-muted-foreground mt-1 text-xs">
+                / {totalQuota} days
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card
-      className={cn(
-        'transition-all hover:shadow-md',
-        isDepleted && 'border-red-200',
-        isLow && 'border-yellow-200',
-        isHealthy && 'border-green-200'
-      )}
-    >
+    <Card className={cn('transition-all hover:shadow-md', borderClass)}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
