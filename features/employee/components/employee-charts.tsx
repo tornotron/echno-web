@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   AreaChart,
   Area,
@@ -247,13 +247,24 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
     () => getAvailableMonths(trendYear),
     [trendYear]
   );
+
+  // Compute effective trendMonth: clamp to valid value if needed
+  const effectiveTrendMonth = useMemo(() => {
+    const monthValues = availableMonths.map((m) => m.value);
+    if (monthValues.includes(trendMonth)) {
+      return trendMonth;
+    }
+    // If invalid, use the maximum (last) valid month
+    return monthValues.length > 0 ? Math.max(...monthValues) : trendMonth;
+  }, [availableMonths, trendMonth]);
   const [selectedYear, setSelectedYear] = useState<number>(() =>
     new Date().getFullYear()
   );
 
   const hiringTrend = useMemo(
-    () => buildHiringTrend(employees, trendPeriod, trendYear, trendMonth),
-    [employees, trendPeriod, trendYear, trendMonth]
+    () =>
+      buildHiringTrend(employees, trendPeriod, trendYear, effectiveTrendMonth),
+    [employees, trendPeriod, trendYear, effectiveTrendMonth]
   );
   const workforceByYear = useMemo(
     () => buildWorkforceByYear(employees, selectedYear),

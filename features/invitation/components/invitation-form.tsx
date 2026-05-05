@@ -509,7 +509,6 @@ export function InvitationForm() {
                   <Label htmlFor="phone">Phone Number</Label>
                   <PhoneInput
                     id="phone"
-                    placeholder="+1 (555) 000-0000"
                     value={formData.phone}
                     onChange={(value) =>
                       setFormData({ ...formData, phone: value || '' })
