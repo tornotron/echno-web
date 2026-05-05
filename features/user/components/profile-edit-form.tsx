@@ -7,6 +7,7 @@ import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations
 import { useQueryClient } from '@tanstack/react-query';
 import { userKeys } from '@/hooks/user/user-keys';
 import { Button } from '@/components/shadcn/button';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import {
   RemoveProfilePictureDialog,
   RemoveCvDialog,
@@ -296,8 +297,10 @@ export function ProfileEditForm({
         {/* Personal Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Personal Information</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-sm font-semibold">
+              Personal Information
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
               Update your basic personal details
             </CardDescription>
           </CardHeader>
@@ -399,8 +402,12 @@ export function ProfileEditForm({
         {/* Contact Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Contact Information</CardTitle>
-            <CardDescription>How people can reach you</CardDescription>
+            <CardTitle className="text-sm font-semibold">
+              Contact Information
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
+              How people can reach you
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -408,25 +415,33 @@ export function ProfileEditForm({
                 <Label htmlFor="phone">
                   Phone Number <span className="text-red-500">*</span>
                 </Label>
-                <Input
+                <PhoneInput
                   id="phone"
                   name="phone"
-                  type="tel"
                   value={formData.phone}
-                  onChange={handleChange}
+                  onChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      phone: value || '',
+                    })
+                  }
                   required
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+1 (555) 000-0000"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="emergencyContact">Emergency Contact</Label>
-                <Input
+                <PhoneInput
                   id="emergencyContact"
                   name="emergencyContact"
-                  type="tel"
                   value={formData.emergencyContact}
-                  onChange={handleChange}
+                  onChange={(value) =>
+                    setFormData({
+                      ...formData,
+                      emergencyContact: value || '',
+                    })
+                  }
                   placeholder="Emergency contact number"
                 />
               </div>
@@ -437,8 +452,12 @@ export function ProfileEditForm({
         {/* Profile Picture & CV */}
         <Card>
           <CardHeader>
-            <CardTitle>Profile Picture & Documents</CardTitle>
-            <CardDescription>Upload your profile photo and CV</CardDescription>
+            <CardTitle className="text-sm font-semibold">
+              Profile Picture & Documents
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
+              Upload your profile photo and CV
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Profile Picture Upload */}
@@ -583,8 +602,10 @@ export function ProfileEditForm({
         {/* Professional Information */}
         <Card>
           <CardHeader>
-            <CardTitle>Professional Information</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-sm font-semibold">
+              Professional Information
+            </CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">
               Your qualifications and experience
             </CardDescription>
           </CardHeader>

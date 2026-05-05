@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/shadcn/card';
 import { ArrowLeft } from 'lucide-react';
 import { AppLayout } from '@/features/common/components/app-layout';
 import { FloatingChat } from '@/features/chat/components/floating';
+import { PageHeader } from '@/components/common';
 
 /**
  * Loading skeleton for edit profile page
@@ -90,12 +91,10 @@ export default function EditProfilePage() {
     <AppLayout floatingChat={<FloatingChat />}>
       <div className="px-4 py-8">
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Edit Profile</h1>
-            <p className="text-muted-foreground mt-2">
-              Update your personal information and settings
-            </p>
-          </div>
+          <PageHeader
+            title="Edit Profile"
+            description="Update your personal information and settings"
+          />
           <ProfileEditForm
             user={user}
             onCancel={handleCancel}
