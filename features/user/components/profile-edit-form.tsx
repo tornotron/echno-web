@@ -69,7 +69,8 @@ export function ProfileEditForm({
   const [showRemoveCvDialog, setShowRemoveCvDialog] = useState(false);
   const [formData, setFormData] = useState({
     name: user.name || '',
-    phone: user.phone || '',
+    phone:
+      (user.phone && user.phone !== 'Not Specified' ? user.phone : '') || '',
     address: user.address || '',
     gender: user.gender || '',
     dateOfBirth: user.dateOfBirth
@@ -77,7 +78,10 @@ export function ProfileEditForm({
       : '',
     qualification: user.qualification || '',
     bloodGroup: user.bloodGroup || '',
-    emergencyContact: user.emergencyContact || '',
+    emergencyContact:
+      (user.emergencyContact && user.emergencyContact !== 'Not Specified'
+        ? user.emergencyContact
+        : '') || '',
     experience: user.experience?.toString() || '',
     skills: user.skills?.join(', ') || '',
     certifications: user.certifications?.join(', ') || '',
@@ -418,7 +422,9 @@ export function ProfileEditForm({
                 <PhoneInput
                   id="phone"
                   name="phone"
-                  value={formData.phone}
+                  value={
+                    formData.phone === 'Not Specified' ? '' : formData.phone
+                  }
                   onChange={(value) =>
                     setFormData({
                       ...formData,
@@ -426,7 +432,6 @@ export function ProfileEditForm({
                     })
                   }
                   required
-                  placeholder="+1 (555) 000-0000"
                 />
               </div>
 
@@ -435,14 +440,17 @@ export function ProfileEditForm({
                 <PhoneInput
                   id="emergencyContact"
                   name="emergencyContact"
-                  value={formData.emergencyContact}
+                  value={
+                    formData.emergencyContact === 'Not Specified'
+                      ? ''
+                      : formData.emergencyContact
+                  }
                   onChange={(value) =>
                     setFormData({
                       ...formData,
                       emergencyContact: value || '',
                     })
                   }
-                  placeholder="Emergency contact number"
                 />
               </div>
             </div>

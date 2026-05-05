@@ -325,7 +325,6 @@ export function RegistrationForm() {
             id="phone"
             value={formData.phone}
             onChange={(value) => handleChange('phone', value || '')}
-            placeholder="+1 (555) 000-0000"
             aria-invalid={!!errors.phone}
           />
           {errors.phone && (

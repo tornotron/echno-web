@@ -134,18 +134,20 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                         {c.email}
                       </p>
                     )}
-                    {c.phone && (
+                    {(c.phone || c.alternatePhone) && (
                       <div className="flex flex-col gap-0.5">
-                        <PhoneDisplay
-                          value={c.phone}
-                          asLink
-                          className="text-zinc-500"
-                        />
+                        {c.phone && (
+                          <PhoneDisplay
+                            value={c.phone}
+                            asLink
+                            numberClassName="text-zinc-500"
+                          />
+                        )}
                         {c.alternatePhone && (
                           <PhoneDisplay
                             value={c.alternatePhone}
                             asLink
-                            className="text-zinc-500"
+                            numberClassName="text-zinc-500"
                           />
                         )}
                       </div>

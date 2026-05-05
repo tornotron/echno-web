@@ -74,6 +74,8 @@ function PhoneInput({
             '[&_*[data-slot=combobox-trigger]]:border-destructive [&_*[data-slot=combobox-trigger]]:ring-destructive/50',
           className
         )}
+        defaultCountry="IN"
+        placeholder="+91 00000 00000"
         flagComponent={FlagComponent}
         countrySelectComponent={CountrySelect}
         inputComponent={InputComponent}
@@ -120,7 +122,8 @@ function CountrySelect({
   options: countryList,
   onChange,
 }: CountrySelectProps) {
-  const { variant, popupClassName } = useContext(PhoneInputContext);
+  const { variant, popupClassName, scrollAreaClassName } =
+    useContext(PhoneInputContext);
   const [searchValue, setSearchValue] = useState('');
 
   const filteredCountries = useMemo(() => {
@@ -156,7 +159,10 @@ function CountrySelect({
             </span>
             <FlagComponent
               country={selectedCountry}
-              countryName={selectedCountry}
+              countryName={
+                countryList.find((entry) => entry.value === selectedCountry)
+                  ?.label || selectedCountry
+              }
             />
           </Button>
         }
@@ -168,7 +174,7 @@ function CountrySelect({
         )}
       >
         <ComboboxInput
-          placeholder="e.g. United States"
+          placeholder="e.g. India"
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}
           showTrigger={false}
@@ -181,7 +187,12 @@ function CountrySelect({
         <ComboboxList>
           <div className="relative flex max-h-full">
             <div className="flex max-h-[min(var(--available-height),24rem)] w-full scroll-pt-2 scroll-pb-2 flex-col overscroll-contain">
-              <ScrollArea className="size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain">
+              <ScrollArea
+                className={cn(
+                  'size-full min-h-0 **:data-[slot=scroll-area-scrollbar]:m-0 [&_[data-slot=scroll-area-viewport]]:h-full [&_[data-slot=scroll-area-viewport]]:overscroll-contain',
+                  scrollAreaClassName
+                )}
+              >
                 {filteredCountries.map((item: CountryEntry) =>
                   item.value ? (
                     <ComboboxItem
@@ -245,9 +256,18 @@ function PhoneDisplay({
     );
   }
 
-  const parsed = BasePhoneInput.parsePhoneNumber(value);
-  const country = parsed?.country;
-  const formatted = BasePhoneInput.formatPhoneNumberIntl(value) || value;
+  let country: BasePhoneInput.Country | undefined;
+  let formatted: string;
+
+  try {
+    const parsed = BasePhoneInput.parsePhoneNumber(value);
+    country = parsed?.country;
+    formatted = BasePhoneInput.formatPhoneNumberIntl(value) || value;
+  } catch {
+    country = undefined;
+    formatted = value;
+  }
+
   const Flag = country ? flags[country] : null;
 
   const content = (
