@@ -2,8 +2,6 @@
 
 import { useMemo, useState, useEffect } from 'react';
 import {
-  AreaChart,
-  Area,
   BarChart,
   Bar,
   LineChart,
@@ -440,14 +438,9 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
                 <PieChart>
                   <Pie
                     data={deptDist}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={52}
-                    outerRadius={80}
                     paddingAngle={2}
                     dataKey="value"
-                    label={({ value }) => value}
-                    labelLine={false}
+                    nameKey="name"
                   >
                     {deptDist.map((_, i) => (
                       <Cell
@@ -456,7 +449,10 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
                       />
                     ))}
                   </Pie>
-                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent hideLabel nameKey="name" />}
+                  />
                 </PieChart>
               </ChartContainer>
               {/* Side legend — kept custom for the two-column pie layout */}
@@ -534,31 +530,8 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
           config={EMPLOYEE_STATUS_CONFIG}
           headerAction={yearSelect}
         >
-          <AreaChart data={workforceByYear} margin={{ left: -10, right: 8 }}>
-            <defs>
-              {activeStatuses.map((s) => (
-                <linearGradient
-                  key={s}
-                  id={`empGrad-${s}`}
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="5%"
-                    stopColor={`var(--color-${s})`}
-                    stopOpacity={0.3}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor={`var(--color-${s})`}
-                    stopOpacity={0.03}
-                  />
-                </linearGradient>
-              ))}
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+          <LineChart data={workforceByYear} margin={{ left: 12, right: 12 }}>
+            <CartesianGrid vertical={false} stroke="var(--border)" />
             <XAxis
               dataKey="month"
               tick={{ fontSize: 11 }}
@@ -571,19 +544,22 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
               axisLine={false}
               allowDecimals={false}
             />
-            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
             <ChartLegend content={<ChartLegendContent />} />
             {activeStatuses.map((s) => (
-              <Area
+              <Line
                 key={s}
-                type="monotone"
+                type="linear"
                 dataKey={s}
                 stroke={`var(--color-${s})`}
-                fill={`url(#empGrad-${s})`}
                 strokeWidth={2}
+                dot={false}
               />
             ))}
-          </AreaChart>
+          </LineChart>
         </ChartCard>
       </div>
     </div>
