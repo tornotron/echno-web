@@ -57,7 +57,7 @@ export function LeaveRequestCard({
   const daysUntilStart = differenceInDays(request.startDate, new Date());
   const isUrgent = isPending && daysUntilStart >= 0 && daysUntilStart <= 3;
 
-  const detailUrl = `/users/dashboard/workforce/leaves/requests/${request.id}${from ? `?from=${from}` : ''}`;
+  const detailUrl = `/users/dashboard/workforce/leaves/manage/requests/${request.id}${from ? `?from=${from}` : ''}`;
 
   const handleCardClick = () => {
     if (onViewDetails) {
@@ -211,7 +211,7 @@ export function LeaveRequestCard({
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(
-                        `/users/dashboard/workforce/leaves/apply?edit=${request.id}`
+                        `/users/dashboard/workforce/leaves/manage/requests/new?edit=${request.id}`
                       );
                     }}
                   >

@@ -194,8 +194,12 @@ export function LeavePoliciesManager({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Leave Policies</CardTitle>
-          <CardDescription>Loading leave policies...</CardDescription>
+          <CardTitle className="text-sm font-semibold">
+            Leave Policies
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Loading leave policies...
+          </CardDescription>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
@@ -209,8 +213,10 @@ export function LeavePoliciesManager({
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Leave Policies</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-sm font-semibold">
+              Leave Policies
+            </CardTitle>
+            <CardDescription className="text-xs">
               Manage leave types and their rules for your organization
             </CardDescription>
           </div>
