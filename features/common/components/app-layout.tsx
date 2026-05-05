@@ -76,7 +76,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
 
       <SidebarInset className="min-w-0">
         {/* Header */}
-        <header className="bg-background sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 dark:bg-zinc-900">
           {/* Mobile Sidebar Toggle — hidden on mobile (bottom nav handles navigation) */}
           {isMobile && <SidebarTrigger className="hidden" />}
 
