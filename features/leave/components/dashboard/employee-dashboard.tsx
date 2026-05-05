@@ -31,11 +31,11 @@ import {
   FileText,
   CheckCircle,
   Clock,
+  ChevronRight,
 } from 'lucide-react';
 import { BalanceCard } from '@/features/leave/components/balance-card';
-import { StatCard } from '@/features/leave/components/stat-card';
 import { Skeleton } from '@/components/shadcn/skeleton';
-import { LeaveRequestCard } from '@/features/leave/components/leave-request-card';
+import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 import {
   useEmployeeBalanceSummary,
   useEmployeeRequests,
@@ -70,30 +70,59 @@ export function EmployeeDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          icon={Calendar}
-          label="Available Balance"
-          value={balanceSummary?.totalAvailable || 0}
-          color="green"
-          description="days remaining"
-        />
-        <StatCard
-          icon={Clock}
-          label="Pending Requests"
-          value={pendingRequests.length}
-          color="yellow"
-          description="awaiting approval"
-        />
-        <StatCard
-          icon={CheckCircle}
-          label="Upcoming Leave"
-          value={upcomingLeave.length}
-          color="blue"
-          description={`scheduled ${upcomingLeave.length === 1 ? 'request' : 'requests'}`}
-        />
-      </div>
+      {/* Personal Stats */}
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-3 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Available Balance
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {balanceSummary?.totalAvailable ?? 0}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <Calendar className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              days remaining
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Pending Requests
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {pendingRequests.length}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                <Clock className="size-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              awaiting approval
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Upcoming Leave
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-indigo-600 dark:text-indigo-400">
+                {upcomingLeave.length}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <CheckCircle className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              scheduled {upcomingLeave.length === 1 ? 'request' : 'requests'}
+            </p>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Column - Balances & Requests */}
@@ -102,8 +131,8 @@ export function EmployeeDashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Your Leave Balance</h2>
-                <p className="text-muted-foreground text-sm">
+                <h2 className="text-sm font-semibold">Your Leave Balance</h2>
+                <p className="text-muted-foreground text-xs">
                   Available leave by type
                 </p>
               </div>
@@ -111,7 +140,9 @@ export function EmployeeDashboard() {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  router.push('/users/dashboard/workforce/leaves/balance')
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/balance'
+                  )
                 }
               >
                 View Details
@@ -119,25 +150,29 @@ export function EmployeeDashboard() {
             </div>
 
             {isLoading ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Card key={i}>
-                    <CardContent className="space-y-3 p-4">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-2 w-full" />
-                      <div className="grid grid-cols-3 gap-2">
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
-                        <Skeleton className="h-8 w-full" />
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-28" />
+                          <Skeleton className="h-1.5 w-full" />
+                          <Skeleton className="h-3 w-40" />
+                        </div>
+                        <div className="space-y-1">
+                          <Skeleton className="h-8 w-10" />
+                          <Skeleton className="h-3 w-14" />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : balanceSummary && balanceSummary.balances.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {balanceSummary.balances.slice(0, 4).map((balance) => (
-                  <BalanceCard key={balance.id} balance={balance} />
+                  <BalanceCard key={balance.id} balance={balance} compact />
                 ))}
               </div>
             ) : (
@@ -156,8 +191,8 @@ export function EmployeeDashboard() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold">Recent Requests</h2>
-                <p className="text-muted-foreground text-sm">
+                <h2 className="text-sm font-semibold">Recent Requests</h2>
+                <p className="text-muted-foreground text-xs">
                   Your last 5 leave requests
                 </p>
               </div>
@@ -165,7 +200,9 @@ export function EmployeeDashboard() {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  router.push('/users/dashboard/workforce/leaves/requests')
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/requests'
+                  )
                 }
               >
                 View All
@@ -173,32 +210,52 @@ export function EmployeeDashboard() {
             </div>
 
             {isLoading ? (
-              <div className="space-y-4">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <Card key={i}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <Skeleton className="h-10 w-10 rounded-lg" />
-                        <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-full" />
-                          <Skeleton className="h-3 w-2/3" />
-                        </div>
-                        <Skeleton className="h-6 w-20" />
+              <Card>
+                <CardContent className="divide-y p-0">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-3 px-4 py-3">
+                      <div className="flex-1 space-y-1.5">
+                        <Skeleton className="h-3.5 w-28" />
+                        <Skeleton className="h-3 w-40" />
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      <Skeleton className="h-5 w-14 rounded-full" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             ) : recentRequests && recentRequests.length > 0 ? (
-              <div className="space-y-4">
-                {recentRequests.map((request) => (
-                  <LeaveRequestCard
-                    key={request.id}
-                    request={request}
-                    from="employee-dashboard"
-                  />
-                ))}
-              </div>
+              <Card>
+                <CardContent className="divide-y p-0">
+                  {recentRequests.map((request) => (
+                    <div
+                      key={request.id}
+                      className="hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors"
+                      onClick={() =>
+                        router.push(
+                          `/users/dashboard/workforce/leaves/manage/requests/${request.id}?from=employee-dashboard`
+                        )
+                      }
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium">
+                          {request.leaveTypeName}
+                        </p>
+                        <p className="text-muted-foreground text-xs">
+                          {format(request.startDate, 'MMM dd')} –{' '}
+                          {format(request.endDate, 'MMM dd, yyyy')}
+                          <span className="ml-2 font-medium">
+                            {request.totalDays}d
+                          </span>
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <LeaveStatusBadge status={request.status} />
+                        <ChevronRight className="text-muted-foreground size-3.5" />
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
             ) : (
               <Card>
                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -211,7 +268,9 @@ export function EmployeeDashboard() {
                   </p>
                   <Button
                     onClick={() =>
-                      router.push('/users/dashboard/workforce/leaves/apply')
+                      router.push(
+                        '/users/dashboard/workforce/leaves/manage/requests/new'
+                      )
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -228,15 +287,21 @@ export function EmployeeDashboard() {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-              <CardDescription>Common tasks</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                Quick Actions
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Common tasks
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <Button
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push('/users/dashboard/workforce/leaves/apply')
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/requests/new'
+                  )
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -246,7 +311,9 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push('/users/dashboard/workforce/leaves/requests')
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/requests'
+                  )
                 }
               >
                 <FileText className="mr-2 h-4 w-4" />
@@ -256,7 +323,9 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push('/users/dashboard/workforce/leaves/balance')
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/balance'
+                  )
                 }
               >
                 <TrendingUp className="mr-2 h-4 w-4" />
@@ -266,7 +335,9 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push('/users/dashboard/workforce/leaves/calendar')
+                  router.push(
+                    '/users/dashboard/workforce/leaves/manage/calendar'
+                  )
                 }
               >
                 <Calendar className="mr-2 h-4 w-4" />
@@ -278,8 +349,12 @@ export function EmployeeDashboard() {
           {/* Leave Summary */}
           <Card>
             <CardHeader>
-              <CardTitle>Leave Summary {year}</CardTitle>
-              <CardDescription>Your leave usage</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                Leave Summary {year}
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Your leave usage
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {balanceSummary ? (
@@ -329,8 +404,12 @@ export function EmployeeDashboard() {
           {upcomingLeave.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Upcoming Leave</CardTitle>
-                <CardDescription>Your scheduled time off</CardDescription>
+                <CardTitle className="text-sm font-semibold">
+                  Upcoming Leave
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Your scheduled time off
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
