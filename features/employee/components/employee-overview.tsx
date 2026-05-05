@@ -3,13 +3,24 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { Users, Mail, ChevronRight } from 'lucide-react';
+import { Label, Pie, PieChart } from 'recharts';
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from '@/components/shadcn/avatar';
 import { Card } from '@/components/shadcn/card';
-import { Employee, EmployeeStatus } from '@/types/employee';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/shadcn/chart';
+import {
+  Employee,
+  EmployeeStatus,
+  getEmployeeStatusLabel,
+} from '@/types/employee';
 import { cn } from '@/lib/utils/index';
 
 interface EmployeeOverviewProps {
@@ -63,6 +74,23 @@ const QUICK_ACTIONS = [
   },
 ];
 
+const EMPLOYEE_STATUS_COLORS: Record<EmployeeStatus, string> = {
+  [EmployeeStatus.active]: '#22c55e',
+  [EmployeeStatus.inactive]: '#fca5a5',
+  [EmployeeStatus.onLeave]: '#f59e0b',
+  [EmployeeStatus.probation]: '#6366f1',
+  [EmployeeStatus.terminated]: '#ef4444',
+  [EmployeeStatus.resigned]: '#ec4899',
+  [EmployeeStatus.suspended]: '#8b5cf6',
+};
+
+const ACTIVE_CHART_CONFIG: ChartConfig = Object.fromEntries(
+  Object.entries(EMPLOYEE_STATUS_COLORS).map(([status, color]) => [
+    status,
+    { label: getEmployeeStatusLabel(status as EmployeeStatus), color },
+  ])
+);
+
 export function EmployeeOverview({ employees }: EmployeeOverviewProps) {
   const total = employees.length;
   const activeCount = useMemo(
@@ -70,10 +98,14 @@ export function EmployeeOverview({ employees }: EmployeeOverviewProps) {
     [employees]
   );
   const pct = total > 0 ? Math.round((activeCount / total) * 100) : 0;
-
-  const radius = 45;
-  const circumference = 2 * Math.PI * radius;
-  const strokeOffset = circumference - (pct / 100) * circumference;
+  const activeChartData = useMemo(() => {
+    const counts = Object.values(EmployeeStatus).map((status) => ({
+      key: status,
+      value: employees.filter((e) => e.status === status).length,
+      fill: `var(--color-${status})`,
+    }));
+    return counts.filter((item) => item.value > 0);
+  }, [employees]);
 
   const recentlyJoined = useMemo(
     () =>
@@ -93,52 +125,48 @@ export function EmployeeOverview({ employees }: EmployeeOverviewProps) {
       <div className="divide-border grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {/* Donut chart */}
         <div className="flex items-center justify-center gap-4 py-6 sm:py-0 sm:pr-8">
-          <svg width="120" height="120" viewBox="0 0 100 100">
-            <defs>
-              <linearGradient
-                id="empDonutGrad"
-                x1="0%"
-                y1="0%"
-                x2="100%"
-                y2="0%"
+          <ChartContainer
+            config={ACTIVE_CHART_CONFIG}
+            className="h-[120px] w-[120px] shrink-0"
+          >
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel nameKey="key" />}
+              />
+              <Pie
+                data={activeChartData}
+                dataKey="value"
+                nameKey="key"
+                innerRadius={34}
+                outerRadius={46}
+                strokeWidth={5}
               >
-                <stop offset="0%" stopColor="#818cf8" />
-                <stop offset="100%" stopColor="#6366f1" />
-              </linearGradient>
-            </defs>
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="8"
-              className="text-muted/25"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke="url(#empDonutGrad)"
-              strokeWidth="8"
-              strokeDasharray={circumference}
-              strokeDashoffset={strokeOffset}
-              strokeLinecap="round"
-              transform="rotate(-90 50 50)"
-            />
-            <text
-              x="50"
-              y="48"
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fontSize="13"
-              fontWeight="700"
-              fill="currentColor"
-            >
-              {pct}%
-            </text>
-          </svg>
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-[13px] font-bold"
+                          >
+                            {pct}%
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+            </PieChart>
+          </ChartContainer>
           <div>
             <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
               {activeCount} of {total}
