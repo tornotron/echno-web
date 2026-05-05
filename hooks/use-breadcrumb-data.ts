@@ -78,7 +78,7 @@ export function useBreadcrumbData(): BreadcrumbData {
   } = useMemo(() => {
     const leaveRequestId = parseIdFromPath(
       pathname,
-      /\/leaves\/requests\/(\d+)/
+      /\/leaves\/.+\/requests\/(\d+)/
     );
 
     // Extract task ID from path, falling back to ?taskId= query param
