@@ -3,7 +3,8 @@
 import { Employee, getDepartmentLabel } from '@/types/employee';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
-import { Mail, Phone, Building, IdCard } from 'lucide-react';
+import { Mail, Building, IdCard } from 'lucide-react';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { EmployeeStatusBadge } from './employee-status-badge';
@@ -67,12 +68,11 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
                 {employee.email}
               </span>
             </div>
-            <div className="flex items-center space-x-2 text-sm">
-              <Phone className="h-4 w-4 text-zinc-400" />
-              <span className="text-zinc-600 dark:text-zinc-400">
-                {employee.phone}
-              </span>
-            </div>
+            <PhoneDisplay
+              value={employee.phone}
+              asLink
+              className="text-sm text-zinc-600 dark:text-zinc-400"
+            />
           </div>
 
           {/* Organization */}
