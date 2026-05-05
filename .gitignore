@@ -2,6 +2,7 @@
 
 # IDE and editor files
 .idea/
+.claude/
 
 # dependencies
 /node_modules

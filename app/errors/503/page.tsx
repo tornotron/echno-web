@@ -1,5 +1,5 @@
-
 import { ErrorLayout } from '@/components/errors/error-layout';
+import { ReloadButton } from '@/components/errors/reload-button';
 import { Construction } from 'lucide-react';
 
 /**
@@ -23,16 +23,12 @@ export default function ServiceUnavailablePage() {
       ]}
       actions={[
         {
-          label: 'Retry',
-          onClick: () => globalThis.location.reload(),
-          variant: 'default',
-        },
-        {
           label: 'Go to Dashboard',
           href: '/users/dashboard',
           variant: 'outline',
         },
       ]}
+      extraActions={<ReloadButton label="Retry" />}
       additionalInfo={
         <div className="space-y-2">
           <p className="font-medium">Maintenance Information</p>
