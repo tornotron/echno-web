@@ -1,5 +1,3 @@
-'use client';
-
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -20,10 +18,10 @@ export interface ErrorLayoutProps {
   reasons?: string[];
   actions?: {
     label: string;
-    href?: string;
-    onClick?: () => void;
+    href: string;
     variant?: 'default' | 'outline' | 'destructive';
   }[];
+  extraActions?: React.ReactNode;
   showSupport?: boolean;
   additionalInfo?: React.ReactNode;
 }
@@ -41,6 +39,7 @@ export function ErrorLayout({
   iconColor = 'text-muted-foreground',
   reasons,
   actions = [],
+  extraActions,
   showSupport = true,
   additionalInfo,
 }: ErrorLayoutProps) {
@@ -87,27 +86,17 @@ export function ErrorLayout({
           )}
 
           <div className="flex flex-col gap-2 pt-4">
-            {displayActions.map((action, index) =>
-              action.href ? (
-                <Button
-                  key={index}
-                  variant={action.variant}
-                  asChild
-                  className="w-full"
-                >
-                  <Link href={action.href}>{action.label}</Link>
-                </Button>
-              ) : (
-                <Button
-                  key={index}
-                  variant={action.variant}
-                  onClick={'onClick' in action ? action.onClick : undefined}
-                  className="w-full"
-                >
-                  {action.label}
-                </Button>
-              )
-            )}
+            {extraActions}
+            {displayActions.map((action, index) => (
+              <Button
+                key={index}
+                variant={action.variant}
+                asChild
+                className="w-full"
+              >
+                <Link href={action.href}>{action.label}</Link>
+              </Button>
+            ))}
           </div>
 
           {showSupport && (

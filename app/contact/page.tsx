@@ -47,14 +47,6 @@ export default function ContactPage() {
     }
   };
 
-  if (status === 'loading' || status === 'authenticated') {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-stone-50 dark:bg-zinc-950">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-amber-500" />
-      </div>
-    );
-  }
-
   const contactMethods = [
     {
       icon: Mail,
