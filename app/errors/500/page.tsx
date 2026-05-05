@@ -1,4 +1,3 @@
-'use client';
 
 import { ErrorLayout } from '@/components/errors/error-layout';
 import { ServerCrash } from 'lucide-react';

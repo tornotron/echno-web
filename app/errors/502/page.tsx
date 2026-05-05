@@ -1,4 +1,3 @@
-'use client';
 
 import { ErrorLayout } from '@/components/errors/error-layout';
 import { CloudOff } from 'lucide-react';
