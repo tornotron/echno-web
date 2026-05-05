@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Input } from '@/components/shadcn/input';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import { Button } from '@/components/shadcn/button';
 import { Checkbox } from '@/components/shadcn/checkbox';
@@ -320,13 +321,11 @@ export function RegistrationForm() {
           >
             Phone <span className="text-red-500">*</span>
           </Label>
-          <Input
-            variant="auth"
+          <PhoneInput
             id="phone"
-            type="tel"
             value={formData.phone}
-            onChange={(e) => handleChange('phone', e.target.value)}
-            placeholder="9876543210"
+            onChange={(value) => handleChange('phone', value || '')}
+            placeholder="+1 (555) 000-0000"
             aria-invalid={!!errors.phone}
           />
           {errors.phone && (
