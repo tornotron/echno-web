@@ -3,7 +3,6 @@ import {
   formatDate,
   formatDateShort,
   calculateAge,
-  formatPhoneNumber,
   formatEmail,
   getRoleDisplayName,
   formatExperience,
@@ -11,6 +10,7 @@ import {
   hasProfessionalInfo,
   getCompletionColor,
 } from '@/lib/utils/user-profile-utils';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { UserAvatar } from './user-avatar';
 import { ProfileCard, InfoField, InfoGrid, DataList } from './profile-cards';
 import { Badge } from '@/components/shadcn/badge';
@@ -81,12 +81,11 @@ export function UserProfileView({
                         orientation="vertical"
                         className="hidden h-4 sm:block"
                       />
-                      <div className="text-muted-foreground flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        <span className="text-sm">
-                          {formatPhoneNumber(user.phone)}
-                        </span>
-                      </div>
+                      <PhoneDisplay
+                        value={user.phone}
+                        asLink
+                        className="text-muted-foreground"
+                      />
                     </>
                   )}
                 </div>
@@ -200,20 +199,28 @@ export function UserProfileView({
             <InfoField
               label="Phone Number"
               value={
-                user.phone === 'Not Specified' ? undefined : (
-                  <a
-                    href={`tel:${user.phone}`}
-                    className="text-primary hover:underline"
-                  >
-                    {formatPhoneNumber(user.phone)}
-                  </a>
-                )
+                <PhoneDisplay
+                  value={
+                    user.phone === 'Not Specified' ? undefined : user.phone
+                  }
+                  asLink
+                />
               }
               icon={<Phone className="h-4 w-4" />}
             />
             <InfoField
               label="Emergency Contact"
-              value={user.emergencyContact}
+              value={
+                <PhoneDisplay
+                  value={
+                    user.emergencyContact === 'Not Specified'
+                      ? undefined
+                      : user.emergencyContact
+                  }
+                  asLink
+                  className="text-muted-foreground"
+                />
+              }
               icon={<AlertCircle className="h-4 w-4" />}
             />
           </InfoGrid>
