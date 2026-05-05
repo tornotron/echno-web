@@ -37,32 +37,32 @@ export function getEmployeeNavigationItems(
   return [
     {
       title: 'Dashboard',
-      href: '/users/dashboard/workforce/leaves',
+      href: '/users/dashboard/workforce/leaves/manage',
       icon: Calendar,
       description: 'Overview of your leave',
     },
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/apply',
+      href: '/users/dashboard/workforce/leaves/manage/requests/new',
       icon: Plus,
       description: 'Submit a new leave request',
     },
     {
       title: 'My Requests',
-      href: '/users/dashboard/workforce/leaves/requests',
+      href: '/users/dashboard/workforce/leaves/manage/requests',
       icon: FileText,
       description: 'View all your leave requests',
       badge: pendingCount,
     },
     {
       title: 'Leave Balance',
-      href: '/users/dashboard/workforce/leaves/balance',
+      href: '/users/dashboard/workforce/leaves/manage/balance',
       icon: TrendingUp,
       description: 'Check your leave balance',
     },
     {
       title: 'Leave Calendar',
-      href: '/users/dashboard/workforce/leaves/calendar',
+      href: '/users/dashboard/workforce/leaves/manage/calendar',
       icon: Calendar,
       description: 'View organization calendar',
     },
@@ -78,38 +78,38 @@ export function getManagerNavigationItems(
   return [
     {
       title: 'Dashboard',
-      href: '/users/dashboard/workforce/leaves',
+      href: '/users/dashboard/workforce/leaves/manage',
       icon: Calendar,
       description: 'Overview and team management',
     },
     {
       title: 'Pending Approvals',
-      href: '/users/dashboard/workforce/leaves/approvals',
+      href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
       icon: Clock,
       description: 'Review team leave requests',
       badge: pendingApprovals,
     },
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/apply',
+      href: '/users/dashboard/workforce/leaves/manage/requests/new',
       icon: Plus,
       description: 'Submit your leave request',
     },
     {
       title: 'My Requests',
-      href: '/users/dashboard/workforce/leaves/requests',
+      href: '/users/dashboard/workforce/leaves/manage/requests',
       icon: FileText,
       description: 'Your leave requests',
     },
     {
       title: 'Leave Balance',
-      href: '/users/dashboard/workforce/leaves/balance',
+      href: '/users/dashboard/workforce/leaves/manage/balance',
       icon: TrendingUp,
       description: 'Your leave balance',
     },
     {
       title: 'Team Calendar',
-      href: '/users/dashboard/workforce/leaves/calendar',
+      href: '/users/dashboard/workforce/leaves/manage/calendar',
       icon: Calendar,
       description: 'View team availability',
     },
@@ -125,32 +125,32 @@ export function getAdminNavigationItems(
   return [
     {
       title: 'Dashboard',
-      href: '/users/dashboard/workforce/leaves',
+      href: '/users/dashboard/workforce/leaves/manage',
       icon: Calendar,
       description: 'Organization overview',
     },
     {
       title: 'All Requests',
-      href: '/users/dashboard/workforce/leaves/requests',
+      href: '/users/dashboard/workforce/leaves/manage/requests',
       icon: FileText,
       description: 'View all leave requests',
     },
     {
       title: 'Pending Approvals',
-      href: '/users/dashboard/workforce/leaves/approvals',
+      href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
       icon: Clock,
       description: 'Review pending requests',
       badge: pendingApprovals,
     },
     {
       title: 'Leave Policies',
-      href: '/users/dashboard/workforce/leaves/policies',
+      href: '/users/dashboard/workforce/leaves/manage/policies',
       icon: Settings,
       description: 'Manage leave policies',
     },
     {
       title: 'Organization Calendar',
-      href: '/users/dashboard/workforce/leaves/calendar',
+      href: '/users/dashboard/workforce/leaves/manage/calendar',
       icon: Calendar,
       description: 'View organization calendar',
     },
@@ -163,13 +163,13 @@ export function getAdminNavigationItems(
     },
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/apply',
+      href: '/users/dashboard/workforce/leaves/manage/requests/new',
       icon: Plus,
       description: 'Submit your leave request',
     },
     {
       title: 'My Balance',
-      href: '/users/dashboard/workforce/leaves/balance',
+      href: '/users/dashboard/workforce/leaves/manage/balance',
       icon: TrendingUp,
       description: 'Your leave balance',
     },
@@ -203,17 +203,17 @@ export function getQuickActionItems(role: LeaveRole): LeaveNavigationItem[] {
   const baseActions: LeaveNavigationItem[] = [
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/apply',
+      href: '/users/dashboard/workforce/leaves/manage/requests/new',
       icon: Plus,
     },
     {
       title: 'My Requests',
-      href: '/users/dashboard/workforce/leaves/requests',
+      href: '/users/dashboard/workforce/leaves/manage/requests',
       icon: FileText,
     },
     {
       title: 'Leave Balance',
-      href: '/users/dashboard/workforce/leaves/balance',
+      href: '/users/dashboard/workforce/leaves/manage/balance',
       icon: TrendingUp,
     },
   ];
@@ -222,7 +222,7 @@ export function getQuickActionItems(role: LeaveRole): LeaveNavigationItem[] {
     return [
       {
         title: 'Pending Approvals',
-        href: '/users/dashboard/workforce/leaves/approvals',
+        href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
         icon: Users,
       },
       ...baseActions,
@@ -239,7 +239,7 @@ export function getAdminOnlyItems(): LeaveNavigationItem[] {
   return [
     {
       title: 'Leave Policies',
-      href: '/users/dashboard/workforce/leaves/policies',
+      href: '/users/dashboard/workforce/leaves/manage/policies',
       icon: Settings,
       description: 'Configure leave policies',
     },

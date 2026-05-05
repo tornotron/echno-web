@@ -584,7 +584,9 @@ export default function DashboardPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/dashboard/workforce/leaves')}
+                    onClick={() =>
+                      router.push('/users/dashboard/workforce/leaves')
+                    }
                     className="text-xs sm:text-sm"
                   >
                     View All

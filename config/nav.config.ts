@@ -40,9 +40,9 @@ import {
   Settings,
   Building,
   FileText,
-  Plus,
   GraduationCap,
   LayoutDashboard,
+  BarChart3,
 } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -122,7 +122,7 @@ function d(relativePath: string): string {
 export const navigation: NavItem[] = [
   // ====================== DASHBOARD ========================================
   {
-    label: 'Dashboard',
+    label: 'Home',
     segment: 'dashboard',
     path: d(''),
     icon: Home,
@@ -175,54 +175,43 @@ export const navigation: NavItem[] = [
         icon: Users,
       },
       {
-        label: 'Leave Management',
+        label: 'Employee Leave',
         segment: 'leaves',
         path: d('workforce/leaves'),
         icon: Calendar,
-        breadcrumb: 'Leave Management',
+        breadcrumb: 'Leaves',
         children: [
           {
-            label: 'My Requests',
-            segment: 'requests',
-            path: d('workforce/leaves/requests'),
-            icon: FileText,
-            breadcrumb: 'My Requests',
-          },
-          {
-            label: 'Organization Requests',
-            segment: 'organization-requests',
-            path: d('workforce/leaves/organization-requests'),
-            icon: FileText,
-          },
-          {
-            label: 'Apply for Leave',
-            segment: 'apply',
-            path: d('workforce/leaves/apply'),
-            icon: Plus,
-          },
-          {
-            label: 'Leave Calendar',
-            segment: 'calendar',
-            path: d('workforce/leaves/calendar'),
-            icon: Calendar,
-          },
-          {
-            label: 'Leave Balance',
-            segment: 'balance',
-            path: d('workforce/leaves/balance'),
-            icon: TrendingUp,
-          },
-          {
-            label: 'Leave Policies',
-            segment: 'policies',
-            path: d('workforce/leaves/policies'),
-            icon: Settings,
-          },
-          {
-            label: 'Leave Approvals',
-            segment: 'approvals',
-            path: d('workforce/leaves/approvals'),
-            icon: ClipboardCheck,
+            label: 'Leave Dashboard',
+            segment: 'manage',
+            path: d('workforce/leaves/manage'),
+            icon: LayoutDashboard,
+            children: [
+              {
+                label: 'Requests',
+                segment: 'requests',
+                path: d('workforce/leaves/manage/requests'),
+                icon: FileText,
+              },
+              {
+                label: 'Calendar',
+                segment: 'calendar',
+                path: d('workforce/leaves/manage/calendar'),
+                icon: Calendar,
+              },
+              {
+                label: 'Balance',
+                segment: 'balance',
+                path: d('workforce/leaves/manage/balance'),
+                icon: TrendingUp,
+              },
+              {
+                label: 'Policies',
+                segment: 'policies',
+                path: d('workforce/leaves/manage/policies'),
+                icon: Settings,
+              },
+            ],
           },
         ],
       },
