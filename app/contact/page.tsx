@@ -1,8 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { MarketingNav } from '@/features/home/components/marketing-nav';
 import { MarketingFooter } from '@/features/home/components/marketing-footer';
 import { useInView } from '@/hooks/use-in-view';
@@ -15,8 +13,6 @@ import { Label } from '@/components/shadcn/label';
 import { cn } from '@/lib/utils/index';
 
 export default function ContactPage() {
-  const { status } = useSession();
-  const router = useRouter();
   const { ref, isInView } = useInView<HTMLDivElement>({ threshold: 0.1 });
 
   const [form, setForm] = useState({
@@ -28,10 +24,6 @@ export default function ContactPage() {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-
-  useEffect(() => {
-    if (status === 'authenticated') router.push('/users/dashboard');
-  }, [status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
