@@ -13,17 +13,24 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
   Cell,
 } from 'recharts';
 import {
+  ChartCard,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  CHART_PALETTE,
+  type ChartConfig,
+} from '@/components/shadcn/chart';
+import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -42,7 +49,7 @@ import {
 } from '@/types/employee';
 import { cn } from '@/lib/utils/index';
 
-// ─── Colour palette ───────────────────────────────────────────────────────────
+// ─── Status colours + static ChartConfig ─────────────────────────────────────
 
 const STATUS_COLORS: Record<EmployeeStatus, string> = {
   [EmployeeStatus.active]: '#10b981',
@@ -54,24 +61,53 @@ const STATUS_COLORS: Record<EmployeeStatus, string> = {
   [EmployeeStatus.suspended]: '#8b5cf6',
 };
 
-const DEPT_COLORS = [
-  '#6366f1',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#ec4899',
-  '#06b6d4',
-  '#84cc16',
-  '#f97316',
-  '#8b5cf6',
-  '#14b8a6',
+/**
+ * Static config for status-based series — injects CSS vars like --color-active.
+ * Line/Area series use `stroke="var(--color-active)"` to pick them up.
+ */
+const EMPLOYEE_STATUS_CONFIG: ChartConfig = Object.fromEntries(
+  Object.entries(STATUS_COLORS).map(([status, color]) => [
+    status,
+    { label: getEmployeeStatusLabel(status as EmployeeStatus), color },
+  ])
+);
+
+const TENURE_CONFIG: ChartConfig = {
+  count: { label: 'Employees', color: CHART_PALETTE[0] },
+};
+
+// ─── Period selector ──────────────────────────────────────────────────────────
+
+type Period = 'month' | 'year';
+
+const PERIODS: { label: string; value: Period }[] = [
+  { label: 'Month', value: 'month' },
+  { label: 'Year', value: 'year' },
 ];
 
-type Period = 'day' | 'week' | 'month' | 'year';
+const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 // ─── Data helpers ─────────────────────────────────────────────────────────────
 
-function buildHiringTrend(employees: Employee[], period: Period) {
+function buildHiringTrend(
+  employees: Employee[],
+  period: Period,
+  trendYear: number,
+  trendMonth: number
+) {
   const withDates = employees.filter((e) => e.joiningDate);
   if (withDates.length === 0) return [];
 
@@ -79,87 +115,26 @@ function buildHiringTrend(employees: Employee[], period: Period) {
   type Bucket = { key: string; start: Date; end: Date };
   let buckets: Bucket[] = [];
 
-  switch (period) {
-    case 'day': {
-      buckets = Array.from({ length: 30 }, (_, i) => {
-        const d = new Date(now);
-        d.setDate(now.getDate() - (29 - i));
-        d.setHours(0, 0, 0, 0);
-        const end = new Date(d);
-        end.setHours(23, 59, 59, 999);
-        return {
-          key: d.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-          }),
-          start: d,
-          end,
-        };
-      });
-
-      break;
-    }
-    case 'week': {
-      buckets = Array.from({ length: 12 }, (_, i) => {
-        const start = new Date(now);
-        start.setDate(now.getDate() - (11 - i) * 7);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(start);
-        end.setDate(start.getDate() + 6);
-        end.setHours(23, 59, 59, 999);
-        return {
-          key: start.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: 'short',
-          }),
-          start,
-          end,
-        };
-      });
-
-      break;
-    }
-    case 'month': {
-      buckets = Array.from({ length: 12 }, (_, i) => {
-        const d = new Date(now.getFullYear(), now.getMonth() - (11 - i), 1);
-        const end = new Date(
-          d.getFullYear(),
-          d.getMonth() + 1,
-          0,
-          23,
-          59,
-          59,
-          999
-        );
-        return {
-          key: d.toLocaleDateString('en-GB', {
-            month: 'short',
-            year: '2-digit',
-          }),
-          start: d,
-          end,
-        };
-      });
-
-      break;
-    }
-    default: {
-      const years = withDates.map((e) =>
-        new Date(e.joiningDate!).getFullYear()
-      );
-      const minYear = Math.min(...years);
-      buckets = Array.from(
-        { length: now.getFullYear() - minYear + 1 },
-        (_, i) => {
-          const y = minYear + i;
-          return {
-            key: String(y),
-            start: new Date(y, 0, 1),
-            end: new Date(y, 11, 31, 23, 59, 59),
-          };
-        }
-      );
-    }
+  if (period === 'month') {
+    const daysInMonth = new Date(trendYear, trendMonth + 1, 0).getDate();
+    const weekRanges: { start: number; end: number }[] = [
+      { start: 1, end: 7 },
+      { start: 8, end: 14 },
+      { start: 15, end: 21 },
+      { start: 22, end: 28 },
+    ];
+    if (daysInMonth > 28) weekRanges.push({ start: 29, end: daysInMonth });
+    buckets = weekRanges.map(({ start, end }, i) => ({
+      key: `Wk ${i + 1}`,
+      start: new Date(trendYear, trendMonth, start, 0, 0, 0, 0),
+      end: new Date(trendYear, trendMonth, end, 23, 59, 59, 999),
+    }));
+  } else {
+    buckets = MONTHS.map((label, mi) => ({
+      key: label,
+      start: new Date(trendYear, mi, 1, 0, 0, 0, 0),
+      end: new Date(trendYear, mi + 1, 0, 23, 59, 59, 999),
+    })).filter(({ end }) => end <= now);
   }
 
   return buckets.map(({ key, start, end }) => {
@@ -175,6 +150,15 @@ function buildHiringTrend(employees: Employee[], period: Period) {
   });
 }
 
+function getAvailableMonths(year: number): { value: number; label: string }[] {
+  const now = new Date();
+  const maxMonth = year === now.getFullYear() ? now.getMonth() : 11;
+  return Array.from({ length: maxMonth + 1 }, (_, i) => ({
+    value: i,
+    label: `${MONTHS[i]} ${year}`,
+  }));
+}
+
 function getAvailableYears(employees: Employee[]): number[] {
   const years = new Set<number>();
   const now = new Date().getFullYear();
@@ -186,26 +170,10 @@ function getAvailableYears(employees: Employee[]): number[] {
 }
 
 function buildWorkforceByYear(employees: Employee[], year: number) {
-  const MONTHS = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
   const now = new Date();
-
   return MONTHS.map((month, mi) => {
     const monthEnd = new Date(year, mi + 1, 0, 23, 59, 59, 999);
     if (monthEnd > now) return null;
-
     const counts: Record<EmployeeStatus, number> = {
       [EmployeeStatus.active]: 0,
       [EmployeeStatus.inactive]: 0,
@@ -215,48 +183,15 @@ function buildWorkforceByYear(employees: Employee[], year: number) {
       [EmployeeStatus.resigned]: 0,
       [EmployeeStatus.suspended]: 0,
     };
-
     for (const emp of employees) {
       if (!emp.joiningDate) continue;
       const joined = new Date(emp.joiningDate);
       if (joined <= monthEnd) counts[emp.status]++;
     }
-
     return { month, ...counts };
   }).filter(Boolean) as ({ month: string } & Record<EmployeeStatus, number>)[];
 }
 
-function buildDeptHistogram(employees: Employee[]) {
-  const map = new Map<
-    string,
-    { active: number; inactive: number; other: number }
-  >();
-  for (const emp of employees) {
-    const label = emp.department
-      ? getDepartmentLabel(emp.department as Department)
-      : 'Unknown';
-    const entry = map.get(label) ?? { active: 0, inactive: 0, other: 0 };
-    if (emp.status === EmployeeStatus.active) entry.active++;
-    else if (
-      emp.status === EmployeeStatus.inactive ||
-      emp.status === EmployeeStatus.terminated ||
-      emp.status === EmployeeStatus.resigned
-    )
-      entry.inactive++;
-    else entry.other++;
-    map.set(label, entry);
-  }
-  return [...map.entries()]
-    .map(([dept, c]) => ({
-      dept,
-      ...c,
-      total: c.active + c.inactive + c.other,
-    }))
-    .toSorted((a, b) => b.total - a.total)
-    .slice(0, 10);
-}
-
-// Department distribution as pie data
 function buildDeptDist(employees: Employee[]) {
   const counts = new Map<string, number>();
   for (const emp of employees) {
@@ -290,29 +225,6 @@ function buildTenure(employees: Employee[]) {
   }));
 }
 
-// ─── Shared tooltip style ─────────────────────────────────────────────────────
-
-const tooltipStyle = {
-  contentStyle: {
-    backgroundColor: 'var(--popover)',
-    border: '1px solid var(--border)',
-    borderRadius: '6px',
-    fontSize: '12px',
-    color: 'var(--popover-foreground)',
-  },
-  itemStyle: { color: 'var(--popover-foreground)' },
-  labelStyle: { fontWeight: 600, color: 'var(--popover-foreground)' },
-};
-
-// ─── Period toggle ────────────────────────────────────────────────────────────
-
-const PERIODS: { label: string; value: Period }[] = [
-  { label: 'Day', value: 'day' },
-  { label: 'Week', value: 'week' },
-  { label: 'Month', value: 'month' },
-  { label: 'Year', value: 'year' },
-];
-
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface EmployeeChartsProps {
@@ -320,19 +232,28 @@ interface EmployeeChartsProps {
 }
 
 export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
-  const [period, setPeriod] = useState<Period>('month');
-
+  const [trendPeriod, setTrendPeriod] = useState<Period>('month');
+  const [trendYear, setTrendYear] = useState<number>(() =>
+    new Date().getFullYear()
+  );
+  const [trendMonth, setTrendMonth] = useState<number>(() =>
+    new Date().getMonth()
+  );
   const availableYears = useMemo(
     () => getAvailableYears(employees),
     [employees]
+  );
+  const availableMonths = useMemo(
+    () => getAvailableMonths(trendYear),
+    [trendYear]
   );
   const [selectedYear, setSelectedYear] = useState<number>(() =>
     new Date().getFullYear()
   );
 
   const hiringTrend = useMemo(
-    () => buildHiringTrend(employees, period),
-    [employees, period]
+    () => buildHiringTrend(employees, trendPeriod, trendYear, trendMonth),
+    [employees, trendPeriod, trendYear, trendMonth]
   );
   const workforceByYear = useMemo(
     () => buildWorkforceByYear(employees, selectedYear),
@@ -349,75 +270,145 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
     [employees]
   );
 
+  // Dynamic config for the pie chart (dept names are not compile-time constants)
+  const deptConfig = useMemo<ChartConfig>(
+    () =>
+      Object.fromEntries(
+        deptDist.map((d, i) => [
+          d.name,
+          { label: d.name, color: CHART_PALETTE[i % CHART_PALETTE.length] },
+        ])
+      ),
+    [deptDist]
+  );
+
+  const trendHeaderAction = (
+    <div className="flex shrink-0 items-center gap-2">
+      {trendPeriod === 'month' ? (
+        <Select
+          value={String(trendMonth)}
+          onValueChange={(v) => setTrendMonth(Number(v))}
+        >
+          <SelectTrigger className="h-7 w-28 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {availableMonths.map((m) => (
+              <SelectItem
+                key={m.value}
+                value={String(m.value)}
+                className="text-xs"
+              >
+                {m.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <Select
+          value={String(trendYear)}
+          onValueChange={(v) => setTrendYear(Number(v))}
+        >
+          <SelectTrigger className="h-7 w-20 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {availableYears.map((y) => (
+              <SelectItem key={y} value={String(y)} className="text-xs">
+                {y}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      <div className="flex shrink-0 overflow-hidden rounded-md border">
+        {PERIODS.map((p) => (
+          <Button
+            key={p.value}
+            variant="ghost"
+            size="xs"
+            onClick={() => setTrendPeriod(p.value)}
+            className={cn(
+              'rounded-none px-2.5 text-xs',
+              trendPeriod === p.value &&
+                'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
+            )}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  );
+
+  const yearSelect = (
+    <Select
+      value={String(selectedYear)}
+      onValueChange={(v) => setSelectedYear(Number(v))}
+    >
+      <SelectTrigger className="h-7 w-24 text-xs">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {availableYears.map((y) => (
+          <SelectItem key={y} value={String(y)} className="text-xs">
+            {y}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+
   return (
     <div className="space-y-4">
-      {/* Row 1 — Status Trend + Status Distribution Area */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {/* Status Trend Line Chart */}
-        <Card variant="panel" className="lg:col-span-2">
-          <CardHeader className="flex flex-row items-start justify-between gap-4 px-5 pt-5 pb-4">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold">
-                Employee Status Trend
-              </CardTitle>
-              <CardDescription className="text-xs">
-                New hires per period by current status
-              </CardDescription>
-            </div>
-            <div className="flex shrink-0 overflow-hidden rounded-md border">
-              {PERIODS.map((p) => (
-                <Button
-                  key={p.value}
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => setPeriod(p.value)}
-                  className={cn(
-                    'rounded-none px-2.5 text-xs',
-                    period === p.value &&
-                      'bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground'
-                  )}
-                >
-                  {p.label}
-                </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="px-2 pb-4">
-            <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={hiringTrend} margin={{ left: -10, right: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis
-                  dataKey="period"
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip {...tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                {activeStatuses.map((s) => (
-                  <Line
-                    key={s}
-                    type="monotone"
-                    dataKey={s}
-                    name={getEmployeeStatusLabel(s)}
-                    stroke={STATUS_COLORS[s]}
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4 }}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+      {/* Row 1 — Status Trend (1/2) + Department Distribution (1/2) */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        {/* Hiring trend — LineChart */}
+        <ChartCard
+          title="Employee Status Trend"
+          description={
+            trendPeriod === 'month'
+              ? `Weekly new hires by status — ${MONTHS[trendMonth]} ${trendYear}`
+              : `Monthly new hires by status — ${trendYear}`
+          }
+          config={EMPLOYEE_STATUS_CONFIG}
+          headerAction={trendHeaderAction}
+        >
+          <LineChart data={hiringTrend} margin={{ left: -10, right: 8 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis
+              dataKey="period"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            {activeStatuses.map((s) => (
+              <Line
+                key={s}
+                type="monotone"
+                dataKey={s}
+                stroke={`var(--color-${s})`}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 4 }}
+              />
+            ))}
+          </LineChart>
+        </ChartCard>
 
-        {/* Department Distribution — Pie Chart */}
+        {/*
+         * Department Distribution — PieChart with side legend.
+         * Uses a custom two-column layout inside CardContent, so we render the
+         * card shell manually and use ChartContainer directly for the pie.
+         */}
         <Card variant="panel">
           <CardHeader className="px-5 pt-5 pb-4">
             <div className="space-y-1">
@@ -431,36 +422,33 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
           </CardHeader>
           <CardContent className="px-4 pb-4">
             <div className="flex items-center gap-2">
-              {/* Pie */}
-              <div className="shrink-0" style={{ width: 180, height: 220 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={deptDist}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={52}
-                      outerRadius={80}
-                      paddingAngle={2}
-                      dataKey="value"
-                      label={({ value }) => value}
-                      labelLine={false}
-                    >
-                      {deptDist.map((_, i) => (
-                        <Cell
-                          key={i}
-                          fill={DEPT_COLORS[i % DEPT_COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      {...tooltipStyle}
-                      formatter={(value, name) => [value, name]}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              {/* Custom right legend */}
+              <ChartContainer
+                config={deptConfig}
+                className="h-[220px] w-[180px] shrink-0"
+              >
+                <PieChart>
+                  <Pie
+                    data={deptDist}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={52}
+                    outerRadius={80}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ value }) => value}
+                    labelLine={false}
+                  >
+                    {deptDist.map((_, i) => (
+                      <Cell
+                        key={i}
+                        fill={CHART_PALETTE[i % CHART_PALETTE.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                </PieChart>
+              </ChartContainer>
+              {/* Side legend — kept custom for the two-column pie layout */}
               <div
                 className="flex min-w-0 flex-1 flex-col gap-1.5 overflow-y-auto"
                 style={{ maxHeight: 220 }}
@@ -470,7 +458,8 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
                     <span
                       className="size-2 shrink-0 rounded-full"
                       style={{
-                        backgroundColor: DEPT_COLORS[i % DEPT_COLORS.length],
+                        backgroundColor:
+                          CHART_PALETTE[i % CHART_PALETTE.length],
                       }}
                     />
                     <span className="flex-1 truncate text-xs text-zinc-600 dark:text-zinc-400">
@@ -487,142 +476,104 @@ export function EmployeeCharts({ employees = [] }: EmployeeChartsProps) {
         </Card>
       </div>
 
-      {/* Row 3 — Workforce Growth Area + Tenure */}
+      {/* Row 2 — Workforce Growth (1/2) + Tenure (1/2) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card variant="panel">
-          <CardHeader className="flex flex-row items-start justify-between gap-4 px-5 pt-5 pb-4">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold">
-                Workforce Growth
-              </CardTitle>
-              <CardDescription className="text-xs">
-                Cumulative headcount by status — {selectedYear}
-              </CardDescription>
-            </div>
-            <Select
-              value={String(selectedYear)}
-              onValueChange={(v) => setSelectedYear(Number(v))}
-            >
-              <SelectTrigger className="h-7 w-24 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableYears.map((y) => (
-                  <SelectItem key={y} value={String(y)} className="text-xs">
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardHeader>
-          <CardContent className="px-2 pb-4">
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart
-                data={workforceByYear}
-                margin={{ left: -10, right: 8 }}
-              >
-                <defs>
-                  {activeStatuses.map((s) => (
-                    <linearGradient
-                      key={s}
-                      id={`grad-${s}`}
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor={STATUS_COLORS[s]}
-                        stopOpacity={0.3}
-                      />
-                      <stop
-                        offset="95%"
-                        stopColor={STATUS_COLORS[s]}
-                        stopOpacity={0.03}
-                      />
-                    </linearGradient>
-                  ))}
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <Tooltip {...tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                {activeStatuses.map((s) => (
-                  <Area
-                    key={s}
-                    type="monotone"
-                    dataKey={s}
-                    name={getEmployeeStatusLabel(s)}
-                    stroke={STATUS_COLORS[s]}
-                    strokeWidth={2}
-                    fill={`url(#grad-${s})`}
-                  />
-                ))}
-              </AreaChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard
+          title="Tenure Distribution"
+          description="How long employees have been with the organization"
+          config={TENURE_CONFIG}
+        >
+          <BarChart
+            data={tenure}
+            layout="vertical"
+            margin={{ left: 8, right: 16 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--border)"
+              horizontal={false}
+            />
+            <XAxis
+              type="number"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <YAxis
+              type="category"
+              dataKey="tenure"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={52}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Bar dataKey="count" radius={[0, 3, 3, 0]}>
+              {tenure.map((_, i) => (
+                <Cell key={i} fill={CHART_PALETTE[i % CHART_PALETTE.length]} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ChartCard>
 
-        <Card variant="panel">
-          <CardHeader className="px-5 pt-5 pb-4">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-semibold">
-                Tenure Distribution
-              </CardTitle>
-              <CardDescription className="text-xs">
-                How long employees have been with the organization
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent className="px-2 pb-4">
-            <ResponsiveContainer width="100%" height={220}>
-              <BarChart
-                data={tenure}
-                layout="vertical"
-                margin={{ left: 8, right: 16 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="var(--border)"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  allowDecimals={false}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="tenure"
-                  tick={{ fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  width={52}
-                />
-                <Tooltip {...tooltipStyle} />
-                <Bar dataKey="count" name="Employees" radius={[0, 3, 3, 0]}>
-                  {tenure.map((_, i) => (
-                    <Cell key={i} fill={DEPT_COLORS[i % DEPT_COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
+        <ChartCard
+          title="Workforce Growth"
+          description={`Cumulative headcount by status — ${selectedYear}`}
+          config={EMPLOYEE_STATUS_CONFIG}
+          headerAction={yearSelect}
+        >
+          <AreaChart data={workforceByYear} margin={{ left: -10, right: 8 }}>
+            <defs>
+              {activeStatuses.map((s) => (
+                <linearGradient
+                  key={s}
+                  id={`empGrad-${s}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="5%"
+                    stopColor={`var(--color-${s})`}
+                    stopOpacity={0.3}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor={`var(--color-${s})`}
+                    stopOpacity={0.03}
+                  />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            {activeStatuses.map((s) => (
+              <Area
+                key={s}
+                type="monotone"
+                dataKey={s}
+                stroke={`var(--color-${s})`}
+                fill={`url(#empGrad-${s})`}
+                strokeWidth={2}
+              />
+            ))}
+          </AreaChart>
+        </ChartCard>
       </div>
     </div>
   );
