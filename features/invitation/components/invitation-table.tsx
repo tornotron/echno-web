@@ -111,7 +111,7 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
   };
 
   return (
-    <Card>
+    <Card className="gap-0 py-0">
       {/* Search & filter bar */}
       <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
         <div className="relative w-full max-w-xs">
@@ -191,7 +191,7 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="overflow-x-auto p-0">
         <Table>
           <TableHeader>
             <TableRow>
