@@ -1,5 +1,5 @@
-
 import { ErrorLayout } from '@/components/errors/error-layout';
+import { ReloadButton } from '@/components/errors/reload-button';
 import { CloudOff } from 'lucide-react';
 
 /**
@@ -23,16 +23,12 @@ export default function BadGatewayPage() {
       ]}
       actions={[
         {
-          label: 'Try Again',
-          onClick: () => globalThis.location.reload(),
-          variant: 'default',
-        },
-        {
           label: 'Go to Dashboard',
           href: '/users/dashboard',
           variant: 'outline',
         },
       ]}
+      extraActions={<ReloadButton label="Try Again" />}
       additionalInfo={
         <div className="space-y-2">
           <p className="font-medium">This is usually temporary</p>

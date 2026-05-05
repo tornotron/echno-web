@@ -20,7 +20,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useProjects } from '@/hooks/project/use-projects';
 import { useTasks } from '@/hooks/task/use-tasks';
 import { useIssues } from '@/hooks/issue/use-issues';
@@ -160,9 +160,11 @@ export function AppLayout({ children, floatingChat }: AppLayoutProps) {
   return (
     <OrganizationProvider>
       <SidebarProvider>
-        <AppLayoutContent floatingChat={floatingChat}>
-          {children}
-        </AppLayoutContent>
+        <Suspense fallback={null}>
+          <AppLayoutContent floatingChat={floatingChat}>
+            {children}
+          </AppLayoutContent>
+        </Suspense>
       </SidebarProvider>
     </OrganizationProvider>
   );
