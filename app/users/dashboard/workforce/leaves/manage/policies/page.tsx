@@ -1,5 +1,5 @@
 /**
- * app/users/dashboard/workforce/leaves/policies/page.tsx
+ * app/users/dashboard/workforce/leaves/manage/policies/page.tsx
  *
  * Admin-only leave policy management page.
  * Reuses LeavePoliciesManager component with additional statistics.
@@ -27,13 +27,14 @@ import {
   Calendar,
   Users,
   AlertCircle,
+  Download,
 } from 'lucide-react';
 import { LeavePoliciesManager } from '@/features/leave/components/leave-policies-manager';
 import { TableSkeleton } from '@/features/leave/components/skeletons';
-import { StatCard } from '@/features/leave/components/stat-card';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useAllLeavePolicies } from '@/hooks/leave/use-leave';
 import { useUser } from '@/hooks/user/use-user';
+import { PageHeader } from '@/components/common';
 
 export default function LeavePoliciesPage() {
   const router = useRouter();
@@ -69,7 +70,9 @@ export default function LeavePoliciesPage() {
         <Button
           variant="outline"
           className="mt-4"
-          onClick={() => router.push('/users/dashboard/workforce/leaves')}
+          onClick={() =>
+            router.push('/users/dashboard/workforce/leaves/manage')
+          }
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard
@@ -79,97 +82,71 @@ export default function LeavePoliciesPage() {
   }
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight">
-            <Shield className="h-8 w-8" />
-            Leave Policy Management
-          </h1>
-          <p className="text-muted-foreground">
-            Configure and manage organization leave policies
-          </p>
-        </div>
-        <Badge variant="secondary" className="text-sm">
-          Admin Only
-        </Badge>
-      </div>
+      <PageHeader
+        title="Leave Policy Management"
+        description="Configure and manage organization leave policies"
+        badge={
+          <Badge variant="secondary" className="text-sm">
+            Admin Only
+          </Badge>
+        }
+      />
 
-      {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          icon={Settings}
-          label="Total Policies"
-          value={totalPolicies}
-          color="blue"
-          description="configured for organization"
-        />
-        <StatCard
-          icon={CheckCircle}
-          label="Active Policies"
-          value={activePolicies}
-          color="green"
-          description="currently in use"
-        />
-        <StatCard
-          icon={XCircle}
-          label="Inactive Policies"
-          value={inactivePolicies}
-          color="gray"
-          description="disabled or archived"
-        />
-      </div>
-
-      {/* Policy Compliance Overview */}
-      {policies && policies.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Policy Compliance</CardTitle>
-            <CardDescription>
-              Overview of policy configurations and compliance status
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {policies.slice(0, 5).map((policy) => (
-                <div
-                  key={policy.id}
-                  className="flex items-center justify-between border-b pb-3 last:border-0"
-                >
-                  <div className="space-y-1">
-                    <p className="font-medium">{policy.leaveTypeName}</p>
-                    <p className="text-muted-foreground text-sm">
-                      {policy.description || 'No description provided'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={policy.isActive ? 'default' : 'secondary'}>
-                      {policy.isActive ? 'Active' : 'Inactive'}
-                    </Badge>
-                    <Badge variant="outline" className="font-mono">
-                      <Calendar className="mr-1 h-3 w-3" />
-                      {policy.annualQuota || 0} days
-                    </Badge>
-                    {policy.carryForwardLimit &&
-                      policy.carryForwardLimit > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          CF: {policy.carryForwardLimit}d
-                        </Badge>
-                      )}
-                  </div>
-                </div>
-              ))}
-
-              {policies.length > 5 && (
-                <p className="text-muted-foreground pt-2 text-center text-sm">
-                  + {policies.length - 5} more policies
-                </p>
-              )}
+      {/* Statistics */}
+      <Card className="gap-0 p-6">
+        <div className="divide-border grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <div className="flex flex-col gap-1 py-6 sm:py-0 sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Policies
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {totalPolicies}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <Settings className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              configured for organisation
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 py-6 sm:px-6 sm:py-0">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Active Policies
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {activePolicies}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CheckCircle className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              currently in use
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 py-6 sm:py-0 sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Inactive Policies
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-500 dark:text-zinc-400">
+                {inactivePolicies}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <XCircle className="size-4 text-zinc-500 dark:text-zinc-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              disabled or archived
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Info Alert */}
       <Alert>
@@ -194,9 +171,11 @@ export default function LeavePoliciesPage() {
       {/* Main Policy Manager Component */}
       <Card>
         <CardHeader>
-          <CardTitle>Policy Configuration</CardTitle>
-          <CardDescription>
-            Create, edit, and manage leave policies for your organization
+          <CardTitle className="text-sm font-semibold">
+            Policy Configuration
+          </CardTitle>
+          <CardDescription className="text-xs">
+            Create, Edit, and Manage leave policies for your organization
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -218,11 +197,11 @@ export default function LeavePoliciesPage() {
       {/* Usage Statistics (Placeholder) */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
             <Users className="h-5 w-5" />
             Policy Usage Statistics
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs">
             Employee enrollment and usage patterns
           </CardDescription>
         </CardHeader>
