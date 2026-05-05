@@ -90,9 +90,9 @@ export function EmployeeOverview({ employees }: EmployeeOverviewProps) {
 
   return (
     <Card className="gap-0 p-6">
-      <div className="sm:divide-border grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-0 sm:divide-x">
+      <div className="divide-border grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {/* Donut chart */}
-        <div className="flex items-center justify-center gap-4 sm:pr-8">
+        <div className="flex items-center justify-center gap-4 py-6 sm:py-0 sm:pr-8">
           <svg width="120" height="120" viewBox="0 0 100 100">
             <defs>
               <linearGradient
@@ -150,7 +150,7 @@ export function EmployeeOverview({ employees }: EmployeeOverviewProps) {
         </div>
 
         {/* Recently Joined */}
-        <div className="sm:px-8">
+        <div className="py-6 sm:px-8 sm:py-0">
           <p className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Recent Recruits
           </p>
@@ -189,7 +189,7 @@ export function EmployeeOverview({ employees }: EmployeeOverviewProps) {
         </div>
 
         {/* Quick Actions */}
-        <div className="sm:pl-8">
+        <div className="py-6 sm:py-0 sm:pl-8">
           <p className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
             Quick Actions
           </p>
