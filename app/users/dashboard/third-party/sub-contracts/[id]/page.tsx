@@ -10,6 +10,7 @@ import {
 } from '@/components/shadcn/card';
 import { Separator } from '@/components/shadcn/separator';
 import { Badge } from '@/components/shadcn/badge';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   Edit,
   Trash2,
@@ -223,9 +224,11 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     <Phone className="h-3 w-3" />
                     <span>Phone</span>
                   </label>
-                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {subContract.phone}
-                  </p>
+                  <PhoneDisplay
+                    value={subContract.phone}
+                    asLink
+                    numberClassName="text-base text-zinc-900 dark:text-zinc-100"
+                  />
                 </div>
                 <div>
                   <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">

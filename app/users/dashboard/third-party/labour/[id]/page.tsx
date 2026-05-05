@@ -8,6 +8,7 @@ import {
 } from '@/components/shadcn/card';
 import { Separator } from '@/components/shadcn/separator';
 import { Badge } from '@/components/shadcn/badge';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   Edit,
   Trash2,
@@ -127,9 +128,11 @@ export default function LabourDetailPage({ params }: PageProps) {
                     <Phone className="h-3 w-3" />
                     <span>Phone</span>
                   </label>
-                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {labour.phone}
-                  </p>
+                  <PhoneDisplay
+                    value={labour.phone}
+                    asLink
+                    numberClassName="text-base text-zinc-900 dark:text-zinc-100"
+                  />
                 </div>
                 <div>
                   <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
@@ -232,9 +235,11 @@ export default function LabourDetailPage({ params }: PageProps) {
                   <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
                     {labour.contractorName}
                   </p>
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    {labour.contractorPhone}
-                  </p>
+                  <PhoneDisplay
+                    value={labour.contractorPhone}
+                    asLink
+                    className="text-zinc-500 dark:text-zinc-500"
+                  />
                 </div>
               </div>
             </CardContent>
@@ -381,9 +386,11 @@ export default function LabourDetailPage({ params }: PageProps) {
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                     Phone
                   </label>
-                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {labour.emergencyContactPhone || 'Not provided'}
-                  </p>
+                  <PhoneDisplay
+                    value={labour.emergencyContactPhone}
+                    asLink
+                    numberClassName="text-base text-zinc-900 dark:text-zinc-100"
+                  />
                 </div>
               </div>
             </CardContent>
