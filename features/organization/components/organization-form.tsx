@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
+import { PhoneInput } from '@/components/shadcn/phone-input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import {
@@ -305,14 +306,13 @@ export function OrganizationForm({
               <Label htmlFor="organizationPhone">
                 Phone <span className="text-red-500">*</span>
               </Label>
-              <Input
+              <PhoneInput
                 id="organizationPhone"
                 value={formData.organizationPhone}
-                onChange={(e) =>
-                  handleChange('organizationPhone', e.target.value)
+                onChange={(value) =>
+                  handleChange('organizationPhone', value || '')
                 }
-                placeholder="+91 XX XXXX XXXX"
-                className={errors.organizationPhone ? 'border-red-500' : ''}
+                aria-invalid={!!errors.organizationPhone}
               />
               {errors.organizationPhone && (
                 <p className="text-sm text-red-500">

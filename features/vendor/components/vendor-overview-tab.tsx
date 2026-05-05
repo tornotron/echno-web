@@ -43,11 +43,11 @@ import {
   Globe,
   Mail,
   MapPin,
-  Phone,
   Plus,
   Receipt,
   Trash2,
 } from 'lucide-react';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   useVendorPaymentTerms,
   useSetVendorPaymentTerms,
@@ -151,12 +151,7 @@ export function VendorOverviewTab({
                 {vendor.phone && (
                   <VendorField
                     label="Phone"
-                    value={
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-3.5 w-3.5 text-zinc-400" />
-                        {vendor.phone}
-                      </span>
-                    }
+                    value={<PhoneDisplay value={vendor.phone} asLink />}
                   />
                 )}
                 <VendorField
