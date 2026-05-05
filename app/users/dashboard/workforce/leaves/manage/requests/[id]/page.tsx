@@ -1,5 +1,5 @@
 /**
- * app/users/dashboard/workforce/leaves/requests/[id]/page.tsx
+ * app/users/dashboard/workforce/leaves/manage/requests/[id]/page.tsx
  *
  * Leave request details page with full information
  */
@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   useLeaveRequest,
   useEmployeeRequests,
@@ -69,6 +70,7 @@ import { useCurrentUserEmployee } from '@/hooks/employee';
 import { LeaveStatus, ApprovalAction } from '@/types/leave';
 import { toast } from '@/lib/styles/toast-styles';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
+import { PageHeader } from '@/components/common';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -82,12 +84,13 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const from = searchParams.get('from');
 
   const backUrlMap: Record<string, string> = {
-    'my-requests': '/users/dashboard/workforce/leaves/requests',
-    'org-requests': '/users/dashboard/workforce/leaves/organization-requests',
-    approvals: '/users/dashboard/workforce/leaves/approvals',
-    'employee-dashboard': '/users/dashboard/workforce/leaves',
-    'manager-dashboard': '/users/dashboard/workforce/leaves',
-    'admin-dashboard': '/users/dashboard/workforce/leaves',
+    'my-requests': '/users/dashboard/workforce/leaves/manage/requests?tab=my',
+    'org-requests': '/users/dashboard/workforce/leaves/manage/requests?tab=all',
+    approvals:
+      '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
+    'employee-dashboard': '/users/dashboard/workforce/leaves/manage',
+    'manager-dashboard': '/users/dashboard/workforce/leaves/manage',
+    'admin-dashboard': '/users/dashboard/workforce/leaves/manage',
   };
   const backUrl = from ? backUrlMap[from] : null;
 
@@ -157,7 +160,9 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       toast.success('Leave request approved successfully');
       setShowApproveForm(false);
       setApproveComments('');
-      router.push('/users/dashboard/workforce/leaves/approvals');
+      router.push(
+        '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+      );
     } catch (error) {
       toast.error('Failed to approve leave request');
       console.error('Approve error:', error);
@@ -184,7 +189,9 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       toast.success('Leave request rejected');
       setShowRejectForm(false);
       setRejectComments('');
-      router.push('/users/dashboard/workforce/leaves/approvals');
+      router.push(
+        '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+      );
     } catch (error) {
       toast.error('Failed to reject leave request');
       console.error('Reject error:', error);
@@ -208,7 +215,9 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       setShowDelegateForm(false);
       setDelegateComments('');
       setDelegateToId('');
-      router.push('/users/dashboard/workforce/leaves/approvals');
+      router.push(
+        '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+      );
     } catch (error) {
       toast.error('Failed to delegate leave request');
       console.error('Delegate error:', error);
@@ -233,7 +242,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       if (backUrl) {
         router.push(backUrl);
       } else {
-        router.push('/users/dashboard/workforce/leaves/requests');
+        router.push('/users/dashboard/workforce/leaves/manage/requests');
       }
     } catch (error) {
       toast.error('Failed to cancel leave request');
@@ -275,34 +284,27 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       request.status === LeaveStatus.APPROVED);
 
   return (
-    <div className="container mx-auto space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Leave Request Details
-          </h1>
-          <p className="text-muted-foreground">
-            Request #{request.requestNumber}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <LeaveStatusBadge status={request.status} />
-          {canEdit && (
+      <PageHeader
+        title="Leave Request Details"
+        description={`Request #${request.requestNumber}`}
+        badge={<LeaveStatusBadge status={request.status} />}
+        actions={
+          canEdit && (
             <Button
               variant="outline"
               onClick={() =>
                 router.push(
-                  `/users/dashboard/workforce/leaves/apply?edit=${request.id}`
+                  `/users/dashboard/workforce/leaves/manage/requests/new?edit=${request.id}`
                 )
               }
             >
               Edit Request
             </Button>
-          )}
-        </div>
-      </div>
+          )
+        }
+      />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
@@ -310,8 +312,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
           {/* Leave Details Card */}
           <Card>
             <CardHeader>
-              <CardTitle>Leave Information</CardTitle>
-              <CardDescription>Details about the leave request</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                Leave Information
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Details about the leave request
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Employee Info */}
@@ -328,7 +334,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
               {/* Leave Type */}
               <div>
                 <p className="text-muted-foreground mb-2 text-sm">Leave Type</p>
-                <Badge variant="outline" className="text-base">
+                <Badge variant="outline" className="text-xm">
                   {request.leaveTypeName || 'N/A'}
                 </Badge>
               </div>
@@ -405,9 +411,11 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                         Contact During Leave
                       </p>
                     </div>
-                    <p className="text-muted-foreground text-sm">
-                      {request.contactDuringLeave}
-                    </p>
+                    <PhoneDisplay
+                      value={request.contactDuringLeave}
+                      asLink
+                      className="text-muted-foreground"
+                    />
                   </div>
                 </>
               )}
@@ -437,11 +445,11 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
           {canApproveRequest && isPending && (
             <Card className="border-yellow-500/50 bg-yellow-500/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold">
                   <AlertCircle className="h-5 w-5 text-yellow-600" />
                   Action Required
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   You can approve, reject, or delegate this leave request
                 </CardDescription>
               </CardHeader>
@@ -663,7 +671,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
           {/* Request Metadata */}
           <Card>
             <CardHeader>
-              <CardTitle>Request Information</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Request Information
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Metadata about this leave request
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -716,8 +729,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
           {/* Approval History Timeline */}
           <Card>
             <CardHeader>
-              <CardTitle>Approval History</CardTitle>
-              <CardDescription>Timeline of approval actions</CardDescription>
+              <CardTitle className="text-sm font-semibold">
+                Approval History
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Timeline of approval actions
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {approvalHistory && approvalHistory.length > 0 ? (
@@ -795,7 +812,9 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
           {/* Quick Actions */}
           <Card>
             <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
+              <CardTitle className="text-sm font-semibold">
+                Quick Actions
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <Button
@@ -812,7 +831,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   className="w-full justify-start"
                   onClick={() =>
                     router.push(
-                      `/users/dashboard/workforce/leaves/apply?edit=${request.id}`
+                      `/users/dashboard/workforce/leaves/manage/requests/new?edit=${request.id}`
                     )
                   }
                 >
