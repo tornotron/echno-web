@@ -7,6 +7,7 @@ import {
 } from '@/components/shadcn/card';
 import { Separator } from '@/components/shadcn/separator';
 import { Mail, Phone, Globe, Users, Briefcase } from 'lucide-react';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
 import type { Organization } from '@/types/organization/organization';
 
@@ -53,9 +54,11 @@ export function OrganizationOverviewTab({
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Phone
                 </p>
-                <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {organization.organizationPhone}
-                </p>
+                <PhoneDisplay
+                  value={organization.organizationPhone}
+                  asLink
+                  numberClassName="font-medium text-zinc-900 dark:text-zinc-100"
+                />
               </div>
             </div>
             {organization.organizationWebsite && (
