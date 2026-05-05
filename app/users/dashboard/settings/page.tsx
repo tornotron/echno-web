@@ -157,7 +157,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-4xl space-y-6 py-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
