@@ -36,7 +36,8 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { Pagination } from '@/components/common';
-import { Mail, Phone } from 'lucide-react';
+import { Mail } from 'lucide-react';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { EmployeeProjectsCell } from './employee-projects-cell';
 import { EmployeeStatusBadge } from './employee-status-badge';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
@@ -116,7 +117,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
   };
 
   return (
-    <Card>
+    <Card className="gap-0 py-0">
       {/* Search & filter bar */}
       <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
         <div className="relative w-full max-w-xs">
@@ -181,7 +182,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-0">
+      <CardContent className="overflow-x-auto p-0">
         <Table>
           <TableHeader>
             <TableRow>
@@ -281,12 +282,11 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                         {employee.email}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2 text-sm">
-                      <Phone className="h-3 w-3 text-zinc-400" />
-                      <span className="text-zinc-600 dark:text-zinc-400">
-                        {employee.phone}
-                      </span>
-                    </div>
+                    <PhoneDisplay
+                      value={employee.phone}
+                      asLink
+                      className="text-zinc-600 dark:text-zinc-400"
+                    />
                   </div>
                 </TableCell>
                 <TableCell>

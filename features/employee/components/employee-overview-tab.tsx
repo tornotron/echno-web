@@ -1,4 +1,5 @@
 import { Badge } from '@/components/shadcn/badge';
+import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -285,9 +286,11 @@ export function EmployeeOverviewTab({
                 <p className="text-sm text-zinc-600 dark:text-zinc-400">
                   Phone
                 </p>
-                <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {employee.phone}
-                </p>
+                <PhoneDisplay
+                  value={employee.phone}
+                  asLink
+                  numberClassName="font-medium text-zinc-900 dark:text-zinc-100"
+                />
               </div>
             </div>
             <Separator />
