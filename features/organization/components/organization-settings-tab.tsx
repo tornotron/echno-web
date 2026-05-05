@@ -152,7 +152,7 @@ export function OrganizationSettingsTab({
               Configure leave types, accrual rules, and policy settings for
               employees.
             </p>
-            <Link href="/users/dashboard/workforce/leaves/policies">
+            <Link href="/users/dashboard/workforce/leaves/manage/policies">
               <Button>
                 <Settings className="mr-2 h-4 w-4" />
                 Go to Leave Policy Management
