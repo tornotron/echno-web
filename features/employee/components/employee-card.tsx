@@ -71,7 +71,7 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
             <PhoneDisplay
               value={employee.phone}
               asLink
-              className="text-sm text-zinc-600 dark:text-zinc-400"
+              numberClassName="text-sm text-zinc-600 dark:text-zinc-400"
             />
           </div>
 
