@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
-import { handleSignOut } from '@/lib/utils/auth-utils';
+import { handleSignOut } from '@/lib/auth/auth-utils';
 import { LogIn, LogOut, UserPlus, Loader2 } from 'lucide-react';
 
 export function AuthButton() {
