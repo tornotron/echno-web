@@ -109,26 +109,32 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token_endpoint_auth_method: 'none',
       },
     }),
-    Credentials({
-      name: 'Credentials',
-      credentials: {
-        email: { label: 'Email', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (
-          credentials?.email === 'admin@echno.com' &&
-          credentials?.password === '$7zqY*u68'
-        ) {
-          return {
-            id: 'mock-user-id',
-            name: 'Mock Admin',
-            email: 'admin@echno.com',
-          };
-        }
-        return null;
-      },
-    }),
+    // Mock credentials provider — DEVELOPMENT ONLY.
+    // Hard-coded credentials must never be reachable in production.
+    ...(process.env.NODE_ENV === 'production'
+      ? []
+      : [
+          Credentials({
+            name: 'Credentials',
+            credentials: {
+              email: { label: 'Email', type: 'text' },
+              password: { label: 'Password', type: 'password' },
+            },
+            async authorize(credentials) {
+              if (
+                credentials?.email === 'admin@echno.com' &&
+                credentials?.password === '$7zqY*u68'
+              ) {
+                return {
+                  id: 'mock-user-id',
+                  name: 'Mock Admin',
+                  email: 'admin@echno.com',
+                };
+              }
+              return null;
+            },
+          }),
+        ]),
   ],
 
   callbacks: {
@@ -171,7 +177,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             sessionExpiresInSeconds: account.refresh_expires_in,
           });
 
-          // Fetch user profile to get the real defaultOrganizationId
+          // Fetch user profile to get the real defaultOrganizationId.
+          // Bounded by a short timeout: a slow backend must not stall login.
+          // On timeout/failure we proceed without it — the field can be
+          // hydrated later on the first authenticated page render.
+          const controller = new AbortController();
+          const timeoutId = setTimeout(
+            () => controller.abort(),
+            TOKEN_REFRESH.USER_PROFILE_FETCH_TIMEOUT_MS
+          );
           try {
             const backendUrl = process.env.BACKEND_API_URL;
             const res = await fetch(`${backendUrl}/user/web`, {
@@ -179,6 +193,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 Authorization: `Bearer ${account.access_token}`,
                 'Content-Type': 'application/json',
               },
+              signal: controller.signal,
             });
             if (res.ok) {
               const userData = await res.json();
@@ -193,7 +208,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               });
             }
           } catch (error) {
-            logger.error('Error fetching user profile on login', error);
+            if (error instanceof Error && error.name === 'AbortError') {
+              logger.warn(
+                'User profile fetch timed out during login; continuing without defaultOrganizationId',
+                {
+                  timeoutMs: TOKEN_REFRESH.USER_PROFILE_FETCH_TIMEOUT_MS,
+                }
+              );
+            } else {
+              logger.error('Error fetching user profile on login', error);
+            }
+          } finally {
+            clearTimeout(timeoutId);
           }
         }
       }
@@ -285,14 +311,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
       session.user.defaultOrganizationId =
         (token.defaultOrganizationId as string) ?? '';
-      session.user.organizationId = session.user.defaultOrganizationId;
 
-      // Minimal session data to reduce cookie size
+      // Client-visible session data. Do NOT expose tokens here — anything
+      // placed on the session object is returned in plaintext to the browser
+      // via /api/auth/session. Server-side code that needs the access/id/
+      // refresh token must read the encrypted JWT directly (see
+      // lib/auth/get-session-tokens.ts).
       session.provider = token.provider;
       session.expiresAt = token.expiresAt;
       session.sessionExpiresAt = token.sessionExpiresAt as number | undefined;
       session.sessionId = token.sessionId;
-      session.accessToken = token.accessToken as string;
 
       if (token.error) {
         session.error = token.error;
