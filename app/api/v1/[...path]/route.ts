@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth } from '@/auth';
+import { getSessionTokens } from '@/lib/auth/get-session-tokens';
+import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 
 // Server-side only env var (not exposed to client)
@@ -102,7 +103,22 @@ async function proxyRequest(
   }
 
   const { path } = await params;
-  const session = await auth();
+
+  // Pull access token from the encrypted JWT cookie server-side. The token is
+  // never exposed to the browser — `getSessionTokens` decrypts the cookie that
+  // rode in with this request and gives us the access token to forward upstream.
+  const tokens = await getSessionTokens();
+
+  // getSessionTokens skips the NextAuth `jwt()` callback (which is where
+  // revocation is normally checked) — so we must check explicitly here.
+  // Revoked sessions can still hold a valid-looking cookie until it expires;
+  // this enforces logout-effective-immediately on the BFF surface.
+  if (tokens?.sessionId && isSessionRevoked(tokens.sessionId)) {
+    logger.warn('BFF: rejecting request for revoked session', {
+      sessionId: tokens.sessionId.slice(0, 10) + '...',
+    });
+    return NextResponse.json({ error: 'Session revoked' }, { status: 401 });
+  }
 
   const targetPath = path.join('/');
   const url = new URL(request.url);
@@ -129,13 +145,13 @@ async function proxyRequest(
   headers['Content-Type'] = contentType || 'application/json';
 
   // Forward the access token if available
-  if (session?.accessToken) {
-    headers['Authorization'] = `Bearer ${session.accessToken}`;
+  if (tokens?.accessToken) {
+    headers['Authorization'] = `Bearer ${tokens.accessToken}`;
   }
 
   // Forward organization ID for multi-tenancy
-  if (session?.user?.defaultOrganizationId) {
-    headers['X-Organization-Id'] = session.user.defaultOrganizationId;
+  if (tokens?.defaultOrganizationId) {
+    headers['X-Organization-Id'] = tokens.defaultOrganizationId;
   }
 
   // Use longer timeout for file uploads
@@ -148,7 +164,7 @@ async function proxyRequest(
     logger.debug('Proxying request', {
       method: request.method,
       targetUrl,
-      hasAuth: !!session?.accessToken,
+      hasAuth: !!tokens?.accessToken,
     });
 
     // Get request body for non-GET/HEAD requests

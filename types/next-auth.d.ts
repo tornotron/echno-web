@@ -8,26 +8,21 @@ declare module 'next-auth' {
     expiresAt?: number;
     sessionExpiresAt?: number;
     sessionId?: string;
-    accessToken?: string;
     user: {
       id: string;
-      organizationId: string;
       defaultOrganizationId: string;
     } & DefaultSession['user'];
   }
 
   interface User extends DefaultUser {
     id: string;
-    organizationId?: string;
     defaultOrganizationId?: string;
-    accessToken?: string;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     userId?: string;
-    organizationId?: string;
     defaultOrganizationId?: string;
     accessToken?: string;
     idToken?: string;

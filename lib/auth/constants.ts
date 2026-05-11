@@ -45,6 +45,9 @@ export const TOKEN_REFRESH = {
 
   /** Buffer before token expiry to trigger refresh in milliseconds (60 seconds) */
   REFRESH_BUFFER_MS: 60 * 1000,
+
+  /** Timeout for fetching the user profile during login (5 seconds) */
+  USER_PROFILE_FETCH_TIMEOUT_MS: 5 * 1000,
 } as const;
 
 /**

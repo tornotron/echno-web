@@ -16,7 +16,7 @@ import {
   AvatarFallback,
 } from '@/components/shadcn/avatar';
 import { User, LogOut } from 'lucide-react';
-import { handleSignOut } from '@/lib/utils/auth-utils';
+import { handleSignOut } from '@/lib/auth/auth-utils';
 import { useUser } from '@/hooks/user/use-user';
 import Link from 'next/link';
 
