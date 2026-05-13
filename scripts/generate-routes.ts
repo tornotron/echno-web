@@ -29,7 +29,7 @@ import {
   dynamicKey,
   renderRouteNode,
   generatedHeader,
-} from './route-utils';
+} from './route-utils.ts';
 
 // ---------------------------------------------------------------------------
 // Config
