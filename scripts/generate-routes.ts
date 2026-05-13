@@ -140,7 +140,7 @@ import type { RouteNode } from '../types';
 export const ROUTE_TREE: RouteNode = ${renderRouteNode(rootNode, 0)};
 
 function flattenTree(node: RouteNode): RouteNode[] {
-  return [node, ...node.children.flatMap(flattenTree)];
+  return [node, ...node.children.flatMap((child) => flattenTree(child))];
 }
 
 export const ALL_ROUTE_NODES: readonly RouteNode[] = flattenTree(ROUTE_TREE);
@@ -285,11 +285,15 @@ export const routeByPath: Readonly<Record<string, RouteNode>> = Object.fromEntri
   ALL_ROUTE_NODES.map((node) => [node.path, node])
 );
 
-export const routesBySegment: Readonly<Record<string, RouteNode[]>> =
-  ALL_ROUTE_NODES.reduce<Record<string, RouteNode[]>>((acc, node) => {
-    acc[node.segment] = acc[node.segment] ? [...acc[node.segment], node] : [node];
-    return acc;
-  }, {});
+const _segmentMap: Record<string, RouteNode[]> = {};
+for (const node of ALL_ROUTE_NODES) {
+  if (_segmentMap[node.segment]) {
+    _segmentMap[node.segment].push(node);
+  } else {
+    _segmentMap[node.segment] = [node];
+  }
+}
+export const routesBySegment: Readonly<Record<string, RouteNode[]>> = _segmentMap;
 
 function buildParentMap(node: RouteNode, map: Map<string, RouteNode[]>): void {
   map.set(node.id, node.children);
