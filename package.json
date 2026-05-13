@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "preinstall": "npx only-allow pnpm",
-    "prepare": "husky"
+    "prepare": "husky",
+    "routes:generate": "node --experimental-strip-types scripts/generate-routes.ts",
+    "routes:watch": "node --experimental-strip-types scripts/generate-routes.ts --watch"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
