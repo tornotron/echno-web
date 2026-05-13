@@ -81,7 +81,7 @@
     "typescript": "^5"
   },
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
+    "!(nav/generated/**/*)*.{ts,tsx,js,jsx}": [
       "eslint --fix",
       "prettier --write"
     ],
