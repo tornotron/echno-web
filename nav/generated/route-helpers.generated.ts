@@ -132,23 +132,17 @@ export const routes = {
     goodsReceipts: {
       href: b('/resources/goods-receipts'),
       new: b('/resources/goods-receipts/new'),
-      detail: (id: string | number) => ({
-        href: b(`/resources/goods-receipts/${id}`),
-      }),
+      detail: (id: string | number) => ({ href: b(`/resources/goods-receipts/${id}`) }),
     },
     indents: {
       href: b('/resources/indents'),
       new: b('/resources/indents/new'),
-      detail: (id: string | number) => ({
-        href: b(`/resources/indents/${id}`),
-      }),
+      detail: (id: string | number) => ({ href: b(`/resources/indents/${id}`) }),
     },
     materialConsumptions: {
       href: b('/resources/material-consumptions'),
       new: b('/resources/material-consumptions/new'),
-      detail: (id: string | number) => ({
-        href: b(`/resources/material-consumptions/${id}`),
-      }),
+      detail: (id: string | number) => ({ href: b(`/resources/material-consumptions/${id}`) }),
     },
     materials: {
       href: b('/resources/materials'),
@@ -161,9 +155,7 @@ export const routes = {
     purchaseOrders: {
       href: b('/resources/purchase-orders'),
       new: b('/resources/purchase-orders/new'),
-      detail: (id: string | number) => ({
-        href: b(`/resources/purchase-orders/${id}`),
-      }),
+      detail: (id: string | number) => ({ href: b(`/resources/purchase-orders/${id}`) }),
     },
     stockAdjustments: {
       href: b('/resources/stock-adjustments'),
@@ -239,9 +231,7 @@ export const routes = {
       invitations: {
         href: b('/workforce/employees/invitations'),
         new: b('/workforce/employees/invitations/new'),
-        detail: (id: string | number) => ({
-          href: b(`/workforce/employees/invitations/${id}`),
-        }),
+        detail: (id: string | number) => ({ href: b(`/workforce/employees/invitations/${id}`) }),
       },
     },
     leaves: {
@@ -254,9 +244,7 @@ export const routes = {
         requests: {
           href: b('/workforce/leaves/manage/requests'),
           new: b('/workforce/leaves/manage/requests/new'),
-          detail: (id: string | number) => ({
-            href: b(`/workforce/leaves/manage/requests/${id}`),
-          }),
+          detail: (id: string | number) => ({ href: b(`/workforce/leaves/manage/requests/${id}`) }),
         },
       },
     },
