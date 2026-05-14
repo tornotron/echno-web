@@ -18,18 +18,46 @@ import { thirdPartyMetadata } from './third-party.meta';
 import { workforceMetadata } from './workforce.meta';
 import { miscMetadata } from './misc.meta';
 
-export const metadataRegistry: MetadataRegistry = {
-  ...rootMetadata,
-  ...attendanceMetadata,
-  ...chatMetadata,
-  ...financeMetadata,
-  ...organizationsMetadata,
-  ...projectsMetadata,
-  ...resourcesMetadata,
-  ...thirdPartyMetadata,
-  ...workforceMetadata,
-  ...miscMetadata,
-};
+function validateMetadataModules(
+  modules: Record<string, MetadataRegistry>
+): MetadataRegistry {
+  const seen = new Map<string, string>();
+  const collisions: string[] = [];
+
+  for (const [moduleName, metadata] of Object.entries(modules)) {
+    for (const key of Object.keys(metadata)) {
+      const previous = seen.get(key);
+      if (previous === undefined) {
+        seen.set(key, moduleName);
+      } else {
+        collisions.push(
+          `"${key}" defined in both "${previous}" and "${moduleName}"`
+        );
+      }
+    }
+  }
+
+  if (collisions.length > 0) {
+    throw new Error(
+      `Duplicate metadata keys detected:\n${collisions.map((c) => `  - ${c}`).join('\n')}`
+    );
+  }
+
+  return Object.assign({}, ...Object.values(modules)) as MetadataRegistry;
+}
+
+export const metadataRegistry: MetadataRegistry = validateMetadataModules({
+  rootMetadata,
+  attendanceMetadata,
+  chatMetadata,
+  financeMetadata,
+  organizationsMetadata,
+  projectsMetadata,
+  resourcesMetadata,
+  thirdPartyMetadata,
+  workforceMetadata,
+  miscMetadata,
+});
 
 export { rootMetadata } from './root.meta';
 export { attendanceMetadata } from './attendance.meta';
