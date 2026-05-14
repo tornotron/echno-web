@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, use, useEffect } from 'react';
+import { useState, use } from 'react';
 import {
   Card,
   CardContent,
@@ -30,6 +30,13 @@ import {
   ListTodo,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import {
   IssueType,
@@ -147,7 +154,9 @@ export default function EditIssuePage({ params }: PageProps) {
 
     try {
       await deleteMutation.mutateAsync(issue.id);
-      router.push(`/users/dashboard/projects/${projectId}/issues`);
+      router.push(
+        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+      );
     } catch {
       // error toast already shown by mutation hook
     }
@@ -171,7 +180,9 @@ export default function EditIssuePage({ params }: PageProps) {
         },
         files: { attachments },
       });
-      router.push(`/users/dashboard/projects/${projectId}/issues/${issueId}`);
+      router.push(
+        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/${issueId}`
+      );
     } catch {
       // error toast already shown by mutation hook
     }
@@ -189,26 +200,26 @@ export default function EditIssuePage({ params }: PageProps) {
 
   if (!issue) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              Issue not found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              The issue you&apos;re looking for doesn&apos;t exist.
-            </p>
-            <Button
-              onClick={() =>
-                router.push(`/users/dashboard/projects/${projectId}/issues`)
-              }
-            >
-              Back to Issues
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <AlertCircle className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Issue not found</EmptyTitle>
+          <EmptyDescription>
+            The issue you&apos;re looking for doesn&apos;t exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button
+          onClick={() =>
+            router.push(
+              `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+            )
+          }
+        >
+          Back to Issues
+        </Button>
+      </Empty>
     );
   }
 
@@ -390,7 +401,7 @@ export default function EditIssuePage({ params }: PageProps) {
                       Related Task
                     </p>
                     <Link
-                      href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                      href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${relatedTask.id}`}
                     >
                       <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">

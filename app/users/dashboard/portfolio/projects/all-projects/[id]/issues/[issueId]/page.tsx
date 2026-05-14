@@ -8,7 +8,7 @@ import { useTask } from '@/hooks/task';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import {
   Tabs,
   TabsContent,
@@ -17,6 +17,14 @@ import {
 } from '@/components/shadcn/tabs';
 import { AlertCircle, ArrowLeft, Edit, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/common/page-header';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
 import { IssueStatus } from '@/types/issue';
 import {
@@ -84,7 +92,7 @@ export default function IssueDetailPage({ params }: PageProps) {
   const fromParam = searchParams.get('from');
   const taskIdParam = searchParams.get('taskId');
   const editHref = (() => {
-    const base = `/users/dashboard/projects/${projectId}/issues/${issueIdParam}/edit`;
+    const base = `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/${issueIdParam}/edit`;
     if (fromParam && taskIdParam)
       return `${base}?from=${fromParam}&taskId=${taskIdParam}`;
     return base;
@@ -107,34 +115,33 @@ export default function IssueDetailPage({ params }: PageProps) {
 
   if (!issue) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            Issue not found
-          </h3>
-          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <AlertCircle className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Issue not found</EmptyTitle>
+          <EmptyDescription>
             The issue you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link href={`/users/dashboard/projects/${projectId}/issues`}>
-            <Button>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Issues
-            </Button>
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link
+            href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Issues
           </Link>
-        </CardContent>
-      </Card>
+        </Button>
+      </Empty>
     );
   }
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {issue.title}
-          </h1>
+      <PageHeader
+        title={issue.title}
+        badge={
           <div className="flex items-center gap-2">
             <Badge className={getStatusColor(issue.status)}>
               {getStatusLabel(issue.status)}
@@ -150,14 +157,16 @@ export default function IssueDetailPage({ params }: PageProps) {
               {getIssueTypeLabel(issue.type)}
             </Badge>
           </div>
-        </div>
-        <Link href={editHref}>
-          <Button className="shrink-0">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Issue
+        }
+        actions={
+          <Button variant="outline" size="sm" asChild>
+            <Link href={editHref}>
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Issue
+            </Link>
           </Button>
-        </Link>
-      </div>
+        }
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
