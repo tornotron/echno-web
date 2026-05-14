@@ -120,7 +120,7 @@ export default function NewInspectionPage() {
       });
 
       toast.success('Inspection scheduled successfully!');
-      router.push('/dashboard/projects/inspections');
+      router.push('/dashboard/portfolio/projects/inspections');
     } catch (error) {
       logger.error('Error creating inspection:', error);
       toast.error('Failed to create inspection');

@@ -163,7 +163,7 @@ export default function InspectionsPage() {
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/users/dashboard/projects/inspections/new">
+          <Link href="/users/dashboard/portfolio/projects/inspections/new">
             <Plus className="mr-2 h-4 w-4" />
             New Inspection
           </Link>
@@ -361,7 +361,7 @@ export default function InspectionsPage() {
               {paginatedInspections.map((inspection) => (
                 <Link
                   key={inspection.id}
-                  href={`/users/dashboard/projects/inspections/${inspection.id}`}
+                  href={`/users/dashboard/portfolio/projects/inspections/${inspection.id}`}
                   className="block rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 >
                   <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
@@ -493,7 +493,7 @@ export default function InspectionsPage() {
               </Button>
             ) : (
               <Button asChild>
-                <Link href="/users/dashboard/projects/inspections/new">
+                <Link href="/users/dashboard/portfolio/projects/inspections/new">
                   <Plus className="mr-2 h-4 w-4" />
                   Schedule Inspection
                 </Link>
