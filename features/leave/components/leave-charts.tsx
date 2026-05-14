@@ -206,74 +206,6 @@ function buildDeptBreakdown(requests: LeaveRequest[]) {
     .slice(0, 10);
 }
 
-// ─── Custom Treemap tile ──────────────────────────────────────────────────────
-
-interface TreemapTileProps {
-  x?: number;
-  y?: number;
-  width?: number;
-  height?: number;
-  name?: string;
-  value?: number;
-  fill?: string;
-}
-
-function TreemapTile(props: TreemapTileProps) {
-  const { x, y, width, height, name, value, fill } = props;
-  if (
-    typeof x !== 'number' ||
-    typeof y !== 'number' ||
-    typeof width !== 'number' ||
-    typeof height !== 'number'
-  ) {
-    return <g />;
-  }
-
-  const safeName = typeof name === 'string' ? name : '';
-  const safeValue = typeof value === 'number' ? value : 0;
-  const safeFill = typeof fill === 'string' ? fill : 'var(--muted)';
-
-  return (
-    <g>
-      <rect
-        x={x + 1}
-        y={y + 1}
-        width={width - 2}
-        height={height - 2}
-        fill={safeFill}
-        rx={4}
-      />
-      {width > 48 && height > 32 && (
-        <>
-          <text
-            x={x + width / 2}
-            y={y + height / 2 - (height > 48 ? 8 : 0)}
-            textAnchor="middle"
-            dominantBaseline="middle"
-            fill="rgba(255,255,255,0.95)"
-            fontSize={Math.min(11, Math.floor(width / 7))}
-            fontWeight={600}
-          >
-            {safeName.length > 12 ? `${safeName.slice(0, 10)}…` : safeName}
-          </text>
-          {height > 48 && (
-            <text
-              x={x + width / 2}
-              y={y + height / 2 + 10}
-              textAnchor="middle"
-              dominantBaseline="middle"
-              fill="rgba(255,255,255,0.7)"
-              fontSize={10}
-            >
-              {safeValue}
-            </text>
-          )}
-        </>
-      )}
-    </g>
-  );
-}
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function LeaveCharts({ requests }: LeaveChartsProps) {
@@ -518,9 +450,6 @@ export function LeaveCharts({ requests }: LeaveChartsProps) {
           className="lg:col-span-2"
           isEmpty={deptBreakdown.length === 0}
           chartClassName="px-1"
-          content={(props: unknown) => (
-            <TreemapTile {...(props as TreemapTileProps)} />
-          )}
         />
       </div>
     </div>
