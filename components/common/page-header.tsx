@@ -2,9 +2,9 @@ import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   /** Alias for description */
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   /** Optional avatar/icon rendered left of the title block */
   avatar?: React.ReactNode;
   /** Optional badge rendered next to the title */
