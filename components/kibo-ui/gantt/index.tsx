@@ -7,7 +7,7 @@ import {
   useSensor,
 } from '@dnd-kit/core';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
-import { useMouse, useThrottle, useWindowScroll } from '@uidotdev/usehooks';
+import { useMouse, useThrottle, useWindowScroll } from './hooks';
 import {
   addDays,
   addMonths,
