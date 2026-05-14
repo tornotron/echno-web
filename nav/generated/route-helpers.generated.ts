@@ -84,39 +84,45 @@ export const routes = {
 
   portal: b('/portal'),
 
-  projects: {
-    href: b('/projects'),
+  portfolio: {
+    href: b('/portfolio'),
     inspections: {
-      href: b('/projects/inspections'),
-      new: b('/projects/inspections/new'),
+      href: b('/portfolio/inspections'),
+      new: b('/portfolio/inspections/new'),
       detail: (id: string | number) => ({
-        href: b(`/projects/inspections/${id}`),
-        edit: b(`/projects/inspections/${id}/edit`),
+        href: b(`/portfolio/inspections/${id}`),
+        edit: b(`/portfolio/inspections/${id}/edit`),
       }),
     },
-    issues: b('/projects/issues'),
-    new: b('/projects/new'),
-    tasks: b('/projects/tasks'),
-    detail: (id: string | number) => ({
-      href: b(`/projects/${id}`),
-      edit: b(`/projects/${id}/edit`),
-      issues: {
-        href: b(`/projects/${id}/issues`),
-        new: b(`/projects/${id}/issues/new`),
-        detail: (issueId: string | number) => ({
-          href: b(`/projects/${id}/issues/${issueId}`),
-          edit: b(`/projects/${id}/issues/${issueId}/edit`),
+    projects: {
+      href: b('/portfolio/projects'),
+      allIssues: b('/portfolio/projects/all-issues'),
+      allProjects: {
+        href: b('/portfolio/projects/all-projects'),
+        new: b('/portfolio/projects/all-projects/new'),
+        detail: (id: string | number) => ({
+          href: b(`/portfolio/projects/all-projects/${id}`),
+          edit: b(`/portfolio/projects/all-projects/${id}/edit`),
+          issues: {
+            href: b(`/portfolio/projects/all-projects/${id}/issues`),
+            new: b(`/portfolio/projects/all-projects/${id}/issues/new`),
+            detail: (issueId: string | number) => ({
+              href: b(`/portfolio/projects/all-projects/${id}/issues/${issueId}`),
+              edit: b(`/portfolio/projects/all-projects/${id}/issues/${issueId}/edit`),
+            }),
+          },
+          tasks: {
+            href: b(`/portfolio/projects/all-projects/${id}/tasks`),
+            new: b(`/portfolio/projects/all-projects/${id}/tasks/new`),
+            detail: (taskId: string | number) => ({
+              href: b(`/portfolio/projects/all-projects/${id}/tasks/${taskId}`),
+              edit: b(`/portfolio/projects/all-projects/${id}/tasks/${taskId}/edit`),
+            }),
+          },
         }),
       },
-      tasks: {
-        href: b(`/projects/${id}/tasks`),
-        new: b(`/projects/${id}/tasks/new`),
-        detail: (taskId: string | number) => ({
-          href: b(`/projects/${id}/tasks/${taskId}`),
-          edit: b(`/projects/${id}/tasks/${taskId}/edit`),
-        }),
-      },
-    }),
+      allTasks: b('/portfolio/projects/all-tasks'),
+    },
   },
 
   resources: {
