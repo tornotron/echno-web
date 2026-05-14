@@ -1,3 +1,4 @@
+export { TaskCharts } from './task-charts';
 export { TaskAttachmentsSection } from './task-attachments-section';
 export { TaskAttachmentsUploader } from './task-attachments-uploader';
 export { TaskTable } from './task-table';
