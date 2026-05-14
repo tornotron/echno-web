@@ -95,10 +95,6 @@ function filterSidebarItems(items: NavItem[]): NavItem[] {
     .map((item) => ({
       ...item,
       children: item.children ? filterSidebarItems(item.children) : [],
-    }))
-    .map((item) => ({
-      ...item,
-      children: item.children.length > 0 ? item.children : [],
     }));
 }
 
