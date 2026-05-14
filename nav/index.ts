@@ -27,7 +27,7 @@ import { buildIdIndex, buildPathIndex, flattenComposedNav } from './indexes';
  * This is the single source of truth for sidebar items, breadcrumbs, and RBAC.
  */
 export const navigation = composeNavigation(
-  ROUTE_TREE.children,
+  [{ ...ROUTE_TREE, children: [] }, ...ROUTE_TREE.children],
   metadataRegistry
 );
 
