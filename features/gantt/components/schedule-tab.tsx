@@ -37,7 +37,8 @@ export function ScheduleTab({ project }: ScheduleTabProps) {
             Project Schedule
           </h3>
           <p className="text-sm text-zinc-500">
-            {tasks.length} tasks · {tasksWithDates.length} with dates
+            {tasks.length} tasks · {tasksWithDates.length} with dates · drag to
+            reschedule
           </p>
         </div>
         {criticalCount > 0 && (
