@@ -182,6 +182,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // shadcn CLI-managed files — treated as third-party, not linted
     "components/ui/**",
+    "components/kibo-ui/**",
+    "components/reui/**",
     "hooks/use-mobile.ts",
   ]),
 ]);
