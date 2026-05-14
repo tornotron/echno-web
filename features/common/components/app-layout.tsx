@@ -14,6 +14,7 @@ import {
 } from '@/components/shadcn/sidebar';
 import { Button } from '@/components/shadcn/button';
 import { Settings, Building } from 'lucide-react';
+import { ThemeToggle } from '@/components/common/theme-toggle';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
@@ -91,6 +92,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
                   <span className="hidden md:inline">Organizations</span>
                 </Link>
               </Button>
+              <ThemeToggle />
               <Button variant="ghost" size="icon" asChild>
                 <Link href="/users/dashboard/settings">
                   <Settings className="h-5 w-5" />
