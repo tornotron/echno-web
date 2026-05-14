@@ -31,6 +31,11 @@ export {
 export const segmentLabels: Record<string, string> = {
   new: 'New',
   edit: 'Edit',
+  'all-task': 'All Tasks',
+  'all-tasks': 'All Tasks',
+  'all-issue': 'All Issues',
+  'all-issues': 'All Issues',
+  'all-projects': 'All Projects',
   mark: 'Mark Attendance',
   join: 'Join Organization',
   profile: 'Profile',
