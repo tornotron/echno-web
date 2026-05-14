@@ -32,6 +32,13 @@ import {
   Plus,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
 import {
   useProject,
@@ -187,26 +194,26 @@ export default function EditTaskPage({ params }: PageProps) {
 
   if (isError || !taskToEdit) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              Task not found
-            </h3>
-            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-              The task you&apos;re looking for doesn&apos;t exist.
-            </p>
-            <Button
-              onClick={() =>
-                router.push(`/users/dashboard/projects/${projectId}/tasks`)
-              }
-            >
-              Back to Tasks
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <AlertCircle className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Task not found</EmptyTitle>
+          <EmptyDescription>
+            The task you&apos;re looking for doesn&apos;t exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button
+          onClick={() =>
+            router.push(
+              `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+            )
+          }
+        >
+          Back to Tasks
+        </Button>
+      </Empty>
     );
   }
 
@@ -348,7 +355,9 @@ export default function EditTaskPage({ params }: PageProps) {
   const confirmDelete = () => {
     deleteTask.mutate(taskId, {
       onSuccess: () => {
-        router.push(`/users/dashboard/projects/${projectId}/tasks`);
+        router.push(
+          `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+        );
       },
       onSettled: () => setShowDeleteDialog(false),
     });
@@ -813,7 +822,7 @@ export default function EditTaskPage({ params }: PageProps) {
           updateTask.mutate(pendingSubmitData, {
             onSuccess: () => {
               router.push(
-                `/users/dashboard/projects/${projectId}/tasks/${taskId}`
+                `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${taskId}`
               );
             },
             onSettled: () => {

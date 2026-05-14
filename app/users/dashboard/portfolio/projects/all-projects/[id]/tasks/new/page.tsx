@@ -244,7 +244,9 @@ export default function NewTaskPage() {
       },
       {
         onSuccess: () => {
-          router.push(`/users/dashboard/projects/${projectId}/tasks`);
+          router.push(
+            `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+          );
         },
       }
     );
@@ -263,7 +265,9 @@ export default function NewTaskPage() {
       },
       {
         onSuccess: () => {
-          router.push(`/users/dashboard/projects/${projectId}/tasks`);
+          router.push(
+            `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+          );
         },
       }
     );
