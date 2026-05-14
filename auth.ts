@@ -110,7 +110,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
     // Mock credentials provider — DEVELOPMENT ONLY.
-    // Hard-coded credentials must never be reachable in production.
+    // Credentials are read from DEV_MOCK_EMAIL / DEV_MOCK_PASSWORD so they are
+    // not committed to the repo. If either is missing the provider fails
+    // closed (returns null) instead of falling back to a hard-coded default.
     ...(process.env.NODE_ENV === 'production'
       ? []
       : [
@@ -121,14 +123,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               password: { label: 'Password', type: 'password' },
             },
             async authorize(credentials) {
+              const devEmail = process.env.DEV_MOCK_EMAIL;
+              const devPassword = process.env.DEV_MOCK_PASSWORD;
+              if (!devEmail || !devPassword) {
+                logger.warn(
+                  'Credentials provider enabled but DEV_MOCK_EMAIL/DEV_MOCK_PASSWORD not set; rejecting login'
+                );
+                return null;
+              }
               if (
-                credentials?.email === 'admin@echno.com' &&
-                credentials?.password === '$7zqY*u68'
+                credentials?.email === devEmail &&
+                credentials?.password === devPassword
               ) {
                 return {
                   id: 'mock-user-id',
                   name: 'Mock Admin',
-                  email: 'admin@echno.com',
+                  email: devEmail,
                 };
               }
               return null;
