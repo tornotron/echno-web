@@ -12,7 +12,7 @@ import { attendanceMetadata } from './attendance.meta';
 import { chatMetadata } from './chat.meta';
 import { financeMetadata } from './finance.meta';
 import { organizationsMetadata } from './organizations.meta';
-import { projectsMetadata } from './projects.meta';
+import { portfolioMetadata } from './portfolio.meta';
 import { resourcesMetadata } from './resources.meta';
 import { thirdPartyMetadata } from './third-party.meta';
 import { workforceMetadata } from './workforce.meta';
@@ -52,7 +52,7 @@ export const metadataRegistry: MetadataRegistry = validateMetadataModules({
   chatMetadata,
   financeMetadata,
   organizationsMetadata,
-  projectsMetadata,
+  portfolioMetadata,
   resourcesMetadata,
   thirdPartyMetadata,
   workforceMetadata,
@@ -64,7 +64,7 @@ export { attendanceMetadata } from './attendance.meta';
 export { chatMetadata } from './chat.meta';
 export { financeMetadata } from './finance.meta';
 export { organizationsMetadata } from './organizations.meta';
-export { projectsMetadata } from './projects.meta';
+export { portfolioMetadata } from './portfolio.meta';
 export { resourcesMetadata } from './resources.meta';
 export { thirdPartyMetadata } from './third-party.meta';
 export { workforceMetadata } from './workforce.meta';
