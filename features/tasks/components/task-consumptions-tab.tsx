@@ -4,6 +4,13 @@ import { useRouter } from 'next/navigation';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
+import {
   Card,
   CardContent,
   CardDescription,
@@ -117,18 +124,23 @@ export function TaskConsumptionsTab({ task }: TaskConsumptionsTabProps) {
             </TableBody>
           </Table>
         ) : (
-          <div className="py-12 text-center">
-            <FlameKindling className="mx-auto mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600" />
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-              No material consumptions recorded yet
-            </p>
-            <Link href={recordHref}>
-              <Button size="sm" variant="outline">
+          <Empty variant="inline">
+            <EmptyMedia variant="icon">
+              <FlameKindling className="size-6" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>No consumptions recorded yet</EmptyTitle>
+              <EmptyDescription>
+                Track material usage for this task
+              </EmptyDescription>
+            </EmptyHeader>
+            <Button size="sm" variant="outline" asChild>
+              <Link href={recordHref}>
                 <Plus className="mr-2 h-4 w-4" />
                 Record First Consumption
-              </Button>
-            </Link>
-          </div>
+              </Link>
+            </Button>
+          </Empty>
         )}
       </CardContent>
     </Card>

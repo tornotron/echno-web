@@ -19,6 +19,13 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { AlertCircle, MessageSquare, Plus } from 'lucide-react';
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import type { Task } from '@/types/task/task';
 import { getIssueTypeLabel } from '@/types/issue/issue-type';
@@ -64,15 +71,15 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
   const router = useRouter();
   const relatedIssues = task.issues || [];
 
-  const reportIssueHref = `/users/dashboard/projects/${task.projectId}/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
+  const reportIssueHref = `/users/dashboard/portfolio/projects/all-projects/${task.projectId}/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+              <AlertCircle className="h-4 w-4" />
               Related Issues
               {relatedIssues.length > 0 && (
                 <Badge variant="outline">{relatedIssues.length}</Badge>
@@ -106,13 +113,13 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
                   className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   onClick={() =>
                     router.push(
-                      `/users/dashboard/projects/${task.projectId}/issues/${issue.id}?from=task&taskId=${task.id}`
+                      `/users/dashboard/portfolio/projects/all-projects/${task.projectId}/issues/${issue.id}?from=task&taskId=${task.id}`
                     )
                   }
                 >
                   <TableCell>
                     <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {issue.title}
                       </p>
                       {issue.description && (
@@ -143,18 +150,23 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
             </TableBody>
           </Table>
         ) : (
-          <div className="py-12 text-center">
-            <AlertCircle className="mx-auto mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600" />
-            <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-              No issues reported yet
-            </p>
-            <Link href={reportIssueHref}>
-              <Button size="sm" variant="outline">
+          <Empty variant="inline">
+            <EmptyMedia variant="icon">
+              <AlertCircle className="size-6" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>No issues reported yet</EmptyTitle>
+              <EmptyDescription>
+                Report an issue to track problems for this task
+              </EmptyDescription>
+            </EmptyHeader>
+            <Button size="sm" variant="outline" asChild>
+              <Link href={reportIssueHref}>
                 <Plus className="mr-2 h-4 w-4" />
                 Report First Issue
-              </Button>
-            </Link>
-          </div>
+              </Link>
+            </Button>
+          </Empty>
         )}
       </CardContent>
     </Card>
