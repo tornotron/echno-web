@@ -6,6 +6,5 @@ export const rootMetadata = {
     label: 'Home',
     icon: Home,
     order: 0,
-    breadcrumbHidden: true,
   },
 } satisfies MetadataRegistry;
