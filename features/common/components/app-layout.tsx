@@ -87,11 +87,14 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               .detail(String(task.projectId))
               .tasks.detail(String(task.id)).href,
           }))}
-        issues={issues.slice(0, 40).map((issue) => ({
-          id: String(issue.id ?? issue.title),
-          name: issue.title,
-          href: routes.portfolio.projects.allIssues,
-        }))}
+        issues={issues
+          .filter((issue) => Boolean(issue.id))
+          .slice(0, 40)
+          .map((issue) => ({
+            id: String(issue.id),
+            name: issue.title,
+            href: routes.portfolio.projects.allIssues,
+          }))}
       />
       <AppSidebar />
 
