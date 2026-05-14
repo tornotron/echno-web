@@ -139,7 +139,7 @@ export function OrganizationOverviewTab({
               </div>
             ) : (
               <Link
-                href={`/users/dashboard/projects?organizationId=${organization.id}`}
+                href={`/users/dashboard/portfolio/projects?organizationId=${organization.id}`}
                 className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center space-x-2">
