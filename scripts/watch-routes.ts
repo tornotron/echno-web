@@ -57,6 +57,8 @@ const IGNORED: (string | RegExp)[] = [
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let busy = false;
+let pendingEvent: string | null = null;
+let pendingFilePath: string | null = null;
 
 function scheduleRegeneration(event: string, filePath: string): void {
   if (debounceTimer) clearTimeout(debounceTimer);
@@ -67,9 +69,12 @@ function scheduleRegeneration(event: string, filePath: string): void {
 }
 
 async function runRegeneration(event: string, filePath: string): Promise<void> {
-  // If a previous run is still in progress, drop this event — the timer
-  // will fire again once the current run finishes if needed.
-  if (busy) return;
+  if (busy) {
+    // Enqueue the most recent event so it runs after the current pass finishes.
+    pendingEvent = event;
+    pendingFilePath = filePath;
+    return;
+  }
   busy = true;
 
   const rel = path.relative(process.cwd(), filePath);
@@ -92,6 +97,13 @@ async function runRegeneration(event: string, filePath: string): Promise<void> {
     process.stderr.write(`Route generation failed: ${message}\n`);
   } finally {
     busy = false;
+    if (pendingEvent !== null && pendingFilePath !== null) {
+      const nextEvent = pendingEvent;
+      const nextFilePath = pendingFilePath;
+      pendingEvent = null;
+      pendingFilePath = null;
+      void runRegeneration(nextEvent, nextFilePath);
+    }
   }
 }
 
