@@ -295,7 +295,7 @@ export default function DashboardPage() {
           {
             label: 'Projects',
             icon: FolderKanban,
-            href: '/users/dashboard/projects',
+            href: '/users/dashboard/portfolio/projects',
             color: 'text-indigo-600',
             bg: 'bg-indigo-50 dark:bg-indigo-500/10',
           },
@@ -877,7 +877,7 @@ export default function DashboardPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/dashboard/projects')}
+                    onClick={() => router.push('/dashboard/portfolio/projects')}
                     className="text-xs sm:text-sm"
                   >
                     View All
@@ -2426,7 +2426,7 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push('/dashboard/projects')}
+                  onClick={() => router.push('/dashboard/portfolio/projects')}
                   className="text-xs sm:text-sm"
                 >
                   View All
