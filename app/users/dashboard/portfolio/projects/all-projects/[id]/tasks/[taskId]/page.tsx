@@ -5,7 +5,7 @@ import { useProject } from '@/hooks/project/use-projects';
 import { useTask } from '@/hooks/task';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import {
   Tabs,
   TabsContent,
@@ -20,6 +20,14 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { PageHeader } from '@/components/common/page-header';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import {
@@ -78,23 +86,25 @@ export default function TaskDetailPage({ params }: PageProps) {
 
   if (isError || !task) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            Task not found
-          </h3>
-          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <AlertCircle className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Task not found</EmptyTitle>
+          <EmptyDescription>
             The task you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Link href={`/users/dashboard/projects/${projectId}/tasks`}>
-            <Button>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Tasks
-            </Button>
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link
+            href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Tasks
           </Link>
-        </CardContent>
-      </Card>
+        </Button>
+      </Empty>
     );
   }
 
@@ -102,42 +112,39 @@ export default function TaskDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {task.title}
-          </h1>
-          <div className="flex items-center gap-2">
-            <Badge className={getStatusColor(task.status)}>
-              {getTaskStatusLabel(task.status)}
-            </Badge>
-            {project && (
-              <Link href={`/users/dashboard/projects/${project.id}`}>
-                <Badge
-                  variant="outline"
-                  className="hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  <FolderOpen className="mr-1 h-3 w-3" />
-                  {project.projectName}
-                </Badge>
-              </Link>
-            )}
-          </div>
-        </div>
-        <Link
-          href={`/users/dashboard/projects/${projectId}/tasks/${task.id}/edit`}
-        >
-          <Button className="shrink-0">
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Task
+      <PageHeader
+        title={task.title}
+        badge={
+          <Badge className={getStatusColor(task.status)}>
+            {getTaskStatusLabel(task.status)}
+          </Badge>
+        }
+        description={
+          project ? (
+            <Link
+              href={`/users/dashboard/portfolio/projects/all-projects/${project.id}`}
+              className="inline-flex items-center gap-1.5 hover:opacity-80"
+            >
+              <FolderOpen className="h-3.5 w-3.5" />
+              {project.projectName}
+            </Link>
+          ) : undefined
+        }
+        actions={
+          <Button variant="outline" size="sm" asChild>
+            <Link
+              href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${task.id}/edit`}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Task
+            </Link>
           </Button>
-        </Link>
-      </div>
+        }
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
-        <TabsList className="w-full overflow-x-auto whitespace-nowrap">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-xl bg-zinc-100 px-1.5 py-1.5 dark:bg-zinc-800/60">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="issues">
             Related Issues
