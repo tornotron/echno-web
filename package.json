@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "dev:next": "next dev",
-    "dev": "concurrently --kill-others --names routes,next --prefix-colors cyan,green \"pnpm routes:watch\" \"pnpm dev:next\"",
+    "dev": "concurrently --kill-others --names routes,next --prefix-colors cyan,green \"bun routes:watch\" \"bun dev:next\"",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "preinstall": "npx only-allow pnpm",
+    "preinstall": "npx only-allow bun",
     "prepare": "husky",
     "routes:generate": "node --experimental-strip-types scripts/generate-routes.ts",
     "routes:watch": "node --experimental-strip-types scripts/watch-routes.ts"
@@ -92,10 +92,8 @@
       "prettier --write"
     ]
   },
-  "pnpm": {
-    "overrides": {
-      "js-yaml": ">=4.1.1",
-      "lodash": ">=4.17.23"
-    }
+  "overrides": {
+    "js-yaml": ">=4.1.1",
+    "lodash": ">=4.17.23"
   }
 }
