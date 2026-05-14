@@ -4,6 +4,9 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
+import { useTasksByProject } from '@/hooks/task';
+import { useIssuesByProject } from '@/hooks/issue';
+import { cn } from '@/lib/utils/index';
 import {
   Card,
   CardContent,
@@ -22,6 +25,7 @@ import {
 } from '@/components/shadcn/tabs';
 import {
   FolderKanban,
+  Loader2,
   Briefcase,
   Edit,
   MapPin,
@@ -44,12 +48,15 @@ import {
   HeartPulse,
   TrendingUp,
   ShieldAlert,
+  Clock,
+  CheckCircle,
 } from 'lucide-react';
 import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@/types/project/project-status';
-import { TaskStatus, getTaskStatusLabel } from '@/types/task';
+import { TaskStatus } from '@/types/task';
+import { IssueStatus } from '@/types/issue';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { format } from 'date-fns';
 import {
@@ -77,6 +84,14 @@ import {
   isValidAttachmentUrl,
   getSafeDownloadUrl,
 } from '@/lib/utils/attachment-url';
+import { PageHeader } from '@/components/common/page-header';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 const getStatusBadgeColor = (status: ProjectStatus): string => {
   const colors = {
@@ -96,20 +111,6 @@ const getStatusBadgeColor = (status: ProjectStatus): string => {
       'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
   };
   return colors[status];
-};
-
-const getTaskStatusColor = (status: TaskStatus): string => {
-  const colors: Record<TaskStatus, string> = {
-    [TaskStatus.upcoming]:
-      'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400',
-    [TaskStatus.onGoing]:
-      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-    [TaskStatus.onHold]:
-      'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-    [TaskStatus.completed]:
-      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-  };
-  return colors[status] ?? '';
 };
 
 const getAttachmentIcon = (type: AttachmentType) => {
@@ -146,6 +147,8 @@ export default function ProjectDashboardPage() {
   );
 
   const { data: project, isLoading, error } = useProject(projectId);
+  const { data: tasks = [] } = useTasksByProject(projectId);
+  const { data: issues = [] } = useIssuesByProject(projectId);
   const deleteAttachmentMutation = useDeleteAttachment();
 
   const handleDeleteAttachment = async () => {
@@ -162,42 +165,54 @@ export default function ProjectDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-indigo-500" />
-          <p className="text-zinc-600 dark:text-zinc-400">Loading project...</p>
-        </div>
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <FolderKanban className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">Failed to load project</h3>
-          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <FolderKanban className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load project</EmptyTitle>
+          <EmptyDescription>
             {error instanceof Error ? error.message : 'An error occurred'}
-          </p>
-          <Button onClick={() => router.push('/users/dashboard/projects')}>
-            Back to Projects
-          </Button>
-        </CardContent>
-      </Card>
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button
+          onClick={() =>
+            router.push('/users/dashboard/portfolio/projects/all-projects')
+          }
+        >
+          Back to Projects
+        </Button>
+      </Empty>
     );
   }
 
   if (!project) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <FolderKanban className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">Project not found</h3>
-          <Button onClick={() => router.push('/users/dashboard/projects')}>
-            Back to Projects
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <FolderKanban className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Project not found</EmptyTitle>
+          <EmptyDescription>
+            The project you&apos;re looking for doesn&apos;t exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button
+          onClick={() =>
+            router.push('/users/dashboard/portfolio/projects/all-projects')
+          }
+        >
+          Back to Projects
+        </Button>
+      </Empty>
     );
   }
 
@@ -208,50 +223,47 @@ export default function ProjectDashboardPage() {
       )
     : null;
 
-  const projectTasks = project.tasks ?? [];
-  const completedTasks = projectTasks.filter(
-    (t) => t.status === TaskStatus.completed
-  ).length;
-  const pendingTasks = projectTasks.filter(
-    (t) => t.status === TaskStatus.onHold || t.status === TaskStatus.onGoing
-  ).length;
-  const totalIssues = projectTasks.reduce(
-    (n, t) => n + (t.issues?.length ?? 0),
-    0
-  );
-  const stats = {
-    totalTasks: projectTasks.length,
-    completedTasks,
-    pendingTasks,
-    issues: totalIssues,
+  const taskStats = {
+    total: tasks.length,
+    upcoming: tasks.filter((t) => t.status === TaskStatus.upcoming).length,
+    onGoing: tasks.filter((t) => t.status === TaskStatus.onGoing).length,
+    completed: tasks.filter((t) => t.status === TaskStatus.completed).length,
+  };
+  const issueStats = {
+    total: issues.length,
+    open: issues.filter((i) => i.status === IssueStatus.open).length,
+    inProgress: issues.filter((i) => i.status === IssueStatus.inProgress)
+      .length,
+    resolved: issues.filter((i) => i.status === IssueStatus.resolved).length,
   };
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div>
-        <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-              {project.projectName}
-            </h1>
-            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-              <MapPin className="mr-1 inline h-4 w-4" />
-              {project.projectAddress}
-            </p>
-            <Badge className={`mt-2 ${getStatusBadgeColor(project.status)}`}>
-              {getProjectStatusLabel(project.status)}
-            </Badge>
-          </div>
-          <div className="flex shrink-0 gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link href={`/users/dashboard/projects/${project.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit Project
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
+      {/* Header */}
+      <PageHeader
+        title={project.projectName}
+        description={
+          <span className="inline-flex items-center gap-2">
+            <MapPin className="h-4 w-4" />
+            {project.projectAddress}
+          </span>
+        }
+        badge={
+          <Badge className={getStatusBadgeColor(project.status)}>
+            {getProjectStatusLabel(project.status)}
+          </Badge>
+        }
+        actions={
+          <Button variant="outline" size="sm" asChild>
+            <Link
+              href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/edit`}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Project
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="overview">
@@ -288,8 +300,8 @@ export default function ProjectDashboardPage() {
           {project.status !== ProjectStatus.upcoming && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                  <Activity className="h-4 w-4" />
                   Project Progress
                 </CardTitle>
               </CardHeader>
@@ -368,58 +380,208 @@ export default function ProjectDashboardPage() {
             </Card>
           )}
 
-          {/* Key Metrics */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <Link href={`/users/dashboard/projects/${project.id}/tasks`}>
-              <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Tasks
-                  </CardTitle>
-                  <ListTodo className="text-muted-foreground h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalTasks}</div>
-                  <p className="text-muted-foreground text-xs">
-                    {stats.completedTasks} completed, {stats.pendingTasks}{' '}
-                    pending
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Link href={`/users/dashboard/projects/${project.id}/issues`}>
-              <Card className="cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">
-                    Total Issues
-                  </CardTitle>
-                  <AlertCircle className="text-muted-foreground h-4 w-4" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.issues}</div>
-                  <p className="text-muted-foreground text-xs">
-                    Active project issues
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Team Members
-                </CardTitle>
-                <Users className="h-4 w-4 text-purple-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {project.members.length}
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  Active on project
+          {/* Task & Issue Stats */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            {/* Tasks */}
+            <Card className="gap-0 p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Tasks
                 </p>
-              </CardContent>
+                <Link
+                  href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/tasks`}
+                  className="text-primary text-xs hover:underline"
+                >
+                  View all
+                </Link>
+              </div>
+              <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+                {(
+                  [
+                    {
+                      label: 'Total',
+                      count: taskStats.total,
+                      valueClass: 'text-zinc-900 dark:text-zinc-100',
+                      icon: ListTodo,
+                      iconBg: 'bg-blue-50 dark:bg-blue-950/30',
+                      iconClass: 'text-blue-600 dark:text-blue-400',
+                      description: 'in project',
+                    },
+                    {
+                      label: 'Upcoming',
+                      count: taskStats.upcoming,
+                      valueClass: 'text-zinc-500 dark:text-zinc-400',
+                      icon: Clock,
+                      iconBg: 'bg-zinc-100 dark:bg-zinc-800',
+                      iconClass: 'text-zinc-500 dark:text-zinc-400',
+                      description: 'not started',
+                    },
+                    {
+                      label: 'On Going',
+                      count: taskStats.onGoing,
+                      valueClass: 'text-blue-600 dark:text-blue-400',
+                      icon: Activity,
+                      iconBg: 'bg-blue-50 dark:bg-blue-950/30',
+                      iconClass: 'text-blue-600 dark:text-blue-400',
+                      description: 'in progress',
+                    },
+                    {
+                      label: 'Completed',
+                      count: taskStats.completed,
+                      valueClass: 'text-emerald-600 dark:text-emerald-400',
+                      icon: CheckCircle,
+                      iconBg: 'bg-emerald-50 dark:bg-emerald-950/30',
+                      iconClass: 'text-emerald-600 dark:text-emerald-400',
+                      description: 'done',
+                    },
+                  ] as const
+                ).map(
+                  (
+                    {
+                      label,
+                      count,
+                      valueClass,
+                      icon: Icon,
+                      iconBg,
+                      iconClass,
+                      description,
+                    },
+                    i
+                  ) => {
+                    const padClass =
+                      i === 0 ? 'sm:pr-6' : i === 3 ? 'sm:pl-6' : 'sm:px-6';
+                    return (
+                      <div
+                        key={label}
+                        className={cn(
+                          'flex flex-col gap-1 rounded-lg p-3 sm:rounded-none',
+                          padClass
+                        )}
+                      >
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {label}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <p
+                            className={`text-2xl font-bold tracking-tight ${valueClass}`}
+                          >
+                            {count}
+                          </p>
+                          <div
+                            className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
+                          >
+                            <Icon className={`size-4 ${iconClass}`} />
+                          </div>
+                        </div>
+                        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                          {description}
+                        </p>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+            </Card>
+
+            {/* Issues */}
+            <Card className="gap-0 p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                  Issues
+                </p>
+                <Link
+                  href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/issues`}
+                  className="text-primary text-xs hover:underline"
+                >
+                  View all
+                </Link>
+              </div>
+              <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+                {(
+                  [
+                    {
+                      label: 'Total',
+                      count: issueStats.total,
+                      valueClass: 'text-zinc-900 dark:text-zinc-100',
+                      icon: FileText,
+                      iconBg: 'bg-blue-50 dark:bg-blue-950/30',
+                      iconClass: 'text-blue-600 dark:text-blue-400',
+                      description: 'in project',
+                    },
+                    {
+                      label: 'Open',
+                      count: issueStats.open,
+                      valueClass: 'text-red-600 dark:text-red-400',
+                      icon: AlertCircle,
+                      iconBg: 'bg-red-50 dark:bg-red-950/30',
+                      iconClass: 'text-red-600 dark:text-red-400',
+                      description: 'need attention',
+                    },
+                    {
+                      label: 'In Progress',
+                      count: issueStats.inProgress,
+                      valueClass: 'text-blue-600 dark:text-blue-400',
+                      icon: Activity,
+                      iconBg: 'bg-blue-50 dark:bg-blue-950/30',
+                      iconClass: 'text-blue-600 dark:text-blue-400',
+                      description: 'being worked on',
+                    },
+                    {
+                      label: 'Resolved',
+                      count: issueStats.resolved,
+                      valueClass: 'text-emerald-600 dark:text-emerald-400',
+                      icon: CheckCircle,
+                      iconBg: 'bg-emerald-50 dark:bg-emerald-950/30',
+                      iconClass: 'text-emerald-600 dark:text-emerald-400',
+                      description: 'closed out',
+                    },
+                  ] as const
+                ).map(
+                  (
+                    {
+                      label,
+                      count,
+                      valueClass,
+                      icon: Icon,
+                      iconBg,
+                      iconClass,
+                      description,
+                    },
+                    i
+                  ) => {
+                    const padClass =
+                      i === 0 ? 'sm:pr-6' : i === 3 ? 'sm:pl-6' : 'sm:px-6';
+                    return (
+                      <div
+                        key={label}
+                        className={cn(
+                          'flex flex-col gap-1 rounded-lg p-3 sm:rounded-none',
+                          padClass
+                        )}
+                      >
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {label}
+                        </p>
+                        <div className="flex items-center justify-between">
+                          <p
+                            className={`text-2xl font-bold tracking-tight ${valueClass}`}
+                          >
+                            {count}
+                          </p>
+                          <div
+                            className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${iconBg}`}
+                          >
+                            <Icon className={`size-4 ${iconClass}`} />
+                          </div>
+                        </div>
+                        <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                          {description}
+                        </p>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
             </Card>
           </div>
 
@@ -430,11 +592,11 @@ export default function ProjectDashboardPage() {
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
+                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                      <Users className="h-4 w-4" />
                       Team Members
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-muted-foreground text-xs">
                       {project.members.length} members working on this project
                     </CardDescription>
                   </div>
@@ -457,60 +619,12 @@ export default function ProjectDashboardPage() {
                 </CardContent>
               </Card>
 
-              {/* Recent Tasks */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <ListTodo className="h-5 w-5" />
-                    Recent Tasks
-                  </CardTitle>
-                  <CardDescription>Latest task updates</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {projectTasks.length > 0 ? (
-                    <div className="space-y-3">
-                      {projectTasks.slice(0, 5).map((task, index) => (
-                        <div
-                          key={task.id ?? index}
-                          className="flex items-center justify-between rounded-lg border p-3"
-                        >
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {task.title}
-                          </p>
-                          <Badge className={getTaskStatusColor(task.status)}>
-                            {getTaskStatusLabel(task.status)}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center text-zinc-600 dark:text-zinc-400">
-                      <ListTodo className="mx-auto mb-2 h-12 w-12 opacity-50" />
-                      <p>No tasks yet.</p>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-4"
-                        asChild
-                      >
-                        <Link
-                          href={`/users/dashboard/projects/${project.id}/tasks`}
-                        >
-                          <ListTodo className="mr-2 h-4 w-4" />
-                          Create Task
-                        </Link>
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
               {/* Attachments */}
               <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                   <div>
-                    <CardTitle className="flex items-center gap-2">
-                      <Paperclip className="h-5 w-5" />
+                    <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                      <Paperclip className="h-4 w-4" />
                       Attachments
                       {project.attachments &&
                         project.attachments.length > 0 && (
@@ -519,7 +633,7 @@ export default function ProjectDashboardPage() {
                           </Badge>
                         )}
                     </CardTitle>
-                    <CardDescription>
+                    <CardDescription className="text-muted-foreground text-xs">
                       Files attached to this project
                     </CardDescription>
                   </div>
@@ -594,7 +708,9 @@ export default function ProjectDashboardPage() {
             <div className="space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Quick Actions</CardTitle>
+                  <CardTitle className="text-sm font-semibold">
+                    Quick Actions
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <Button
@@ -603,7 +719,7 @@ export default function ProjectDashboardPage() {
                     asChild
                   >
                     <Link
-                      href={`/users/dashboard/projects/${project.id}/tasks/new`}
+                      href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/tasks/new`}
                     >
                       <ListTodo className="mr-2 h-4 w-4" />
                       Create Task
@@ -614,7 +730,7 @@ export default function ProjectDashboardPage() {
                     className="w-full justify-start"
                     asChild
                   >
-                    <Link href="/users/dashboard/projects/inspections/new">
+                    <Link href="/users/dashboard/portfolio/projects/inspections/new">
                       <ClipboardCheck className="mr-2 h-4 w-4" />
                       Schedule Inspection
                     </Link>
@@ -625,7 +741,7 @@ export default function ProjectDashboardPage() {
                     asChild
                   >
                     <Link
-                      href={`/users/dashboard/projects/${project.id}/issues/new`}
+                      href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/issues/new`}
                     >
                       <AlertCircle className="mr-2 h-4 w-4" />
                       Report Issue
@@ -646,52 +762,16 @@ export default function ProjectDashboardPage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Project Statistics</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Open Issues
-                    </span>
-                    <span className="font-medium text-red-600">
-                      {stats.issues}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Task Completion
-                    </span>
-                    <span className="font-medium">
-                      {stats.totalTasks > 0
-                        ? `${Math.round(
-                            (stats.completedTasks / stats.totalTasks) * 100
-                          )}%`
-                        : '0%'}
-                    </span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Team Size
-                    </span>
-                    <span className="font-medium">
-                      {project.members.length}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Project Information</CardTitle>
+                  <CardTitle className="text-sm font-semibold">
+                    Project Information
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
                       Created On
                     </div>
-                    <div className="font-medium">
+                    <div className="text-sm font-medium">
                       {project.createdAt
                         ? format(project.createdAt, 'MMM dd, yyyy')
                         : 'Unknown'}
@@ -699,19 +779,19 @@ export default function ProjectDashboardPage() {
                   </div>
                   <Separator />
                   <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
                       Location
                     </div>
                     <div className="flex items-start gap-1 font-medium">
                       <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
-                      <span className="wrap-break-word">
+                      <span className="text-sm font-medium wrap-break-word">
                         {project.projectAddress}
                       </span>
                     </div>
                   </div>
                   <Separator />
                   <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                    <div className="text-xs text-zinc-600 dark:text-zinc-400">
                       Coordinates
                     </div>
                     <div className="text-sm font-medium">
@@ -732,7 +812,7 @@ export default function ProjectDashboardPage() {
 
         {/* ── WBS ──────────────────────────────────────────────────────────── */}
         <TabsContent value="wbs" className="mt-6">
-          <WBSTree tasks={projectTasks} />
+          <WBSTree tasks={tasks} />
         </TabsContent>
 
         {/* ── Health ───────────────────────────────────────────────────────── */}
