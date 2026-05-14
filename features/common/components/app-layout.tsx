@@ -160,6 +160,12 @@ export function AppLayout({ children, floatingChat }: AppLayoutProps) {
   return (
     <OrganizationProvider>
       <SidebarProvider>
+        {/*
+         * Suspense wraps the full AppLayoutContent (not just children) on
+         * purpose: Breadcrumbs and useBreadcrumbData inside the chrome both
+         * call useSearchParams, which suspends during prerender. Scoping the
+         * boundary tighter breaks the static export of /profile/edit.
+         */}
         <Suspense fallback={null}>
           <AppLayoutContent floatingChat={floatingChat}>
             {children}

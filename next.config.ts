@@ -35,11 +35,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Security headers configuration.
-  //  Tune CSP to your real asset hosts and avoid overly permissive policies (e.g., avoid 'unsafe-inline' if possible).
-  //  HSTS should be enabled only on production HTTPS sites.
-  //  Validate headers using browser DevTools and security scanners after deploying.
-  // This section is commented out since it is currently injected to a proxy route in app/api/v1/[...path].route.ts.
+  // Security headers configuration — NOT CURRENTLY APPLIED.
+  // Security headers are not set anywhere in this app yet. The block below is
+  // a template kept for future enablement; uncommenting it will apply the
+  // headers globally to every page, document, and API response.
+  // Before enabling:
+  //  • Tune the CSP to your real asset hosts and tighten 'unsafe-inline' if possible.
+  //  • Confirm HSTS is only enabled on production HTTPS deployments.
+  //  • Validate with browser DevTools and a security scanner after deploying.
   // async headers() {
   //   return [
   //     {

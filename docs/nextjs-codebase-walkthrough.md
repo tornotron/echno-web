@@ -96,7 +96,7 @@ revocation checks, and token-refresh error handling.
 
 ## 4. Repo structure — the high-level map
 
-```
+```text
 app/                  → routing + pages + API routes (Next.js)
 auth.ts               → Auth.js config (Keycloak, JWT callbacks, refresh)
 proxy.ts              → middleware (auth gate, session checks)
@@ -138,7 +138,7 @@ public/               → static assets
 [eslint.config.mjs](../eslint.config.mjs) configures
 `eslint-plugin-boundaries` with this layered rule:
 
-```
+```text
 app       → features, shared, shadcn, lib, types
 features  → (same feature only), shared, shadcn, lib, types
 shadcn    → ui, lib, types
@@ -164,7 +164,7 @@ If you're unsure where a new file belongs, run lint — boundary violations erro
 Every domain in this app follows the **exact same pattern**. Once you
 understand projects, you understand all 25+ features.
 
-```
+```text
                                           ┌─────────────────────┐
   Page (app/.../page.tsx, 'use client')    │ Spring Boot backend │
         │                                   └──────────▲──────────┘
@@ -280,8 +280,9 @@ model afterwards.
 7. [components/providers/auth-provider.tsx](../components/providers/auth-provider.tsx)
    and [components/providers/query-provider.tsx](../components/providers/query-provider.tsx)
    — the two providers wrapping the whole app.
-8. [app/page.tsx](../app/page.tsx) — public marketing landing page; note the
-   redirect-to-dashboard logic on auth.
+8. [app/page.tsx](../app/page.tsx) — public marketing landing page. The
+   authenticated → dashboard redirect lives in [proxy.ts](../proxy.ts), not
+   here.
 9. [app/users/dashboard/layout.tsx](../app/users/dashboard/layout.tsx) and
    [features/common/components/app-layout.tsx](../features/common/components/app-layout.tsx)
    — the authenticated shell (sidebar + breadcrumbs + content).
@@ -356,8 +357,10 @@ does, this is the lookup.
 - **Metadata API** — exported `metadata` object or `generateMetadata` function
   sets `<head>` content per route. See [lib/metadata.ts](../lib/metadata.ts).
 - **`force-dynamic` / `force-static`** — set `export const dynamic = ...` to
-  control caching/SSG behavior. The root layout uses `force-dynamic`
-  (everything is rendered per request, no static caching).
+  control caching/SSG behavior. Scoped here to the dashboard layout
+  ([app/users/dashboard/layout.tsx](../app/users/dashboard/layout.tsx)), so
+  authenticated pages render per request while the marketing routes remain
+  statically optimizable.
 - **Streaming / Suspense** — the App Router supports React Suspense out of
   the box; `loading.tsx` files are sugar for `<Suspense fallback={...}>`.
 - **`revalidatePath` / `revalidateTag`** — invalidate cached server data.
