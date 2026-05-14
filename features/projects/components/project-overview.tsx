@@ -66,9 +66,13 @@ const QUICK_ACTIONS = [
 
 function deadlineBadge(endDate: Date): { label: string; className: string } {
   const now = new Date();
-  const days = Math.ceil(
-    (endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  const endDay = new Date(
+    endDate.getFullYear(),
+    endDate.getMonth(),
+    endDate.getDate()
   );
+  const nowDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const days = (endDay.getTime() - nowDay.getTime()) / (1000 * 60 * 60 * 24);
   if (days < 0)
     return {
       label: 'Overdue',
