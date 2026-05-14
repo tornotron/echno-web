@@ -106,7 +106,9 @@ function EditProjectForm({ project }: { project: Project }) {
         { id: project.id, data: projectData, files },
         {
           onSuccess: () => {
-            router.push(`/users/dashboard/projects/${project.id}`);
+            router.push(
+              `/users/dashboard/portfolio/projects/all-projects/${project.id}`
+            );
           },
         }
       );
@@ -208,7 +210,9 @@ export default function EditProjectPage() {
             {error instanceof Error ? error.message : 'An error occurred'}
           </p>
           <Button className="mt-4" asChild>
-            <Link href="/users/dashboard/projects">Back to Projects</Link>
+            <Link href="/users/dashboard/portfolio/projects">
+              Back to Projects
+            </Link>
           </Button>
         </div>
       </div>
@@ -224,7 +228,9 @@ export default function EditProjectPage() {
             The project you&apos;re looking for doesn&apos;t exist.
           </p>
           <Button className="mt-4" asChild>
-            <Link href="/users/dashboard/projects">Back to Projects</Link>
+            <Link href="/users/dashboard/portfolio/projects">
+              Back to Projects
+            </Link>
           </Button>
         </div>
       </div>

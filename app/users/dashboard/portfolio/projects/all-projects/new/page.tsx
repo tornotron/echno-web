@@ -34,6 +34,7 @@ import {
 import { StorageLocationType } from '@/types/storage-locations';
 import { useCreateStorageLocation } from '@/hooks/storage-locations';
 import { toast } from '@/lib/styles/toast-styles';
+import { PageHeader } from '@/components/common';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -180,7 +181,9 @@ export default function NewProjectPage() {
                 {}
               );
             }
-            router.push(`/users/dashboard/projects/${createdProject.id}`);
+            router.push(
+              `/users/dashboard/portfolio/projects/all-projects/${createdProject.id}`
+            );
           },
         }
       );
@@ -216,12 +219,10 @@ export default function NewProjectPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold">Create New Project</h1>
-        <p className="text-muted-foreground">
-          Add a new project to your workspace
-        </p>
-      </div>
+      <PageHeader
+        title="Create New Project"
+        description="Add a new project to your workspace"
+      />
 
       {/* Form */}
       <form onSubmit={handleSubmit}>
