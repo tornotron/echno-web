@@ -15,11 +15,16 @@ import {
 import { Button } from '@/components/shadcn/button';
 import { Settings, Building } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/theme-toggle';
+import { CommandPalette } from '@/features/common/components/command-palette';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { useEffect } from 'react';
+import { useProjects } from '@/hooks/project/use-projects';
+import { useTasks } from '@/hooks/task/use-tasks';
+import { useIssues } from '@/hooks/issue/use-issues';
+import { routes } from '@/nav';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -41,6 +46,9 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
+  const { data: projects = [] } = useProjects();
+  const { data: tasks = [] } = useTasks();
+  const { data: issues = [] } = useIssues();
 
   // Fetch data for breadcrumbs using custom hook
   const breadcrumbData = useBreadcrumbData();
@@ -58,6 +66,33 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
 
   return (
     <>
+      <CommandPalette
+        projects={projects
+          .filter((project) => Boolean(project.id))
+          .slice(0, 30)
+          .map((project) => ({
+            id: String(project.id),
+            name: project.projectName,
+            href: routes.portfolio.projects.allProjects.detail(
+              String(project.id)
+            ).href,
+          }))}
+        tasks={tasks
+          .filter((task) => Boolean(task.id) && Boolean(task.projectId))
+          .slice(0, 40)
+          .map((task) => ({
+            id: String(task.id),
+            name: task.title,
+            href: routes.portfolio.projects.allProjects
+              .detail(String(task.projectId))
+              .tasks.detail(String(task.id)).href,
+          }))}
+        issues={issues.slice(0, 40).map((issue) => ({
+          id: String(issue.id ?? issue.title),
+          name: issue.title,
+          href: routes.portfolio.projects.allIssues,
+        }))}
+      />
       <AppSidebar />
 
       <SidebarInset className="min-w-0">
