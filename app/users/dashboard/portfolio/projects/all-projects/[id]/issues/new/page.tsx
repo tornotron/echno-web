@@ -162,7 +162,9 @@ export default function NewIssuePage({ params }: PageProps) {
       toast.success('Draft Saved', {
         description: 'Your issue has been saved as draft',
       });
-      router.push(`/users/dashboard/projects/${projectId}/issues`);
+      router.push(
+        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+      );
     } catch {
       // error toast already shown by mutation hook
     }
@@ -186,7 +188,9 @@ export default function NewIssuePage({ params }: PageProps) {
         },
         files: { attachments },
       });
-      router.push(`/users/dashboard/projects/${projectId}/issues`);
+      router.push(
+        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+      );
     } catch {
       // error toast already shown by mutation hook
     }
@@ -470,7 +474,7 @@ export default function NewIssuePage({ params }: PageProps) {
                       Related Task
                     </p>
                     <Link
-                      href={`/users/dashboard/projects/${projectId}/tasks/${selectedTask.id}`}
+                      href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${selectedTask.id}`}
                     >
                       <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                         <div
