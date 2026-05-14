@@ -356,7 +356,7 @@ const nextConfig = {
   // Add next-pwa if needed
 };
 
-module.exports = nextConfig;
+export default nextConfig;
 ```
 
 ### API Client Configuration

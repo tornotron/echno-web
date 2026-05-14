@@ -73,8 +73,14 @@ export default auth((req) => {
   }
 
   // 3. Authenticated user on a marketing page → straight to dashboard.
-  //    Skip when ?error= is present so the home page can show the toast first.
-  if (isLoggedIn && MARKETING_PATHS.has(pathname) && !hasErrorParam) {
+  //    Skip only on `/` when ?error= is present so the home page can show the
+  //    toast. Other marketing routes have no toast handler, so a ?error= there
+  //    must not bypass the redirect.
+  if (
+    isLoggedIn &&
+    MARKETING_PATHS.has(pathname) &&
+    !(pathname === '/' && hasErrorParam)
+  ) {
     return NextResponse.redirect(new URL('/users/dashboard', req.url));
   }
 
