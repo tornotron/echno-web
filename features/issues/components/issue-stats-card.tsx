@@ -7,6 +7,7 @@ interface IssueStatsCardProps {
   openIssues: number;
   inProgressIssues: number;
   resolvedIssues: number;
+  totalDescription?: string;
 }
 
 export function IssueStatsCard({
@@ -14,13 +15,14 @@ export function IssueStatsCard({
   openIssues,
   inProgressIssues,
   resolvedIssues,
+  totalDescription = 'across all projects',
 }: IssueStatsCardProps) {
   const stats = [
     {
       label: 'Total Issues',
       count: totalIssues,
       icon: FileText,
-      description: 'across all projects',
+      description: totalDescription,
       valueClass: 'text-zinc-900 dark:text-zinc-100',
       iconBg: 'bg-blue-50 dark:bg-blue-950/30',
       iconClass: 'text-blue-600 dark:text-blue-400',
@@ -70,8 +72,9 @@ export function IssueStatsCard({
             },
             i
           ) => {
-            const padClass =
-              i === 0 ? 'sm:pr-6' : i === 3 ? 'sm:pl-6' : 'sm:px-6';
+            let padClass = 'sm:px-6';
+            if (i === 0) padClass = 'sm:pr-6';
+            else if (i === 3) padClass = 'sm:pl-6';
             return (
               <div
                 key={label}
