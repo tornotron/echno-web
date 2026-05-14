@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { AuthButton } from '@/components/common/auth-button';
+import { ThemeToggle } from '@/components/common/theme-toggle';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/shadcn/button';
 
@@ -77,6 +78,7 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
 
           {/* Desktop right side */}
           <div className="hidden items-center gap-3 md:flex">
+            <ThemeToggle />
             <AuthButton />
             <Link href="/plans">
               <Button
@@ -91,6 +93,7 @@ export function MarketingNav({ currentPage }: MarketingNavProps) {
 
           {/* Mobile toggle */}
           <div className="flex items-center gap-3 md:hidden">
+            <ThemeToggle />
             <AuthButton />
             <Button
               variant="ghost"
