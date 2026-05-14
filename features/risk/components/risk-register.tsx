@@ -10,6 +10,13 @@ import {
   ChevronUp,
   AlertTriangle,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Input } from '@/components/shadcn/input';
@@ -740,14 +747,19 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
 
       {/* Risk list */}
       {filtered.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-zinc-200 py-12 text-center dark:border-zinc-700">
-          <AlertTriangle className="mx-auto mb-3 h-10 w-10 text-zinc-300 dark:text-zinc-600" />
-          <p className="text-sm text-zinc-500">
-            {risks.length === 0
-              ? 'No risks logged yet. Click "Add Risk" to start the register.'
-              : 'No risks match the current filters.'}
-          </p>
-        </div>
+        <Empty variant="default">
+          <EmptyMedia variant="icon">
+            <AlertTriangle className="size-6" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No risks found</EmptyTitle>
+            <EmptyDescription>
+              {risks.length === 0
+                ? 'No risks logged yet. Click "Add Risk" to start the register.'
+                : 'No risks match the current filters.'}
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
       ) : (
         <div className="space-y-2">
           {filtered.map((risk) => (
