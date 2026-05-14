@@ -147,8 +147,16 @@ export default function ProjectDashboardPage() {
   );
 
   const { data: project, isLoading, error } = useProject(projectId);
-  const { data: tasks = [] } = useTasksByProject(projectId);
-  const { data: issues = [] } = useIssuesByProject(projectId);
+  const {
+    data: tasks,
+    isLoading: isTasksLoading,
+    isError: isTasksError,
+  } = useTasksByProject(projectId);
+  const {
+    data: issues,
+    isLoading: isIssuesLoading,
+    isError: isIssuesError,
+  } = useIssuesByProject(projectId);
   const deleteAttachmentMutation = useDeleteAttachment();
 
   const handleDeleteAttachment = async () => {
@@ -162,7 +170,7 @@ export default function ProjectDashboardPage() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isTasksLoading || isIssuesLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
@@ -216,6 +224,30 @@ export default function ProjectDashboardPage() {
     );
   }
 
+  if (isTasksError || isIssuesError) {
+    return (
+      <Empty variant="error">
+        <EmptyErrorMedia>
+          <FolderKanban className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load project data</EmptyTitle>
+          <EmptyDescription>
+            {isTasksError ? 'Tasks' : 'Issues'} could not be loaded. Please try
+            again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button
+          onClick={() =>
+            router.push('/users/dashboard/portfolio/projects/all-projects')
+          }
+        >
+          Back to Projects
+        </Button>
+      </Empty>
+    );
+  }
+
   const progress = Math.round(project.progress);
   const daysRemaining = project.endDate
     ? Math.ceil(
@@ -223,18 +255,26 @@ export default function ProjectDashboardPage() {
       )
     : null;
 
+  const resolvedTasks = tasks ?? [];
+  const resolvedIssues = issues ?? [];
+
   const taskStats = {
-    total: tasks.length,
-    upcoming: tasks.filter((t) => t.status === TaskStatus.upcoming).length,
-    onGoing: tasks.filter((t) => t.status === TaskStatus.onGoing).length,
-    completed: tasks.filter((t) => t.status === TaskStatus.completed).length,
+    total: resolvedTasks.length,
+    upcoming: resolvedTasks.filter((t) => t.status === TaskStatus.upcoming)
+      .length,
+    onGoing: resolvedTasks.filter((t) => t.status === TaskStatus.onGoing)
+      .length,
+    completed: resolvedTasks.filter((t) => t.status === TaskStatus.completed)
+      .length,
   };
   const issueStats = {
-    total: issues.length,
-    open: issues.filter((i) => i.status === IssueStatus.open).length,
-    inProgress: issues.filter((i) => i.status === IssueStatus.inProgress)
+    total: resolvedIssues.length,
+    open: resolvedIssues.filter((i) => i.status === IssueStatus.open).length,
+    inProgress: resolvedIssues.filter(
+      (i) => i.status === IssueStatus.inProgress
+    ).length,
+    resolved: resolvedIssues.filter((i) => i.status === IssueStatus.resolved)
       .length,
-    resolved: issues.filter((i) => i.status === IssueStatus.resolved).length,
   };
 
   return (
@@ -448,8 +488,9 @@ export default function ProjectDashboardPage() {
                     },
                     i
                   ) => {
-                    const padClass =
-                      i === 0 ? 'sm:pr-6' : i === 3 ? 'sm:pl-6' : 'sm:px-6';
+                    let padClass = 'sm:px-6';
+                    if (i === 0) padClass = 'sm:pr-6';
+                    else if (i === 3) padClass = 'sm:pl-6';
                     return (
                       <div
                         key={label}
@@ -549,8 +590,9 @@ export default function ProjectDashboardPage() {
                     },
                     i
                   ) => {
-                    const padClass =
-                      i === 0 ? 'sm:pr-6' : i === 3 ? 'sm:pl-6' : 'sm:px-6';
+                    let padClass = 'sm:px-6';
+                    if (i === 0) padClass = 'sm:pr-6';
+                    else if (i === 3) padClass = 'sm:pl-6';
                     return (
                       <div
                         key={label}
@@ -812,7 +854,7 @@ export default function ProjectDashboardPage() {
 
         {/* ── WBS ──────────────────────────────────────────────────────────── */}
         <TabsContent value="wbs" className="mt-6">
-          <WBSTree tasks={tasks} />
+          <WBSTree tasks={resolvedTasks} />
         </TabsContent>
 
         {/* ── Health ───────────────────────────────────────────────────────── */}
