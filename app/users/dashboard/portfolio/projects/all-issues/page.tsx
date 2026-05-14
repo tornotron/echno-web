@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useIssues, useIssuesByProject } from '@/hooks/issue';
 import { useProjects } from '@/hooks/project/use-projects';
 import { Button } from '@/components/shadcn/button';
@@ -53,11 +53,6 @@ export default function AllIssuesPage() {
     startIndex,
     startIndex + itemsPerPage
   );
-
-  useEffect(() => {
-    if (currentPage !== 1) setCurrentPage(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, statusFilter, typeFilter, itemsPerPage, projectFilter]);
 
   const totalIssues = filteredIssues.length;
   const openIssues = filteredIssues.filter(
