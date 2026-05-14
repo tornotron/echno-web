@@ -250,7 +250,7 @@ export function HealthTab({ project }: HealthTabProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
               <Clock className="h-4 w-4 text-zinc-400" />
               Timeline
             </CardTitle>
@@ -284,7 +284,7 @@ export function HealthTab({ project }: HealthTabProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold">
               <Activity className="h-4 w-4 text-zinc-400" />
               Task Summary
             </CardTitle>
