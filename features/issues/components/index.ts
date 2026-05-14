@@ -1,3 +1,4 @@
+export { IssueStatsCard } from './issue-stats-card';
 export { IssueCharts } from './issue-charts';
 export { IssueAttachmentsUploader } from './issue-attachments-uploader';
 export { IssueAttachmentsSection } from './issue-attachments-section';
