@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { addDays, format } from 'date-fns';
+import { useEffect, useMemo, useState } from 'react';
+import { addDays } from 'date-fns';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import {
   GanttCreateMarkerTrigger,
@@ -256,17 +256,15 @@ export function ProjectGanttChart({
   );
   const tasksWithoutDatesCount = normalizedTasks.length - tasksWithDates.length;
 
-  const [features, setFeatures] = useState<GanttFeature[]>(() => {
+  const features = useMemo<GanttFeature[]>(() => {
     const items: GanttFeature[] = [];
     for (const task of tasksWithDates) {
       const feature = toGanttFeature(task);
-      if (feature) {
-        items.push(feature);
-      }
+      if (feature) items.push(feature);
     }
     items.sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
     return items;
-  });
+  }, [tasksWithDates]);
 
   const laneMap = useMemo(() => {
     const map = new Map<string, GanttFeature[]>();
@@ -290,17 +288,6 @@ export function ProjectGanttChart({
   }, [normalizedTasks]);
 
   const handleMoveFeature = (id: string, startAt: Date, endAt: Date | null) => {
-    setFeatures((prev) => {
-      const next: GanttFeature[] = [];
-      for (const item of prev) {
-        if (item.id === id) {
-          next.push({ ...item, startAt, endAt: endAt ?? item.endAt });
-        } else {
-          next.push(item);
-        }
-      }
-      return next;
-    });
     onTaskMove?.(id, startAt, endAt);
   };
 
@@ -418,7 +405,7 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
   );
   const tasksWithoutDatesCount = normalizedTasks.length - tasksWithDates.length;
 
-  const [features, setFeatures] = useState<GanttFeature[]>(() => {
+  const features = useMemo<GanttFeature[]>(() => {
     const items: GanttFeature[] = [];
     for (const task of tasksWithDates) {
       const feature = toGanttFeature(task);
@@ -426,7 +413,7 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
     }
     items.sort((a, b) => a.startAt.getTime() - b.startAt.getTime());
     return items;
-  });
+  }, [tasksWithDates]);
 
   const taskByGanttId = useMemo(() => {
     const map = new Map<string, ProjectGanttTask>();
@@ -440,22 +427,23 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
     () => buildWbsGroups(features, taskByGanttId),
     [features, taskByGanttId]
   );
+  const [prevGroups, setPrevGroups] = useState(groups);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     () => new Set(groups.map((group) => group.name))
   );
 
-  const handleMoveFeature = (id: string, startAt: Date, endAt: Date | null) => {
-    setFeatures((prev) => {
-      const next: GanttFeature[] = [];
-      for (const item of prev) {
-        if (item.id === id) {
-          next.push({ ...item, startAt, endAt: endAt ?? item.endAt });
-        } else {
-          next.push(item);
-        }
+  if (groups !== prevGroups) {
+    setPrevGroups(groups);
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      for (const group of groups) {
+        if (!next.has(group.name)) next.add(group.name);
       }
       return next;
     });
+  }
+
+  const handleMoveFeature = (id: string, startAt: Date, endAt: Date | null) => {
     onTaskMove?.(id, startAt, endAt);
   };
 
@@ -588,22 +576,6 @@ export function WbsGanttChart(props: ProjectGanttChartProps) {
       )}
     </div>
   );
-}
-
-export function buildProjectGanttMarkers(tasks: Task[]): GanttMarkerProps[] {
-  const markers: GanttMarkerProps[] = [];
-
-  for (const task of tasks) {
-    if (!task.endDate) continue;
-    markers.push({
-      id: `due-${task.id ?? task.title}-${task.endDate.toISOString()}`,
-      date: task.endDate,
-      label: `Due: ${format(task.endDate, 'dd MMM')}`,
-    });
-  }
-
-  markers.sort((a, b) => a.date.getTime() - b.date.getTime());
-  return markers.slice(0, 6);
 }
 
 export type { GanttMarkerProps, Range } from '@/components/kibo-ui/gantt';
