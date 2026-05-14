@@ -9,11 +9,11 @@ import { Breadcrumbs } from '@/features/common/components/breadcrumbs';
 import {
   SidebarProvider,
   SidebarInset,
-  useSidebar,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/shadcn/sidebar';
 import { Button } from '@/components/shadcn/button';
-import { Settings, Building, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Settings, Building } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/user/use-user';
@@ -30,7 +30,13 @@ interface AppLayoutProps {
 const ORGANIZATIONS_PATH = '/users/dashboard/organizations';
 
 function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
-  const { state, toggleSidebar, isMobile } = useSidebar();
+  const { isMobile, setOpen } = useSidebar();
+
+  // TODO: re-enable toggle when collapse UX is ready
+  useEffect(() => {
+    if (!isMobile) setOpen(true);
+  }, [isMobile, setOpen]);
+
   const pathname = usePathname();
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
@@ -52,27 +58,6 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   return (
     <>
       <AppSidebar />
-
-      {/* Floating Toggle Button - Fixed to Sidebar Border - Desktop Only */}
-      {!isMobile && (
-        <button
-          onClick={toggleSidebar}
-          className="fixed top-16 z-50 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-stone-200 bg-white shadow-sm transition-all duration-200 hover:border-indigo-300 hover:bg-indigo-50 active:scale-95 dark:border-white/10 dark:bg-zinc-900 dark:hover:border-indigo-500/40 dark:hover:bg-indigo-500/10"
-          aria-label="Toggle sidebar"
-          style={{
-            left:
-              state === 'expanded'
-                ? 'var(--sidebar-width)'
-                : 'var(--sidebar-width-icon)',
-          }}
-        >
-          {state === 'expanded' ? (
-            <ChevronLeft className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
-          ) : (
-            <ChevronRight className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
-          )}
-        </button>
-      )}
 
       <SidebarInset className="min-w-0">
         {/* Header */}
