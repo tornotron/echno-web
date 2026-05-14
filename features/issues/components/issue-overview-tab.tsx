@@ -146,7 +146,7 @@ export function IssueOverviewTab({
         {/* Description */}
         <Card>
           <CardHeader>
-            <CardTitle>Description</CardTitle>
+            <CardTitle className="text-sm font-semibold">Description</CardTitle>
           </CardHeader>
           <CardContent>
             {issue.description ? (
@@ -166,8 +166,8 @@ export function IssueOverviewTab({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <Paperclip className="h-5 w-5" />
+                <CardTitle className="flex items-center space-x-2 text-sm font-semibold">
+                  <Paperclip className="h-4 w-4" />
                   <span>Attachments</span>
                   {issue.attachments && issue.attachments.length > 0 && (
                     <Badge variant="outline">{issue.attachments.length}</Badge>
@@ -249,7 +249,9 @@ export function IssueOverviewTab({
         {/* Issue Summary */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Issue Summary</CardTitle>
+            <CardTitle className="text-sm font-semibold">
+              Issue Summary
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
@@ -281,7 +283,7 @@ export function IssueOverviewTab({
                   Related Task
                 </label>
                 <Link
-                  href={`/users/dashboard/projects/${projectId}/tasks/${relatedTask.id}`}
+                  href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${relatedTask.id}`}
                 >
                   <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">
@@ -307,7 +309,7 @@ export function IssueOverviewTab({
         {/* Reported By */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">
+            <CardTitle className="text-sm font-semibold">
               <User className="mr-2 inline h-4 w-4" />
               Reported By
             </CardTitle>
@@ -340,7 +342,7 @@ export function IssueOverviewTab({
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <CardTitle className="text-base">
+              <CardTitle className="text-sm font-semibold">
                 <User className="mr-2 inline h-4 w-4" />
                 Assigned To
               </CardTitle>
