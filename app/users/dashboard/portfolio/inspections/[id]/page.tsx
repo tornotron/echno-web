@@ -113,7 +113,7 @@ export default function InspectionDetailsPage() {
 
         if (!foundInspection) {
           toast.error('Inspection not found');
-          router.push('/dashboard/projects/inspections');
+          router.push('/dashboard/portfolio/projects/inspections');
           return;
         }
 
@@ -122,7 +122,7 @@ export default function InspectionDetailsPage() {
       } catch (error) {
         logger.error('Error loading inspection:', error);
         toast.error('Failed to load inspection');
-        router.push('/dashboard/projects/inspections');
+        router.push('/dashboard/portfolio/projects/inspections');
       }
     };
 
@@ -178,7 +178,7 @@ export default function InspectionDetailsPage() {
             variant="outline"
             onClick={() =>
               router.push(
-                `/dashboard/projects/inspections/${inspection.id}/edit`
+                `/dashboard/portfolio/projects/inspections/${inspection.id}/edit`
               )
             }
           >

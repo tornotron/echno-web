@@ -73,7 +73,7 @@ export default function EditInspectionPage() {
 
         if (!inspection) {
           toast.error('Inspection not found');
-          router.push('/dashboard/projects/inspections');
+          router.push('/dashboard/portfolio/projects/inspections');
           return;
         }
 
@@ -107,7 +107,7 @@ export default function EditInspectionPage() {
       } catch (error) {
         logger.error('Error loading inspection:', error);
         toast.error('Failed to load inspection');
-        router.push('/dashboard/projects/inspections');
+        router.push('/dashboard/portfolio/projects/inspections');
       }
     };
 
@@ -178,7 +178,7 @@ export default function EditInspectionPage() {
       });
 
       toast.success('Inspection updated successfully!');
-      router.push(`/dashboard/projects/inspections/${params.id}`);
+      router.push(`/dashboard/portfolio/projects/inspections/${params.id}`);
     } catch (error) {
       logger.error('Error updating inspection:', error);
       toast.error('Failed to update inspection');
