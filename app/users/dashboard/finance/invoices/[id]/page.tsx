@@ -508,7 +508,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
             <CardContent className="space-y-3">
               {invoice.projectId && (
                 <Link
-                  href={`/users/dashboard/projects/${invoice.projectId}`}
+                  href={`/users/dashboard/portfolio/projects/${invoice.projectId}`}
                   className="block"
                 >
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">

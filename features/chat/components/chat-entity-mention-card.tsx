@@ -12,9 +12,12 @@ interface ChatEntityMentionCardProps {
 }
 
 const ENTITY_HREF: Record<ChatEntityType, (id: number) => string> = {
-  [ChatEntityType.task]: (id) => `/users/dashboard/projects/${id}/tasks`,
-  [ChatEntityType.issue]: (id) => `/users/dashboard/projects/${id}/issues`,
-  [ChatEntityType.project]: (id) => `/users/dashboard/projects/${id}`,
+  [ChatEntityType.task]: (id) =>
+    `/users/dashboard/portfolio/projects/all-projects/${id}/tasks`,
+  [ChatEntityType.issue]: (id) =>
+    `/users/dashboard/portfolio/projects/all-projects/${id}/issues`,
+  [ChatEntityType.project]: (id) =>
+    `/users/dashboard/portfolio/projects/all-projects/${id}`,
 };
 
 const ENTITY_ICON: Record<ChatEntityType, React.ElementType> = {

@@ -394,7 +394,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
               )}
               {receipt.projectId && (
                 <Link
-                  href={`/users/dashboard/projects/${receipt.projectId}`}
+                  href={`/users/dashboard/portfolio/projects/${receipt.projectId}`}
                   className="block"
                 >
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">

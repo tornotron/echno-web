@@ -15,7 +15,11 @@ const PRIMARY_TABS = [
   { label: 'Home', href: '/users/dashboard', icon: Home },
   { label: 'Attendance', href: '/users/dashboard/attendance', icon: UserCheck },
   { label: 'Chat', href: '/users/dashboard/chat', icon: MessagesSquare },
-  { label: 'Projects', href: '/users/dashboard/projects', icon: FolderKanban },
+  {
+    label: 'Portfolio',
+    href: '/users/dashboard/portfolio/projects',
+    icon: FolderKanban,
+  },
 ] as const;
 
 function isActive(href: string, pathname: string) {
