@@ -106,7 +106,7 @@ export function TeamMembersSection({
                   <div className="flex items-center gap-3">
                     <EmployeeAvatar employee={employee} size="sm" />
                     <div>
-                      <p className="font-medium">{employee.name}</p>
+                      <p className="text-sm font-medium">{employee.name}</p>
                       <p className="text-muted-foreground text-sm">
                         {employee.designation} •{' '}
                         {getDepartmentLabel(employee.department)}
@@ -186,7 +186,7 @@ export function TeamMembersSection({
               <div className="flex items-center gap-3">
                 <EmployeeAvatar employee={employee} size="sm" />
                 <div>
-                  <p className="font-medium">{employee.name}</p>
+                  <p className="text-sm font-medium">{employee.name}</p>
                   <p className="text-muted-foreground text-sm">
                     {employee.designation} •{' '}
                     {getDepartmentLabel(employee.department)}
