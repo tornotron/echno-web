@@ -8,6 +8,13 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
+import {
   AreaChart,
   Area,
   XAxis,
@@ -194,17 +201,24 @@ export function SCurveTab({ project }: SCurveTabProps) {
 
       {chartData.length === 0 ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <TrendingUp className="mx-auto mb-3 h-12 w-12 text-zinc-300 dark:text-zinc-600" />
-            <p className="text-zinc-500">
-              Set a project start and end date to generate the S-Curve.
-            </p>
+          <CardContent>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <TrendingUp className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No S-Curve Data</EmptyTitle>
+                <EmptyDescription>
+                  Set a project start and end date to generate the S-Curve.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           </CardContent>
         </Card>
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            <CardTitle className="text-sm font-semibold">
               Progress Curve — Planned vs Actual vs Forecast
             </CardTitle>
           </CardHeader>
