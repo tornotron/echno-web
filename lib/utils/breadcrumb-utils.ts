@@ -105,7 +105,7 @@ export function getNameForId(
     return purchaseOrder?.poNumber ?? `PO ${id}`;
   }
 
-  if (parentSegment === 'projects') {
+  if (parentSegment === 'projects' || parentSegment === 'all-projects') {
     return (
       projects?.find((p) => p.id === numericId)?.projectName ?? `Project ${id}`
     );
