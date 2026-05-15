@@ -79,19 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
   session: { strategy: 'jwt' },
 
-  // Production cookie configuration for nginx reverse proxy
   useSecureCookies: process.env.NEXTAUTH_URL?.startsWith('https://'),
-  cookies: {
-    sessionToken: {
-      name: `${process.env.NODE_ENV === 'production' ? '__Secure-' : ''}next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: 'lax',
-        path: '/',
-        secure: process.env.NEXTAUTH_URL?.startsWith('https://'),
-      },
-    },
-  },
 
   providers: [
     KeycloakProvider({
