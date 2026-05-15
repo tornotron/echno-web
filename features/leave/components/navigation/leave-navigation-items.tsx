@@ -14,10 +14,10 @@ import {
   Plus,
   Users,
   Settings,
-  BarChart3,
   Clock,
 } from 'lucide-react';
 import { LeaveRole } from '@/types/leave';
+import { routes } from '@/nav';
 
 export interface LeaveNavigationItem {
   title: string;
@@ -28,157 +28,138 @@ export interface LeaveNavigationItem {
   isNew?: boolean;
 }
 
-/**
- * Get navigation items for Employee role
- */
 export function getEmployeeNavigationItems(
   pendingCount?: number
 ): LeaveNavigationItem[] {
   return [
     {
       title: 'Dashboard',
-      href: '/users/dashboard/workforce/leaves/manage',
+      href: routes.workforce.leaves.manage.href,
       icon: Calendar,
       description: 'Overview of your leave',
     },
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/manage/requests/new',
+      href: routes.workforce.leaves.manage.requests.new,
       icon: Plus,
       description: 'Submit a new leave request',
     },
     {
       title: 'My Requests',
-      href: '/users/dashboard/workforce/leaves/manage/requests',
+      href: routes.workforce.leaves.manage.requests.href,
       icon: FileText,
       description: 'View all your leave requests',
       badge: pendingCount,
     },
     {
       title: 'Leave Balance',
-      href: '/users/dashboard/workforce/leaves/manage/balance',
+      href: routes.workforce.leaves.manage.balance,
       icon: TrendingUp,
       description: 'Check your leave balance',
     },
     {
       title: 'Leave Calendar',
-      href: '/users/dashboard/workforce/leaves/manage/calendar',
+      href: routes.workforce.leaves.manage.calendar,
       icon: Calendar,
       description: 'View organization calendar',
     },
   ];
 }
 
-/**
- * Get navigation items for Manager role
- */
 export function getManagerNavigationItems(
   pendingApprovals?: number
 ): LeaveNavigationItem[] {
   return [
     {
       title: 'Dashboard',
-      href: '/users/dashboard/workforce/leaves/manage',
+      href: routes.workforce.leaves.manage.href,
       icon: Calendar,
       description: 'Overview and team management',
     },
     {
       title: 'Pending Approvals',
-      href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
+      href: `${routes.workforce.leaves.manage.requests.href}?tab=approvals`,
       icon: Clock,
       description: 'Review team leave requests',
       badge: pendingApprovals,
     },
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/manage/requests/new',
+      href: routes.workforce.leaves.manage.requests.new,
       icon: Plus,
       description: 'Submit your leave request',
     },
     {
       title: 'My Requests',
-      href: '/users/dashboard/workforce/leaves/manage/requests',
+      href: routes.workforce.leaves.manage.requests.href,
       icon: FileText,
       description: 'Your leave requests',
     },
     {
       title: 'Leave Balance',
-      href: '/users/dashboard/workforce/leaves/manage/balance',
+      href: routes.workforce.leaves.manage.balance,
       icon: TrendingUp,
       description: 'Your leave balance',
     },
     {
       title: 'Team Calendar',
-      href: '/users/dashboard/workforce/leaves/manage/calendar',
+      href: routes.workforce.leaves.manage.calendar,
       icon: Calendar,
       description: 'View team availability',
     },
   ];
 }
 
-/**
- * Get navigation items for Admin role
- */
 export function getAdminNavigationItems(
   pendingApprovals?: number
 ): LeaveNavigationItem[] {
   return [
     {
       title: 'Dashboard',
-      href: '/users/dashboard/workforce/leaves/manage',
+      href: routes.workforce.leaves.manage.href,
       icon: Calendar,
       description: 'Organization overview',
     },
     {
       title: 'All Requests',
-      href: '/users/dashboard/workforce/leaves/manage/requests',
+      href: routes.workforce.leaves.manage.requests.href,
       icon: FileText,
       description: 'View all leave requests',
     },
     {
       title: 'Pending Approvals',
-      href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
+      href: `${routes.workforce.leaves.manage.requests.href}?tab=approvals`,
       icon: Clock,
       description: 'Review pending requests',
       badge: pendingApprovals,
     },
     {
       title: 'Leave Policies',
-      href: '/users/dashboard/workforce/leaves/manage/policies',
+      href: routes.workforce.leaves.manage.policies,
       icon: Settings,
       description: 'Manage leave policies',
     },
     {
       title: 'Organization Calendar',
-      href: '/users/dashboard/workforce/leaves/manage/calendar',
+      href: routes.workforce.leaves.manage.calendar,
       icon: Calendar,
       description: 'View organization calendar',
     },
     {
-      title: 'Analytics',
-      href: '/users/dashboard/workforce/leaves/analytics',
-      icon: BarChart3,
-      description: 'View usage analytics',
-      isNew: true,
-    },
-    {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/manage/requests/new',
+      href: routes.workforce.leaves.manage.requests.new,
       icon: Plus,
       description: 'Submit your leave request',
     },
     {
       title: 'My Balance',
-      href: '/users/dashboard/workforce/leaves/manage/balance',
+      href: routes.workforce.leaves.manage.balance,
       icon: TrendingUp,
       description: 'Your leave balance',
     },
   ];
 }
 
-/**
- * Get navigation items based on user role
- */
 export function getRoleBasedNavigationItems(
   role: LeaveRole,
   pendingCount?: number
@@ -196,24 +177,21 @@ export function getRoleBasedNavigationItems(
   }
 }
 
-/**
- * Get quick action items (shown in dashboards)
- */
 export function getQuickActionItems(role: LeaveRole): LeaveNavigationItem[] {
   const baseActions: LeaveNavigationItem[] = [
     {
       title: 'Apply for Leave',
-      href: '/users/dashboard/workforce/leaves/manage/requests/new',
+      href: routes.workforce.leaves.manage.requests.new,
       icon: Plus,
     },
     {
       title: 'My Requests',
-      href: '/users/dashboard/workforce/leaves/manage/requests',
+      href: routes.workforce.leaves.manage.requests.href,
       icon: FileText,
     },
     {
       title: 'Leave Balance',
-      href: '/users/dashboard/workforce/leaves/manage/balance',
+      href: routes.workforce.leaves.manage.balance,
       icon: TrendingUp,
     },
   ];
@@ -222,7 +200,7 @@ export function getQuickActionItems(role: LeaveRole): LeaveNavigationItem[] {
     return [
       {
         title: 'Pending Approvals',
-        href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
+        href: `${routes.workforce.leaves.manage.requests.href}?tab=approvals`,
         icon: Users,
       },
       ...baseActions,
@@ -232,22 +210,13 @@ export function getQuickActionItems(role: LeaveRole): LeaveNavigationItem[] {
   return baseActions;
 }
 
-/**
- * Get admin-only items
- */
 export function getAdminOnlyItems(): LeaveNavigationItem[] {
   return [
     {
       title: 'Leave Policies',
-      href: '/users/dashboard/workforce/leaves/manage/policies',
+      href: routes.workforce.leaves.manage.policies,
       icon: Settings,
       description: 'Configure leave policies',
-    },
-    {
-      title: 'Analytics',
-      href: '/users/dashboard/workforce/leaves/analytics',
-      icon: BarChart3,
-      description: 'View analytics',
     },
   ];
 }

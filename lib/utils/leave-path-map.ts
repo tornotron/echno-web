@@ -1,28 +1,29 @@
-/** Map of `from` query-param values → breadcrumb overrides for leave request detail pages. */
+import { routes } from '@/nav';
 
+/** Map of `from` query-param values → breadcrumb overrides for leave request detail pages. */
 export const leaveFromMap: Record<string, { label: string; href: string }> = {
   'my-requests': {
     label: 'My Requests',
-    href: '/users/dashboard/workforce/leaves/requests',
+    href: `${routes.workforce.leaves.manage.requests.href}?tab=my`,
   },
   'org-requests': {
     label: 'Organization Requests',
-    href: '/users/dashboard/workforce/leaves/organization-requests',
+    href: `${routes.workforce.leaves.manage.requests.href}?tab=all`,
   },
   approvals: {
     label: 'Pending Approvals',
-    href: '/users/dashboard/workforce/leaves/approvals',
+    href: `${routes.workforce.leaves.manage.requests.href}?tab=approvals`,
   },
   'employee-dashboard': {
     label: 'Leave Management',
-    href: '/users/dashboard/workforce/leaves',
+    href: routes.workforce.leaves.manage.href,
   },
   'manager-dashboard': {
     label: 'Leave Management',
-    href: '/users/dashboard/workforce/leaves',
+    href: routes.workforce.leaves.manage.href,
   },
   'admin-dashboard': {
     label: 'Leave Management',
-    href: '/users/dashboard/workforce/leaves',
+    href: routes.workforce.leaves.manage.href,
   },
 };
