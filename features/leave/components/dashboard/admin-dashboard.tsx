@@ -46,6 +46,7 @@ import { LeaveStatus } from '@/types/leave';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
+import { routes } from '@/nav';
 export function AdminDashboard() {
   const router = useRouter();
   const { data: employee } = useCurrentUserEmployee();
@@ -156,7 +157,7 @@ export function AdminDashboard() {
                 size="sm"
                 onClick={() =>
                   router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests?tab=all'
+                    `${routes.workforce.leaves.manage.requests.href}?tab=all`
                   )
                 }
               >
@@ -187,7 +188,7 @@ export function AdminDashboard() {
                       className="hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors"
                       onClick={() =>
                         router.push(
-                          `/users/dashboard/workforce/leaves/manage/requests/${request.id}?from=admin-dashboard`
+                          `${routes.workforce.leaves.manage.requests.detail(request.id).href}?from=admin-dashboard`
                         )
                       }
                     >
@@ -303,9 +304,7 @@ export function AdminDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/policies'
-                  )
+                  router.push(routes.workforce.leaves.manage.policies)
                 }
               >
                 <Settings className="mr-2 h-4 w-4" />
@@ -316,7 +315,7 @@ export function AdminDashboard() {
                 className="w-full justify-start"
                 onClick={() =>
                   router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests?tab=all'
+                    `${routes.workforce.leaves.manage.requests.href}?tab=all`
                   )
                 }
               >
@@ -328,7 +327,7 @@ export function AdminDashboard() {
                 className="w-full justify-start"
                 onClick={() =>
                   router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+                    `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
                   )
                 }
               >
@@ -344,9 +343,7 @@ export function AdminDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/calendar'
-                  )
+                  router.push(routes.workforce.leaves.manage.calendar)
                 }
               >
                 <Calendar className="mr-2 h-4 w-4" />
@@ -405,9 +402,7 @@ export function AdminDashboard() {
                     size="sm"
                     className="mt-2 w-full"
                     onClick={() =>
-                      router.push(
-                        '/users/dashboard/workforce/leaves/manage/policies'
-                      )
+                      router.push(routes.workforce.leaves.manage.policies)
                     }
                   >
                     <Settings className="mr-2 h-4 w-4" />
@@ -422,9 +417,7 @@ export function AdminDashboard() {
                   <Button
                     size="sm"
                     onClick={() =>
-                      router.push(
-                        '/users/dashboard/workforce/leaves/manage/policies'
-                      )
+                      router.push(routes.workforce.leaves.manage.policies)
                     }
                   >
                     Create Policy

@@ -43,6 +43,7 @@ import {
 import { LeaveStatus } from '@/types/leave';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { format, isFuture } from 'date-fns';
+import { routes } from '@/nav';
 
 export function EmployeeDashboard() {
   const router = useRouter();
@@ -140,9 +141,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/balance'
-                  )
+                  router.push(routes.workforce.leaves.manage.balance)
                 }
               >
                 View Details
@@ -200,9 +199,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 size="sm"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests'
-                  )
+                  router.push(routes.workforce.leaves.manage.requests.href)
                 }
               >
                 View All
@@ -232,7 +229,7 @@ export function EmployeeDashboard() {
                       className="hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors"
                       onClick={() =>
                         router.push(
-                          `/users/dashboard/workforce/leaves/manage/requests/${request.id}?from=employee-dashboard`
+                          `${routes.workforce.leaves.manage.requests.detail(request.id).href}?from=employee-dashboard`
                         )
                       }
                     >
@@ -268,9 +265,7 @@ export function EmployeeDashboard() {
                   </p>
                   <Button
                     onClick={() =>
-                      router.push(
-                        '/users/dashboard/workforce/leaves/manage/requests/new'
-                      )
+                      router.push(routes.workforce.leaves.manage.requests.new)
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -299,9 +294,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests/new'
-                  )
+                  router.push(routes.workforce.leaves.manage.requests.new)
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -311,9 +304,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests'
-                  )
+                  router.push(routes.workforce.leaves.manage.requests.href)
                 }
               >
                 <FileText className="mr-2 h-4 w-4" />
@@ -323,9 +314,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/balance'
-                  )
+                  router.push(routes.workforce.leaves.manage.balance)
                 }
               >
                 <TrendingUp className="mr-2 h-4 w-4" />
@@ -335,9 +324,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/calendar'
-                  )
+                  router.push(routes.workforce.leaves.manage.calendar)
                 }
               >
                 <Calendar className="mr-2 h-4 w-4" />
