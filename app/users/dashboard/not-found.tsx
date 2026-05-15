@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -8,15 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
+import { Search, Home } from 'lucide-react';
+import { routes } from '@/nav';
 
-import { Search, Home, ArrowLeft } from 'lucide-react';
-
-/**
- * Dashboard Not Found Page (404)
- *
- * Displayed when a user navigates to a non-existent dashboard route
- * Uses the AppLayout for a consistent user experience
- */
 export default function DashboardNotFound() {
   return (
     <div className="flex min-h-[calc(100vh-12rem)] items-center justify-center">
@@ -45,7 +38,7 @@ export default function DashboardNotFound() {
 
           <div className="flex flex-col gap-2 pt-4">
             <Button asChild className="w-full">
-              <Link href="/users/dashboard" className="flex items-center gap-2">
+              <Link href={routes.href} className="flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Go to Dashboard Home
               </Link>
@@ -56,14 +49,14 @@ export default function DashboardNotFound() {
             <p>
               Lost? Check out{' '}
               <Link
-                href="/users/dashboard/portfolio/projects"
+                href={routes.portfolio.projects.href}
                 className="text-primary hover:underline"
               >
                 your projects
               </Link>{' '}
               or{' '}
               <Link
-                href="/users/dashboard/organizations"
+                href={routes.organizations.href}
                 className="text-primary hover:underline"
               >
                 organizations

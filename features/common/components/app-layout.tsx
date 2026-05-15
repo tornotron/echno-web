@@ -33,7 +33,7 @@ interface AppLayoutProps {
   floatingChat?: React.ReactNode;
 }
 
-const ORGANIZATIONS_PATH = '/users/dashboard/organizations';
+const ORGANIZATIONS_PATH = routes.organizations.href;
 
 function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   const { isMobile, setOpen } = useSidebar();
@@ -123,7 +123,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               {/* Organizations — hidden on mobile to keep header clean */}
               <Button variant="outline" asChild className="hidden sm:flex">
                 <Link
-                  href="/users/dashboard/organizations"
+                  href={routes.organizations.href}
                   className="flex items-center gap-2"
                 >
                   <Building className="h-4 w-4" />
@@ -132,7 +132,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
               </Button>
               <ThemeToggle />
               <Button variant="ghost" size="icon" asChild>
-                <Link href="/users/dashboard/settings">
+                <Link href={routes.settings}>
                   <Settings className="h-5 w-5" />
                 </Link>
               </Button>
