@@ -12,12 +12,12 @@ import {
 import { Button } from '@/components/shadcn/button';
 import { ShieldX, ArrowLeft, Home, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 function AccessDeniedContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Get parameters from URL
   const resource = searchParams.get('resource') || '';
   const scope = searchParams.get('scope') || '';
   const moduleName = searchParams.get('module') || '';
@@ -26,20 +26,18 @@ function AccessDeniedContent() {
     searchParams.get('message') ||
     "You don't have permission to access this resource.";
 
-  // Build permission description
   const getPermissionDescription = () => {
     if (moduleName) {
       return `${moduleName} Module`;
     }
     if (resource && scope) {
-      // Map scope to CRUD permission label
       const scopeMap: Record<string, string> = {
         create: 'Create',
         read: 'Read',
         update: 'Update',
         delete: 'Delete',
-        list: 'Read', // List is essentially read access
-        view: 'Read', // View is essentially read access
+        list: 'Read',
+        view: 'Read',
       };
       const permission = scopeMap[scope.toLowerCase()] || scope;
       return `${permission} permission for ${resource}`;
@@ -56,7 +54,6 @@ function AccessDeniedContent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 p-4 dark:bg-zinc-900">
       <div className="w-full max-w-lg">
-        {/* Main Card */}
         <Card className="mb-4">
           <CardHeader className="text-center">
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
@@ -68,7 +65,6 @@ function AccessDeniedContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {/* Permission Details */}
             <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-800/50">
               <p className="mb-1 text-sm text-zinc-500 dark:text-zinc-400">
                 Required Permission
@@ -78,13 +74,12 @@ function AccessDeniedContent() {
               </p>
             </div>
 
-            {/* Actions */}
             <div className="grid grid-cols-2 gap-3">
               <Button variant="outline" onClick={() => router.back()}>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Go Back
               </Button>
-              <Link href="/users/dashboard" className="w-full">
+              <Link href={routes.href} className="w-full">
                 <Button variant="outline" className="w-full">
                   <Home className="mr-2 h-4 w-4" />
                   Dashboard
@@ -94,7 +89,6 @@ function AccessDeniedContent() {
           </CardContent>
         </Card>
 
-        {/* Help Text */}
         <p className="text-center text-sm text-zinc-500 dark:text-zinc-400">
           If you believe this is an error, please contact your system
           administrator.
