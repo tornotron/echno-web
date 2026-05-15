@@ -71,6 +71,7 @@ import { LeaveStatus, ApprovalAction } from '@/types/leave';
 import { toast } from '@/lib/styles/toast-styles';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { PageHeader } from '@/components/common';
+import { routes } from '@/nav';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -84,13 +85,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const from = searchParams.get('from');
 
   const backUrlMap: Record<string, string> = {
-    'my-requests': '/users/dashboard/workforce/leaves/manage/requests?tab=my',
-    'org-requests': '/users/dashboard/workforce/leaves/manage/requests?tab=all',
-    approvals:
-      '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
-    'employee-dashboard': '/users/dashboard/workforce/leaves/manage',
-    'manager-dashboard': '/users/dashboard/workforce/leaves/manage',
-    'admin-dashboard': '/users/dashboard/workforce/leaves/manage',
+    'my-requests': `${routes.workforce.leaves.manage.requests.href}?tab=my`,
+    'org-requests': `${routes.workforce.leaves.manage.requests.href}?tab=all`,
+    approvals: `${routes.workforce.leaves.manage.requests.href}?tab=approvals`,
+    'employee-dashboard': routes.workforce.leaves.manage.href,
+    'manager-dashboard': routes.workforce.leaves.manage.href,
+    'admin-dashboard': routes.workforce.leaves.manage.href,
   };
   const backUrl = from ? backUrlMap[from] : null;
 
@@ -161,7 +161,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       setShowApproveForm(false);
       setApproveComments('');
       router.push(
-        '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+        `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
       );
     } catch (error) {
       toast.error('Failed to approve leave request');
@@ -190,7 +190,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       setShowRejectForm(false);
       setRejectComments('');
       router.push(
-        '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+        `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
       );
     } catch (error) {
       toast.error('Failed to reject leave request');
@@ -216,7 +216,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       setDelegateComments('');
       setDelegateToId('');
       router.push(
-        '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+        `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
       );
     } catch (error) {
       toast.error('Failed to delegate leave request');
@@ -242,7 +242,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
       if (backUrl) {
         router.push(backUrl);
       } else {
-        router.push('/users/dashboard/workforce/leaves/manage/requests');
+        router.push(routes.workforce.leaves.manage.requests.href);
       }
     } catch (error) {
       toast.error('Failed to cancel leave request');
@@ -296,7 +296,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
               variant="outline"
               onClick={() =>
                 router.push(
-                  `/users/dashboard/workforce/leaves/manage/requests/new?edit=${request.id}`
+                  `${routes.workforce.leaves.manage.requests.new}?edit=${request.id}`
                 )
               }
             >
@@ -831,7 +831,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   className="w-full justify-start"
                   onClick={() =>
                     router.push(
-                      `/users/dashboard/workforce/leaves/manage/requests/new?edit=${request.id}`
+                      `${routes.workforce.leaves.manage.requests.new}?edit=${request.id}`
                     )
                   }
                 >

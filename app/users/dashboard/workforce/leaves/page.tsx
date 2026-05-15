@@ -11,6 +11,7 @@ import { LeaveOverview } from '@/features/leave/components/leave-overview';
 import { LeaveCharts } from '@/features/leave/components/leave-charts';
 import { Button } from '@/components/shadcn/button';
 import { LayoutDashboard } from 'lucide-react';
+import { routes } from '@/nav';
 
 export default function LeaveOverviewPage() {
   const router = useRouter();
@@ -36,9 +37,7 @@ export default function LeaveOverviewPage() {
             description="Organisation-wide leave analytics and upcoming schedules"
           />
           <Button
-            onClick={() =>
-              router.push('/users/dashboard/workforce/leaves/manage')
-            }
+            onClick={() => router.push(routes.workforce.leaves.manage.href)}
           >
             <LayoutDashboard className="mr-2 h-4 w-4" />
             Leave Dashboard
