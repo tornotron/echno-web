@@ -48,8 +48,9 @@ import {
   Search,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { routes } from '@/nav';
 
-const BASE = '/users/dashboard/workforce/leaves/manage';
+const BASE = routes.workforce.leaves.manage.href;
 
 interface ApprovalsTabProps {
   employeeId: number;

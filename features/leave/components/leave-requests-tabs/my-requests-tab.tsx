@@ -34,8 +34,9 @@ import { LeaveStatus } from '@/types/leave';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { FileText, AlertCircle, Calendar, Clock, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { routes } from '@/nav';
 
-const BASE = '/users/dashboard/workforce/leaves/manage';
+const BASE = routes.workforce.leaves.manage.href;
 
 interface MyRequestsTabProps {
   employeeId: number;
