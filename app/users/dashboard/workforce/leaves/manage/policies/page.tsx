@@ -35,6 +35,7 @@ import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useAllLeavePolicies } from '@/hooks/leave/use-leave';
 import { useUser } from '@/hooks/user/use-user';
 import { PageHeader } from '@/components/common';
+import { routes } from '@/nav';
 
 export default function LeavePoliciesPage() {
   const router = useRouter();
@@ -70,9 +71,7 @@ export default function LeavePoliciesPage() {
         <Button
           variant="outline"
           className="mt-4"
-          onClick={() =>
-            router.push('/users/dashboard/workforce/leaves/manage')
-          }
+          onClick={() => router.push(routes.workforce.leaves.manage.href)}
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Dashboard

@@ -26,8 +26,7 @@ import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { LeaveStatus } from '@/types/leave';
 import { FileText, Clock, Calendar, AlertCircle, Plus } from 'lucide-react';
-
-const BASE = '/users/dashboard/workforce/leaves/manage';
+import { routes } from '@/nav';
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -84,7 +83,11 @@ export default function RequestsPage() {
             title="Leave Requests"
             description="Manage and review leave requests"
           />
-          <Button onClick={() => router.push(`${BASE}/requests/new`)}>
+          <Button
+            onClick={() =>
+              router.push(routes.workforce.leaves.manage.requests.new)
+            }
+          >
             <Plus className="mr-2 h-4 w-4" />
             New Request
           </Button>
