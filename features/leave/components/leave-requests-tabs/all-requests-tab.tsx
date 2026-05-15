@@ -35,8 +35,9 @@ import { LeaveStatus } from '@/types/leave';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import { FileText, Calendar, Clock, AlertCircle, Search } from 'lucide-react';
 import { format } from 'date-fns';
+import { routes } from '@/nav';
 
-const BASE = '/users/dashboard/workforce/leaves/manage';
+const BASE = routes.workforce.leaves.manage.href;
 
 export function AllRequestsTab() {
   const router = useRouter();

@@ -18,6 +18,7 @@ import {
   getLeaveStatusLabel,
 } from '@/types/leave';
 import { format, isFuture, isToday, differenceInCalendarDays } from 'date-fns';
+import { routes } from '@/nav';
 
 interface LeaveOverviewProps {
   requests: LeaveRequest[];
@@ -37,7 +38,7 @@ const QUICK_ACTIONS = [
     icon: Users,
     label: 'Approvals',
     description: 'Review pending requests',
-    href: '/users/dashboard/workforce/leaves/manage/requests?tab=approvals',
+    href: `${routes.workforce.leaves.manage.requests.href}?tab=approvals`,
     color: 'text-indigo-500',
     bg: 'bg-indigo-50 dark:bg-indigo-950/40',
   },
@@ -45,7 +46,7 @@ const QUICK_ACTIONS = [
     icon: FileText,
     label: 'All Requests',
     description: 'Browse all submissions',
-    href: '/users/dashboard/workforce/leaves/manage/requests?tab=all',
+    href: `${routes.workforce.leaves.manage.requests.href}?tab=all`,
     color: 'text-emerald-500',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40',
   },
@@ -53,7 +54,7 @@ const QUICK_ACTIONS = [
     icon: Settings,
     label: 'Leave Policies',
     description: 'Manage policy rules',
-    href: '/users/dashboard/workforce/leaves/manage/policies',
+    href: routes.workforce.leaves.manage.policies,
     color: 'text-violet-500',
     bg: 'bg-violet-50 dark:bg-violet-950/40',
   },

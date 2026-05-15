@@ -24,6 +24,7 @@ import { format, differenceInDays } from 'date-fns';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { cn } from '@/lib/utils';
+import { routes } from '@/nav';
 
 interface LeaveRequestCardProps {
   request: LeaveRequest;
@@ -57,7 +58,7 @@ export function LeaveRequestCard({
   const daysUntilStart = differenceInDays(request.startDate, new Date());
   const isUrgent = isPending && daysUntilStart >= 0 && daysUntilStart <= 3;
 
-  const detailUrl = `/users/dashboard/workforce/leaves/manage/requests/${request.id}${from ? `?from=${from}` : ''}`;
+  const detailUrl = `${routes.workforce.leaves.manage.requests.detail(request.id).href}${from ? `?from=${from}` : ''}`;
 
   const handleCardClick = () => {
     if (onViewDetails) {
@@ -211,7 +212,7 @@ export function LeaveRequestCard({
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(
-                        `/users/dashboard/workforce/leaves/manage/requests/new?edit=${request.id}`
+                        `${routes.workforce.leaves.manage.requests.new}?edit=${request.id}`
                       );
                     }}
                   >
