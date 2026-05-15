@@ -37,6 +37,7 @@ import { Skeleton } from '@/components/shadcn/skeleton';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { useApprovalsForApprover } from '@/hooks/leave/use-approvals-for-approver';
 import { format } from 'date-fns';
+import { routes } from '@/nav';
 
 export function ManagerDashboard() {
   const router = useRouter();
@@ -111,7 +112,7 @@ export function ManagerDashboard() {
               size="sm"
               onClick={() =>
                 router.push(
-                  '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+                  `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
                 )
               }
             >
@@ -139,7 +140,7 @@ export function ManagerDashboard() {
                     className="hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors"
                     onClick={() =>
                       router.push(
-                        `/users/dashboard/workforce/leaves/manage/requests/${request.id}?from=manager-dashboard`
+                        `${routes.workforce.leaves.manage.requests.detail(request.id).href}?from=manager-dashboard`
                       )
                     }
                   >
@@ -191,7 +192,7 @@ export function ManagerDashboard() {
                         className="hover:bg-muted/50 flex cursor-pointer items-center gap-3 px-4 py-3 transition-colors"
                         onClick={() =>
                           router.push(
-                            `/users/dashboard/workforce/leaves/manage/requests/${request.id}?from=manager-dashboard`
+                            `${routes.workforce.leaves.manage.requests.detail(request.id).href}?from=manager-dashboard`
                           )
                         }
                       >
@@ -234,7 +235,7 @@ export function ManagerDashboard() {
                   className="w-full"
                   onClick={() =>
                     router.push(
-                      '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+                      `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
                     )
                   }
                 >
@@ -273,7 +274,7 @@ export function ManagerDashboard() {
               className="justify-start"
               onClick={() =>
                 router.push(
-                  '/users/dashboard/workforce/leaves/manage/requests?tab=approvals'
+                  `${routes.workforce.leaves.manage.requests.href}?tab=approvals`
                 )
               }
             >
@@ -284,7 +285,7 @@ export function ManagerDashboard() {
               variant="outline"
               className="justify-start"
               onClick={() =>
-                router.push('/users/dashboard/workforce/leaves/manage/calendar')
+                router.push(routes.workforce.leaves.manage.calendar)
               }
             >
               <Calendar className="mr-2 h-4 w-4" />
