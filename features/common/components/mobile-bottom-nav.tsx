@@ -10,20 +10,21 @@ import {
   LayoutGrid,
 } from 'lucide-react';
 import { useSidebar } from '@/components/shadcn/sidebar';
+import { routes } from '@/nav';
 
 const PRIMARY_TABS = [
-  { label: 'Home', href: '/users/dashboard', icon: Home },
-  { label: 'Attendance', href: '/users/dashboard/attendance', icon: UserCheck },
-  { label: 'Chat', href: '/users/dashboard/chat', icon: MessagesSquare },
+  { label: 'Home', href: routes.href, icon: Home },
+  { label: 'Attendance', href: routes.attendance.href, icon: UserCheck },
+  { label: 'Chat', href: routes.chat.href, icon: MessagesSquare },
   {
     label: 'Portfolio',
-    href: '/users/dashboard/portfolio/projects',
+    href: routes.portfolio.projects.href,
     icon: FolderKanban,
   },
 ] as const;
 
 function isActive(href: string, pathname: string) {
-  if (href === '/users/dashboard') return pathname === href;
+  if (href === routes.href) return pathname === href;
   return pathname.startsWith(href);
 }
 

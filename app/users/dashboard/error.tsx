@@ -10,16 +10,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { routes } from '@/nav';
 
-/**
- * Dashboard Error Page
- *
- * Catches errors within the dashboard section
- * Uses AppLayout for consistent navigation and branding
- */
 export default function DashboardError({
   error,
   reset,
@@ -28,7 +22,6 @@ export default function DashboardError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to monitoring service
     logger.error('Dashboard error caught', error, {
       digest: error.digest,
       message: error.message,
@@ -52,7 +45,6 @@ export default function DashboardError({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Error Details (Development Only) */}
           {process.env.NODE_ENV === 'development' && (
             <div className="bg-muted rounded-lg p-4">
               <p className="text-destructive mb-2 text-sm font-medium">
@@ -86,7 +78,7 @@ export default function DashboardError({
             </Button>
 
             <Button variant="outline" asChild className="w-full">
-              <Link href="/users/dashboard" className="flex items-center gap-2">
+              <Link href={routes.href} className="flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Go to Dashboard Home
               </Link>
