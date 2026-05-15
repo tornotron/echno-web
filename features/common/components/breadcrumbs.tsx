@@ -62,12 +62,8 @@ import {
   mockInvoices,
   mockExpenses,
 } from '@/components/shared/mock-data';
+import { routes } from '@/nav';
 
-/**
- * Maps parent URL segments to mock-data lookups.
- * Used as the `fallbackResolver` for `getNameForId` until these modules
- * are backed by real API data.
- */
 const mockFallbackResolver: FallbackNameResolver = (
   parentSegment,
   numericId
@@ -131,7 +127,6 @@ interface BreadcrumbsProps {
   purchaseOrder?: PurchaseOrder;
 }
 
-// /** Derive a human-readable display name for a chat room. */
 function getChatRoomName(room: ChatRoom): string {
   if (room.name) return room.name;
   if (room.type === ChatRoomType.ai) return 'AI Assistant';
@@ -163,14 +158,13 @@ export function Breadcrumbs({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // Convert single leave request to array for consistency with getNameForId signature
   const leaveRequests = leaveRequest ? [leaveRequest] : undefined;
 
   if (pathname === '/') return null;
 
   const pathSegments = pathname.split('/').filter(Boolean);
 
-  if (pathname === '/users/dashboard') {
+  if (pathname === routes.href) {
     return (
       <Breadcrumb className="text-base">
         <BreadcrumbList>
@@ -183,9 +177,7 @@ export function Breadcrumbs({
   }
 
   const filteredSegments = pathSegments.filter((segment) => {
-    // Hide standard segments
     if (isHiddenSegment(segment)) return false;
-
     return true;
   });
 
@@ -193,9 +185,7 @@ export function Breadcrumbs({
     .map((segment, index) => {
       const actualIndex = pathSegments.findIndex((seg, idx) => {
         const visibleUpToNow = pathSegments.slice(0, idx + 1).filter((s) => {
-          // Hide standard segments
           if (isHiddenSegment(s)) return false;
-
           return true;
         }).length;
         return seg === segment && visibleUpToNow === index + 1;
@@ -243,10 +233,8 @@ export function Breadcrumbs({
         arr[index - 1].label.toLowerCase() !== item.label.toLowerCase()
     );
 
-  // Apply contextual breadcrumb overrides (leave detail, issue-from-task, etc.)
   applyBreadcrumbOverrides(breadcrumbItems, pathname, searchParams, task);
 
-  // For mobile: show first item, ellipsis dropdown for middle items, and last 2 items
   const ITEMS_TO_SHOW_ON_MOBILE = 2;
   const shouldCollapse = breadcrumbItems.length > ITEMS_TO_SHOW_ON_MOBILE;
   const collapsedItems = shouldCollapse
@@ -304,14 +292,14 @@ export function Breadcrumbs({
     <TooltipProvider>
       <Breadcrumb className="text-sm sm:text-base">
         <BreadcrumbList className="flex flex-wrap gap-1 sm:gap-1.5">
-          {/* Dashboard - Always visible */}
+          {/* Dashboard home — always visible on sm+ */}
           <BreadcrumbItem className="hidden sm:inline-flex">
             <BreadcrumbLink asChild>
-              <Link href="/users/dashboard">Home</Link>
+              <Link href={routes.href}>Home</Link>
             </BreadcrumbLink>
           </BreadcrumbItem>
 
-          {/* Mobile: Collapsed items in dropdown */}
+          {/* Mobile: collapsed items in dropdown */}
           {shouldCollapse && (
             <>
               <BreadcrumbSeparator className="hidden sm:block md:hidden" />
@@ -333,7 +321,7 @@ export function Breadcrumbs({
             </>
           )}
 
-          {/* Desktop: Show all items */}
+          {/* Desktop: show all items */}
           {breadcrumbItems.map((item) => (
             <div
               key={item.href}
@@ -344,7 +332,7 @@ export function Breadcrumbs({
             </div>
           ))}
 
-          {/* Tablet/Mobile: Show collapsed view */}
+          {/* Tablet/mobile: collapsed view */}
           {visibleItemsOnMobile.map((item, index) => (
             <div
               key={item.href}
