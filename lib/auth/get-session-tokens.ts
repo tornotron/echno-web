@@ -32,6 +32,7 @@ export async function getSessionTokens() {
       },
     } as { headers: { cookie: string } },
     secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NEXTAUTH_URL?.startsWith('https://'),
   });
 
   if (!token) {
