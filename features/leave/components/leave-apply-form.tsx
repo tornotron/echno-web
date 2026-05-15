@@ -58,6 +58,7 @@ import { BalanceCard } from '@/features/leave/components/balance-card';
 import { FormSkeleton } from '@/features/leave/components/skeletons';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
+import { routes } from '@/nav';
 
 interface LeaveApplyFormProps {
   employeeId: number;
@@ -267,7 +268,7 @@ export function LeaveApplyForm({
             toast.success('Draft Updated', {
               description: 'Your leave request has been updated',
             });
-            router.push('/users/dashboard/workforce/leaves/manage/requests');
+            router.push(routes.workforce.leaves.manage.requests.href);
           },
           onError: (error) => {
             toast.error('Error', {
@@ -296,7 +297,7 @@ export function LeaveApplyForm({
             toast.success('Draft Saved', {
               description: 'Your leave request has been saved as draft',
             });
-            router.push('/users/dashboard/workforce/leaves/manage/requests');
+            router.push(routes.workforce.leaves.manage.requests.href);
           },
           onError: (error) => {
             toast.error('Error', {
@@ -337,9 +338,7 @@ export function LeaveApplyForm({
                   toast.success('Leave Request Submitted', {
                     description: `Your leave request for ${calculatedDays} day(s) has been submitted`,
                   });
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests'
-                  );
+                  router.push(routes.workforce.leaves.manage.requests.href);
                 },
                 onError: (error) => {
                   toast.error('Error', {
@@ -380,9 +379,7 @@ export function LeaveApplyForm({
                   toast.success('Leave Request Submitted', {
                     description: `Your leave request for ${calculatedDays} day(s) has been submitted`,
                   });
-                  router.push(
-                    '/users/dashboard/workforce/leaves/manage/requests'
-                  );
+                  router.push(routes.workforce.leaves.manage.requests.href);
                 },
                 onError: (error) => {
                   toast.error('Error', {
@@ -418,7 +415,7 @@ export function LeaveApplyForm({
           });
           setShowCancelDialog(false);
           setCancelReason('');
-          router.push('/users/dashboard/workforce/leaves/manage/requests');
+          router.push(routes.workforce.leaves.manage.requests.href);
         },
         onError: (error) => {
           toast.error('Error', {
