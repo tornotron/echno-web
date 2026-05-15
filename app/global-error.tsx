@@ -3,14 +3,8 @@
 import { useEffect } from 'react';
 import { Button } from '@/components/shadcn/button';
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
+import { routes } from '@/nav';
 
-/**
- * Global Error Page
- *
- * Catches errors in the root layout (layout.tsx)
- * This is a last-resort error boundary
- * Note: Must re-render the entire HTML document
- */
 export default function GlobalError({
   error,
   reset,
@@ -19,7 +13,6 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to console (logger might not be available)
     console.error('Global error caught:', error);
   }, [error]);
 
@@ -46,7 +39,6 @@ export default function GlobalError({
               backgroundColor: '#ffffff',
             }}
           >
-            {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
               <div
                 style={{
@@ -79,7 +71,6 @@ export default function GlobalError({
               </p>
             </div>
 
-            {/* Error Details (Development Only) */}
             {process.env.NODE_ENV === 'development' && (
               <div
                 style={{
@@ -125,7 +116,6 @@ export default function GlobalError({
               </div>
             )}
 
-            {/* Actions */}
             <div
               style={{
                 display: 'flex',
@@ -157,7 +147,7 @@ export default function GlobalError({
 
               <button
                 onClick={() => {
-                  globalThis.location.href = '/users/dashboard';
+                  globalThis.location.href = routes.href;
                 }}
                 style={{
                   width: '100%',
@@ -180,7 +170,6 @@ export default function GlobalError({
               </button>
             </div>
 
-            {/* Footer */}
             <div
               style={{
                 marginTop: '1.5rem',

@@ -7,14 +7,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { Home, ArrowLeft, Search } from 'lucide-react';
+import { Home, Search } from 'lucide-react';
+import { routes } from '@/nav';
 
-/**
- * Root Not Found Page (404)
- *
- * Displayed when a user navigates to a non-existent route
- * Matches the app's design system with shadcn-v/shadcn components
- */
 export default function NotFound() {
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
@@ -42,7 +37,7 @@ export default function NotFound() {
 
           <div className="flex flex-col gap-2 pt-4">
             <Button asChild className="w-full">
-              <Link href="/users/dashboard" className="flex items-center gap-2">
+              <Link href={routes.href} className="flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Go to Dashboard
               </Link>

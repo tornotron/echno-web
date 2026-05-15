@@ -8,6 +8,7 @@ import {
 } from '@/components/shadcn/card';
 import { LucideIcon } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 export interface ErrorLayoutProps {
   statusCode: number;
@@ -26,11 +27,6 @@ export interface ErrorLayoutProps {
   additionalInfo?: React.ReactNode;
 }
 
-/**
- * Reusable Error Layout Component
- *
- * Provides consistent UI for all HTTP error pages
- */
 export function ErrorLayout({
   statusCode,
   title,
@@ -46,7 +42,7 @@ export function ErrorLayout({
   const defaultActions = [
     {
       label: 'Go to Dashboard',
-      href: '/users/dashboard',
+      href: routes.href,
       variant: 'default' as const,
     },
   ];

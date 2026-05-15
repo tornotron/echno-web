@@ -1,12 +1,8 @@
 import { ErrorLayout } from '@/components/errors/error-layout';
 import { ReloadButton } from '@/components/errors/reload-button';
 import { ServerCrash } from 'lucide-react';
+import { routes } from '@/nav';
 
-/**
- * 500 Internal Server Error Page
- *
- * Displayed when the server encounters an unexpected condition
- */
 export default function InternalServerErrorPage() {
   return (
     <ErrorLayout
@@ -24,7 +20,7 @@ export default function InternalServerErrorPage() {
       actions={[
         {
           label: 'Go to Dashboard',
-          href: '/users/dashboard',
+          href: routes.href,
           variant: 'outline',
         },
       ]}

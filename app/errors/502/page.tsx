@@ -1,12 +1,8 @@
 import { ErrorLayout } from '@/components/errors/error-layout';
 import { ReloadButton } from '@/components/errors/reload-button';
 import { CloudOff } from 'lucide-react';
+import { routes } from '@/nav';
 
-/**
- * 502 Bad Gateway Error Page
- *
- * Displayed when the server received an invalid response from upstream
- */
 export default function BadGatewayPage() {
   return (
     <ErrorLayout
@@ -24,7 +20,7 @@ export default function BadGatewayPage() {
       actions={[
         {
           label: 'Go to Dashboard',
-          href: '/users/dashboard',
+          href: routes.href,
           variant: 'outline',
         },
       ]}

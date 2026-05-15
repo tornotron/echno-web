@@ -1,12 +1,7 @@
-
 import { ErrorLayout } from '@/components/errors/error-layout';
 import { Lock } from 'lucide-react';
+import { routes } from '@/nav';
 
-/**
- * 401 Unauthorized Error Page
- *
- * Displayed when authentication is required but not provided or invalid
- */
 export default function UnauthorizedPage() {
   return (
     <ErrorLayout
@@ -29,7 +24,7 @@ export default function UnauthorizedPage() {
         },
         {
           label: 'Go to Dashboard',
-          href: '/users/dashboard',
+          href: routes.href,
           variant: 'outline',
         },
       ]}
