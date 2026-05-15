@@ -12,13 +12,8 @@ import {
 } from '@/components/shadcn/card';
 import { AlertTriangle, Home, RotateCcw } from 'lucide-react';
 import { logger } from '@/lib/logger';
+import { routes } from '@/nav';
 
-/**
- * Root Error Page
- *
- * Catches and displays runtime errors in the application
- * Automatically logs errors for debugging
- */
 export default function Error({
   error,
   reset,
@@ -27,7 +22,6 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log error to monitoring service
     logger.error('Application error caught by error boundary', error, {
       digest: error.digest,
       message: error.message,
@@ -50,7 +44,6 @@ export default function Error({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Error Details (Development Only) */}
           {process.env.NODE_ENV === 'development' && (
             <div className="bg-muted rounded-lg p-4">
               <p className="text-destructive mb-2 text-sm font-medium">
@@ -83,7 +76,7 @@ export default function Error({
             </Button>
 
             <Button variant="outline" asChild className="w-full">
-              <Link href="/users/dashboard" className="flex items-center gap-2">
+              <Link href={routes.href} className="flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Go to Dashboard
               </Link>

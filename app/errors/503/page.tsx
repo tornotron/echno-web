@@ -1,12 +1,8 @@
 import { ErrorLayout } from '@/components/errors/error-layout';
 import { ReloadButton } from '@/components/errors/reload-button';
 import { Construction } from 'lucide-react';
+import { routes } from '@/nav';
 
-/**
- * 503 Service Unavailable Error Page
- *
- * Displayed when the server is temporarily unable to handle requests
- */
 export default function ServiceUnavailablePage() {
   return (
     <ErrorLayout
@@ -24,7 +20,7 @@ export default function ServiceUnavailablePage() {
       actions={[
         {
           label: 'Go to Dashboard',
-          href: '/users/dashboard',
+          href: routes.href,
           variant: 'outline',
         },
       ]}
