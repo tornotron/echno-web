@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { mockLabour, getLabourById } from '@/components/shared/mock-data';
 
 const typeLabels: Record<string, string> = {
@@ -76,9 +77,7 @@ export default function LabourDetailPage({ params }: PageProps) {
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" asChild>
-            <Link
-              href={`/users/dashboard/third-party/labour/${labour.id}/edit`}
-            >
+            <Link href={routes.thirdParty.labour.detail(labour.id).edit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Link>
