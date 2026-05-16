@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -157,7 +158,7 @@ export default function AssetsPage() {
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/users/dashboard/resources/assets/new">
+          <Link href={routes.resources.assets.new}>
             <Cog className="mr-2 h-4 w-4" />
             Register Asset
           </Link>
@@ -379,7 +380,7 @@ export default function AssetsPage() {
                 return (
                   <Link
                     key={asset.id}
-                    href={`/users/dashboard/resources/assets/${asset.id}`}
+                    href={routes.resources.assets.detail(asset.id).href}
                     className="block"
                   >
                     <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">
@@ -547,7 +548,7 @@ export default function AssetsPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/resources/assets/new">
+                <Link href={routes.resources.assets.new}>
                   <Cog className="mr-2 h-4 w-4" />
                   Register Asset
                 </Link>

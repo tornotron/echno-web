@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
   Card,
@@ -79,7 +80,7 @@ export default function AssetDetailPage() {
   const handleDelete = useCallback(() => {
     if (confirm('Are you sure you want to delete this asset?')) {
       toast.success('Asset deleted successfully');
-      router.push('/dashboard/resources/assets');
+      router.push(routes.resources.assets.href);
     }
   }, [router]);
 
@@ -95,7 +96,7 @@ export default function AssetDetailPage() {
             <p className="mb-4 text-zinc-600 dark:text-zinc-400">
               The asset you&apos;re looking for doesn&apos;t exist.
             </p>
-            <Link href="/users/dashboard/resources/assets">
+            <Link href={routes.resources.assets.href}>
               <Button>Back to Assets</Button>
             </Link>
           </CardContent>
@@ -128,7 +129,7 @@ export default function AssetDetailPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href={`/users/dashboard/resources/assets/${asset.id}/edit`}>
+          <Link href={routes.resources.assets.detail(asset.id).edit}>
             <Button variant="outline">
               <Edit className="mr-2 h-4 w-4" />
               Edit

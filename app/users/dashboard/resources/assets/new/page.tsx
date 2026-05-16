@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -77,7 +78,7 @@ export default function NewAssetPage() {
     // In real app, make API call
     setTimeout(() => {
       toast.success('Asset registered successfully!');
-      router.push('/dashboard/resources/assets');
+      router.push(routes.resources.assets.href);
     }, 1000);
   };
 
@@ -564,10 +565,7 @@ export default function NewAssetPage() {
                     <Save className="mr-2 h-4 w-4" />
                     {isSubmitting ? 'Saving...' : 'Register Asset'}
                   </Button>
-                  <Link
-                    href="/users/dashboard/resources/assets"
-                    className="block"
-                  >
+                  <Link href={routes.resources.assets.href} className="block">
                     <Button type="button" variant="outline" className="w-full">
                       <X className="mr-2 h-4 w-4" />
                       Cancel
