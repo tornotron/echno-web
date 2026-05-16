@@ -36,6 +36,7 @@ import {
   TaskConsumptionsTab,
   DeleteAttachmentDialog,
 } from '@/features/tasks/components';
+import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
 // Status colour helper
@@ -98,7 +99,9 @@ export default function TaskDetailPage({ params }: PageProps) {
         </EmptyHeader>
         <Button asChild>
           <Link
-            href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`}
+            href={
+              routes.portfolio.projects.allProjects.detail(projectId).tasks.href
+            }
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Tasks
@@ -122,7 +125,9 @@ export default function TaskDetailPage({ params }: PageProps) {
         description={
           project ? (
             <Link
-              href={`/users/dashboard/portfolio/projects/all-projects/${project.id}`}
+              href={
+                routes.portfolio.projects.allProjects.detail(project.id).href
+              }
               className="inline-flex items-center gap-1.5 hover:opacity-80"
             >
               <FolderOpen className="h-3.5 w-3.5" />
@@ -133,7 +138,11 @@ export default function TaskDetailPage({ params }: PageProps) {
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link
-              href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${task.id}/edit`}
+              href={
+                routes.portfolio.projects.allProjects
+                  .detail(projectId)
+                  .tasks.detail(task.id!).edit
+              }
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit Task

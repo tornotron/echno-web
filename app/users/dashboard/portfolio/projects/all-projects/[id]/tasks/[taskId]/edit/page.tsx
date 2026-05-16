@@ -58,6 +58,7 @@ import {
   SaveTaskDialog,
   CreateCategoryDialog,
 } from '@/features/tasks/components';
+import { routes } from '@/nav';
 
 function formatDateForInput(date: Date): string {
   const y = date.getFullYear();
@@ -207,7 +208,7 @@ export default function EditTaskPage({ params }: PageProps) {
         <Button
           onClick={() =>
             router.push(
-              `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+              routes.portfolio.projects.allProjects.detail(projectId).tasks.href
             )
           }
         >
@@ -356,7 +357,7 @@ export default function EditTaskPage({ params }: PageProps) {
     deleteTask.mutate(taskId, {
       onSuccess: () => {
         router.push(
-          `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+          routes.portfolio.projects.allProjects.detail(projectId).tasks.href
         );
       },
       onSettled: () => setShowDeleteDialog(false),
@@ -822,7 +823,9 @@ export default function EditTaskPage({ params }: PageProps) {
           updateTask.mutate(pendingSubmitData, {
             onSuccess: () => {
               router.push(
-                `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${taskId}`
+                routes.portfolio.projects.allProjects
+                  .detail(projectId)
+                  .tasks.detail(taskId).href
               );
             },
             onSettled: () => {

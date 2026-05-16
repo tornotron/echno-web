@@ -29,6 +29,7 @@ import {
 import Link from 'next/link';
 import type { Task } from '@/types/task/task';
 import { getIssueTypeLabel } from '@/types/issue/issue-type';
+import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
 // Issue status helpers
@@ -71,7 +72,7 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
   const router = useRouter();
   const relatedIssues = task.issues || [];
 
-  const reportIssueHref = `/users/dashboard/portfolio/projects/all-projects/${task.projectId}/issues/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
+  const reportIssueHref = `${routes.portfolio.projects.allProjects.detail(task.projectId).issues.new}?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
 
   return (
     <Card>
@@ -113,7 +114,7 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
                   className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   onClick={() =>
                     router.push(
-                      `/users/dashboard/portfolio/projects/all-projects/${task.projectId}/issues/${issue.id}?from=task&taskId=${task.id}`
+                      `${routes.portfolio.projects.allProjects.detail(task.projectId).issues.detail(issue.id!).href}?from=task&taskId=${task.id}`
                     )
                   }
                 >
