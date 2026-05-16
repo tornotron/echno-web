@@ -23,6 +23,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import { ExpenseType, ExpenseStatus } from '@/types/finance/expense';
 
@@ -168,7 +169,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Link href={`/users/dashboard/finance/expenses/${expense.id}/edit`}>
+            <Link href={routes.finance.expenses.detail(expense.id).edit}>
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -372,7 +373,11 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
                     By{' '}
                     <Link
-                      href={`/users/dashboard/workforce/employees/${expense.submittedBy}`}
+                      href={
+                        routes.workforce.employees.employeeManagement.detail(
+                          expense.submittedBy
+                        ).href
+                      }
                       className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       {submittedByEmployee?.name ||
@@ -402,7 +407,11 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/users/dashboard/workforce/employees/${expense.approvedBy}`}
+                          href={
+                            routes.workforce.employees.employeeManagement.detail(
+                              expense.approvedBy
+                            ).href
+                          }
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {approvedByEmployee?.name ||
@@ -426,7 +435,11 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={`/users/dashboard/workforce/employees/${expense.rejectedBy}`}
+                          href={
+                            routes.workforce.employees.employeeManagement.detail(
+                              expense.rejectedBy
+                            ).href
+                          }
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           Employee #{expense.rejectedBy}
