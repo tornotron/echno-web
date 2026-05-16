@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -200,7 +201,7 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
           </p>
         </div>
         <Button asChild>
-          <Link href="/users/dashboard/finance/invoices/new">
+          <Link href={routes.finance.invoices.new}>
             <FileText className="mr-2 h-4 w-4" />
             New Invoice
           </Link>
@@ -424,7 +425,7 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
                       className="hover:bg-muted/50 cursor-pointer"
                       onClick={() =>
                         router.push(
-                          `/users/dashboard/finance/invoices/${invoice.id}`
+                          routes.finance.invoices.detail(invoice.id).href
                         )
                       }
                     >
