@@ -24,6 +24,7 @@ import {
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
 import { cn } from '@/lib/utils/index';
+import { routes } from '@/nav';
 
 interface ProjectOverviewProps {
   projects: Project[];
@@ -50,17 +51,17 @@ const QUICK_ACTIONS = [
   {
     icon: FolderKanban,
     label: 'All Projects',
-    href: '/users/dashboard/portfolio/projects/all-projects',
+    href: routes.portfolio.projects.allProjects.href,
   },
   {
     icon: ListTodo,
     label: 'All Tasks',
-    href: '/users/dashboard/portfolio/projects/all-tasks',
+    href: routes.portfolio.projects.allTasks,
   },
   {
     icon: AlertCircle,
     label: 'All Issues',
-    href: '/users/dashboard/portfolio/projects/all-issues',
+    href: routes.portfolio.projects.allIssues,
   },
 ];
 
@@ -214,7 +215,10 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
                 return (
                   <Link
                     key={project.id}
-                    href={`/users/dashboard/portfolio/projects/all-projects/${project.id}`}
+                    href={
+                      routes.portfolio.projects.allProjects.detail(project.id)
+                        .href
+                    }
                     className="flex items-center gap-2.5 transition-opacity hover:opacity-80"
                   >
                     <div

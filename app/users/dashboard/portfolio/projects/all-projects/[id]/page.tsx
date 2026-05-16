@@ -92,6 +92,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { routes } from '@/nav';
 
 const getStatusBadgeColor = (status: ProjectStatus): string => {
   const colors = {
@@ -192,7 +193,7 @@ export default function ProjectDashboardPage() {
         </EmptyHeader>
         <Button
           onClick={() =>
-            router.push('/users/dashboard/portfolio/projects/all-projects')
+            router.push(routes.portfolio.projects.allProjects.href)
           }
         >
           Back to Projects
@@ -215,7 +216,7 @@ export default function ProjectDashboardPage() {
         </EmptyHeader>
         <Button
           onClick={() =>
-            router.push('/users/dashboard/portfolio/projects/all-projects')
+            router.push(routes.portfolio.projects.allProjects.href)
           }
         >
           Back to Projects
@@ -239,7 +240,7 @@ export default function ProjectDashboardPage() {
         </EmptyHeader>
         <Button
           onClick={() =>
-            router.push('/users/dashboard/portfolio/projects/all-projects')
+            router.push(routes.portfolio.projects.allProjects.href)
           }
         >
           Back to Projects
@@ -296,7 +297,9 @@ export default function ProjectDashboardPage() {
         actions={
           <Button variant="outline" size="sm" asChild>
             <Link
-              href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/edit`}
+              href={
+                routes.portfolio.projects.allProjects.detail(project.id).edit
+              }
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit Project
@@ -429,7 +432,10 @@ export default function ProjectDashboardPage() {
                   Tasks
                 </p>
                 <Link
-                  href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/tasks`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(project.id)
+                      .tasks.href
+                  }
                   className="text-primary text-xs hover:underline"
                 >
                   View all
@@ -531,7 +537,10 @@ export default function ProjectDashboardPage() {
                   Issues
                 </p>
                 <Link
-                  href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/issues`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(project.id)
+                      .issues.href
+                  }
                   className="text-primary text-xs hover:underline"
                 >
                   View all
@@ -761,7 +770,10 @@ export default function ProjectDashboardPage() {
                     asChild
                   >
                     <Link
-                      href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/tasks/new`}
+                      href={
+                        routes.portfolio.projects.allProjects.detail(project.id)
+                          .tasks.new
+                      }
                     >
                       <ListTodo className="mr-2 h-4 w-4" />
                       Create Task
@@ -772,7 +784,7 @@ export default function ProjectDashboardPage() {
                     className="w-full justify-start"
                     asChild
                   >
-                    <Link href="/users/dashboard/portfolio/projects/inspections/new">
+                    <Link href={routes.portfolio.inspections.new}>
                       <ClipboardCheck className="mr-2 h-4 w-4" />
                       Schedule Inspection
                     </Link>
@@ -783,7 +795,10 @@ export default function ProjectDashboardPage() {
                     asChild
                   >
                     <Link
-                      href={`/users/dashboard/portfolio/projects/all-projects/${project.id}/issues/new`}
+                      href={
+                        routes.portfolio.projects.allProjects.detail(project.id)
+                          .issues.new
+                      }
                     >
                       <AlertCircle className="mr-2 h-4 w-4" />
                       Report Issue
