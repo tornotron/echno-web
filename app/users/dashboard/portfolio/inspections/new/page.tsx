@@ -24,6 +24,7 @@ import { Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { mockEmployees } from '@/components/shared/mock-data';
 import { useProjects } from '@/hooks/project/use-projects';
+import { routes } from '@/nav';
 import {
   InspectionStatus,
   InspectionType,
@@ -120,7 +121,7 @@ export default function NewInspectionPage() {
       });
 
       toast.success('Inspection scheduled successfully!');
-      router.push('/dashboard/portfolio/projects/inspections');
+      router.push(routes.portfolio.inspections.href);
     } catch (error) {
       logger.error('Error creating inspection:', error);
       toast.error('Failed to create inspection');
