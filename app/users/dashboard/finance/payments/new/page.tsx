@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   mockProjects,
   mockEmployees,
@@ -100,12 +101,12 @@ export default function NewPaymentPage() {
     setTimeout(() => {
       toast.success('Payment created successfully');
       setIsSubmitting(false);
-      router.push('/dashboard/finance/payments');
+      router.push(routes.finance.payments.href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push('/dashboard/finance/payments');
+    router.push(routes.finance.payments.href);
   };
 
   const handleInputChange = (
