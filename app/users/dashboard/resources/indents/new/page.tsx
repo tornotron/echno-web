@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -153,7 +154,7 @@ export default function NewIndentPage() {
         })),
       });
 
-      router.push(`/users/dashboard/resources/indents/${indent.id}`);
+      router.push(routes.resources.indents.detail(indent.id).href);
     } catch {
       // errors handled by mutation hook
     }
@@ -413,7 +414,7 @@ export default function NewIndentPage() {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button variant="outline" type="button" asChild disabled={isPending}>
-            <Link href="/users/dashboard/resources/indents">Cancel</Link>
+            <Link href={routes.resources.indents.href}>Cancel</Link>
           </Button>
           <Button type="submit" disabled={isPending} className="ml-auto">
             <Send className="mr-2 h-4 w-4" />

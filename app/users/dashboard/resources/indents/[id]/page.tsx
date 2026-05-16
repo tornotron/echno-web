@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -63,9 +64,7 @@ export default function IndentDetailPage({
         <CardContent className="py-12 text-center">
           <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
           <h3 className="mb-2 text-lg font-medium">Failed to load indent</h3>
-          <Button
-            onClick={() => router.push('/users/dashboard/resources/indents')}
-          >
+          <Button onClick={() => router.push(routes.resources.indents.href)}>
             Back to Indents
           </Button>
         </CardContent>
@@ -79,9 +78,7 @@ export default function IndentDetailPage({
         <CardContent className="py-12 text-center">
           <Package className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
           <h3 className="mb-2 text-lg font-medium">Indent not found</h3>
-          <Button
-            onClick={() => router.push('/users/dashboard/resources/indents')}
-          >
+          <Button onClick={() => router.push(routes.resources.indents.href)}>
             Back to Indents
           </Button>
         </CardContent>
@@ -101,7 +98,7 @@ export default function IndentDetailPage({
         indentNumber={indent.indentNumber}
         onConfirm={() =>
           deleteIndent(id, {
-            onSuccess: () => router.push('/users/dashboard/resources/indents'),
+            onSuccess: () => router.push(routes.resources.indents.href),
           })
         }
         isPending={isDeleting}
@@ -140,7 +137,7 @@ export default function IndentDetailPage({
                 className="gap-2"
                 onClick={() =>
                   router.push(
-                    `/users/dashboard/resources/purchase-orders/new?fromIndent=${id}`
+                    `${routes.resources.purchaseOrders.new}?fromIndent=${id}`
                   )
                 }
               >
@@ -151,7 +148,7 @@ export default function IndentDetailPage({
                 className="gap-2"
                 onClick={() =>
                   router.push(
-                    `/users/dashboard/resources/transfers/new?fromIndent=${id}`
+                    `${routes.resources.transfers.new}?fromIndent=${id}`
                   )
                 }
               >
