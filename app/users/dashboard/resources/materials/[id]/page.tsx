@@ -3,6 +3,7 @@
 import { use, useCallback, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -45,7 +46,7 @@ export default function MaterialDetailPage({
 
   const handleDelete = useCallback(() => {
     deleteMaterial(id, {
-      onSuccess: () => router.push('/users/dashboard/resources/materials'),
+      onSuccess: () => router.push(routes.resources.materials.href),
     });
   }, [deleteMaterial, id, router]);
 
@@ -68,9 +69,7 @@ export default function MaterialDetailPage({
         <CardContent className="py-12 text-center">
           <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
           <h3 className="mb-2 text-lg font-medium">Failed to load material</h3>
-          <Button
-            onClick={() => router.push('/users/dashboard/resources/materials')}
-          >
+          <Button onClick={() => router.push(routes.resources.materials.href)}>
             Back to Materials
           </Button>
         </CardContent>
@@ -84,9 +83,7 @@ export default function MaterialDetailPage({
         <CardContent className="py-12 text-center">
           <Package className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
           <h3 className="mb-2 text-lg font-medium">Material not found</h3>
-          <Button
-            onClick={() => router.push('/users/dashboard/resources/materials')}
-          >
+          <Button onClick={() => router.push(routes.resources.materials.href)}>
             Back to Materials
           </Button>
         </CardContent>
@@ -140,7 +137,7 @@ export default function MaterialDetailPage({
         </div>
         <div className="flex shrink-0 gap-2">
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/users/dashboard/resources/materials/${id}/edit`}>
+            <Link href={routes.resources.materials.detail(id).edit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Material
             </Link>
