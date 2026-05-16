@@ -28,6 +28,7 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import { mockInspections, mockEmployees } from '@/components/shared/mock-data';
 import { useProjects } from '@/hooks/project/use-projects';
+import { routes } from '@/nav';
 import {
   InspectionStatus,
   InspectionResult,
@@ -113,7 +114,7 @@ export default function InspectionDetailsPage() {
 
         if (!foundInspection) {
           toast.error('Inspection not found');
-          router.push('/dashboard/portfolio/projects/inspections');
+          router.push(routes.portfolio.inspections.href);
           return;
         }
 
@@ -122,7 +123,7 @@ export default function InspectionDetailsPage() {
       } catch (error) {
         logger.error('Error loading inspection:', error);
         toast.error('Failed to load inspection');
-        router.push('/dashboard/portfolio/projects/inspections');
+        router.push(routes.portfolio.inspections.href);
       }
     };
 
@@ -178,7 +179,7 @@ export default function InspectionDetailsPage() {
             variant="outline"
             onClick={() =>
               router.push(
-                `/dashboard/portfolio/projects/inspections/${inspection.id}/edit`
+                routes.portfolio.inspections.detail(inspection.id).edit
               )
             }
           >
