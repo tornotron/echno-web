@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -171,7 +172,7 @@ export default function BudgetsPage() {
         description="Manage and track project and organization budgets"
         actions={
           <Button asChild>
-            <Link href="/users/dashboard/finance/budgets/new">
+            <Link href={routes.finance.budgets.new}>
               <Plus className="mr-2 h-4 w-4" />
               Create Budget
             </Link>
@@ -348,7 +349,7 @@ export default function BudgetsPage() {
               {paginatedBudgets.map((budget, idx) => (
                 <Link
                   key={budget.id}
-                  href={`/users/dashboard/finance/budgets/${budget.id}`}
+                  href={routes.finance.budgets.detail(budget.id).href}
                   className={`block${idx === paginatedBudgets.length - 1 ? 'mb-2' : ''}`}
                 >
                   <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">
@@ -465,7 +466,7 @@ export default function BudgetsPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/finance/budgets/new">
+                <Link href={routes.finance.budgets.new}>
                   <PieChart className="mr-2 h-4 w-4" />
                   Create Budget
                 </Link>
