@@ -50,6 +50,7 @@ import {
   isValidAttachmentUrl,
   getSafeDownloadUrl,
 } from '@/lib/utils/attachment-url';
+import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
 // Attachment icon helper
@@ -283,7 +284,11 @@ export function IssueOverviewTab({
                   Related Task
                 </label>
                 <Link
-                  href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${relatedTask.id}`}
+                  href={
+                    routes.portfolio.projects.allProjects
+                      .detail(projectId)
+                      .tasks.detail(relatedTask.id!).href
+                  }
                 >
                   <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">

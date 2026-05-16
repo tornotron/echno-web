@@ -37,6 +37,7 @@ import type { Issue } from '@/types/issue/issue';
 import { IssueStatus, IssueType } from '@/types/issue';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -250,7 +251,9 @@ export function IssueTable({
         canNavigate
           ? () =>
               router.push(
-                `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/${issue.id}`
+                routes.portfolio.projects.allProjects
+                  .detail(projectId)
+                  .issues.detail(issue.id!).href
               )
           : undefined
       }
@@ -301,7 +304,9 @@ export function IssueTable({
             onClick={(e) => {
               e.stopPropagation();
               router.push(
-                `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${issue.taskId}`
+                routes.portfolio.projects.allProjects
+                  .detail(projectId)
+                  .tasks.detail(issue.taskId!).href
               );
             }}
           >
@@ -465,7 +470,10 @@ export function IssueTable({
               {!hasActiveFilters && (
                 <Button asChild>
                   <Link
-                    href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/new`}
+                    href={
+                      routes.portfolio.projects.allProjects.detail(projectId)
+                        .issues.new
+                    }
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     New Issue
@@ -526,7 +534,9 @@ export function IssueTable({
                     canNavigate
                       ? () =>
                           router.push(
-                            `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/${issue.id}`
+                            routes.portfolio.projects.allProjects
+                              .detail(projectId)
+                              .issues.detail(issue.id!).href
                           )
                       : undefined
                   }
@@ -569,7 +579,9 @@ export function IssueTable({
                             e.stopPropagation();
                             if (issue.taskId) {
                               router.push(
-                                `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${issue.taskId}`
+                                routes.portfolio.projects.allProjects
+                                  .detail(projectId)
+                                  .tasks.detail(issue.taskId).href
                               );
                             }
                           }}
@@ -622,7 +634,10 @@ export function IssueTable({
             {!hasActiveFilters && (
               <Button asChild>
                 <Link
-                  href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/new`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(projectId)
+                      .issues.new
+                  }
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   New Issue

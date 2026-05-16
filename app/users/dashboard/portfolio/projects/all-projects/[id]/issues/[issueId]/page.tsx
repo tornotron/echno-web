@@ -32,6 +32,7 @@ import {
   IssueCommentsTab,
   DeleteAttachmentDialog,
 } from '@/features/issues/components';
+import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -92,7 +93,9 @@ export default function IssueDetailPage({ params }: PageProps) {
   const fromParam = searchParams.get('from');
   const taskIdParam = searchParams.get('taskId');
   const editHref = (() => {
-    const base = `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/${issueIdParam}/edit`;
+    const base = routes.portfolio.projects.allProjects
+      .detail(projectId)
+      .issues.detail(issueIdParam).edit;
     if (fromParam && taskIdParam)
       return `${base}?from=${fromParam}&taskId=${taskIdParam}`;
     return base;
@@ -127,7 +130,10 @@ export default function IssueDetailPage({ params }: PageProps) {
         </EmptyHeader>
         <Button asChild>
           <Link
-            href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`}
+            href={
+              routes.portfolio.projects.allProjects.detail(projectId).issues
+                .href
+            }
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Issues

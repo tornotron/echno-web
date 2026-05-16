@@ -55,6 +55,7 @@ import {
   useEmployeesByProject,
 } from '@/hooks/project/use-projects';
 import { TaskAttachmentsSection } from '@/features/tasks/components';
+import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface PageProps {
@@ -155,7 +156,7 @@ export default function EditIssuePage({ params }: PageProps) {
     try {
       await deleteMutation.mutateAsync(issue.id);
       router.push(
-        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+        routes.portfolio.projects.allProjects.detail(projectId).issues.href
       );
     } catch {
       // error toast already shown by mutation hook
@@ -181,7 +182,9 @@ export default function EditIssuePage({ params }: PageProps) {
         files: { attachments },
       });
       router.push(
-        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/${issueId}`
+        routes.portfolio.projects.allProjects
+          .detail(projectId)
+          .issues.detail(issueId).href
       );
     } catch {
       // error toast already shown by mutation hook
@@ -213,7 +216,8 @@ export default function EditIssuePage({ params }: PageProps) {
         <Button
           onClick={() =>
             router.push(
-              `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+              routes.portfolio.projects.allProjects.detail(projectId).issues
+                .href
             )
           }
         >
@@ -401,7 +405,11 @@ export default function EditIssuePage({ params }: PageProps) {
                       Related Task
                     </p>
                     <Link
-                      href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${relatedTask.id}`}
+                      href={
+                        routes.portfolio.projects.allProjects
+                          .detail(projectId)
+                          .tasks.detail(relatedTask.id!).href
+                      }
                     >
                       <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-100 dark:bg-blue-900/30">

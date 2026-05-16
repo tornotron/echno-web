@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/common/page-header';
 import Link from 'next/link';
 import { IssueStatus } from '@/types/issue';
 import { IssueTable, IssueStatsCard } from '@/features/issues/components';
+import { routes } from '@/nav';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -79,7 +80,10 @@ export default function IssuesPage({ params }: PageProps) {
         actions={
           <Button asChild>
             <Link
-              href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/issues/new`}
+              href={
+                routes.portfolio.projects.allProjects.detail(projectId).issues
+                  .new
+              }
             >
               <Plus className="mr-2 h-4 w-4" />
               New Issue
