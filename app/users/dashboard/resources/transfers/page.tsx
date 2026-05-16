@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -111,7 +112,7 @@ export default function SiteTransfersPage() {
           </p>
         </div>
         <Button asChild className="mt-4 md:mt-0">
-          <Link href="/users/dashboard/resources/transfers/new">
+          <Link href={routes.resources.transfers.new}>
             <Plus className="mr-2 h-4 w-4" />
             New Transfer
           </Link>
@@ -267,9 +268,7 @@ export default function SiteTransfersPage() {
                     key={t.id}
                     className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     onClick={() =>
-                      router.push(
-                        `/users/dashboard/resources/transfers/${t.id}`
-                      )
+                      router.push(routes.resources.transfers.detail(t.id).href)
                     }
                   >
                     <TableCell className="pl-6 font-medium">
@@ -320,9 +319,7 @@ export default function SiteTransfersPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/resources/transfers/new">
-                  New Transfer
-                </Link>
+                <Link href={routes.resources.transfers.new}>New Transfer</Link>
               </Button>
             )}
           </CardContent>
