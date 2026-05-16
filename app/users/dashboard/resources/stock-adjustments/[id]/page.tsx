@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
   Card,
@@ -118,19 +119,19 @@ const getOriginUrl = (
 
   switch (originType) {
     case 'transfer': {
-      return `/dashboard/resources/transfers/${id}`;
+      return routes.resources.transfers.detail(id).href;
     }
     case 'purchase_order': {
-      return `/dashboard/resources/purchase-orders/${id}`;
+      return routes.resources.purchaseOrders.detail(id).href;
     }
     case 'goods_receipt': {
-      return `/dashboard/resources/goods-receipts/${id}`;
+      return routes.resources.goodsReceipts.detail(id).href;
     }
     case 'return': {
-      return `/dashboard/finance/returns/${id}`;
+      return '#';
     }
     case 'write_off': {
-      return `/dashboard/finance/expenses/${id}`;
+      return routes.finance.expenses.detail(id).href;
     }
     default: {
       return '#';
@@ -167,7 +168,7 @@ export default function StockAdjustmentDetailPage({
   }
 
   const handleEdit = () => {
-    router.push(`/dashboard/resources/stock-adjustments/${id}/edit`);
+    router.push(routes.resources.stockAdjustments.detail(id).edit);
   };
 
   const handleDelete = () => {
@@ -175,7 +176,7 @@ export default function StockAdjustmentDetailPage({
     // Simulate API call
     setTimeout(() => {
       toast.success('Stock Adjustment deleted successfully');
-      router.push('/dashboard/resources/stock-adjustments');
+      router.push(routes.resources.stockAdjustments.href);
     }, 1000);
   };
 

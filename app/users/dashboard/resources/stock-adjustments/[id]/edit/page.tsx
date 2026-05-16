@@ -3,6 +3,7 @@
 import { use, useState, useEffect } from 'react';
 
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
   Card,
@@ -219,11 +220,11 @@ export default function EditStockAdjustmentPage({
     }
 
     toast.success('Stock Adjustment updated successfully');
-    router.push(`/dashboard/resources/stock-adjustments/${id}`);
+    router.push(routes.resources.stockAdjustments.detail(id).href);
   };
 
   const handleCancel = () => {
-    router.push(`/dashboard/resources/stock-adjustments/${id}`);
+    router.push(routes.resources.stockAdjustments.detail(id).href);
   };
 
   if (loading) {
