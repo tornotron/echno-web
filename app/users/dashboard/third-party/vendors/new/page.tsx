@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -63,7 +64,7 @@ export default function VendorNewPage() {
     createVendor(form, {
       onSuccess: () => {
         toast.success('Vendor created successfully.');
-        router.push('/users/dashboard/third-party/vendors');
+        router.push(routes.thirdParty.vendors.href);
       },
       onError: (err) =>
         toast.error(
@@ -254,7 +255,7 @@ export default function VendorNewPage() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/users/dashboard/third-party/vendors')}
+            onClick={() => router.push(routes.thirdParty.vendors.href)}
           >
             <X className="mr-2 h-4 w-4" /> Cancel
           </Button>
