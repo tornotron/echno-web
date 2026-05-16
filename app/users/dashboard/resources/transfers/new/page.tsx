@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Card,
@@ -246,7 +247,7 @@ export default function NewSiteTransferPage() {
       },
       {
         onSuccess: (transfer) => {
-          router.push(`/users/dashboard/resources/transfers/${transfer.id}`);
+          router.push(routes.resources.transfers.detail(transfer.id).href);
         },
       }
     );
@@ -279,7 +280,7 @@ export default function NewSiteTransferPage() {
             — verify quantities against current stock before submitting.
           </span>
           <Link
-            href={`/users/dashboard/resources/indents/${sourceIndent.id}`}
+            href={routes.resources.indents.detail(sourceIndent.id).href}
             className="ml-auto flex-shrink-0 font-medium underline-offset-2 hover:underline"
           >
             View indent
@@ -603,7 +604,7 @@ export default function NewSiteTransferPage() {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button variant="outline" type="button" asChild disabled={isPending}>
-            <Link href="/users/dashboard/resources/transfers">Cancel</Link>
+            <Link href={routes.resources.transfers.href}>Cancel</Link>
           </Button>
           <Button
             type="submit"
