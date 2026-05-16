@@ -17,6 +17,7 @@ import { PageHeader } from '@/components/common/page-header';
 import Link from 'next/link';
 import { TaskStatus } from '@/types/task';
 import { TaskTable, TaskStatsCard } from '@/features/tasks/components';
+import { routes } from '@/nav';
 
 export default function ProjectTasksPage() {
   const params = useParams();
@@ -90,7 +91,7 @@ export default function ProjectTasksPage() {
           </EmptyDescription>
         </EmptyHeader>
         <Button asChild>
-          <Link href="/users/dashboard/portfolio/projects/all-projects">
+          <Link href={routes.portfolio.projects.allProjects.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Projects
           </Link>
@@ -136,7 +137,7 @@ export default function ProjectTasksPage() {
           </EmptyDescription>
         </EmptyHeader>
         <Button asChild>
-          <Link href="/users/dashboard/portfolio/projects">
+          <Link href={routes.portfolio.projects.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Projects
           </Link>
@@ -153,7 +154,10 @@ export default function ProjectTasksPage() {
         actions={
           <Button asChild>
             <Link
-              href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/new`}
+              href={
+                routes.portfolio.projects.allProjects.detail(projectId).tasks
+                  .new
+              }
             >
               <Plus className="mr-2 h-4 w-4" />
               New Task
