@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -32,7 +33,9 @@ export function GRNVendorPOCard({ grn }: GRNVendorPOCardProps) {
           <div className="flex justify-between border-b pb-2">
             <span className="text-muted-foreground">Purchase Order</span>
             <Link
-              href={`/users/dashboard/resources/purchase-orders/${grn.purchaseOrderId}`}
+              href={
+                routes.resources.purchaseOrders.detail(grn.purchaseOrderId).href
+              }
               className="font-medium text-blue-600 hover:underline"
             >
               {grn.purchaseOrderNumber?.trim() || `PO #${grn.purchaseOrderId}`}

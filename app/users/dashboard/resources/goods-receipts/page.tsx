@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -110,7 +111,7 @@ export default function GoodsReceiptsPage() {
           </p>
         </div>
         <Button asChild className="mt-4 md:mt-0">
-          <Link href="/users/dashboard/resources/goods-receipts/new">
+          <Link href={routes.resources.goodsReceipts.new}>
             <Plus className="mr-2 h-4 w-4" />
             Record GRN
           </Link>
@@ -260,7 +261,7 @@ export default function GoodsReceiptsPage() {
                     className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     onClick={() =>
                       router.push(
-                        `/users/dashboard/resources/goods-receipts/${grn.id}`
+                        routes.resources.goodsReceipts.detail(grn.id).href
                       )
                     }
                   >
@@ -312,7 +313,7 @@ export default function GoodsReceiptsPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/resources/goods-receipts/new">
+                <Link href={routes.resources.goodsReceipts.new}>
                   Record GRN
                 </Link>
               </Button>
