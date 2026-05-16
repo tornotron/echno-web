@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -96,7 +97,7 @@ export default function NewMaterialPage() {
       },
       {
         onSuccess: (material) => {
-          router.push(`/users/dashboard/resources/materials/${material.id}`);
+          router.push(routes.resources.materials.detail(material.id).href);
         },
       }
     );
@@ -373,7 +374,7 @@ export default function NewMaterialPage() {
         {/* Action Buttons — task page style */}
         <div className="flex gap-3">
           <Button type="button" variant="outline" disabled={isPending} asChild>
-            <Link href="/users/dashboard/resources/materials">Cancel</Link>
+            <Link href={routes.resources.materials.href}>Cancel</Link>
           </Button>
           <Button
             type="submit"

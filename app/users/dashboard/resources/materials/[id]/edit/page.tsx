@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -97,7 +98,7 @@ export default function EditMaterialPage({
       },
       {
         onSuccess: () => {
-          router.push(`/users/dashboard/resources/materials/${id}`);
+          router.push(routes.resources.materials.detail(id).href);
         },
       }
     );
@@ -277,7 +278,7 @@ export default function EditMaterialPage({
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button type="button" variant="outline" disabled={isPending} asChild>
-            <Link href={`/users/dashboard/resources/materials/${id}`}>
+            <Link href={routes.resources.materials.detail(id).href}>
               Cancel
             </Link>
           </Button>

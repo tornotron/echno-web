@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -112,7 +113,7 @@ export default function MaterialsPage() {
               {paginated.map((material) => (
                 <Link
                   key={material.id}
-                  href={`/users/dashboard/resources/materials/${material.id}`}
+                  href={routes.resources.materials.detail(material.id).href}
                   className="block"
                 >
                   <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">
@@ -222,7 +223,7 @@ export default function MaterialsPage() {
           </p>
           {!hasActiveFilters && (
             <Button asChild>
-              <Link href="/users/dashboard/resources/materials/new">
+              <Link href={routes.resources.materials.new}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Material
               </Link>
@@ -272,7 +273,7 @@ export default function MaterialsPage() {
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/users/dashboard/resources/materials/new">
+          <Link href={routes.resources.materials.new}>
             <Plus className="mr-2 h-4 w-4" />
             Add Material
           </Link>

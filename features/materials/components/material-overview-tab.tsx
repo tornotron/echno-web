@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -230,7 +231,7 @@ export function MaterialOverviewTab({ material }: MaterialOverviewTabProps) {
                 asChild
               >
                 <Link
-                  href={`/users/dashboard/resources/materials/${material.id}/edit`}
+                  href={routes.resources.materials.detail(material.id).edit}
                 >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Material
@@ -241,7 +242,7 @@ export function MaterialOverviewTab({ material }: MaterialOverviewTabProps) {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/users/dashboard/resources/material-consumptions/new">
+                <Link href={routes.resources.materialConsumptions.new}>
                   <ShoppingCart className="mr-2 h-4 w-4" />
                   Record Consumption
                 </Link>
@@ -251,7 +252,7 @@ export function MaterialOverviewTab({ material }: MaterialOverviewTabProps) {
                 className="w-full justify-start"
                 asChild
               >
-                <Link href="/users/dashboard/resources/purchase-orders/new">
+                <Link href={routes.resources.purchaseOrders.new}>
                   <Package className="mr-2 h-4 w-4" />
                   Create Purchase Order
                 </Link>
