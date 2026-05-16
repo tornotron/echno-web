@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -66,7 +67,7 @@ export default function NewLabourPage() {
 
     // Simulate API call
     toast.success('Labour created successfully');
-    router.push('/dashboard/third-party/labour');
+    router.push(routes.thirdParty.labour.href);
   };
 
   const handleChange = (field: string, value: string) => {
@@ -78,7 +79,7 @@ export default function NewLabourPage() {
       {/* Header */}
       <div className="flex items-center space-x-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/users/dashboard/third-party/labour">
+          <Link href={routes.thirdParty.labour.href}>
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -469,7 +470,7 @@ export default function NewLabourPage() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => router.push('/dashboard/third-party/labour')}
+                onClick={() => router.push(routes.thirdParty.labour.href)}
               >
                 Cancel
               </Button>
