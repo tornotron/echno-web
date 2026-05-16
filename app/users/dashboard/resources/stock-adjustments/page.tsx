@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -121,7 +122,7 @@ export default function StockAdjustmentsPage() {
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/users/dashboard/resources/stock-adjustments/new">
+          <Link href={routes.resources.stockAdjustments.new}>
             <Plus className="mr-2 h-4 w-4" />
             New Adjustment
           </Link>
@@ -290,7 +291,7 @@ export default function StockAdjustmentsPage() {
               {paginatedAdjustments.map((adj) => (
                 <Link
                   key={adj.id}
-                  href={`/users/dashboard/resources/stock-adjustments/${adj.id}`}
+                  href={routes.resources.stockAdjustments.detail(adj.id).href}
                   className="block"
                 >
                   <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
@@ -438,7 +439,7 @@ export default function StockAdjustmentsPage() {
               </Button>
             ) : (
               <Button asChild>
-                <Link href="/users/dashboard/resources/stock-adjustments/new">
+                <Link href={routes.resources.stockAdjustments.new}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Adjustment
                 </Link>
