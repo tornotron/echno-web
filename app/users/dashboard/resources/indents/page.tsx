@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -132,7 +133,7 @@ export default function IndentsPage() {
         description="Manage material indent requests"
         actions={
           <Button asChild>
-            <Link href="/users/dashboard/resources/indents/new">
+            <Link href={routes.resources.indents.new}>
               <Plus className="mr-2 h-4 w-4" />
               New Indent
             </Link>
@@ -302,13 +303,13 @@ export default function IndentsPage() {
                       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                       onClick={() =>
                         router.push(
-                          `/users/dashboard/resources/indents/${indent.id}`
+                          routes.resources.indents.detail(indent.id).href
                         )
                       }
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
                           router.push(
-                            `/users/dashboard/resources/indents/${indent.id}`
+                            routes.resources.indents.detail(indent.id).href
                           );
                         }
                       }}
@@ -377,9 +378,7 @@ export default function IndentsPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/resources/indents/new">
-                  New Indent
-                </Link>
+                <Link href={routes.resources.indents.new}>New Indent</Link>
               </Button>
             )}
           </CardContent>
