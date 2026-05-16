@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -38,7 +39,7 @@ export default function EditLocationPage() {
       {
         onSuccess: () => {
           router.push(
-            `/users/dashboard/resources/storage-locations/${locationId}`
+            routes.resources.storageLocations.detail(locationId).href
           );
         },
       }
@@ -48,7 +49,7 @@ export default function EditLocationPage() {
   const handleDelete = () => {
     deleteLocation.mutate(locationId, {
       onSuccess: () => {
-        router.push('/users/dashboard/resources/storage-locations');
+        router.push(routes.resources.storageLocations.href);
       },
     });
   };
@@ -75,7 +76,7 @@ export default function EditLocationPage() {
             The location you&apos;re looking for doesn&apos;t exist.
           </p>
           <Button asChild>
-            <Link href="/users/dashboard/resources/storage-locations">
+            <Link href={routes.resources.storageLocations.href}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Locations
             </Link>

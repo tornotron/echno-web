@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
@@ -287,7 +288,7 @@ export function StorageLocationStockTab({
                         aria-label="View material"
                         onClick={() =>
                           router.push(
-                            `/users/dashboard/resources/materials/${m.materialId}`
+                            routes.resources.materials.detail(m.materialId).href
                           )
                         }
                       >
