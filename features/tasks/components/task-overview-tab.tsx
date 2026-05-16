@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import type { Task } from '@/types/task/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
@@ -308,7 +309,11 @@ export function TaskOverviewTab({
                 {task.assignees.map((assignee, i) => (
                   <Link
                     key={i}
-                    href={`/users/dashboard/workforce/employees/${assignee.id}`}
+                    href={
+                      routes.workforce.employees.employeeManagement.detail(
+                        assignee.id!
+                      ).href
+                    }
                     className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <EmployeeAvatar employee={assignee} size="sm" />
@@ -339,7 +344,11 @@ export function TaskOverviewTab({
             </CardHeader>
             <CardContent>
               <Link
-                href={`/users/dashboard/workforce/employees/${task.creator.id}`}
+                href={
+                  routes.workforce.employees.employeeManagement.detail(
+                    task.creator.id!
+                  ).href
+                }
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <EmployeeAvatar employee={task.creator} size="sm" />
