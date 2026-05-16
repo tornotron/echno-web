@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   Card,
@@ -235,7 +236,7 @@ export default function NewGRNPage() {
       },
       {
         onSuccess: (grn) => {
-          router.push(`/users/dashboard/resources/goods-receipts/${grn.id}`);
+          router.push(routes.resources.goodsReceipts.detail(grn.id).href);
         },
       }
     );
@@ -268,7 +269,7 @@ export default function NewGRNPage() {
             — adjust received quantities to match what was actually delivered.
           </span>
           <Link
-            href={`/users/dashboard/resources/purchase-orders/${sourcePO.id}`}
+            href={routes.resources.purchaseOrders.detail(sourcePO.id).href}
             className="ml-auto flex-shrink-0 font-medium underline-offset-2 hover:underline"
           >
             View PO
@@ -678,7 +679,7 @@ export default function NewGRNPage() {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button variant="outline" type="button" asChild disabled={isPending}>
-            <Link href="/users/dashboard/resources/goods-receipts">Cancel</Link>
+            <Link href={routes.resources.goodsReceipts.href}>Cancel</Link>
           </Button>
           <Button
             type="submit"
