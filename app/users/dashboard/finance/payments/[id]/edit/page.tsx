@@ -2,6 +2,7 @@
 
 import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -141,7 +142,7 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
           The payment you&apos;re looking for doesn&apos;t exist.
         </p>
         <Button asChild>
-          <Link href="/users/dashboard/finance/payments">
+          <Link href={routes.finance.payments.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Payments
           </Link>
@@ -158,12 +159,12 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     setTimeout(() => {
       toast.success('Payment updated successfully');
       setIsSubmitting(false);
-      router.push(`/dashboard/finance/payments/${payment.id}`);
+      router.push(routes.finance.payments.detail(payment.id).href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push(`/dashboard/finance/payments/${payment.id}`);
+    router.push(routes.finance.payments.detail(payment.id).href);
   };
 
   const handleInputChange = (

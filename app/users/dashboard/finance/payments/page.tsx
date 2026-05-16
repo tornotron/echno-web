@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   mockPayments,
   mockProjects,
@@ -42,6 +43,7 @@ import {
   Clock,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
   PaymentType,
@@ -108,6 +110,7 @@ const getTypeColor = (type: PaymentType) => {
 };
 
 export default function PaymentsPage() {
+  const router = useRouter();
   const { data: vendors = [] } = useVendors();
 
   // Create datasets object for utility functions
@@ -238,7 +241,7 @@ export default function PaymentsPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/users/dashboard/finance/payments/new">
+          <Link href={routes.finance.payments.new}>
             <CreditCard className="mr-2 h-4 w-4" />
             New Payment
           </Link>
@@ -517,7 +520,9 @@ export default function PaymentsPage() {
                       key={payment.id}
                       className="hover:bg-muted/50 cursor-pointer"
                       onClick={() =>
-                        (globalThis.location.href = `/dashboard/finance/payments/${payment.id}`)
+                        router.push(
+                          routes.finance.payments.detail(payment.id).href
+                        )
                       }
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
