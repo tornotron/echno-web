@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -111,7 +112,7 @@ export default function NewConsumptionPage() {
             router.back();
           } else {
             router.push(
-              `/users/dashboard/resources/material-consumptions/${consumption.id}`
+              routes.resources.materialConsumptions.detail(consumption.id).href
             );
           }
         },
@@ -376,7 +377,7 @@ export default function NewConsumptionPage() {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button variant="outline" type="button" asChild disabled={isPending}>
-            <Link href="/users/dashboard/resources/material-consumptions">
+            <Link href={routes.resources.materialConsumptions.href}>
               Cancel
             </Link>
           </Button>

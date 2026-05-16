@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -108,7 +109,7 @@ export default function MaterialConsumptionsPage() {
         description="Track material usage across projects and tasks"
         actions={
           <Button asChild>
-            <Link href="/users/dashboard/resources/material-consumptions/new">
+            <Link href={routes.resources.materialConsumptions.new}>
               <Plus className="mr-2 h-4 w-4" />
               Record Consumption
             </Link>
@@ -271,7 +272,7 @@ export default function MaterialConsumptionsPage() {
                     className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     onClick={() =>
                       router.push(
-                        `/users/dashboard/resources/material-consumptions/${c.id}`
+                        routes.resources.materialConsumptions.detail(c.id).href
                       )
                     }
                   >
@@ -325,7 +326,7 @@ export default function MaterialConsumptionsPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/resources/material-consumptions/new">
+                <Link href={routes.resources.materialConsumptions.new}>
                   Record Consumption
                 </Link>
               </Button>
