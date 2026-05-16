@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -71,7 +72,7 @@ export default function LabourFormPage() {
     toast.success(
       isEdit ? 'Labour updated successfully' : 'Labour created successfully'
     );
-    router.push('/dashboard/third-party/labour');
+    router.push(routes.thirdParty.labour.href);
   };
 
   const handleChange = (field: string, value: string) => {
@@ -390,7 +391,7 @@ export default function LabourFormPage() {
                 type="button"
                 variant="outline"
                 className="w-full"
-                onClick={() => router.push('/dashboard/third-party/labour')}
+                onClick={() => router.push(routes.thirdParty.labour.href)}
               >
                 Cancel
               </Button>
