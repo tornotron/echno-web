@@ -80,6 +80,7 @@ import {
   MessageSquare,
   TriangleAlert,
 } from 'lucide-react';
+import { routes } from '@/nav';
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -295,7 +296,7 @@ export default function DashboardPage() {
           {
             label: 'Projects',
             icon: FolderKanban,
-            href: '/users/dashboard/portfolio/projects',
+            href: routes.portfolio.projects.href,
             color: 'text-indigo-600',
             bg: 'bg-indigo-50 dark:bg-indigo-500/10',
           },
@@ -877,7 +878,7 @@ export default function DashboardPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push('/dashboard/portfolio/projects')}
+                    onClick={() => router.push(routes.portfolio.projects.href)}
                     className="text-xs sm:text-sm"
                   >
                     View All
@@ -2426,7 +2427,7 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push('/dashboard/portfolio/projects')}
+                  onClick={() => router.push(routes.portfolio.projects.href)}
                   className="text-xs sm:text-sm"
                 >
                   View All

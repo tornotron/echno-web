@@ -36,6 +36,7 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 // Mock data for site operations - filtered by user's organization/projects
 const siteStats = {
@@ -371,7 +372,7 @@ export default function SiteOperationsDashboard() {
               <CardDescription>Projects assigned to your sites</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/users/dashboard/portfolio/projects">
+              <Link href={routes.portfolio.projects.href}>
                 View All <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -424,7 +425,7 @@ export default function SiteOperationsDashboard() {
               <CardDescription>Pending work items for today</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/users/dashboard/portfolio/projects">
+              <Link href={routes.portfolio.projects.href}>
                 Manage Tasks <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -533,7 +534,7 @@ export default function SiteOperationsDashboard() {
               className="h-auto flex-col gap-2 py-4"
               asChild
             >
-              <Link href="/users/dashboard/portfolio/projects/inspections/new">
+              <Link href={routes.portfolio.inspections.new}>
                 <ClipboardCheck className="h-5 w-5" />
                 <span>New Inspection</span>
               </Link>
