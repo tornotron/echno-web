@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { IssueStatus } from '@/types/issue';
 import { IssueTable, IssueStatsCard } from '@/features/issues/components';
 import { PageHeader } from '@/components/common/page-header';
+import { routes } from '@/nav';
 
 export default function AllIssuesPage() {
   const { data: projects = [], isLoading: isProjectsLoading } = useProjects();
@@ -88,7 +89,11 @@ export default function AllIssuesPage() {
           selectedProjectId ? (
             <Button asChild>
               <Link
-                href={`/users/dashboard/portfolio/projects/all-projects/${selectedProjectId}/issues/new`}
+                href={
+                  routes.portfolio.projects.allProjects.detail(
+                    selectedProjectId
+                  ).issues.new
+                }
               >
                 <Plus className="mr-2 h-4 w-4" />
                 New Issue

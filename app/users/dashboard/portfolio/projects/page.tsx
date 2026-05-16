@@ -15,6 +15,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { routes } from '@/nav';
 
 export default function ProjectsOverviewPage() {
   const { data: user, isLoading: isUserLoading } = useUser();
@@ -46,7 +47,7 @@ export default function ProjectsOverviewPage() {
               </EmptyDescription>
             </EmptyHeader>
             <Button asChild>
-              <Link href="/users/dashboard/portfolio/projects/all-projects/new">
+              <Link href={routes.portfolio.projects.allProjects.new}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Project
               </Link>

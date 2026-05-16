@@ -46,6 +46,7 @@ import { format } from 'date-fns';
 import { TaskStatus } from '@/types/task';
 import { TaskStatsCard } from '@/features/tasks/components';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { routes } from '@/nav';
 
 function getStatusColor(status: TaskStatus): string {
   switch (status) {
@@ -193,7 +194,11 @@ export default function AllTasksPage() {
           selectedProjectId ? (
             <Button asChild>
               <Link
-                href={`/users/dashboard/portfolio/projects/all-projects/${selectedProjectId}/tasks/new`}
+                href={
+                  routes.portfolio.projects.allProjects.detail(
+                    selectedProjectId
+                  ).tasks.new
+                }
               >
                 <Plus className="mr-2 h-4 w-4" />
                 New Task
@@ -332,7 +337,9 @@ export default function AllTasksPage() {
                         key={task.id}
                         onClick={() =>
                           router.push(
-                            `/users/dashboard/portfolio/projects/all-projects/${task.projectId}/tasks/${task.id}`
+                            routes.portfolio.projects.allProjects
+                              .detail(task.projectId)
+                              .tasks.detail(task.id!).href
                           )
                         }
                         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
@@ -590,7 +597,9 @@ export default function AllTasksPage() {
                     className="cursor-pointer transition-shadow hover:shadow-md active:opacity-80"
                     onClick={() =>
                       router.push(
-                        `/users/dashboard/portfolio/projects/all-projects/${task.projectId}/tasks/${task.id}`
+                        routes.portfolio.projects.allProjects
+                          .detail(task.projectId)
+                          .tasks.detail(task.id!).href
                       )
                     }
                   >
