@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -127,7 +128,7 @@ export default function PurchaseOrdersPage() {
           </p>
         </div>
         <Button asChild className="mt-4 md:mt-0">
-          <Link href="/users/dashboard/resources/purchase-orders/new">
+          <Link href={routes.resources.purchaseOrders.new}>
             <Plus className="mr-2 h-4 w-4" />
             Create PO
           </Link>
@@ -290,7 +291,7 @@ export default function PurchaseOrdersPage() {
                     className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                     onClick={() =>
                       router.push(
-                        `/users/dashboard/resources/purchase-orders/${po.id}`
+                        routes.resources.purchaseOrders.detail(po.id).href
                       )
                     }
                   >
@@ -348,7 +349,7 @@ export default function PurchaseOrdersPage() {
             </p>
             {!hasActiveFilters && (
               <Button asChild>
-                <Link href="/users/dashboard/resources/purchase-orders/new">
+                <Link href={routes.resources.purchaseOrders.new}>
                   Create PO
                 </Link>
               </Button>

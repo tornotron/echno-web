@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -293,7 +294,7 @@ export default function NewPurchaseOrderPage() {
         ),
       });
 
-      router.push(`/users/dashboard/resources/purchase-orders/${po.id}`);
+      router.push(routes.resources.purchaseOrders.detail(po.id).href);
     } catch {
       // errors handled by mutation hook
     }
@@ -326,7 +327,7 @@ export default function NewPurchaseOrderPage() {
             — review quantities against current stock before creating.
           </span>
           <Link
-            href={`/users/dashboard/resources/indents/${sourceIndent.id}`}
+            href={routes.resources.indents.detail(sourceIndent.id).href}
             className="ml-auto flex-shrink-0 font-medium underline-offset-2 hover:underline"
           >
             View indent
@@ -660,9 +661,7 @@ export default function NewPurchaseOrderPage() {
         {/* Action Buttons */}
         <div className="flex gap-3">
           <Button variant="outline" type="button" asChild disabled={isPending}>
-            <Link href="/users/dashboard/resources/purchase-orders">
-              Cancel
-            </Link>
+            <Link href={routes.resources.purchaseOrders.href}>Cancel</Link>
           </Button>
           <Button type="submit" disabled={isPending} className="ml-auto">
             <Send className="mr-2 h-4 w-4" />
