@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { mockProjects } from '@/components/shared/mock-data';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -110,12 +111,12 @@ export default function NewInvoicePage() {
     setTimeout(() => {
       toast.success('Invoice created successfully');
       setIsSubmitting(false);
-      router.push('/dashboard/finance/invoices');
+      router.push(routes.finance.invoices.href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push('/dashboard/finance/invoices');
+    router.push(routes.finance.invoices.href);
   };
 
   const handleInputChange = (
