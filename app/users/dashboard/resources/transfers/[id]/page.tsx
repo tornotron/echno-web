@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -95,9 +96,7 @@ export default function SiteTransferDetailPage({
         <CardContent className="py-12 text-center">
           <ArrowRightLeft className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
           <h3 className="mb-2 text-lg font-medium">Transfer not found</h3>
-          <Button
-            onClick={() => router.push('/users/dashboard/resources/transfers')}
-          >
+          <Button onClick={() => router.push(routes.resources.transfers.href)}>
             Back to Transfers
           </Button>
         </CardContent>
@@ -166,7 +165,7 @@ export default function SiteTransferDetailPage({
                 () =>
                   deleteTransfer(id, {
                     onSuccess: () =>
-                      router.push('/users/dashboard/resources/transfers'),
+                      router.push(routes.resources.transfers.href),
                   }),
                 'destructive'
               )

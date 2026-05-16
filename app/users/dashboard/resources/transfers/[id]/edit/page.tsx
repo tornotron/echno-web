@@ -3,6 +3,7 @@
 import { use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
+import { routes } from '@/nav';
 
 export default function EditTransferPage({
   params,
@@ -14,7 +15,7 @@ export default function EditTransferPage({
 
   useEffect(() => {
     // Site transfers are immutable once created (only status can be updated from the detail page).
-    router.replace(`/users/dashboard/resources/transfers/${id}`);
+    router.replace(routes.resources.transfers.detail(id).href);
   }, [id, router]);
 
   return (
