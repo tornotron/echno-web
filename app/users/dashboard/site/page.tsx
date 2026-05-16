@@ -304,7 +304,7 @@ export default function SiteOperationsDashboard() {
               <CardDescription>Worker check-ins for your sites</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href="/users/dashboard/attendance">
+              <Link href={routes.attendance.href}>
                 View All <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -524,7 +524,7 @@ export default function SiteOperationsDashboard() {
               className="h-auto flex-col gap-2 py-4"
               asChild
             >
-              <Link href="/users/dashboard/attendance/mark">
+              <Link href={routes.attendance.mark}>
                 <Users className="h-5 w-5" />
                 <span>Mark Attendance</span>
               </Link>
@@ -554,7 +554,7 @@ export default function SiteOperationsDashboard() {
               className="h-auto flex-col gap-2 py-4"
               asChild
             >
-              <Link href="/users/dashboard/workforce/leaves">
+              <Link href={routes.workforce.leaves.href}>
                 <Calendar className="h-5 w-5" />
                 <span>Leave Requests</span>
               </Link>
