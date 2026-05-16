@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -189,15 +190,15 @@ export default function SubContractEditPage() {
           ? 'Sub-contract updated successfully'
           : 'Sub-contract created successfully'
       );
-      router.push('/dashboard/third-party/sub-contracts');
+      router.push(routes.thirdParty.subContracts.href);
     }, 500);
   };
 
   const handleCancel = () => {
     router.push(
       isEditMode
-        ? `/dashboard/third-party/sub-contracts/${params.id}`
-        : '/dashboard/third-party/sub-contracts'
+        ? routes.thirdParty.subContracts.detail(params.id as string).href
+        : routes.thirdParty.subContracts.href
     );
   };
 

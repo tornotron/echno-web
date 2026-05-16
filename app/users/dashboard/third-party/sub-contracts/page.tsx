@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Checkbox } from '@/components/shadcn/checkbox';
@@ -40,6 +41,7 @@ import {
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { mockSubContracts } from '@/components/shared/mock-data';
 
 const typeLabels = {
@@ -90,6 +92,7 @@ const getProgressColor = (percentage: number) => {
 };
 
 export default function SubContractsPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -179,7 +182,7 @@ export default function SubContractsPage() {
               Export
             </Button>
             <Button size="sm" asChild>
-              <Link href="/users/dashboard/third-party/sub-contracts/new">
+              <Link href={routes.thirdParty.subContracts.new}>
                 <Plus className="mr-2 h-4 w-4" />
                 New Contract
               </Link>
@@ -377,7 +380,9 @@ export default function SubContractsPage() {
               key={contract.id}
               className="cursor-pointer"
               onClick={() =>
-                (globalThis.location.href = `/dashboard/third-party/sub-contracts/${contract.id}`)
+                router.push(
+                  routes.thirdParty.subContracts.detail(contract.id).href
+                )
               }
             >
               <CardContent className="p-4">
@@ -479,7 +484,10 @@ export default function SubContractsPage() {
                       key={contract.id}
                       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
                       onClick={() =>
-                        (globalThis.location.href = `/dashboard/third-party/sub-contracts/${contract.id}`)
+                        router.push(
+                          routes.thirdParty.subContracts.detail(contract.id)
+                            .href
+                        )
                       }
                     >
                       <TableCell onClick={(e) => e.stopPropagation()}>
