@@ -36,6 +36,7 @@ import {
 } from '@/types/inspection';
 import { mockInspections } from '@/components/shared/mock-data';
 import { useProjects } from '@/hooks/project/use-projects';
+import { routes } from '@/nav';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
   const colors = {
@@ -163,7 +164,7 @@ export default function InspectionsPage() {
           </p>
         </div>
         <Button asChild className="w-full sm:w-auto">
-          <Link href="/users/dashboard/portfolio/projects/inspections/new">
+          <Link href={routes.portfolio.inspections.new}>
             <Plus className="mr-2 h-4 w-4" />
             New Inspection
           </Link>
@@ -361,7 +362,7 @@ export default function InspectionsPage() {
               {paginatedInspections.map((inspection) => (
                 <Link
                   key={inspection.id}
-                  href={`/users/dashboard/portfolio/projects/inspections/${inspection.id}`}
+                  href={routes.portfolio.inspections.detail(inspection.id).href}
                   className="block rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 >
                   <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
@@ -493,7 +494,7 @@ export default function InspectionsPage() {
               </Button>
             ) : (
               <Button asChild>
-                <Link href="/users/dashboard/portfolio/projects/inspections/new">
+                <Link href={routes.portfolio.inspections.new}>
                   <Plus className="mr-2 h-4 w-4" />
                   Schedule Inspection
                 </Link>

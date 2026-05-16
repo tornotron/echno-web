@@ -24,6 +24,7 @@ import { Save } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { mockEmployees, mockInspections } from '@/components/shared/mock-data';
 import { useProjects } from '@/hooks/project/use-projects';
+import { routes } from '@/nav';
 import {
   InspectionStatus,
   InspectionType,
@@ -73,7 +74,7 @@ export default function EditInspectionPage() {
 
         if (!inspection) {
           toast.error('Inspection not found');
-          router.push('/dashboard/portfolio/projects/inspections');
+          router.push(routes.portfolio.inspections.href);
           return;
         }
 
@@ -107,7 +108,7 @@ export default function EditInspectionPage() {
       } catch (error) {
         logger.error('Error loading inspection:', error);
         toast.error('Failed to load inspection');
-        router.push('/dashboard/portfolio/projects/inspections');
+        router.push(routes.portfolio.inspections.href);
       }
     };
 
@@ -178,7 +179,9 @@ export default function EditInspectionPage() {
       });
 
       toast.success('Inspection updated successfully!');
-      router.push(`/dashboard/portfolio/projects/inspections/${params.id}`);
+      router.push(
+        routes.portfolio.inspections.detail(params.id as string).href
+      );
     } catch (error) {
       logger.error('Error updating inspection:', error);
       toast.error('Failed to update inspection');
