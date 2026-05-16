@@ -44,6 +44,7 @@ import {
   Send,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 // Helper function for status colors
 const getStatusColor = (status: string) => {
@@ -368,7 +369,7 @@ export default function ExternalPortalDashboard() {
                 </CardDescription>
               </div>
               <Button variant="outline" size="sm" asChild>
-                <Link href="/users/dashboard/portfolio/projects">
+                <Link href={routes.portfolio.projects.href}>
                   View All <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
@@ -403,7 +404,11 @@ export default function ExternalPortalDashboard() {
                     </div>
                     <Button variant="outline" size="sm" asChild>
                       <Link
-                        href={`/users/dashboard/portfolio/projects/${project.id}`}
+                        href={
+                          routes.portfolio.projects.allProjects.detail(
+                            project.id
+                          ).href
+                        }
                       >
                         View Details
                       </Link>
