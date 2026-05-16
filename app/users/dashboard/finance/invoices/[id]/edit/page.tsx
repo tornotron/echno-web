@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -94,7 +95,7 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
           The invoice you&apos;re looking for doesn&apos;t exist.
         </p>
         <Button asChild>
-          <Link href="/users/dashboard/finance/invoices">
+          <Link href={routes.finance.invoices.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Invoices
           </Link>
@@ -111,12 +112,12 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
     setTimeout(() => {
       toast.success('Invoice updated successfully');
       setIsSubmitting(false);
-      router.push(`/dashboard/finance/invoices/${invoice.id}`);
+      router.push(routes.finance.invoices.detail(invoice.id).href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push(`/dashboard/finance/invoices/${invoice.id}`);
+    router.push(routes.finance.invoices.detail(invoice.id).href);
   };
 
   const handleInputChange = (

@@ -35,6 +35,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
   InvoiceType,
@@ -162,7 +163,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Link href={`/users/dashboard/finance/invoices/${invoice.id}/edit`}>
+            <Link href={routes.finance.invoices.detail(invoice.id).edit}>
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -508,7 +509,11 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
             <CardContent className="space-y-3">
               {invoice.projectId && (
                 <Link
-                  href={`/users/dashboard/portfolio/projects/${invoice.projectId}`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(
+                      invoice.projectId
+                    ).href
+                  }
                   className="block"
                 >
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -580,7 +585,11 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={`/users/dashboard/workforce/employees/${invoice.approvedBy}`}
+                        href={
+                          routes.workforce.employees.employeeManagement.detail(
+                            invoice.approvedBy
+                          ).href
+                        }
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {getUserName(invoice.approvedBy)}
@@ -612,7 +621,11 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={`/users/dashboard/workforce/employees/${invoice.createdBy}`}
+                        href={
+                          routes.workforce.employees.employeeManagement.detail(
+                            invoice.createdBy
+                          ).href
+                        }
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {getUserName(invoice.createdBy)}
