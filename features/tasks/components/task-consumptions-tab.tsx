@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -49,7 +50,7 @@ export function TaskConsumptionsTab({ task }: TaskConsumptionsTabProps) {
     task.id ?? 0
   );
 
-  const recordHref = `/users/dashboard/resources/material-consumptions/new?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
+  const recordHref = `${routes.resources.materialConsumptions.new}?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
 
   return (
     <Card>
@@ -96,7 +97,7 @@ export function TaskConsumptionsTab({ task }: TaskConsumptionsTabProps) {
                   className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   onClick={() =>
                     router.push(
-                      `/users/dashboard/resources/material-consumptions/${c.id}`
+                      routes.resources.materialConsumptions.detail(c.id).href
                     )
                   }
                 >
