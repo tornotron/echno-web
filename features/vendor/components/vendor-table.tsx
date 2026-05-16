@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Pagination } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
@@ -106,9 +107,7 @@ export function VendorTable({
                 key={vendor.id}
                 className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
                 onClick={() =>
-                  router.push(
-                    `/users/dashboard/third-party/vendors/${vendor.id}`
-                  )
+                  router.push(routes.thirdParty.vendors.detail(vendor.id).href)
                 }
               >
                 <TableCell>
