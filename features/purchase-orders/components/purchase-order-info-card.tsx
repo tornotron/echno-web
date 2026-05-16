@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -275,7 +276,7 @@ export function POInfoCard({ po }: POInfoCardProps) {
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Linked Indent</span>
                   <Link
-                    href={`/users/dashboard/resources/indents/${po.indentId}`}
+                    href={routes.resources.indents.detail(po.indentId).href}
                     className="font-medium text-blue-600 hover:underline"
                   >
                     {po.indentNumber}

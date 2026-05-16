@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -72,9 +73,7 @@ export default function PurchaseOrderDetailPage({
           <Package className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
           <h3 className="mb-2 text-lg font-medium">Purchase order not found</h3>
           <Button
-            onClick={() =>
-              router.push('/users/dashboard/resources/purchase-orders')
-            }
+            onClick={() => router.push(routes.resources.purchaseOrders.href)}
           >
             Back to Purchase Orders
           </Button>
@@ -91,8 +90,7 @@ export default function PurchaseOrderDetailPage({
         poNumber={po.poNumber}
         onConfirm={() =>
           deletePO(id, {
-            onSuccess: () =>
-              router.push('/users/dashboard/resources/purchase-orders'),
+            onSuccess: () => router.push(routes.resources.purchaseOrders.href),
           })
         }
         isPending={isDeleting}
@@ -131,7 +129,7 @@ export default function PurchaseOrderDetailPage({
                 className="gap-2"
                 onClick={() =>
                   router.push(
-                    `/users/dashboard/resources/goods-receipts/new?fromPO=${id}`
+                    `${routes.resources.goodsReceipts.new}?fromPO=${id}`
                   )
                 }
               >
