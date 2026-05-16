@@ -45,6 +45,7 @@ import {
   getProjectStatusLabel,
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
+import { routes } from '@/nav';
 
 interface ProjectFilters {
   search: string;
@@ -202,7 +203,10 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
               return (
                 <Link
                   key={project.id}
-                  href={`/users/dashboard/portfolio/projects/all-projects/${project.id}`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(project.id)
+                      .href
+                  }
                 >
                   <Card className="h-full cursor-pointer text-sm transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40">
                     <CardHeader>
@@ -309,7 +313,7 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
             </EmptyHeader>
             {!filters.search && filters.status === 'all' && (
               <Button asChild>
-                <Link href="/users/dashboard/portfolio/projects/all-projects/new">
+                <Link href={routes.portfolio.projects.allProjects.new}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Project
                 </Link>
