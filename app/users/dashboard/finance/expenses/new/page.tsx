@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -391,7 +392,7 @@ export default function NewExpensePage() {
             Create Expense
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/users/dashboard/finance/expenses">
+            <Link href={routes.finance.expenses.href}>
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Link>

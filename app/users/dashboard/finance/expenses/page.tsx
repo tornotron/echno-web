@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { mockExpenses } from '@/components/shared/mock-data';
 import { Pagination, SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
@@ -29,6 +30,7 @@ import {
 } from '@/components/shadcn/select';
 import { DollarSign, Calendar, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { ExpenseType, ExpenseStatus } from '@/types/finance/expense';
 
 const expenseTypeLabels: Record<string, string> = {
@@ -114,6 +116,7 @@ const getTypeColor = (type: ExpenseType) => {
 };
 
 export default function ExpensesPage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -208,7 +211,7 @@ export default function ExpensesPage() {
           </p>
         </div>
         <Button asChild>
-          <Link href="/users/dashboard/finance/expenses/new">
+          <Link href={routes.finance.expenses.new}>
             <DollarSign className="mr-2 h-4 w-4" />
             New Expense
           </Link>
@@ -425,7 +428,9 @@ export default function ExpensesPage() {
                     key={expense.id}
                     className="hover:bg-muted/50 cursor-pointer"
                     onClick={() =>
-                      (globalThis.location.href = `/dashboard/finance/expenses/${expense.id}`)
+                      router.push(
+                        routes.finance.expenses.detail(expense.id).href
+                      )
                     }
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
