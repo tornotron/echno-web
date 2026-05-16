@@ -49,6 +49,7 @@ import { useTasksByProject } from '@/hooks/task';
 import { useUser, useUserEmployees } from '@/hooks/user/use-user';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { IssueAttachmentsSection } from '@/features/issues/components';
+import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface PageProps {
@@ -163,7 +164,7 @@ export default function NewIssuePage({ params }: PageProps) {
         description: 'Your issue has been saved as draft',
       });
       router.push(
-        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+        routes.portfolio.projects.allProjects.detail(projectId).issues.href
       );
     } catch {
       // error toast already shown by mutation hook
@@ -189,7 +190,7 @@ export default function NewIssuePage({ params }: PageProps) {
         files: { attachments },
       });
       router.push(
-        `/users/dashboard/portfolio/projects/all-projects/${projectId}/issues`
+        routes.portfolio.projects.allProjects.detail(projectId).issues.href
       );
     } catch {
       // error toast already shown by mutation hook
@@ -474,7 +475,11 @@ export default function NewIssuePage({ params }: PageProps) {
                       Related Task
                     </p>
                     <Link
-                      href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${selectedTask.id}`}
+                      href={
+                        routes.portfolio.projects.allProjects
+                          .detail(projectId)
+                          .tasks.detail(selectedTask.id!).href
+                      }
                     >
                       <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
                         <div
