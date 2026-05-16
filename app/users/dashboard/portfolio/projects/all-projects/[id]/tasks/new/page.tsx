@@ -45,6 +45,7 @@ import { abbreviatedName } from '@/types/task/work-category';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
 import { toast } from '@/lib/styles/toast-styles';
 import { TaskAttachmentsSection } from '@/features/tasks/components';
+import { routes } from '@/nav';
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -245,7 +246,7 @@ export default function NewTaskPage() {
       {
         onSuccess: () => {
           router.push(
-            `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+            routes.portfolio.projects.allProjects.detail(projectId).tasks.href
           );
         },
       }
@@ -266,7 +267,7 @@ export default function NewTaskPage() {
       {
         onSuccess: () => {
           router.push(
-            `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks`
+            routes.portfolio.projects.allProjects.detail(projectId).tasks.href
           );
         },
       }

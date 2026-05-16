@@ -36,6 +36,7 @@ import { format } from 'date-fns';
 import type { Task } from '@/types/task/task';
 import { TaskStatus } from '@/types/task/task-status';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -178,7 +179,9 @@ export function TaskTable({
         key={task.id}
         onClick={() =>
           router.push(
-            `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${task.id}`
+            routes.portfolio.projects.allProjects
+              .detail(projectId)
+              .tasks.detail(task.id!).href
           )
         }
         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
@@ -409,7 +412,10 @@ export function TaskTable({
               {!hasActiveFilters && (
                 <Button asChild>
                   <Link
-                    href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/new`}
+                    href={
+                      routes.portfolio.projects.allProjects.detail(projectId)
+                        .tasks.new
+                    }
                   >
                     <Plus className="mr-2 h-4 w-4" />
                     New Task
@@ -450,7 +456,9 @@ export function TaskTable({
                     className="cursor-pointer transition-shadow hover:shadow-md active:opacity-80"
                     onClick={() =>
                       router.push(
-                        `/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/${task.id}`
+                        routes.portfolio.projects.allProjects
+                          .detail(projectId)
+                          .tasks.detail(task.id!).href
                       )
                     }
                   >
@@ -570,7 +578,10 @@ export function TaskTable({
             {!hasActiveFilters && (
               <Button asChild>
                 <Link
-                  href={`/users/dashboard/portfolio/projects/all-projects/${projectId}/tasks/new`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(projectId)
+                      .tasks.new
+                  }
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   New Task
