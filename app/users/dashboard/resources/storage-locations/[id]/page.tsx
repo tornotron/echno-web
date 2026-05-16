@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -85,7 +86,7 @@ export default function ViewLocationPage() {
             The location you&apos;re looking for doesn&apos;t exist.
           </p>
           <Button asChild>
-            <Link href="/users/dashboard/resources/storage-locations">
+            <Link href={routes.resources.storageLocations.href}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Locations
             </Link>
@@ -127,7 +128,7 @@ export default function ViewLocationPage() {
         </div>
         <Button asChild>
           <Link
-            href={`/users/dashboard/resources/storage-locations/${location.id}/edit`}
+            href={routes.resources.storageLocations.detail(location.id).edit}
           >
             <Edit className="mr-2 h-4 w-4" />
             Edit Location

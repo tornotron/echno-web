@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -20,7 +21,7 @@ export default function NewLocationPage() {
   const handleSubmit = (input: CreateStorageLocationInput) => {
     createLocation.mutate(input, {
       onSuccess: () => {
-        router.push('/users/dashboard/resources/storage-locations');
+        router.push(routes.resources.storageLocations.href);
       },
     });
   };
