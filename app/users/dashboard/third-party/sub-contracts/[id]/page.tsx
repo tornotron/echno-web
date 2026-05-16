@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 // Mock data - replace with actual API call
 const mockSubContract = {
@@ -165,7 +166,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm" asChild>
             <Link
-              href={`/users/dashboard/third-party/sub-contracts/${subContract.id}/edit`}
+              href={routes.thirdParty.subContracts.detail(subContract.id).edit}
             >
               <Edit className="mr-2 h-4 w-4" />
               Edit
