@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 import { format } from 'date-fns';
 import {
@@ -120,7 +121,7 @@ export default function EditAssetPage() {
             <p className="mb-4 text-zinc-600 dark:text-zinc-400">
               The asset you&apos;re trying to edit doesn&apos;t exist.
             </p>
-            <Link href="/users/dashboard/resources/assets">
+            <Link href={routes.resources.assets.href}>
               <Button>
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Assets
@@ -152,7 +153,7 @@ export default function EditAssetPage() {
     // In real app, make API call
     setTimeout(() => {
       toast.success('Asset updated successfully!');
-      router.push(`/dashboard/resources/assets/${assetId}`);
+      router.push(routes.resources.assets.detail(assetId).href);
     }, 1000);
   };
 
@@ -685,7 +686,7 @@ export default function EditAssetPage() {
                     {isSubmitting ? 'Saving...' : 'Save Changes'}
                   </Button>
                   <Link
-                    href={`/users/dashboard/resources/assets/${assetId}`}
+                    href={routes.resources.assets.detail(assetId).href}
                     className="block"
                   >
                     <Button type="button" variant="outline" className="w-full">
