@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Card,
   CardContent,
@@ -118,7 +119,7 @@ export default function LocationsPage() {
         description="Manage storage locations and warehouses"
         actions={
           <Button asChild>
-            <Link href="/users/dashboard/resources/storage-locations/new">
+            <Link href={routes.resources.storageLocations.new}>
               <Plus className="mr-2 h-4 w-4" />
               Add Location
             </Link>
@@ -277,7 +278,9 @@ export default function LocationsPage() {
               {paginatedLocations.map((location) => (
                 <Link
                   key={location.id}
-                  href={`/users/dashboard/resources/storage-locations/${location.id}`}
+                  href={
+                    routes.resources.storageLocations.detail(location.id).href
+                  }
                   className="block"
                 >
                   <Card className="transition-shadow hover:shadow-md">
@@ -366,7 +369,7 @@ export default function LocationsPage() {
               Try adjusting your filters or add a new location.
             </p>
             <Button asChild>
-              <Link href="/users/dashboard/resources/storage-locations/new">
+              <Link href={routes.resources.storageLocations.new}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Location
               </Link>
