@@ -13,6 +13,7 @@ import {
 import { FolderKanban, Loader2, Plus } from 'lucide-react';
 import { useProjects } from '@/hooks/project/use-projects';
 import { ProjectsGridTable } from '@/features/projects/components';
+import { routes } from '@/nav';
 
 export default function ProjectsManagePage() {
   const { data: projects = [], isLoading, error } = useProjects();
@@ -49,7 +50,7 @@ export default function ProjectsManagePage() {
         description="Manage and monitor all construction projects"
         actions={
           <Button asChild>
-            <Link href="/users/dashboard/portfolio/projects/all-projects/new">
+            <Link href={routes.portfolio.projects.allProjects.new}>
               <Plus className="mr-2 h-4 w-4" />
               Add Project
             </Link>
