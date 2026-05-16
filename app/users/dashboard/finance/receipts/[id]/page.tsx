@@ -1,6 +1,7 @@
 'use client';
 
 import { notFound } from 'next/navigation';
+import { routes } from '@/nav';
 import { use } from 'react';
 import { mockReceipts } from '@/components/shared/mock-data';
 import { Button } from '@/components/shadcn/button';
@@ -125,7 +126,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Link href={`/users/dashboard/finance/receipts/${receipt.id}/edit`}>
+            <Link href={routes.finance.receipts.detail(receipt.id).edit}>
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
@@ -358,7 +359,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
             <CardContent className="space-y-3">
               {receipt.invoiceId && (
                 <Link
-                  href={`/users/dashboard/finance/invoices/${receipt.invoiceId}`}
+                  href={routes.finance.invoices.detail(receipt.invoiceId).href}
                   className="block"
                 >
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -376,7 +377,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
               )}
               {receipt.paymentId && (
                 <Link
-                  href={`/users/dashboard/finance/payments/${receipt.paymentId}`}
+                  href={routes.finance.payments.detail(receipt.paymentId).href}
                   className="block"
                 >
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
@@ -394,7 +395,11 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
               )}
               {receipt.projectId && (
                 <Link
-                  href={`/users/dashboard/portfolio/projects/${receipt.projectId}`}
+                  href={
+                    routes.portfolio.projects.allProjects.detail(
+                      receipt.projectId
+                    ).href
+                  }
                   className="block"
                 >
                   <div className="flex items-center justify-between rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/50">

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { useProjects } from '@/lib/hooks/use-projects';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -76,12 +77,12 @@ export default function NewReceiptPage() {
     setTimeout(() => {
       toast.success('Receipt created successfully');
       setIsSubmitting(false);
-      router.push('/users/dashboard/finance/receipts');
+      router.push(routes.finance.receipts.href);
     }, 800);
   };
 
   const handleCancel = () => {
-    router.push('/users/dashboard/finance/receipts');
+    router.push(routes.finance.receipts.href);
   };
 
   return (
