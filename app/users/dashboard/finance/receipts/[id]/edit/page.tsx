@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -76,7 +77,7 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
           The receipt you&apos;re looking for doesn&apos;t exist.
         </p>
         <Button asChild>
-          <Link href="/users/dashboard/finance/receipts">
+          <Link href={routes.finance.receipts.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Receipts
           </Link>
@@ -93,12 +94,12 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
     setTimeout(() => {
       toast.success('Receipt updated successfully');
       setIsSubmitting(false);
-      router.push(`/dashboard/finance/receipts/${receipt.id}`);
+      router.push(routes.finance.receipts.detail(receipt.id).href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push(`/dashboard/finance/receipts/${receipt.id}`);
+    router.push(routes.finance.receipts.detail(receipt.id).href);
   };
 
   const handleInputChange = (
@@ -128,7 +129,7 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href={`/users/dashboard/finance/receipts/${receipt.id}`}>
+            <Link href={routes.finance.receipts.detail(receipt.id).href}>
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
