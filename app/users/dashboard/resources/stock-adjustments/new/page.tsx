@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
   Card,
@@ -151,11 +152,11 @@ export default function CreateStockAdjustmentPage() {
     }
 
     toast.success('Stock Adjustment created successfully');
-    router.push('/dashboard/resources/stock-adjustments');
+    router.push(routes.resources.stockAdjustments.href);
   };
 
   const handleCancel = () => {
-    router.push('/dashboard/resources/stock-adjustments');
+    router.push(routes.resources.stockAdjustments.href);
   };
 
   const { totalItems, totalImpact, surplusItems, shortageItems } =
