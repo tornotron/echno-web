@@ -24,6 +24,7 @@ import {
   ProjectEditForm,
   AttachmentsSection,
 } from '@/features/projects/components';
+import { routes } from '@/nav';
 
 function EditProjectForm({ project }: { project: Project }) {
   const router = useRouter();
@@ -107,7 +108,7 @@ function EditProjectForm({ project }: { project: Project }) {
         {
           onSuccess: () => {
             router.push(
-              `/users/dashboard/portfolio/projects/all-projects/${project.id}`
+              routes.portfolio.projects.allProjects.detail(project.id).href
             );
           },
         }
@@ -210,9 +211,7 @@ export default function EditProjectPage() {
             {error instanceof Error ? error.message : 'An error occurred'}
           </p>
           <Button className="mt-4" asChild>
-            <Link href="/users/dashboard/portfolio/projects">
-              Back to Projects
-            </Link>
+            <Link href={routes.portfolio.projects.href}>Back to Projects</Link>
           </Button>
         </div>
       </div>
@@ -228,9 +227,7 @@ export default function EditProjectPage() {
             The project you&apos;re looking for doesn&apos;t exist.
           </p>
           <Button className="mt-4" asChild>
-            <Link href="/users/dashboard/portfolio/projects">
-              Back to Projects
-            </Link>
+            <Link href={routes.portfolio.projects.href}>Back to Projects</Link>
           </Button>
         </div>
       </div>

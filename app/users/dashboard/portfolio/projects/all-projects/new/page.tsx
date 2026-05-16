@@ -35,6 +35,7 @@ import { StorageLocationType } from '@/types/storage-locations';
 import { useCreateStorageLocation } from '@/hooks/storage-locations';
 import { toast } from '@/lib/styles/toast-styles';
 import { PageHeader } from '@/components/common';
+import { routes } from '@/nav';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -182,7 +183,8 @@ export default function NewProjectPage() {
               );
             }
             router.push(
-              `/users/dashboard/portfolio/projects/all-projects/${createdProject.id}`
+              routes.portfolio.projects.allProjects.detail(createdProject.id)
+                .href
             );
           },
         }
