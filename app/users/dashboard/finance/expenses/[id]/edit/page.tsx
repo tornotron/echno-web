@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { notFound } from 'next/navigation';
+import { routes } from '@/nav';
 import { use } from 'react';
 import { mockExpenses } from '@/components/shared/mock-data';
 import { Button } from '@/components/shadcn/button';
@@ -451,7 +452,7 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
             Update Expense
           </Button>
           <Button variant="outline" asChild>
-            <Link href={`/users/dashboard/finance/expenses/${expense.id}`}>
+            <Link href={routes.finance.expenses.detail(expense.id).href}>
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Link>
