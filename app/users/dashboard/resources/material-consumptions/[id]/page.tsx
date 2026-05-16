@@ -3,6 +3,7 @@
 import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -62,7 +63,7 @@ export default function MaterialConsumptionDetailPage({
           </h3>
           <Button
             onClick={() =>
-              router.push('/users/dashboard/resources/material-consumptions')
+              router.push(routes.resources.materialConsumptions.href)
             }
           >
             Back to Consumptions
@@ -162,7 +163,7 @@ export default function MaterialConsumptionDetailPage({
 
       <div>
         <Button variant="outline" asChild>
-          <Link href="/users/dashboard/resources/material-consumptions">
+          <Link href={routes.resources.materialConsumptions.href}>
             ← Back to Consumptions
           </Link>
         </Button>
