@@ -2,6 +2,7 @@
 
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -50,9 +51,7 @@ export default function VendorDetailPage({ params }: PageProps) {
         <p className="text-zinc-500">
           &quot;{id}&quot; is not a valid vendor identifier.
         </p>
-        <Button
-          onClick={() => router.push('/users/dashboard/third-party/vendors')}
-        >
+        <Button onClick={() => router.push(routes.thirdParty.vendors.href)}>
           Back to Vendors
         </Button>
       </div>
@@ -77,9 +76,7 @@ export default function VendorDetailPage({ params }: PageProps) {
             ? error.message
             : `Vendor #${id} could not be found.`}
         </p>
-        <Button
-          onClick={() => router.push('/users/dashboard/third-party/vendors')}
-        >
+        <Button onClick={() => router.push(routes.thirdParty.vendors.href)}>
           Back to Vendors
         </Button>
       </div>
@@ -103,9 +100,7 @@ export default function VendorDetailPage({ params }: PageProps) {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Button variant="outline" size="sm" asChild>
-            <Link
-              href={`/users/dashboard/third-party/vendors/${vendor.id}/edit`}
-            >
+            <Link href={routes.thirdParty.vendors.detail(vendor.id).edit}>
               <Edit className="mr-2 h-4 w-4" /> Edit
             </Link>
           </Button>

@@ -26,6 +26,7 @@ import {
   Search,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { useVendorsPaginated } from '@/hooks/vendors';
 import {
   VendorStatus,
@@ -105,7 +106,7 @@ export default function VendorsPage() {
           </p>
         </div>
         <Button size="sm" asChild>
-          <Link href="/users/dashboard/third-party/vendors/new">
+          <Link href={routes.thirdParty.vendors.new}>
             <Plus className="mr-2 h-4 w-4" />
             Add Vendor
           </Link>

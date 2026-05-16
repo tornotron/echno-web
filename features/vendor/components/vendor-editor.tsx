@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -70,7 +71,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
       {
         onSuccess: () => {
           toast.success('Vendor updated successfully.');
-          router.push(`/users/dashboard/third-party/vendors/${vendorId}`);
+          router.push(routes.thirdParty.vendors.detail(vendorId).href);
         },
         onError: (err) =>
           toast.error(
@@ -263,7 +264,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
             type="button"
             variant="outline"
             onClick={() =>
-              router.push(`/users/dashboard/third-party/vendors/${vendorId}`)
+              router.push(routes.thirdParty.vendors.detail(vendorId).href)
             }
           >
             <X className="mr-2 h-4 w-4" /> Cancel
