@@ -11,6 +11,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Tabs,
@@ -107,42 +108,44 @@ export default function ViewLocationPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div className="flex items-start gap-4">
+      <PageHeader
+        title={location.locationName}
+        avatar={
           <div
             className={`rounded-lg p-3 ${getTypeColor(location.locationType)}`}
           >
             {getLocationIcon(location.locationType)}
           </div>
-          <div>
-            <h1 className="mb-2 text-3xl font-bold">{location.locationName}</h1>
-            <div className="flex gap-2">
-              <Badge variant="outline">
-                {STORAGE_LOCATION_TYPE_LABELS[location.locationType]}
-              </Badge>
-              <Badge variant={location.active ? 'default' : 'secondary'}>
-                {location.active ? (
-                  <>
-                    <CheckCircle2 className="mr-1 h-3 w-3" /> Active
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="mr-1 h-3 w-3" /> Inactive
-                  </>
-                )}
-              </Badge>
-            </div>
+        }
+        description={
+          <div className="flex gap-2">
+            <Badge variant="outline">
+              {STORAGE_LOCATION_TYPE_LABELS[location.locationType]}
+            </Badge>
+            <Badge variant={location.active ? 'default' : 'secondary'}>
+              {location.active ? (
+                <>
+                  <CheckCircle2 className="mr-1 h-3 w-3" /> Active
+                </>
+              ) : (
+                <>
+                  <XCircle className="mr-1 h-3 w-3" /> Inactive
+                </>
+              )}
+            </Badge>
           </div>
-        </div>
-        <Button asChild>
-          <Link
-            href={routes.resources.storageLocations.detail(location.id).edit}
-          >
-            <Edit className="mr-2 h-4 w-4" />
-            Edit Location
-          </Link>
-        </Button>
-      </div>
+        }
+        actions={
+          <Button asChild>
+            <Link
+              href={routes.resources.storageLocations.detail(location.id).edit}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Location
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Tabs: Details | Stock */}
       <Tabs defaultValue="details">
