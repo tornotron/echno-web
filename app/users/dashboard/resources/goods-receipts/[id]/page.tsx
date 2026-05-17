@@ -1,9 +1,17 @@
 'use client';
 
 import { use, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -52,17 +60,20 @@ export default function GRNDetailPage({
 
   if (!grn) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Receipt className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">GRN not found</h3>
-          <Button
-            onClick={() => router.push(routes.resources.goodsReceipts.href)}
-          >
-            Back to GRNs
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Receipt className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>GRN not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.goodsReceipts.href}>Back to GRNs</Link>
+        </Button>
+      </Empty>
     );
   }
 
