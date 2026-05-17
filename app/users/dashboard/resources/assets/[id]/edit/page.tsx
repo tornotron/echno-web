@@ -24,7 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { ArrowLeft, Save, X, Cog } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { AssetType, AssetStatus, AssetCondition } from '@/types/resource';
 import { toast } from '@/lib/styles/toast-styles';
 import { mockAssets, mockLocations } from '@/components/shared/mock-data';
@@ -112,24 +119,20 @@ export default function EditAssetPage() {
 
   if (!asset) {
     return (
-      <div className="space-y-4 sm:space-y-6">
-        <Card>
-          <CardContent className="py-12 text-center">
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              Asset Not Found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              The asset you&apos;re trying to edit doesn&apos;t exist.
-            </p>
-            <Link href={routes.resources.assets.href}>
-              <Button>
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Assets
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Cog className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Asset not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.assets.href}>Back to Assets</Link>
+        </Button>
+      </Empty>
     );
   }
 
