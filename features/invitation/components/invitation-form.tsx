@@ -30,6 +30,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import { whatsappMessage, emailSubject, emailBody } from '@/types/invitation';
@@ -623,16 +624,14 @@ export function InvitationForm() {
                           No managers available
                         </SelectItem>
                       )}
-                      {managers
-                        .filter((manager) => manager.id != null)
-                        .map((manager) => (
-                          <SelectItem
-                            key={manager.id}
-                            value={manager.id!.toString()}
-                          >
-                            {manager.name} - {manager.designation}
-                          </SelectItem>
-                        ))}
+                      {managers.map((manager) => (
+                        <SelectItem
+                          key={manager.id!}
+                          value={manager.id!.toString()}
+                        >
+                          {manager.name} - {manager.designation}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -828,7 +827,7 @@ export function InvitationForm() {
 
                 <div className="border-t pt-4">
                   <Button asChild variant="default" className="w-full">
-                    <Link href="/users/dashboard/workforce/employees/invitations">
+                    <Link href={routes.workforce.employees.invitations.href}>
                       <Save className="mr-2 h-4 w-4" />
                       Save & Go to Invitations
                     </Link>

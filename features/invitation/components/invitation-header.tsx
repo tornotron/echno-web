@@ -1,6 +1,7 @@
 import { Button } from '@/components/shadcn/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 
 export function InvitationHeader() {
   return (
@@ -14,7 +15,7 @@ export function InvitationHeader() {
         </p>
       </div>
       <Button asChild className="mt-4 md:mt-0">
-        <Link href="/users/dashboard/workforce/employees/invitations/new">
+        <Link href={routes.workforce.employees.invitations.new}>
           <Plus className="mr-2 h-4 w-4" />
           Create Invitation
         </Link>

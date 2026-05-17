@@ -2,6 +2,7 @@
 
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Empty,
@@ -18,7 +19,7 @@ interface InvitationErrorStateProps {
 
 export function InvitationErrorState({
   inviteCode,
-  backLink = '/users/dashboard/workforce/employees/invitations',
+  backLink = routes.workforce.employees.invitations.href,
 }: InvitationErrorStateProps) {
   return (
     <Empty variant="error">
