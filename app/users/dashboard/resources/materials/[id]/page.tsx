@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -65,29 +73,34 @@ export default function MaterialDetailPage({
 
   if (isError) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
-          <h3 className="mb-2 text-lg font-medium">Failed to load material</h3>
-          <Button onClick={() => router.push(routes.resources.materials.href)}>
-            Back to Materials
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <Package className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load material</EmptyTitle>
+          <EmptyDescription>An unexpected error occurred.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   if (!material) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">Material not found</h3>
-          <Button onClick={() => router.push(routes.resources.materials.href)}>
-            Back to Materials
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Package className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Material not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.materials.href}>Back to Materials</Link>
+        </Button>
+      </Empty>
     );
   }
 
