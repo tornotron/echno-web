@@ -136,66 +136,76 @@ export default function LocationsPage() {
       />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Total Locations
-            </CardTitle>
-            <MapPin className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalLocations}</div>
-            <p className="text-muted-foreground text-xs">
-              {activeLocations} active
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Capacity
-            </CardTitle>
-            <BarChart3 className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {totalCapacity > 0
-                ? totalCapacity >= 1000
-                  ? `${(totalCapacity / 1000).toFixed(1)}K`
-                  : totalCapacity.toLocaleString()
-                : '—'}
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {totalLocations}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <MapPin className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">
-              units across all locations
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              registered sites
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Capacity
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                {totalCapacity > 0
+                  ? totalCapacity >= 1000
+                    ? `${(totalCapacity / 1000).toFixed(1)}K`
+                    : totalCapacity.toLocaleString()
+                  : '—'}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <BarChart3 className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              combined storage units
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Location Types
-            </CardTitle>
-            <Building2 className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{locationTypes}</div>
-            <p className="text-muted-foreground text-xs">different types</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeLocations}</div>
-            <p className="text-muted-foreground text-xs">
-              {totalLocations - activeLocations} inactive
             </p>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                {locationTypes}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950/30">
+                <Building2 className="size-4 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              distinct types in use
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Active</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {activeLocations}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              currently operational
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Filters */}
       <SearchAndFilter
