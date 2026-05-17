@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { Users, Mail, ChevronRight } from 'lucide-react';
 import { Label, Pie, PieChart } from 'recharts';
 import {
@@ -65,12 +66,12 @@ const QUICK_ACTIONS = [
   {
     icon: Mail,
     label: 'View Invitations',
-    href: '/users/dashboard/workforce/employees/invitations',
+    href: routes.workforce.employees.invitations.href,
   },
   {
     icon: Users,
     label: 'View Employees',
-    href: '/users/dashboard/workforce/employees/employee-management',
+    href: routes.workforce.employees.employeeManagement.href,
   },
 ];
 

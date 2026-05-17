@@ -6,6 +6,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Mail, Building, IdCard } from 'lucide-react';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format } from 'date-fns';
 import { EmployeeStatusBadge } from './employee-status-badge';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
@@ -18,7 +19,10 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
   return (
     <Card className="transition-shadow hover:shadow-lg">
       <Link
-        href={`/users/dashboard/workforce/employees/employee-management/${employee.id}`}
+        href={
+          routes.workforce.employees.employeeManagement.detail(employee.id!)
+            .href
+        }
         className="block"
       >
         <CardContent className="p-6">

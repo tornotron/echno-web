@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Edit, Building } from 'lucide-react';
@@ -73,7 +74,10 @@ export function EmployeeDetailsHeader({
           </div>
         </div>
         <Link
-          href={`/users/dashboard/workforce/employees/employee-management/${employee.id}/edit`}
+          href={
+            routes.workforce.employees.employeeManagement.detail(employee.id!)
+              .edit
+          }
         >
           <Button>
             <Edit className="mr-2 h-4 w-4" />
