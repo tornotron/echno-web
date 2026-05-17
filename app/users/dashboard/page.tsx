@@ -289,7 +289,7 @@ export default function DashboardPage() {
           {
             label: 'Attendance',
             icon: UserCheck,
-            href: '/users/dashboard/attendance',
+            href: routes.attendance.href,
             color: 'text-green-600',
             bg: 'bg-green-50 dark:bg-green-900/20',
           },
@@ -303,14 +303,14 @@ export default function DashboardPage() {
           {
             label: 'Tasks',
             icon: ListTodo,
-            href: '/users/dashboard/tasks',
+            href: routes.tasks,
             color: 'text-indigo-600',
             bg: 'bg-indigo-50 dark:bg-indigo-500/10',
           },
           {
             label: 'Chat',
             icon: MessageSquare,
-            href: '/users/dashboard/chat',
+            href: routes.chat.href,
             color: 'text-purple-600',
             bg: 'bg-purple-50 dark:bg-purple-900/20',
           },
@@ -585,9 +585,7 @@ export default function DashboardPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() =>
-                      router.push('/users/dashboard/workforce/leaves')
-                    }
+                    onClick={() => router.push(routes.workforce.leaves.href)}
                     className="text-xs sm:text-sm"
                   >
                     View All
