@@ -13,6 +13,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -81,6 +82,9 @@ export default function MaterialDetailPage({
           <EmptyTitle>Failed to load material</EmptyTitle>
           <EmptyDescription>An unexpected error occurred.</EmptyDescription>
         </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.materials.href}>Back to Materials</Link>
+        </Button>
       </Empty>
     );
   }
@@ -120,12 +124,10 @@ export default function MaterialDetailPage({
       />
 
       {/* Header */}
-      <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {material.materialName}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={material.materialName}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             {material.sku && (
               <Badge variant="outline" className="text-xs">
                 <Tag className="mr-1 h-3 w-3" />
@@ -147,25 +149,27 @@ export default function MaterialDetailPage({
               </Badge>
             )}
           </div>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={routes.resources.materials.detail(id).edit}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Material
-            </Link>
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            aria-label="Delete material"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isDeleting}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={routes.resources.materials.detail(id).edit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Material
+              </Link>
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              aria-label="Delete material"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isDeleting}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
+        }
+      />
 
       {/* Tabs */}
       <Tabs defaultValue="overview">

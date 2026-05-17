@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -140,12 +141,10 @@ export default function EditMaterialPage({
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Edit Material</h1>
-        <p className="text-muted-foreground">
-          Update details for {material.materialName}
-        </p>
-      </div>
+      <PageHeader
+        title="Edit Material"
+        description={`Update details for ${material.materialName}`}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
