@@ -3,12 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
@@ -293,63 +288,72 @@ export default function MaterialsPage() {
       />
 
       {/* Stats Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Total Materials
-            </CardTitle>
-            <Package className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalMaterials}</div>
-            <p className="text-muted-foreground text-xs">Registered</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {totalMaterials}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <Package className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              across all categories
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Stock Value
-            </CardTitle>
-            <WarehouseIcon className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">
-              ₹{(totalStockValue / 100_000).toFixed(1)}L
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                ₹{(totalStockValue / 100_000).toFixed(1)}L
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <WarehouseIcon className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Total stock value</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              total inventory value
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Unique Units
-            </CardTitle>
-            <Ruler className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {uniqueUnits}
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {uniqueUnits}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <Ruler className="size-4 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Unit types in use</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
-              With SKU
-            </CardTitle>
-            <Tag className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{withSku}</div>
-            <p className="text-muted-foreground text-xs">SKU assigned</p>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              unit types in use
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">With SKU</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {withSku}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <Tag className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              have SKU assigned
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Search & Filter */}
       <SearchAndFilter
