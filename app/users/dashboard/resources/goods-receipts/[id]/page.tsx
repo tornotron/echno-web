@@ -13,6 +13,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Loader2,
@@ -92,12 +93,10 @@ export default function GRNDetailPage({
       />
 
       {/* Header */}
-      <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {grn.grnNumber}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={grn.grnNumber}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="text-xs">
               Goods Received Note
             </Badge>
@@ -110,8 +109,8 @@ export default function GRNDetailPage({
               Received {format(new Date(grn.receivedOn), 'MMM dd, yyyy')}
             </span>
           </div>
-        </div>
-        <div className="flex shrink-0 gap-2">
+        }
+        actions={
           <Button
             variant="destructive"
             size="sm"
@@ -119,8 +118,8 @@ export default function GRNDetailPage({
           >
             <Trash2 className="h-4 w-4" />
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {/* Immutability notice */}
       <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">

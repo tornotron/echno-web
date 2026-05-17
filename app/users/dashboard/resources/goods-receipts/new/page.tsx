@@ -13,6 +13,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
@@ -245,14 +246,10 @@ export default function NewGRNPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Record GRN
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400">
-          Record a goods received note
-        </p>
-      </div>
+      <PageHeader
+        title="Record GRN"
+        description="Record a goods received note"
+      />
 
       {/* Pre-filled from PO banner */}
       {sourcePO && (
