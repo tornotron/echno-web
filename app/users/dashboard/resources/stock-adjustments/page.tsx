@@ -3,12 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
@@ -132,65 +127,66 @@ export default function StockAdjustmentsPage() {
       />
 
       {/* Stats Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Total Adjustments
-            </CardTitle>
-            <FileText className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAdjustments}</div>
-            <p className="text-muted-foreground text-xs">All adjustments</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
-              Pending
-            </CardTitle>
-            <Clock className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {pendingAdjustments}
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {totalAdjustments}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <FileText className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Awaiting approval</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
-              Surplus
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              +{positiveVariance}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Pending</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {pendingAdjustments}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <Clock className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Items found</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
-              Shortage
-            </CardTitle>
-            <TrendingDown className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              -{negativeVariance}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              awaiting approval
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Surplus</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                +{positiveVariance}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <TrendingUp className="size-4 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Items missing</p>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              total positive variance
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Shortage</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-red-600 dark:text-red-400">
+                -{negativeVariance}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/30">
+                <TrendingDown className="size-4 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              total negative variance
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Filters */}
       <SearchAndFilter
