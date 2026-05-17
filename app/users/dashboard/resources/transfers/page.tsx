@@ -4,12 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -121,70 +116,70 @@ export default function SiteTransfersPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {(
-          [
-            {
-              label: 'Total Transfers',
-              count: transfers.length,
-              color: 'blue',
-              icon: ArrowRightLeft,
-            },
-            { label: 'Pending', count: pending, color: 'yellow', icon: Clock },
-            {
-              label: 'Completed',
-              count: completed,
-              color: 'green',
-              icon: CheckCircle2,
-            },
-            {
-              label: 'Total Items Moved',
-              count: totalItems,
-              color: 'orange',
-              icon: Package,
-            },
-          ] as const
-        ).map(({ label, count, color, icon: Icon }) => {
-          const colorClasses = {
-            blue: {
-              bg: 'bg-blue-100 dark:bg-blue-900/20',
-              text: 'text-blue-600 dark:text-blue-400',
-            },
-            yellow: {
-              bg: 'bg-yellow-100 dark:bg-yellow-900/20',
-              text: 'text-yellow-600 dark:text-yellow-400',
-            },
-            green: {
-              bg: 'bg-green-100 dark:bg-green-900/20',
-              text: 'text-green-600 dark:text-green-400',
-            },
-            orange: {
-              bg: 'bg-orange-100 dark:bg-orange-900/20',
-              text: 'text-orange-600 dark:text-orange-400',
-            },
-          } satisfies Record<string, { bg: string; text: string }>;
-          const classes = colorClasses[color];
-          return (
-            <Card key={label}>
-              <CardHeader className="pb-3">
-                <CardDescription>{label}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-lg ${classes.bg}`}
-                  >
-                    <Icon className={`h-6 w-6 ${classes.text}`} />
-                  </div>
-                  <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {count}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Transfers
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                {transfers.length}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <ArrowRightLeft className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Pending</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-yellow-600 dark:text-yellow-400">
+                {pending}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                <Clock className="size-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              in transit
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Completed
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {completed}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              delivered
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Items Moved
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {totalItems}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <Package className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              total line items
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Search & Filter */}
       <SearchAndFilter
