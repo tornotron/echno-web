@@ -2,6 +2,7 @@
 
 import { use, useState, useEffect } from 'react';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -31,7 +32,15 @@ import {
   AlertCircle,
   TrendingUp,
   TrendingDown,
+  Settings,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface AdjustmentItem {
@@ -241,14 +250,22 @@ export default function EditStockAdjustmentPage({
 
   if (!adjustmentNumber) {
     return (
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex h-96 flex-col items-center justify-center gap-4">
-          <AlertCircle className="h-12 w-12 text-zinc-400 dark:text-zinc-600" />
-          <div className="text-zinc-500 dark:text-zinc-400">
-            Stock Adjustment not found
-          </div>
-        </div>
-      </div>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Settings className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Stock adjustment not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.stockAdjustments.href}>
+            Back to Stock Adjustments
+          </Link>
+        </Button>
+      </Empty>
     );
   }
 
