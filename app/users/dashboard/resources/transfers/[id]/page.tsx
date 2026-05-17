@@ -13,6 +13,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Loader2,
@@ -135,12 +136,10 @@ export default function SiteTransferDetailPage({
       />
 
       {/* Header */}
-      <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {transfer.transferNumber}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={transfer.transferNumber}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             <Badge className={siteTransferStatusBadgeColors[transfer.status]}>
               {siteTransferStatusLabels[transfer.status]}
             </Badge>
@@ -148,46 +147,50 @@ export default function SiteTransferDetailPage({
               Issued {format(new Date(transfer.issueDate), 'MMM dd, yyyy')}
             </span>
           </div>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          {next && (
+        }
+        actions={
+          <>
+            {next && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={isUpdating}
+                onClick={() =>
+                  requestConfirm(
+                    'Update Status',
+                    `Mark this transfer as "${siteTransferStatusLabels[next]}"?`,
+                    () => updateStatus({ id, status: next })
+                  )
+                }
+              >
+                {isUpdating && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Mark as {siteTransferStatusLabels[next]}
+              </Button>
+            )}
             <Button
+              variant="destructive"
               size="sm"
-              variant="outline"
-              disabled={isUpdating}
+              disabled={isDeleting}
               onClick={() =>
                 requestConfirm(
-                  'Update Status',
-                  `Mark this transfer as "${siteTransferStatusLabels[next]}"?`,
-                  () => updateStatus({ id, status: next })
+                  'Delete Transfer',
+                  `Are you sure you want to delete ${transfer.transferNumber}? Stock that was decremented will need to be adjusted manually. This action cannot be undone.`,
+                  () =>
+                    deleteTransfer(id, {
+                      onSuccess: () =>
+                        router.push(routes.resources.transfers.href),
+                    }),
+                  'destructive'
                 )
               }
             >
-              {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Mark as {siteTransferStatusLabels[next]}
+              <Trash2 className="h-4 w-4" />
             </Button>
-          )}
-          <Button
-            variant="destructive"
-            size="sm"
-            disabled={isDeleting}
-            onClick={() =>
-              requestConfirm(
-                'Delete Transfer',
-                `Are you sure you want to delete ${transfer.transferNumber}? Stock that was decremented will need to be adjusted manually. This action cannot be undone.`,
-                () =>
-                  deleteTransfer(id, {
-                    onSuccess: () =>
-                      router.push(routes.resources.transfers.href),
-                  }),
-                'destructive'
-              )
-            }
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Stock warning notice */}
       <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300">
