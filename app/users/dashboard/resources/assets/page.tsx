@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
@@ -168,80 +163,88 @@ export default function AssetsPage() {
       />
 
       {/* Stats Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+      <Card className="gap-0 p-6">
+        <div className="lg:divide-border grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-0 lg:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 lg:rounded-none lg:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Total Assets
-            </CardTitle>
-            <Cog className="text-muted-foreground h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalAssets}</div>
-            <p className="text-muted-foreground text-xs">Registered</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {totalAssets}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <Cog className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              registered assets
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 lg:rounded-none lg:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Total Value
-            </CardTitle>
-            <DollarSign className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ₹{(totalValue / 10_000_000).toFixed(1)}Cr
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                ₹{(totalValue / 10_000_000).toFixed(1)}Cr
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <DollarSign className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Current value</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
-              In Use
-            </CardTitle>
-            <Activity className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {inUseAssets}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              current book value
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 lg:rounded-none lg:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">In Use</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {inUseAssets}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <Activity className="size-4 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Active assets</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              currently deployed
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 lg:rounded-none lg:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Maintenance Due
-            </CardTitle>
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {maintenanceDueAssets}
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {maintenanceDueAssets}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <AlertCircle className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">Need attention</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium sm:text-sm">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              need servicing
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 lg:rounded-none lg:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Under Repair
-            </CardTitle>
-            <Wrench className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {underRepairAssets}
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-red-600 dark:text-red-400">
+                {underRepairAssets}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/30">
+                <Wrench className="size-4 text-red-600 dark:text-red-400" />
+              </div>
             </div>
-            <p className="text-muted-foreground text-xs">In workshop</p>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              in maintenance
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Filters */}
       <SearchAndFilter
