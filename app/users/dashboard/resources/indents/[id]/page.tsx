@@ -4,7 +4,12 @@ import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+} from '@/components/shadcn/card';
 import {
   Empty,
   EmptyMedia,
@@ -79,6 +84,9 @@ export default function IndentDetailPage({
           <EmptyTitle>Failed to load indent</EmptyTitle>
           <EmptyDescription>An unexpected error occurred.</EmptyDescription>
         </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.indents.href}>Back to Indents</Link>
+        </Button>
       </Empty>
     );
   }
@@ -192,62 +200,68 @@ export default function IndentDetailPage({
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Total Items</p>
-            <Package className="h-4 w-4 text-blue-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Total Items</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{indent.items.length}</div>
-            <p className="text-muted-foreground text-xs">Materials requested</p>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {indent.items.length}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Converted to PO</p>
-            <Hash className="h-4 w-4 text-green-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Converted to PO</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {convertedCount}
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                <Hash className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {convertedCount}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">
-              of {indent.items.length} items
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Expected On</p>
-            <CalendarDays className="h-4 w-4 text-orange-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Expected On</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {indent.expectedOn
-                ? format(new Date(indent.expectedOn), 'dd MMM')
-                : '—'}
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <CalendarDays className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {indent.expectedOn
+                  ? format(new Date(indent.expectedOn), 'dd MMM')
+                  : '—'}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">
-              {indent.expectedOn
-                ? format(new Date(indent.expectedOn), 'yyyy')
-                : 'No date set'}
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Created By</p>
-            <User className="h-4 w-4 text-zinc-400" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Created By</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="truncate text-xl font-bold">
-              {indent.createdBy.name}
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900/20">
+                <User className="h-6 w-6 text-zinc-600 dark:text-zinc-400" />
+              </div>
+              <span className="min-w-0 truncate text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                {indent.createdBy.name}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">
-              {format(new Date(indent.createdAt), 'MMM dd, yyyy')}
-            </p>
           </CardContent>
         </Card>
       </div>
