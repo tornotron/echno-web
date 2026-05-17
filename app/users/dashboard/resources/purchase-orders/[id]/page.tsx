@@ -160,6 +160,7 @@ export default function PurchaseOrderDetailPage({
             <Button
               variant="destructive"
               size="sm"
+              aria-label="Delete purchase order"
               onClick={() => setDeleteDialogOpen(true)}
             >
               <Trash2 className="h-4 w-4" />

@@ -177,6 +177,7 @@ export default function SiteTransferDetailPage({
             <Button
               variant="destructive"
               size="sm"
+              aria-label={`Delete transfer ${transfer.transferNumber}`}
               disabled={isDeleting}
               onClick={() =>
                 requestConfirm(
