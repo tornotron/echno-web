@@ -4,12 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -137,76 +132,68 @@ export default function PurchaseOrdersPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {(
-          [
-            {
-              label: 'Total POs',
-              count: stats.total,
-              color: 'blue',
-              icon: ShoppingCart,
-            },
-            {
-              label: 'Draft',
-              count: stats.draft,
-              color: 'zinc',
-              icon: FileText,
-            },
-            {
-              label: 'Approved',
-              count: stats.approved,
-              color: 'green',
-              icon: CheckCircle2,
-            },
-            {
-              label: 'Sent to Vendor',
-              count: stats.sentToVendor,
-              color: 'purple',
-              icon: Truck,
-            },
-          ] as const
-        ).map(({ label, count, color, icon: Icon }) => {
-          const colorClasses = {
-            blue: {
-              bg: 'bg-blue-100 dark:bg-blue-900/20',
-              text: 'text-blue-600 dark:text-blue-400',
-            },
-            zinc: {
-              bg: 'bg-zinc-100 dark:bg-zinc-800',
-              text: 'text-zinc-600 dark:text-zinc-400',
-            },
-            green: {
-              bg: 'bg-green-100 dark:bg-green-900/20',
-              text: 'text-green-600 dark:text-green-400',
-            },
-            purple: {
-              bg: 'bg-purple-100 dark:bg-purple-900/20',
-              text: 'text-purple-600 dark:text-purple-400',
-            },
-          } satisfies Record<string, { bg: string; text: string }>;
-
-          const classes = colorClasses[color];
-          return (
-            <Card key={label}>
-              <CardHeader className="pb-3">
-                <CardDescription>{label}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-lg ${classes.bg}`}
-                  >
-                    <Icon className={`h-6 w-6 ${classes.text}`} />
-                  </div>
-                  <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {count}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total POs
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                {stats.total}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <ShoppingCart className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Draft</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {stats.draft}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <FileText className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              not submitted
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Approved</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {stats.approved}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CheckCircle2 className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              ready to dispatch
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Sent to Vendor
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                {stats.sentToVendor}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950/30">
+                <Truck className="size-4 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              awaiting delivery
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Search & Filter */}
       <SearchAndFilter
