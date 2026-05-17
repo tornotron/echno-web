@@ -4,7 +4,12 @@ import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+} from '@/components/shadcn/card';
 import {
   Empty,
   EmptyMedia,
@@ -133,54 +138,68 @@ export default function GRNDetailPage({
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Total Items</p>
-            <Package className="h-4 w-4 text-blue-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Total Items</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{grn.items.length}</div>
-            <p className="text-muted-foreground text-xs">Materials received</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Invoice Amount</p>
-            <IndianRupee className="h-4 w-4 text-green-600" />
-          </div>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {grn.invoiceAmount == null
-                ? '—'
-                : `₹${grn.invoiceAmount.toLocaleString('en-IN')}`}
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {grn.items.length}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">Invoice value</p>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Received On</p>
-            <CalendarDays className="h-4 w-4 text-orange-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Invoice Amount</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {format(new Date(grn.receivedOn), 'dd MMM')}
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                <IndianRupee className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-2xl font-bold text-green-600 dark:text-green-400">
+                {grn.invoiceAmount == null
+                  ? '—'
+                  : `₹${grn.invoiceAmount.toLocaleString('en-IN')}`}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">
-              {format(new Date(grn.receivedOn), 'yyyy')}
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Vendor</p>
-            <Building2 className="h-4 w-4 text-zinc-400" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Received On</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="truncate text-xl font-bold">{grn.vendorName}</div>
-            <p className="text-muted-foreground text-xs">Supplier</p>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <CalendarDays className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {format(new Date(grn.receivedOn), 'dd MMM')}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Vendor</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900/20">
+                <Building2 className="h-6 w-6 text-zinc-600 dark:text-zinc-400" />
+              </div>
+              <span className="min-w-0 truncate text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                {grn.vendorName}
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>
