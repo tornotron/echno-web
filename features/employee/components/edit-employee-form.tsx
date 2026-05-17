@@ -30,6 +30,7 @@ import {
   X,
 } from 'lucide-react';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { routes } from '@/nav';
 import { Department, getDepartmentLabel } from '@/types/employee/departments';
 import {
   EmployeeStatus,
@@ -107,13 +108,13 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
 
   const handleCancel = () => {
     router.push(
-      `/users/dashboard/workforce/employees/employee-management/${employee.id}`
+      routes.workforce.employees.employeeManagement.detail(employee.id!).href
     );
   };
 
   return (
     <>
-      <form key={employee.id} onSubmit={handleSubmit} className="space-y-6">
+      <form key={employee.id!} onSubmit={handleSubmit} className="space-y-6">
         {/* Professional Information */}
         <Card>
           <CardHeader>
@@ -338,7 +339,9 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
           updateEmployee.mutate(pendingUpdate, {
             onSuccess: () => {
               router.push(
-                `/users/dashboard/workforce/employees/employee-management/${employee.id}`
+                routes.workforce.employees.employeeManagement.detail(
+                  employee.id
+                ).href
               );
             },
             onSettled: () => {

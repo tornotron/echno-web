@@ -2,6 +2,7 @@
 
 import { AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Empty,
@@ -20,7 +21,7 @@ interface EmployeeErrorStateProps {
 export function EmployeeErrorState({
   employeeId,
   variant = 'not-found',
-  backLink = '/users/dashboard/workforce/employees/employee-management',
+  backLink = routes.workforce.employees.employeeManagement.href,
 }: EmployeeErrorStateProps) {
   const title =
     variant === 'fetch-error'

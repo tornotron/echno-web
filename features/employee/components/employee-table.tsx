@@ -41,6 +41,7 @@ import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { EmployeeProjectsCell } from './employee-projects-cell';
 import { EmployeeStatusBadge } from './employee-status-badge';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { routes } from '@/nav';
 
 interface EmployeeTableProps {
   employees: Employee[];
@@ -81,13 +82,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
     paginated.length > 0 && selectedIds.length === paginated.length;
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(
-      checked
-        ? paginated
-            .map((e) => e.id)
-            .filter((id): id is number => id !== undefined)
-        : []
-    );
+    setSelectedIds(checked ? paginated.map((e) => e.id!) : []);
   };
 
   const handleSelectOne = (id: number, checked: boolean) => {
@@ -225,7 +220,9 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                 className="hover:bg-muted/50 cursor-pointer"
                 onClick={() =>
                   router.push(
-                    `/users/dashboard/workforce/employees/employee-management/${employee.id}`
+                    routes.workforce.employees.employeeManagement.detail(
+                      employee.id!
+                    ).href
                   )
                 }
               >
@@ -234,13 +231,9 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Checkbox
-                    checked={
-                      employee.id !== undefined &&
-                      selectedIds.includes(employee.id)
-                    }
+                    checked={selectedIds.includes(employee.id!)}
                     onCheckedChange={(checked) =>
-                      employee.id !== undefined &&
-                      handleSelectOne(employee.id, checked as boolean)
+                      handleSelectOne(employee.id!, checked as boolean)
                     }
                     aria-label={`Select ${employee.name}`}
                   />
@@ -291,7 +284,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                 </TableCell>
                 <TableCell>
                   <EmployeeProjectsCell
-                    employeeId={employee.id}
+                    employeeId={employee.id!}
                     projects={employee.currentProjects}
                   />
                 </TableCell>
