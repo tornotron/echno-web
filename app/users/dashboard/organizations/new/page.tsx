@@ -6,6 +6,7 @@ import { Organization } from '@/types/organization';
 import { toast } from '@/lib/styles/toast-styles';
 import { useUser } from '@/hooks/user/use-user';
 import { useCreateOrganization } from '@/hooks/organization/use-organization-mutations';
+import { routes } from '@/nav';
 
 export default function NewOrganizationPage() {
   const router = useRouter();
@@ -29,14 +30,14 @@ export default function NewOrganizationPage() {
       { data: organizationData, logoFile },
       {
         onSuccess: () => {
-          router.push('/users/dashboard/organizations');
+          router.push(routes.organizations.href);
         },
       }
     );
   };
 
   const handleCancel = () => {
-    router.push('/users/dashboard/organizations');
+    router.push(routes.organizations.href);
   };
 
   if (isUserLoading) {

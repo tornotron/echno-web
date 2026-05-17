@@ -21,6 +21,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { useValidateInviteCodeMutation } from '@/hooks/invitation';
 import { useUser } from '@/hooks/user/use-user';
 
@@ -90,10 +91,10 @@ export default function JoinOrganizationPage() {
                 </div>
                 <div className="flex justify-center gap-3">
                   <Button variant="outline" asChild>
-                    <Link href="/users/dashboard">Go to Dashboard</Link>
+                    <Link href={routes.href}>Go to Dashboard</Link>
                   </Button>
                   <Button asChild>
-                    <Link href="/users/dashboard/organizations">
+                    <Link href={routes.organizations.href}>
                       <Building2 className="mr-2 h-4 w-4" />
                       Go to Organizations
                     </Link>
@@ -193,7 +194,7 @@ export default function JoinOrganizationPage() {
                   code, or create your own organization.
                 </p>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href="/users/dashboard/organizations/new">
+                  <Link href={routes.organizations.new}>
                     <Building2 className="mr-2 h-4 w-4" />
                     Create Organization
                   </Link>

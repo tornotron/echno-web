@@ -6,6 +6,7 @@ import { SearchAndFilter } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Plus, Search, Building2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
 
 export default function OrganizationsPage() {
@@ -69,13 +70,13 @@ export default function OrganizationsPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/users/dashboard/organizations/join">
+          <Link href={routes.organizations.join}>
             <Button variant="outline" className="sm:w-auto">
               <UserPlus className="mr-2 h-4 w-4" />
               Join Organization
             </Button>
           </Link>
-          <Link href="/users/dashboard/organizations/new">
+          <Link href={routes.organizations.new}>
             <Button className="sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Create Organization
@@ -159,13 +160,13 @@ export default function OrganizationsPage() {
           {!searchQuery && statusFilter === 'all' && (
             <div className="flex justify-center gap-3">
               <Button variant="outline" asChild>
-                <Link href="/users/dashboard/organizations/join">
+                <Link href={routes.organizations.join}>
                   <UserPlus className="mr-2 h-4 w-4" />
                   Join Organization
                 </Link>
               </Button>
               <Button asChild>
-                <Link href="/users/dashboard/organizations/new">
+                <Link href={routes.organizations.new}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Organization
                 </Link>
