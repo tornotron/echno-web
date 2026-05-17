@@ -9,6 +9,7 @@ import { Separator } from '@/components/shadcn/separator';
 import { Mail, Phone, Globe, Users, Briefcase } from 'lucide-react';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import type { Organization } from '@/types/organization/organization';
 
 interface OrganizationOverviewTabProps {
@@ -110,7 +111,7 @@ export function OrganizationOverviewTab({
               </div>
             ) : (
               <Link
-                href={`/users/dashboard/workforce/employees?organizationId=${organization.id}`}
+                href={`${routes.workforce.employees.href}?organizationId=${organization.id}`}
                 className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center space-x-2">
@@ -139,7 +140,7 @@ export function OrganizationOverviewTab({
               </div>
             ) : (
               <Link
-                href={`/users/dashboard/portfolio/projects?organizationId=${organization.id}`}
+                href={`${routes.portfolio.projects.href}?organizationId=${organization.id}`}
                 className="flex items-center justify-between rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <div className="flex items-center space-x-2">
