@@ -5,7 +5,7 @@
  * Run `pnpm routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-05-13
+ * Generated: 2026-05-14
  */
 
 import type { RouteNode } from '../types';
