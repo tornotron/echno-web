@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { MessagesSquare, X, Maximize2, GripVertical } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
   Tooltip,
@@ -179,7 +180,7 @@ export function FloatingChat() {
                     asChild
                     onPointerDown={(e) => e.stopPropagation()}
                   >
-                    <Link href="/users/dashboard/chat">
+                    <Link href={routes.chat.href}>
                       <Maximize2 className="h-3 w-3" />
                     </Link>
                   </Button>

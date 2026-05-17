@@ -6,6 +6,7 @@ import { AlertCircle, MessageSquare } from 'lucide-react';
 import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
 import { useUser } from '@/hooks/user/use-user';
 import { useOrganizations } from '@/hooks/organization/use-organizations';
+import { routes } from '@/nav';
 
 /**
  * /dashboard/chat — redirect to the first available room, or show empty state.
@@ -42,7 +43,7 @@ export default function ChatIndexPage() {
     const isDesktop =
       globalThis.window !== undefined && window.innerWidth >= 1024;
     if (!isLoading && !isError && rooms.length > 0 && isDesktop) {
-      router.replace(`/users/dashboard/chat/${rooms[0].id}`);
+      router.replace(routes.chat.detail(rooms[0].id).href);
     }
   }, [isLoading, isError, rooms, router]);
 

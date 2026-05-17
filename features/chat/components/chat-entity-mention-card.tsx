@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { CheckSquare, AlertCircle, Folder } from 'lucide-react';
 import { Badge } from '@/components/shadcn/badge';
 import { ChatEntityType, getChatEntityTypeLabel } from '@/types/chat';
@@ -13,11 +14,11 @@ interface ChatEntityMentionCardProps {
 
 const ENTITY_HREF: Record<ChatEntityType, (id: number) => string> = {
   [ChatEntityType.task]: (id) =>
-    `/users/dashboard/portfolio/projects/all-projects/${id}/tasks`,
+    routes.portfolio.projects.allProjects.detail(id).tasks.href,
   [ChatEntityType.issue]: (id) =>
-    `/users/dashboard/portfolio/projects/all-projects/${id}/issues`,
+    routes.portfolio.projects.allProjects.detail(id).issues.href,
   [ChatEntityType.project]: (id) =>
-    `/users/dashboard/portfolio/projects/all-projects/${id}`,
+    routes.portfolio.projects.allProjects.detail(id).href,
 };
 
 const ENTITY_ICON: Record<ChatEntityType, React.ElementType> = {

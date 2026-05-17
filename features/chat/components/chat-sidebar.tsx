@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
@@ -103,7 +104,7 @@ function RoomItem({
 
   return (
     <Link
-      href={`/users/dashboard/chat/${room.id}`}
+      href={routes.chat.detail(room.id).href}
       onClick={onSelect}
       className={`flex items-start gap-3 rounded-lg px-3 py-3 transition-colors sm:py-2.5 ${
         isActive
