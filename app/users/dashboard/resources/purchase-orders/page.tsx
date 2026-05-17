@@ -37,6 +37,13 @@ import {
   CheckCircle2,
   Truck,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { usePurchaseOrders } from '@/hooks/purchase-orders/use-purchase-orders';
 import {
@@ -336,26 +343,24 @@ export default function PurchaseOrdersPage() {
           />
         </Card>
       ) : (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <ShoppingCart className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium">
-              No purchase orders found
-            </h3>
-            <p className="text-muted-foreground mb-4 text-sm">
+        <Empty variant="default">
+          <EmptyMedia variant="icon">
+            <ShoppingCart className="size-6" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No purchase orders found</EmptyTitle>
+            <EmptyDescription>
               {hasActiveFilters
                 ? 'No purchase orders match your filters. Try adjusting your search.'
                 : 'Create your first purchase order to get started.'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.resources.purchaseOrders.new}>
-                  Create PO
-                </Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+          {!hasActiveFilters && (
+            <Button asChild>
+              <Link href={routes.resources.purchaseOrders.new}>Create PO</Link>
+            </Button>
+          )}
+        </Empty>
       )}
     </div>
   );

@@ -36,6 +36,13 @@ import {
   Package,
   BarChart3,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useAllMaterialConsumptions } from '@/hooks/materials';
 import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
@@ -315,24 +322,26 @@ export default function MaterialConsumptionsPage() {
           />
         </Card>
       ) : (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FlameKindling className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium">No consumptions found</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
+        <Empty variant="default">
+          <EmptyMedia variant="icon">
+            <FlameKindling className="size-6" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No consumptions found</EmptyTitle>
+            <EmptyDescription>
               {hasActiveFilters
                 ? 'No records match your search. Try adjusting your filters.'
                 : 'Record your first material consumption to get started.'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.resources.materialConsumptions.new}>
-                  Record Consumption
-                </Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+          {!hasActiveFilters && (
+            <Button asChild>
+              <Link href={routes.resources.materialConsumptions.new}>
+                Record Consumption
+              </Link>
+            </Button>
+          )}
+        </Empty>
       )}
     </div>
   );

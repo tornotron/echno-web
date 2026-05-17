@@ -19,7 +19,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { Package, Plus, Tag, Ruler, WarehouseIcon } from 'lucide-react';
+import {
+  Package,
+  Plus,
+  Tag,
+  Ruler,
+  WarehouseIcon,
+  Loader2,
+} from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { useMaterials } from '@/hooks/materials';
 import { MATERIAL_UNITS } from '@/features/materials/components/material-unit-selector';
 
@@ -210,27 +225,27 @@ export default function MaterialsPage() {
         </Card>
       </>
     ) : (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-            No materials found
-          </h3>
-          <p className="mb-4 text-zinc-600 dark:text-zinc-400">
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Package className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>No materials found</EmptyTitle>
+          <EmptyDescription>
             {hasActiveFilters
               ? 'Try adjusting your search or filters'
               : 'Get started by adding your first material'}
-          </p>
-          {!hasActiveFilters && (
-            <Button asChild>
-              <Link href={routes.resources.materials.new}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Material
-              </Link>
-            </Button>
-          )}
-        </CardContent>
-      </Card>
+          </EmptyDescription>
+        </EmptyHeader>
+        {!hasActiveFilters && (
+          <Button asChild>
+            <Link href={routes.resources.materials.new}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Material
+            </Link>
+          </Button>
+        )}
+      </Empty>
     );
 
   let materialsPane: React.ReactNode;
@@ -238,23 +253,25 @@ export default function MaterialsPage() {
     materialsPane = (
       <Card>
         <CardContent className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-200 border-t-zinc-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
         </CardContent>
       </Card>
     );
   } else if (isError) {
     materialsPane = (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
-          <h3 className="mb-2 text-lg font-medium">Failed to load materials</h3>
-          <p className="text-muted-foreground mb-4 text-sm">
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <Package className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load materials</EmptyTitle>
+          <EmptyDescription>
             {error instanceof Error
               ? error.message
               : 'An unexpected error occurred.'}
-          </p>
-        </CardContent>
-      </Card>
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   } else {
     materialsPane = materialsContent;

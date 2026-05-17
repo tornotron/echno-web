@@ -29,7 +29,15 @@ import {
   BarChart3,
   CheckCircle2,
   XCircle,
+  Loader2,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import {
   StorageLocationType,
   STORAGE_LOCATION_TYPE_LABELS,
@@ -267,8 +275,8 @@ export default function LocationsPage() {
       {/* Locations Grid */}
       {isLoading ? (
         <Card>
-          <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">Loading locations...</p>
+          <CardContent className="flex justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
           </CardContent>
         </Card>
       ) : filteredLocations.length > 0 ? (
@@ -360,20 +368,24 @@ export default function LocationsPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="py-12 text-center">
-            <MapPin className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              No locations found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              Try adjusting your filters or add a new location.
-            </p>
-            <Button asChild>
-              <Link href={routes.resources.storageLocations.new}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Location
-              </Link>
-            </Button>
+          <CardContent>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <MapPin className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No locations found</EmptyTitle>
+                <EmptyDescription>
+                  Try adjusting your filters or add a new location.
+                </EmptyDescription>
+              </EmptyHeader>
+              <Button asChild>
+                <Link href={routes.resources.storageLocations.new}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Location
+                </Link>
+              </Button>
+            </Empty>
           </CardContent>
         </Card>
       )}
