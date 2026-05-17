@@ -10,6 +10,7 @@ import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations
 import { organizationKeys } from '@/hooks/organization/organization-keys';
 import { SaveOrganizationDialog } from './organization-alert-dialogs';
 import { OrganizationForm } from './organization-form';
+import { routes } from '@/nav';
 
 interface EditOrganizationFormProps {
   id: number;
@@ -67,7 +68,7 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
       },
       {
         onSuccess: () => {
-          router.push(`/users/dashboard/organizations/${organization.id}`);
+          router.push(routes.organizations.detail(organization.id!).href);
         },
         onSettled: () => {
           setShowConfirmUpdate(false);
@@ -86,7 +87,8 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
   };
 
   const handleCancel = () => {
-    router.push(`/users/dashboard/organizations/${organization?.id}`);
+    if (organization?.id)
+      router.push(routes.organizations.detail(organization.id).href);
   };
 
   return (

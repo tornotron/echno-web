@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { useOrganization } from '@/components/providers/organization-provider';
@@ -38,7 +39,7 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
   return (
     <Card className="group h-full transition-all duration-200 hover:border-indigo-300 hover:shadow-lg dark:hover:border-indigo-500/40">
       <Link
-        href={`/users/dashboard/organizations/${organization.id}`}
+        href={routes.organizations.detail(organization.id!).href}
         className="block"
       >
         <CardHeader className="pb-3">

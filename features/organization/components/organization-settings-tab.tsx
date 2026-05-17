@@ -10,6 +10,7 @@ import {
 import { Separator } from '@/components/shadcn/separator';
 import { Settings, User, Star } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import type { Organization } from '@/types/organization/organization';
 
 interface OrganizationSettingsTabProps {
@@ -152,7 +153,7 @@ export function OrganizationSettingsTab({
               Configure leave types, accrual rules, and policy settings for
               employees.
             </p>
-            <Link href="/users/dashboard/workforce/leaves/manage/policies">
+            <Link href={routes.workforce.leaves.manage.policies}>
               <Button>
                 <Settings className="mr-2 h-4 w-4" />
                 Go to Leave Policy Management
@@ -173,7 +174,7 @@ export function OrganizationSettingsTab({
               Set up check-in/check-out cycles, photo and geolocation
               requirements, movement tracking, and regularization rules.
             </p>
-            <Link href="/users/dashboard/attendance/settings">
+            <Link href={routes.attendance.settings}>
               <Button>
                 <User className="mr-2 h-4 w-4" />
                 Go to Attendance Settings
