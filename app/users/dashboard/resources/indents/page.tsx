@@ -37,6 +37,14 @@ import {
   Package,
   FolderOpen,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useIndentsPaginated } from '@/hooks/indents';
 import {
@@ -117,12 +125,17 @@ export default function IndentsPage() {
 
   if (isError) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <ClipboardList className="mx-auto mb-4 h-12 w-12 text-red-400" />
-          <h3 className="mb-2 text-lg font-medium">Failed to load indents</h3>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <ClipboardList className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load indents</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
@@ -367,22 +380,24 @@ export default function IndentsPage() {
           />
         </Card>
       ) : (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <ClipboardList className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium">No indents found</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
+        <Empty variant="default">
+          <EmptyMedia variant="icon">
+            <ClipboardList className="size-6" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No indents found</EmptyTitle>
+            <EmptyDescription>
               {hasActiveFilters
                 ? 'No indents match your filters. Try adjusting your search.'
                 : 'Create your first indent to get started.'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.resources.indents.new}>New Indent</Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+          {!hasActiveFilters && (
+            <Button asChild>
+              <Link href={routes.resources.indents.new}>New Indent</Link>
+            </Button>
+          )}
+        </Empty>
       )}
     </div>
   );

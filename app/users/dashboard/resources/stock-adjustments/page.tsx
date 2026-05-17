@@ -28,6 +28,13 @@ import {
   TrendingDown,
 } from 'lucide-react';
 import { mockStockAdjustments } from '@/components/shared/mock-data';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 // Helper functions for badge colors
 const getStatusBadgeColor = (status: string): string => {
@@ -421,30 +428,36 @@ export default function StockAdjustmentsPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Settings className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              {hasActiveFilters
-                ? 'No stock adjustments found'
-                : 'No stock adjustments yet'}
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              {hasActiveFilters
-                ? "Try adjusting your filters to find what you're looking for."
-                : 'Create your first stock adjustment to get started.'}
-            </p>
-            {hasActiveFilters ? (
-              <Button onClick={clearFilters} variant="outline">
-                Clear Filters
-              </Button>
-            ) : (
-              <Button asChild>
-                <Link href={routes.resources.stockAdjustments.new}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Adjustment
-                </Link>
-              </Button>
-            )}
+          <CardContent>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <Settings className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>
+                  {hasActiveFilters
+                    ? 'No stock adjustments found'
+                    : 'No stock adjustments yet'}
+                </EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? "Try adjusting your filters to find what you're looking for."
+                    : 'Create your first stock adjustment to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {hasActiveFilters ? (
+                <Button onClick={clearFilters} variant="outline">
+                  Clear Filters
+                </Button>
+              ) : (
+                <Button asChild>
+                  <Link href={routes.resources.stockAdjustments.new}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Adjustment
+                  </Link>
+                </Button>
+              )}
+            </Empty>
           </CardContent>
         </Card>
       )}
