@@ -119,6 +119,7 @@ export default function GRNDetailPage({
           <Button
             variant="destructive"
             size="sm"
+            aria-label="Delete goods receipt"
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash2 className="h-4 w-4" />

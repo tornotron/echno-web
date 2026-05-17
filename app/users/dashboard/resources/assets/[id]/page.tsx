@@ -130,12 +130,12 @@ export default function AssetDetailPage() {
         description={asset.assetId}
         actions={
           <>
-            <Link href={routes.resources.assets.detail(asset.id).edit}>
-              <Button variant="outline">
+            <Button asChild variant="outline">
+              <Link href={routes.resources.assets.detail(asset.id).edit}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <Button
               variant="outline"
               className="text-red-600 hover:text-red-700"
