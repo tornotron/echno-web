@@ -18,6 +18,7 @@ import {
   Star,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { useOrganization as useOrganizationQuery } from '@/hooks/organization/use-organizations';
@@ -193,9 +194,7 @@ export default function OrganizationDetailPage({
                 Set as Default
               </Button>
             )}
-            <Link
-              href={`/users/dashboard/organizations/${organization.id}/edit`}
-            >
+            <Link href={routes.organizations.detail(organization.id!).edit}>
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Organization
