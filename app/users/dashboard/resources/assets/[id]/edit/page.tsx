@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -167,12 +168,7 @@ export default function EditAssetPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Edit Asset</h1>
-          <p className="text-muted-foreground">Update asset information</p>
-        </div>
-      </div>
+      <PageHeader title="Edit Asset" description="Update asset information" />
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 md:grid-cols-3">
