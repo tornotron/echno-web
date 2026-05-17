@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -55,21 +62,22 @@ export default function MaterialConsumptionDetailPage({
 
   if (!consumption) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <FlameKindling className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">
-            Consumption record not found
-          </h3>
-          <Button
-            onClick={() =>
-              router.push(routes.resources.materialConsumptions.href)
-            }
-          >
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <FlameKindling className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Consumption record not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.materialConsumptions.href}>
             Back to Consumptions
-          </Button>
-        </CardContent>
-      </Card>
+          </Link>
+        </Button>
+      </Empty>
     );
   }
 

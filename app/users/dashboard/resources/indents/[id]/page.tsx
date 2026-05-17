@@ -1,9 +1,18 @@
 'use client';
 
 import { use, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -23,6 +32,7 @@ import {
   ChevronDown,
   ShoppingCart,
   ArrowRightLeft,
+  ClipboardList,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useIndent, useDeleteIndent } from '@/hooks/indents';
@@ -60,29 +70,34 @@ export default function IndentDetailPage({
 
   if (isError) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
-          <h3 className="mb-2 text-lg font-medium">Failed to load indent</h3>
-          <Button onClick={() => router.push(routes.resources.indents.href)}>
-            Back to Indents
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <ClipboardList className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load indent</EmptyTitle>
+          <EmptyDescription>An unexpected error occurred.</EmptyDescription>
+        </EmptyHeader>
+      </Empty>
     );
   }
 
   if (!indent) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">Indent not found</h3>
-          <Button onClick={() => router.push(routes.resources.indents.href)}>
-            Back to Indents
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <ClipboardList className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Indent not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.indents.href}>Back to Indents</Link>
+        </Button>
+      </Empty>
     );
   }
 
