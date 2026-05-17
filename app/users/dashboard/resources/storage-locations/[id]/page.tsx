@@ -37,6 +37,13 @@ import {
   StorageLocationType,
   STORAGE_LOCATION_TYPE_LABELS,
 } from '@/types/storage-locations';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { useStorageLocation } from '@/hooks/storage-locations';
 import { StorageLocationStockTab } from '@/features/storage-locations/components';
 
@@ -78,21 +85,22 @@ export default function ViewLocationPage() {
 
   if (!location) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <MapPin className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
-          <h3 className="mb-2 text-lg font-semibold">Location Not Found</h3>
-          <p className="text-muted-foreground mb-4">
-            The location you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Button asChild>
-            <Link href={routes.resources.storageLocations.href}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Locations
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <MapPin className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Location not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.storageLocations.href}>
+            Back to Locations
+          </Link>
+        </Button>
+      </Empty>
     );
   }
 
