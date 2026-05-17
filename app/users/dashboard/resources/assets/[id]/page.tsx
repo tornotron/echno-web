@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Separator } from '@/components/shadcn/separator';
 import {
@@ -124,32 +125,28 @@ export default function AssetDetailPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            {asset.name}
-          </h1>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">
-            {asset.assetId}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Link href={routes.resources.assets.detail(asset.id).edit}>
-            <Button variant="outline">
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
+      <PageHeader
+        title={asset.name}
+        description={asset.assetId}
+        actions={
+          <>
+            <Link href={routes.resources.assets.detail(asset.id).edit}>
+              <Button variant="outline">
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            </Link>
+            <Button
+              variant="outline"
+              className="text-red-600 hover:text-red-700"
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
             </Button>
-          </Link>
-          <Button
-            variant="outline"
-            className="text-red-600 hover:text-red-700"
-            onClick={handleDelete}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* Status Badges & Alerts */}
       <div className="flex flex-wrap gap-2">

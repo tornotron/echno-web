@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -89,14 +90,10 @@ export default function NewAssetPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold">Register New Asset</h1>
-          <p className="text-muted-foreground">
-            Add a new asset to your inventory
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Register New Asset"
+        description="Add a new asset to your inventory"
+      />
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 md:grid-cols-3">
