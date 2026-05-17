@@ -169,23 +169,12 @@ export function IssueTable({
 
   const isAllSelected =
     paginatedIssues.length > 0 &&
-    paginatedIssues.every(
-      (i) => i.id !== undefined && selectedIds.includes(i.id!)
-    );
+    paginatedIssues.every((i) => selectedIds.includes(i.id!));
   const isSomeSelected =
-    !isAllSelected &&
-    paginatedIssues.some(
-      (i) => i.id !== undefined && selectedIds.includes(i.id!)
-    );
+    !isAllSelected && paginatedIssues.some((i) => selectedIds.includes(i.id!));
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(
-      checked
-        ? paginatedIssues
-            .map((i) => i.id)
-            .filter((id): id is number => id !== undefined)
-        : []
-    );
+    setSelectedIds(checked ? paginatedIssues.map((i) => i.id!) : []);
   };
 
   const handleSelectOne = (id: number, checked: boolean) => {
@@ -260,10 +249,9 @@ export function IssueTable({
     >
       <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
         <Checkbox
-          checked={issue.id !== undefined && selectedIds.includes(issue.id)}
+          checked={selectedIds.includes(issue.id!)}
           onCheckedChange={(checked) =>
-            issue.id !== undefined &&
-            handleSelectOne(issue.id, checked as boolean)
+            handleSelectOne(issue.id!, checked as boolean)
           }
           aria-label={`Select ${issue.title}`}
         />
@@ -327,7 +315,11 @@ export function IssueTable({
               className="!size-8"
             />
             <Link
-              href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
+              href={
+                routes.workforce.employees.employeeManagement.detail(
+                  issue.creator.id!
+                ).href
+              }
               className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
               onClick={(e) => e.stopPropagation()}
             >

@@ -111,10 +111,9 @@ export function IssueOverviewTab({
   }, [projectMembers, assignSearch]);
 
   const handleAssign = async (memberId: number) => {
-    if (!issue?.id) return;
     try {
       await updateIssueMutation.mutateAsync({
-        id: issue.id,
+        id: issue.id!,
         data: { assigneeId: memberId },
         files: { attachments: [] },
       });
@@ -126,10 +125,9 @@ export function IssueOverviewTab({
   };
 
   const handleUnassign = async () => {
-    if (!issue?.id) return;
     try {
       await updateIssueMutation.mutateAsync({
-        id: issue.id,
+        id: issue.id!,
         data: { assigneeId: null },
         files: { attachments: [] },
       });
@@ -176,7 +174,7 @@ export function IssueOverviewTab({
                 </CardTitle>
                 <CardDescription>Files attached to this issue</CardDescription>
               </div>
-              {issue.id && <IssueAttachmentsUploader issueId={issue.id} />}
+              <IssueAttachmentsUploader issueId={issue.id!} />
             </div>
           </CardHeader>
           <CardContent>
@@ -322,7 +320,11 @@ export function IssueOverviewTab({
           <CardContent>
             {issue.creator ? (
               <Link
-                href={`/users/dashboard/workforce/employees/${issue.creator.id}`}
+                href={
+                  routes.workforce.employees.employeeManagement.detail(
+                    issue.creator.id!
+                  ).href
+                }
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <EmployeeAvatar employee={issue.creator} size="sm" />
@@ -392,7 +394,11 @@ export function IssueOverviewTab({
           <CardContent>
             {issue.assignee ? (
               <Link
-                href={`/users/dashboard/workforce/employees/${issue.assignee.id}`}
+                href={
+                  routes.workforce.employees.employeeManagement.detail(
+                    issue.assignee.id!
+                  ).href
+                }
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <EmployeeAvatar employee={issue.assignee} size="sm" />
@@ -458,7 +464,7 @@ export function IssueOverviewTab({
                     <button
                       key={member.id}
                       type="button"
-                      onClick={() => member.id && handleAssign(member.id)}
+                      onClick={() => handleAssign(member.id!)}
                       disabled={updateIssueMutation.isPending || isCurrent}
                       className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors disabled:cursor-not-allowed ${
                         isCurrent

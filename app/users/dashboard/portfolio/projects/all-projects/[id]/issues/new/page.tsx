@@ -526,7 +526,7 @@ export default function NewIssuePage({ params }: PageProps) {
                 <div className="space-y-2">
                   {projectMembers.length > 0 ? (
                     projectMembers.map((member) => {
-                      const isSelected = assigneeId === member.id?.toString();
+                      const isSelected = assigneeId === member.id!.toString();
                       return (
                         <div
                           key={member.id}
@@ -537,7 +537,7 @@ export default function NewIssuePage({ params }: PageProps) {
                           }`}
                           onClick={() =>
                             setAssigneeId(
-                              isSelected ? '' : member.id?.toString() || ''
+                              isSelected ? '' : member.id!.toString()
                             )
                           }
                         >

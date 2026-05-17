@@ -542,7 +542,7 @@ export default function NewTaskPage() {
                   {projectMembers.length > 0 ? (
                     projectMembers.map((member) => {
                       const isSelected = selectedAssignees.includes(
-                        member.id?.toString() || ''
+                        member.id!.toString()
                       );
                       const cardClass = isSelected
                         ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
@@ -552,9 +552,7 @@ export default function NewTaskPage() {
                         <div
                           key={member.id}
                           className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
-                          onClick={() =>
-                            toggleAssignee(member.id?.toString() || '')
-                          }
+                          onClick={() => toggleAssignee(member.id!.toString())}
                         >
                           <div>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
