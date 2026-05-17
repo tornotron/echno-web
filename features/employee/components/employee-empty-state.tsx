@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { UserPlus, Users } from 'lucide-react';
 import {
   Empty,
@@ -28,7 +29,7 @@ export function EmployeeEmptyState() {
           </EmptyDescription>
         </EmptyHeader>
         <Button asChild>
-          <Link href="/users/dashboard/workforce/employees/invitations/new">
+          <Link href={routes.workforce.employees.invitations.new}>
             <UserPlus className="mr-2 h-4 w-4" />
             Create Invitation
           </Link>
