@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -163,14 +164,10 @@ export default function NewIndentPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Create New Indent
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400">
-          Submit a material indent request
-        </p>
-      </div>
+      <PageHeader
+        title="Create New Indent"
+        description="Submit a material indent request"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Indent Details Card */}
