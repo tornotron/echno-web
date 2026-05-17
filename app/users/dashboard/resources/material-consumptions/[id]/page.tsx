@@ -4,12 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardDescription,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Empty,
   EmptyMedia,
@@ -110,64 +105,55 @@ export default function MaterialConsumptionDetailPage({
       />
 
       {/* Key Metrics */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Quantity</CardDescription>
-          </CardHeader>
-          <CardContent>
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Quantity</p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
                 {consumption.quantity}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Date</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                <CalendarDays className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <Package className="size-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              units consumed
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Date</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
                 {format(new Date(consumption.consumptionDate), 'dd MMM')}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Recorded By</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                <User className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CalendarDays className="size-4 text-green-600 dark:text-green-400" />
               </div>
-              <span className="min-w-0 truncate text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              recorded on
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Recorded By
+            </p>
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              <p className="min-w-0 truncate text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
                 {consumption.createdBy.name}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900/20">
-                <FlameKindling className="h-6 w-6 text-zinc-600 dark:text-zinc-400" />
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <User className="size-4 text-orange-600 dark:text-orange-400" />
               </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              entered by
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Type</p>
+            <div className="flex items-center justify-between">
               <Badge
                 className={
                   consumptionTypeBadgeColors[consumption.consumptionType]
@@ -175,10 +161,16 @@ export default function MaterialConsumptionDetailPage({
               >
                 {consumptionTypeLabels[consumption.consumptionType]}
               </Badge>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <FlameKindling className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              consumption type
+            </p>
+          </div>
+        </div>
+      </Card>
 
       <div className="grid gap-4 md:grid-cols-2">
         <ConsumptionInfoCard consumption={consumption} />
