@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Separator } from '@/components/shadcn/separator';
 import {
@@ -248,18 +249,11 @@ export default function StockAdjustmentDetailPage({
   return (
     <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-              {adjustment.adjustmentNumber}
-            </h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Created {format(adjustment.submittedAt, 'PPP')}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
+      <PageHeader
+        title={adjustment.adjustmentNumber}
+        description={`Created ${format(adjustment.submittedAt, 'PPP')}`}
+        actions={
+          <>
             <Button variant="outline" onClick={handleEdit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
@@ -273,16 +267,16 @@ export default function StockAdjustmentDetailPage({
               <Trash2 className="mr-2 h-4 w-4" />
               {isDeleting ? 'Deleting...' : 'Delete'}
             </Button>
-          </div>
-        </div>
+          </>
+        }
+      />
 
-        {/* Status and Type Badges */}
-        <div className="mt-4 flex gap-2">
-          <Badge className={getStatusBadgeColor(adjustment.status)}>
-            {adjustment.status}
-          </Badge>
-          <Badge variant="outline">{adjustment.type}</Badge>
-        </div>
+      {/* Status and Type Badges */}
+      <div className="flex gap-2">
+        <Badge className={getStatusBadgeColor(adjustment.status)}>
+          {adjustment.status}
+        </Badge>
+        <Badge variant="outline">{adjustment.type}</Badge>
       </div>
 
       {/* Action Buttons for Pending Status */}
