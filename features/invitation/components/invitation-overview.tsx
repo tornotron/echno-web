@@ -239,7 +239,7 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
                   inv.inviteCode;
                 const date = inv.employeeDetails.joiningDate ?? inv.expiryDate;
                 return (
-                  <div key={inv.id ?? i} className="flex items-center gap-2.5">
+                  <div key={inv.id} className="flex items-center gap-2.5">
                     <div
                       className={cn(
                         'flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white',

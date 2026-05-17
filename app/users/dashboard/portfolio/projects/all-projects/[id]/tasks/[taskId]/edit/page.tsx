@@ -682,38 +682,36 @@ export default function EditTaskPage({ params }: PageProps) {
               <CardContent>
                 <div className="space-y-2">
                   {projectMembers.length > 0 ? (
-                    projectMembers
-                      .filter((member) => member.id != null)
-                      .map((member) => {
-                        const memberId = member.id!.toString();
-                        const isSelected =
-                          form.selectedAssignees.includes(memberId);
-                        const cardClass = isSelected
-                          ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
-                          : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700';
+                    projectMembers.map((member) => {
+                      const memberId = member.id!.toString();
+                      const isSelected =
+                        form.selectedAssignees.includes(memberId);
+                      const cardClass = isSelected
+                        ? 'border-blue-300 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20'
+                        : 'border-zinc-200 bg-zinc-50 hover:bg-zinc-100 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700';
 
-                        return (
-                          <div
-                            key={memberId}
-                            className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
-                            onClick={() => toggleAssignee(memberId)}
-                          >
-                            <div>
-                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {member.name}
-                              </p>
-                              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                                {member.designation ||
-                                  member.department ||
-                                  'Team Member'}
-                              </p>
-                            </div>
-                            {isSelected && (
-                              <Badge className="bg-blue-600">Assigned</Badge>
-                            )}
+                      return (
+                        <div
+                          key={memberId}
+                          className={`flex cursor-pointer items-center justify-between rounded-lg border p-3 transition-colors ${cardClass}`}
+                          onClick={() => toggleAssignee(memberId)}
+                        >
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {member.name}
+                            </p>
+                            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                              {member.designation ||
+                                member.department ||
+                                'Team Member'}
+                            </p>
                           </div>
-                        );
-                      })
+                          {isSelected && (
+                            <Badge className="bg-blue-600">Assigned</Badge>
+                          )}
+                        </div>
+                      );
+                    })
                   ) : (
                     <p className="text-sm text-zinc-500 dark:text-zinc-400">
                       No team members found for this project
