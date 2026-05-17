@@ -15,7 +15,14 @@ import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
-import { Save, Loader2 } from 'lucide-react';
+import { Save, Loader2, Package } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { useMaterial, useUpdateMaterial } from '@/hooks/materials';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { MaterialUnitSelector } from '@/features/materials/components/material-unit-selector';
@@ -113,7 +120,20 @@ export default function EditMaterialPage({
   }
   if (!material) {
     return (
-      <div className="py-12 text-center text-zinc-500">Material not found.</div>
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Package className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Material not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.materials.href}>Back to Materials</Link>
+        </Button>
+      </Empty>
     );
   }
 
