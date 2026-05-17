@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { MapPin } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { CreateStorageLocationInput } from '@/types/storage-locations';
 import { useCreateStorageLocation } from '@/hooks/storage-locations';
 import { StorageLocationForm } from '@/features/storage-locations/components/storage-location-form';
@@ -29,15 +30,11 @@ export default function NewLocationPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-2">
-        <MapPin className="h-6 w-6" />
-        <div>
-          <h1 className="text-3xl font-bold">Add New Location</h1>
-          <p className="text-muted-foreground">
-            Create a new storage or operational location
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Add New Location"
+        description="Create a new storage or operational location"
+        avatar={<MapPin className="h-6 w-6" />}
+      />
 
       <Card>
         <CardHeader>

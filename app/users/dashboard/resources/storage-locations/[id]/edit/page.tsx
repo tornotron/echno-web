@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { MapPin, ArrowLeft, Trash2 } from 'lucide-react';
 import {
   Empty,
@@ -98,25 +99,21 @@ export default function EditLocationPage() {
     <>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MapPin className="h-6 w-6" />
-            <div>
-              <h1 className="text-3xl font-bold">Edit Location</h1>
-              <p className="text-muted-foreground">
-                Update the location information
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="destructive"
-            disabled={isPending}
-            onClick={() => setShowDeleteDialog(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-        </div>
+        <PageHeader
+          title="Edit Location"
+          description="Update the location information"
+          avatar={<MapPin className="h-6 w-6" />}
+          actions={
+            <Button
+              variant="destructive"
+              disabled={isPending}
+              onClick={() => setShowDeleteDialog(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          }
+        />
 
         <Card>
           <CardHeader>
