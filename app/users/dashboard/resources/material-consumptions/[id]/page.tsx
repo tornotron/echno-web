@@ -13,6 +13,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Loader2,
@@ -84,12 +85,10 @@ export default function MaterialConsumptionDetailPage({
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {consumption.materialName}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={consumption.materialName}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             <Badge
               className={
                 consumptionTypeBadgeColors[consumption.consumptionType]
@@ -102,8 +101,8 @@ export default function MaterialConsumptionDetailPage({
               {format(new Date(consumption.consumptionDate), 'MMM dd, yyyy')}
             </span>
           </div>
-        </div>
-      </div>
+        }
+      />
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
