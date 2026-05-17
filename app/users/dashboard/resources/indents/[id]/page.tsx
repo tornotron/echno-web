@@ -14,6 +14,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   DropdownMenu,
@@ -120,12 +121,10 @@ export default function IndentDetailPage({
       />
 
       {/* Header */}
-      <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {indent.indentNumber}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={indent.indentNumber}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             <Badge className={indentStatusBadgeColors[indent.status]}>
               {indentStatusLabels[indent.status]}
             </Badge>
@@ -139,54 +138,56 @@ export default function IndentDetailPage({
               Created {format(new Date(indent.createdAt), 'MMM dd, yyyy')}
             </span>
           </div>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Actions <ChevronDown className="ml-1.5 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="gap-2"
-                onClick={() =>
-                  router.push(
-                    `${routes.resources.purchaseOrders.new}?fromIndent=${id}`
-                  )
-                }
-              >
-                <ShoppingCart className="h-4 w-4" />
-                Create Purchase Order
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="gap-2"
-                onClick={() =>
-                  router.push(
-                    `${routes.resources.transfers.new}?fromIndent=${id}`
-                  )
-                }
-              >
-                <ArrowRightLeft className="h-4 w-4" />
-                Initiate Site Transfer
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            variant="destructive"
-            size="sm"
-            aria-label="Delete indent"
-            onClick={() => setShowDeleteDialog(true)}
-            disabled={isDeleting}
-          >
-            {isDeleting ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Actions <ChevronDown className="ml-1.5 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="gap-2"
+                  onClick={() =>
+                    router.push(
+                      `${routes.resources.purchaseOrders.new}?fromIndent=${id}`
+                    )
+                  }
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Create Purchase Order
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="gap-2"
+                  onClick={() =>
+                    router.push(
+                      `${routes.resources.transfers.new}?fromIndent=${id}`
+                    )
+                  }
+                >
+                  <ArrowRightLeft className="h-4 w-4" />
+                  Initiate Site Transfer
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="destructive"
+              size="sm"
+              aria-label="Delete indent"
+              onClick={() => setShowDeleteDialog(true)}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4" />
+              )}
+            </Button>
+          </>
+        }
+      />
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
