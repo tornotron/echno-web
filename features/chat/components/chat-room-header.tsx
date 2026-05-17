@@ -14,6 +14,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import {
   Avatar,
   AvatarFallback,
@@ -73,7 +74,7 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
           className="h-8 w-8 shrink-0 lg:hidden"
           asChild
         >
-          <Link href="/users/dashboard/chat" aria-label="Back to conversations">
+          <Link href={routes.chat.href} aria-label="Back to conversations">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
