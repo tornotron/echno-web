@@ -4,7 +4,12 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardDescription,
+} from '@/components/shadcn/card';
 import {
   Empty,
   EmptyMedia,
@@ -107,58 +112,70 @@ export default function MaterialConsumptionDetailPage({
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Quantity</p>
-            <Package className="h-4 w-4 text-blue-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Quantity</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{consumption.quantity}</div>
-            <p className="text-muted-foreground text-xs">Units consumed</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Date</p>
-            <CalendarDays className="h-4 w-4 text-green-600" />
-          </div>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {format(new Date(consumption.consumptionDate), 'dd MMM')}
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
+                <Package className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {consumption.quantity}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">
-              {format(new Date(consumption.consumptionDate), 'yyyy')}
-            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Recorded By</p>
-            <User className="h-4 w-4 text-orange-600" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Date</CardDescription>
+          </CardHeader>
           <CardContent>
-            <div className="truncate text-xl font-bold">
-              {consumption.createdBy.name}
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
+                <CalendarDays className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                {format(new Date(consumption.consumptionDate), 'dd MMM')}
+              </span>
             </div>
-            <p className="text-muted-foreground text-xs">Employee</p>
           </CardContent>
         </Card>
 
         <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Type</p>
-            <FlameKindling className="h-4 w-4 text-zinc-400" />
-          </div>
+          <CardHeader className="pb-3">
+            <CardDescription>Recorded By</CardDescription>
+          </CardHeader>
           <CardContent>
-            <Badge
-              className={`text-sm ${consumptionTypeBadgeColors[consumption.consumptionType]}`}
-            >
-              {consumptionTypeLabels[consumption.consumptionType]}
-            </Badge>
-            <p className="text-muted-foreground mt-1 text-xs">
-              Consumption type
-            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
+                <User className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <span className="min-w-0 truncate text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                {consumption.createdBy.name}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardDescription>Type</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-900/20">
+                <FlameKindling className="h-6 w-6 text-zinc-600 dark:text-zinc-400" />
+              </div>
+              <Badge
+                className={
+                  consumptionTypeBadgeColors[consumption.consumptionType]
+                }
+              >
+                {consumptionTypeLabels[consumption.consumptionType]}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
       </div>

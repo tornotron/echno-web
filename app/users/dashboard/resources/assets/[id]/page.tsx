@@ -179,7 +179,7 @@ export default function AssetDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="mb-1 text-sm font-medium text-zinc-500 dark:text-zinc-500">
+                <h4 className="text-muted-foreground mb-1 text-sm font-medium">
                   Description
                 </h4>
                 <p className="text-zinc-900 dark:text-zinc-100">
@@ -191,7 +191,7 @@ export default function AssetDetailPage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                     <Truck className="h-4 w-4" />
                     <span>Manufacturer</span>
                   </div>
@@ -200,7 +200,7 @@ export default function AssetDetailPage() {
                   </p>
                 </div>
                 <div>
-                  <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                     <Cog className="h-4 w-4" />
                     <span>Model</span>
                   </div>
@@ -209,7 +209,7 @@ export default function AssetDetailPage() {
                   </p>
                 </div>
                 <div>
-                  <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                     <FileText className="h-4 w-4" />
                     <span>Serial Number</span>
                   </div>
@@ -219,7 +219,7 @@ export default function AssetDetailPage() {
                 </div>
                 {asset.registrationNumber && (
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Shield className="h-4 w-4" />
                       <span>Registration No.</span>
                     </div>
@@ -240,26 +240,26 @@ export default function AssetDetailPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                     <DollarSign className="h-4 w-4" />
                     <span>Purchase Price</span>
                   </div>
                   <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                     ₹{(asset.purchasePrice / 100_000).toFixed(2)}L
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                  <p className="text-muted-foreground text-xs">
                     {format(asset.purchaseDate, 'MMM d, yyyy')}
                   </p>
                 </div>
                 <div>
-                  <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                  <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                     <TrendingDown className="h-4 w-4" />
                     <span>Current Value</span>
                   </div>
                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                     ₹{(currentValue / 100_000).toFixed(2)}L
                   </p>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                  <p className="text-muted-foreground text-xs">
                     {asset.depreciationRate}% annual depreciation
                   </p>
                 </div>
@@ -269,7 +269,7 @@ export default function AssetDetailPage() {
                 <>
                   <Separator className="my-4" />
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Shield className="h-4 w-4" />
                       <span>Warranty</span>
                     </div>
@@ -291,7 +291,7 @@ export default function AssetDetailPage() {
               {asset.usageHours !== undefined && asset.maxUsageHours && (
                 <div>
                   <div className="mb-2 flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground flex items-center gap-2 text-sm">
                       <Clock className="h-4 w-4" />
                       <span>Usage Hours</span>
                     </div>
@@ -305,7 +305,7 @@ export default function AssetDetailPage() {
                       style={{ width: `${Math.min(utilization, 100)}%` }}
                     />
                   </div>
-                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                  <p className="text-muted-foreground mt-1 text-xs">
                     {utilization.toFixed(1)}% utilization
                   </p>
                 </div>
@@ -316,7 +316,7 @@ export default function AssetDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 {asset.fuelType && (
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Fuel className="h-4 w-4" />
                       <span>Fuel Type</span>
                     </div>
@@ -327,7 +327,7 @@ export default function AssetDetailPage() {
                 )}
                 {asset.maintenanceSchedule && (
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Wrench className="h-4 w-4" />
                       <span>Maintenance Schedule</span>
                     </div>
@@ -349,7 +349,7 @@ export default function AssetDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 {asset.lastMaintenanceDate && (
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <CheckCircle2 className="h-4 w-4" />
                       <span>Last Maintenance</span>
                     </div>
@@ -360,7 +360,7 @@ export default function AssetDetailPage() {
                 )}
                 {asset.nextMaintenanceDate && (
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Calendar className="h-4 w-4" />
                       <span>Next Maintenance</span>
                     </div>
@@ -389,7 +389,7 @@ export default function AssetDetailPage() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Shield className="h-4 w-4" />
                       <span>Provider</span>
                     </div>
@@ -399,7 +399,7 @@ export default function AssetDetailPage() {
                   </div>
                   {asset.policyNumber && (
                     <div>
-                      <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                      <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                         <FileText className="h-4 w-4" />
                         <span>Policy Number</span>
                       </div>
@@ -410,7 +410,7 @@ export default function AssetDetailPage() {
                   )}
                   {asset.insuranceExpiry && (
                     <div className="col-span-2">
-                      <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                      <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                         <Calendar className="h-4 w-4" />
                         <span>Expiry Date</span>
                       </div>
@@ -448,7 +448,7 @@ export default function AssetDetailPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                   <MapPin className="h-4 w-4" />
                   <span>Current Location</span>
                 </div>
@@ -464,7 +464,7 @@ export default function AssetDetailPage() {
                 <>
                   <Separator />
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <User className="h-4 w-4" />
                       <span>Assigned To</span>
                     </div>
@@ -479,7 +479,7 @@ export default function AssetDetailPage() {
                 <>
                   <Separator />
                   <div>
-                    <div className="mb-1 flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-500">
+                    <div className="text-muted-foreground mb-1 flex items-center gap-2 text-sm">
                       <Building2 className="h-4 w-4" />
                       <span>Assigned Project</span>
                     </div>
@@ -531,7 +531,9 @@ export default function AssetDetailPage() {
                             key={key}
                             className="flex justify-between text-xs"
                           >
-                            <span className="text-zinc-500">{key}:</span>
+                            <span className="text-muted-foreground">
+                              {key}:
+                            </span>
                             <span className="font-medium text-zinc-900 dark:text-zinc-100">
                               {value as string}
                             </span>
@@ -619,11 +621,11 @@ export default function AssetDetailPage() {
                             {history.reason}
                           </p>
                           {history.notes && (
-                            <p className="mt-1 text-sm text-zinc-500 italic dark:text-zinc-500">
+                            <p className="text-muted-foreground mt-1 text-sm italic">
                               {history.notes}
                             </p>
                           )}
-                          <div className="mt-2 flex items-center gap-4 text-xs text-zinc-500 dark:text-zinc-500">
+                          <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
                             <span className="flex items-center gap-1">
                               <Calendar className="h-3 w-3" />
                               {format(history.transferDate, 'MMM dd, yyyy')}
