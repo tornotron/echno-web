@@ -13,6 +13,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   DropdownMenu,
@@ -111,12 +112,10 @@ export default function PurchaseOrderDetailPage({
       />
 
       {/* Header */}
-      <div className="flex flex-col gap-4 pt-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {po.poNumber}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={po.poNumber}
+        description={
+          <div className="flex flex-wrap items-center gap-2">
             <Badge className={purchaseOrderStatusBadgeColors[po.status]}>
               {purchaseOrderStatusLabels[po.status]}
             </Badge>
@@ -130,37 +129,39 @@ export default function PurchaseOrderDetailPage({
               Created {format(new Date(po.createdAt), 'MMM dd, yyyy')}
             </span>
           </div>
-        </div>
-        <div className="flex shrink-0 gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Actions <ChevronDown className="ml-1.5 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="gap-2"
-                onClick={() =>
-                  router.push(
-                    `${routes.resources.goodsReceipts.new}?fromPO=${id}`
-                  )
-                }
-              >
-                <ClipboardList className="h-4 w-4" />
-                Create GRN
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
+        }
+        actions={
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Actions <ChevronDown className="ml-1.5 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="gap-2"
+                  onClick={() =>
+                    router.push(
+                      `${routes.resources.goodsReceipts.new}?fromPO=${id}`
+                    )
+                  }
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Create GRN
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </>
+        }
+      />
 
       {/* Key Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
