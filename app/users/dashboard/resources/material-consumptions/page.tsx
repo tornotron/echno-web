@@ -4,12 +4,7 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -125,75 +120,72 @@ export default function MaterialConsumptionsPage() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {(
-          [
-            {
-              label: 'Total Records',
-              count: consumptions.length,
-              color: 'blue',
-              icon: FlameKindling,
-            },
-            {
-              label: 'This Month',
-              count: thisMonth.length,
-              color: 'green',
-              icon: CalendarDays,
-            },
-            {
-              label: 'Materials Used',
-              count: uniqueMaterials,
-              color: 'purple',
-              icon: Package,
-            },
-            {
-              label: 'Total Quantity',
-              count: totalQty,
-              color: 'orange',
-              icon: BarChart3,
-            },
-          ] as const
-        ).map(({ label, count, color, icon: Icon }) => {
-          const colorClasses = {
-            blue: {
-              bg: 'bg-blue-100 dark:bg-blue-900/20',
-              text: 'text-blue-600 dark:text-blue-400',
-            },
-            green: {
-              bg: 'bg-green-100 dark:bg-green-900/20',
-              text: 'text-green-600 dark:text-green-400',
-            },
-            purple: {
-              bg: 'bg-purple-100 dark:bg-purple-900/20',
-              text: 'text-purple-600 dark:text-purple-400',
-            },
-            orange: {
-              bg: 'bg-orange-100 dark:bg-orange-900/20',
-              text: 'text-orange-600 dark:text-orange-400',
-            },
-          } satisfies Record<string, { bg: string; text: string }>;
-          const classes = colorClasses[color];
-          return (
-            <Card key={label}>
-              <CardHeader className="pb-3">
-                <CardDescription>{label}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <div
-                    className={`flex h-12 w-12 items-center justify-center rounded-lg ${classes.bg}`}
-                  >
-                    <Icon className={`h-6 w-6 ${classes.text}`} />
-                  </div>
-                  <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                    {count}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Records
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                {consumptions.length}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <FlameKindling className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              This Month
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {thisMonth.length}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CalendarDays className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              current month
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Materials Used
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                {uniqueMaterials}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950/30">
+                <Package className="size-4 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              distinct materials
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Quantity
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {totalQty}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <BarChart3 className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              units consumed
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Search & Filter */}
       <SearchAndFilter
