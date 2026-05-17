@@ -11,7 +11,7 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -118,23 +118,18 @@ export default function StockAdjustmentsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-            Stock Adjustments
-          </h1>
-          <p className="mt-1 text-sm text-zinc-600 sm:text-base dark:text-zinc-400">
-            Manage stock corrections and adjustments
-          </p>
-        </div>
-        <Button asChild className="w-full sm:w-auto">
-          <Link href={routes.resources.stockAdjustments.new}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Adjustment
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Stock Adjustments"
+        description="Manage stock corrections and adjustments"
+        actions={
+          <Button asChild className="w-full sm:w-auto">
+            <Link href={routes.resources.stockAdjustments.new}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Adjustment
+            </Link>
+          </Button>
+        }
+      />
 
       {/* Stats Cards */}
       <div className="mb-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
