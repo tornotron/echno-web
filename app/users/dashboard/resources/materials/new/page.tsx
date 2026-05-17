@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -106,10 +107,10 @@ export default function NewMaterialPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="space-y-1">
-        <h1 className="text-2xl font-bold">Add Material</h1>
-        <p className="text-muted-foreground">Create a new material record</p>
-      </div>
+      <PageHeader
+        title="Add Material"
+        description="Create a new material record"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid gap-6 md:grid-cols-3">
