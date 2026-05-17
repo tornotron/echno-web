@@ -14,6 +14,7 @@ import {
   CardDescription,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -275,18 +276,11 @@ export default function EditStockAdjustmentPage({
   return (
     <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
       {/* Header */}
-      <div>
-        <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-              Edit Stock Adjustment
-            </h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              {adjustmentNumber}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
+      <PageHeader
+        title="Edit Stock Adjustment"
+        description={adjustmentNumber}
+        actions={
+          <>
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
@@ -294,9 +288,9 @@ export default function EditStockAdjustmentPage({
               <Save className="mr-2 h-4 w-4" />
               Save Changes
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Content */}
