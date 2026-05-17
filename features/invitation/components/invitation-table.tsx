@@ -33,6 +33,7 @@ import { Pagination } from '@/components/common';
 import { format } from 'date-fns';
 import { InvitationStatusBadge } from './invitation-status-badge';
 import { InvitationAvatar } from './invitation-avatar';
+import { routes } from '@/nav';
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -233,7 +234,9 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
                 className="hover:bg-muted/50 cursor-pointer"
                 onClick={() =>
                   router.push(
-                    `/users/dashboard/workforce/employees/invitations/${invitation.inviteCode}`
+                    routes.workforce.employees.invitations.detail(
+                      invitation.inviteCode
+                    ).href
                   )
                 }
               >
