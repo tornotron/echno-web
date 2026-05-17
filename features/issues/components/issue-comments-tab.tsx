@@ -13,6 +13,7 @@ import {
 import { Textarea } from '@/components/shadcn/textarea';
 import { Loader2, MessageSquare, Send } from 'lucide-react';
 import Link from 'next/link';
+import { routes } from '@/nav';
 import { format, formatDistanceToNow } from 'date-fns';
 import type { Issue } from '@/types/issue/issue';
 import { useCreateIssueComment } from '@/hooks/issue';
@@ -30,10 +31,10 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
   const { data: currentEmployee } = useCurrentUserEmployee();
 
   const handleAddComment = async () => {
-    if (!commentText.trim() || !issue.id || !currentEmployee) return;
+    if (!commentText.trim() || !currentEmployee) return;
     try {
       await createCommentMutation.mutateAsync({
-        issueId: issue.id,
+        issueId: issue.id!,
         data: {
           comment: commentText.trim(),
           author: currentEmployee,
@@ -106,7 +107,11 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
                         <div className="flex items-center gap-2">
                           {comment.author ? (
                             <Link
-                              href={`/users/dashboard/workforce/employees/${comment.author.id}`}
+                              href={
+                                routes.workforce.employees.employeeManagement.detail(
+                                  comment.author.id!
+                                ).href
+                              }
                               className="text-sm font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"
                             >
                               {comment.author.name}

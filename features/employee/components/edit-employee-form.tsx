@@ -340,7 +340,7 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
             onSuccess: () => {
               router.push(
                 routes.workforce.employees.employeeManagement.detail(
-                  employee.id
+                  employee.id!
                 ).href
               );
             },
