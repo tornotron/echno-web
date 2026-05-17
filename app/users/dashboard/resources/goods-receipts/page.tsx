@@ -36,6 +36,13 @@ import {
   IndianRupee,
   ShoppingCart,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useGRNs } from '@/hooks/grn';
 
@@ -300,26 +307,24 @@ export default function GoodsReceiptsPage() {
           />
         </Card>
       ) : (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <Receipt className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium">
-              No goods receipts found
-            </h3>
-            <p className="text-muted-foreground mb-4 text-sm">
+        <Empty variant="default">
+          <EmptyMedia variant="icon">
+            <Receipt className="size-6" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No goods receipts found</EmptyTitle>
+            <EmptyDescription>
               {hasActiveFilters
                 ? 'No GRNs match your search. Try adjusting your search.'
                 : 'Record your first GRN to get started.'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.resources.goodsReceipts.new}>
-                  Record GRN
-                </Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+          {!hasActiveFilters && (
+            <Button asChild>
+              <Link href={routes.resources.goodsReceipts.new}>Record GRN</Link>
+            </Button>
+          )}
+        </Empty>
       )}
     </div>
   );

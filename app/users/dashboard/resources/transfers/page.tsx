@@ -27,8 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { SearchAndFilter } from '@/components/common';
-import { Pagination } from '@/components/common';
+import { SearchAndFilter, Pagination } from '@/components/common';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import {
   Plus,
   Loader2,
@@ -308,22 +314,24 @@ export default function SiteTransfersPage() {
           />
         </Card>
       ) : (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <ArrowRightLeft className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium">No transfers found</h3>
-            <p className="text-muted-foreground mb-4 text-sm">
+        <Empty variant="default">
+          <EmptyMedia variant="icon">
+            <ArrowRightLeft className="size-6" />
+          </EmptyMedia>
+          <EmptyHeader>
+            <EmptyTitle>No transfers found</EmptyTitle>
+            <EmptyDescription>
               {hasActiveFilters
                 ? 'No transfers match your search. Try adjusting your filters.'
                 : 'Create your first site transfer to get started.'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.resources.transfers.new}>New Transfer</Link>
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+            </EmptyDescription>
+          </EmptyHeader>
+          {!hasActiveFilters && (
+            <Button asChild>
+              <Link href={routes.resources.transfers.new}>New Transfer</Link>
+            </Button>
+          )}
+        </Empty>
       )}
     </div>
   );

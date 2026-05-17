@@ -30,6 +30,13 @@ import {
   Wrench,
 } from 'lucide-react';
 import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
+import {
   AssetStatus,
   AssetType,
   AssetCondition,
@@ -536,24 +543,28 @@ export default function AssetsPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="py-12 text-center">
-            <Cog className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              No assets found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              {hasActiveFilters
-                ? 'Try adjusting your search or filters'
-                : 'Get started by registering your first asset'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.resources.assets.new}>
-                  <Cog className="mr-2 h-4 w-4" />
-                  Register Asset
-                </Link>
-              </Button>
-            )}
+          <CardContent>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <Cog className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No assets found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'Try adjusting your search or filters'
+                    : 'Get started by registering your first asset'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.resources.assets.new}>
+                    <Cog className="mr-2 h-4 w-4" />
+                    Register Asset
+                  </Link>
+                </Button>
+              )}
+            </Empty>
           </CardContent>
         </Card>
       )}
