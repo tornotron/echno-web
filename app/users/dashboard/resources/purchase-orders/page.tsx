@@ -4,9 +4,10 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
+import { Input } from '@/components/shadcn/input';
 import {
   Select,
   SelectContent,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { SearchAndFilter, Pagination, PageHeader } from '@/components/common';
+import { Pagination, PageHeader } from '@/components/common';
 import {
   Plus,
   Loader2,
@@ -30,6 +31,7 @@ import {
   FileText,
   CheckCircle2,
   Truck,
+  Search,
 } from 'lucide-react';
 import {
   Empty,
@@ -54,20 +56,23 @@ export default function PurchaseOrdersPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [projectFilter, setProjectFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [prevFilters, setPrevFilters] = useState({
     searchQuery,
     statusFilter,
+    projectFilter,
     itemsPerPage,
   });
 
   if (
     prevFilters.searchQuery !== searchQuery ||
     prevFilters.statusFilter !== statusFilter ||
+    prevFilters.projectFilter !== projectFilter ||
     prevFilters.itemsPerPage !== itemsPerPage
   ) {
-    setPrevFilters({ searchQuery, statusFilter, itemsPerPage });
+    setPrevFilters({ searchQuery, statusFilter, projectFilter, itemsPerPage });
     setCurrentPage(1);
   }
 
@@ -77,16 +82,27 @@ export default function PurchaseOrdersPage() {
       const matchesSearch =
         !searchQuery ||
         po.poNumber.toLowerCase().includes(q) ||
-        po.vendorName.toLowerCase().includes(q);
+        po.vendorName.toLowerCase().includes(q) ||
+        po.projectName?.toLowerCase().includes(q);
       const matchesStatus =
         statusFilter === 'all' || po.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesProject =
+        projectFilter === 'all' || po.projectName === projectFilter;
+      return matchesSearch && matchesStatus && matchesProject;
     });
-  }, [orders, searchQuery, statusFilter]);
+  }, [orders, searchQuery, statusFilter, projectFilter]);
+
+  const projectOptions = useMemo(() => {
+    const names = new Set<string>();
+    for (const po of orders) {
+      if (po.projectName) names.add(po.projectName);
+    }
+    return [...names].toSorted();
+  }, [orders]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
   const paginated = filtered.slice(startIndex, endIndex);
 
   const stats = {
@@ -100,13 +116,8 @@ export default function PurchaseOrdersPage() {
     ).length,
   };
 
-  const hasActiveFilters = !!searchQuery || statusFilter !== 'all';
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setCurrentPage(1);
-  };
+  const hasActiveFilters =
+    !!searchQuery || statusFilter !== 'all' || projectFilter !== 'all';
 
   if (isLoading) {
     return (
@@ -195,154 +206,184 @@ export default function PurchaseOrdersPage() {
         </div>
       </Card>
 
-      {/* Search & Filter */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={searchQuery}
-        onSearchChange={(v) => {
-          setSearchQuery(v);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder="Search by PO number or vendor..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        filters={[
-          {
-            placeholder: 'Status',
-            value: statusFilter,
-            onChange: (v) => {
-              setStatusFilter(v);
-              setCurrentPage(1);
-            },
-            options: [
-              { value: 'all', label: 'All Statuses' },
-              ...Object.values(PurchaseOrderStatus).map((s) => ({
-                value: s,
-                label: purchaseOrderStatusLabels[s],
-              })),
-            ],
-          },
-        ]}
-      />
-
-      {/* Results summary + rows per page */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {filtered.length === 0
-            ? 'No purchase orders found'
-            : `Showing ${startIndex + 1} to ${Math.min(endIndex, filtered.length)} of ${filtered.length} purchase order${filtered.length === 1 ? '' : 's'}`}
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Table Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by PO number or vendor…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           <Select
-            value={String(itemsPerPage)}
+            value={statusFilter}
             onValueChange={(v) => {
-              setItemsPerPage(Number(v));
+              setStatusFilter(v);
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
+              <SelectItem value="all">All Statuses</SelectItem>
+              {Object.values(PurchaseOrderStatus).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {purchaseOrderStatusLabels[s]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      {/* Table or empty state */}
-      {paginated.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-6">PO Number</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Expected Delivery</TableHead>
-                  <TableHead className="pr-6">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map((po) => (
-                  <TableRow
-                    key={po.id}
-                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                    onClick={() =>
-                      router.push(
-                        routes.resources.purchaseOrders.detail(po.id).href
-                      )
-                    }
-                  >
-                    <TableCell className="pl-6 font-medium">
-                      {po.poNumber}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {po.vendorName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={purchaseOrderStatusBadgeColors[po.status]}
-                      >
-                        {purchaseOrderStatusLabels[po.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {po.items.length}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {po.expectedDeliveryDate
-                        ? format(
-                            new Date(po.expectedDeliveryDate),
-                            'MMM dd, yyyy'
-                          )
-                        : '—'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground pr-6 text-sm">
-                      {po.totalAmount == null
-                        ? '—'
-                        : `₹${po.totalAmount.toLocaleString('en-IN')}`}
-                    </TableCell>
-                  </TableRow>
+          <Select
+            value={projectFilter}
+            onValueChange={(v) => {
+              setProjectFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Project" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projectOptions.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
                 ))}
-              </TableBody>
-            </Table>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        {paginated.length > 0 ? (
+          <>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">PO Number</TableHead>
+                    <TableHead>Vendor</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead>Expected Delivery</TableHead>
+                    <TableHead className="pr-6">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((po) => (
+                    <TableRow
+                      key={po.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      onClick={() =>
+                        router.push(
+                          routes.resources.purchaseOrders.detail(po.id).href
+                        )
+                      }
+                    >
+                      <TableCell className="pl-6 font-medium">
+                        {po.poNumber}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {po.vendorName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={purchaseOrderStatusBadgeColors[po.status]}
+                        >
+                          {purchaseOrderStatusLabels[po.status]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {po.projectName ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {po.items.length}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {po.expectedDeliveryDate
+                          ? format(
+                              new Date(po.expectedDeliveryDate),
+                              'MMM dd, yyyy'
+                            )
+                          : '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground pr-6 text-sm">
+                        {po.totalAmount == null
+                          ? '—'
+                          : `₹${po.totalAmount.toLocaleString('en-IN')}`}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <div className="flex items-center justify-between border-t px-4 py-2">
+              <span className="text-sm text-zinc-500">
+                {startIndex + 1}–{endIndex} of {filtered.length} purchase order
+                {filtered.length === 1 ? '' : 's'}
+              </span>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </>
+        ) : (
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <ShoppingCart className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No purchase orders found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'No purchase orders match your filters. Try adjusting your search.'
+                    : 'Create your first purchase order to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.resources.purchaseOrders.new}>
+                    Create PO
+                  </Link>
+                </Button>
+              )}
+            </Empty>
           </CardContent>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </Card>
-      ) : (
-        <Empty variant="default">
-          <EmptyMedia variant="icon">
-            <ShoppingCart className="size-6" />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>No purchase orders found</EmptyTitle>
-            <EmptyDescription>
-              {hasActiveFilters
-                ? 'No purchase orders match your filters. Try adjusting your search.'
-                : 'Create your first purchase order to get started.'}
-            </EmptyDescription>
-          </EmptyHeader>
-          {!hasActiveFilters && (
-            <Button asChild>
-              <Link href={routes.resources.purchaseOrders.new}>Create PO</Link>
-            </Button>
-          )}
-        </Empty>
-      )}
+        )}
+      </Card>
     </div>
   );
 }
