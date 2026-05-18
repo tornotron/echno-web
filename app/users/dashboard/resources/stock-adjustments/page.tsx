@@ -34,6 +34,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { useStockAdjustments } from '@/hooks/stock-adjustments';
+import { StockAdjustmentListItem } from '@/features/resources/components';
 
 const getStatusBadgeColor = (status: string): string => {
   const colors: Record<string, string> = {
@@ -346,119 +347,7 @@ export default function StockAdjustmentsPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 {paginatedAdjustments.map((adj) => (
-                  <Link
-                    key={adj.id}
-                    href={routes.resources.stockAdjustments.detail(adj.id).href}
-                    className="block"
-                  >
-                    <div className="rounded-lg border p-4 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-900">
-                      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1">
-                              <div className="mb-1 flex items-center gap-2">
-                                <span className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                                  {adj.adjustmentNumber}
-                                </span>
-                                <Badge
-                                  className={getStatusBadgeColor(adj.status)}
-                                >
-                                  {adj.status.charAt(0).toUpperCase() +
-                                    adj.status.slice(1)}
-                                </Badge>
-                                <Badge variant="outline">
-                                  {adj.type
-                                    .split('_')
-                                    .map(
-                                      (w: string) =>
-                                        w.charAt(0).toUpperCase() + w.slice(1)
-                                    )
-                                    .join(' ')}
-                                </Badge>
-                              </div>
-                              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                                Material:{' '}
-                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {adj.lineItems[0]?.description || 'N/A'}
-                                </span>
-                                {adj.lineItems.length > 1 && (
-                                  <span className="ml-2 text-xs text-zinc-500">
-                                    +{adj.lineItems.length - 1} more items
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-3 text-sm md:grid-cols-4">
-                            <div>
-                              <span className="text-zinc-500">
-                                Location ID:
-                              </span>
-                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.locationId || 'N/A'}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-zinc-500">System Qty:</span>
-                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.lineItems[0]?.systemQuantity || 0}{' '}
-                                {adj.lineItems[0]?.unit || ''}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-zinc-500">
-                                Physical Qty:
-                              </span>
-                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                                {adj.lineItems[0]?.physicalQuantity || 0}{' '}
-                                {adj.lineItems[0]?.unit || ''}
-                              </p>
-                            </div>
-                            <div>
-                              <span className="text-zinc-500">
-                                Total Variance:
-                              </span>
-                              <Badge
-                                variant="outline"
-                                className={
-                                  adj.totalVarianceQuantity > 0
-                                    ? 'text-green-600'
-                                    : adj.totalVarianceQuantity < 0
-                                      ? 'text-red-600'
-                                      : ''
-                                }
-                              >
-                                {adj.totalVarianceQuantity > 0 ? '+' : ''}
-                                {adj.totalVarianceQuantity}
-                              </Badge>
-                            </div>
-                          </div>
-
-                          {adj.notes && (
-                            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                              Note: {adj.notes}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col gap-2 lg:items-end">
-                          <div className="text-right">
-                            <p className="text-sm text-zinc-500">Reason</p>
-                            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                              {adj.primaryReason
-                                .split('_')
-                                .map(
-                                  (w: string) =>
-                                    w.charAt(0).toUpperCase() + w.slice(1)
-                                )
-                                .join(' ')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+                  <StockAdjustmentListItem key={adj.id} adjustment={adj} />
                 ))}
               </div>
             </CardContent>

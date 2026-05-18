@@ -45,6 +45,7 @@ import {
   STORAGE_LOCATION_TYPE_LABELS,
 } from '@/types/storage-locations';
 import { useStorageLocations } from '@/hooks/storage-locations';
+import { StorageLocationCard } from '@/features/resources/components';
 
 interface LocationFilters {
   search: string;
@@ -317,78 +318,7 @@ export default function LocationsPage() {
             <CardContent className="p-6">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {paginatedLocations.map((location) => (
-                  <Link
-                    key={location.id}
-                    href={
-                      routes.resources.storageLocations.detail(location.id).href
-                    }
-                    className="block"
-                  >
-                    <Card className="transition-shadow hover:shadow-md">
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-start gap-3">
-                            <div
-                              className={`rounded-lg p-2 ${getTypeColor(location.locationType)}`}
-                            >
-                              {getLocationIcon(location.locationType)}
-                            </div>
-                            <div>
-                              <CardTitle className="text-base">
-                                {location.locationName}
-                              </CardTitle>
-                              <Badge variant="outline" className="mt-1">
-                                {
-                                  STORAGE_LOCATION_TYPE_LABELS[
-                                    location.locationType
-                                  ]
-                                }
-                              </Badge>
-                            </div>
-                          </div>
-                          <Badge
-                            variant={location.active ? 'default' : 'secondary'}
-                          >
-                            {location.active ? (
-                              <>
-                                <CheckCircle2 className="mr-1 h-3 w-3" /> Active
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="mr-1 h-3 w-3" /> Inactive
-                              </>
-                            )}
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        {location.address && (
-                          <div className="text-muted-foreground text-sm">
-                            <MapPin className="mr-1 inline h-3 w-3" />
-                            {location.address}
-                          </div>
-                        )}
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-muted-foreground text-xs">
-                              Capacity
-                            </div>
-                            <div className="text-lg font-bold">
-                              {location.capacity?.toLocaleString() ?? '—'}
-                            </div>
-                          </div>
-                          <div>
-                            <div className="text-muted-foreground text-xs">
-                              Items Stored
-                            </div>
-                            <div className="text-lg font-bold text-blue-600">
-                              {location.storageItemsCount ?? 0}
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                  <StorageLocationCard key={location.id} location={location} />
                 ))}
               </div>
             </CardContent>
