@@ -4,9 +4,10 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
+import { Input } from '@/components/shadcn/input';
 import {
   Select,
   SelectContent,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { SearchAndFilter, Pagination, PageHeader } from '@/components/common';
+import { Pagination, PageHeader } from '@/components/common';
 import {
   Plus,
   Loader2,
@@ -31,6 +32,7 @@ import {
   TruckIcon,
   Package,
   FolderOpen,
+  Search,
 } from 'lucide-react';
 import {
   Empty,
@@ -60,20 +62,23 @@ export default function IndentsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [projectFilter, setProjectFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [prevFilters, setPrevFilters] = useState({
     searchQuery,
     statusFilter,
+    projectFilter,
     itemsPerPage,
   });
 
   if (
     prevFilters.searchQuery !== searchQuery ||
     prevFilters.statusFilter !== statusFilter ||
+    prevFilters.projectFilter !== projectFilter ||
     prevFilters.itemsPerPage !== itemsPerPage
   ) {
-    setPrevFilters({ searchQuery, statusFilter, itemsPerPage });
+    setPrevFilters({ searchQuery, statusFilter, projectFilter, itemsPerPage });
     setCurrentPage(1);
   }
 
@@ -86,13 +91,23 @@ export default function IndentsPage() {
         i.projectName?.toLowerCase().includes(q) ||
         i.createdBy.name.toLowerCase().includes(q);
       const matchesStatus = statusFilter === 'all' || i.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesProject =
+        projectFilter === 'all' || i.projectName === projectFilter;
+      return matchesSearch && matchesStatus && matchesProject;
     });
-  }, [indents, searchQuery, statusFilter]);
+  }, [indents, searchQuery, statusFilter, projectFilter]);
+
+  const projectOptions = useMemo(() => {
+    const names = new Set<string>();
+    for (const i of indents) {
+      if (i.projectName) names.add(i.projectName);
+    }
+    return [...names].toSorted();
+  }, [indents]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
   const paginated = filtered.slice(startIndex, endIndex);
 
   const stats = {
@@ -102,13 +117,8 @@ export default function IndentsPage() {
     onSite: indents.filter((i) => i.status === IndentStatus.onSite).length,
   };
 
-  const hasActiveFilters = !!searchQuery || statusFilter !== 'all';
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setCurrentPage(1);
-  };
+  const hasActiveFilters =
+    !!searchQuery || statusFilter !== 'all' || projectFilter !== 'all';
 
   if (isLoading) {
     return (
@@ -211,179 +221,205 @@ export default function IndentsPage() {
         </div>
       </Card>
 
-      {/* Search & Filter */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={searchQuery}
-        onSearchChange={(v) => {
-          setSearchQuery(v);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder="Search by indent number, project or creator..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        filters={[
-          {
-            placeholder: 'Status',
-            value: statusFilter,
-            onChange: (v) => {
-              setStatusFilter(v);
-              setCurrentPage(1);
-            },
-            options: [
-              { value: 'all', label: 'All Statuses' },
-              ...Object.values(IndentStatus).map((s) => ({
-                value: s,
-                label: indentStatusLabels[s],
-              })),
-            ],
-          },
-        ]}
-      />
-
-      {/* Results summary + rows per page */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {filtered.length === 0
-            ? 'No indents found'
-            : `Showing ${startIndex + 1} to ${Math.min(endIndex, filtered.length)} of ${filtered.length} indent${filtered.length === 1 ? '' : 's'}`}
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Table Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by indent number, project or creator…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           <Select
-            value={String(itemsPerPage)}
+            value={statusFilter}
             onValueChange={(v) => {
-              setItemsPerPage(Number(v));
+              setStatusFilter(v);
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
+              <SelectItem value="all">All Statuses</SelectItem>
+              {Object.values(IndentStatus).map((s) => (
+                <SelectItem key={s} value={s}>
+                  {indentStatusLabels[s]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
+          <Select
+            value={projectFilter}
+            onValueChange={(v) => {
+              setProjectFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Project" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projectOptions.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
 
-      {/* Table or empty state */}
-      {paginated.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-6">Indent #</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead>Expected On</TableHead>
-                  <TableHead className="pr-6">Created By</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map((indent) => {
-                  const convertedCount = indent.items.filter(
-                    (it) => it.convertedToPurchaseOrder
-                  ).length;
-                  return (
-                    <TableRow
-                      key={indent.id}
-                      role="link"
-                      tabIndex={0}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                      onClick={() =>
-                        router.push(
-                          routes.resources.indents.detail(indent.id).href
-                        )
-                      }
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+        {paginated.length > 0 ? (
+          <>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Indent #</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Items</TableHead>
+                    <TableHead>Expected On</TableHead>
+                    <TableHead className="pr-6">Created By</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((indent) => {
+                    const convertedCount = indent.items.filter(
+                      (it) => it.convertedToPurchaseOrder
+                    ).length;
+                    return (
+                      <TableRow
+                        key={indent.id}
+                        role="link"
+                        tabIndex={0}
+                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                        onClick={() =>
                           router.push(
                             routes.resources.indents.detail(indent.id).href
-                          );
+                          )
                         }
-                      }}
-                    >
-                      <TableCell className="pl-6 font-medium">
-                        {indent.indentNumber}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={indentStatusBadgeColors[indent.status]}
-                        >
-                          {indentStatusLabels[indent.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {indent.projectName ? (
-                          <span className="flex items-center gap-1.5 text-sm">
-                            <FolderOpen className="h-3.5 w-3.5 text-zinc-400" />
-                            {indent.projectName}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground text-sm">
-                            —
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm">
-                          {indent.items.length}
-                          {convertedCount > 0 && (
-                            <span className="text-muted-foreground ml-1">
-                              ({convertedCount} converted)
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ')
+                            router.push(
+                              routes.resources.indents.detail(indent.id).href
+                            );
+                        }}
+                      >
+                        <TableCell className="pl-6 font-medium">
+                          {indent.indentNumber}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={indentStatusBadgeColors[indent.status]}
+                          >
+                            {indentStatusLabels[indent.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {indent.projectName ? (
+                            <span className="flex items-center gap-1.5 text-sm">
+                              <FolderOpen className="h-3.5 w-3.5 text-zinc-400" />
+                              {indent.projectName}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">
+                              —
                             </span>
                           )}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {indent.expectedOn
-                          ? format(new Date(indent.expectedOn), 'MMM dd, yyyy')
-                          : '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground pr-6 text-sm">
-                        {indent.createdBy.name}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm">
+                            {indent.items.length}
+                            {convertedCount > 0 && (
+                              <span className="text-muted-foreground ml-1">
+                                ({convertedCount} converted)
+                              </span>
+                            )}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {indent.expectedOn
+                            ? format(
+                                new Date(indent.expectedOn),
+                                'MMM dd, yyyy'
+                              )
+                            : '—'}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground pr-6 text-sm">
+                          {indent.createdBy.name}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <div className="flex items-center justify-between border-t px-4 py-2">
+              <span className="text-sm text-zinc-500">
+                {startIndex + 1}–{endIndex} of {filtered.length} indent
+                {filtered.length === 1 ? '' : 's'}
+              </span>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </>
+        ) : (
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <ClipboardList className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No indents found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'No indents match your filters. Try adjusting your search.'
+                    : 'Create your first indent to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.resources.indents.new}>New Indent</Link>
+                </Button>
+              )}
+            </Empty>
           </CardContent>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </Card>
-      ) : (
-        <Empty variant="default">
-          <EmptyMedia variant="icon">
-            <ClipboardList className="size-6" />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>No indents found</EmptyTitle>
-            <EmptyDescription>
-              {hasActiveFilters
-                ? 'No indents match your filters. Try adjusting your search.'
-                : 'Create your first indent to get started.'}
-            </EmptyDescription>
-          </EmptyHeader>
-          {!hasActiveFilters && (
-            <Button asChild>
-              <Link href={routes.resources.indents.new}>New Indent</Link>
-            </Button>
-          )}
-        </Empty>
-      )}
+        )}
+      </Card>
     </div>
   );
 }
