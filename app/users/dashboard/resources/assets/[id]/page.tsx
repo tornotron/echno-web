@@ -56,7 +56,7 @@ import {
 } from '@/types/resource';
 import { mockAssets } from '@/components/shared/mock-data';
 import { toast } from '@/lib/styles/toast-styles';
-import { AssetTransferModal } from '@/features/assets/asset-transfer-modal';
+import { AssetTransferModal } from '@/features/assets/components';
 
 // The original getStatusColor function was not used.
 // The instruction implies using a helper from outside, and getAssetStatusBadgeColor is already imported.
