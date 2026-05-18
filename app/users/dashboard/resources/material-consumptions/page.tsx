@@ -42,6 +42,7 @@ import {
 } from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useAllMaterialConsumptions } from '@/hooks/materials';
+import { ConsumptionRow } from '@/features/resources/components';
 import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
@@ -292,44 +293,16 @@ export default function MaterialConsumptionsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginated.map((c) => (
-                    <TableRow
+                    <ConsumptionRow
                       key={c.id}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      consumption={c}
                       onClick={() =>
                         router.push(
                           routes.resources.materialConsumptions.detail(c.id)
                             .href
                         )
                       }
-                    >
-                      <TableCell className="text-muted-foreground pl-6 text-sm">
-                        {format(new Date(c.consumptionDate), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className="font-medium">
-                        {c.materialName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={
-                            consumptionTypeBadgeColors[c.consumptionType]
-                          }
-                        >
-                          {consumptionTypeLabels[c.consumptionType]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {c.quantity}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {c.projectName ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {c.taskTitle ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground pr-6 text-sm">
-                        {c.createdBy.name}
-                      </TableCell>
-                    </TableRow>
+                    />
                   ))}
                 </TableBody>
               </Table>
