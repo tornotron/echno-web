@@ -104,7 +104,7 @@ export function AssetListItem({ asset }: AssetListItemProps) {
                 ₹{(asset.currentValue / 100_000).toFixed(1)}L
               </div>
             </div>
-            {asset.usageHours && asset.maxUsageHours && (
+            {asset.usageHours != null && asset.maxUsageHours != null && (
               <div className="text-center">
                 <div className="mb-1 text-xs text-zinc-500">Utilization</div>
                 <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
@@ -135,7 +135,7 @@ export function AssetListItem({ asset }: AssetListItemProps) {
           </div>
         </div>
 
-        {asset.usageHours && asset.maxUsageHours && (
+        {asset.usageHours != null && asset.maxUsageHours != null && (
           <div className="mt-3 border-t border-zinc-200 pt-3 dark:border-zinc-800">
             <div className="mb-1 flex items-center justify-between text-xs text-zinc-500">
               <span>
