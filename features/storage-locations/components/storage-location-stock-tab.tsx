@@ -22,7 +22,20 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { Pagination, SearchAndFilter } from '@/components/common';
-import { Loader2, Package, ExternalLink } from 'lucide-react';
+import {
+  Loader2,
+  Package,
+  ExternalLink,
+  BarChart3,
+  Layers,
+} from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { useStorageLocationStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
 import { useProjects } from '@/hooks/project/use-projects';
 import type { LocationMaterialStock } from '@/types/inventory-transactions';
@@ -112,11 +125,18 @@ export function StorageLocationStockTab({
   if (!locationStock || locationStock.materialStock.length === 0) {
     return (
       <Card>
-        <CardContent className="py-12 text-center">
-          <Package className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
-          <p className="text-muted-foreground text-sm">
-            No materials stored at this location.
-          </p>
+        <CardContent>
+          <Empty variant="default">
+            <EmptyMedia variant="icon">
+              <Package className="size-6" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>No stock found</EmptyTitle>
+              <EmptyDescription>
+                No materials are stored at this location yet.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </CardContent>
       </Card>
     );
@@ -125,40 +145,69 @@ export function StorageLocationStockTab({
   return (
     <>
       {/* Summary strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Total Stock</div>
-            <div className="text-lg font-bold">
-              {locationStock.totalStock.toLocaleString()}
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Stock
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {locationStock.totalStock.toLocaleString()}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <Package className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Total Value</div>
-            <div className="text-lg font-bold">
-              ₹{locationStock.totalStockValue.toLocaleString('en-IN')}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              units stored
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Value
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                ₹{(locationStock.totalStockValue / 1000).toFixed(1)}K
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <BarChart3 className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Materials</div>
-            <div className="text-lg font-bold">
-              {locationStock.materialStock.length}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              stock value
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Materials
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {locationStock.materialStock.length}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <Layers className="size-4 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Project</div>
-            <div className="truncate text-sm font-semibold">
-              {locationProjectName ?? '—'}
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              distinct materials
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Project</p>
+            <div className="flex items-center justify-between">
+              <p className="truncate text-sm font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {locationProjectName ?? '—'}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              associated project
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Filters */}
       <SearchAndFilter
@@ -230,22 +279,28 @@ export function StorageLocationStockTab({
       <Card>
         <CardContent className="p-0">
           {paginatedMaterials.length === 0 ? (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                No materials match your search.
-              </p>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <Package className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No materials match your search</EmptyTitle>
+                <EmptyDescription>
+                  Try adjusting your filters or search terms.
+                </EmptyDescription>
+              </EmptyHeader>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="mt-2"
                 onClick={() => {
                   setSearch('');
+                  setProjectFilter('all');
                   setPage(1);
                 }}
               >
-                Clear search
+                Clear filters
               </Button>
-            </div>
+            </Empty>
           ) : (
             <Table>
               <TableHeader>
