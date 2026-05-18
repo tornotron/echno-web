@@ -41,6 +41,7 @@ import {
 } from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useGRNs } from '@/hooks/grn';
+import { GoodsReceiptRow } from '@/features/resources/components';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
@@ -274,39 +275,15 @@ export default function GoodsReceiptsPage() {
                 </TableHeader>
                 <TableBody>
                   {paginated.map((grn) => (
-                    <TableRow
+                    <GoodsReceiptRow
                       key={grn.id}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      grn={grn}
                       onClick={() =>
                         router.push(
                           routes.resources.goodsReceipts.detail(grn.id).href
                         )
                       }
-                    >
-                      <TableCell className="pl-6 font-medium">
-                        {grn.grnNumber}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {grn.vendorName}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {format(new Date(grn.receivedOn), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {grn.purchaseOrderNumber ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {grn.projectName ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {grn.items.length}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground pr-6 text-sm">
-                        {grn.invoiceAmount == null
-                          ? '—'
-                          : `₹${grn.invoiceAmount.toLocaleString('en-IN')}`}
-                      </TableCell>
-                    </TableRow>
+                    />
                   ))}
                 </TableBody>
               </Table>
