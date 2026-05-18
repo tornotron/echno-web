@@ -3,98 +3,19 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { Badge } from '@/components/shadcn/badge';
-import { Input } from '@/components/shadcn/input';
-import { Pagination, PageHeader } from '@/components/common';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
-import {
-  MapPin,
-  Plus,
-  Building2,
-  Warehouse,
-  Home,
-  Box,
-  BarChart3,
-  CheckCircle2,
-  XCircle,
-  Loader2,
-  Search,
-} from 'lucide-react';
-import {
-  Empty,
-  EmptyMedia,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from '@/components/shadcn/empty';
-import {
-  StorageLocationType,
-  STORAGE_LOCATION_TYPE_LABELS,
-} from '@/types/storage-locations';
+import { PageHeader } from '@/components/common';
+import { MapPin, Plus, Building2, BarChart3, CheckCircle2 } from 'lucide-react';
+import { StorageLocationType } from '@/types/storage-locations';
 import { useStorageLocations } from '@/hooks/storage-locations';
-import { StorageLocationCard } from '@/features/resources/components';
+import { StorageLocationGrid } from '@/features/storage-locations/components';
 
 interface LocationFilters {
   search: string;
   type: StorageLocationType | 'all';
   status: 'all' | 'active' | 'inactive';
 }
-
-const getLocationIcon = (type: StorageLocationType) => {
-  switch (type) {
-    case StorageLocationType.GODOWN: {
-      return <Warehouse className="h-5 w-5" />;
-    }
-    case StorageLocationType.HEAD_OFFICE: {
-      return <Building2 className="h-5 w-5" />;
-    }
-    case StorageLocationType.PROJECT_SITE: {
-      return <Home className="h-5 w-5" />;
-    }
-    case StorageLocationType.WAREHOUSE: {
-      return <Box className="h-5 w-5" />;
-    }
-    default: {
-      return <MapPin className="h-5 w-5" />;
-    }
-  }
-};
-
-const getTypeColor = (type: StorageLocationType) => {
-  switch (type) {
-    case StorageLocationType.GODOWN: {
-      return 'bg-blue-100 text-blue-600';
-    }
-    case StorageLocationType.HEAD_OFFICE: {
-      return 'bg-purple-100 text-purple-600';
-    }
-    case StorageLocationType.PROJECT_SITE: {
-      return 'bg-green-100 text-green-600';
-    }
-    case StorageLocationType.WAREHOUSE: {
-      return 'bg-yellow-100 text-yellow-600';
-    }
-    case StorageLocationType.PROCESSING_PLANT: {
-      return 'bg-orange-100 text-orange-600';
-    }
-    default: {
-      return 'bg-gray-100 text-gray-600';
-    }
-  }
-};
 
 export default function LocationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -132,11 +53,10 @@ export default function LocationsPage() {
 
   const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(
-    startIndex + itemsPerPage,
-    filteredLocations.length
+  const paginated = filteredLocations.slice(
+    startIndex,
+    startIndex + itemsPerPage
   );
-  const paginatedLocations = filteredLocations.slice(startIndex, endIndex);
 
   const totalLocations = locations.length;
   const activeLocations = locations.filter((l) => l.active).length;
@@ -165,7 +85,6 @@ export default function LocationsPage() {
         }
       />
 
-      {/* Stats Cards */}
       <Card className="gap-0 p-6">
         <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
@@ -237,128 +156,31 @@ export default function LocationsPage() {
         </div>
       </Card>
 
-      {/* Grid Card */}
-      <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Search locations…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-          <Select
-            value={filters.type}
-            onValueChange={(v) =>
-              handleFilterChange('type', v as StorageLocationType | 'all')
-            }
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              {Object.entries(STORAGE_LOCATION_TYPE_LABELS).map(
-                ([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                )
-              )}
-            </SelectContent>
-          </Select>
-          <Select
-            value={filters.status}
-            onValueChange={(v) =>
-              handleFilterChange('status', v as 'all' | 'active' | 'inactive')
-            }
-          >
-            <SelectTrigger className="h-8 w-28 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="ml-auto flex items-center gap-2 border-l pl-3">
-            <span className="text-xs whitespace-nowrap text-zinc-500">
-              Rows per page
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(v) => {
-                setItemsPerPage(Number.parseInt(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[6, 9, 12, 18, 24].map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-
-        {isLoading ? (
-          <CardContent className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-          </CardContent>
-        ) : paginatedLocations.length > 0 ? (
-          <>
-            <CardContent className="p-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {paginatedLocations.map((location) => (
-                  <StorageLocationCard key={location.id} location={location} />
-                ))}
-              </div>
-            </CardContent>
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <span className="text-sm text-zinc-500">
-                {filteredLocations.length === 0 ? 0 : startIndex + 1}–{endIndex}{' '}
-                of {filteredLocations.length} location
-                {filteredLocations.length === 1 ? '' : 's'}
-              </span>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </>
-        ) : (
-          <CardContent>
-            <Empty variant="default">
-              <EmptyMedia variant="icon">
-                <MapPin className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No locations found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? 'Try adjusting your filters or add a new location.'
-                    : 'Get started by adding your first storage location.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              <Button asChild>
-                <Link href={routes.resources.storageLocations.new}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Location
-                </Link>
-              </Button>
-            </Empty>
-          </CardContent>
-        )}
-      </Card>
+      <StorageLocationGrid
+        paginated={paginated}
+        filteredCount={filteredLocations.length}
+        startIndex={startIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(n) => {
+          setItemsPerPage(n);
+          setCurrentPage(1);
+        }}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={hasActiveFilters}
+        searchValue={filters.search}
+        onSearchChange={(v) => handleFilterChange('search', v)}
+        typeFilter={filters.type}
+        onTypeChange={(v) =>
+          handleFilterChange('type', v as StorageLocationType | 'all')
+        }
+        statusFilter={filters.status}
+        onStatusChange={(v) =>
+          handleFilterChange('status', v as 'all' | 'active' | 'inactive')
+        }
+        isLoading={isLoading}
+      />
     </div>
   );
 }
