@@ -19,7 +19,7 @@ const getStatusBadgeColor = (status: string): string => {
 
 const formatLabel = (value: string) =>
   value
-    .split('_')
+    .split(/[_-]/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
     .join(' ');
 
@@ -30,6 +30,13 @@ interface StockAdjustmentListItemProps {
 export function StockAdjustmentListItem({
   adjustment,
 }: StockAdjustmentListItemProps) {
+  let varianceClass: string | undefined;
+  if (adjustment.totalVarianceQuantity > 0) {
+    varianceClass = 'text-green-600';
+  } else if (adjustment.totalVarianceQuantity < 0) {
+    varianceClass = 'text-red-600';
+  }
+
   return (
     <Link
       href={routes.resources.stockAdjustments.detail(adjustment.id).href}
@@ -88,16 +95,7 @@ export function StockAdjustmentListItem({
               </div>
               <div>
                 <span className="text-zinc-500">Total Variance:</span>
-                <Badge
-                  variant="outline"
-                  className={
-                    adjustment.totalVarianceQuantity > 0
-                      ? 'text-green-600'
-                      : adjustment.totalVarianceQuantity < 0
-                        ? 'text-red-600'
-                        : ''
-                  }
-                >
+                <Badge variant="outline" className={varianceClass}>
                   {adjustment.totalVarianceQuantity > 0 ? '+' : ''}
                   {adjustment.totalVarianceQuantity}
                 </Badge>
