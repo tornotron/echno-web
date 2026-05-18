@@ -3,17 +3,9 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { Input } from '@/components/shadcn/input';
-import { Pagination, PageHeader } from '@/components/common';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
+import { PageHeader } from '@/components/common';
 import {
   Activity,
   AlertCircle,
@@ -21,25 +13,23 @@ import {
   DollarSign,
   Loader2,
   Wrench,
-  Search,
 } from 'lucide-react';
 import {
   Empty,
   EmptyErrorMedia,
-  EmptyMedia,
   EmptyHeader,
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import {
-  AssetStatus,
   AssetType,
+  AssetStatus,
   AssetCondition,
   isMaintenanceDue,
 } from '@/types/resource';
 import { useAssets } from '@/hooks/assets';
 import { useStorageLocations } from '@/hooks/storage-locations';
-import { AssetListItem } from '@/features/resources/components';
+import { AssetList } from '@/features/assets/components';
 
 export default function AssetsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -95,8 +85,7 @@ export default function AssetsPage() {
 
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedAssets = filteredAssets.slice(startIndex, endIndex);
+  const paginated = filteredAssets.slice(startIndex, startIndex + itemsPerPage);
 
   const totalAssets = assets.length;
   const totalValue = assets.reduce((sum, asset) => sum + asset.currentValue, 0);
@@ -158,7 +147,6 @@ export default function AssetsPage() {
         }
       />
 
-      {/* Stats Cards */}
       <Card className="gap-0 p-6">
         <div className="lg:divide-border grid grid-cols-2 gap-3 lg:grid-cols-5 lg:gap-0 lg:divide-x">
           <div className="flex flex-col gap-1 rounded-lg p-3 lg:rounded-none lg:pr-6">
@@ -242,191 +230,53 @@ export default function AssetsPage() {
         </div>
       </Card>
 
-      {/* List Card */}
-      <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by name, ID, manufacturer…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-          <Select
-            value={typeFilter}
-            onValueChange={(v) => {
-              setTypeFilter(v as AssetType | 'all');
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="heavy-equipment">Heavy Equipment</SelectItem>
-              <SelectItem value="light-equipment">Light Equipment</SelectItem>
-              <SelectItem value="vehicle">Vehicle</SelectItem>
-              <SelectItem value="tool">Tool</SelectItem>
-              <SelectItem value="machinery">Machinery</SelectItem>
-              <SelectItem value="generator">Generator</SelectItem>
-              <SelectItem value="computer">Computer & IT</SelectItem>
-              <SelectItem value="furniture">Furniture</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v as AssetStatus | 'all');
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="in-use">In Use</SelectItem>
-              <SelectItem value="maintenance">Maintenance</SelectItem>
-              <SelectItem value="repair">Under Repair</SelectItem>
-              <SelectItem value="damaged">Damaged</SelectItem>
-              <SelectItem value="retired">Retired</SelectItem>
-              <SelectItem value="disposed">Disposed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={conditionFilter}
-            onValueChange={(v) => {
-              setConditionFilter(v as AssetCondition | 'all');
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-32 text-xs">
-              <SelectValue placeholder="Condition" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Conditions</SelectItem>
-              <SelectItem value="excellent">Excellent</SelectItem>
-              <SelectItem value="good">Good</SelectItem>
-              <SelectItem value="fair">Fair</SelectItem>
-              <SelectItem value="poor">Poor</SelectItem>
-              <SelectItem value="damaged">Damaged</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={locationFilter === 'all' ? 'all' : locationFilter.toString()}
-            onValueChange={(v) => {
-              setLocationFilter(v === 'all' ? 'all' : Number.parseInt(v));
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Location" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Locations</SelectItem>
-              {locations.map((loc) => (
-                <SelectItem key={loc.id} value={loc.id.toString()}>
-                  {loc.locationName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={maintenanceDueFilter ? 'due' : 'all'}
-            onValueChange={(v) => {
-              setMaintenanceDueFilter(v === 'due');
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Maintenance" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Assets</SelectItem>
-              <SelectItem value="due">Maintenance Due</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="ml-auto flex items-center gap-2 border-l pl-3">
-            <span className="text-xs whitespace-nowrap text-zinc-500">
-              Rows per page
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(v) => {
-                setItemsPerPage(Number(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[5, 10, 20, 50, 100].map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-
-        {paginatedAssets.length > 0 ? (
-          <>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {paginatedAssets.map((asset) => (
-                  <AssetListItem key={asset.id} asset={asset} />
-                ))}
-              </div>
-            </CardContent>
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <span className="text-sm text-zinc-500">
-                {startIndex + 1}–{Math.min(endIndex, filteredAssets.length)} of{' '}
-                {filteredAssets.length} asset
-                {filteredAssets.length === 1 ? '' : 's'}
-              </span>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </>
-        ) : (
-          <CardContent>
-            <Empty variant="default">
-              <EmptyMedia variant="icon">
-                <Cog className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No assets found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? 'Try adjusting your search or filters.'
-                    : 'Get started by registering your first asset.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              {!hasActiveFilters && (
-                <Button asChild>
-                  <Link href={routes.resources.assets.new}>
-                    <Cog className="mr-2 h-4 w-4" />
-                    Register Asset
-                  </Link>
-                </Button>
-              )}
-            </Empty>
-          </CardContent>
-        )}
-      </Card>
+      <AssetList
+        paginated={paginated}
+        filteredCount={filteredAssets.length}
+        startIndex={startIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(n) => {
+          setItemsPerPage(n);
+          setCurrentPage(1);
+        }}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={hasActiveFilters}
+        searchValue={searchQuery}
+        onSearchChange={(v) => {
+          setSearchQuery(v);
+          setCurrentPage(1);
+        }}
+        typeFilter={typeFilter}
+        onTypeChange={(v) => {
+          setTypeFilter(v as AssetType | 'all');
+          setCurrentPage(1);
+        }}
+        statusFilter={statusFilter}
+        onStatusChange={(v) => {
+          setStatusFilter(v as AssetStatus | 'all');
+          setCurrentPage(1);
+        }}
+        conditionFilter={conditionFilter}
+        onConditionChange={(v) => {
+          setConditionFilter(v as AssetCondition | 'all');
+          setCurrentPage(1);
+        }}
+        locationFilter={
+          locationFilter === 'all' ? 'all' : locationFilter.toString()
+        }
+        onLocationChange={(v) => {
+          setLocationFilter(v === 'all' ? 'all' : Number.parseInt(v));
+          setCurrentPage(1);
+        }}
+        locations={locations}
+        maintenanceDueFilter={maintenanceDueFilter}
+        onMaintenanceDueChange={(v) => {
+          setMaintenanceDueFilter(v);
+          setCurrentPage(1);
+        }}
+      />
     </div>
   );
 }
