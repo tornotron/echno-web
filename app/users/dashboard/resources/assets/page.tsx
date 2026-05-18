@@ -20,6 +20,7 @@ import {
   AlertCircle,
   Cog,
   DollarSign,
+  Loader2,
   MapPin,
   Shield,
   Truck,
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
@@ -44,7 +46,8 @@ import {
   calculateUtilization,
   isMaintenanceDue,
 } from '@/types/resource';
-import { mockAssets, mockLocations } from '@/components/shared/mock-data';
+import { useAssets } from '@/hooks/assets';
+import { useStorageLocations } from '@/hooks/storage-locations';
 
 const getUtilizationColor = (utilization: number) => {
   if (utilization >= 80) return 'bg-red-500';
@@ -68,8 +71,11 @@ export default function AssetsPage() {
 
   const [now] = useState(() => Date.now());
 
+  const { data: assets = [], isLoading, isError } = useAssets();
+  const { data: locations = [] } = useStorageLocations();
+
   const filteredAssets = useMemo(() => {
-    return mockAssets.filter((asset) => {
+    return assets.filter((asset) => {
       const matchesSearch =
         asset.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         asset.assetId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -95,6 +101,7 @@ export default function AssetsPage() {
       );
     });
   }, [
+    assets,
     searchQuery,
     typeFilter,
     statusFilter,
@@ -108,18 +115,15 @@ export default function AssetsPage() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedAssets = filteredAssets.slice(startIndex, endIndex);
 
-  const totalAssets = mockAssets.length;
-  const totalValue = mockAssets.reduce(
-    (sum, asset) => sum + asset.currentValue,
-    0
-  );
-  const inUseAssets = mockAssets.filter(
+  const totalAssets = assets.length;
+  const totalValue = assets.reduce((sum, asset) => sum + asset.currentValue, 0);
+  const inUseAssets = assets.filter(
     (asset) => asset.status === 'in-use'
   ).length;
-  const maintenanceDueAssets = mockAssets.filter((asset) =>
+  const maintenanceDueAssets = assets.filter((asset) =>
     isMaintenanceDue(asset)
   ).length;
-  const underRepairAssets = mockAssets.filter(
+  const underRepairAssets = assets.filter(
     (asset) => asset.status === 'repair' || asset.status === 'maintenance'
   ).length;
 
@@ -131,6 +135,30 @@ export default function AssetsPage() {
       locationFilter !== 'all' ||
       maintenanceDueFilter
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <Cog className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load assets</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -321,9 +349,9 @@ export default function AssetsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Locations</SelectItem>
-              {mockLocations.map((loc) => (
+              {locations.map((loc) => (
                 <SelectItem key={loc.id} value={loc.id.toString()}>
-                  {loc.name}
+                  {loc.locationName}
                 </SelectItem>
               ))}
             </SelectContent>
