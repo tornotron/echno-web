@@ -42,6 +42,7 @@ import {
 } from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { usePurchaseOrders } from '@/hooks/purchase-orders/use-purchase-orders';
+import { PurchaseOrderRow } from '@/features/resources/components';
 import {
   PurchaseOrderStatus,
   purchaseOrderStatusLabels,
@@ -301,48 +302,15 @@ export default function PurchaseOrdersPage() {
                 </TableHeader>
                 <TableBody>
                   {paginated.map((po) => (
-                    <TableRow
+                    <PurchaseOrderRow
                       key={po.id}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      order={po}
                       onClick={() =>
                         router.push(
                           routes.resources.purchaseOrders.detail(po.id).href
                         )
                       }
-                    >
-                      <TableCell className="pl-6 font-medium">
-                        {po.poNumber}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {po.vendorName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          className={purchaseOrderStatusBadgeColors[po.status]}
-                        >
-                          {purchaseOrderStatusLabels[po.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {po.projectName ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {po.items.length}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {po.expectedDeliveryDate
-                          ? format(
-                              new Date(po.expectedDeliveryDate),
-                              'MMM dd, yyyy'
-                            )
-                          : '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground pr-6 text-sm">
-                        {po.totalAmount == null
-                          ? '—'
-                          : `₹${po.totalAmount.toLocaleString('en-IN')}`}
-                      </TableCell>
-                    </TableRow>
+                    />
                   ))}
                 </TableBody>
               </Table>
