@@ -18,6 +18,7 @@ import {
 import {
   Settings,
   Plus,
+  Loader2,
   Clock,
   FileText,
   TrendingUp,
@@ -26,12 +27,13 @@ import {
 } from 'lucide-react';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { mockStockAdjustments } from '@/components/shared/mock-data';
+import { useStockAdjustments } from '@/hooks/stock-adjustments';
 
 const getStatusBadgeColor = (status: string): string => {
   const colors: Record<string, string> = {
@@ -53,8 +55,14 @@ export default function StockAdjustmentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [reasonFilter, setReasonFilter] = useState<string>('all');
 
+  const {
+    data: stockAdjustments = [],
+    isLoading,
+    isError,
+  } = useStockAdjustments();
+
   const filteredAdjustments = useMemo(() => {
-    return mockStockAdjustments.filter((adj) => {
+    return stockAdjustments.filter((adj) => {
       const matchesSearch =
         adj.adjustmentNumber
           .toLowerCase()
@@ -70,7 +78,7 @@ export default function StockAdjustmentsPage() {
         reasonFilter === 'all' || adj.primaryReason === reasonFilter;
       return matchesSearch && matchesType && matchesStatus && matchesReason;
     });
-  }, [searchQuery, typeFilter, statusFilter, reasonFilter]);
+  }, [stockAdjustments, searchQuery, typeFilter, statusFilter, reasonFilter]);
 
   const totalPages = Math.ceil(filteredAdjustments.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -80,15 +88,15 @@ export default function StockAdjustmentsPage() {
   );
   const paginatedAdjustments = filteredAdjustments.slice(startIndex, endIndex);
 
-  const totalAdjustments = mockStockAdjustments.length;
-  const pendingAdjustments = mockStockAdjustments.filter(
+  const totalAdjustments = stockAdjustments.length;
+  const pendingAdjustments = stockAdjustments.filter(
     (a) => a.status === 'pending'
   ).length;
-  const positiveVariance = mockStockAdjustments
+  const positiveVariance = stockAdjustments
     .filter((a) => a.totalVarianceQuantity > 0)
     .reduce((sum, a) => sum + a.totalVarianceQuantity, 0);
   const negativeVariance = Math.abs(
-    mockStockAdjustments
+    stockAdjustments
       .filter((a) => a.totalVarianceQuantity < 0)
       .reduce((sum, a) => sum + a.totalVarianceQuantity, 0)
   );
@@ -107,6 +115,30 @@ export default function StockAdjustmentsPage() {
     setReasonFilter('all');
     setCurrentPage(1);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <Settings className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load stock adjustments</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
