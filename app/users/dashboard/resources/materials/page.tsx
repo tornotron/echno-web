@@ -3,18 +3,9 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { Badge } from '@/components/shadcn/badge';
-import { Input } from '@/components/shadcn/input';
-import { Pagination, PageHeader } from '@/components/common';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
+import { PageHeader } from '@/components/common';
 import {
   Package,
   Plus,
@@ -22,18 +13,10 @@ import {
   Ruler,
   WarehouseIcon,
   Loader2,
-  Search,
 } from 'lucide-react';
-import {
-  Empty,
-  EmptyMedia,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from '@/components/shadcn/empty';
 import { useMaterials } from '@/hooks/materials';
 import { MATERIAL_UNITS } from '@/features/materials/components/material-unit-selector';
-import { MaterialListItem } from '@/features/resources/components';
+import { MaterialList } from '@/features/materials/components';
 
 const UNIT_FILTER_OPTIONS = [
   { value: 'all', label: 'All Units' },
@@ -43,7 +26,7 @@ const UNIT_FILTER_OPTIONS = [
 ];
 
 export default function MaterialsPage() {
-  const { data: materials = [], isLoading, isError, error } = useMaterials();
+  const { data: materials = [], isLoading, isError } = useMaterials();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [unitFilter, setUnitFilter] = useState('all');
@@ -64,83 +47,12 @@ export default function MaterialsPage() {
 
   const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(
-    startIndex + itemsPerPage,
-    filteredMaterials.length
+  const paginated = filteredMaterials.slice(
+    startIndex,
+    startIndex + itemsPerPage
   );
-  const paginated = filteredMaterials.slice(startIndex, endIndex);
 
   const hasActiveFilters = Boolean(searchQuery || unitFilter !== 'all');
-
-  let cardBody: React.ReactNode;
-  if (isLoading) {
-    cardBody = (
-      <CardContent className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-      </CardContent>
-    );
-  } else if (isError) {
-    cardBody = (
-      <CardContent className="py-12 text-center">
-        <Package className="mx-auto mb-4 h-12 w-12 text-red-400" />
-        <h3 className="mb-2 text-lg font-medium">Failed to load materials</h3>
-        <p className="text-muted-foreground mb-4 text-sm">
-          {error instanceof Error
-            ? error.message
-            : 'An unexpected error occurred.'}
-        </p>
-      </CardContent>
-    );
-  } else if (paginated.length > 0) {
-    cardBody = (
-      <>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            {paginated.map((material) => (
-              <MaterialListItem key={material.id} material={material} />
-            ))}
-          </div>
-        </CardContent>
-        <div className="flex items-center justify-between border-t px-4 py-2">
-          <span className="text-sm text-zinc-500">
-            {startIndex + 1}–{endIndex} of {filteredMaterials.length} material
-            {filteredMaterials.length === 1 ? '' : 's'}
-          </span>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
-      </>
-    );
-  } else {
-    cardBody = (
-      <CardContent>
-        <Empty variant="default">
-          <EmptyMedia variant="icon">
-            <Package className="size-6" />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>No materials found</EmptyTitle>
-            <EmptyDescription>
-              {hasActiveFilters
-                ? 'Try adjusting your search or filters.'
-                : 'Get started by adding your first material.'}
-            </EmptyDescription>
-          </EmptyHeader>
-          {!hasActiveFilters && (
-            <Button asChild>
-              <Link href={routes.resources.materials.new}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Material
-              </Link>
-            </Button>
-          )}
-        </Empty>
-      </CardContent>
-    );
-  }
 
   const totalMaterials = materials.length;
   const uniqueUnits = new Set(materials.map((m) => m.unit)).size;
@@ -149,6 +61,14 @@ export default function MaterialsPage() {
     (sum, m) => sum + (m.stockValue ?? 0),
     0
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -165,7 +85,6 @@ export default function MaterialsPage() {
         }
       />
 
-      {/* Stats Cards */}
       <Card className="gap-0 p-6">
         <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
@@ -233,66 +152,32 @@ export default function MaterialsPage() {
         </div>
       </Card>
 
-      {/* List Card */}
-      <Card>
-        <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by name or SKU…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-          <Select
-            value={unitFilter}
-            onValueChange={(v) => {
-              setUnitFilter(v);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-32 text-xs">
-              <SelectValue placeholder="Unit" />
-            </SelectTrigger>
-            <SelectContent>
-              {UNIT_FILTER_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="ml-auto flex items-center gap-2 border-l pl-3">
-            <span className="text-xs whitespace-nowrap text-zinc-500">
-              Rows per page
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(v) => {
-                setItemsPerPage(Number(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[5, 10, 20, 50].map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-
-        {cardBody}
-      </Card>
+      <MaterialList
+        paginated={paginated}
+        filteredCount={filteredMaterials.length}
+        startIndex={startIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(n) => {
+          setItemsPerPage(n);
+          setCurrentPage(1);
+        }}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={hasActiveFilters}
+        searchValue={searchQuery}
+        onSearchChange={(v) => {
+          setSearchQuery(v);
+          setCurrentPage(1);
+        }}
+        unitFilter={unitFilter}
+        onUnitChange={(v) => {
+          setUnitFilter(v);
+          setCurrentPage(1);
+        }}
+        unitFilterOptions={UNIT_FILTER_OPTIONS}
+        isError={isError}
+      />
     </div>
   );
 }
