@@ -3,18 +3,9 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { Badge } from '@/components/shadcn/badge';
-import { Input } from '@/components/shadcn/input';
-import { Pagination, PageHeader } from '@/components/common';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
+import { PageHeader } from '@/components/common';
 import {
   Settings,
   Plus,
@@ -23,30 +14,16 @@ import {
   FileText,
   TrendingUp,
   TrendingDown,
-  Search,
 } from 'lucide-react';
 import {
   Empty,
   EmptyErrorMedia,
-  EmptyMedia,
   EmptyHeader,
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { useStockAdjustments } from '@/hooks/stock-adjustments';
-import { StockAdjustmentListItem } from '@/features/resources/components';
-
-const getStatusBadgeColor = (status: string): string => {
-  const colors: Record<string, string> = {
-    draft: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
-    pending:
-      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    approved:
-      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    rejected: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-  };
-  return colors[status] || colors.draft;
-};
+import { StockAdjustmentList } from '@/features/stock-adjustments/components';
 
 export default function StockAdjustmentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,31 +38,6 @@ export default function StockAdjustmentsPage() {
     isLoading,
     isError,
   } = useStockAdjustments();
-
-  const [prevFilters, setPrevFilters] = useState({
-    searchQuery,
-    typeFilter,
-    statusFilter,
-    reasonFilter,
-    itemsPerPage,
-  });
-
-  if (
-    prevFilters.searchQuery !== searchQuery ||
-    prevFilters.typeFilter !== typeFilter ||
-    prevFilters.statusFilter !== statusFilter ||
-    prevFilters.reasonFilter !== reasonFilter ||
-    prevFilters.itemsPerPage !== itemsPerPage
-  ) {
-    setPrevFilters({
-      searchQuery,
-      typeFilter,
-      statusFilter,
-      reasonFilter,
-      itemsPerPage,
-    });
-    setCurrentPage(1);
-  }
 
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adj) => {
@@ -109,11 +61,10 @@ export default function StockAdjustmentsPage() {
   const totalPages = Math.ceil(filteredAdjustments.length / itemsPerPage);
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
   const startIndex = (safePage - 1) * itemsPerPage;
-  const endIndex = Math.min(
-    startIndex + itemsPerPage,
-    filteredAdjustments.length
+  const paginated = filteredAdjustments.slice(
+    startIndex,
+    startIndex + itemsPerPage
   );
-  const paginatedAdjustments = filteredAdjustments.slice(startIndex, endIndex);
 
   const totalAdjustments = stockAdjustments.length;
   const pendingAdjustments = stockAdjustments.filter(
@@ -182,7 +133,6 @@ export default function StockAdjustmentsPage() {
         }
       />
 
-      {/* Stats Cards */}
       <Card className="gap-0 p-6">
         <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
@@ -244,159 +194,41 @@ export default function StockAdjustmentsPage() {
         </div>
       </Card>
 
-      {/* List Card */}
-      <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by adjustment ID, material…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-          <Select
-            value={typeFilter}
-            onValueChange={(v) => {
-              setTypeFilter(v);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-32 text-xs">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="correction">Correction</SelectItem>
-              <SelectItem value="write-off">Write-off</SelectItem>
-              <SelectItem value="found">Found Items</SelectItem>
-              <SelectItem value="return">Return</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-28 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={reasonFilter}
-            onValueChange={(v) => {
-              setReasonFilter(v);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-32 text-xs">
-              <SelectValue placeholder="Reason" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Reasons</SelectItem>
-              <SelectItem value="stock-discrepancy">
-                Stock Discrepancy
-              </SelectItem>
-              <SelectItem value="damage">Damage</SelectItem>
-              <SelectItem value="expiry">Expiry</SelectItem>
-              <SelectItem value="theft">Theft</SelectItem>
-              <SelectItem value="found-items">Found Items</SelectItem>
-              <SelectItem value="counting-error">Counting Error</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="ml-auto flex items-center gap-2 border-l pl-3">
-            <span className="text-xs whitespace-nowrap text-zinc-500">
-              Rows per page
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(v) => {
-                setItemsPerPage(Number.parseInt(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[10, 20, 50, 100].map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-
-        {paginatedAdjustments.length > 0 ? (
-          <>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                {paginatedAdjustments.map((adj) => (
-                  <StockAdjustmentListItem key={adj.id} adjustment={adj} />
-                ))}
-              </div>
-            </CardContent>
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <span className="text-sm text-zinc-500">
-                {startIndex + 1}–{endIndex} of {filteredAdjustments.length}{' '}
-                adjustment{filteredAdjustments.length === 1 ? '' : 's'}
-              </span>
-              <Pagination
-                currentPage={safePage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </>
-        ) : (
-          <CardContent>
-            <Empty variant="inline">
-              <EmptyMedia variant="icon">
-                <Settings className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>
-                  {hasActiveFilters
-                    ? 'No stock adjustments found'
-                    : 'No stock adjustments yet'}
-                </EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? "Try adjusting your filters to find what you're looking for."
-                    : 'Create your first stock adjustment to get started.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              {hasActiveFilters ? (
-                <Button onClick={clearFilters} variant="outline">
-                  Clear Filters
-                </Button>
-              ) : (
-                <Button asChild>
-                  <Link href={routes.resources.stockAdjustments.new}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Adjustment
-                  </Link>
-                </Button>
-              )}
-            </Empty>
-          </CardContent>
-        )}
-      </Card>
+      <StockAdjustmentList
+        paginated={paginated}
+        filteredCount={filteredAdjustments.length}
+        startIndex={startIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(n) => {
+          setItemsPerPage(n);
+          setCurrentPage(1);
+        }}
+        currentPage={safePage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={hasActiveFilters}
+        searchValue={searchQuery}
+        onSearchChange={(v) => {
+          setSearchQuery(v);
+          setCurrentPage(1);
+        }}
+        typeFilter={typeFilter}
+        onTypeChange={(v) => {
+          setTypeFilter(v);
+          setCurrentPage(1);
+        }}
+        statusFilter={statusFilter}
+        onStatusChange={(v) => {
+          setStatusFilter(v);
+          setCurrentPage(1);
+        }}
+        reasonFilter={reasonFilter}
+        onReasonChange={(v) => {
+          setReasonFilter(v);
+          setCurrentPage(1);
+        }}
+        onClearFilters={clearFilters}
+      />
     </div>
   );
 }
