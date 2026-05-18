@@ -53,7 +53,8 @@ export default function MaterialConsumptionsPage() {
   }, [consumptions]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
+  const startIndex = (safePage - 1) * itemsPerPage;
   const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
   const now = new Date();
@@ -168,7 +169,7 @@ export default function MaterialConsumptionsPage() {
           setItemsPerPage(n);
           setCurrentPage(1);
         }}
-        currentPage={currentPage}
+        currentPage={safePage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         hasActiveFilters={hasActiveFilters}
