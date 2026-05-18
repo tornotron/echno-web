@@ -2,28 +2,10 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { Badge } from '@/components/shadcn/badge';
-import { Input } from '@/components/shadcn/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/shadcn/table';
-import { Pagination, PageHeader } from '@/components/common';
+import { PageHeader } from '@/components/common';
 import {
   Plus,
   Loader2,
@@ -31,28 +13,12 @@ import {
   CheckCircle2,
   Clock,
   Package,
-  Search,
 } from 'lucide-react';
-import {
-  Empty,
-  EmptyMedia,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from '@/components/shadcn/empty';
-import { format } from 'date-fns';
 import { useSiteTransfers } from '@/hooks/site-transfers';
-import { TransferRow } from '@/features/resources/components';
-import {
-  SiteTransferStatus,
-  siteTransferStatusLabels,
-  siteTransferStatusBadgeColors,
-} from '@/types/site-transfers';
-
-const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
+import { TransferTable } from '@/features/site-transfer/components';
+import { SiteTransferStatus } from '@/types/site-transfers';
 
 export default function SiteTransfersPage() {
-  const router = useRouter();
   const { data: transfers = [], isLoading } = useSiteTransfers();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,8 +58,7 @@ export default function SiteTransfersPage() {
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
-  const paginated = filtered.slice(startIndex, endIndex);
+  const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
   const pending = transfers.filter(
     (t) => t.status === SiteTransferStatus.pending
@@ -129,7 +94,6 @@ export default function SiteTransfersPage() {
         }
       />
 
-      {/* Stats */}
       <Card className="gap-0 p-6">
         <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
@@ -195,151 +159,36 @@ export default function SiteTransfersPage() {
         </div>
       </Card>
 
-      {/* Table Card */}
-      <Card>
-        <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by transfer number, project or person…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-          <Select
-            value={statusFilter}
-            onValueChange={(v) => {
-              setStatusFilter(v as SiteTransferStatus | 'all');
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              {Object.values(SiteTransferStatus).map((s) => (
-                <SelectItem key={s} value={s}>
-                  {siteTransferStatusLabels[s]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            value={projectFilter}
-            onValueChange={(v) => {
-              setProjectFilter(v);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-36 text-xs">
-              <SelectValue placeholder="Project" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projectOptions.map((p) => (
-                <SelectItem key={p} value={p}>
-                  {p}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="ml-auto flex items-center gap-2 border-l pl-3">
-            <span className="text-xs whitespace-nowrap text-zinc-500">
-              Rows per page
-            </span>
-            <Select
-              value={String(itemsPerPage)}
-              onValueChange={(v) => {
-                setItemsPerPage(Number(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-16 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGE_SIZE_OPTIONS.map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
-
-        {paginated.length > 0 ? (
-          <>
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">Transfer #</TableHead>
-                    <TableHead>Issue Date</TableHead>
-                    <TableHead>Sending Person</TableHead>
-                    <TableHead>From Project</TableHead>
-                    <TableHead>To Project</TableHead>
-                    <TableHead>Items</TableHead>
-                    <TableHead className="pr-6">Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginated.map((t) => (
-                    <TransferRow
-                      key={t.id}
-                      transfer={t}
-                      onClick={() =>
-                        router.push(
-                          routes.resources.transfers.detail(t.id).href
-                        )
-                      }
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <span className="text-sm text-zinc-500">
-                {startIndex + 1}–{endIndex} of {filtered.length} transfer
-                {filtered.length === 1 ? '' : 's'}
-              </span>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          </>
-        ) : (
-          <CardContent>
-            <Empty variant="default">
-              <EmptyMedia variant="icon">
-                <ArrowRightLeft className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No transfers found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? 'No transfers match your search. Try adjusting your filters.'
-                    : 'Create your first site transfer to get started.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              {!hasActiveFilters && (
-                <Button asChild>
-                  <Link href={routes.resources.transfers.new}>
-                    New Transfer
-                  </Link>
-                </Button>
-              )}
-            </Empty>
-          </CardContent>
-        )}
-      </Card>
+      <TransferTable
+        paginated={paginated}
+        filteredCount={filtered.length}
+        startIndex={startIndex}
+        itemsPerPage={itemsPerPage}
+        onItemsPerPageChange={(n) => {
+          setItemsPerPage(n);
+          setCurrentPage(1);
+        }}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        hasActiveFilters={hasActiveFilters}
+        searchValue={searchQuery}
+        onSearchChange={(v) => {
+          setSearchQuery(v);
+          setCurrentPage(1);
+        }}
+        statusFilter={statusFilter}
+        onStatusChange={(v) => {
+          setStatusFilter(v as SiteTransferStatus | 'all');
+          setCurrentPage(1);
+        }}
+        projectFilter={projectFilter}
+        onProjectChange={(v) => {
+          setProjectFilter(v);
+          setCurrentPage(1);
+        }}
+        projectOptions={projectOptions}
+      />
     </div>
   );
 }
