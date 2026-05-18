@@ -4,9 +4,10 @@ import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
+import { Input } from '@/components/shadcn/input';
 import {
   Select,
   SelectContent,
@@ -22,7 +23,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { SearchAndFilter, Pagination, PageHeader } from '@/components/common';
+import { Pagination, PageHeader } from '@/components/common';
 import {
   Plus,
   Loader2,
@@ -30,6 +31,7 @@ import {
   CalendarDays,
   Package,
   BarChart3,
+  Search,
 } from 'lucide-react';
 import {
   Empty,
@@ -57,6 +59,7 @@ export default function MaterialConsumptionsPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<ConsumptionType | 'all'>('all');
+  const [projectFilter, setProjectFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -71,13 +74,24 @@ export default function MaterialConsumptionsPage() {
         c.createdBy.name.toLowerCase().includes(q);
       const matchesType =
         typeFilter === 'all' || c.consumptionType === typeFilter;
-      return matchesSearch && matchesType;
+      const matchesProject =
+        projectFilter === 'all' || c.projectName === projectFilter;
+      return matchesSearch && matchesType && matchesProject;
     });
-  }, [consumptions, searchQuery, typeFilter]);
+  }, [consumptions, searchQuery, typeFilter, projectFilter]);
+
+  const projectOptions = useMemo(() => {
+    const names = new Set<string>();
+    for (const c of consumptions) {
+      if (c.projectName) names.add(c.projectName);
+    }
+    return [...names].toSorted();
+  }, [consumptions]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+  const endIndex = Math.min(startIndex + itemsPerPage, filtered.length);
+  const paginated = filtered.slice(startIndex, endIndex);
 
   const now = new Date();
   const thisMonth = consumptions.filter((c) => {
@@ -89,12 +103,8 @@ export default function MaterialConsumptionsPage() {
   const totalQty = consumptions.reduce((sum, c) => sum + c.quantity, 0);
   const uniqueMaterials = new Set(consumptions.map((c) => c.materialId)).size;
 
-  const hasActiveFilters = !!searchQuery || typeFilter !== 'all';
-  const clearFilters = () => {
-    setSearchQuery('');
-    setTypeFilter('all');
-    setCurrentPage(1);
-  };
+  const hasActiveFilters =
+    !!searchQuery || typeFilter !== 'all' || projectFilter !== 'all';
 
   if (isLoading) {
     return (
@@ -187,154 +197,180 @@ export default function MaterialConsumptionsPage() {
         </div>
       </Card>
 
-      {/* Search & Filter */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={searchQuery}
-        onSearchChange={(v) => {
-          setSearchQuery(v);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder="Search by material, project, task or person..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        filters={[
-          {
-            value: typeFilter,
-            options: [
-              { label: 'All Types', value: 'all' },
-              ...Object.values(ConsumptionType).map((t) => ({
-                label: consumptionTypeLabels[t],
-                value: t,
-              })),
-            ],
-            onChange: (v) => {
-              setTypeFilter(v as ConsumptionType | 'all');
-              setCurrentPage(1);
-            },
-          },
-        ]}
-      />
-
-      {/* Results summary + rows per page */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          {filtered.length === 0
-            ? 'No consumptions found'
-            : `Showing ${startIndex + 1} to ${Math.min(startIndex + itemsPerPage, filtered.length)} of ${filtered.length} record${filtered.length === 1 ? '' : 's'}`}
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Table Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by material, project, task or person…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           <Select
-            value={String(itemsPerPage)}
+            value={typeFilter}
             onValueChange={(v) => {
-              setItemsPerPage(Number(v));
+              setTypeFilter(v as ConsumptionType | 'all');
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              {PAGE_SIZE_OPTIONS.map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
+              <SelectItem value="all">All Types</SelectItem>
+              {Object.values(ConsumptionType).map((t) => (
+                <SelectItem key={t} value={t}>
+                  {consumptionTypeLabels[t]}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      {/* Table or empty state */}
-      {paginated.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="pl-6">Date</TableHead>
-                  <TableHead>Material</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Quantity</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Task</TableHead>
-                  <TableHead className="pr-6">Recorded By</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map((c) => (
-                  <TableRow
-                    key={c.id}
-                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                    onClick={() =>
-                      router.push(
-                        routes.resources.materialConsumptions.detail(c.id).href
-                      )
-                    }
-                  >
-                    <TableCell className="text-muted-foreground pl-6 text-sm">
-                      {format(new Date(c.consumptionDate), 'MMM dd, yyyy')}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {c.materialName}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          consumptionTypeBadgeColors[c.consumptionType]
-                        }
-                      >
-                        {consumptionTypeLabels[c.consumptionType]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {c.quantity}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {c.projectName ?? '—'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {c.taskTitle ?? '—'}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground pr-6 text-sm">
-                      {c.createdBy.name}
-                    </TableCell>
-                  </TableRow>
+          <Select
+            value={projectFilter}
+            onValueChange={(v) => {
+              setProjectFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Project" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projectOptions.map((p) => (
+                <SelectItem key={p} value={p}>
+                  {p}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
                 ))}
-              </TableBody>
-            </Table>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        {paginated.length > 0 ? (
+          <>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-6">Date</TableHead>
+                    <TableHead>Material</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Quantity</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Task</TableHead>
+                    <TableHead className="pr-6">Recorded By</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginated.map((c) => (
+                    <TableRow
+                      key={c.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      onClick={() =>
+                        router.push(
+                          routes.resources.materialConsumptions.detail(c.id)
+                            .href
+                        )
+                      }
+                    >
+                      <TableCell className="text-muted-foreground pl-6 text-sm">
+                        {format(new Date(c.consumptionDate), 'MMM dd, yyyy')}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {c.materialName}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            consumptionTypeBadgeColors[c.consumptionType]
+                          }
+                        >
+                          {consumptionTypeLabels[c.consumptionType]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {c.quantity}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {c.projectName ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-sm">
+                        {c.taskTitle ?? '—'}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground pr-6 text-sm">
+                        {c.createdBy.name}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <div className="flex items-center justify-between border-t px-4 py-2">
+              <span className="text-sm text-zinc-500">
+                {startIndex + 1}–{endIndex} of {filtered.length} record
+                {filtered.length === 1 ? '' : 's'}
+              </span>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          </>
+        ) : (
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <FlameKindling className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No consumptions found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'No records match your search. Try adjusting your filters.'
+                    : 'Record your first material consumption to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.resources.materialConsumptions.new}>
+                    Record Consumption
+                  </Link>
+                </Button>
+              )}
+            </Empty>
           </CardContent>
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </Card>
-      ) : (
-        <Empty variant="default">
-          <EmptyMedia variant="icon">
-            <FlameKindling className="size-6" />
-          </EmptyMedia>
-          <EmptyHeader>
-            <EmptyTitle>No consumptions found</EmptyTitle>
-            <EmptyDescription>
-              {hasActiveFilters
-                ? 'No records match your search. Try adjusting your filters.'
-                : 'Record your first material consumption to get started.'}
-            </EmptyDescription>
-          </EmptyHeader>
-          {!hasActiveFilters && (
-            <Button asChild>
-              <Link href={routes.resources.materialConsumptions.new}>
-                Record Consumption
-              </Link>
-            </Button>
-          )}
-        </Empty>
-      )}
+        )}
+      </Card>
     </div>
   );
 }

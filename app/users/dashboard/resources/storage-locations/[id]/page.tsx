@@ -22,7 +22,6 @@ import {
 import {
   MapPin,
   Edit,
-  ArrowLeft,
   Building2,
   Warehouse,
   Home,
@@ -33,6 +32,7 @@ import {
   FolderOpen,
   Package,
   TrendingUp,
+  Loader2,
 } from 'lucide-react';
 import {
   StorageLocationType,
@@ -76,11 +76,9 @@ export default function ViewLocationPage() {
 
   if (isLoading) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-muted-foreground">Loading...</p>
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
     );
   }
 
@@ -162,56 +160,62 @@ export default function ViewLocationPage() {
 
         <TabsContent value="details" className="mt-6 space-y-6">
           {/* Stats Cards */}
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Total Capacity</CardDescription>
-                <CardTitle className="text-3xl">
-                  {location.capacity == null
-                    ? '—'
-                    : location.capacity.toLocaleString()}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-muted-foreground flex items-center gap-1 text-sm">
-                  <Package className="h-4 w-4" />
-                  Units
+          <Card className="gap-0 p-6">
+            <div className="sm:divide-border grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-0 sm:divide-x">
+              <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Total Capacity
+                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                    {location.capacity == null
+                      ? '—'
+                      : location.capacity.toLocaleString()}
+                  </p>
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                    <Package className="size-4 text-zinc-600 dark:text-zinc-400" />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Items Stored</CardDescription>
-                <CardTitle className="text-3xl text-blue-600">
-                  {location.storageItemsCount ?? 0}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-muted-foreground flex items-center gap-1 text-sm">
-                  <Box className="h-4 w-4" />
-                  Total Items
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                  storage units
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Items Stored
+                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                    {location.storageItemsCount ?? 0}
+                  </p>
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                    <Box className="size-4 text-blue-600 dark:text-blue-400" />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardDescription>Utilization</CardDescription>
-                <CardTitle className="text-3xl text-green-600">
-                  {location.capacity
-                    ? `${Math.round(((location.storageItemsCount ?? 0) / location.capacity) * 100)}%`
-                    : '—'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-muted-foreground flex items-center gap-1 text-sm">
-                  <TrendingUp className="h-4 w-4" />
-                  Capacity Used
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                  total items
+                </p>
+              </div>
+              <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  Utilization
+                </p>
+                <div className="flex items-center justify-between">
+                  <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                    {location.capacity
+                      ? `${Math.round(((location.storageItemsCount ?? 0) / location.capacity) * 100)}%`
+                      : '—'}
+                  </p>
+                  <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                    <TrendingUp className="size-4 text-green-600 dark:text-green-400" />
+                  </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+                <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                  capacity used
+                </p>
+              </div>
+            </div>
+          </Card>
 
           <div className="grid gap-6 md:grid-cols-2">
             <Card>

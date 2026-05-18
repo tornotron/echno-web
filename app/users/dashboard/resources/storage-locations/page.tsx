@@ -11,7 +11,8 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
+import { Input } from '@/components/shadcn/input';
+import { Pagination, PageHeader } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
+  Search,
 } from 'lucide-react';
 import {
   Empty,
@@ -50,10 +52,52 @@ interface LocationFilters {
   status: 'all' | 'active' | 'inactive';
 }
 
+const getLocationIcon = (type: StorageLocationType) => {
+  switch (type) {
+    case StorageLocationType.GODOWN: {
+      return <Warehouse className="h-5 w-5" />;
+    }
+    case StorageLocationType.HEAD_OFFICE: {
+      return <Building2 className="h-5 w-5" />;
+    }
+    case StorageLocationType.PROJECT_SITE: {
+      return <Home className="h-5 w-5" />;
+    }
+    case StorageLocationType.WAREHOUSE: {
+      return <Box className="h-5 w-5" />;
+    }
+    default: {
+      return <MapPin className="h-5 w-5" />;
+    }
+  }
+};
+
+const getTypeColor = (type: StorageLocationType) => {
+  switch (type) {
+    case StorageLocationType.GODOWN: {
+      return 'bg-blue-100 text-blue-600';
+    }
+    case StorageLocationType.HEAD_OFFICE: {
+      return 'bg-purple-100 text-purple-600';
+    }
+    case StorageLocationType.PROJECT_SITE: {
+      return 'bg-green-100 text-green-600';
+    }
+    case StorageLocationType.WAREHOUSE: {
+      return 'bg-yellow-100 text-yellow-600';
+    }
+    case StorageLocationType.PROCESSING_PLANT: {
+      return 'bg-orange-100 text-orange-600';
+    }
+    default: {
+      return 'bg-gray-100 text-gray-600';
+    }
+  }
+};
+
 export default function LocationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
-
   const [filters, setFilters] = useState<LocationFilters>({
     search: '',
     type: 'all',
@@ -61,6 +105,14 @@ export default function LocationsPage() {
   });
 
   const { data: locations = [], isLoading } = useStorageLocations();
+
+  const handleFilterChange = (
+    key: keyof LocationFilters,
+    value: string | number | boolean
+  ) => {
+    setFilters({ ...filters, [key]: value });
+    setCurrentPage(1);
+  };
 
   const filteredLocations = locations.filter((location) => {
     const matchesSearch =
@@ -79,18 +131,11 @@ export default function LocationsPage() {
 
   const totalPages = Math.ceil(filteredLocations.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedLocations = filteredLocations.slice(
-    startIndex,
-    startIndex + itemsPerPage
+  const endIndex = Math.min(
+    startIndex + itemsPerPage,
+    filteredLocations.length
   );
-
-  const handleFilterChange = (
-    key: keyof LocationFilters,
-    value: string | number | boolean
-  ) => {
-    setFilters({ ...filters, [key]: value });
-    setCurrentPage(1);
-  };
+  const paginatedLocations = filteredLocations.slice(startIndex, endIndex);
 
   const totalLocations = locations.length;
   const activeLocations = locations.filter((l) => l.active).length;
@@ -100,25 +145,9 @@ export default function LocationsPage() {
     0
   );
 
-  const getLocationIcon = (type: StorageLocationType) => {
-    switch (type) {
-      case StorageLocationType.GODOWN: {
-        return <Warehouse className="h-5 w-5" />;
-      }
-      case StorageLocationType.HEAD_OFFICE: {
-        return <Building2 className="h-5 w-5" />;
-      }
-      case StorageLocationType.PROJECT_SITE: {
-        return <Home className="h-5 w-5" />;
-      }
-      case StorageLocationType.WAREHOUSE: {
-        return <Box className="h-5 w-5" />;
-      }
-      default: {
-        return <MapPin className="h-5 w-5" />;
-      }
-    }
-  };
+  const hasActiveFilters = Boolean(
+    filters.search || filters.type !== 'all' || filters.status !== 'all'
+  );
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -207,186 +236,187 @@ export default function LocationsPage() {
         </div>
       </Card>
 
-      {/* Filters */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={filters.search}
-        onSearchChange={(value) => handleFilterChange('search', value)}
-        searchPlaceholder="Search locations..."
-        hasActiveFilters={Boolean(
-          filters.search || filters.type !== 'all' || filters.status !== 'all'
-        )}
-        onClearFilters={() => {
-          setFilters({ search: '', type: 'all', status: 'all' });
-          setCurrentPage(1);
-        }}
-        filters={[
-          {
-            placeholder: 'Type',
-            options: [
-              { value: 'all', label: 'All Types' },
-              ...Object.entries(STORAGE_LOCATION_TYPE_LABELS).map(
-                ([value, label]) => ({ value, label })
-              ),
-            ],
-            value: filters.type,
-            onChange: (value) =>
-              handleFilterChange('type', value as StorageLocationType | 'all'),
-          },
-          {
-            placeholder: 'Status',
-            options: [
-              { value: 'all', label: 'All Status' },
-              { value: 'active', label: 'Active' },
-              { value: 'inactive', label: 'Inactive' },
-            ],
-            value: filters.status,
-            onChange: (value) =>
-              handleFilterChange(
-                'status',
-                value as 'all' | 'active' | 'inactive'
-              ),
-          },
-        ]}
-      />
-
-      {/* Results Summary */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {filteredLocations.length > 0 ? startIndex + 1 : 0} to{' '}
-          {Math.min(startIndex + itemsPerPage, filteredLocations.length)} of{' '}
-          {filteredLocations.length} locations
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Grid Card */}
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              placeholder="Search locations…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => {
-              setItemsPerPage(Number.parseInt(value));
-              setCurrentPage(1);
-            }}
+            value={filters.type}
+            onValueChange={(v) =>
+              handleFilterChange('type', v as StorageLocationType | 'all')
+            }
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-36 text-xs">
+              <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="6">6</SelectItem>
-              <SelectItem value="9">9</SelectItem>
-              <SelectItem value="12">12</SelectItem>
-              <SelectItem value="18">18</SelectItem>
-              <SelectItem value="24">24</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
+              {Object.entries(STORAGE_LOCATION_TYPE_LABELS).map(
+                ([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
+                  </SelectItem>
+                )
+              )}
             </SelectContent>
           </Select>
-        </div>
-      </div>
+          <Select
+            value={filters.status}
+            onValueChange={(v) =>
+              handleFilterChange('status', v as 'all' | 'active' | 'inactive')
+            }
+          >
+            <SelectTrigger className="h-8 w-28 text-xs">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(v) => {
+                setItemsPerPage(Number.parseInt(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[6, 9, 12, 18, 24].map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
 
-      {/* Locations Grid */}
-      {isLoading ? (
-        <Card>
+        {isLoading ? (
           <CardContent className="flex justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
           </CardContent>
-        </Card>
-      ) : filteredLocations.length > 0 ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {paginatedLocations.map((location) => (
-                <Link
-                  key={location.id}
-                  href={
-                    routes.resources.storageLocations.detail(location.id).href
-                  }
-                  className="block"
-                >
-                  <Card className="transition-shadow hover:shadow-md">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                          <div
-                            className={`rounded-lg p-2 ${getTypeColor(location.locationType)}`}
+        ) : paginatedLocations.length > 0 ? (
+          <>
+            <CardContent className="p-6">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {paginatedLocations.map((location) => (
+                  <Link
+                    key={location.id}
+                    href={
+                      routes.resources.storageLocations.detail(location.id).href
+                    }
+                    className="block"
+                  >
+                    <Card className="transition-shadow hover:shadow-md">
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={`rounded-lg p-2 ${getTypeColor(location.locationType)}`}
+                            >
+                              {getLocationIcon(location.locationType)}
+                            </div>
+                            <div>
+                              <CardTitle className="text-base">
+                                {location.locationName}
+                              </CardTitle>
+                              <Badge variant="outline" className="mt-1">
+                                {
+                                  STORAGE_LOCATION_TYPE_LABELS[
+                                    location.locationType
+                                  ]
+                                }
+                              </Badge>
+                            </div>
+                          </div>
+                          <Badge
+                            variant={location.active ? 'default' : 'secondary'}
                           >
-                            {getLocationIcon(location.locationType)}
+                            {location.active ? (
+                              <>
+                                <CheckCircle2 className="mr-1 h-3 w-3" /> Active
+                              </>
+                            ) : (
+                              <>
+                                <XCircle className="mr-1 h-3 w-3" /> Inactive
+                              </>
+                            )}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {location.address && (
+                          <div className="text-muted-foreground text-sm">
+                            <MapPin className="mr-1 inline h-3 w-3" />
+                            {location.address}
+                          </div>
+                        )}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="text-muted-foreground text-xs">
+                              Capacity
+                            </div>
+                            <div className="text-lg font-bold">
+                              {location.capacity?.toLocaleString() ?? '—'}
+                            </div>
                           </div>
                           <div>
-                            <CardTitle className="text-base">
-                              {location.locationName}
-                            </CardTitle>
-                            <Badge variant="outline" className="mt-1">
-                              {
-                                STORAGE_LOCATION_TYPE_LABELS[
-                                  location.locationType
-                                ]
-                              }
-                            </Badge>
+                            <div className="text-muted-foreground text-xs">
+                              Items Stored
+                            </div>
+                            <div className="text-lg font-bold text-blue-600">
+                              {location.storageItemsCount ?? 0}
+                            </div>
                           </div>
                         </div>
-                        <Badge
-                          variant={location.active ? 'default' : 'secondary'}
-                        >
-                          {location.active ? (
-                            <>
-                              <CheckCircle2 className="mr-1 h-3 w-3" /> Active
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="mr-1 h-3 w-3" /> Inactive
-                            </>
-                          )}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {location.address && (
-                        <div className="text-muted-foreground text-sm">
-                          <MapPin className="mr-1 inline h-3 w-3" />
-                          {location.address}
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-muted-foreground text-xs">
-                            Capacity
-                          </div>
-                          <div className="text-lg font-bold">
-                            {location.capacity?.toLocaleString() ?? '—'}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-muted-foreground text-xs">
-                            Items Stored
-                          </div>
-                          <div className="text-lg font-bold text-blue-600">
-                            {location.storageItemsCount ?? 0}
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </CardContent>
+            <div className="flex items-center justify-between border-t px-4 py-2">
+              <span className="text-sm text-zinc-500">
+                {filteredLocations.length === 0 ? 0 : startIndex + 1}–{endIndex}{' '}
+                of {filteredLocations.length} location
+                {filteredLocations.length === 1 ? '' : 's'}
+              </span>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
             </div>
-          </CardContent>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </Card>
-      ) : (
-        <Card>
+          </>
+        ) : (
           <CardContent>
-            <Empty variant="inline">
+            <Empty variant="default">
               <EmptyMedia variant="icon">
                 <MapPin className="size-6" />
               </EmptyMedia>
               <EmptyHeader>
                 <EmptyTitle>No locations found</EmptyTitle>
                 <EmptyDescription>
-                  Try adjusting your filters or add a new location.
+                  {hasActiveFilters
+                    ? 'Try adjusting your filters or add a new location.'
+                    : 'Get started by adding your first storage location.'}
                 </EmptyDescription>
               </EmptyHeader>
               <Button asChild>
@@ -397,31 +427,8 @@ export default function LocationsPage() {
               </Button>
             </Empty>
           </CardContent>
-        </Card>
-      )}
+        )}
+      </Card>
     </div>
   );
 }
-
-const getTypeColor = (type: StorageLocationType) => {
-  switch (type) {
-    case StorageLocationType.GODOWN: {
-      return 'bg-blue-100 text-blue-600';
-    }
-    case StorageLocationType.HEAD_OFFICE: {
-      return 'bg-purple-100 text-purple-600';
-    }
-    case StorageLocationType.PROJECT_SITE: {
-      return 'bg-green-100 text-green-600';
-    }
-    case StorageLocationType.WAREHOUSE: {
-      return 'bg-yellow-100 text-yellow-600';
-    }
-    case StorageLocationType.PROCESSING_PLANT: {
-      return 'bg-orange-100 text-orange-600';
-    }
-    default: {
-      return 'bg-gray-100 text-gray-600';
-    }
-  }
-};
