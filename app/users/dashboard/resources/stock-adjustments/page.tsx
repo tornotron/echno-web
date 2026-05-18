@@ -61,6 +61,31 @@ export default function StockAdjustmentsPage() {
     isError,
   } = useStockAdjustments();
 
+  const [prevFilters, setPrevFilters] = useState({
+    searchQuery,
+    typeFilter,
+    statusFilter,
+    reasonFilter,
+    itemsPerPage,
+  });
+
+  if (
+    prevFilters.searchQuery !== searchQuery ||
+    prevFilters.typeFilter !== typeFilter ||
+    prevFilters.statusFilter !== statusFilter ||
+    prevFilters.reasonFilter !== reasonFilter ||
+    prevFilters.itemsPerPage !== itemsPerPage
+  ) {
+    setPrevFilters({
+      searchQuery,
+      typeFilter,
+      statusFilter,
+      reasonFilter,
+      itemsPerPage,
+    });
+    setCurrentPage(1);
+  }
+
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adj) => {
       const matchesSearch =
@@ -81,7 +106,8 @@ export default function StockAdjustmentsPage() {
   }, [stockAdjustments, searchQuery, typeFilter, statusFilter, reasonFilter]);
 
   const totalPages = Math.ceil(filteredAdjustments.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
+  const startIndex = (safePage - 1) * itemsPerPage;
   const endIndex = Math.min(
     startIndex + itemsPerPage,
     filteredAdjustments.length
@@ -124,7 +150,7 @@ export default function StockAdjustmentsPage() {
     );
   }
 
-  if (isError) {
+  if (isError && stockAdjustments.length === 0) {
     return (
       <Empty variant="default">
         <EmptyErrorMedia>
@@ -442,7 +468,7 @@ export default function StockAdjustmentsPage() {
                 adjustment{filteredAdjustments.length === 1 ? '' : 's'}
               </span>
               <Pagination
-                currentPage={currentPage}
+                currentPage={safePage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
               />
