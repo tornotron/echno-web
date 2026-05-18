@@ -42,6 +42,7 @@ import {
 } from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useSiteTransfers } from '@/hooks/site-transfers';
+import { TransferRow } from '@/features/resources/components';
 import {
   SiteTransferStatus,
   siteTransferStatusLabels,
@@ -289,41 +290,15 @@ export default function SiteTransfersPage() {
                 </TableHeader>
                 <TableBody>
                   {paginated.map((t) => (
-                    <TableRow
+                    <TransferRow
                       key={t.id}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+                      transfer={t}
                       onClick={() =>
                         router.push(
                           routes.resources.transfers.detail(t.id).href
                         )
                       }
-                    >
-                      <TableCell className="pl-6 font-medium">
-                        {t.transferNumber}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {format(new Date(t.issueDate), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {t.sendingPerson.name}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {t.sendingProjectName ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {t.receivingProjectName ?? '—'}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground text-sm">
-                        {t.items.length}
-                      </TableCell>
-                      <TableCell className="pr-6">
-                        <Badge
-                          className={siteTransferStatusBadgeColors[t.status]}
-                        >
-                          {siteTransferStatusLabels[t.status]}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                    />
                   ))}
                 </TableBody>
               </Table>
