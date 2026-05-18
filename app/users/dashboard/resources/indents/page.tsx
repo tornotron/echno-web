@@ -44,6 +44,7 @@ import {
 } from '@/components/shadcn/empty';
 import { format } from 'date-fns';
 import { useIndentsPaginated } from '@/hooks/indents';
+import { IndentRow } from '@/features/resources/components';
 import {
   IndentStatus,
   indentStatusLabels,
@@ -314,74 +315,17 @@ export default function IndentsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginated.map((indent) => {
-                    const convertedCount = indent.items.filter(
-                      (it) => it.convertedToPurchaseOrder
-                    ).length;
-                    return (
-                      <TableRow
-                        key={indent.id}
-                        role="link"
-                        tabIndex={0}
-                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
-                        onClick={() =>
-                          router.push(
-                            routes.resources.indents.detail(indent.id).href
-                          )
-                        }
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ')
-                            router.push(
-                              routes.resources.indents.detail(indent.id).href
-                            );
-                        }}
-                      >
-                        <TableCell className="pl-6 font-medium">
-                          {indent.indentNumber}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            className={indentStatusBadgeColors[indent.status]}
-                          >
-                            {indentStatusLabels[indent.status]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {indent.projectName ? (
-                            <span className="flex items-center gap-1.5 text-sm">
-                              <FolderOpen className="h-3.5 w-3.5 text-zinc-400" />
-                              {indent.projectName}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">
-                              —
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-sm">
-                            {indent.items.length}
-                            {convertedCount > 0 && (
-                              <span className="text-muted-foreground ml-1">
-                                ({convertedCount} converted)
-                              </span>
-                            )}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground text-sm">
-                          {indent.expectedOn
-                            ? format(
-                                new Date(indent.expectedOn),
-                                'MMM dd, yyyy'
-                              )
-                            : '—'}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground pr-6 text-sm">
-                          {indent.createdBy.name}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                  {paginated.map((indent) => (
+                    <IndentRow
+                      key={indent.id}
+                      indent={indent}
+                      onClick={() =>
+                        router.push(
+                          routes.resources.indents.detail(indent.id).href
+                        )
+                      }
+                    />
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
