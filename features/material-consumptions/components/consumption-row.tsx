@@ -22,8 +22,14 @@ interface ConsumptionRowProps {
 export function ConsumptionRow({ consumption, onClick }: ConsumptionRowProps) {
   return (
     <TableRow
+      role="button"
+      tabIndex={0}
       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === ' ') { e.preventDefault(); onClick(); }
+        else if (e.key === 'Enter') onClick();
+      }}
     >
       <TableCell className="text-muted-foreground pl-6 text-sm">
         {format(new Date(consumption.consumptionDate), 'MMM dd, yyyy')}

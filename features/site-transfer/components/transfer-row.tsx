@@ -15,8 +15,14 @@ interface TransferRowProps {
 export function TransferRow({ transfer, onClick }: TransferRowProps) {
   return (
     <TableRow
+      role="button"
+      tabIndex={0}
       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === ' ') { e.preventDefault(); onClick(); }
+        else if (e.key === 'Enter') onClick();
+      }}
     >
       <TableCell className="pl-6 font-medium">
         {transfer.transferNumber}
