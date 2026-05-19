@@ -24,7 +24,14 @@ import {
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { mockLabour, getLabourById } from '@/components/shared/mock-data';
+import { getLabourById } from '@/components/shared/mock-data';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 const typeLabels: Record<string, string> = {
   daily: 'Daily Wage',
@@ -61,7 +68,26 @@ interface PageProps {
 export default function LabourDetailPage({ params }: PageProps) {
   const { id } = params;
   const labourId = Number.parseInt(id);
-  const labour = getLabourById(labourId) || mockLabour[0];
+  const labour = getLabourById(labourId);
+
+  if (!labour) {
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <HardHat className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Labour record not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.thirdParty.labour.href}>Back to Labour</Link>
+        </Button>
+      </Empty>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
