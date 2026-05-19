@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { ArrowLeft, Save } from 'lucide-react';
-import Link from 'next/link';
+import { Save } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewLabourPage() {
@@ -76,22 +76,10 @@ export default function NewLabourPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href={routes.thirdParty.labour.href}>
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Add New Labour
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Enter new labour details
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Add New Labour"
+        description="Enter new labour details"
+      />
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
