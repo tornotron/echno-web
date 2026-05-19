@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { Save, HardHat } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { getLabourById } from '@/components/shared/mock-data';
 import {
@@ -106,17 +107,12 @@ export default function LabourFormPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {isEdit ? 'Edit Labour' : 'Add New Labour'}
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            {isEdit ? 'Update labour information' : 'Enter new labour details'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={isEdit ? 'Edit Labour' : 'Add New Labour'}
+        description={
+          isEdit ? 'Update labour information' : 'Enter new labour details'
+        }
+      />
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
