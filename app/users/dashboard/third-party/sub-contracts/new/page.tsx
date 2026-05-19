@@ -32,6 +32,7 @@ import {
   Trash2,
   TrendingUp,
 } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 
 interface Milestone {
   name: string;
@@ -137,17 +138,10 @@ export default function SubContractNewPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Add New Sub-Contract
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Fill in the details to add a new sub-contract
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Add New Sub-Contract"
+        description="Fill in the details to add a new sub-contract"
+      />
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
