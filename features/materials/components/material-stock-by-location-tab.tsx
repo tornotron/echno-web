@@ -437,6 +437,10 @@ export function MaterialStockByLocationTab({
                       !isEmpty &&
                       reorderLevel !== undefined &&
                       ls.stock <= reorderLevel;
+                    let stockClass = '';
+                    if (isEmpty) stockClass = 'text-zinc-400';
+                    else if (isLow)
+                      stockClass = 'text-amber-600 dark:text-amber-400';
                     return (
                       <TableRow key={key}>
                         <TableCell
@@ -459,13 +463,7 @@ export function MaterialStockByLocationTab({
                         </TableCell>
                         <TableCell className="text-right">
                           <span
-                            className={`font-semibold tabular-nums ${
-                              isEmpty
-                                ? 'text-zinc-400'
-                                : isLow
-                                  ? 'text-amber-600 dark:text-amber-400'
-                                  : ''
-                            }`}
+                            className={`font-semibold tabular-nums ${stockClass}`}
                           >
                             {ls.stock} {unit}
                           </span>
