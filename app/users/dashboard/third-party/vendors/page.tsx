@@ -3,12 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import {
   Select,
   SelectContent,
@@ -17,7 +12,6 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
-  Package,
   Plus,
   Building2,
   TrendingUp,
@@ -27,6 +21,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { PageHeader } from '@/components/common';
 import { useVendorsPaginated } from '@/hooks/vendors';
 import {
   VendorStatus,
@@ -94,88 +89,86 @@ export default function VendorsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="flex items-center gap-3 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            <Package className="h-8 w-8" />
-            Vendor Management
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Manage suppliers and service providers
-          </p>
-        </div>
-        <Button size="sm" asChild>
-          <Link href={routes.thirdParty.vendors.new}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Vendor
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Vendor Management"
+        description="Manage suppliers and service providers"
+        actions={
+          <Button size="sm" asChild>
+            <Link href={routes.thirdParty.vendors.new}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Vendor
+            </Link>
+          </Button>
+        }
+      />
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Vendors</CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Statistics */}
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Vendors
+            </p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/20">
-                <Building2 className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <p className="text-2xl font-bold tracking-tight">{stats.total}</p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <Building2 className="size-4 text-blue-600 dark:text-blue-400" />
               </div>
-              <span className="text-2xl font-bold">{stats.total}</span>
             </div>
-            <p className="mt-2 text-xs text-zinc-500">Registered vendors</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Active Vendors</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              Registered vendors
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Active Vendors
+            </p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                <TrendingUp className="h-6 w-6 text-green-600 dark:text-green-400" />
+              <p className="text-2xl font-bold tracking-tight">
+                {stats.active}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <TrendingUp className="size-4 text-green-600 dark:text-green-400" />
               </div>
-              <span className="text-2xl font-bold">{stats.active}</span>
             </div>
-            <p className="mt-2 text-xs text-zinc-500">Currently active</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Purchase</CardDescription>
-          </CardHeader>
-          <CardContent>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              Currently active
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Purchase
+            </p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/20">
-                <ShoppingCart className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <span className="text-2xl font-bold">
+              <p className="text-2xl font-bold tracking-tight">
                 ₹{(stats.totalPurchase / 1_000_000).toFixed(1)}M
-              </span>
-            </div>
-            <p className="mt-2 text-xs text-zinc-500">Lifetime value</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Outstanding</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                <DollarSign className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950/30">
+                <ShoppingCart className="size-4 text-purple-600 dark:text-purple-400" />
               </div>
-              <span className="text-2xl font-bold">
-                ₹{(stats.totalOutstanding / 100_000).toFixed(1)}L
-              </span>
             </div>
-            <p className="mt-2 text-xs text-zinc-500">Pending payments</p>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              Lifetime value
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Outstanding
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight">
+                ₹{(stats.totalOutstanding / 100_000).toFixed(1)}L
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <DollarSign className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              Pending payments
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Search & Filters */}
       <div className="flex flex-col gap-3 sm:flex-row">

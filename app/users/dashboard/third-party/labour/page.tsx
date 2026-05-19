@@ -4,12 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import {
@@ -184,84 +179,71 @@ export default function LabourPage() {
         }
       />
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Labour</CardDescription>
-          </CardHeader>
-          <CardContent>
+      {/* Statistics */}
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Labour
+            </p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
-                <Users className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              <p className="text-2xl font-bold tracking-tight">{stats.total}</p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-950/30">
+                <Users className="size-4 text-indigo-600 dark:text-indigo-400" />
               </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {stats.total}
-              </span>
             </div>
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-500">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
               Registered workers
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Active Workers</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Active Workers
+            </p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-2xl font-bold tracking-tight">
                 {stats.active}
-              </span>
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <UserCheck className="size-4 text-green-600 dark:text-green-400" />
+              </div>
             </div>
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-500">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
               Currently working
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>Total Outstanding</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Outstanding
+            </p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/20">
-                <DollarSign className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-2xl font-bold tracking-tight">
                 ₹{stats.totalDue.toLocaleString()}
-              </span>
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <DollarSign className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-500">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
               Pending payments
             </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardDescription>On Leave</CardDescription>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">On Leave</p>
             <div className="flex items-center justify-between">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-100 dark:bg-yellow-900/20">
-                <TrendingUp className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+              <p className="text-2xl font-bold tracking-tight">
                 {stats.onLeave}
-              </span>
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                <TrendingUp className="size-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
             </div>
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-500">
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
               Currently absent
             </p>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </div>
+      </Card>
 
       {/* Search and Filters */}
       <SearchAndFilter
