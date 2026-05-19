@@ -31,6 +31,13 @@ import {
   AlertDialogTitle,
 } from '@/components/shadcn/alert-dialog';
 import { Edit, Mail, Phone, Plus, Star, Trash2 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { PhoneDisplay, PhoneInput } from '@/components/shadcn/phone-input';
 import {
   useVendorContacts,
@@ -107,9 +114,17 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
         </CardHeader>
         <CardContent>
           {contacts.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-400">
-              No contacts yet. Add a contact person for this vendor.
-            </p>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <Phone className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No contacts yet</EmptyTitle>
+                <EmptyDescription>
+                  Add a contact person for this vendor.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="space-y-3">
               {contacts.map((c) => (
