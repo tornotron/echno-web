@@ -23,6 +23,7 @@ import {
 } from '@/components/shadcn/select';
 import { toast } from '@/lib/styles/toast-styles';
 import { Building2, Save, X } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { useUpdateVendor } from '@/hooks/vendors';
 import {
   VendorType,
@@ -83,14 +84,10 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Edit Vendor
-        </h1>
-        <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-          Update vendor information{form.name ? ` for ${form.name}` : ''}
-        </p>
-      </div>
+      <PageHeader
+        title="Edit Vendor"
+        description={`Update vendor information${form.name ? ` for ${form.name}` : ''}`}
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Company Information */}
