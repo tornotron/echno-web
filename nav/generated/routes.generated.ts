@@ -5,7 +5,7 @@
  * Run `pnpm routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-05-14
+ * Generated: 2026-05-19
  */
 
 import type { RouteNode } from '../types';
@@ -613,6 +613,14 @@ export const ROUTE_TREE: RouteNode = {
         isDynamic: false,
         isCatchAll: false,
         children: [
+            {
+              id: 'resources-materials-all-materials',
+              segment: 'all-materials',
+              path: '/users/dashboard/resources/materials/all-materials',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [],
+            },
             {
               id: 'resources-materials-new',
               segment: 'new',
