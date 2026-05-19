@@ -42,6 +42,13 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { mockLabour } from '@/components/shared/mock-data';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 const typeLabels = {
   daily: 'Daily Wage',
@@ -352,11 +359,21 @@ export default function LabourPage() {
       {/* Mobile Card View */}
       <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
         {paginatedLabour.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-zinc-500">
-              No labour records found
-            </CardContent>
-          </Card>
+          <div className="py-4">
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <HardHat className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No labour records found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'Try adjusting your search or filters.'
+                    : 'Add your first labour record to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
+          </div>
         ) : (
           paginatedLabour.map((labour) => (
             <Card
@@ -425,137 +442,149 @@ export default function LabourPage() {
       {/* Labour Table */}
       <Card className="hidden lg:block">
         <CardContent className="p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-12">
-                  <Checkbox
-                    checked={isAllSelected}
-                    onCheckedChange={handleSelectAll}
-                    aria-label="Select all"
-                    className={
-                      isSomeSelected ? 'data-[state=checked]:bg-primary/50' : ''
-                    }
-                  />
-                </TableHead>
-                <TableHead>Name & Contact</TableHead>
-                <TableHead>Trade</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Rate</TableHead>
-                <TableHead>Project</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Outstanding</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedLabour.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="py-8 text-center text-zinc-500"
-                  >
-                    No labour records found
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedLabour.map((labour) => (
-                  <TableRow
-                    key={labour.id}
-                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                    onClick={() =>
-                      router.push(
-                        routes.thirdParty.labour.detail(labour.id).href
-                      )
-                    }
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+          {paginatedLabour.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedIds.includes(labour.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectOne(labour.id, checked as boolean)
+                        checked={isAllSelected}
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                        className={
+                          isSomeSelected
+                            ? 'data-[state=checked]:bg-primary/50'
+                            : ''
                         }
-                        aria-label={`Select ${labour.name}`}
                       />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-orange-600">
-                          <User className="h-5 w-5 text-white" />
+                    </TableHead>
+                    <TableHead>Name & Contact</TableHead>
+                    <TableHead>Trade</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Rate</TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Outstanding</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedLabour.map((labour) => (
+                    <TableRow
+                      key={labour.id}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                      onClick={() =>
+                        router.push(
+                          routes.thirdParty.labour.detail(labour.id).href
+                        )
+                      }
+                    >
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <Checkbox
+                          checked={selectedIds.includes(labour.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectOne(labour.id, checked as boolean)
+                          }
+                          aria-label={`Select ${labour.name}`}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-orange-600">
+                            <User className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {labour.name}
+                            </p>
+                            <PhoneDisplay
+                              value={labour.phone}
+                              className="text-zinc-500 dark:text-zinc-500"
+                            />
+                          </div>
                         </div>
+                      </TableCell>
+                      <TableCell>
                         <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {labour.name}
-                          </p>
-                          <PhoneDisplay
-                            value={labour.phone}
-                            className="text-zinc-500 dark:text-zinc-500"
-                          />
+                          <div>{labour.trade}</div>
+                          <div className="text-xs text-zinc-500">
+                            {
+                              skillLevelLabels[
+                                labour.skillLevel as keyof typeof skillLevelLabels
+                              ]
+                            }
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div>{labour.trade}</div>
-                        <div className="text-xs text-zinc-500">
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {typeLabels[labour.type as keyof typeof typeLabels]}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {labour.dailyRate && `₹${labour.dailyRate}/day`}
+                        {labour.monthlyRate &&
+                          `₹${labour.monthlyRate.toLocaleString()}/mo`}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm">{labour.currentProject}</div>
+                        {labour.contractorName && (
+                          <div className="text-xs text-zinc-500">
+                            {labour.contractorName}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`bg-${statusColors[labour.status as keyof typeof statusColors]}-100 text-${statusColors[labour.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[labour.status as keyof typeof statusColors]}-900 dark:text-${statusColors[labour.status as keyof typeof statusColors]}-300`}
+                        >
                           {
-                            skillLevelLabels[
-                              labour.skillLevel as keyof typeof skillLevelLabels
+                            statusLabels[
+                              labour.status as keyof typeof statusLabels
                             ]
                           }
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {typeLabels[labour.type as keyof typeof typeLabels]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {labour.dailyRate && `₹${labour.dailyRate}/day`}
-                      {labour.monthlyRate &&
-                        `₹${labour.monthlyRate.toLocaleString()}/mo`}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{labour.currentProject}</div>
-                      {labour.contractorName && (
-                        <div className="text-xs text-zinc-500">
-                          {labour.contractorName}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`bg-${statusColors[labour.status as keyof typeof statusColors]}-100 text-${statusColors[labour.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[labour.status as keyof typeof statusColors]}-900 dark:text-${statusColors[labour.status as keyof typeof statusColors]}-300`}
-                      >
-                        {
-                          statusLabels[
-                            labour.status as keyof typeof statusLabels
-                          ]
-                        }
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {labour.totalDue && labour.totalDue > 0 ? (
-                        <span className="font-semibold text-orange-600 dark:text-orange-400">
-                          ₹{labour.totalDue.toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="text-zinc-500">-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          {/* Pagination Controls */}
-          {filteredLabour.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {labour.totalDue && labour.totalDue > 0 ? (
+                          <span className="font-semibold text-orange-600 dark:text-orange-400">
+                            ₹{labour.totalDue.toLocaleString()}
+                          </span>
+                        ) : (
+                          <span className="text-zinc-500">-</span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </>
+          ) : (
+            <div className="py-12">
+              <Empty variant="default">
+                <EmptyMedia variant="icon">
+                  <HardHat className="size-6" />
+                </EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>No labour records found</EmptyTitle>
+                  <EmptyDescription>
+                    {hasActiveFilters
+                      ? 'Try adjusting your search or filters.'
+                      : 'Add your first labour record to get started.'}
+                  </EmptyDescription>
+                </EmptyHeader>
+                {!hasActiveFilters && (
+                  <Button asChild>
+                    <Link href={routes.thirdParty.labour.new}>Add Labour</Link>
+                  </Button>
+                )}
+              </Empty>
+            </div>
           )}
         </CardContent>
       </Card>
