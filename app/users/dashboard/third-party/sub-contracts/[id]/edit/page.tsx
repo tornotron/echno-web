@@ -26,6 +26,7 @@ import { toast } from '@/lib/styles/toast-styles';
 import {
   User,
   FileText,
+  Loader2,
   Save,
   X,
   Plus,
@@ -34,6 +35,7 @@ import {
 } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
+import { useSubContract } from '@/hooks/sub-contracts';
 import {
   Empty,
   EmptyErrorMedia,
@@ -41,59 +43,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-
-// Mock data
-const mockSubContract = {
-  id: 1,
-  contractId: 'SUB-001',
-  contractorName: 'Elite Construction Services',
-  contactPerson: 'Amit Patel',
-  phone: '+91 98765 43210',
-  email: 'amit@eliteconstruction.com',
-  address: '789, Contractor Colony, Sector 15, Noida - 201301',
-  workType: 'construction',
-  status: 'active',
-  contractStatus: 'in-progress',
-  scope: 'Foundation and structural work for Building A',
-  contractValue: 2_500_000,
-  paidAmount: 1_500_000,
-  pendingAmount: 1_000_000,
-  startDate: '2024-01-15',
-  endDate: '2024-06-30',
-  completionPercentage: 60,
-  gstNumber: '09AABCU9603R1ZX',
-  panNumber: 'AABCU9603R',
-  bankAccount: '1234567890',
-  bankName: 'ICICI Bank',
-  ifscCode: 'ICIC0001234',
-  contractDate: '2024-01-10',
-  paymentTerms: 'milestone',
-  milestones: [
-    {
-      name: 'Foundation Work',
-      percentage: 30,
-      amount: 750_000,
-      status: 'completed',
-      date: '2024-02-28',
-    },
-    {
-      name: 'Ground Floor Structure',
-      percentage: 40,
-      amount: 1_000_000,
-      status: 'completed',
-      date: '2024-04-15',
-    },
-    {
-      name: 'First Floor Structure',
-      percentage: 30,
-      amount: 750_000,
-      status: 'in-progress',
-      date: '2024-06-30',
-    },
-  ],
-  notes:
-    'Experienced contractor with good track record. Regular progress updates provided.',
-};
+import type { SubContract } from '@/types/third-party/sub-contract';
 
 interface Milestone {
   name: string;
@@ -105,43 +55,23 @@ interface Milestone {
 
 export default function SubContractEditPage() {
   const params = useParams();
-  const router = useRouter();
   const isEditMode = params.id !== 'new';
-  const subContractData = isEditMode
-    ? (mockSubContract as typeof mockSubContract | null)
-    : null;
+  const contractId = isEditMode ? Number(params.id) : 0;
+  const {
+    data: subContractData,
+    isLoading,
+    isError,
+  } = useSubContract(contractId);
 
-  const [formData, setFormData] = useState(
-    subContractData ?? {
-      contractId: '',
-      contractorName: '',
-      contactPerson: '',
-      phone: '',
-      email: '',
-      address: '',
-      workType: 'construction',
-      status: 'active',
-      contractStatus: 'draft',
-      scope: '',
-      contractValue: 0,
-      paidAmount: 0,
-      pendingAmount: 0,
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: '',
-      completionPercentage: 0,
-      gstNumber: '',
-      panNumber: '',
-      bankAccount: '',
-      bankName: '',
-      ifscCode: '',
-      contractDate: new Date().toISOString().split('T')[0],
-      paymentTerms: 'milestone',
-      milestones: [] as Milestone[],
-      notes: '',
-    }
-  );
+  if (isEditMode && isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
-  if (isEditMode && !subContractData) {
+  if (isEditMode && (isError || !subContractData)) {
     return (
       <Empty variant="default">
         <EmptyErrorMedia>
@@ -162,12 +92,100 @@ export default function SubContractEditPage() {
     );
   }
 
+  return (
+    <SubContractEditForm
+      initialData={subContractData}
+      isEditMode={isEditMode}
+      id={params.id as string}
+    />
+  );
+}
+
+interface SubContractEditFormProps {
+  initialData?: SubContract;
+  isEditMode: boolean;
+  id: string;
+}
+
+function SubContractEditForm({
+  initialData,
+  isEditMode,
+  id,
+}: SubContractEditFormProps) {
+  const router = useRouter();
+
+  const [formData, setFormData] = useState<{
+    contractId: string;
+    contractorName: string;
+    contactPerson: string;
+    phone: string;
+    email: string;
+    address: string;
+    status: string;
+    scope: string;
+    contractValue: number;
+    totalPaid: number;
+    totalDue: number;
+    startDate: string;
+    endDate: string;
+    completionPercentage: number;
+    gstNumber: string;
+    panNumber: string;
+    accountNumber: string;
+    bankName: string;
+    ifscCode: string;
+    paymentTerms: string;
+    milestones: Milestone[];
+    notes: string;
+  }>(() => ({
+    contractId: initialData?.contractId ?? '',
+    contractorName: initialData?.contractorName ?? '',
+    contactPerson: initialData?.contactPerson ?? '',
+    phone: initialData?.phone ?? '',
+    email: initialData?.email ?? '',
+    address: initialData?.address ?? '',
+    status: initialData?.status ?? 'active',
+    scope: initialData?.scope ?? '',
+    contractValue: initialData?.contractValue ?? 0,
+    totalPaid: initialData?.totalPaid ?? 0,
+    totalDue: initialData?.totalDue ?? 0,
+    startDate:
+      initialData?.startDate instanceof Date
+        ? initialData.startDate.toISOString().split('T')[0]
+        : initialData?.startDate
+          ? String(initialData.startDate)
+          : new Date().toISOString().split('T')[0],
+    endDate:
+      initialData?.endDate instanceof Date
+        ? initialData.endDate.toISOString().split('T')[0]
+        : initialData?.endDate
+          ? String(initialData.endDate)
+          : '',
+    completionPercentage: initialData?.completionPercentage ?? 0,
+    gstNumber: initialData?.gstNumber ?? '',
+    panNumber: initialData?.panNumber ?? '',
+    accountNumber: initialData?.accountNumber ?? '',
+    bankName: initialData?.bankName ?? '',
+    ifscCode: initialData?.ifscCode ?? '',
+    paymentTerms: initialData?.paymentTerms ?? 'milestone',
+    milestones: (initialData?.milestones ?? []).map((m) => ({
+      name: m.name,
+      percentage: m.paymentPercentage,
+      amount: m.amount,
+      status: m.status,
+      date:
+        m.targetDate instanceof Date
+          ? m.targetDate.toISOString().split('T')[0]
+          : String(m.targetDate),
+    })),
+    notes: initialData?.notes ?? '',
+  }));
+
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => {
       const updated = { ...prev, [field]: value };
-      // Auto-calculate pending amount
-      if (field === 'contractValue' || field === 'paidAmount') {
-        updated.pendingAmount = updated.contractValue - updated.paidAmount;
+      if (field === 'contractValue' || field === 'totalPaid') {
+        updated.totalDue = updated.contractValue - updated.totalPaid;
       }
       return updated;
     });
@@ -202,8 +220,6 @@ export default function SubContractEditPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Basic validation
     if (
       !formData.contractorName ||
       !formData.contactPerson ||
@@ -213,8 +229,6 @@ export default function SubContractEditPage() {
       toast.error('Please fill in all required fields');
       return;
     }
-
-    // Simulate API call
     setTimeout(() => {
       toast.success(
         isEditMode
@@ -228,7 +242,7 @@ export default function SubContractEditPage() {
   const handleCancel = () => {
     router.push(
       isEditMode
-        ? routes.thirdParty.subContracts.detail(params.id as string).href
+        ? routes.thirdParty.subContracts.detail(id).href
         : routes.thirdParty.subContracts.href
     );
   };
@@ -320,30 +334,6 @@ export default function SubContractEditPage() {
                       required
                     />
                   </div>
-                  <div>
-                    <Label htmlFor="workType">Work Type *</Label>
-                    <Select
-                      value={formData.workType}
-                      onValueChange={(value) =>
-                        handleInputChange('workType', value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="construction">
-                          Construction
-                        </SelectItem>
-                        <SelectItem value="electrical">Electrical</SelectItem>
-                        <SelectItem value="plumbing">Plumbing</SelectItem>
-                        <SelectItem value="painting">Painting</SelectItem>
-                        <SelectItem value="hvac">HVAC</SelectItem>
-                        <SelectItem value="landscaping">Landscaping</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="address">Address *</Label>
                     <Textarea
@@ -389,38 +379,6 @@ export default function SubContractEditPage() {
                         <SelectItem value="completed">Completed</SelectItem>
                       </SelectContent>
                     </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="contractStatus">Contract Status *</Label>
-                    <Select
-                      value={formData.contractStatus}
-                      onValueChange={(value) =>
-                        handleInputChange('contractStatus', value)
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="cancelled">Cancelled</SelectItem>
-                        <SelectItem value="onhold">On Hold</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="contractDate">Contract Date *</Label>
-                    <Input
-                      id="contractDate"
-                      type="date"
-                      value={formData.contractDate}
-                      onChange={(e) =>
-                        handleInputChange('contractDate', e.target.value)
-                      }
-                      required
-                    />
                   </div>
                   <div>
                     <Label htmlFor="paymentTerms">Payment Terms *</Label>
@@ -531,14 +489,14 @@ export default function SubContractEditPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="paidAmount">Paid Amount (₹)</Label>
+                    <Label htmlFor="totalPaid">Paid Amount (₹)</Label>
                     <Input
-                      id="paidAmount"
+                      id="totalPaid"
                       type="number"
-                      value={formData.paidAmount}
+                      value={formData.totalPaid}
                       onChange={(e) =>
                         handleInputChange(
-                          'paidAmount',
+                          'totalPaid',
                           Number.parseFloat(e.target.value) || 0
                         )
                       }
@@ -546,22 +504,22 @@ export default function SubContractEditPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="pendingAmount">Pending Amount (₹)</Label>
+                    <Label htmlFor="totalDue">Outstanding Amount (₹)</Label>
                     <Input
-                      id="pendingAmount"
+                      id="totalDue"
                       type="number"
-                      value={formData.pendingAmount}
+                      value={formData.totalDue}
                       disabled
                       placeholder="Auto-calculated"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="bankAccount">Bank Account Number</Label>
+                    <Label htmlFor="accountNumber">Bank Account Number</Label>
                     <Input
-                      id="bankAccount"
-                      value={formData.bankAccount}
+                      id="accountNumber"
+                      value={formData.accountNumber}
                       onChange={(e) =>
-                        handleInputChange('bankAccount', e.target.value)
+                        handleInputChange('accountNumber', e.target.value)
                       }
                       placeholder="1234567890"
                     />
