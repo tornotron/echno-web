@@ -28,6 +28,7 @@ import {
   Clock,
   LucideIcon,
 } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -178,35 +179,32 @@ export default function SubContractDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {subContract.contractorName}
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Contract ID: {subContract.contractId}
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link
-              href={routes.thirdParty.subContracts.detail(subContract.id).edit}
+      <PageHeader
+        title={subContract.contractorName}
+        description={`Contract ID: ${subContract.contractId}`}
+        actions={
+          <>
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={
+                  routes.thirdParty.subContracts.detail(subContract.id).edit
+                }
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700"
             >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-red-600 hover:text-red-700"
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
-        </div>
-      </div>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </>
+        }
+      />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Info */}

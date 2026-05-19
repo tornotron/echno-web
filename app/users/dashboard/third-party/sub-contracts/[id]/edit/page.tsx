@@ -32,6 +32,7 @@ import {
   Trash2,
   TrendingUp,
 } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import {
   Empty,
@@ -234,19 +235,14 @@ export default function SubContractEditPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {isEditMode ? 'Edit Sub-Contract' : 'Add New Sub-Contract'}
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            {isEditMode
-              ? `Update sub-contract information for ${formData.contractorName}`
-              : 'Fill in the details to add a new sub-contract'}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title={isEditMode ? 'Edit Sub-Contract' : 'Add New Sub-Contract'}
+        description={
+          isEditMode
+            ? `Update sub-contract information for ${formData.contractorName}`
+            : 'Fill in the details to add a new sub-contract'
+        }
+      />
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
