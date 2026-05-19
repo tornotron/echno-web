@@ -32,6 +32,13 @@ import {
 } from '@/components/shadcn/alert-dialog';
 import { CreditCard, Edit, Landmark, Plus, Star, Trash2 } from 'lucide-react';
 import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
+import {
   useVendorBankAccounts,
   useAddVendorBankAccount,
   useUpdateVendorBankAccount,
@@ -108,9 +115,17 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
         </CardHeader>
         <CardContent>
           {bankAccounts.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-400">
-              No bank accounts added yet.
-            </p>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <Landmark className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No bank accounts yet</EmptyTitle>
+                <EmptyDescription>
+                  Add a bank account for this vendor.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="space-y-3">
               {bankAccounts.map((b) => (
