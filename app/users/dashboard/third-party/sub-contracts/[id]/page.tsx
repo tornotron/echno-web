@@ -31,6 +31,13 @@ import {
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 // Mock data - replace with actual API call
 const mockSubContract = {
@@ -146,10 +153,28 @@ interface PageProps {
 
 export default function SubContractDetailPage({ params }: PageProps) {
   use(params);
-  // The router import was unused and has been removed.
-  // The useState for subContract was unused and has been removed.
-  // Assuming `subContract` should directly use `mockSubContract` for now.
   const subContract = mockSubContract;
+
+  if (!subContract) {
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <FileText className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Sub-contract not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.thirdParty.subContracts.href}>
+            Back to Sub-Contracts
+          </Link>
+        </Button>
+      </Empty>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
