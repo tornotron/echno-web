@@ -27,6 +27,7 @@ import {
   Plus,
   Download,
   FileText,
+  Loader2,
   TrendingUp,
   DollarSign,
   CheckCircle,
@@ -38,9 +39,10 @@ import {
 import { format, differenceInDays } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { mockSubContracts } from '@/components/shared/mock-data';
+import { useSubContracts } from '@/hooks/sub-contracts';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
@@ -96,6 +98,7 @@ const getProgressColor = (percentage: number) => {
 
 export default function SubContractsPage() {
   const router = useRouter();
+  const { data: contracts = [], isLoading, isError } = useSubContracts();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -112,11 +115,11 @@ export default function SubContractsPage() {
 
   // Get unique projects for filter
   const uniqueProjects = [
-    ...new Set(mockSubContracts.map((c) => c.projectName).filter(Boolean)),
+    ...new Set(contracts.map((c) => c.projectName).filter(Boolean)),
   ].toSorted();
 
   // Filter data
-  const filteredContracts = mockSubContracts.filter((contract) => {
+  const filteredContracts = contracts.filter((contract) => {
     const matchesSearch =
       contract.contractName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       contract.contractId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -161,10 +164,10 @@ export default function SubContractsPage() {
 
   // Statistics
   const stats = {
-    total: mockSubContracts.length,
-    active: mockSubContracts.filter((c) => c.status === 'active').length,
-    totalValue: mockSubContracts.reduce((sum, c) => sum + c.contractValue, 0),
-    totalOutstanding: mockSubContracts.reduce((sum, c) => sum + c.totalDue, 0),
+    total: contracts.length,
+    active: contracts.filter((c) => c.status === 'active').length,
+    totalValue: contracts.reduce((sum, c) => sum + c.contractValue, 0),
+    totalOutstanding: contracts.reduce((sum, c) => sum + c.totalDue, 0),
   };
 
   return (
@@ -354,184 +357,215 @@ export default function SubContractsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {paginatedContracts.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={isAllSelected}
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Contract Details</TableHead>
-                  <TableHead>Contractor</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Progress</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Outstanding</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedContracts.map((contract) => {
-                  const daysRemaining = differenceInDays(
-                    contract.endDate,
-                    new Date()
-                  );
-                  const isNearDeadline =
-                    daysRemaining > 0 && daysRemaining <= 30;
-
-                  return (
-                    <TableRow
-                      key={contract.id}
-                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                      onClick={() =>
-                        router.push(
-                          routes.thirdParty.subContracts.detail(contract.id)
-                            .href
-                        )
-                      }
-                    >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+          {(() => {
+            if (isLoading)
+              return (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+                </div>
+              );
+            if (isError)
+              return (
+                <CardContent>
+                  <Empty variant="default">
+                    <EmptyErrorMedia>
+                      <FileText className="size-6" />
+                    </EmptyErrorMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>Failed to load sub-contracts</EmptyTitle>
+                      <EmptyDescription>
+                        An unexpected error occurred. Please try again.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </CardContent>
+              );
+            if (paginatedContracts.length > 0)
+              return (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
                         <Checkbox
-                          checked={selectedIds.includes(contract.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectOne(contract.id, checked as boolean)
-                          }
-                          aria-label={`Select ${contract.contractId}`}
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all"
                         />
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium">
-                            {contract.contractName}
-                          </div>
-                          <div className="text-sm text-zinc-500">
-                            {contract.projectName}
-                          </div>
-                          <div className="mt-1 flex items-center space-x-1 text-xs text-zinc-400">
-                            <Clock className="h-3 w-3" />
-                            <span>
-                              {format(contract.endDate, 'MMM d, yyyy')}
-                            </span>
-                            {isNearDeadline && (
-                              <AlertCircle className="ml-1 h-3 w-3 text-orange-500" />
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                            <User className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {contract.contractorName}
-                            </p>
-                            <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                              {contract.contactPerson}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {typeLabels[contract.type as keyof typeof typeLabels]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="w-full">
-                          <div className="mb-1 flex items-center justify-between">
-                            <span className="text-sm font-medium">
-                              {contract.completionPercentage}%
-                            </span>
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700">
-                            <div
-                              className={`h-2 rounded-full ${getProgressColor(contract.completionPercentage)}`}
-                              style={{
-                                width: `${contract.completionPercentage}%`,
-                              }}
+                      </TableHead>
+                      <TableHead>Contract Details</TableHead>
+                      <TableHead>Contractor</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Outstanding</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedContracts.map((contract) => {
+                      const daysRemaining = differenceInDays(
+                        contract.endDate,
+                        new Date()
+                      );
+                      const isNearDeadline =
+                        daysRemaining > 0 && daysRemaining <= 30;
+
+                      return (
+                        <TableRow
+                          key={contract.id}
+                          className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                          onClick={() =>
+                            router.push(
+                              routes.thirdParty.subContracts.detail(contract.id)
+                                .href
+                            )
+                          }
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.includes(contract.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectOne(contract.id, checked as boolean)
+                              }
+                              aria-label={`Select ${contract.contractId}`}
                             />
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="font-semibold text-blue-600 dark:text-blue-400">
-                          ₹{(contract.contractValue / 100_000).toFixed(1)}L
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                          Paid: ₹{(contract.totalPaid / 100_000).toFixed(1)}L
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {contract.totalDue > 0 ? (
-                          <span className="font-semibold text-orange-600 dark:text-orange-400">
-                            ₹{(contract.totalDue / 100_000).toFixed(1)}L
-                          </span>
-                        ) : (
-                          <span className="text-green-600 dark:text-green-400">
-                            Paid
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <Badge
-                            className={`bg-${statusColors[contract.status as keyof typeof statusColors]}-100 text-${statusColors[contract.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[contract.status as keyof typeof statusColors]}-900 dark:text-${statusColors[contract.status as keyof typeof statusColors]}-300`}
-                          >
-                            {
-                              statusLabels[
-                                contract.status as keyof typeof statusLabels
-                              ]
-                            }
-                          </Badge>
-                          <div>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs bg-${paymentStatusColors[contract.paymentStatus as keyof typeof paymentStatusColors]}-50 border-${paymentStatusColors[contract.paymentStatus as keyof typeof paymentStatusColors]}-200`}
-                            >
+                          </TableCell>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">
+                                {contract.contractName}
+                              </div>
+                              <div className="text-sm text-zinc-500">
+                                {contract.projectName}
+                              </div>
+                              <div className="mt-1 flex items-center space-x-1 text-xs text-zinc-400">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                  {format(contract.endDate, 'MMM d, yyyy')}
+                                </span>
+                                {isNearDeadline && (
+                                  <AlertCircle className="ml-1 h-3 w-3 text-orange-500" />
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                                <User className="h-5 w-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {contract.contractorName}
+                                </p>
+                                <p className="text-sm text-zinc-500 dark:text-zinc-500">
+                                  {contract.contactPerson}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
                               {
-                                paymentStatusLabels[
-                                  contract.paymentStatus as keyof typeof paymentStatusLabels
+                                typeLabels[
+                                  contract.type as keyof typeof typeLabels
                                 ]
                               }
                             </Badge>
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          ) : (
-            <CardContent>
-              <Empty variant="default">
-                <EmptyMedia variant="icon">
-                  <FileText className="size-6" />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>No contracts found</EmptyTitle>
-                  <EmptyDescription>
-                    {hasActiveFilters
-                      ? 'Try adjusting your search or filters.'
-                      : 'Add your first sub-contract to get started.'}
-                  </EmptyDescription>
-                </EmptyHeader>
-                {!hasActiveFilters && (
-                  <Button asChild>
-                    <Link href={routes.thirdParty.subContracts.new}>
-                      New Contract
-                    </Link>
-                  </Button>
-                )}
-              </Empty>
-            </CardContent>
-          )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="w-full">
+                              <div className="mb-1 flex items-center justify-between">
+                                <span className="text-sm font-medium">
+                                  {contract.completionPercentage}%
+                                </span>
+                              </div>
+                              <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-700">
+                                <div
+                                  className={`h-2 rounded-full ${getProgressColor(contract.completionPercentage)}`}
+                                  style={{
+                                    width: `${contract.completionPercentage}%`,
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-semibold text-blue-600 dark:text-blue-400">
+                              ₹{(contract.contractValue / 100_000).toFixed(1)}L
+                            </div>
+                            <div className="text-xs text-zinc-500">
+                              Paid: ₹{(contract.totalPaid / 100_000).toFixed(1)}
+                              L
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {contract.totalDue > 0 ? (
+                              <span className="font-semibold text-orange-600 dark:text-orange-400">
+                                ₹{(contract.totalDue / 100_000).toFixed(1)}L
+                              </span>
+                            ) : (
+                              <span className="text-green-600 dark:text-green-400">
+                                Paid
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="space-y-1">
+                              <Badge
+                                className={`bg-${statusColors[contract.status as keyof typeof statusColors]}-100 text-${statusColors[contract.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[contract.status as keyof typeof statusColors]}-900 dark:text-${statusColors[contract.status as keyof typeof statusColors]}-300`}
+                              >
+                                {
+                                  statusLabels[
+                                    contract.status as keyof typeof statusLabels
+                                  ]
+                                }
+                              </Badge>
+                              <div>
+                                <Badge
+                                  variant="outline"
+                                  className={`text-xs bg-${paymentStatusColors[contract.paymentStatus as keyof typeof paymentStatusColors]}-50 border-${paymentStatusColors[contract.paymentStatus as keyof typeof paymentStatusColors]}-200`}
+                                >
+                                  {
+                                    paymentStatusLabels[
+                                      contract.paymentStatus as keyof typeof paymentStatusLabels
+                                    ]
+                                  }
+                                </Badge>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              );
+            return (
+              <CardContent>
+                <Empty variant="default">
+                  <EmptyMedia variant="icon">
+                    <FileText className="size-6" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No contracts found</EmptyTitle>
+                    <EmptyDescription>
+                      {hasActiveFilters
+                        ? 'Try adjusting your search or filters.'
+                        : 'Add your first sub-contract to get started.'}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {!hasActiveFilters && (
+                    <Button asChild>
+                      <Link href={routes.thirdParty.subContracts.new}>
+                        New Contract
+                      </Link>
+                    </Button>
+                  )}
+                </Empty>
+              </CardContent>
+            );
+          })()}
         </CardContent>
         <div className="flex items-center justify-between border-t px-4 py-2">
           <span className="text-sm text-zinc-500">
