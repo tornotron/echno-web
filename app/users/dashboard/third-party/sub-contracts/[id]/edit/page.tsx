@@ -149,18 +149,19 @@ function SubContractEditForm({
     contractValue: initialData?.contractValue ?? 0,
     totalPaid: initialData?.totalPaid ?? 0,
     totalDue: initialData?.totalDue ?? 0,
-    startDate:
-      initialData?.startDate instanceof Date
+    startDate: (() => {
+      if (!initialData?.startDate)
+        return new Date().toISOString().split('T')[0];
+      return initialData.startDate instanceof Date
         ? initialData.startDate.toISOString().split('T')[0]
-        : initialData?.startDate
-          ? String(initialData.startDate)
-          : new Date().toISOString().split('T')[0],
-    endDate:
-      initialData?.endDate instanceof Date
+        : String(initialData.startDate);
+    })(),
+    endDate: (() => {
+      if (!initialData?.endDate) return '';
+      return initialData.endDate instanceof Date
         ? initialData.endDate.toISOString().split('T')[0]
-        : initialData?.endDate
-          ? String(initialData.endDate)
-          : '',
+        : String(initialData.endDate);
+    })(),
     completionPercentage: initialData?.completionPercentage ?? 0,
     gstNumber: initialData?.gstNumber ?? '',
     panNumber: initialData?.panNumber ?? '',
