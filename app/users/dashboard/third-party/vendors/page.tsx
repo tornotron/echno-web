@@ -2,52 +2,22 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/shadcn/button';
-import { Input } from '@/components/shadcn/input';
 import { Card } from '@/components/shadcn/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
 import {
   Plus,
   Building2,
   TrendingUp,
   DollarSign,
   ShoppingCart,
-  Search,
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { PageHeader } from '@/components/common';
 import { useVendorsPaginated } from '@/hooks/vendors';
-import {
-  VendorStatus,
-  VendorType,
-  VENDOR_TYPE_LABELS,
-  VENDOR_STATUS_LABELS,
-} from '@/types/vendor';
+import { VendorStatus } from '@/types/vendor';
 import { VendorTable } from '@/features/vendor';
 
 const PAGE_SIZE = 10;
-
-const STATUS_OPTIONS = [
-  { value: 'all', label: 'All Statuses' },
-  ...Object.values(VendorStatus).map((s) => ({
-    value: s,
-    label: VENDOR_STATUS_LABELS[s],
-  })),
-];
-
-const TYPE_OPTIONS = [
-  { value: 'all', label: 'All Types' },
-  ...Object.values(VendorType).map((t) => ({
-    value: t,
-    label: VENDOR_TYPE_LABELS[t],
-  })),
-];
 
 export default function VendorsPage() {
   const [pageNo, setPageNo] = useState(0);
@@ -83,9 +53,6 @@ export default function VendorsPage() {
       0
     ),
   };
-
-  const hasFilters =
-    search !== '' || statusFilter !== 'all' || typeFilter !== 'all';
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -170,58 +137,6 @@ export default function VendorsPage() {
         </div>
       </Card>
 
-      {/* Search & Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute top-2.5 left-3 h-4 w-4" />
-          <Input
-            placeholder="Search by name or email..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPageNo(0);
-            }}
-            className="pl-9"
-          />
-        </div>
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => {
-            setStatusFilter(v);
-            setPageNo(0);
-          }}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={typeFilter}
-          onValueChange={(v) => {
-            setTypeFilter(v);
-            setPageNo(0);
-          }}
-        >
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {TYPE_OPTIONS.map((o) => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Table */}
       <VendorTable
         vendors={filtered}
@@ -230,9 +145,23 @@ export default function VendorsPage() {
         error={error instanceof Error ? error : null}
         pageNo={pageNo}
         pageSize={PAGE_SIZE}
-        hasFilters={hasFilters}
         onPageChange={setPageNo}
         onRetry={() => setPageNo(0)}
+        searchValue={search}
+        onSearchChange={(v) => {
+          setSearch(v);
+          setPageNo(0);
+        }}
+        statusFilter={statusFilter}
+        onStatusFilterChange={(v) => {
+          setStatusFilter(v);
+          setPageNo(0);
+        }}
+        typeFilter={typeFilter}
+        onTypeFilterChange={(v) => {
+          setTypeFilter(v);
+          setPageNo(0);
+        }}
       />
     </div>
   );

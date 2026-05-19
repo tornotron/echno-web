@@ -1,11 +1,20 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { routes } from '@/nav';
 import { Pagination } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcn/select';
 import {
   Table,
   TableBody,
@@ -14,8 +23,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { Building2, Loader2 } from 'lucide-react';
-import { getVendorTypeLabel } from '@/types/vendor';
+import { Building2, Loader2, Search } from 'lucide-react';
+import {
+  getVendorTypeLabel,
+  VendorStatus,
+  VendorType,
+  VENDOR_STATUS_LABELS,
+  VENDOR_TYPE_LABELS,
+} from '@/types/vendor';
 import type { Vendor } from '@/types/vendor';
 import { VendorAvatar } from './vendor-avatar';
 import { VendorStatusBadge } from './vendor-status-badge';
@@ -28,6 +43,22 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 
+const STATUS_OPTIONS = [
+  { value: 'all', label: 'All Statuses' },
+  ...Object.values(VendorStatus).map((s) => ({
+    value: s,
+    label: VENDOR_STATUS_LABELS[s],
+  })),
+];
+
+const TYPE_OPTIONS = [
+  { value: 'all', label: 'All Types' },
+  ...Object.values(VendorType).map((t) => ({
+    value: t,
+    label: VENDOR_TYPE_LABELS[t],
+  })),
+];
+
 interface VendorTableProps {
   vendors: Vendor[];
   isLoading: boolean;
@@ -35,9 +66,14 @@ interface VendorTableProps {
   error?: Error | null;
   pageNo: number;
   pageSize: number;
-  hasFilters: boolean;
   onPageChange: (pageNo: number) => void;
   onRetry: () => void;
+  searchValue: string;
+  onSearchChange: (v: string) => void;
+  statusFilter: string;
+  onStatusFilterChange: (v: string) => void;
+  typeFilter: string;
+  onTypeFilterChange: (v: string) => void;
 }
 
 export function VendorTable({
@@ -47,15 +83,61 @@ export function VendorTable({
   error,
   pageNo,
   pageSize,
-  hasFilters,
   onPageChange,
   onRetry,
+  searchValue,
+  onSearchChange,
+  statusFilter,
+  onStatusFilterChange,
+  typeFilter,
+  onTypeFilterChange,
 }: VendorTableProps) {
   const router = useRouter();
+  const hasFilters =
+    searchValue !== '' || statusFilter !== 'all' || typeFilter !== 'all';
+
+  const toolbar = (
+    <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
+      <div className="relative w-full max-w-xs">
+        <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+        <Input
+          value={searchValue}
+          onChange={(e) => onSearchChange(e.target.value)}
+          placeholder="Search by name or email..."
+          className="h-8 pl-8 text-sm"
+        />
+      </div>
+      <Select value={statusFilter} onValueChange={onStatusFilterChange}>
+        <SelectTrigger className="h-8 w-36 text-xs">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          {STATUS_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Select value={typeFilter} onValueChange={onTypeFilterChange}>
+        <SelectTrigger className="h-8 w-36 text-xs">
+          <SelectValue placeholder="Type" />
+        </SelectTrigger>
+        <SelectContent>
+          {TYPE_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value}>
+              {o.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </CardHeader>
+  );
 
   if (isLoading) {
     return (
       <Card>
+        {toolbar}
         <CardContent className="flex justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
         </CardContent>
@@ -66,7 +148,8 @@ export function VendorTable({
   if (isError) {
     return (
       <Card>
-        <CardContent className="py-12">
+        {toolbar}
+        <CardContent>
           <Empty variant="default">
             <EmptyErrorMedia>
               <Building2 className="size-6" />
@@ -91,7 +174,8 @@ export function VendorTable({
   if (vendors.length === 0) {
     return (
       <Card>
-        <CardContent className="py-12">
+        {toolbar}
+        <CardContent>
           <Empty variant="default">
             <EmptyMedia variant="icon">
               <Building2 className="size-6" />
@@ -104,6 +188,11 @@ export function VendorTable({
                   : 'Add your first vendor to get started.'}
               </EmptyDescription>
             </EmptyHeader>
+            {!hasFilters && (
+              <Button asChild>
+                <Link href={routes.thirdParty.vendors.new}>Add Vendor</Link>
+              </Button>
+            )}
           </Empty>
         </CardContent>
       </Card>
@@ -112,6 +201,7 @@ export function VendorTable({
 
   return (
     <Card>
+      {toolbar}
       <CardContent className="p-0">
         <Table>
           <TableHeader>
@@ -180,12 +270,14 @@ export function VendorTable({
             ))}
           </TableBody>
         </Table>
+      </CardContent>
+      <div className="flex justify-end border-t px-4 py-2">
         <Pagination
           currentPage={pageNo + 1}
           totalPages={vendors.length < pageSize ? pageNo + 1 : pageNo + 2}
           onPageChange={(p) => onPageChange(p - 1)}
         />
-      </CardContent>
+      </div>
     </Card>
   );
 }
