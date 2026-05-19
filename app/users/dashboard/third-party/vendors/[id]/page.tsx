@@ -12,6 +12,7 @@ import {
   TabsTrigger,
 } from '@/components/shadcn/tabs';
 import { Edit, Building2, Loader2 } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import {
   Empty,
   EmptyErrorMedia,
@@ -98,27 +99,22 @@ export default function VendorDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            {vendor.name}
-          </h1>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
+      <PageHeader
+        title={vendor.name}
+        actions={
+          <>
             <VendorStatusBadge status={vendor.status} />
             {vendor.type && (
               <Badge variant="outline">{getVendorTypeLabel(vendor.type)}</Badge>
             )}
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={routes.thirdParty.vendors.detail(vendor.id).edit}>
-              <Edit className="mr-2 h-4 w-4" /> Edit
-            </Link>
-          </Button>
-        </div>
-      </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link href={routes.thirdParty.vendors.detail(vendor.id).edit}>
+                <Edit className="mr-2 h-4 w-4" /> Edit
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       <Tabs defaultValue="overview">
         <TabsList className="w-full">
