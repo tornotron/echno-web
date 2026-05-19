@@ -114,7 +114,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
   return (
     <Card className="gap-0 py-0">
       {/* Search & filter bar */}
-      <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-1">
+      <CardHeader className="flex flex-row items-center gap-3 border-b px-4 py-6">
         <div className="relative w-full max-w-xs">
           <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
           <Input
