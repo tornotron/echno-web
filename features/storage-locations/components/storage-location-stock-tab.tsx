@@ -299,12 +299,25 @@ export function StorageLocationStockTab({
                   {paginatedMaterials.map((m) => (
                     <TableRow
                       key={m.materialId}
-                      className="cursor-pointer"
+                      role="button"
+                      tabIndex={0}
+                      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                       onClick={() =>
                         router.push(
                           routes.resources.materials.detail(m.materialId).href
                         )
                       }
+                      onKeyDown={(e) => {
+                        if (e.key === ' ') {
+                          e.preventDefault();
+                          router.push(
+                            routes.resources.materials.detail(m.materialId).href
+                          );
+                        } else if (e.key === 'Enter')
+                          router.push(
+                            routes.resources.materials.detail(m.materialId).href
+                          );
+                      }}
                     >
                       <TableCell
                         className="pl-5"

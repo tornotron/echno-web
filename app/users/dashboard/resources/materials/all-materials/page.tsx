@@ -45,8 +45,12 @@ export default function AllMaterialsPage() {
     });
   }, [materials, searchQuery, unitFilter]);
 
-  const totalPages = Math.ceil(filteredMaterials.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredMaterials.length / itemsPerPage)
+  );
+  const safePage = Math.min(currentPage, totalPages);
+  const startIndex = (safePage - 1) * itemsPerPage;
   const paginated = filteredMaterials.slice(
     startIndex,
     startIndex + itemsPerPage
@@ -161,7 +165,7 @@ export default function AllMaterialsPage() {
           setItemsPerPage(n);
           setCurrentPage(1);
         }}
-        currentPage={currentPage}
+        currentPage={safePage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         hasActiveFilters={hasActiveFilters}

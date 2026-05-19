@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   Layers,
   WarehouseIcon,
-  BarChart2,
+  Ruler,
   ChevronRight,
   ClipboardList,
   ShoppingCart,
@@ -47,17 +47,8 @@ export function MaterialsKpiStrip({ materials }: MaterialsKpiStripProps) {
     0
   );
 
-  const availPairs = materials.filter(
-    (m) =>
-      m.maxStock !== undefined && m.maxStock > 0 && m.currentStock !== undefined
-  );
-  const avgAvailability =
-    availPairs.length > 0
-      ? availPairs.reduce(
-          (s, m) => s + ((m.currentStock ?? 0) / m.maxStock!) * 100,
-          0
-        ) / availPairs.length
-      : null;
+  const uniqueUnits = new Set(materials.map((m) => m.unit).filter(Boolean))
+    .size;
 
   return (
     <Card className="gap-0 p-6">
@@ -98,23 +89,21 @@ export function MaterialsKpiStrip({ materials }: MaterialsKpiStripProps) {
           </p>
         </div>
 
-        {/* Avg. Stock Availability */}
+        {/* Unique Units */}
         <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Avg. Stock Availability
+            Unique Units
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
-              {avgAvailability === null
-                ? '—'
-                : `${Math.round(avgAvailability)}%`}
+              {uniqueUnits}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
-              <BarChart2 className="size-4 text-green-600 dark:text-green-400" />
+              <Ruler className="size-4 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            across all materials
+            material unit types
           </p>
         </div>
 
