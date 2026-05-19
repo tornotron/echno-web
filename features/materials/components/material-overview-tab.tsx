@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   Info,
   WarehouseIcon,
-  TrendingDown,
+  BarChart3,
+  IndianRupee,
 } from 'lucide-react';
 import { useMaterialStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
 import type { Material } from '@/types/materials';
@@ -39,71 +40,107 @@ export function MaterialOverviewTab({ material }: MaterialOverviewTabProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Metric Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Current Stock</p>
-            <WarehouseIcon className="h-4 w-4 text-blue-600" />
-          </div>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${isLowStock ? 'text-red-600 dark:text-red-400' : ''}`}
-            >
-              {currentStock === undefined ? '—' : currentStock}
-            </div>
-            <p className="text-muted-foreground text-xs">{material.unit}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Stock Value</p>
-            <TrendingDown className="h-4 w-4 text-green-600" />
-          </div>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {material.stockValue === undefined
-                ? '—'
-                : `₹${material.stockValue.toLocaleString('en-IN')}`}
-            </div>
-            <p className="text-muted-foreground text-xs">Total stock value</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">MOQ</p>
-            <ShoppingCart className="h-4 w-4 text-orange-600" />
-          </div>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-600">
-              {material.moq === undefined ? '—' : material.moq}
-            </div>
-            <p className="text-muted-foreground text-xs">Min. order quantity</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <div className="flex flex-row items-center justify-between space-y-0 p-6 pb-2">
-            <p className="text-sm font-medium">Reorder Level</p>
-            <AlertTriangle
-              className={`h-4 w-4 ${isLowStock ? 'text-red-600' : 'text-zinc-400'}`}
-            />
-          </div>
-          <CardContent>
-            <div
-              className={`text-2xl font-bold ${isLowStock ? 'text-red-600 dark:text-red-400' : ''}`}
-            >
-              {material.reorderLevel === undefined
-                ? '—'
-                : material.reorderLevel}
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Trigger reorder below this
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Current Stock
             </p>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center justify-between">
+              <p
+                className={`text-2xl font-bold tracking-tight ${
+                  isLowStock
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-zinc-900 dark:text-zinc-100'
+                }`}
+              >
+                {currentStock === undefined ? '—' : currentStock}
+              </p>
+              <div
+                className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                  isLowStock
+                    ? 'bg-red-50 dark:bg-red-950/30'
+                    : 'bg-zinc-100 dark:bg-zinc-800'
+                }`}
+              >
+                <WarehouseIcon
+                  className={`size-4 ${isLowStock ? 'text-red-600 dark:text-red-400' : 'text-zinc-600 dark:text-zinc-400'}`}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              {material.unit}
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Stock Value
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {material.stockValue === undefined
+                  ? '—'
+                  : `₹${material.stockValue.toLocaleString('en-IN')}`}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <BarChart3 className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              total stock value
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">MOQ</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
+                {material.moq === undefined ? '—' : material.moq}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
+                <IndianRupee className="size-4 text-orange-600 dark:text-orange-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              min. order quantity
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Reorder Level
+            </p>
+            <div className="flex items-center justify-between">
+              <p
+                className={`text-2xl font-bold tracking-tight ${
+                  isLowStock
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-zinc-900 dark:text-zinc-100'
+                }`}
+              >
+                {material.reorderLevel === undefined
+                  ? '—'
+                  : material.reorderLevel}
+              </p>
+              <div
+                className={`flex size-8 shrink-0 items-center justify-center rounded-lg ${
+                  isLowStock
+                    ? 'bg-red-50 dark:bg-red-950/30'
+                    : 'bg-zinc-100 dark:bg-zinc-800'
+                }`}
+              >
+                <AlertTriangle
+                  className={`size-4 ${isLowStock ? 'text-red-600 dark:text-red-400' : 'text-zinc-400'}`}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              trigger reorder below this
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Details + Sidebar */}
       <div className="grid gap-6 lg:grid-cols-3">
