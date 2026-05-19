@@ -22,9 +22,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { Save } from 'lucide-react';
+import { Save, HardHat } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
 import { getLabourById } from '@/components/shared/mock-data';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
+import Link from 'next/link';
 import { format } from 'date-fns';
 
 export default function LabourFormPage() {
@@ -57,7 +65,24 @@ export default function LabourFormPage() {
     emergencyContactPhone: mockLabourData?.emergencyContactPhone || '',
   });
 
-  // No useEffect needed since we initialize state above
+  if (isEdit && !mockLabourData) {
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <HardHat className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Labour record not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.thirdParty.labour.href}>Back to Labour</Link>
+        </Button>
+      </Empty>
+    );
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
