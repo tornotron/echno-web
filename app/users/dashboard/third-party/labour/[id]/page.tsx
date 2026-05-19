@@ -11,6 +11,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   Edit,
+  Loader2,
   Trash2,
   Phone,
   Mail,
@@ -25,7 +26,7 @@ import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { getLabourById } from '@/components/shared/mock-data';
+import { useLabourById } from '@/hooks/labour';
 import {
   Empty,
   EmptyErrorMedia,
@@ -69,9 +70,17 @@ interface PageProps {
 export default function LabourDetailPage({ params }: PageProps) {
   const { id } = params;
   const labourId = Number.parseInt(id);
-  const labour = getLabourById(labourId);
+  const { data: labour, isLoading, isError } = useLabourById(labourId);
 
-  if (!labour) {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
+  if (isError || !labour) {
     return (
       <Empty variant="default">
         <EmptyErrorMedia>
