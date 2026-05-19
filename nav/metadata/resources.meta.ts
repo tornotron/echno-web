@@ -62,6 +62,10 @@ export const resourcesMetadata = {
     icon: Warehouse,
     order: 1,
   },
+  'resources-materials-all-materials': {
+    label: 'All Materials',
+    sidebarHidden: true,
+  },
   'resources-materials-new': { label: 'New Material', sidebarHidden: true },
   'resources-materials-[id]': { label: 'Material', sidebarHidden: true },
   'resources-materials-[id]-edit': { label: 'Edit', sidebarHidden: true },
