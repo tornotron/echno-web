@@ -3,9 +3,12 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
+import { Checkbox } from '@/components/shadcn/checkbox';
+import { Input } from '@/components/shadcn/input';
+import { Pagination } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -21,14 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { Pagination, SearchAndFilter } from '@/components/common';
-import {
-  Loader2,
-  Package,
-  ExternalLink,
-  BarChart3,
-  Layers,
-} from 'lucide-react';
+import { Loader2, Package, BarChart3, Layers, Search } from 'lucide-react';
 import {
   Empty,
   EmptyMedia,
@@ -40,9 +36,7 @@ import { useStorageLocationStock } from '@/hooks/inventory-transactions/use-inve
 import { useProjects } from '@/hooks/project/use-projects';
 import type { LocationMaterialStock } from '@/types/inventory-transactions';
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 function StockStatusBadge({ stock }: { stock: number }) {
   if (stock === 0) {
@@ -58,10 +52,6 @@ function StockStatusBadge({ stock }: { stock: number }) {
     </Badge>
   );
 }
-
-// ---------------------------------------------------------------------------
-// Component
-// ---------------------------------------------------------------------------
 
 interface StorageLocationStockTabProps {
   storageLocationId: number;
@@ -79,9 +69,8 @@ export function StorageLocationStockTab({
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  // The endpoint returns a projectId at root (the location's associated project).
-  // Use it to pre-select the project filter when the location belongs to a project.
   const locationProjectId = locationStock?.projectId;
   const locationProjectName = projects.find(
     (p) => p.id === locationProjectId
@@ -105,6 +94,7 @@ export function StorageLocationStockTab({
 
   const totalPages = Math.ceil(filteredMaterials.length / perPage);
   const startIndex = (page - 1) * perPage;
+  const endIndex = Math.min(startIndex + perPage, filteredMaterials.length);
   const paginatedMaterials = filteredMaterials.slice(
     startIndex,
     startIndex + perPage
@@ -112,7 +102,22 @@ export function StorageLocationStockTab({
 
   const hasActiveFilters = !!search || projectFilter !== 'all';
 
-  // ---------------------------------------------------------------------------
+  const isAllSelected =
+    paginatedMaterials.length > 0 &&
+    paginatedMaterials.every((m) => selectedIds.includes(m.materialId));
+  const isSomeSelected =
+    !isAllSelected &&
+    paginatedMaterials.some((m) => selectedIds.includes(m.materialId));
+
+  const handleSelectAll = (checked: boolean) => {
+    setSelectedIds(checked ? paginatedMaterials.map((m) => m.materialId) : []);
+  };
+
+  const handleSelectOne = (id: number, checked: boolean) => {
+    setSelectedIds((prev) =>
+      checked ? [...prev, id] : prev.filter((x) => x !== id)
+    );
+  };
 
   if (isLoading) {
     return (
@@ -209,160 +214,176 @@ export function StorageLocationStockTab({
         </div>
       </Card>
 
-      {/* Filters */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={search}
-        onSearchChange={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
-        searchPlaceholder="Search materials..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={() => {
-          setSearch('');
-          setProjectFilter('all');
-          setPage(1);
-        }}
-        filters={[
-          {
-            placeholder: 'All Projects',
-            options: [
-              { value: 'all', label: 'All Projects' },
-              ...projects.map((p) => ({
-                value: p.id.toString(),
-                label: p.projectName,
-              })),
-            ],
-            value: projectFilter,
-            onChange: (v) => {
-              setProjectFilter(v);
-              setPage(1);
-            },
-            width: 'w-full sm:w-[220px]',
-          },
-        ]}
-      />
-
-      {/* Results summary + rows per page */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {filteredMaterials.length === 0 ? 0 : startIndex + 1} to{' '}
-          {Math.min(startIndex + perPage, filteredMaterials.length)} of{' '}
-          {filteredMaterials.length} materials
-        </p>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Table */}
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search materials…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
           <Select
-            value={perPage.toString()}
+            value={projectFilter}
             onValueChange={(v) => {
-              setPerPage(Number(v));
+              setProjectFilter(v);
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-40 text-xs">
+              <SelectValue placeholder="All Projects" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projects.map((p) => (
+                <SelectItem key={p.id} value={p.id.toString()}>
+                  {p.projectName}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(perPage)}
+              onValueChange={(v) => {
+                setPerPage(Number(v));
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
 
-      {/* Table */}
-      <Card>
-        <CardContent className="p-0">
-          {paginatedMaterials.length === 0 ? (
-            <Empty variant="inline">
+        {paginatedMaterials.length > 0 ? (
+          <>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12 pl-5">
+                      <Checkbox
+                        checked={
+                          isSomeSelected ? 'indeterminate' : isAllSelected
+                        }
+                        onCheckedChange={handleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <TableHead>Material</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead className="text-right">Stock</TableHead>
+                    <TableHead className="text-right">Stock Value</TableHead>
+                    <TableHead className="pr-6 text-right">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedMaterials.map((m) => (
+                    <TableRow
+                      key={m.materialId}
+                      className="cursor-pointer"
+                      onClick={() =>
+                        router.push(
+                          routes.resources.materials.detail(m.materialId).href
+                        )
+                      }
+                    >
+                      <TableCell
+                        className="pl-5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Checkbox
+                          checked={selectedIds.includes(m.materialId)}
+                          onCheckedChange={(checked) =>
+                            handleSelectOne(m.materialId, checked as boolean)
+                          }
+                          aria-label={`Select ${m.materialName}`}
+                        />
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {m.materialName}
+                      </TableCell>
+                      <TableCell className="text-zinc-600 dark:text-zinc-400">
+                        {m.unit}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        <span
+                          className={`font-semibold ${m.stock === 0 ? 'text-zinc-400' : ''}`}
+                        >
+                          {m.stock.toLocaleString()}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right text-zinc-700 tabular-nums dark:text-zinc-300">
+                        ₹{m.stockValue.toLocaleString('en-IN')}
+                      </TableCell>
+                      <TableCell className="pr-6 text-right">
+                        <StockStatusBadge stock={m.stock} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <div className="flex items-center justify-between border-t px-4 py-2">
+              <span className="text-sm text-zinc-500">
+                {filteredMaterials.length === 0 ? 0 : startIndex + 1}–{endIndex}{' '}
+                of {filteredMaterials.length} material
+                {filteredMaterials.length === 1 ? '' : 's'}
+              </span>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+              />
+            </div>
+          </>
+        ) : (
+          <CardContent>
+            <Empty variant="default">
               <EmptyMedia variant="icon">
                 <Package className="size-6" />
               </EmptyMedia>
               <EmptyHeader>
                 <EmptyTitle>No materials match your search</EmptyTitle>
                 <EmptyDescription>
-                  Try adjusting your filters or search terms.
+                  {hasActiveFilters
+                    ? 'Try adjusting your filters or search terms.'
+                    : 'No materials are stored at this location yet.'}
                 </EmptyDescription>
               </EmptyHeader>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearch('');
-                  setProjectFilter('all');
-                  setPage(1);
-                }}
-              >
-                Clear filters
-              </Button>
+              {hasActiveFilters && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSearch('');
+                    setProjectFilter('all');
+                    setPage(1);
+                  }}
+                >
+                  Clear filters
+                </Button>
+              )}
             </Empty>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Material</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Stock Value</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                  <TableHead className="text-right">View</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedMaterials.map((m) => (
-                  <TableRow key={m.materialId}>
-                    <TableCell className="font-medium">
-                      {m.materialName}
-                    </TableCell>
-                    <TableCell className="text-zinc-600 dark:text-zinc-400">
-                      {m.unit}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">
-                      <span
-                        className={`font-semibold ${m.stock === 0 ? 'text-zinc-400' : ''}`}
-                      >
-                        {m.stock.toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right text-zinc-700 tabular-nums dark:text-zinc-300">
-                      ₹{m.stockValue.toLocaleString('en-IN')}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <StockStatusBadge stock={m.stock} />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 gap-1.5 text-xs"
-                        aria-label="View material"
-                        onClick={() =>
-                          router.push(
-                            routes.resources.materials.detail(m.materialId).href
-                          )
-                        }
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-
-        {totalPages > 1 && (
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-          />
+          </CardContent>
         )}
       </Card>
     </>

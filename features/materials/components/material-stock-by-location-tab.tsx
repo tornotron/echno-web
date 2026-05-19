@@ -1,9 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
+import { Checkbox } from '@/components/shadcn/checkbox';
+import { Input } from '@/components/shadcn/input';
+import { Pagination } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -25,7 +28,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import {
   Loader2,
   WarehouseIcon,
@@ -35,6 +44,9 @@ import {
   ArrowRight,
   ArrowLeft,
   Minus,
+  Search,
+  BarChart3,
+  Layers,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -59,6 +71,8 @@ const TX_TYPE_OPTIONS = [
     label: inventoryTransactionTypeLabels[v],
   })),
 ];
+
+const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
 function getTransferCounterpart(
   type: InventoryTransactionType,
@@ -127,6 +141,7 @@ export function MaterialStockByLocationTab({
   const [locSearch, setLocSearch] = useState('');
   const [locPage, setLocPage] = useState(1);
   const [locPerPage, setLocPerPage] = useState(10);
+  const [locSelectedIds, setLocSelectedIds] = useState<string[]>([]);
 
   const [selectedLocation, setSelectedLocation] =
     useState<LocationStock | null>(null);
@@ -136,6 +151,7 @@ export function MaterialStockByLocationTab({
   const [txDateTo, setTxDateTo] = useState('');
   const [txPage, setTxPage] = useState(1);
   const [txPerPage, setTxPerPage] = useState(10);
+  const [txSelectedIds, setTxSelectedIds] = useState<number[]>([]);
 
   // ── Locations filtering / pagination ──────────────────────────────────────
 
@@ -151,10 +167,35 @@ export function MaterialStockByLocationTab({
 
   const locTotalPages = Math.ceil(filteredLocations.length / locPerPage);
   const locStartIndex = (locPage - 1) * locPerPage;
+  const locEndIndex = Math.min(
+    locStartIndex + locPerPage,
+    filteredLocations.length
+  );
   const paginatedLocations = filteredLocations.slice(
     locStartIndex,
     locStartIndex + locPerPage
   );
+
+  const locRowKey = (ls: LocationStock) =>
+    `${ls.projectId}-${ls.storageLocationId}`;
+
+  const isAllLocSelected =
+    paginatedLocations.length > 0 &&
+    paginatedLocations.every((ls) => locSelectedIds.includes(locRowKey(ls)));
+  const isSomeLocSelected =
+    !isAllLocSelected &&
+    paginatedLocations.some((ls) => locSelectedIds.includes(locRowKey(ls)));
+
+  const handleLocSelectAll = (checked: boolean) => {
+    setLocSelectedIds(
+      checked ? paginatedLocations.map((ls) => locRowKey(ls)) : []
+    );
+  };
+  const handleLocSelectOne = (key: string, checked: boolean) => {
+    setLocSelectedIds((prev) =>
+      checked ? [...prev, key] : prev.filter((x) => x !== key)
+    );
+  };
 
   // ── Transaction history ────────────────────────────────────────────────────
 
@@ -183,10 +224,26 @@ export function MaterialStockByLocationTab({
 
   const txTotalPages = Math.ceil(filteredTx.length / txPerPage);
   const txStartIndex = (txPage - 1) * txPerPage;
+  const txEndIndex = Math.min(txStartIndex + txPerPage, filteredTx.length);
   const paginatedTx = filteredTx.slice(txStartIndex, txStartIndex + txPerPage);
   const hasTxActiveFilters = Boolean(
     txSearch || txTypeFilter !== 'all' || txDateFrom || txDateTo
   );
+
+  const isAllTxSelected =
+    paginatedTx.length > 0 &&
+    paginatedTx.every((tx) => txSelectedIds.includes(tx.id));
+  const isSomeTxSelected =
+    !isAllTxSelected && paginatedTx.some((tx) => txSelectedIds.includes(tx.id));
+
+  const handleTxSelectAll = (checked: boolean) => {
+    setTxSelectedIds(checked ? paginatedTx.map((tx) => tx.id) : []);
+  };
+  const handleTxSelectOne = (id: number, checked: boolean) => {
+    setTxSelectedIds((prev) =>
+      checked ? [...prev, id] : prev.filter((x) => x !== id)
+    );
+  };
 
   function openLocationHistory(ls: LocationStock) {
     setSelectedLocation(ls);
@@ -195,6 +252,7 @@ export function MaterialStockByLocationTab({
     setTxDateFrom('');
     setTxDateTo('');
     setTxPage(1);
+    setTxSelectedIds([]);
   }
 
   function clearTxFilters() {
@@ -218,11 +276,16 @@ export function MaterialStockByLocationTab({
   if (!materialStock || materialStock.locationStock.length === 0) {
     return (
       <Card>
-        <CardContent className="py-12 text-center">
-          <WarehouseIcon className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
-          <p className="text-muted-foreground text-sm">
-            No stock across any location.
-          </p>
+        <CardContent>
+          <Empty variant="default">
+            <EmptyMedia variant="icon">
+              <WarehouseIcon className="size-6" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>No stock found</EmptyTitle>
+              <EmptyDescription>No stock across any location.</EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </CardContent>
       </Card>
     );
@@ -231,101 +294,235 @@ export function MaterialStockByLocationTab({
   return (
     <>
       {/* Summary strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Total Stock</div>
-            <div className="text-lg font-bold">
-              {materialStock.totalStock} {unit}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Total Value</div>
-            <div className="text-lg font-bold">
-              ₹{materialStock.totalStockValue.toLocaleString('en-IN')}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Locations</div>
-            <div className="text-lg font-bold">
-              {materialStock.locationStock.length}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-muted-foreground text-xs">Empty Locations</div>
-            <div className="text-lg font-bold text-zinc-400">
-              {
-                materialStock.locationStock.filter((ls) => ls.stock === 0)
-                  .length
-              }
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <SearchAndFilter
-        variant="card"
-        searchValue={locSearch}
-        onSearchChange={(v) => {
-          setLocSearch(v);
-          setLocPage(1);
-        }}
-        searchPlaceholder="Search by project or location..."
-        hasActiveFilters={!!locSearch}
-        onClearFilters={() => {
-          setLocSearch('');
-          setLocPage(1);
-        }}
-      />
-
-      {/* Results summary + rows-per-page */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {filteredLocations.length === 0 ? 0 : locStartIndex + 1} to{' '}
-          {Math.min(locStartIndex + locPerPage, filteredLocations.length)} of{' '}
-          {filteredLocations.length} locations
-        </p>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
-          <Select
-            value={locPerPage.toString()}
-            onValueChange={(v) => {
-              setLocPerPage(Number(v));
-              setLocPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Card>
-        <CardContent className="p-0">
-          {filteredLocations.length === 0 ? (
-            <div className="py-8 text-center">
-              <p className="text-muted-foreground text-sm">
-                No locations match your search.
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Stock
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {materialStock.totalStock.toLocaleString()} {unit}
               </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <WarehouseIcon className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              across all locations
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Value
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
+                ₹{materialStock.totalStockValue.toLocaleString('en-IN')}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <BarChart3 className="size-4 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              stock value
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Locations
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {materialStock.locationStock.length}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <Layers className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              active locations
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Empty Locations
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-400 dark:text-zinc-500">
+                {
+                  materialStock.locationStock.filter((ls) => ls.stock === 0)
+                    .length
+                }
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <WarehouseIcon className="size-4 text-zinc-400 dark:text-zinc-500" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              no stock held
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      {/* Location table */}
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={locSearch}
+              onChange={(e) => {
+                setLocSearch(e.target.value);
+                setLocPage(1);
+              }}
+              placeholder="Search by project or location…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(locPerPage)}
+              onValueChange={(v) => {
+                setLocPerPage(Number(v));
+                setLocPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        {paginatedLocations.length > 0 ? (
+          <>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12 pl-5">
+                      <Checkbox
+                        checked={
+                          isSomeLocSelected ? 'indeterminate' : isAllLocSelected
+                        }
+                        onCheckedChange={handleLocSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <TableHead>Project</TableHead>
+                    <TableHead>Storage Location</TableHead>
+                    <TableHead className="text-right">Stock</TableHead>
+                    <TableHead className="text-right">Stock Value</TableHead>
+                    <TableHead className="text-right">Status</TableHead>
+                    <TableHead className="pr-6 text-right">History</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedLocations.map((ls) => {
+                    const key = locRowKey(ls);
+                    const isEmpty = ls.stock === 0;
+                    const isLow =
+                      !isEmpty &&
+                      reorderLevel !== undefined &&
+                      ls.stock <= reorderLevel;
+                    return (
+                      <TableRow key={key}>
+                        <TableCell
+                          className="pl-5"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            checked={locSelectedIds.includes(key)}
+                            onCheckedChange={(checked) =>
+                              handleLocSelectOne(key, checked as boolean)
+                            }
+                            aria-label={`Select ${ls.storageLocationName}`}
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {ls.projectName}
+                        </TableCell>
+                        <TableCell className="text-zinc-600 dark:text-zinc-400">
+                          {ls.storageLocationName}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={`font-semibold tabular-nums ${
+                              isEmpty
+                                ? 'text-zinc-400'
+                                : isLow
+                                  ? 'text-amber-600 dark:text-amber-400'
+                                  : ''
+                            }`}
+                          >
+                            {ls.stock} {unit}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right text-zinc-700 tabular-nums dark:text-zinc-300">
+                          ₹{ls.stockValue.toLocaleString('en-IN')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <StockStatusBadge
+                            stock={ls.stock}
+                            reorderLevel={reorderLevel}
+                          />
+                        </TableCell>
+                        <TableCell className="pr-6 text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 gap-1.5 text-xs"
+                            onClick={() => openLocationHistory(ls)}
+                          >
+                            <History className="h-3.5 w-3.5" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+            <div className="flex items-center justify-between border-t px-4 py-2">
+              <span className="text-sm text-zinc-500">
+                {filteredLocations.length === 0 ? 0 : locStartIndex + 1}–
+                {locEndIndex} of {filteredLocations.length} location
+                {filteredLocations.length === 1 ? '' : 's'}
+              </span>
+              <Pagination
+                currentPage={locPage}
+                totalPages={locTotalPages}
+                onPageChange={setLocPage}
+              />
+            </div>
+          </>
+        ) : (
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <WarehouseIcon className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No locations match your search</EmptyTitle>
+                <EmptyDescription>
+                  Try adjusting your search terms.
+                </EmptyDescription>
+              </EmptyHeader>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="mt-2"
                 onClick={() => {
                   setLocSearch('');
                   setLocPage(1);
@@ -333,80 +530,8 @@ export function MaterialStockByLocationTab({
               >
                 Clear search
               </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Storage Location</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Stock Value</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                  <TableHead className="text-right">Track</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedLocations.map((ls) => {
-                  const isEmpty = ls.stock === 0;
-                  const isLow =
-                    !isEmpty &&
-                    reorderLevel !== undefined &&
-                    ls.stock <= reorderLevel;
-                  return (
-                    <TableRow key={`${ls.projectId}-${ls.storageLocationId}`}>
-                      <TableCell className="font-medium">
-                        {ls.projectName}
-                      </TableCell>
-                      <TableCell className="text-zinc-600 dark:text-zinc-400">
-                        {ls.storageLocationName}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span
-                          className={`font-semibold tabular-nums ${
-                            isEmpty
-                              ? 'text-zinc-400'
-                              : isLow
-                                ? 'text-amber-600 dark:text-amber-400'
-                                : ''
-                          }`}
-                        >
-                          {ls.stock} {unit}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right text-zinc-700 tabular-nums dark:text-zinc-300">
-                        ₹{ls.stockValue.toLocaleString('en-IN')}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <StockStatusBadge
-                          stock={ls.stock}
-                          reorderLevel={reorderLevel}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-7 gap-1.5 text-xs"
-                          onClick={() => openLocationHistory(ls)}
-                        >
-                          <History className="h-3.5 w-3.5" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-
-        {locTotalPages > 1 && (
-          <Pagination
-            currentPage={locPage}
-            totalPages={locTotalPages}
-            onPageChange={setLocPage}
-          />
+            </Empty>
+          </CardContent>
         )}
       </Card>
 
@@ -455,112 +580,136 @@ export function MaterialStockByLocationTab({
             </div>
           )}
 
-          <SearchAndFilter
-            variant="card"
-            searchValue={txSearch}
-            onSearchChange={(v) => {
-              setTxSearch(v);
-              setTxPage(1);
-            }}
-            searchPlaceholder="Search by reference or project..."
-            hasActiveFilters={hasTxActiveFilters}
-            onClearFilters={clearTxFilters}
-            filters={[
-              {
-                placeholder: 'All Types',
-                options: TX_TYPE_OPTIONS,
-                value: txTypeFilter,
-                onChange: (v) => {
-                  setTxTypeFilter(v);
-                  setTxPage(1);
-                },
-              },
-              {
-                type: 'date',
-                value: txDateFrom,
-                onChange: (v) => {
-                  setTxDateFrom(v);
-                  setTxPage(1);
-                },
-              },
-              {
-                type: 'date',
-                value: txDateTo,
-                onChange: (v) => {
-                  setTxDateTo(v);
-                  setTxPage(1);
-                },
-              },
-            ]}
-          />
-
           {isLoadingTx ? (
             <div className="flex justify-center py-8">
               <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
             </div>
           ) : locationTransactions.length === 0 ? (
-            <p className="text-muted-foreground py-8 text-center text-sm">
-              No transactions for this location.
-            </p>
+            <Card>
+              <CardContent>
+                <Empty variant="default">
+                  <EmptyMedia variant="icon">
+                    <History className="size-6" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No transactions</EmptyTitle>
+                    <EmptyDescription>
+                      No transactions for this location.
+                    </EmptyDescription>
+                  </EmptyHeader>
+                </Empty>
+              </CardContent>
+            </Card>
           ) : (
-            <>
-              <div className="flex items-center justify-between">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Showing {filteredTx.length === 0 ? 0 : txStartIndex + 1} to{' '}
-                  {Math.min(txStartIndex + txPerPage, filteredTx.length)} of{' '}
-                  {filteredTx.length} transactions
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Rows per page:
+            <Card>
+              <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+                <div className="relative w-full max-w-xs">
+                  <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+                  <Input
+                    value={txSearch}
+                    onChange={(e) => {
+                      setTxSearch(e.target.value);
+                      setTxPage(1);
+                    }}
+                    placeholder="Search by reference or project…"
+                    className="h-8 pl-8 text-sm"
+                  />
+                </div>
+                <Select
+                  value={txTypeFilter}
+                  onValueChange={(v) => {
+                    setTxTypeFilter(v);
+                    setTxPage(1);
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-36 text-xs">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TX_TYPE_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Input
+                  type="date"
+                  value={txDateFrom}
+                  onChange={(e) => {
+                    setTxDateFrom(e.target.value);
+                    setTxPage(1);
+                  }}
+                  className="h-8 w-36 text-xs"
+                />
+                <Input
+                  type="date"
+                  value={txDateTo}
+                  onChange={(e) => {
+                    setTxDateTo(e.target.value);
+                    setTxPage(1);
+                  }}
+                  className="h-8 w-36 text-xs"
+                />
+                {hasTxActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={clearTxFilters}
+                  >
+                    Clear
+                  </Button>
+                )}
+                <div className="ml-auto flex items-center gap-2 border-l pl-3">
+                  <span className="text-xs whitespace-nowrap text-zinc-500">
+                    Rows per page
                   </span>
                   <Select
-                    value={txPerPage.toString()}
+                    value={String(txPerPage)}
                     onValueChange={(v) => {
                       setTxPerPage(Number(v));
                       setTxPage(1);
                     }}
                   >
-                    <SelectTrigger className="w-[70px]">
+                    <SelectTrigger className="h-8 w-16 text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="5">5</SelectItem>
-                      <SelectItem value="10">10</SelectItem>
-                      <SelectItem value="20">20</SelectItem>
-                      <SelectItem value="50">50</SelectItem>
+                      {PAGE_SIZE_OPTIONS.map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+              </CardHeader>
 
-              <Card>
-                <CardContent className="p-0">
-                  {filteredTx.length === 0 ? (
-                    <div className="py-8 text-center">
-                      <p className="text-muted-foreground text-sm">
-                        No transactions match your filters.
-                      </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="mt-2"
-                        onClick={clearTxFilters}
-                      >
-                        Clear filters
-                      </Button>
-                    </div>
-                  ) : (
+              {paginatedTx.length > 0 ? (
+                <>
+                  <CardContent className="p-0">
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead className="w-12 pl-5">
+                            <Checkbox
+                              checked={
+                                isSomeTxSelected
+                                  ? 'indeterminate'
+                                  : isAllTxSelected
+                              }
+                              onCheckedChange={handleTxSelectAll}
+                              aria-label="Select all"
+                            />
+                          </TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Type</TableHead>
                           <TableHead className="text-right">Opening</TableHead>
                           <TableHead className="text-right">Change</TableHead>
                           <TableHead className="text-right">Closing</TableHead>
                           <TableHead>Reference</TableHead>
-                          <TableHead>By</TableHead>
+                          <TableHead className="pr-6">By</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -573,6 +722,18 @@ export function MaterialStockByLocationTab({
                           );
                           return (
                             <TableRow key={tx.id}>
+                              <TableCell
+                                className="pl-5"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Checkbox
+                                  checked={txSelectedIds.includes(tx.id)}
+                                  onCheckedChange={(checked) =>
+                                    handleTxSelectOne(tx.id, checked as boolean)
+                                  }
+                                  aria-label={`Select transaction ${tx.id}`}
+                                />
+                              </TableCell>
                               <TableCell className="text-muted-foreground whitespace-nowrap">
                                 {format(
                                   new Date(tx.transactionDate),
@@ -652,7 +813,7 @@ export function MaterialStockByLocationTab({
                                   </div>
                                 )}
                               </TableCell>
-                              <TableCell className="text-muted-foreground whitespace-nowrap">
+                              <TableCell className="text-muted-foreground pr-6 whitespace-nowrap">
                                 {tx.createdBy.name}
                               </TableCell>
                             </TableRow>
@@ -660,17 +821,45 @@ export function MaterialStockByLocationTab({
                         })}
                       </TableBody>
                     </Table>
-                  )}
+                  </CardContent>
+                  <div className="flex items-center justify-between border-t px-4 py-2">
+                    <span className="text-sm text-zinc-500">
+                      {filteredTx.length === 0 ? 0 : txStartIndex + 1}–
+                      {txEndIndex} of {filteredTx.length} transaction
+                      {filteredTx.length === 1 ? '' : 's'}
+                    </span>
+                    <Pagination
+                      currentPage={txPage}
+                      totalPages={txTotalPages}
+                      onPageChange={setTxPage}
+                    />
+                  </div>
+                </>
+              ) : (
+                <CardContent>
+                  <Empty variant="default">
+                    <EmptyMedia variant="icon">
+                      <History className="size-6" />
+                    </EmptyMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>
+                        No transactions match your filters
+                      </EmptyTitle>
+                      <EmptyDescription>
+                        Try adjusting your search or filters.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearTxFilters}
+                    >
+                      Clear filters
+                    </Button>
+                  </Empty>
                 </CardContent>
-                {txTotalPages > 1 && (
-                  <Pagination
-                    currentPage={txPage}
-                    totalPages={txTotalPages}
-                    onPageChange={setTxPage}
-                  />
-                )}
-              </Card>
-            </>
+              )}
+            </Card>
           )}
         </DialogContent>
       </Dialog>
