@@ -32,6 +32,14 @@ import {
   Trash2,
   TrendingUp,
 } from 'lucide-react';
+import Link from 'next/link';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 // Mock data
 const mockSubContract = {
@@ -98,38 +106,60 @@ export default function SubContractEditPage() {
   const params = useParams();
   const router = useRouter();
   const isEditMode = params.id !== 'new';
+  const subContractData = isEditMode
+    ? (mockSubContract as typeof mockSubContract | null)
+    : null;
 
   const [formData, setFormData] = useState(
-    isEditMode
-      ? mockSubContract
-      : {
-          contractId: '',
-          contractorName: '',
-          contactPerson: '',
-          phone: '',
-          email: '',
-          address: '',
-          workType: 'construction',
-          status: 'active',
-          contractStatus: 'draft',
-          scope: '',
-          contractValue: 0,
-          paidAmount: 0,
-          pendingAmount: 0,
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: '',
-          completionPercentage: 0,
-          gstNumber: '',
-          panNumber: '',
-          bankAccount: '',
-          bankName: '',
-          ifscCode: '',
-          contractDate: new Date().toISOString().split('T')[0],
-          paymentTerms: 'milestone',
-          milestones: [] as Milestone[],
-          notes: '',
-        }
+    subContractData ?? {
+      contractId: '',
+      contractorName: '',
+      contactPerson: '',
+      phone: '',
+      email: '',
+      address: '',
+      workType: 'construction',
+      status: 'active',
+      contractStatus: 'draft',
+      scope: '',
+      contractValue: 0,
+      paidAmount: 0,
+      pendingAmount: 0,
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: '',
+      completionPercentage: 0,
+      gstNumber: '',
+      panNumber: '',
+      bankAccount: '',
+      bankName: '',
+      ifscCode: '',
+      contractDate: new Date().toISOString().split('T')[0],
+      paymentTerms: 'milestone',
+      milestones: [] as Milestone[],
+      notes: '',
+    }
   );
+
+  if (isEditMode && !subContractData) {
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <FileText className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Sub-contract not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.thirdParty.subContracts.href}>
+            Back to Sub-Contracts
+          </Link>
+        </Button>
+      </Empty>
+    );
+  }
 
   const handleInputChange = (field: string, value: string | number) => {
     setFormData((prev) => {
