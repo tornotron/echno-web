@@ -19,6 +19,14 @@ import { getVendorTypeLabel } from '@/types/vendor';
 import type { Vendor } from '@/types/vendor';
 import { VendorAvatar } from './vendor-avatar';
 import { VendorStatusBadge } from './vendor-status-badge';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 
 interface VendorTableProps {
   vendors: Vendor[];
@@ -47,26 +55,34 @@ export function VendorTable({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-      </div>
+      <Card>
+        <CardContent className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+        </CardContent>
+      </Card>
     );
   }
 
   if (isError) {
     return (
       <Card>
-        <CardContent className="py-12 text-center">
-          <Building2 className="mx-auto mb-4 h-12 w-12 text-red-400" />
-          <h3 className="mb-2 text-lg font-medium">Failed to load vendors</h3>
-          <p className="text-muted-foreground mb-4 text-sm">
-            {error instanceof Error
-              ? error.message
-              : 'An unexpected error occurred.'}
-          </p>
-          <Button variant="outline" onClick={onRetry}>
-            Retry
-          </Button>
+        <CardContent className="py-12">
+          <Empty variant="default">
+            <EmptyErrorMedia>
+              <Building2 className="size-6" />
+            </EmptyErrorMedia>
+            <EmptyHeader>
+              <EmptyTitle>Failed to load vendors</EmptyTitle>
+              <EmptyDescription>
+                {error instanceof Error
+                  ? error.message
+                  : 'An unexpected error occurred.'}
+              </EmptyDescription>
+            </EmptyHeader>
+            <Button variant="outline" onClick={onRetry}>
+              Retry
+            </Button>
+          </Empty>
         </CardContent>
       </Card>
     );
@@ -75,14 +91,20 @@ export function VendorTable({
   if (vendors.length === 0) {
     return (
       <Card>
-        <CardContent className="py-12 text-center">
-          <Building2 className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-          <h3 className="mb-2 text-lg font-medium">No vendors found</h3>
-          <p className="text-muted-foreground mb-4 text-sm">
-            {hasFilters
-              ? 'Try adjusting your filters.'
-              : 'Add your first vendor to get started.'}
-          </p>
+        <CardContent className="py-12">
+          <Empty variant="default">
+            <EmptyMedia variant="icon">
+              <Building2 className="size-6" />
+            </EmptyMedia>
+            <EmptyHeader>
+              <EmptyTitle>No vendors found</EmptyTitle>
+              <EmptyDescription>
+                {hasFilters
+                  ? 'Try adjusting your filters.'
+                  : 'Add your first vendor to get started.'}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         </CardContent>
       </Card>
     );

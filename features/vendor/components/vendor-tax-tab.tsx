@@ -38,6 +38,13 @@ import {
 } from '@/components/shadcn/select';
 import { Edit, FileText, Plus, Trash2 } from 'lucide-react';
 import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
+import {
   useVendorTaxIdentifiers,
   useAddVendorTaxIdentifier,
   useUpdateVendorTaxIdentifier,
@@ -114,9 +121,17 @@ export function VendorTaxTab({ vendorId }: VendorTaxTabProps) {
         </CardHeader>
         <CardContent>
           {taxIdentifiers.length === 0 ? (
-            <p className="py-6 text-center text-sm text-zinc-400">
-              No tax identifiers added yet.
-            </p>
+            <Empty variant="inline">
+              <EmptyMedia variant="icon">
+                <FileText className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No tax identifiers yet</EmptyTitle>
+                <EmptyDescription>
+                  Add a GST, PAN, or other tax identifier.
+                </EmptyDescription>
+              </EmptyHeader>
+            </Empty>
           ) : (
             <div className="space-y-3">
               {taxIdentifiers.map((t) => (
