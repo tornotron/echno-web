@@ -1,7 +1,6 @@
 'use client';
 
 import { use } from 'react';
-import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
@@ -12,7 +11,14 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/shadcn/tabs';
-import { Edit, AlertCircle, Loader2 } from 'lucide-react';
+import { Edit, Building2, Loader2 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import {
   useVendor,
   useVendorContacts,
@@ -33,7 +39,6 @@ interface PageProps {
 
 export default function VendorDetailPage({ params }: PageProps) {
   const { id } = use(params);
-  const router = useRouter();
   const vendorId = Number(id);
 
   const isValidId = Number.isFinite(vendorId) && vendorId > 0;
@@ -45,16 +50,20 @@ export default function VendorDetailPage({ params }: PageProps) {
 
   if (!isValidId) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <h2 className="text-xl font-semibold">Invalid Vendor ID</h2>
-        <p className="text-zinc-500">
-          &quot;{id}&quot; is not a valid vendor identifier.
-        </p>
-        <Button onClick={() => router.push(routes.thirdParty.vendors.href)}>
-          Back to Vendors
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <Building2 className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Invalid vendor</EmptyTitle>
+          <EmptyDescription>
+            &quot;{id}&quot; is not a valid vendor identifier.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.thirdParty.vendors.href}>Back to Vendors</Link>
         </Button>
-      </div>
+      </Empty>
     );
   }
 
@@ -68,18 +77,22 @@ export default function VendorDetailPage({ params }: PageProps) {
 
   if (isError || !vendor) {
     return (
-      <div className="flex min-h-[400px] flex-col items-center justify-center gap-4">
-        <AlertCircle className="h-12 w-12 text-red-500" />
-        <h2 className="text-xl font-semibold">Vendor Not Found</h2>
-        <p className="text-zinc-500">
-          {isError && error instanceof Error
-            ? error.message
-            : `Vendor #${id} could not be found.`}
-        </p>
-        <Button onClick={() => router.push(routes.thirdParty.vendors.href)}>
-          Back to Vendors
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <Building2 className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Vendor not found</EmptyTitle>
+          <EmptyDescription>
+            {isError && error instanceof Error
+              ? error.message
+              : `Vendor #${id} could not be found.`}
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.thirdParty.vendors.href}>Back to Vendors</Link>
         </Button>
-      </div>
+      </Empty>
     );
   }
 
