@@ -1,6 +1,5 @@
 'use client';
 
-import { use } from 'react';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -13,11 +12,11 @@ import { Badge } from '@/components/shadcn/badge';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   Edit,
+  Loader2,
   Trash2,
   Phone,
   Mail,
   MapPin,
-  Calendar,
   Briefcase,
   TrendingUp,
   DollarSign,
@@ -31,7 +30,14 @@ import {
 import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { routes } from '@/nav';
+import { useSubContract } from '@/hooks/sub-contracts';
+import {
+  getContractTypeLabel,
+  getContractStatusLabel,
+  getContractStatusColor,
+} from '@/types/third-party/sub-contract';
 import {
   Empty,
   EmptyErrorMedia,
@@ -40,123 +46,34 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 
-// Mock data - replace with actual API call
-const mockSubContract = {
-  id: 1,
-  contractId: 'SUB-001',
-  contractorName: 'Elite Construction Services',
-  contactPerson: 'Amit Patel',
-  phone: '+91 98765 43210',
-  email: 'amit@eliteconstruction.com',
-  address: '789, Contractor Colony, Sector 15, Noida - 201301',
-  workType: 'construction',
-  status: 'active',
-  contractStatus: 'in-progress',
-  scope: 'Foundation and structural work for Building A',
-  contractValue: 2_500_000,
-  paidAmount: 1_500_000,
-  pendingAmount: 1_000_000,
-  startDate: new Date('2024-01-15'),
-  endDate: new Date('2024-06-30'),
-  duration: 167,
-  completionPercentage: 60,
-  gstNumber: '09AABCU9603R1ZX',
-  panNumber: 'AABCU9603R',
-  bankAccount: '1234567890',
-  bankName: 'ICICI Bank',
-  ifscCode: 'ICIC0001234',
-  contractDate: new Date('2024-01-10'),
-  paymentTerms: 'milestone',
-  milestones: [
-    {
-      name: 'Foundation Work',
-      percentage: 30,
-      amount: 750_000,
-      status: 'completed',
-      date: '2024-02-28',
-    },
-    {
-      name: 'Ground Floor Structure',
-      percentage: 40,
-      amount: 1_000_000,
-      status: 'completed',
-      date: '2024-04-15',
-    },
-    {
-      name: 'First Floor Structure',
-      percentage: 30,
-      amount: 750_000,
-      status: 'in-progress',
-      date: '2024-06-30',
-    },
-  ],
-  notes:
-    'Experienced contractor with good track record. Regular progress updates provided.',
-};
-
-const workTypeLabels: Record<string, string> = {
-  construction: 'Construction',
-  electrical: 'Electrical',
-  plumbing: 'Plumbing',
-  painting: 'Painting',
-  hvac: 'HVAC',
-  landscaping: 'Landscaping',
-  other: 'Other',
-};
-
-const statusColors: Record<string, string> = {
-  active: 'green',
-  inactive: 'zinc',
-  suspended: 'red',
-  completed: 'blue',
-};
-
-const statusLabels: Record<string, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  suspended: 'Suspended',
-  completed: 'Completed',
-};
-
-const contractStatusColors: Record<string, string> = {
-  draft: 'zinc',
-  'in-progress': 'blue',
-  completed: 'green',
-  cancelled: 'red',
-  onhold: 'orange',
-};
-
-const contractStatusLabels: Record<string, string> = {
-  draft: 'Draft',
-  'in-progress': 'In Progress',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
-  onhold: 'On Hold',
-};
-
 const milestoneStatusIcons: Record<string, LucideIcon> = {
   completed: CheckCircle2,
-  'in-progress': Clock,
+  inProgress: Clock,
   pending: AlertCircle,
+  delayed: AlertCircle,
 };
 
 const milestoneStatusColors: Record<string, string> = {
   completed: 'text-green-600',
-  'in-progress': 'text-blue-600',
+  inProgress: 'text-blue-600',
   pending: 'text-orange-600',
+  delayed: 'text-red-600',
 };
 
-interface PageProps {
-  params: Promise<{
-    id: string;
-  }>;
-}
+export default function SubContractDetailPage() {
+  const params = useParams();
+  const contractId = Number(params.id);
+  const { data: subContract, isLoading, isError } = useSubContract(contractId);
 
-export default function SubContractDetailPage({ params }: PageProps) {
-  use(params);
-  const subContract = mockSubContract;
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
-  if (!subContract) {
+  if (isError || !subContract) {
     return (
       <Empty variant="default">
         <EmptyErrorMedia>
@@ -265,11 +182,11 @@ export default function SubContractDetailPage({ params }: PageProps) {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Work Type
+                    Contract Type
                   </label>
                   <div className="mt-1">
                     <Badge variant="outline">
-                      {workTypeLabels[subContract.workType]}
+                      {getContractTypeLabel(subContract.type)}
                     </Badge>
                   </div>
                 </div>
@@ -302,32 +219,11 @@ export default function SubContractDetailPage({ params }: PageProps) {
                   </label>
                   <div className="mt-1">
                     <Badge
-                      className={`bg-${statusColors[subContract.status]}-100 text-${statusColors[subContract.status]}-700 dark:bg-${statusColors[subContract.status]}-900 dark:text-${statusColors[subContract.status]}-300`}
+                      className={`bg-${getContractStatusColor(subContract.status)}-100 text-${getContractStatusColor(subContract.status)}-700 dark:bg-${getContractStatusColor(subContract.status)}-900 dark:text-${getContractStatusColor(subContract.status)}-300`}
                     >
-                      {statusLabels[subContract.status]}
+                      {getContractStatusLabel(subContract.status)}
                     </Badge>
                   </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    Contract Status
-                  </label>
-                  <div className="mt-1">
-                    <Badge
-                      className={`bg-${contractStatusColors[subContract.contractStatus]}-100 text-${contractStatusColors[subContract.contractStatus]}-700 dark:bg-${contractStatusColors[subContract.contractStatus]}-900 dark:text-${contractStatusColors[subContract.contractStatus]}-300`}
-                    >
-                      {contractStatusLabels[subContract.contractStatus]}
-                    </Badge>
-                  </div>
-                </div>
-                <div>
-                  <label className="flex items-center space-x-1 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                    <Calendar className="h-3 w-3" />
-                    <span>Contract Date</span>
-                  </label>
-                  <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {format(subContract.contractDate, 'MMM dd, yyyy')}
-                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
@@ -414,7 +310,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     Paid Amount
                   </label>
                   <p className="mt-1 text-xl font-bold text-green-600 dark:text-green-400">
-                    ₹{(subContract.paidAmount / 100_000).toFixed(2)}L
+                    ₹{(subContract.totalPaid / 100_000).toFixed(2)}L
                   </p>
                 </div>
                 <div>
@@ -422,7 +318,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     Pending Amount
                   </label>
                   <p className="mt-1 text-xl font-bold text-orange-600 dark:text-orange-400">
-                    ₹{(subContract.pendingAmount / 100_000).toFixed(2)}L
+                    ₹{(subContract.totalDue / 100_000).toFixed(2)}L
                   </p>
                 </div>
               </div>
@@ -433,7 +329,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     Bank Account
                   </label>
                   <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {subContract.bankAccount}
+                    {subContract.accountNumber}
                   </p>
                   <p className="text-sm text-zinc-500 dark:text-zinc-500">
                     {subContract.bankName}
@@ -491,7 +387,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     Paid
                   </span>
                   <span className="text-sm font-semibold text-green-600">
-                    ₹{(subContract.paidAmount / 100_000).toFixed(2)}L
+                    ₹{(subContract.totalPaid / 100_000).toFixed(2)}L
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
@@ -499,7 +395,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     Pending
                   </span>
                   <span className="text-sm font-semibold text-orange-600">
-                    ₹{(subContract.pendingAmount / 100_000).toFixed(2)}L
+                    ₹{(subContract.totalDue / 100_000).toFixed(2)}L
                   </span>
                 </div>
                 <Separator />
@@ -525,8 +421,9 @@ export default function SubContractDetailPage({ params }: PageProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {subContract.milestones.map((milestone, idx) => {
-                  const StatusIcon = milestoneStatusIcons[milestone.status];
+                {(subContract.milestones ?? []).map((milestone, idx) => {
+                  const StatusIcon =
+                    milestoneStatusIcons[milestone.status] ?? AlertCircle;
                   return (
                     <div
                       key={idx}
@@ -534,7 +431,7 @@ export default function SubContractDetailPage({ params }: PageProps) {
                     >
                       <div className="mb-2 flex items-center space-x-2">
                         <StatusIcon
-                          className={`h-4 w-4 ${milestoneStatusColors[milestone.status]}`}
+                          className={`h-4 w-4 ${milestoneStatusColors[milestone.status] ?? 'text-zinc-500'}`}
                         />
                         <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                           {milestone.name}
@@ -542,10 +439,10 @@ export default function SubContractDetailPage({ params }: PageProps) {
                       </div>
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-zinc-600 dark:text-zinc-400">
-                          Due: {milestone.date}
+                          Due: {format(milestone.targetDate, 'MMM dd, yyyy')}
                         </span>
                         <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          {milestone.percentage}% • ₹
+                          {milestone.paymentPercentage}% • ₹
                           {(milestone.amount / 100_000).toFixed(2)}L
                         </span>
                       </div>
