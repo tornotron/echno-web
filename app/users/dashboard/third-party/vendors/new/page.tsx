@@ -23,6 +23,7 @@ import {
 } from '@/components/shadcn/select';
 import { toast } from '@/lib/styles/toast-styles';
 import { Building2, Save, X } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { useCreateVendor } from '@/hooks/vendors';
 import {
   VendorType,
@@ -75,14 +76,10 @@ export default function VendorNewPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-          Add New Vendor
-        </h1>
-        <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-          Fill in the basic details to add a new vendor
-        </p>
-      </div>
+      <PageHeader
+        title="Add New Vendor"
+        description="Fill in the basic details to add a new vendor"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Company Information */}
