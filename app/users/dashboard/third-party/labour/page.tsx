@@ -25,6 +25,7 @@ import {
 } from '@/components/shadcn/table';
 import {
   HardHat,
+  Loader2,
   Plus,
   User,
   Download,
@@ -37,10 +38,11 @@ import {
 
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { mockLabour } from '@/components/shared/mock-data';
+import { useLabour } from '@/hooks/labour';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
@@ -77,6 +79,7 @@ const skillLevelLabels = {
 
 export default function LabourPage() {
   const router = useRouter();
+  const { data: labour = [], isLoading, isError } = useLabour();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -95,14 +98,14 @@ export default function LabourPage() {
   // Get unique projects for filter
   const uniqueProjects = [
     ...new Set(
-      mockLabour
+      labour
         .map((l) => l.currentProject)
         .filter((p): p is string => p !== undefined && p !== null)
     ),
   ].toSorted();
 
   // Filter data
-  const filteredLabour = mockLabour.filter((labour) => {
+  const filteredLabour = labour.filter((labour) => {
     const matchesSearch =
       labour.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       labour.labourId.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -148,10 +151,10 @@ export default function LabourPage() {
 
   // Statistics
   const stats = {
-    total: mockLabour.length,
-    active: mockLabour.filter((l) => l.status === 'active').length,
-    totalDue: mockLabour.reduce((sum, l) => sum + (l.totalDue ?? 0), 0),
-    onLeave: mockLabour.filter((l) => l.status === 'onLeave').length,
+    total: labour.length,
+    active: labour.filter((l) => l.status === 'active').length,
+    totalDue: labour.reduce((sum, l) => sum + (l.totalDue ?? 0), 0),
+    onLeave: labour.filter((l) => l.status === 'onLeave').length,
   };
 
   return (
@@ -336,143 +339,171 @@ export default function LabourPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          {paginatedLabour.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={isAllSelected}
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Select all"
-                      className={
-                        isSomeSelected
-                          ? 'data-[state=checked]:bg-primary/50'
-                          : ''
-                      }
-                    />
-                  </TableHead>
-                  <TableHead>Name & Contact</TableHead>
-                  <TableHead>Trade</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Rate</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Outstanding</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedLabour.map((labour) => (
-                  <TableRow
-                    key={labour.id}
-                    className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                    onClick={() =>
-                      router.push(
-                        routes.thirdParty.labour.detail(labour.id).href
-                      )
-                    }
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        checked={selectedIds.includes(labour.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectOne(labour.id, checked as boolean)
-                        }
-                        aria-label={`Select ${labour.name}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-orange-600">
-                          <User className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {labour.name}
-                          </p>
-                          <PhoneDisplay
-                            value={labour.phone}
-                            className="text-zinc-500 dark:text-zinc-500"
-                          />
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div>{labour.trade}</div>
-                        <div className="text-xs text-zinc-500">
-                          {
-                            skillLevelLabels[
-                              labour.skillLevel as keyof typeof skillLevelLabels
-                            ]
+          {(() => {
+            if (isLoading)
+              return (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+                </div>
+              );
+            if (isError)
+              return (
+                <CardContent>
+                  <Empty variant="default">
+                    <EmptyErrorMedia>
+                      <HardHat className="size-6" />
+                    </EmptyErrorMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>Failed to load labour records</EmptyTitle>
+                      <EmptyDescription>
+                        An unexpected error occurred. Please try again.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </CardContent>
+              );
+            if (paginatedLabour.length > 0)
+              return (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all"
+                          className={
+                            isSomeSelected
+                              ? 'data-[state=checked]:bg-primary/50'
+                              : ''
                           }
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">
-                        {typeLabels[labour.type as keyof typeof typeLabels]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {labour.dailyRate && `₹${labour.dailyRate}/day`}
-                      {labour.monthlyRate &&
-                        `₹${labour.monthlyRate.toLocaleString()}/mo`}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">{labour.currentProject}</div>
-                      {labour.contractorName && (
-                        <div className="text-xs text-zinc-500">
-                          {labour.contractorName}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={`bg-${statusColors[labour.status as keyof typeof statusColors]}-100 text-${statusColors[labour.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[labour.status as keyof typeof statusColors]}-900 dark:text-${statusColors[labour.status as keyof typeof statusColors]}-300`}
-                      >
-                        {
-                          statusLabels[
-                            labour.status as keyof typeof statusLabels
-                          ]
+                        />
+                      </TableHead>
+                      <TableHead>Name & Contact</TableHead>
+                      <TableHead>Trade</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Rate</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Outstanding</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedLabour.map((labour) => (
+                      <TableRow
+                        key={labour.id}
+                        className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                        onClick={() =>
+                          router.push(
+                            routes.thirdParty.labour.detail(labour.id).href
+                          )
                         }
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {labour.totalDue && labour.totalDue > 0 ? (
-                        <span className="font-semibold text-orange-600 dark:text-orange-400">
-                          ₹{labour.totalDue.toLocaleString()}
-                        </span>
-                      ) : (
-                        <span className="text-zinc-500">-</span>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <CardContent>
-              <Empty variant="default">
-                <EmptyMedia variant="icon">
-                  <HardHat className="size-6" />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>No labour records found</EmptyTitle>
-                  <EmptyDescription>
-                    {hasActiveFilters
-                      ? 'Try adjusting your search or filters.'
-                      : 'Add your first labour record to get started.'}
-                  </EmptyDescription>
-                </EmptyHeader>
-                {!hasActiveFilters && (
-                  <Button asChild>
-                    <Link href={routes.thirdParty.labour.new}>Add Labour</Link>
-                  </Button>
-                )}
-              </Empty>
-            </CardContent>
-          )}
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.includes(labour.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOne(labour.id, checked as boolean)
+                            }
+                            aria-label={`Select ${labour.name}`}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-orange-600">
+                              <User className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {labour.name}
+                              </p>
+                              <PhoneDisplay
+                                value={labour.phone}
+                                className="text-zinc-500 dark:text-zinc-500"
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            <div>{labour.trade}</div>
+                            <div className="text-xs text-zinc-500">
+                              {
+                                skillLevelLabels[
+                                  labour.skillLevel as keyof typeof skillLevelLabels
+                                ]
+                              }
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">
+                            {typeLabels[labour.type as keyof typeof typeLabels]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {labour.dailyRate && `₹${labour.dailyRate}/day`}
+                          {labour.monthlyRate &&
+                            `₹${labour.monthlyRate.toLocaleString()}/mo`}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">{labour.currentProject}</div>
+                          {labour.contractorName && (
+                            <div className="text-xs text-zinc-500">
+                              {labour.contractorName}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            className={`bg-${statusColors[labour.status as keyof typeof statusColors]}-100 text-${statusColors[labour.status as keyof typeof statusColors]}-700 dark:bg-${statusColors[labour.status as keyof typeof statusColors]}-900 dark:text-${statusColors[labour.status as keyof typeof statusColors]}-300`}
+                          >
+                            {
+                              statusLabels[
+                                labour.status as keyof typeof statusLabels
+                              ]
+                            }
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {labour.totalDue && labour.totalDue > 0 ? (
+                            <span className="font-semibold text-orange-600 dark:text-orange-400">
+                              ₹{labour.totalDue.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className="text-zinc-500">-</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              );
+            return (
+              <CardContent>
+                <Empty variant="default">
+                  <EmptyMedia variant="icon">
+                    <HardHat className="size-6" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No labour records found</EmptyTitle>
+                    <EmptyDescription>
+                      {hasActiveFilters
+                        ? 'Try adjusting your search or filters.'
+                        : 'Add your first labour record to get started.'}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {!hasActiveFilters && (
+                    <Button asChild>
+                      <Link href={routes.thirdParty.labour.new}>
+                        Add Labour
+                      </Link>
+                    </Button>
+                  )}
+                </Empty>
+              </CardContent>
+            );
+          })()}
         </CardContent>
         <div className="flex items-center justify-between border-t px-4 py-2">
           <span className="text-sm text-zinc-500">

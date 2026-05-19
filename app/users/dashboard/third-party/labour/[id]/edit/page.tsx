@@ -22,10 +22,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { Save, HardHat } from 'lucide-react';
+import { Loader2, Save, HardHat } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
-import { getLabourById } from '@/components/shared/mock-data';
+import { useLabourById } from '@/hooks/labour';
+import type { Labour } from '@/types/third-party/labour';
 import {
   Empty,
   EmptyErrorMedia,
@@ -38,35 +39,19 @@ import { format } from 'date-fns';
 
 export default function LabourFormPage() {
   const params = useParams();
-  const router = useRouter();
   const isEdit = params?.id !== 'new';
-  const labourId = isEdit ? Number(params.id) : null;
-  const mockLabourData = labourId ? getLabourById(labourId) : null;
+  const labourId = isEdit ? Number(params.id) : 0;
+  const { data: labourRecord, isLoading, isError } = useLabourById(labourId);
 
-  const [formData, setFormData] = useState({
-    labourId: mockLabourData?.labourId || '',
-    name: mockLabourData?.name || '',
-    phone: mockLabourData?.phone || '',
-    email: mockLabourData?.email || '',
-    address: mockLabourData?.address || '',
-    trade: mockLabourData?.trade || '',
-    type: mockLabourData?.type || 'daily',
-    skillLevel: mockLabourData?.skillLevel || 'skilled',
-    status: mockLabourData?.status || 'active',
-    dailyRate: mockLabourData?.dailyRate?.toString() || '',
-    monthlyRate: mockLabourData?.monthlyRate?.toString() || '',
-    overtimeRate: mockLabourData?.overtimeRate?.toString() || '',
-    currentProject: mockLabourData?.currentProject || '',
-    joiningDate: mockLabourData?.joiningDate
-      ? format(mockLabourData.joiningDate, 'yyyy-MM-dd')
-      : '',
-    contractorName: mockLabourData?.contractorName || '',
-    contractorPhone: mockLabourData?.contractorPhone || '',
-    emergencyContactName: mockLabourData?.emergencyContactName || '',
-    emergencyContactPhone: mockLabourData?.emergencyContactPhone || '',
-  });
+  if (isEdit && isLoading) {
+    return (
+      <div className="flex justify-center py-20">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
-  if (isEdit && !mockLabourData) {
+  if (isEdit && (isError || !labourRecord)) {
     return (
       <Empty variant="default">
         <EmptyErrorMedia>
@@ -85,16 +70,45 @@ export default function LabourFormPage() {
     );
   }
 
+  return <LabourEditForm initialData={labourRecord} isEdit={isEdit} />;
+}
+
+interface LabourEditFormProps {
+  initialData?: Labour;
+  isEdit: boolean;
+}
+
+function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
+  const router = useRouter();
+  const [formData, setFormData] = useState(() => ({
+    labourId: initialData?.labourId ?? '',
+    name: initialData?.name ?? '',
+    phone: initialData?.phone ?? '',
+    email: initialData?.email ?? '',
+    address: initialData?.address ?? '',
+    trade: initialData?.trade ?? '',
+    type: initialData?.type ?? 'daily',
+    skillLevel: initialData?.skillLevel ?? 'skilled',
+    status: initialData?.status ?? 'active',
+    dailyRate: initialData?.dailyRate?.toString() ?? '',
+    monthlyRate: initialData?.monthlyRate?.toString() ?? '',
+    overtimeRate: initialData?.overtimeRate?.toString() ?? '',
+    currentProject: initialData?.currentProject ?? '',
+    joiningDate: initialData?.joiningDate
+      ? format(initialData.joiningDate, 'yyyy-MM-dd')
+      : '',
+    contractorName: initialData?.contractorName ?? '',
+    contractorPhone: initialData?.contractorPhone ?? '',
+    emergencyContactName: initialData?.emergencyContactName ?? '',
+    emergencyContactPhone: initialData?.emergencyContactPhone ?? '',
+  }));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate required fields
     if (!formData.name || !formData.phone || !formData.trade) {
       toast.error('Please fill in all required fields');
       return;
     }
-
-    // Simulate API call
     toast.success(
       isEdit ? 'Labour updated successfully' : 'Labour created successfully'
     );
@@ -368,8 +382,6 @@ export default function LabourFormPage() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Documents & ID */}
-            {/* Emergency Contact */}
             <Card>
               <CardHeader>
                 <CardTitle>Emergency Contact</CardTitle>
