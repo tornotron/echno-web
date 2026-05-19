@@ -5,7 +5,7 @@
  * Run `pnpm routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-05-14
+ * Generated: 2026-05-19
  */
 
 const BASE = '/users/dashboard';
@@ -152,6 +152,7 @@ export const routes = {
     },
     materials: {
       href: b('/resources/materials'),
+      allMaterials: b('/resources/materials/all-materials'),
       new: b('/resources/materials/new'),
       detail: (id: string | number) => ({
         href: b(`/resources/materials/${id}`),
