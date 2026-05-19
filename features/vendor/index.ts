@@ -1,6 +1,7 @@
 export { VendorStatusBadge } from './components/vendor-status-badge';
 export { VendorAvatar } from './components/vendor-avatar';
 export { VendorTable } from './components/vendor-table';
+export { VendorRow } from './components/vendor-row';
 export { VendorField } from './components/vendor-field';
 export { VendorEditor } from './components/vendor-editor';
 export { VendorOverviewTab } from './components/vendor-overview-tab';
