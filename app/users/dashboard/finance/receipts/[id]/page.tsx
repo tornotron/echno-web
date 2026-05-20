@@ -1,6 +1,5 @@
 'use client';
 
-import { notFound } from 'next/navigation';
 import { routes } from '@/nav';
 import { use } from 'react';
 import { mockReceipts } from '@/components/shared/mock-data';
@@ -28,7 +27,15 @@ import {
   Hash,
   CheckCircle,
   Paperclip,
+  Loader2,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
@@ -87,9 +94,49 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
     (r) => r.id === Number.parseInt(resolvedParams.id)
   );
 
-  if (!receipt) {
-    notFound();
-  }
+  const isLoading = false;
+  const isError = false;
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <ReceiptIcon className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load receipt</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.receipts.href}>Back to Receipts</Link>
+        </Button>
+      </Empty>
+    );
+  if (!receipt)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <ReceiptIcon className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Receipt not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.receipts.href}>Back to Receipts</Link>
+        </Button>
+      </Empty>
+    );
 
   return (
     <div className="space-y-4 sm:space-y-6">

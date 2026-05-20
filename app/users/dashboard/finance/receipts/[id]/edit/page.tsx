@@ -34,6 +34,13 @@ import {
   FileText,
   Calendar,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -68,23 +75,23 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
     notes: receipt?.notes || '',
   });
 
-  if (!receipt) {
+  if (!receipt)
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center">
-        <ReceiptIcon className="text-muted-foreground mb-4 h-16 w-16" />
-        <h2 className="mb-2 text-2xl font-semibold">Receipt Not Found</h2>
-        <p className="text-muted-foreground mb-6">
-          The receipt you&apos;re looking for doesn&apos;t exist.
-        </p>
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <ReceiptIcon className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Receipt not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
         <Button asChild>
-          <Link href={routes.finance.receipts.href}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Receipts
-          </Link>
+          <Link href={routes.finance.receipts.href}>Back to Receipts</Link>
         </Button>
-      </div>
+      </Empty>
     );
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

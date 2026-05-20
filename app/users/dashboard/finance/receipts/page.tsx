@@ -34,6 +34,13 @@ import {
   Calendar,
   FileText,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -483,27 +490,25 @@ export default function ReceiptsPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="flex h-64 items-center justify-center">
-            <div className="text-center">
-              <ReceiptIcon className="mx-auto h-12 w-12 text-zinc-400" />
-              <h3 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                No receipts found
-              </h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {hasActiveFilters
-                  ? 'Try adjusting your filters'
-                  : 'Get started by creating a new receipt'}
-              </p>
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={clearFilters}
-                >
-                  Clear Filters
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <ReceiptIcon className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No receipts found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'Try adjusting your search or filters.'
+                    : 'Add your first receipt to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.finance.receipts.new}>New Receipt</Link>
                 </Button>
               )}
-            </div>
+            </Empty>
           </CardContent>
         </Card>
       )}
