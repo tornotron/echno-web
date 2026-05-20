@@ -107,9 +107,16 @@ const getTypeColor = (type: InvoiceType) => {
 interface InvoicesFeatureProps {
   invoices: Invoice[];
   projects: Project[];
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
+export function InvoicesFeature({
+  invoices,
+  projects,
+  isLoading = false,
+  isError = false,
+}: InvoicesFeatureProps) {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -383,8 +390,6 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
 
         <CardContent className="p-0">
           {(() => {
-            const isLoading = false;
-            const isError = false;
             if (isLoading)
               return (
                 <div className="flex justify-center py-12">

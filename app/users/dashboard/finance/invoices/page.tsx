@@ -1,17 +1,19 @@
 'use client';
 
-import { mockInvoices, mockProjects } from '@/components/shared/mock-data';
+import { mockProjects } from '@/components/shared/mock-data';
+import { useInvoices } from '@/hooks/invoices';
 import { InvoicesFeature } from '@/features/invoices';
 
-/**
- * Invoices page - thin routing layer
- * Fetches/provides data and renders the feature component
- */
 export default function InvoicesPage() {
-  // In a real application, this would fetch data from an API
-  // For now, we're using mock data
-  const invoices = mockInvoices;
+  const { data: invoices = [], isLoading, isError } = useInvoices();
   const projects = mockProjects;
 
-  return <InvoicesFeature invoices={invoices} projects={projects} />;
+  return (
+    <InvoicesFeature
+      invoices={invoices}
+      projects={projects}
+      isLoading={isLoading}
+      isError={isError}
+    />
+  );
 }
