@@ -3,11 +3,12 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { mockExpenses } from '@/components/shared/mock-data';
-import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
+import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
 import {
   Table,
   TableBody,
@@ -23,9 +24,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { DollarSign, CheckCircle, Clock } from 'lucide-react';
+import { DollarSign, CheckCircle, Clock, Search, Loader2 } from 'lucide-react';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
@@ -155,6 +157,7 @@ export default function ExpensesPage() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedExpenses = filteredExpenses.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
 
   // Calculate stats
   const totalExpenses = mockExpenses.length;
@@ -278,265 +281,289 @@ export default function ExpensesPage() {
         </div>
       </Card>
 
-      {/* Search and Filters */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={searchQuery}
-        onSearchChange={(value) => {
-          setSearchQuery(value);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder="Search by expense number, description..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        filters={[
-          {
-            placeholder: 'Status',
-            options: [
-              { value: 'all', label: 'All Status' },
-              {
-                value: ExpenseStatus.draft,
-                label: expenseStatusLabels[ExpenseStatus.draft],
-              },
-              {
-                value: ExpenseStatus.pending,
-                label: expenseStatusLabels[ExpenseStatus.pending],
-              },
-              {
-                value: ExpenseStatus.approved,
-                label: expenseStatusLabels[ExpenseStatus.approved],
-              },
-              {
-                value: ExpenseStatus.paid,
-                label: expenseStatusLabels[ExpenseStatus.paid],
-              },
-              {
-                value: ExpenseStatus.reimbursed,
-                label: expenseStatusLabels[ExpenseStatus.reimbursed],
-              },
-              {
-                value: ExpenseStatus.rejected,
-                label: expenseStatusLabels[ExpenseStatus.rejected],
-              },
-              {
-                value: ExpenseStatus.cancelled,
-                label: expenseStatusLabels[ExpenseStatus.cancelled],
-              },
-            ],
-            value: statusFilter,
-            onChange: (value) => {
-              setStatusFilter(value);
-              setCurrentPage(1);
-            },
-          },
-          {
-            placeholder: 'Type',
-            options: [
-              { value: 'all', label: 'All Types' },
-              {
-                value: ExpenseType.direct,
-                label: expenseTypeLabels[ExpenseType.direct],
-              },
-              {
-                value: ExpenseType.indirect,
-                label: expenseTypeLabels[ExpenseType.indirect],
-              },
-              {
-                value: ExpenseType.capital,
-                label: expenseTypeLabels[ExpenseType.capital],
-              },
-              {
-                value: ExpenseType.operational,
-                label: expenseTypeLabels[ExpenseType.operational],
-              },
-            ],
-            value: typeFilter,
-            onChange: (value) => {
-              setTypeFilter(value);
-              setCurrentPage(1);
-            },
-          },
-        ]}
-      />
-
-      {/* Results Summary */}
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {startIndex + 1} to{' '}
-          {Math.min(endIndex, filteredExpenses.length)} of{' '}
-          {filteredExpenses.length} expenses
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Unified Card: search/filter toolbar + content + pagination */}
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          {/* Search input */}
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by expense number, description..."
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
+          {/* Status filter */}
           <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value));
+            value={statusFilter}
+            onValueChange={(v) => {
+              setStatusFilter(v);
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value={ExpenseStatus.draft}>
+                {expenseStatusLabels[ExpenseStatus.draft]}
+              </SelectItem>
+              <SelectItem value={ExpenseStatus.pending}>
+                {expenseStatusLabels[ExpenseStatus.pending]}
+              </SelectItem>
+              <SelectItem value={ExpenseStatus.approved}>
+                {expenseStatusLabels[ExpenseStatus.approved]}
+              </SelectItem>
+              <SelectItem value={ExpenseStatus.paid}>
+                {expenseStatusLabels[ExpenseStatus.paid]}
+              </SelectItem>
+              <SelectItem value={ExpenseStatus.reimbursed}>
+                {expenseStatusLabels[ExpenseStatus.reimbursed]}
+              </SelectItem>
+              <SelectItem value={ExpenseStatus.rejected}>
+                {expenseStatusLabels[ExpenseStatus.rejected]}
+              </SelectItem>
+              <SelectItem value={ExpenseStatus.cancelled}>
+                {expenseStatusLabels[ExpenseStatus.cancelled]}
+              </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      {/* Expenses Table */}
-      {filteredExpenses.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={isAllSelected}
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Expense #</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                  <TableHead className="text-right">Paid</TableHead>
-                  <TableHead className="text-right">Balance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedExpenses.map((expense) => (
-                  <TableRow
-                    key={expense.id}
-                    className="hover:bg-muted/50 cursor-pointer"
-                    onClick={() =>
-                      router.push(
-                        routes.finance.expenses.detail(expense.id).href
-                      )
-                    }
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Checkbox
-                        checked={selectedIds.includes(expense.id)}
-                        onCheckedChange={(checked) =>
-                          handleSelectOne(expense.id, checked as boolean)
-                        }
-                        aria-label={`Select ${expense.expenseNumber}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-                          <DollarSign className="h-5 w-5 text-white" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {expense.expenseNumber}
-                          </p>
-                          {expense.billNumber && (
-                            <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                              Bill: {expense.billNumber}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="max-w-xs truncate text-sm text-zinc-700 dark:text-zinc-300">
-                        {expense.description}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {expenseCategoryLabels[expense.category] ||
-                          expense.category}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getTypeColor(expense.type)}>
-                        {expenseTypeLabels[expense.type]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(expense.status)}>
-                        {expenseStatusLabels[expense.status]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                        ₹{expense.totalAmount.toLocaleString('en-IN')}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span
-                        className={
-                          expense.paidAmount > 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-zinc-500'
-                        }
-                      >
-                        ₹{expense.paidAmount.toLocaleString('en-IN')}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span
-                        className={
-                          expense.balanceAmount > 0
-                            ? 'text-red-600 dark:text-red-400'
-                            : 'text-green-600 dark:text-green-400'
-                        }
-                      >
-                        ₹{expense.balanceAmount.toLocaleString('en-IN')}
-                      </span>
-                    </TableCell>
-                  </TableRow>
+          {/* Type filter */}
+          <Select
+            value={typeFilter}
+            onValueChange={(v) => {
+              setTypeFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value={ExpenseType.direct}>
+                {expenseTypeLabels[ExpenseType.direct]}
+              </SelectItem>
+              <SelectItem value={ExpenseType.indirect}>
+                {expenseTypeLabels[ExpenseType.indirect]}
+              </SelectItem>
+              <SelectItem value={ExpenseType.capital}>
+                {expenseTypeLabels[ExpenseType.capital]}
+              </SelectItem>
+              <SelectItem value={ExpenseType.operational}>
+                {expenseTypeLabels[ExpenseType.operational]}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {/* Rows per page — pushed to right */}
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[5, 10, 20, 50, 100].map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
                 ))}
-              </TableBody>
-            </Table>
-          </CardContent>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
 
-          {/* Pagination Controls */}
+        <CardContent className="p-0">
+          {(() => {
+            const isLoading = false;
+            const isError = false;
+            if (isLoading)
+              return (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+                </div>
+              );
+            if (isError)
+              return (
+                <CardContent>
+                  <Empty variant="default">
+                    <EmptyErrorMedia>
+                      <DollarSign className="size-6" />
+                    </EmptyErrorMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>Failed to load expenses</EmptyTitle>
+                      <EmptyDescription>
+                        An unexpected error occurred. Please try again.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </CardContent>
+              );
+            if (paginatedExpenses.length > 0)
+              return (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all"
+                        />
+                      </TableHead>
+                      <TableHead>Expense #</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Paid</TableHead>
+                      <TableHead className="text-right">Balance</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedExpenses.map((expense) => (
+                      <TableRow
+                        key={expense.id}
+                        className="hover:bg-muted/50 cursor-pointer"
+                        onClick={() =>
+                          router.push(
+                            routes.finance.expenses.detail(expense.id).href
+                          )
+                        }
+                      >
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Checkbox
+                            checked={selectedIds.includes(expense.id)}
+                            onCheckedChange={(checked) =>
+                              handleSelectOne(expense.id, checked as boolean)
+                            }
+                            aria-label={`Select ${expense.expenseNumber}`}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                              <DollarSign className="h-5 w-5 text-white" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {expense.expenseNumber}
+                              </p>
+                              {expense.billNumber && (
+                                <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                                  Bill: {expense.billNumber}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="max-w-xs truncate text-sm text-zinc-700 dark:text-zinc-300">
+                            {expense.description}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {expenseCategoryLabels[expense.category] ||
+                              expense.category}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getTypeColor(expense.type)}>
+                            {expenseTypeLabels[expense.type]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(expense.status)}>
+                            {expenseStatusLabels[expense.status]}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                            ₹{expense.totalAmount.toLocaleString('en-IN')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={
+                              expense.paidAmount > 0
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-zinc-500'
+                            }
+                          >
+                            ₹{expense.paidAmount.toLocaleString('en-IN')}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            className={
+                              expense.balanceAmount > 0
+                                ? 'text-red-600 dark:text-red-400'
+                                : 'text-green-600 dark:text-green-400'
+                            }
+                          >
+                            ₹{expense.balanceAmount.toLocaleString('en-IN')}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              );
+            return (
+              <CardContent>
+                <Empty variant="default">
+                  <EmptyMedia variant="icon">
+                    <DollarSign className="size-6" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No expenses found</EmptyTitle>
+                    <EmptyDescription>
+                      {hasActiveFilters
+                        ? 'Try adjusting your search or filters.'
+                        : 'Add your first expense to get started.'}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {!hasActiveFilters && (
+                    <Button asChild>
+                      <Link href={routes.finance.expenses.new}>
+                        New Expense
+                      </Link>
+                    </Button>
+                  )}
+                </Empty>
+              </CardContent>
+            );
+          })()}
+        </CardContent>
+
+        <div className="flex items-center justify-between border-t px-4 py-2">
+          <span className="text-sm text-zinc-500">
+            {filteredExpenses.length === 0
+              ? '0 records'
+              : `${startIndex + 1}–${Math.min(endIndex, filteredExpenses.length)} of ${filteredExpenses.length} ${filteredExpenses.length === 1 ? 'expense' : 'expenses'}`}
+          </span>
           <Pagination
-            currentPage={currentPage}
+            currentPage={safePage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
-        </Card>
-      ) : (
-        <Card>
-          <CardContent>
-            <Empty variant="default">
-              <EmptyMedia variant="icon">
-                <DollarSign className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No expenses found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? 'Try adjusting your search or filters.'
-                    : 'Add your first expense to get started.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              {!hasActiveFilters && (
-                <Button asChild>
-                  <Link href={routes.finance.expenses.new}>New Expense</Link>
-                </Button>
-              )}
-            </Empty>
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      </Card>
     </div>
   );
 }
