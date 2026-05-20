@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { mockExpenses } from '@/components/shared/mock-data';
+import { useExpenses } from '@/hooks/expenses';
 import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -35,42 +35,13 @@ import {
 } from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { ExpenseType, ExpenseStatus } from '@/types/finance/expense';
-
-const expenseTypeLabels: Record<string, string> = {
-  direct: 'Direct',
-  indirect: 'Indirect',
-  capital: 'Capital',
-  operational: 'Operational',
-};
-
-const expenseStatusLabels: Record<string, string> = {
-  draft: 'Draft',
-  pending: 'Pending',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  paid: 'Paid',
-  reimbursed: 'Reimbursed',
-  cancelled: 'Cancelled',
-};
-
-const expenseCategoryLabels: Record<string, string> = {
-  materials: 'Materials',
-  labour: 'Labour',
-  equipment: 'Equipment',
-  transport: 'Transport',
-  utilities: 'Utilities',
-  rent: 'Rent',
-  salaries: 'Salaries',
-  maintenance: 'Maintenance',
-  insurance: 'Insurance',
-  legal: 'Legal',
-  marketing: 'Marketing',
-  office: 'Office',
-  travel: 'Travel',
-  miscellaneous: 'Miscellaneous',
-  other: 'Other',
-};
+import {
+  ExpenseType,
+  ExpenseStatus,
+  expenseTypeLabels,
+  expenseStatusLabels,
+  expenseCategoryLabels,
+} from '@/types/finance/expense';
 
 const getStatusColor = (status: ExpenseStatus) => {
   switch (status) {
@@ -121,6 +92,7 @@ const getTypeColor = (type: ExpenseType) => {
 
 export default function ExpensesPage() {
   const router = useRouter();
+  const { data: expenses = [], isLoading, isError } = useExpenses();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -130,7 +102,7 @@ export default function ExpensesPage() {
 
   // Filter expenses based on search and filters
   const filteredExpenses = useMemo(() => {
-    return mockExpenses.filter((expense) => {
+    return expenses.filter((expense) => {
       // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
@@ -150,7 +122,7 @@ export default function ExpensesPage() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [searchQuery, statusFilter, typeFilter]);
+  }, [expenses, searchQuery, statusFilter, typeFilter]);
 
   // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -160,16 +132,16 @@ export default function ExpensesPage() {
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
 
   // Calculate stats
-  const totalExpenses = mockExpenses.length;
-  const paidExpenses = mockExpenses.filter(
+  const totalExpenses = expenses.length;
+  const paidExpenses = expenses.filter(
     (e) =>
       e.status === ExpenseStatus.paid || e.status === ExpenseStatus.reimbursed
   ).length;
-  const pendingExpenses = mockExpenses.filter(
+  const pendingExpenses = expenses.filter(
     (e) =>
       e.status === ExpenseStatus.pending || e.status === ExpenseStatus.approved
   ).length;
-  const totalAmount = mockExpenses.reduce((sum, e) => sum + e.totalAmount, 0);
+  const totalAmount = expenses.reduce((sum, e) => sum + e.totalAmount, 0);
 
   // Selection handlers
   const handleSelectAll = (checked: boolean) => {
@@ -388,8 +360,6 @@ export default function ExpensesPage() {
 
         <CardContent className="p-0">
           {(() => {
-            const isLoading = false;
-            const isError = false;
             if (isLoading)
               return (
                 <div className="flex justify-center py-12">
