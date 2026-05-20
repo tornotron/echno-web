@@ -36,8 +36,23 @@ import { useSubContract } from '@/hooks/sub-contracts';
 import {
   getContractTypeLabel,
   getContractStatusLabel,
-  getContractStatusColor,
+  ContractStatus,
 } from '@/types/third-party/sub-contract';
+
+const contractStatusClasses: Record<ContractStatus, string> = {
+  [ContractStatus.draft]:
+    'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+  [ContractStatus.active]:
+    'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  [ContractStatus.onHold]:
+    'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  [ContractStatus.completed]:
+    'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+  [ContractStatus.terminated]:
+    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+  [ContractStatus.expired]:
+    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+};
 import {
   Empty,
   EmptyErrorMedia,
@@ -219,7 +234,7 @@ export default function SubContractDetailPage() {
                   </label>
                   <div className="mt-1">
                     <Badge
-                      className={`bg-${getContractStatusColor(subContract.status)}-100 text-${getContractStatusColor(subContract.status)}-700 dark:bg-${getContractStatusColor(subContract.status)}-900 dark:text-${getContractStatusColor(subContract.status)}-300`}
+                      className={contractStatusClasses[subContract.status]}
                     >
                       {getContractStatusLabel(subContract.status)}
                     </Badge>
