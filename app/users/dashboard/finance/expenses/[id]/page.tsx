@@ -1,6 +1,5 @@
 'use client';
 
-import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockExpenses, mockEmployees } from '@/components/shared/mock-data';
 import { Button } from '@/components/shadcn/button';
@@ -21,7 +20,15 @@ import {
   Hash,
   CheckCircle,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -121,9 +128,49 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
     (e) => e.id === Number.parseInt(resolvedParams.id)
   );
 
-  if (!expense) {
-    notFound();
-  }
+  const isLoading = false;
+  const isError = false;
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <DollarSign className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load expense</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.expenses.href}>Back to Expenses</Link>
+        </Button>
+      </Empty>
+    );
+  if (!expense)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <DollarSign className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Expense not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.expenses.href}>Back to Expenses</Link>
+        </Button>
+      </Empty>
+    );
 
   const submittedByEmployee = mockEmployees.find(
     (e) => e.id === expense.submittedBy

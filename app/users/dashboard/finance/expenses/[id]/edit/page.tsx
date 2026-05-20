@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
 import { routes } from '@/nav';
 import { use } from 'react';
 import { mockExpenses } from '@/components/shared/mock-data';
@@ -24,7 +23,14 @@ import {
 } from '@/components/shadcn/select';
 import { Textarea } from '@/components/shadcn/textarea';
 import { Separator } from '@/components/shadcn/separator';
-import { Save, X } from 'lucide-react';
+import { Save, X, DollarSign } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
 import {
@@ -68,13 +74,25 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
     (e) => e.id === Number.parseInt(resolvedParams.id)
   );
 
-  if (!expense) {
-    notFound();
-  }
+  const [formData, setFormData] = useState<Partial<Expense>>(expense ?? {});
 
-  const [formData, setFormData] = useState<Partial<Expense>>({
-    ...expense,
-  });
+  if (!expense)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <DollarSign className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Expense not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.expenses.href}>Back to Expenses</Link>
+        </Button>
+      </Empty>
+    );
 
   const handleInputChange = (field: string, value: never) => {
     let newData: Partial<Expense> = { ...formData, [field]: value };
