@@ -45,6 +45,11 @@ import {
 } from '@/components/shadcn/empty';
 import type { SubContract } from '@/types/third-party/sub-contract';
 
+function normalizeDate(date?: Date | string, fallbackToday = false): string {
+  if (!date) return fallbackToday ? new Date().toISOString().split('T')[0] : '';
+  return date instanceof Date ? date.toISOString().split('T')[0] : String(date);
+}
+
 interface Milestone {
   name: string;
   percentage: number;
@@ -149,19 +154,8 @@ function SubContractEditForm({
     contractValue: initialData?.contractValue ?? 0,
     totalPaid: initialData?.totalPaid ?? 0,
     totalDue: initialData?.totalDue ?? 0,
-    startDate: (() => {
-      if (!initialData?.startDate)
-        return new Date().toISOString().split('T')[0];
-      return initialData.startDate instanceof Date
-        ? initialData.startDate.toISOString().split('T')[0]
-        : String(initialData.startDate);
-    })(),
-    endDate: (() => {
-      if (!initialData?.endDate) return '';
-      return initialData.endDate instanceof Date
-        ? initialData.endDate.toISOString().split('T')[0]
-        : String(initialData.endDate);
-    })(),
+    startDate: normalizeDate(initialData?.startDate, true),
+    endDate: normalizeDate(initialData?.endDate),
     completionPercentage: initialData?.completionPercentage ?? 0,
     gstNumber: initialData?.gstNumber ?? '',
     panNumber: initialData?.panNumber ?? '',
@@ -174,10 +168,7 @@ function SubContractEditForm({
       percentage: m.paymentPercentage,
       amount: m.amount,
       status: m.status,
-      date:
-        m.targetDate instanceof Date
-          ? m.targetDate.toISOString().split('T')[0]
-          : String(m.targetDate),
+      date: normalizeDate(m.targetDate),
     })),
     notes: initialData?.notes ?? '',
   }));

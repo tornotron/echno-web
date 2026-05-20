@@ -13,13 +13,14 @@ const typeLabels: Record<string, string> = {
   unitPrice: 'Unit Price',
 };
 
-const statusColors: Record<string, string> = {
-  draft: 'zinc',
-  active: 'green',
-  onHold: 'orange',
-  completed: 'blue',
-  terminated: 'red',
-  expired: 'red',
+const statusBadgeClasses: Record<string, string> = {
+  draft: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+  active: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  onHold:
+    'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  completed: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+  terminated: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+  expired: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 };
 
 const statusLabels: Record<string, string> = {
@@ -31,11 +32,11 @@ const statusLabels: Record<string, string> = {
   expired: 'Expired',
 };
 
-const paymentStatusColors: Record<string, string> = {
-  notStarted: 'zinc',
-  inProgress: 'blue',
-  fullyPaid: 'green',
-  overdue: 'red',
+const paymentBadgeClasses: Record<string, string> = {
+  notStarted: 'text-xs bg-zinc-50 border-zinc-200',
+  inProgress: 'text-xs bg-blue-50 border-blue-200',
+  fullyPaid: 'text-xs bg-green-50 border-green-200',
+  overdue: 'text-xs bg-red-50 border-red-200',
 };
 
 const paymentStatusLabels: Record<string, string> = {
@@ -153,15 +154,13 @@ export function SubContractRow({
       </TableCell>
       <TableCell>
         <div className="space-y-1">
-          <Badge
-            className={`bg-${statusColors[contract.status]}-100 text-${statusColors[contract.status]}-700 dark:bg-${statusColors[contract.status]}-900 dark:text-${statusColors[contract.status]}-300`}
-          >
+          <Badge className={statusBadgeClasses[contract.status]}>
             {statusLabels[contract.status]}
           </Badge>
           <div>
             <Badge
               variant="outline"
-              className={`text-xs bg-${paymentStatusColors[contract.paymentStatus]}-50 border-${paymentStatusColors[contract.paymentStatus]}-200`}
+              className={paymentBadgeClasses[contract.paymentStatus]}
             >
               {paymentStatusLabels[contract.paymentStatus]}
             </Badge>
