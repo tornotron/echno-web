@@ -1,7 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockPayments, mockMembers } from '@/components/shared/mock-data';
+import { mockMembers } from '@/components/shared/mock-data';
+import { usePaymentById } from '@/hooks/payments';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -107,12 +108,8 @@ const getUserName = (userId: number): string => {
 
 export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const resolvedParams = use(params);
-  const payment = mockPayments.find(
-    (p) => p.id === Number.parseInt(resolvedParams.id)
-  );
-
-  const isLoading = false;
-  const isError = false;
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: payment, isLoading, isError } = usePaymentById(id);
 
   if (isLoading)
     return (
