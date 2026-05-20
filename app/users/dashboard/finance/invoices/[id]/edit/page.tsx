@@ -35,16 +35,7 @@ import {
   InvoiceStatus,
   InvoiceLineItem,
 } from '@/types/finance/invoice';
-import {
-  ArrowLeft,
-  Save,
-  X,
-  FileText,
-  Plus,
-  Trash2,
-  Hash,
-  Calendar,
-} from 'lucide-react';
+import { Save, X, FileText, Plus, Trash2, Hash, Calendar } from 'lucide-react';
 import {
   Empty,
   EmptyErrorMedia,
@@ -52,6 +43,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -227,15 +219,10 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Edit Invoice</h1>
-          <p className="text-muted-foreground">
-            Update invoice information and details
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Edit Invoice"
+        description="Update invoice information and line items"
+      />
 
       <div className="max-w-5xl">
         <form onSubmit={handleSubmit} className="space-y-6">
