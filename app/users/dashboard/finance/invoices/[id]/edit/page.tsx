@@ -3,6 +3,7 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { useInvoiceById } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -28,14 +29,25 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { mockInvoices, mockProjects } from '@/components/shared/mock-data';
+import { mockProjects } from '@/components/shared/mock-data';
 import {
   Invoice,
   InvoiceType,
   InvoiceStatus,
   InvoiceLineItem,
+  invoiceTypeLabels,
+  invoiceStatusLabels,
 } from '@/types/finance/invoice';
-import { Save, X, FileText, Plus, Trash2, Hash, Calendar } from 'lucide-react';
+import {
+  Save,
+  X,
+  FileText,
+  Plus,
+  Trash2,
+  Hash,
+  Calendar,
+  Loader2,
+} from 'lucide-react';
 import {
   Empty,
   EmptyErrorMedia,
@@ -54,37 +66,32 @@ interface EditInvoicePageProps {
 
 export default function EditInvoicePage({ params }: EditInvoicePageProps) {
   const resolvedParams = use(params);
-  const router = useRouter();
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: invoice, isLoading, isError } = useInvoiceById(id);
 
-  const invoice = mockInvoices.find(
-    (i) => i.id === Number.parseInt(resolvedParams.id)
-  );
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
-    invoice?.lineItems || []
-  );
-
-  const [formData, setFormData] = useState<Partial<Invoice>>({
-    invoiceNumber: invoice?.invoiceNumber || '',
-    type: invoice?.type || InvoiceType.purchase,
-    status: invoice?.status || InvoiceStatus.draft,
-    projectId: invoice?.projectId || mockProjects[0]?.id || 1,
-    issueDate: invoice?.issueDate || new Date().toISOString(),
-    dueDate: invoice?.dueDate || new Date().toISOString(),
-    subtotal: invoice?.subtotal || 0,
-    taxAmount: invoice?.taxAmount || 0,
-    discountAmount: invoice?.discountAmount || 0,
-    totalAmount: invoice?.totalAmount || 0,
-    paidAmount: invoice?.paidAmount || 0,
-    balanceAmount: invoice?.balanceAmount || 0,
-    paymentTerms: invoice?.paymentTerms || 'Net 30',
-    paymentMethod: invoice?.paymentMethod || '',
-    gstNumber: invoice?.gstNumber || '',
-    taxType: invoice?.taxType || 'GST',
-    notes: invoice?.notes || '',
-  });
-
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <FileText className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load invoice</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.invoices.href}>Back to Invoices</Link>
+        </Button>
+      </Empty>
+    );
   if (!invoice)
     return (
       <Empty variant="default">
@@ -103,20 +110,49 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
       </Empty>
     );
 
+  return <InvoiceEditForm initialData={invoice} invoiceId={id} />;
+}
+
+interface InvoiceEditFormProps {
+  initialData: Invoice;
+  invoiceId: number;
+}
+
+function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
+    () => initialData.lineItems
+  );
+  const [formData, setFormData] = useState<Partial<Invoice>>(() => ({
+    invoiceNumber: initialData.invoiceNumber,
+    type: initialData.type,
+    status: initialData.status,
+    projectId: initialData.projectId ?? mockProjects[0]?.id ?? 1,
+    issueDate: initialData.issueDate,
+    dueDate: initialData.dueDate,
+    subtotal: initialData.subtotal,
+    taxAmount: initialData.taxAmount,
+    discountAmount: initialData.discountAmount,
+    totalAmount: initialData.totalAmount,
+    paidAmount: initialData.paidAmount,
+    balanceAmount: initialData.balanceAmount,
+    paymentTerms: initialData.paymentTerms ?? 'Net 30',
+    paymentMethod: initialData.paymentMethod ?? '',
+    gstNumber: initialData.gstNumber ?? '',
+    taxType: initialData.taxType ?? 'GST',
+    notes: initialData.notes ?? '',
+  }));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
     setTimeout(() => {
       toast.success('Invoice updated successfully');
       setIsSubmitting(false);
-      router.push(routes.finance.invoices.detail(invoice.id).href);
+      router.push(routes.finance.invoices.detail(invoiceId).href);
     }, 1000);
-  };
-
-  const handleCancel = () => {
-    router.push(routes.finance.invoices.detail(invoice.id).href);
   };
 
   const handleInputChange = (
@@ -148,9 +184,8 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
     newItems[index] = item;
     setLineItems(newItems);
 
-    // Recalculate totals
-    const subtotal = newItems.reduce((sum, item) => sum + item.subtotal, 0);
-    const taxAmount = newItems.reduce((sum, item) => sum + item.taxAmount, 0);
+    const subtotal = newItems.reduce((sum, i) => sum + i.subtotal, 0);
+    const taxAmount = newItems.reduce((sum, i) => sum + i.taxAmount, 0);
     const totalAmount = subtotal + taxAmount - (formData.discountAmount || 0);
 
     setFormData((prev) => ({
@@ -183,9 +218,8 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
       const newItems = lineItems.filter((_, i) => i !== index);
       setLineItems(newItems);
 
-      // Recalculate totals
-      const subtotal = newItems.reduce((sum, item) => sum + item.subtotal, 0);
-      const taxAmount = newItems.reduce((sum, item) => sum + item.taxAmount, 0);
+      const subtotal = newItems.reduce((sum, i) => sum + i.subtotal, 0);
+      const taxAmount = newItems.reduce((sum, i) => sum + i.taxAmount, 0);
       const totalAmount = subtotal + taxAmount - (formData.discountAmount || 0);
 
       setFormData((prev) => ({
@@ -197,24 +231,6 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
         lineItems: newItems,
       }));
     }
-  };
-
-  const invoiceTypeLabels: Record<InvoiceType, string> = {
-    [InvoiceType.purchase]: 'Purchase Invoice',
-    [InvoiceType.sales]: 'Sales Invoice',
-    [InvoiceType.expense]: 'Expense Invoice',
-    [InvoiceType.service]: 'Service Invoice',
-  };
-
-  const invoiceStatusLabels: Record<InvoiceStatus, string> = {
-    [InvoiceStatus.draft]: 'Draft',
-    [InvoiceStatus.pending]: 'Pending',
-    [InvoiceStatus.sent]: 'Sent',
-    [InvoiceStatus.partiallyPaid]: 'Partially Paid',
-    [InvoiceStatus.paid]: 'Paid',
-    [InvoiceStatus.overdue]: 'Overdue',
-    [InvoiceStatus.cancelled]: 'Cancelled',
-    [InvoiceStatus.disputed]: 'Disputed',
   };
 
   return (
@@ -632,7 +648,6 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
               </div>
 
               <div className="space-y-4">
-                {/* Notes */}
                 <div className="space-y-2">
                   <Label htmlFor="notes">Notes</Label>
                   <Textarea
@@ -653,14 +668,11 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
               <Save className="mr-2 h-4 w-4" />
               {isSubmitting ? 'Updating...' : 'Update Invoice'}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isSubmitting}
-            >
-              <X className="mr-2 h-4 w-4" />
-              Cancel
+            <Button variant="outline" asChild>
+              <Link href={routes.finance.invoices.detail(invoiceId).href}>
+                <X className="mr-2 h-4 w-4" />
+                Cancel
+              </Link>
             </Button>
           </div>
         </form>

@@ -1,8 +1,9 @@
 'use client';
 
 import { use } from 'react';
-import { mockInvoices, mockMembers } from '@/components/shared/mock-data';
+import { mockMembers } from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
+import { useInvoiceById } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -117,16 +118,25 @@ const getUserName = (userId: number): string => {
 
 export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const resolvedParams = use(params);
-  const { data: vendors = [], isPending: isLoading, isError } = useVendors();
+  const id = Number.parseInt(resolvedParams.id);
+  const {
+    data: vendors = [],
+    isPending: isVendorsLoading,
+    isError: isVendorsError,
+  } = useVendors();
+  const {
+    data: invoice,
+    isPending: isInvoiceLoading,
+    isError: isInvoiceError,
+  } = useInvoiceById(id);
+
+  const isLoading = isVendorsLoading || isInvoiceLoading;
+  const isError = isVendorsError || isInvoiceError;
 
   const getVendorName = (vendorId: number): string => {
     const vendor = vendors.find((v) => v.id === vendorId);
     return vendor?.name || `Vendor #${vendorId}`;
   };
-
-  const invoice = mockInvoices.find(
-    (i) => i.id === Number.parseInt(resolvedParams.id)
-  );
 
   if (isLoading)
     return (
