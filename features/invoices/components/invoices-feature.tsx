@@ -3,11 +3,12 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
+import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
 import {
   Table,
   TableBody,
@@ -29,9 +30,12 @@ import {
   Calendar,
   CheckCircle,
   Clock,
+  Search,
+  Loader2,
 } from 'lucide-react';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
@@ -141,6 +145,7 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
   const endIndex = startIndex + itemsPerPage;
   const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
 
   // Calculate stats
   const totalInvoices = invoices.length;
@@ -268,268 +273,292 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
         </div>
       </Card>
 
-      {/* Search and Filters */}
-      <SearchAndFilter
-        searchValue={searchQuery}
-        onSearchChange={(value) => {
-          setSearchQuery(value);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder="Search by invoice number, notes..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        filters={[
-          {
-            placeholder: 'Status',
-            options: [
-              { value: 'all', label: 'All Statuses' },
-              {
-                value: InvoiceStatus.draft,
-                label: invoiceStatusLabels[InvoiceStatus.draft],
-              },
-              {
-                value: InvoiceStatus.pending,
-                label: invoiceStatusLabels[InvoiceStatus.pending],
-              },
-              {
-                value: InvoiceStatus.sent,
-                label: invoiceStatusLabels[InvoiceStatus.sent],
-              },
-              {
-                value: InvoiceStatus.partiallyPaid,
-                label: invoiceStatusLabels[InvoiceStatus.partiallyPaid],
-              },
-              {
-                value: InvoiceStatus.paid,
-                label: invoiceStatusLabels[InvoiceStatus.paid],
-              },
-              {
-                value: InvoiceStatus.overdue,
-                label: invoiceStatusLabels[InvoiceStatus.overdue],
-              },
-              {
-                value: InvoiceStatus.cancelled,
-                label: invoiceStatusLabels[InvoiceStatus.cancelled],
-              },
-              {
-                value: InvoiceStatus.disputed,
-                label: invoiceStatusLabels[InvoiceStatus.disputed],
-              },
-            ],
-            value: statusFilter,
-            onChange: (value) => {
-              setStatusFilter(value);
-              setCurrentPage(1);
-            },
-          },
-          {
-            placeholder: 'Type',
-            options: [
-              { value: 'all', label: 'All Types' },
-              {
-                value: InvoiceType.purchase,
-                label: invoiceTypeLabels[InvoiceType.purchase],
-              },
-              {
-                value: InvoiceType.sales,
-                label: invoiceTypeLabels[InvoiceType.sales],
-              },
-              {
-                value: InvoiceType.expense,
-                label: invoiceTypeLabels[InvoiceType.expense],
-              },
-              {
-                value: InvoiceType.service,
-                label: invoiceTypeLabels[InvoiceType.service],
-              },
-            ],
-            value: typeFilter,
-            onChange: (value) => {
-              setTypeFilter(value);
-              setCurrentPage(1);
-            },
-          },
-        ]}
-      />
-
-      {/* Results Summary */}
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {startIndex + 1} to{' '}
-          {Math.min(endIndex, filteredInvoices.length)} of{' '}
-          {filteredInvoices.length} invoices
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Unified Card: search/filter toolbar + content + pagination */}
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          {/* Search input */}
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by invoice number, notes..."
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
+          {/* Status filter */}
           <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value));
+            value={statusFilter}
+            onValueChange={(v) => {
+              setStatusFilter(v);
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value={InvoiceStatus.draft}>
+                {invoiceStatusLabels[InvoiceStatus.draft]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.pending}>
+                {invoiceStatusLabels[InvoiceStatus.pending]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.sent}>
+                {invoiceStatusLabels[InvoiceStatus.sent]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.partiallyPaid}>
+                {invoiceStatusLabels[InvoiceStatus.partiallyPaid]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.paid}>
+                {invoiceStatusLabels[InvoiceStatus.paid]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.overdue}>
+                {invoiceStatusLabels[InvoiceStatus.overdue]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.cancelled}>
+                {invoiceStatusLabels[InvoiceStatus.cancelled]}
+              </SelectItem>
+              <SelectItem value={InvoiceStatus.disputed}>
+                {invoiceStatusLabels[InvoiceStatus.disputed]}
+              </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </div>
+          {/* Type filter */}
+          <Select
+            value={typeFilter}
+            onValueChange={(v) => {
+              setTypeFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value={InvoiceType.purchase}>
+                {invoiceTypeLabels[InvoiceType.purchase]}
+              </SelectItem>
+              <SelectItem value={InvoiceType.sales}>
+                {invoiceTypeLabels[InvoiceType.sales]}
+              </SelectItem>
+              <SelectItem value={InvoiceType.expense}>
+                {invoiceTypeLabels[InvoiceType.expense]}
+              </SelectItem>
+              <SelectItem value={InvoiceType.service}>
+                {invoiceTypeLabels[InvoiceType.service]}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+          {/* Rows per page — pushed to right */}
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[5, 10, 20, 50, 100].map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
 
-      {/* Invoices Table */}
-      {filteredInvoices.length > 0 ? (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={isAllSelected}
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead>Invoice Number</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Project</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Issue Date</TableHead>
-                  <TableHead>Due Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Balance</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedInvoices.map((invoice) => {
-                  const projectName = getProjectName(invoice.projectId);
-
-                  return (
-                    <TableRow
-                      key={invoice.id}
-                      className="hover:bg-muted/50 cursor-pointer"
-                      onClick={() =>
-                        router.push(
-                          routes.finance.invoices.detail(invoice.id).href
-                        )
-                      }
-                    >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+        <CardContent className="p-0">
+          {(() => {
+            const isLoading = false;
+            const isError = false;
+            if (isLoading)
+              return (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+                </div>
+              );
+            if (isError)
+              return (
+                <CardContent>
+                  <Empty variant="default">
+                    <EmptyErrorMedia>
+                      <FileText className="size-6" />
+                    </EmptyErrorMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>Failed to load invoices</EmptyTitle>
+                      <EmptyDescription>
+                        An unexpected error occurred. Please try again.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </CardContent>
+              );
+            if (paginatedInvoices.length > 0)
+              return (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
                         <Checkbox
-                          checked={selectedIds.includes(invoice.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectOne(invoice.id, checked as boolean)
-                          }
-                          aria-label={`Select ${invoice.invoiceNumber}`}
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all"
                         />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
-                            <FileText className="h-5 w-5 text-white" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {invoice.invoiceNumber}
-                            </p>
-                            {invoice.paymentTerms && (
-                              <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                                Terms: {invoice.paymentTerms}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getTypeColor(invoice.type)}>
-                          {invoiceTypeLabels[invoice.type]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                          {projectName}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                          ₹{invoice.totalAmount.toLocaleString('en-IN')}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                          <Calendar className="h-3 w-3 text-zinc-400" />
-                          <span>
-                            {format(invoice.issueDate, 'dd MMM yyyy')}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                          {format(invoice.dueDate, 'dd MMM yyyy')}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={getStatusColor(invoice.status)}>
-                          {invoiceStatusLabels[invoice.status]}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`font-semibold ${
-                            invoice.balanceAmount > 0
-                              ? 'text-orange-600 dark:text-orange-400'
-                              : 'text-green-600 dark:text-green-400'
-                          }`}
-                        >
-                          ₹{invoice.balanceAmount.toLocaleString('en-IN')}
-                        </span>
-                      </TableCell>
+                      </TableHead>
+                      <TableHead>Invoice Number</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Issue Date</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Balance</TableHead>
                     </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
+                  </TableHeader>
+                  <TableBody>
+                    {paginatedInvoices.map((invoice) => {
+                      const projectName = getProjectName(invoice.projectId);
 
-          {/* Pagination Controls */}
+                      return (
+                        <TableRow
+                          key={invoice.id}
+                          className="hover:bg-muted/50 cursor-pointer"
+                          onClick={() =>
+                            router.push(
+                              routes.finance.invoices.detail(invoice.id).href
+                            )
+                          }
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedIds.includes(invoice.id)}
+                              onCheckedChange={(checked) =>
+                                handleSelectOne(invoice.id, checked as boolean)
+                              }
+                              aria-label={`Select ${invoice.invoiceNumber}`}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600">
+                                <FileText className="h-5 w-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {invoice.invoiceNumber}
+                                </p>
+                                {invoice.paymentTerms && (
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                                    Terms: {invoice.paymentTerms}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getTypeColor(invoice.type)}>
+                              {invoiceTypeLabels[invoice.type]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                              {projectName}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                              ₹{invoice.totalAmount.toLocaleString('en-IN')}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
+                              <Calendar className="h-3 w-3 text-zinc-400" />
+                              <span>
+                                {format(invoice.issueDate, 'dd MMM yyyy')}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                              {format(invoice.dueDate, 'dd MMM yyyy')}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={getStatusColor(invoice.status)}>
+                              {invoiceStatusLabels[invoice.status]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span
+                              className={`font-semibold ${
+                                invoice.balanceAmount > 0
+                                  ? 'text-orange-600 dark:text-orange-400'
+                                  : 'text-green-600 dark:text-green-400'
+                              }`}
+                            >
+                              ₹{invoice.balanceAmount.toLocaleString('en-IN')}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              );
+            return (
+              <CardContent>
+                <Empty variant="default">
+                  <EmptyMedia variant="icon">
+                    <FileText className="size-6" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No invoices found</EmptyTitle>
+                    <EmptyDescription>
+                      {hasActiveFilters
+                        ? 'Try adjusting your search or filters.'
+                        : 'Add your first invoice to get started.'}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {!hasActiveFilters && (
+                    <Button asChild>
+                      <Link href={routes.finance.invoices.new}>
+                        New Invoice
+                      </Link>
+                    </Button>
+                  )}
+                </Empty>
+              </CardContent>
+            );
+          })()}
+        </CardContent>
+
+        <div className="flex items-center justify-between border-t px-4 py-2">
+          <span className="text-sm text-zinc-500">
+            {filteredInvoices.length === 0
+              ? '0 records'
+              : `${startIndex + 1}–${Math.min(endIndex, filteredInvoices.length)} of ${filteredInvoices.length} ${filteredInvoices.length === 1 ? 'invoice' : 'invoices'}`}
+          </span>
           <Pagination
-            currentPage={currentPage}
+            currentPage={safePage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}
           />
-        </Card>
-      ) : (
-        <Card>
-          <CardContent>
-            <Empty variant="default">
-              <EmptyMedia variant="icon">
-                <FileText className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No invoices found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? 'Try adjusting your search or filters.'
-                    : 'Add your first invoice to get started.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              {!hasActiveFilters && (
-                <Button asChild>
-                  <Link href={routes.finance.invoices.new}>New Invoice</Link>
-                </Button>
-              )}
-            </Empty>
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      </Card>
     </div>
   );
 }
