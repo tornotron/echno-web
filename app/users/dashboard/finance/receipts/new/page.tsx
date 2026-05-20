@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { Save, X, Calendar, DollarSign } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 
@@ -87,12 +88,10 @@ export default function NewReceiptPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">New Receipt</h1>
-          <p className="text-muted-foreground">Create a new receipt record</p>
-        </div>
-      </div>
+      <PageHeader
+        title="New Receipt"
+        description="Create a new financial receipt"
+      />
 
       <div className="max-w-3xl">
         <form onSubmit={handleSubmit} className="space-y-6">

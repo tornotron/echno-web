@@ -36,6 +36,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
@@ -140,48 +141,30 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-start space-x-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-green-500 to-green-600">
-              <ReceiptIcon className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center space-x-3">
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {receipt.receiptNumber}
-                </h1>
-                <Badge className={getStatusColor(receipt.status)}>
-                  {receiptStatusLabels[receipt.status]}
-                </Badge>
-                <Badge className={getTypeColor(receipt.type)}>
-                  {receiptTypeLabels[receipt.type]}
-                </Badge>
-              </div>
-              <p className="mb-2 text-zinc-600 dark:text-zinc-400">
-                {receipt.description}
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <Calendar className="h-4 w-4" />
-                <span>Issued on {format(receipt.issuedAt, 'dd MMM yyyy')}</span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2">
+      <PageHeader
+        title={receipt.receiptNumber}
+        description={receipt.description}
+        actions={
+          <>
+            <Badge className={getStatusColor(receipt.status)}>
+              {receiptStatusLabels[receipt.status]}
+            </Badge>
+            <Badge className={getTypeColor(receipt.type)}>
+              {receiptTypeLabels[receipt.type]}
+            </Badge>
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Link href={routes.finance.receipts.detail(receipt.id).edit}>
-              <Button>
+            <Button asChild>
+              <Link href={routes.finance.receipts.detail(receipt.id).edit}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
