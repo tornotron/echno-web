@@ -1,7 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockExpenses, mockEmployees } from '@/components/shared/mock-data';
+import { mockEmployees } from '@/components/shared/mock-data';
+import { useExpenseById } from '@/hooks/expenses';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -33,42 +34,13 @@ import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
-import { ExpenseType, ExpenseStatus } from '@/types/finance/expense';
-
-const expenseTypeLabels: Record<string, string> = {
-  direct: 'Direct',
-  indirect: 'Indirect',
-  capital: 'Capital',
-  operational: 'Operational',
-};
-
-const expenseStatusLabels: Record<string, string> = {
-  draft: 'Draft',
-  pending: 'Pending',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  paid: 'Paid',
-  reimbursed: 'Reimbursed',
-  cancelled: 'Cancelled',
-};
-
-const expenseCategoryLabels: Record<string, string> = {
-  materials: 'Materials',
-  labour: 'Labour',
-  equipment: 'Equipment',
-  transport: 'Transport',
-  utilities: 'Utilities',
-  rent: 'Rent',
-  salaries: 'Salaries',
-  maintenance: 'Maintenance',
-  insurance: 'Insurance',
-  legal: 'Legal',
-  marketing: 'Marketing',
-  office: 'Office',
-  travel: 'Travel',
-  miscellaneous: 'Miscellaneous',
-  other: 'Other',
-};
+import {
+  ExpenseType,
+  ExpenseStatus,
+  expenseTypeLabels,
+  expenseStatusLabels,
+  expenseCategoryLabels,
+} from '@/types/finance/expense';
 
 const getStatusColor = (status: ExpenseStatus) => {
   switch (status) {
@@ -125,12 +97,8 @@ interface ExpenseDetailPageProps {
 
 export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const resolvedParams = use(params);
-  const expense = mockExpenses.find(
-    (e) => e.id === Number.parseInt(resolvedParams.id)
-  );
-
-  const isLoading = false;
-  const isError = false;
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: expense, isLoading, isError } = useExpenseById(id);
 
   if (isLoading)
     return (
