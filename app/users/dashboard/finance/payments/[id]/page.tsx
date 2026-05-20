@@ -1,6 +1,5 @@
 'use client';
 
-import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockPayments, mockMembers } from '@/components/shared/mock-data';
 import { Button } from '@/components/shadcn/button';
@@ -25,7 +24,15 @@ import {
   Paperclip,
   User,
   Briefcase,
+  Loader2,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -103,9 +110,49 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
     (p) => p.id === Number.parseInt(resolvedParams.id)
   );
 
-  if (!payment) {
-    notFound();
-  }
+  const isLoading = false;
+  const isError = false;
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <CreditCard className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load payment</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.payments.href}>Back to Payments</Link>
+        </Button>
+      </Empty>
+    );
+  if (!payment)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <CreditCard className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Payment not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.payments.href}>Back to Payments</Link>
+        </Button>
+      </Empty>
+    );
 
   return (
     <div className="space-y-4 sm:space-y-6">
