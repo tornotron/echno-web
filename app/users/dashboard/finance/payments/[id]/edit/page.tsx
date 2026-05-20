@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
-  mockPayments,
   mockProjects,
   mockEmployees,
   mockSubContracts,
@@ -35,7 +34,11 @@ import {
   PaymentMethod,
   PayeeType,
   payeeTypeLabels,
+  paymentTypeLabels,
+  paymentStatusLabels,
+  paymentMethodLabels,
 } from '@/types/finance/payment';
+import { usePaymentById } from '@/hooks/payments';
 import { getPayeesByType, getPayeeInfo } from '@/lib/utils/payment-utils';
 import {
   Save,
@@ -47,6 +50,7 @@ import {
   Calendar,
   Building,
   Users,
+  Loader2,
 } from 'lucide-react';
 import {
   Empty,
@@ -66,80 +70,32 @@ interface EditPaymentPageProps {
 
 export default function EditPaymentPage({ params }: EditPaymentPageProps) {
   const resolvedParams = use(params);
-  const router = useRouter();
-  const { data: vendors = [] } = useVendors();
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: payment, isLoading, isError } = usePaymentById(id);
 
-  // Create datasets object for utility functions
-  const payeeDatasets = {
-    vendors,
-    employees: mockEmployees,
-    subContracts: mockSubContracts,
-    labour: mockLabour,
-  };
-
-  const payment = mockPayments.find(
-    (p) => p.id === Number.parseInt(resolvedParams.id)
-  );
-
-  // Initialize payee info from payment data
-  const initialPayeeInfo = payment
-    ? getPayeeInfo(payment, payeeDatasets)
-    : null;
-
-  const manualEntryTypes = new Set([
-    PayeeType.consultant,
-    PayeeType.utility,
-    PayeeType.government,
-    PayeeType.insurance,
-    PayeeType.bank,
-    PayeeType.legal,
-    PayeeType.rental,
-    PayeeType.other,
-  ]);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedPayeeType, setSelectedPayeeType] = useState<
-    PayeeType | undefined
-  >(initialPayeeInfo?.type);
-  const [showManualPayeeEntry, setShowManualPayeeEntry] = useState(
-    initialPayeeInfo ? manualEntryTypes.has(initialPayeeInfo.type) : false
-  );
-
-  // Re-derive payee info once vendors have loaded
-  useEffect(() => {
-    if (!payment || vendors.length === 0) return;
-    const info = getPayeeInfo(payment, payeeDatasets);
-    setSelectedPayeeType(info.type);
-    setShowManualPayeeEntry(manualEntryTypes.has(info.type));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vendors]);
-
-  const [formData, setFormData] = useState<Partial<Payment>>({
-    paymentNumber: payment?.paymentNumber || '',
-    type: payment?.type || PaymentType.invoice,
-    status: payment?.status || PaymentStatus.pending,
-    method: payment?.method || PaymentMethod.bankTransfer,
-    projectId: payment?.projectId || mockProjects[0]?.id || 1,
-    amount: payment?.amount || 0,
-    currency: payment?.currency || 'INR',
-    paymentDate: payment?.paymentDate || new Date(),
-    transactionId: payment?.transactionId || '',
-    referenceNumber: payment?.referenceNumber || '',
-    bankName: payment?.bankName || '',
-    accountNumber: payment?.accountNumber || '',
-    ifscCode: payment?.ifscCode || '',
-    description: payment?.description || '',
-    notes: payment?.notes || '',
-    // Payee fields
-    payeeType: payment?.payeeType,
-    payeeName: payment?.payeeName || '',
-    payeeDetails: payment?.payeeDetails || '',
-    vendorId: payment?.vendorId,
-    employeeId: payment?.employeeId,
-    subContractId: payment?.subContractId,
-    labourId: payment?.labourId,
-  });
-
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <CreditCard className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load payment</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.payments.href}>Back to Payments</Link>
+        </Button>
+      </Empty>
+    );
   if (!payment)
     return (
       <Empty variant="default">
@@ -158,6 +114,79 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
       </Empty>
     );
 
+  return <PaymentEditForm initialData={payment} paymentId={id} />;
+}
+
+interface PaymentEditFormProps {
+  initialData: Payment;
+  paymentId: number;
+}
+
+function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
+  const router = useRouter();
+  const { data: vendors = [] } = useVendors();
+
+  const payeeDatasets = {
+    vendors,
+    employees: mockEmployees,
+    subContracts: mockSubContracts,
+    labour: mockLabour,
+  };
+
+  const manualEntryTypes = new Set([
+    PayeeType.consultant,
+    PayeeType.utility,
+    PayeeType.government,
+    PayeeType.insurance,
+    PayeeType.bank,
+    PayeeType.legal,
+    PayeeType.rental,
+    PayeeType.other,
+  ]);
+
+  const derivePayeeType = (p: Payment): PayeeType | undefined => {
+    if (p.vendorId) return PayeeType.vendor;
+    if (p.employeeId) return PayeeType.employee;
+    if (p.subContractId) return PayeeType.subContractor;
+    if (p.labourId) return PayeeType.labour;
+    return p.payeeType;
+  };
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedPayeeType, setSelectedPayeeType] = useState<
+    PayeeType | undefined
+  >(() => derivePayeeType(initialData));
+  const [showManualPayeeEntry, setShowManualPayeeEntry] = useState(() => {
+    const t = derivePayeeType(initialData);
+    return t ? manualEntryTypes.has(t) : false;
+  });
+
+  const [formData, setFormData] = useState<Partial<Payment>>(() => ({
+    paymentNumber: initialData.paymentNumber,
+    type: initialData.type,
+    status: initialData.status,
+    method: initialData.method,
+    projectId: initialData.projectId,
+    amount: initialData.amount,
+    currency: initialData.currency,
+    paymentDate: initialData.paymentDate,
+    transactionId: initialData.transactionId ?? '',
+    referenceNumber: initialData.referenceNumber ?? '',
+    bankName: initialData.bankName ?? '',
+    accountNumber: initialData.accountNumber ?? '',
+    ifscCode: initialData.ifscCode ?? '',
+    description: initialData.description ?? '',
+    notes: initialData.notes ?? '',
+    // Payee fields
+    payeeType: initialData.payeeType,
+    payeeName: initialData.payeeName ?? '',
+    payeeDetails: initialData.payeeDetails ?? '',
+    vendorId: initialData.vendorId,
+    employeeId: initialData.employeeId,
+    subContractId: initialData.subContractId,
+    labourId: initialData.labourId,
+  }));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -166,12 +195,12 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     setTimeout(() => {
       toast.success('Payment updated successfully');
       setIsSubmitting(false);
-      router.push(routes.finance.payments.detail(payment.id).href);
+      router.push(routes.finance.payments.detail(paymentId).href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push(routes.finance.payments.detail(payment.id).href);
+    router.push(routes.finance.payments.detail(paymentId).href);
   };
 
   const handleInputChange = (
@@ -241,36 +270,6 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     }
 
     setFormData((prev) => ({ ...prev, ...updates }));
-  };
-
-  const paymentTypeLabels: Record<PaymentType, string> = {
-    [PaymentType.invoice]: 'Invoice Payment',
-    [PaymentType.salary]: 'Salary Payment',
-    [PaymentType.advance]: 'Advance Payment',
-    [PaymentType.expense]: 'Expense Payment',
-    [PaymentType.refund]: 'Refund',
-    [PaymentType.other]: 'Other',
-  };
-
-  const paymentStatusLabels: Record<PaymentStatus, string> = {
-    [PaymentStatus.pending]: 'Pending',
-    [PaymentStatus.processing]: 'Processing',
-    [PaymentStatus.completed]: 'Completed',
-    [PaymentStatus.failed]: 'Failed',
-    [PaymentStatus.cancelled]: 'Cancelled',
-    [PaymentStatus.refunded]: 'Refunded',
-  };
-
-  const paymentMethodLabels: Record<PaymentMethod, string> = {
-    [PaymentMethod.cash]: 'Cash',
-    [PaymentMethod.cheque]: 'Cheque',
-    [PaymentMethod.bankTransfer]: 'Bank Transfer',
-    [PaymentMethod.upi]: 'UPI',
-    [PaymentMethod.card]: 'Card',
-    [PaymentMethod.neft]: 'NEFT',
-    [PaymentMethod.rtgs]: 'RTGS',
-    [PaymentMethod.imps]: 'IMPS',
-    [PaymentMethod.other]: 'Other',
   };
 
   return (
