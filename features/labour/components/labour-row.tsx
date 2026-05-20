@@ -12,11 +12,12 @@ const typeLabels: Record<string, string> = {
   piece: 'Piece Rate',
 };
 
-const statusColors: Record<string, string> = {
-  active: 'green',
-  inactive: 'zinc',
-  onLeave: 'orange',
-  terminated: 'red',
+const statusBadgeClasses: Record<string, string> = {
+  active: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  inactive: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+  onLeave:
+    'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  terminated: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 };
 
 const statusLabels: Record<string, string> = {
@@ -104,9 +105,7 @@ export function LabourRow({
         )}
       </TableCell>
       <TableCell>
-        <Badge
-          className={`bg-${statusColors[labour.status]}-100 text-${statusColors[labour.status]}-700 dark:bg-${statusColors[labour.status]}-900 dark:text-${statusColors[labour.status]}-300`}
-        >
+        <Badge className={statusBadgeClasses[labour.status]}>
           {statusLabels[labour.status]}
         </Badge>
       </TableCell>
