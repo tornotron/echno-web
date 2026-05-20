@@ -20,8 +20,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { mockReceipts, mockProjects } from '@/components/shared/mock-data';
-import { Receipt, ReceiptType, ReceiptStatus } from '@/types/finance/receipt';
+import { mockProjects } from '@/components/shared/mock-data';
+import {
+  Receipt,
+  ReceiptType,
+  ReceiptStatus,
+  receiptTypeLabels,
+  receiptStatusLabels,
+} from '@/types/finance/receipt';
+import { useReceiptById } from '@/hooks/receipts';
 import {
   Save,
   X,
@@ -32,6 +39,7 @@ import {
   Hash,
   FileText,
   Calendar,
+  Loader2,
 } from 'lucide-react';
 import {
   Empty,
@@ -51,30 +59,32 @@ interface EditReceiptPageProps {
 
 export default function EditReceiptPage({ params }: EditReceiptPageProps) {
   const resolvedParams = use(params);
-  const router = useRouter();
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: receipt, isLoading, isError } = useReceiptById(id);
 
-  const receipt = mockReceipts.find(
-    (r) => r.id === Number.parseInt(resolvedParams.id)
-  );
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState<Partial<Receipt>>({
-    receiptNumber: receipt?.receiptNumber || '',
-    type: receipt?.type || ReceiptType.payment,
-    status: receipt?.status || ReceiptStatus.draft,
-    projectId: receipt?.projectId || mockProjects[0]?.id || 1,
-    receivedFrom: receipt?.receivedFrom || '',
-    receivedFromAddress: receipt?.receivedFromAddress || '',
-    amount: receipt?.amount || 0,
-    currency: receipt?.currency || 'INR',
-    receiptDate: receipt?.receiptDate || new Date().toISOString(),
-    paymentMethod: receipt?.paymentMethod || '',
-    transactionId: receipt?.transactionId || '',
-    referenceNumber: receipt?.referenceNumber || '',
-    description: receipt?.description || '',
-    notes: receipt?.notes || '',
-  });
-
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <ReceiptIcon className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load receipt</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.receipts.href}>Back to Receipts</Link>
+        </Button>
+      </Empty>
+    );
   if (!receipt)
     return (
       <Empty variant="default">
@@ -93,6 +103,34 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
       </Empty>
     );
 
+  return <ReceiptEditForm initialData={receipt} receiptId={id} />;
+}
+
+interface ReceiptEditFormProps {
+  initialData: Receipt;
+  receiptId: number;
+}
+
+function ReceiptEditForm({ initialData, receiptId }: ReceiptEditFormProps) {
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState<Partial<Receipt>>(() => ({
+    receiptNumber: initialData.receiptNumber,
+    type: initialData.type,
+    status: initialData.status,
+    projectId: initialData.projectId,
+    receivedFrom: initialData.receivedFrom,
+    receivedFromAddress: initialData.receivedFromAddress ?? '',
+    amount: initialData.amount,
+    currency: initialData.currency,
+    receiptDate: initialData.receiptDate,
+    paymentMethod: initialData.paymentMethod,
+    transactionId: initialData.transactionId ?? '',
+    referenceNumber: initialData.referenceNumber ?? '',
+    description: initialData.description ?? '',
+    notes: initialData.notes ?? '',
+  }));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -101,12 +139,12 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
     setTimeout(() => {
       toast.success('Receipt updated successfully');
       setIsSubmitting(false);
-      router.push(routes.finance.receipts.detail(receipt.id).href);
+      router.push(routes.finance.receipts.detail(receiptId).href);
     }, 1000);
   };
 
   const handleCancel = () => {
-    router.push(routes.finance.receipts.detail(receipt.id).href);
+    router.push(routes.finance.receipts.detail(receiptId).href);
   };
 
   const handleInputChange = (
@@ -114,20 +152,6 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
     value: string | number | Date
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const receiptTypeLabels: Record<ReceiptType, string> = {
-    [ReceiptType.payment]: 'Payment',
-    [ReceiptType.advance]: 'Advance',
-    [ReceiptType.deposit]: 'Deposit',
-    [ReceiptType.refund]: 'Refund',
-    [ReceiptType.other]: 'Other',
-  };
-
-  const receiptStatusLabels: Record<ReceiptStatus, string> = {
-    [ReceiptStatus.issued]: 'Issued',
-    [ReceiptStatus.draft]: 'Draft',
-    [ReceiptStatus.cancelled]: 'Cancelled',
   };
 
   return (
