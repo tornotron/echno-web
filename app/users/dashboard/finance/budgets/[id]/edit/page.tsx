@@ -29,6 +29,7 @@ import {
 } from '@/components/shadcn/table';
 // Separator not used in this file
 import { Save, X, Plus, Trash2, PieChart } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
@@ -269,15 +270,10 @@ export default function EditBudgetPage({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Edit Budget</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Update budget details and allocations
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Edit Budget"
+        description="Update budget allocations and settings"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}

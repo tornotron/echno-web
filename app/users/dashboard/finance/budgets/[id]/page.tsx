@@ -27,7 +27,6 @@ import {
   AlertTriangle,
   CheckCircle,
   TrendingUp,
-  Calendar,
   Wallet,
   BarChart3,
   Loader2,
@@ -39,6 +38,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -207,51 +207,30 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-start space-x-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-orange-500 to-orange-600">
-              <PieChart className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center space-x-3">
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {budget.budgetNumber}
-                </h1>
-                <Badge className={getStatusColor(budget.status)}>
-                  {budgetStatusLabels[budget.status]}
-                </Badge>
-                <Badge className={getTypeColor(budget.type)}>
-                  {budgetTypeLabels[budget.type]}
-                </Badge>
-              </div>
-              <p className="mb-2 text-zinc-600 dark:text-zinc-400">
-                {budget.name}
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  {format(budget.startDate, 'dd MMM yyyy')} -{' '}
-                  {format(budget.endDate, 'dd MMM yyyy')}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2">
+      <PageHeader
+        title={budget.name}
+        description={budget.description}
+        actions={
+          <>
+            <Badge className={getStatusColor(budget.status)}>
+              {budgetStatusLabels[budget.status]}
+            </Badge>
+            <Badge className={getTypeColor(budget.type)}>
+              {budgetTypeLabels[budget.type]}
+            </Badge>
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Link href={routes.finance.budgets.detail(budget.id).edit}>
-              <Button>
+            <Button asChild>
+              <Link href={routes.finance.budgets.detail(budget.id).edit}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
