@@ -1,6 +1,5 @@
 'use client';
 
-import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockBudgets, mockEmployees } from '@/components/shared/mock-data';
 import { Button } from '@/components/shadcn/button';
@@ -31,7 +30,15 @@ import {
   Calendar,
   Wallet,
   BarChart3,
+  Loader2,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -139,9 +146,49 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
     (b) => b.id === Number.parseInt(resolvedParams.id)
   );
 
-  if (!budget) {
-    notFound();
-  }
+  const isLoading = false;
+  const isError = false;
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <PieChart className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load budget</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.budgets.href}>Back to Budgets</Link>
+        </Button>
+      </Empty>
+    );
+  if (!budget)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <PieChart className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Budget not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.budgets.href}>Back to Budgets</Link>
+        </Button>
+      </Empty>
+    );
 
   const preparedByEmployee = mockEmployees.find(
     (e) => e.id === budget.preparedBy
