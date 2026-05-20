@@ -218,7 +218,7 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
             <Badge className={getTypeColor(budget.type)}>
               {budgetTypeLabels[budget.type]}
             </Badge>
-            <Button variant="outline">
+            <Button variant="outline" disabled>
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>

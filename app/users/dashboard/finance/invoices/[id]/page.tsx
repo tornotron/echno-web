@@ -117,7 +117,7 @@ const getUserName = (userId: number): string => {
 
 export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const resolvedParams = use(params);
-  const { data: vendors = [] } = useVendors();
+  const { data: vendors = [], isPending: isLoading, isError } = useVendors();
 
   const getVendorName = (vendorId: number): string => {
     const vendor = vendors.find((v) => v.id === vendorId);
@@ -127,9 +127,6 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const invoice = mockInvoices.find(
     (i) => i.id === Number.parseInt(resolvedParams.id)
   );
-
-  const isLoading = false;
-  const isError = false;
 
   if (isLoading)
     return (
@@ -187,7 +184,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
             <Badge className={getTypeColor(invoice.type)}>
               {invoiceTypeLabels[invoice.type]}
             </Badge>
-            <Button variant="outline">
+            <Button variant="outline" disabled>
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>

@@ -193,7 +193,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
             <Badge className={getTypeColor(expense.type)}>
               {expenseTypeLabels[expense.type]}
             </Badge>
-            <Button variant="outline">
+            <Button variant="outline" disabled>
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
