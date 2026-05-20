@@ -33,6 +33,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -156,50 +157,30 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-6 rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-          <div className="flex items-start space-x-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
-              <CreditCard className="h-8 w-8 text-white" />
-            </div>
-            <div>
-              <div className="mb-2 flex items-center space-x-3">
-                <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {payment.paymentNumber}
-                </h1>
-                <Badge className={getStatusColor(payment.status)}>
-                  {paymentStatusLabels[payment.status]}
-                </Badge>
-                <Badge className={getTypeColor(payment.type)}>
-                  {paymentTypeLabels[payment.type]}
-                </Badge>
-              </div>
-              <p className="mb-2 text-zinc-600 dark:text-zinc-400">
-                {payment.description}
-              </p>
-              <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <Calendar className="h-4 w-4" />
-                <span>
-                  Paid on {format(payment.paymentDate, 'dd MMM yyyy')}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex gap-2">
+      <PageHeader
+        title={payment.paymentNumber}
+        description={payment.description}
+        actions={
+          <>
+            <Badge className={getStatusColor(payment.status)}>
+              {paymentStatusLabels[payment.status]}
+            </Badge>
+            <Badge className={getTypeColor(payment.type)}>
+              {paymentTypeLabels[payment.type]}
+            </Badge>
             <Button variant="outline">
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Link href={routes.finance.payments.detail(payment.id).edit}>
-              <Button>
+            <Button asChild>
+              <Link href={routes.finance.payments.detail(payment.id).edit}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
+              </Link>
+            </Button>
+          </>
+        }
+      />
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
