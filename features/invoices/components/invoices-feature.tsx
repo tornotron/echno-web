@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
@@ -197,23 +197,15 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Invoices
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Manage invoices, track payments, and monitor outstanding balances
-          </p>
-        </div>
-        <Button asChild>
-          <Link href={routes.finance.invoices.new}>
-            <FileText className="mr-2 h-4 w-4" />
-            New Invoice
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Invoices"
+        description="Manage invoices, track payments, and monitor outstanding balances"
+        actions={
+          <Button asChild>
+            <Link href={routes.finance.invoices.new}>New Invoice</Link>
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
