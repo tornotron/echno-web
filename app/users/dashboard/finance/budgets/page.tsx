@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Card, CardContent } from '@/components/shadcn/card';
-import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
+import { Pagination, PageHeader } from '@/components/common';
 import {
   Select,
   SelectContent,
@@ -21,9 +22,12 @@ import {
   CheckCircle,
   TrendingUp,
   Plus,
+  Search,
+  Loader2,
 } from 'lucide-react';
 import {
   Empty,
+  EmptyErrorMedia,
   EmptyMedia,
   EmptyHeader,
   EmptyTitle,
@@ -141,6 +145,7 @@ export default function BudgetsPage() {
   }, [searchQuery, statusFilter, typeFilter]);
 
   const totalPages = Math.ceil(filteredBudgets.length / itemsPerPage);
+  const safePage = Math.min(currentPage, Math.max(1, totalPages));
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, filteredBudgets.length);
   const paginatedBudgets = filteredBudgets.slice(
@@ -253,218 +258,264 @@ export default function BudgetsPage() {
         </div>
       </Card>
 
-      {/* Search and Filter */}
-      <SearchAndFilter
-        variant="card"
-        searchValue={searchQuery}
-        onSearchChange={(value) => {
-          setSearchQuery(value);
-          setCurrentPage(1);
-        }}
-        searchPlaceholder="Search by budget number, name, or description..."
-        hasActiveFilters={hasActiveFilters}
-        onClearFilters={clearFilters}
-        filters={[
-          {
-            placeholder: 'Status',
-            options: [
-              { value: 'all', label: 'All Status' },
-              ...Object.entries(budgetStatusLabels).map(([value, label]) => ({
-                value,
-                label,
-              })),
-            ],
-            value: statusFilter,
-            onChange: (value) => {
-              setStatusFilter(value);
-              setCurrentPage(1);
-            },
-          },
-          {
-            placeholder: 'Type',
-            options: [
-              { value: 'all', label: 'All Types' },
-              ...Object.entries(budgetTypeLabels).map(([value, label]) => ({
-                value,
-                label,
-              })),
-            ],
-            value: typeFilter,
-            onChange: (value) => {
-              setTypeFilter(value);
-              setCurrentPage(1);
-            },
-          },
-        ]}
-      />
-
-      {/* Results Summary */}
-      <div className="mb-6 flex items-center justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {paginatedBudgets.length === 0 ? 0 : startIndex + 1} to{' '}
-          {Math.min(endIndex, filteredBudgets.length)} of{' '}
-          {filteredBudgets.length} budgets
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
+      {/* Unified Card: search/filter toolbar + content + pagination */}
+      <Card>
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          {/* Search input */}
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by budget number, name, or description..."
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
+          {/* Status filter */}
           <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value));
+            value={statusFilter}
+            onValueChange={(v) => {
+              setStatusFilter(v);
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-              <SelectItem value="100">100</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
+              {Object.entries(budgetStatusLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      {/* Budgets Grid */}
-      {paginatedBudgets.length > 0 ? (
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              {paginatedBudgets.map((budget, idx) => (
-                <Link
-                  key={budget.id}
-                  href={routes.finance.budgets.detail(budget.id).href}
-                  className={`block${idx === paginatedBudgets.length - 1 ? 'mb-2' : ''}`}
-                >
-                  <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">
-                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
-                      {/* Left: Budget Info */}
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-orange-400 to-orange-600">
-                            <PieChart className="h-6 w-6 text-white" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                                {budget.name}
-                              </h3>
-                              <span className="text-xs text-zinc-500 dark:text-zinc-500">
-                                {budget.budgetNumber}
-                              </span>
-                            </div>
-                            {budget.description && (
-                              <p className="mt-1 line-clamp-1 text-sm text-zinc-600 dark:text-zinc-400">
-                                {budget.description}
-                              </p>
-                            )}
-                            <div className="mt-2 flex flex-wrap items-center gap-4">
-                              <div className="flex items-center text-xs text-zinc-500">
-                                <span>Period:</span>
-                                <span className="ml-1">
-                                  {format(budget.startDate, 'MMM dd')} -{' '}
-                                  {format(budget.endDate, 'MMM dd, yy')}
-                                </span>
-                              </div>
-                              <div className="flex items-center text-xs text-zinc-500">
-                                <Badge className={getTypeColor(budget.type)}>
-                                  {budgetTypeLabels[budget.type]}
-                                </Badge>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Middle: Status */}
-                      <div className="flex gap-2">
-                        <Badge className={getStatusColor(budget.status)}>
-                          {budgetStatusLabels[budget.status]}
-                        </Badge>
-                      </div>
-
-                      {/* Right: Metrics */}
-                      <div className="grid grid-cols-2 gap-4 lg:w-auto lg:grid-cols-4">
-                        <div className="text-center">
-                          <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
-                            Allocated
-                          </div>
-                          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            ₹{budget.totalAllocated.toLocaleString('en-IN')}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
-                            Spent
-                          </div>
-                          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            ₹{budget.totalSpent.toLocaleString('en-IN')}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
-                            Remaining
-                          </div>
-                          <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                            ₹{budget.totalRemaining.toLocaleString('en-IN')}
-                          </div>
-                        </div>
-                        <div className="text-center">
-                          <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
-                            Usage
-                          </div>
-                          <div
-                            className={`flex items-center justify-center gap-2 ${getHealthColor(budget.percentageUsed)}`}
-                          >
-                            {getHealthIcon(budget.percentageUsed)}
-                            <span>{budget.percentageUsed.toFixed(1)}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
+          {/* Type filter */}
+          <Select
+            value={typeFilter}
+            onValueChange={(v) => {
+              setTypeFilter(v);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {Object.entries(budgetTypeLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
               ))}
-            </div>
-          </CardContent>
-          {/* Pagination */}
-          {paginatedBudgets.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
-          )}
-        </Card>
-      ) : (
-        <Card>
-          <CardContent>
-            <Empty variant="default">
-              <EmptyMedia variant="icon">
-                <PieChart className="size-6" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>No budgets found</EmptyTitle>
-                <EmptyDescription>
-                  {hasActiveFilters
-                    ? 'Try adjusting your search or filters.'
-                    : 'Add your first budget to get started.'}
-                </EmptyDescription>
-              </EmptyHeader>
-              {!hasActiveFilters && (
-                <Button asChild>
-                  <Link href={routes.finance.budgets.new}>New Budget</Link>
-                </Button>
-              )}
-            </Empty>
-          </CardContent>
-        </Card>
-      )}
+            </SelectContent>
+          </Select>
+          {/* Rows per page — pushed to right */}
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={String(itemsPerPage)}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-16 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[5, 10, 20, 50, 100].map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          {(() => {
+            const isLoading = false;
+            const isError = false;
+            if (isLoading)
+              return (
+                <div className="flex justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+                </div>
+              );
+            if (isError)
+              return (
+                <CardContent>
+                  <Empty variant="default">
+                    <EmptyErrorMedia>
+                      <PieChart className="size-6" />
+                    </EmptyErrorMedia>
+                    <EmptyHeader>
+                      <EmptyTitle>Failed to load budgets</EmptyTitle>
+                      <EmptyDescription>
+                        An unexpected error occurred. Please try again.
+                      </EmptyDescription>
+                    </EmptyHeader>
+                  </Empty>
+                </CardContent>
+              );
+            if (paginatedBudgets.length > 0)
+              return (
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {paginatedBudgets.map((budget, idx) => (
+                      <Link
+                        key={budget.id}
+                        href={routes.finance.budgets.detail(budget.id).href}
+                        className={`block${idx === paginatedBudgets.length - 1 ? 'mb-2' : ''}`}
+                      >
+                        <div className="rounded-lg border border-zinc-200 p-4 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-900/50">
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+                            {/* Left: Budget Info */}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-start gap-3">
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-orange-400 to-orange-600">
+                                  <PieChart className="h-6 w-6 text-white" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+                                      {budget.name}
+                                    </h3>
+                                    <span className="text-xs text-zinc-500 dark:text-zinc-500">
+                                      {budget.budgetNumber}
+                                    </span>
+                                  </div>
+                                  {budget.description && (
+                                    <p className="mt-1 line-clamp-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                      {budget.description}
+                                    </p>
+                                  )}
+                                  <div className="mt-2 flex flex-wrap items-center gap-4">
+                                    <div className="flex items-center text-xs text-zinc-500">
+                                      <span>Period:</span>
+                                      <span className="ml-1">
+                                        {format(budget.startDate, 'MMM dd')} -{' '}
+                                        {format(budget.endDate, 'MMM dd, yy')}
+                                      </span>
+                                    </div>
+                                    <div className="flex items-center text-xs text-zinc-500">
+                                      <Badge
+                                        className={getTypeColor(budget.type)}
+                                      >
+                                        {budgetTypeLabels[budget.type]}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Middle: Status */}
+                            <div className="flex gap-2">
+                              <Badge className={getStatusColor(budget.status)}>
+                                {budgetStatusLabels[budget.status]}
+                              </Badge>
+                            </div>
+
+                            {/* Right: Metrics */}
+                            <div className="grid grid-cols-2 gap-4 lg:w-auto lg:grid-cols-4">
+                              <div className="text-center">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
+                                  Allocated
+                                </div>
+                                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                  ₹
+                                  {budget.totalAllocated.toLocaleString(
+                                    'en-IN'
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
+                                  Spent
+                                </div>
+                                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                  ₹{budget.totalSpent.toLocaleString('en-IN')}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
+                                  Remaining
+                                </div>
+                                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                                  ₹
+                                  {budget.totalRemaining.toLocaleString(
+                                    'en-IN'
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-center">
+                                <div className="mb-1 text-xs text-zinc-500 dark:text-zinc-500">
+                                  Usage
+                                </div>
+                                <div
+                                  className={`flex items-center justify-center gap-2 ${getHealthColor(budget.percentageUsed)}`}
+                                >
+                                  {getHealthIcon(budget.percentageUsed)}
+                                  <span>
+                                    {budget.percentageUsed.toFixed(1)}%
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              );
+            return (
+              <CardContent>
+                <Empty variant="default">
+                  <EmptyMedia variant="icon">
+                    <PieChart className="size-6" />
+                  </EmptyMedia>
+                  <EmptyHeader>
+                    <EmptyTitle>No budgets found</EmptyTitle>
+                    <EmptyDescription>
+                      {hasActiveFilters
+                        ? 'Try adjusting your search or filters.'
+                        : 'Add your first budget to get started.'}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {!hasActiveFilters && (
+                    <Button asChild>
+                      <Link href={routes.finance.budgets.new}>New Budget</Link>
+                    </Button>
+                  )}
+                </Empty>
+              </CardContent>
+            );
+          })()}
+        </CardContent>
+
+        <div className="flex items-center justify-between border-t px-4 py-2">
+          <span className="text-sm text-zinc-500">
+            {filteredBudgets.length === 0
+              ? '0 records'
+              : `${startIndex + 1}–${Math.min(endIndex, filteredBudgets.length)} of ${filteredBudgets.length} ${filteredBudgets.length === 1 ? 'budget' : 'budgets'}`}
+          </span>
+          <Pagination
+            currentPage={safePage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
+        </div>
+      </Card>
     </div>
   );
 }
