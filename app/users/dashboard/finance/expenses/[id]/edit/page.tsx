@@ -24,6 +24,7 @@ import {
 import { Textarea } from '@/components/shadcn/textarea';
 import { Separator } from '@/components/shadcn/separator';
 import { Save, X, DollarSign } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import {
   Empty,
   EmptyErrorMedia,
@@ -144,15 +145,10 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Edit Expense</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Modify expense details and update information
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="Edit Expense"
+        description="Update expense details and payment information"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
