@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, use } from 'react';
-import { notFound } from 'next/navigation';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -29,8 +28,17 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 // Separator not used in this file
-import { Save, X, Plus, Trash2 } from 'lucide-react';
+import { Save, X, Plus, Trash2, PieChart } from 'lucide-react';
+import Link from 'next/link';
+import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import {
   BudgetType,
   BudgetStatus,
@@ -74,17 +82,31 @@ export default function EditBudgetPage({
   const { id } = use(params);
   const budget = mockBudgets.find((b) => b.id === Number.parseInt(id));
 
-  if (!budget) {
-    notFound();
-  }
-
-  const [formData, setFormData] = useState<Partial<Budget>>(budget);
+  const [formData, setFormData] = useState<Partial<Budget>>(budget ?? {});
   const [lineItems, setLineItems] = useState<Partial<BudgetLineItem>[]>(
-    budget.lineItems || []
+    budget?.lineItems ?? []
   );
   const [paymentMilestones, setPaymentMilestones] = useState<
     Partial<BudgetPaymentMilestone>[]
-  >(budget.paymentMilestones || []);
+  >(budget?.paymentMilestones ?? []);
+
+  if (!budget)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <PieChart className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Budget not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.budgets.href}>Back to Budgets</Link>
+        </Button>
+      </Empty>
+    );
 
   const handleInputChange = (field: string, value: string | number | Date) => {
     let newData: Partial<Budget> = { ...formData, [field]: value };

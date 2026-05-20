@@ -27,6 +27,13 @@ import {
   TrendingUp,
   Plus,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import { mockBudgets } from '@/components/shared/mock-data';
 import {
   BudgetStatus,
@@ -454,29 +461,25 @@ export default function BudgetsPage() {
         </Card>
       ) : (
         <Card>
-          <CardContent className="py-12 text-center">
-            <PieChart className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-            <h3 className="mb-2 text-lg font-medium text-zinc-900 dark:text-zinc-100">
-              No budgets found
-            </h3>
-            <p className="mb-4 text-zinc-600 dark:text-zinc-400">
-              {hasActiveFilters
-                ? 'Try adjusting your search or filters'
-                : 'Get started by creating your first budget'}
-            </p>
-            {!hasActiveFilters && (
-              <Button asChild>
-                <Link href={routes.finance.budgets.new}>
-                  <PieChart className="mr-2 h-4 w-4" />
-                  Create Budget
-                </Link>
-              </Button>
-            )}
-            {hasActiveFilters && (
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                Clear Filters
-              </Button>
-            )}
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <PieChart className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No budgets found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'Try adjusting your search or filters.'
+                    : 'Add your first budget to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.finance.budgets.new}>New Budget</Link>
+                </Button>
+              )}
+            </Empty>
           </CardContent>
         </Card>
       )}
