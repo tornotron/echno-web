@@ -5,12 +5,7 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import {
   Select,
@@ -154,13 +149,18 @@ export default function BudgetsPage() {
   );
 
   // Statistics
-  const totalBudget = mockBudgets.reduce((sum, b) => sum + b.totalAllocated, 0);
-  const totalSpent = mockBudgets.reduce((sum, b) => sum + b.totalSpent, 0);
-  const totalRemaining = mockBudgets.reduce(
-    (sum, b) => sum + b.totalRemaining,
+  const totalBudgetsCount = mockBudgets.length;
+  const activeBudgets = mockBudgets.filter(
+    (b) =>
+      b.status === BudgetStatus.active || b.status === BudgetStatus.approved
+  ).length;
+  const atRiskOrExceeded = mockBudgets.filter(
+    (b) => b.isOverBudget || b.percentageUsed >= 80
+  ).length;
+  const totalAllocated = mockBudgets.reduce(
+    (sum, b) => sum + b.totalAllocated,
     0
   );
-  const overBudgetCount = mockBudgets.filter((b) => b.isOverBudget).length;
 
   const hasActiveFilters =
     searchQuery !== '' || statusFilter !== 'all' || typeFilter !== 'all';
@@ -188,88 +188,70 @@ export default function BudgetsPage() {
       />
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Budgets
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {totalBudgetsCount}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <PieChart className="size-4 text-zinc-600 dark:text-zinc-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Active</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                {activeBudgets}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <CheckCircle className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              currently active
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Exceeded / At Risk
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-red-600 dark:text-red-400">
+                {atRiskOrExceeded}
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/30">
+                <AlertTriangle className="size-4 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              over budget
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
               Total Allocated
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+            </p>
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">
-                  ₹{(totalBudget / 1_000_000).toFixed(1)}M
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/15">
-                <Wallet className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                ₹{(totalAllocated / 1_000_000).toFixed(1)}M
+              </p>
+              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                <Wallet className="size-4 text-zinc-600 dark:text-zinc-400" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">
-                  ₹{(totalSpent / 1_000_000).toFixed(1)}M
-                </p>
-                <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                  {((totalSpent / totalBudget) * 100).toFixed(1)}% used
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 dark:bg-purple-900/20">
-                <PieChart className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Remaining</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">
-                  ₹{(totalRemaining / 1_000_000).toFixed(1)}M
-                </p>
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  Available
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/20">
-                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium">Over Budget</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-2xl font-bold">{overBudgetCount}</p>
-                <p className="text-xs text-red-600 dark:text-red-400">
-                  Budgets exceeded
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/20">
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              all budgets
+            </p>
+          </div>
+        </div>
+      </Card>
 
       {/* Search and Filter */}
       <SearchAndFilter
