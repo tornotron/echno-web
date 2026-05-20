@@ -46,6 +46,7 @@ import {
   Building,
   Users,
 } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 
@@ -210,13 +211,10 @@ export default function NewPaymentPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">New Payment</h1>
-          <p className="text-muted-foreground">Create a new payment record</p>
-        </div>
-      </div>
+      <PageHeader
+        title="New Payment"
+        description="Record a new payment transaction"
+      />
 
       <div className="max-w-5xl">
         <form onSubmit={handleSubmit} className="space-y-6">
