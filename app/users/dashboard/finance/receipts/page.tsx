@@ -2,7 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { mockReceipts, mockProjects } from '@/components/shared/mock-data';
+import { mockProjects } from '@/components/shared/mock-data';
+import { useReceipts } from '@/hooks/receipts';
 import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -89,6 +90,7 @@ const getTypeColor = (type: ReceiptType) => {
 
 export default function ReceiptsPage() {
   const router = useRouter();
+  const { data: receipts = [], isLoading, isError } = useReceipts();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -105,7 +107,7 @@ export default function ReceiptsPage() {
 
   // Filter receipts based on search and filters
   const filteredReceipts = useMemo(() => {
-    return mockReceipts.filter((receipt) => {
+    return receipts.filter((receipt) => {
       // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
@@ -125,7 +127,7 @@ export default function ReceiptsPage() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [searchQuery, statusFilter, typeFilter]);
+  }, [receipts, searchQuery, statusFilter, typeFilter]);
 
   // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -135,14 +137,14 @@ export default function ReceiptsPage() {
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
 
   // Calculate stats
-  const totalReceipts = mockReceipts.length;
-  const issuedReceipts = mockReceipts.filter(
+  const totalReceipts = receipts.length;
+  const issuedReceipts = receipts.filter(
     (r) => r.status === ReceiptStatus.issued
   ).length;
-  const draftReceipts = mockReceipts.filter(
+  const draftReceipts = receipts.filter(
     (r) => r.status === ReceiptStatus.draft
   ).length;
-  const totalAmount = mockReceipts
+  const totalAmount = receipts
     .filter((r) => r.status === ReceiptStatus.issued)
     .reduce((sum, r) => sum + r.amount, 0);
 
@@ -352,8 +354,6 @@ export default function ReceiptsPage() {
 
         <CardContent className="p-0">
           {(() => {
-            const isLoading = false;
-            const isError = false;
             if (isLoading)
               return (
                 <div className="flex justify-center py-12">
