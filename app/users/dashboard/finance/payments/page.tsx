@@ -10,7 +10,7 @@ import {
   mockLabour,
 } from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
@@ -237,23 +237,15 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Payments
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Track and manage all financial payments
-          </p>
-        </div>
-        <Button asChild>
-          <Link href={routes.finance.payments.new}>
-            <CreditCard className="mr-2 h-4 w-4" />
-            New Payment
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Payments"
+        description="Track and manage all financial payments"
+        actions={
+          <Button asChild>
+            <Link href={routes.finance.payments.new}>New Payment</Link>
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">
