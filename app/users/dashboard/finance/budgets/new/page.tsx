@@ -29,6 +29,7 @@ import {
 } from '@/components/shadcn/table';
 // Separator not used in this file
 import { Save, X, Plus, Trash2 } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   BudgetType,
@@ -265,15 +266,10 @@ export default function NewBudgetPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Create New Budget</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Create a new budget for project, department, or organization
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        title="New Budget"
+        description="Create a new budget allocation"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
