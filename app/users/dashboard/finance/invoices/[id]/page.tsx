@@ -1,6 +1,5 @@
 'use client';
 
-import { notFound } from 'next/navigation';
 import { use } from 'react';
 import { mockInvoices, mockMembers } from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
@@ -33,7 +32,15 @@ import {
   CheckCircle,
   Paperclip,
   AlertCircle,
+  Loader2,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
@@ -120,9 +127,49 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     (i) => i.id === Number.parseInt(resolvedParams.id)
   );
 
-  if (!invoice) {
-    notFound();
-  }
+  const isLoading = false;
+  const isError = false;
+
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <FileText className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load invoice</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.invoices.href}>Back to Invoices</Link>
+        </Button>
+      </Empty>
+    );
+  if (!invoice)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <FileText className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Invoice not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.invoices.href}>Back to Invoices</Link>
+        </Button>
+      </Empty>
+    );
 
   const paymentPercentage = (invoice.paidAmount / invoice.totalAmount) * 100;
 

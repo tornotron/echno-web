@@ -35,6 +35,13 @@ import {
   CheckCircle,
   Clock,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import {
@@ -515,27 +522,25 @@ export function InvoicesFeature({ invoices, projects }: InvoicesFeatureProps) {
         </Card>
       ) : (
         <Card>
-          <CardContent className="flex h-64 items-center justify-center">
-            <div className="text-center">
-              <FileText className="mx-auto h-12 w-12 text-zinc-400" />
-              <h3 className="mt-4 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-                No invoices found
-              </h3>
-              <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-                {hasActiveFilters
-                  ? 'Try adjusting your filters'
-                  : 'Get started by creating a new invoice'}
-              </p>
-              {hasActiveFilters && (
-                <Button
-                  variant="outline"
-                  className="mt-4"
-                  onClick={clearFilters}
-                >
-                  Clear Filters
+          <CardContent>
+            <Empty variant="default">
+              <EmptyMedia variant="icon">
+                <FileText className="size-6" />
+              </EmptyMedia>
+              <EmptyHeader>
+                <EmptyTitle>No invoices found</EmptyTitle>
+                <EmptyDescription>
+                  {hasActiveFilters
+                    ? 'Try adjusting your search or filters.'
+                    : 'Add your first invoice to get started.'}
+                </EmptyDescription>
+              </EmptyHeader>
+              {!hasActiveFilters && (
+                <Button asChild>
+                  <Link href={routes.finance.invoices.new}>New Invoice</Link>
                 </Button>
               )}
-            </div>
+            </Empty>
           </CardContent>
         </Card>
       )}
