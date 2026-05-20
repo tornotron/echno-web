@@ -2,7 +2,7 @@
 
 import { routes } from '@/nav';
 import { use } from 'react';
-import { mockReceipts } from '@/components/shared/mock-data';
+import { useReceiptById } from '@/hooks/receipts';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -91,12 +91,8 @@ const getTypeColor = (type: ReceiptType) => {
 
 export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
   const resolvedParams = use(params);
-  const receipt = mockReceipts.find(
-    (r) => r.id === Number.parseInt(resolvedParams.id)
-  );
-
-  const isLoading = false;
-  const isError = false;
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: receipt, isLoading, isError } = useReceiptById(id);
 
   if (isLoading)
     return (
