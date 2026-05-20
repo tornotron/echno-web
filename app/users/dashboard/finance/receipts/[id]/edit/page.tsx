@@ -23,7 +23,6 @@ import {
 import { mockReceipts, mockProjects } from '@/components/shared/mock-data';
 import { Receipt, ReceiptType, ReceiptStatus } from '@/types/finance/receipt';
 import {
-  ArrowLeft,
   Save,
   X,
   Receipt as ReceiptIcon,
@@ -41,6 +40,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -132,22 +132,10 @@ export default function EditReceiptPage({ params }: EditReceiptPageProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link href={routes.finance.receipts.detail(receipt.id).href}>
-              <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold">Edit Receipt</h1>
-            <p className="text-muted-foreground">
-              Update receipt information and payment details
-            </p>
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        title="Edit Receipt"
+        description="Update receipt information and payment details"
+      />
 
       <div className="max-w-5xl">
         <form onSubmit={handleSubmit} className="space-y-6">
