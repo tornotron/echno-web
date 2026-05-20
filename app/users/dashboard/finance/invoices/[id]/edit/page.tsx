@@ -45,6 +45,13 @@ import {
   Hash,
   Calendar,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -86,23 +93,23 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
     notes: invoice?.notes || '',
   });
 
-  if (!invoice) {
+  if (!invoice)
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center">
-        <FileText className="text-muted-foreground mb-4 h-16 w-16" />
-        <h2 className="mb-2 text-2xl font-semibold">Invoice Not Found</h2>
-        <p className="text-muted-foreground mb-6">
-          The invoice you&apos;re looking for doesn&apos;t exist.
-        </p>
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <FileText className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Invoice not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
         <Button asChild>
-          <Link href={routes.finance.invoices.href}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Invoices
-          </Link>
+          <Link href={routes.finance.invoices.href}>Back to Invoices</Link>
         </Button>
-      </div>
+      </Empty>
     );
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
