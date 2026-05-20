@@ -33,7 +33,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { mockBudgets } from '@/components/shared/mock-data';
+import { useBudgets } from '@/hooks/budgets';
 import {
   BudgetStatus,
   BudgetType,
@@ -123,6 +123,7 @@ const getHealthIcon = (percentageUsed: number) => {
 };
 
 export default function BudgetsPage() {
+  const { data: budgets = [], isLoading, isError } = useBudgets();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -130,7 +131,7 @@ export default function BudgetsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredBudgets = useMemo(() => {
-    return mockBudgets.filter((budget) => {
+    return budgets.filter((budget) => {
       const matchesSearch =
         budget.budgetNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         budget.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -142,7 +143,7 @@ export default function BudgetsPage() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [searchQuery, statusFilter, typeFilter]);
+  }, [budgets, searchQuery, statusFilter, typeFilter]);
 
   const totalPages = Math.ceil(filteredBudgets.length / itemsPerPage);
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
@@ -154,18 +155,15 @@ export default function BudgetsPage() {
   );
 
   // Statistics
-  const totalBudgetsCount = mockBudgets.length;
-  const activeBudgets = mockBudgets.filter(
+  const totalBudgetsCount = budgets.length;
+  const activeBudgets = budgets.filter(
     (b) =>
       b.status === BudgetStatus.active || b.status === BudgetStatus.approved
   ).length;
-  const atRiskOrExceeded = mockBudgets.filter(
+  const atRiskOrExceeded = budgets.filter(
     (b) => b.isOverBudget || b.percentageUsed >= 80
   ).length;
-  const totalAllocated = mockBudgets.reduce(
-    (sum, b) => sum + b.totalAllocated,
-    0
-  );
+  const totalAllocated = budgets.reduce((sum, b) => sum + b.totalAllocated, 0);
 
   const hasActiveFilters =
     searchQuery !== '' || statusFilter !== 'all' || typeFilter !== 'all';
@@ -342,8 +340,6 @@ export default function BudgetsPage() {
 
         <CardContent className="p-0">
           {(() => {
-            const isLoading = false;
-            const isError = false;
             if (isLoading)
               return (
                 <div className="flex justify-center py-12">

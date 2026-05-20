@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, use } from 'react';
+import { use, useState } from 'react';
+import { useBudgetById } from '@/hooks/budgets';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -27,8 +28,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-// Separator not used in this file
-import { Save, X, Plus, Trash2, PieChart } from 'lucide-react';
+import { Save, X, Plus, Trash2, PieChart, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -50,7 +50,6 @@ import {
   PaymentMilestoneStatus,
   budgetLineItemTypeLabels,
 } from '@/types/finance/budget';
-import { mockBudgets } from '@/components/shared/mock-data';
 
 const budgetTypeOptions = Object.entries(BudgetType).map(([key]) => ({
   value: key,
@@ -81,16 +80,32 @@ export default function EditBudgetPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const budget = mockBudgets.find((b) => b.id === Number.parseInt(id));
+  const budgetId = Number.parseInt(id);
+  const { data: budget, isLoading, isError } = useBudgetById(budgetId);
 
-  const [formData, setFormData] = useState<Partial<Budget>>(budget ?? {});
-  const [lineItems, setLineItems] = useState<Partial<BudgetLineItem>[]>(
-    budget?.lineItems ?? []
-  );
-  const [paymentMilestones, setPaymentMilestones] = useState<
-    Partial<BudgetPaymentMilestone>[]
-  >(budget?.paymentMilestones ?? []);
-
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <PieChart className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load budget</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.budgets.href}>Back to Budgets</Link>
+        </Button>
+      </Empty>
+    );
   if (!budget)
     return (
       <Empty variant="default">
@@ -109,10 +124,28 @@ export default function EditBudgetPage({
       </Empty>
     );
 
+  return <BudgetEditForm initialData={budget} budgetId={budgetId} />;
+}
+
+interface BudgetEditFormProps {
+  initialData: Budget;
+  budgetId: number;
+}
+
+function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
+  const [formData, setFormData] = useState<Partial<Budget>>(() => ({
+    ...initialData,
+  }));
+  const [lineItems, setLineItems] = useState<Partial<BudgetLineItem>[]>(
+    () => initialData.lineItems ?? []
+  );
+  const [paymentMilestones, setPaymentMilestones] = useState<
+    Partial<BudgetPaymentMilestone>[]
+  >(() => initialData.paymentMilestones ?? []);
+
   const handleInputChange = (field: string, value: string | number | Date) => {
     let newData: Partial<Budget> = { ...formData, [field]: value };
 
-    // Recalculate totals if allocated amount changes
     if (field === 'totalAllocated') {
       const allocated = value as number;
       newData = {
@@ -150,7 +183,6 @@ export default function EditBudgetPage({
   };
 
   const handleAddMilestone = () => {
-    // Generate unique ID: find max existing ID and add 1
     const maxId =
       paymentMilestones.length > 0
         ? Math.max(...paymentMilestones.map((m) => m.id || 0))
@@ -182,7 +214,6 @@ export default function EditBudgetPage({
     const newMilestones = [...paymentMilestones];
     newMilestones[index] = { ...newMilestones[index], [field]: value };
 
-    // Auto-calculate percentage from amount if totalAllocated is set
     if (field === 'amount' && formData.totalAllocated) {
       const percentage = ((value as number) / formData.totalAllocated) * 100;
       newMilestones[index] = {
@@ -206,13 +237,10 @@ export default function EditBudgetPage({
     const newItems = [...lineItems];
     newItems[index] = { ...newItems[index], [field]: value };
 
-    // Auto-calculate allocated amount based on quantity * unitRate
     if (field === 'quantity' || field === 'unitRate') {
       const quantity = (newItems[index].quantity as number) || 0;
       const unitRate = (newItems[index].unitRate as number) || 0;
       const baseAmount = quantity * unitRate;
-
-      // Add specific cost based on item type
       const materialCost = (newItems[index].materialCost as number) || 0;
       const laborCost = (newItems[index].laborCost as number) || 0;
       const equipmentCost = (newItems[index].equipmentCost as number) || 0;
@@ -223,7 +251,6 @@ export default function EditBudgetPage({
       };
     }
 
-    // Recalculate remaining and percentage
     if (
       field === 'allocatedAmount' ||
       field === 'spentAmount' ||
@@ -247,7 +274,6 @@ export default function EditBudgetPage({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.budgetNumber?.trim()) {
       toast.error('Budget number is required');
       return;
@@ -263,9 +289,7 @@ export default function EditBudgetPage({
       return;
     }
 
-    // Success
     toast.success('Budget updated successfully!');
-    // Here you would typically make an API call
   };
 
   return (
@@ -879,9 +903,11 @@ export default function EditBudgetPage({
             <Save className="mr-2 h-4 w-4" />
             Update Budget
           </Button>
-          <Button type="reset" variant="outline">
-            <X className="mr-2 h-4 w-4" />
-            Cancel
+          <Button variant="outline" asChild>
+            <Link href={routes.finance.budgets.detail(budgetId).href}>
+              <X className="mr-2 h-4 w-4" />
+              Cancel
+            </Link>
           </Button>
         </div>
       </form>
