@@ -1,7 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockBudgets, mockEmployees } from '@/components/shared/mock-data';
+import { mockEmployees } from '@/components/shared/mock-data';
+import { useBudgetById } from '@/hooks/budgets';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -142,12 +143,8 @@ interface BudgetDetailPageProps {
 
 export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
   const resolvedParams = use(params);
-  const budget = mockBudgets.find(
-    (b) => b.id === Number.parseInt(resolvedParams.id)
-  );
-
-  const isLoading = false;
-  const isError = false;
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: budget, isLoading, isError } = useBudgetById(id);
 
   if (isLoading)
     return (
