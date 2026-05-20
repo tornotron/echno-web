@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { routes } from '@/nav';
-import { use } from 'react';
-import { mockExpenses } from '@/components/shared/mock-data';
+import { useExpenseById } from '@/hooks/expenses';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -23,7 +22,7 @@ import {
 } from '@/components/shadcn/select';
 import { Textarea } from '@/components/shadcn/textarea';
 import { Separator } from '@/components/shadcn/separator';
-import { Save, X, DollarSign } from 'lucide-react';
+import { Save, X, DollarSign, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import {
   Empty,
@@ -64,19 +63,37 @@ const getDateString = (date: Date) => {
 };
 
 interface EditExpensePageProps {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }
 
 export default function EditExpensePage({ params }: EditExpensePageProps) {
   const resolvedParams = use(params);
-  const expense = mockExpenses.find(
-    (e) => e.id === Number.parseInt(resolvedParams.id)
-  );
+  const id = Number.parseInt(resolvedParams.id);
+  const { data: expense, isLoading, isError } = useExpenseById(id);
 
-  const [formData, setFormData] = useState<Partial<Expense>>(expense ?? {});
-
+  if (isLoading)
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
+      </div>
+    );
+  if (isError)
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <DollarSign className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Failed to load expense</EmptyTitle>
+          <EmptyDescription>
+            An unexpected error occurred. Please try again.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.expenses.href}>Back to Expenses</Link>
+        </Button>
+      </Empty>
+    );
   if (!expense)
     return (
       <Empty variant="default">
@@ -94,6 +111,19 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
         </Button>
       </Empty>
     );
+
+  return <ExpenseEditForm initialData={expense} expenseId={id} />;
+}
+
+interface ExpenseEditFormProps {
+  initialData: Expense;
+  expenseId: number;
+}
+
+function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
+  const [formData, setFormData] = useState<Partial<Expense>>(() => ({
+    ...initialData,
+  }));
 
   const handleInputChange = (field: string, value: never) => {
     let newData: Partial<Expense> = { ...formData, [field]: value };
@@ -127,7 +157,6 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!formData.description?.trim()) {
       toast.error('Description is required');
       return;
@@ -138,9 +167,7 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
       return;
     }
 
-    // Success
     toast.success('Expense updated successfully!');
-    // Here you would typically make an API call
   };
 
   return (
@@ -466,7 +493,7 @@ export default function EditExpensePage({ params }: EditExpensePageProps) {
             Update Expense
           </Button>
           <Button variant="outline" asChild>
-            <Link href={routes.finance.expenses.detail(expense.id).href}>
+            <Link href={routes.finance.expenses.detail(expenseId).href}>
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Link>
