@@ -49,6 +49,13 @@ import {
   Building,
   Users,
 } from 'lucide-react';
+import {
+  Empty,
+  EmptyErrorMedia,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
@@ -133,23 +140,23 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
     labourId: payment?.labourId,
   });
 
-  if (!payment) {
+  if (!payment)
     return (
-      <div className="flex h-[60vh] flex-col items-center justify-center">
-        <CreditCard className="text-muted-foreground mb-4 h-16 w-16" />
-        <h2 className="mb-2 text-2xl font-semibold">Payment Not Found</h2>
-        <p className="text-muted-foreground mb-6">
-          The payment you&apos;re looking for doesn&apos;t exist.
-        </p>
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <CreditCard className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>Payment not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or does not exist.
+          </EmptyDescription>
+        </EmptyHeader>
         <Button asChild>
-          <Link href={routes.finance.payments.href}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Payments
-          </Link>
+          <Link href={routes.finance.payments.href}>Back to Payments</Link>
         </Button>
-      </div>
+      </Empty>
     );
-  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
