@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { mockExpenses } from '@/components/shared/mock-data';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, SearchAndFilter, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
@@ -207,23 +207,15 @@ export default function ExpensesPage() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="mb-2 text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Expenses
-          </h1>
-          <p className="text-zinc-600 dark:text-zinc-400">
-            Track expenses, manage approvals, and monitor reimbursements
-          </p>
-        </div>
-        <Button asChild>
-          <Link href={routes.finance.expenses.new}>
-            <DollarSign className="mr-2 h-4 w-4" />
-            New Expense
-          </Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Expenses"
+        description="Track expenses, manage approvals, and monitor reimbursements"
+        actions={
+          <Button asChild>
+            <Link href={routes.finance.expenses.new}>New Expense</Link>
+          </Button>
+        }
+      />
 
       {/* Statistics Cards */}
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-4">

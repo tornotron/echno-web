@@ -22,6 +22,7 @@ import {
 import { Textarea } from '@/components/shadcn/textarea';
 import { Separator } from '@/components/shadcn/separator';
 import { Save, X } from 'lucide-react';
+import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { toast } from '@/lib/styles/toast-styles';
 import {
@@ -129,15 +130,7 @@ export default function NewExpensePage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Create New Expense</h1>
-          <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-            Record a new expense for tracking and approval
-          </p>
-        </div>
-      </div>
+      <PageHeader title="New Expense" description="Record a new expense" />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
