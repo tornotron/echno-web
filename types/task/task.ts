@@ -5,7 +5,7 @@ import {
   WorkCategory,
   parseWorkCategory,
   workCategoryToJson,
-} from './work-category';
+} from '../work-category/work-category';
 import { TaskStatus, taskStatusFromString } from './task-status';
 import { Attachment, parseAttachment } from '@/types/attachment';
 
