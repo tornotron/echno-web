@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { taskService, TaskFiles } from '@/services/task-service';
-import { Task } from '@/types/task/task';
+import { taskService } from '@/services/task-service';
+import { Task, TaskFiles } from '@/types/task';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
