@@ -1,6 +1,6 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { WorkCategory, parseWorkCategory } from '@/types/task/work-category';
+import { WorkCategory, parseWorkCategory } from '@/types/task';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
