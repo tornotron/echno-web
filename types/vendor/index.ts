@@ -1,5 +1,3 @@
-// types/vendor/index.ts
-
 export * from './enums';
 export * from './contacts';
 export * from './tax-identifiers';
@@ -7,3 +5,9 @@ export * from './bank-accounts';
 export * from './payment-terms';
 export * from './summary';
 export * from './vendor';
+export * from './vendor-create';
+export * from './vendor-update';
+export * from './vendor-tax-identifier-create';
+export * from './vendor-payment-terms-create';
+export * from './vendor-contact-create';
+export * from './vendor-bank-account-create';
