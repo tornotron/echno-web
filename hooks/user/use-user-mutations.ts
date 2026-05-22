@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService, UserFiles } from '@/services/user-service';
+import { userService } from '@/services/user-service';
+import { UserFiles } from '@/types/user';
 import { User } from '@/types/user/user';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
