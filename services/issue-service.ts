@@ -1,16 +1,9 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { Issue, parseIssue } from '@/types/issue/issue';
+import { Issue, parseIssue, IssueFiles } from '@/types/issue';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
-
-/**
- * Files that can be uploaded for an issue.
- */
-export interface IssueFiles {
-  attachments?: File[];
-}
 
 /**
  * Safely parse issue data with error handling.
