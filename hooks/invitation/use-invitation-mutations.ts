@@ -14,10 +14,8 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import {
-  invitationService,
-  GenerateInviteCodeRequest,
-} from '@/services/invitation-service';
+import { invitationService } from '@/services/invitation-service';
+import { GenerateInviteCodeRequest } from '@/types/invitation';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
