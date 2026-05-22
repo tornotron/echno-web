@@ -49,7 +49,7 @@ import {
   useWorkCategories,
   useCreateWorkCategory,
 } from '@/hooks/work-category';
-import { abbreviatedName } from '@/types/task/work-category';
+import { abbreviatedName } from '@/types/work-category';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { toast } from '@/lib/styles/toast-styles';
 import {

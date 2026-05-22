@@ -44,7 +44,8 @@
 import { Employee, EmployeeStatus, Department } from '@/types/employee';
 import { Organization } from '@/types/organization';
 import { Project, ProjectStatus } from '@/types/project';
-import { Task, TaskStatus, WorkCategory } from '@/types/task';
+import { Task, TaskStatus } from '@/types/task';
+import { WorkCategory } from '@/types/work-category';
 import { Issue, IssueStatus, IssueType, IssueComment } from '@/types/issue';
 import { Member } from '@/types/member';
 import {
