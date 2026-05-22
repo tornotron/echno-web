@@ -22,7 +22,7 @@ import { ChatRoom } from '@/types/chat';
 import { Vendor } from '@/types/vendor';
 import { Material } from '@/types/materials';
 import { Indent } from '@/types/indents';
-import { StorageLocation } from '@/types/storage-locations/storage-location';
+import { StorageLocation } from '@/types/storage-locations';
 import { PurchaseOrder } from '@/types/purchase-orders';
 
 interface BreadcrumbData {
