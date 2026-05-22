@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { workCategoryService } from '@/services/work-category-service';
-import { WorkCategory } from '@/types/task/work-category';
+import { WorkCategory } from '@/types/work-category';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
@@ -15,8 +15,8 @@ export function useCreateWorkCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (categoryData: Partial<WorkCategory>) =>
-      workCategoryService.create(categoryData),
+    mutationFn: (data: Partial<WorkCategory>) =>
+      workCategoryService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-categories'] });
       toast.success('Category Created', {
@@ -35,8 +35,7 @@ export function useCreateWorkCategory() {
 /**
  * useDeleteWorkCategory
  *
- * Mutation hook that deletes a work category by id and invalidates the
- * `['work-categories']` cache entry on success.
+ * Mutation hook that deletes a work category by id.
  */
 export function useDeleteWorkCategory() {
   const queryClient = useQueryClient();
