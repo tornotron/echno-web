@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { issueService, IssueFiles } from '@/services/issue-service';
-import { Issue } from '@/types/issue/issue';
+import { issueService } from '@/services/issue-service';
+import { Issue, IssueFiles } from '@/types/issue';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
