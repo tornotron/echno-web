@@ -16,6 +16,11 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import { Invitation, parseInvitation } from '@/types/invitation/invitation';
+import {
+  GenerateInviteCodeRequest,
+  ValidateInviteCodeRequest,
+  ValidateInviteCodeResponse,
+} from '@/types/invitation';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
@@ -53,41 +58,6 @@ function safeParseInvitations(data: ApiResponse[]): Invitation[] {
       422
     );
   }
-}
-
-/**
- * Request payload for generating an invite code
- */
-export interface GenerateInviteCodeRequest {
-  designation: string;
-  department: string;
-  employeeId?: string;
-  employeeName?: string;
-  email?: string;
-  phone?: string;
-  joiningDate?: Date;
-  salary?: number;
-  managerId?: number;
-  shiftTiming?: string;
-  status?: string;
-  validityDays?: number;
-  maxUses?: number;
-}
-
-/**
- * Request payload for validating an invite code
- */
-export interface ValidateInviteCodeRequest {
-  code: string;
-}
-
-/**
- * Response from validating an invite code
- */
-export interface ValidateInviteCodeResponse {
-  valid: boolean;
-  invitation?: Invitation;
-  message?: string;
 }
 
 /**
