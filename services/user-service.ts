@@ -1,15 +1,12 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import { User, parseUser, partialUserToJson } from '@/types/user/user';
+import { UserFiles } from '@/types/user/user-files';
 import { Employee, parseEmployee } from '@/types/employee';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
 
-/**
- * Safely parse user data with error handling.
- * @throws {ApiError} when parsing fails
- */
 function safeParseUser(data: ApiResponse): User {
   try {
     return parseUser(data);
@@ -19,10 +16,6 @@ function safeParseUser(data: ApiResponse): User {
   }
 }
 
-/**
- * Safely parse employee array with error handling.
- * @throws {ApiError} when parsing fails
- */
 function safeParseEmployees(data: ApiResponse[]): Employee[] {
   if (!Array.isArray(data)) {
     return [];
@@ -36,14 +29,6 @@ function safeParseEmployees(data: ApiResponse[]): Employee[] {
       422
     );
   }
-}
-
-/**
- * Files that can be uploaded for a user profile.
- */
-export interface UserFiles {
-  profilePicture?: File;
-  cv?: File;
 }
 
 /**
@@ -160,3 +145,5 @@ export const userService = {
     return safeParseEmployees(data);
   },
 };
+
+export { type UserFiles } from '@/types/user/user-files';
