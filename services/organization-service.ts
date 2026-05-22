@@ -4,7 +4,8 @@ import {
   Organization,
   organizationToJsonWithIds,
   parseOrganization,
-} from '@/types/organization/organization';
+  OrganizationFiles,
+} from '@/types/organization';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
