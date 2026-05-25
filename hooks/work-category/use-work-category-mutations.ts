@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { workCategoryService } from '@/services/work-category-service';
-import { WorkCategory } from '@/types/work-category';
+import { CreateWorkCategoryRequest } from '@/types/work-category';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
@@ -15,8 +15,8 @@ export function useCreateWorkCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<WorkCategory>) =>
-      workCategoryService.create(data),
+    mutationFn: (dto: CreateWorkCategoryRequest) =>
+      workCategoryService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-categories'] });
       toast.success('Category Created', {
