@@ -1,7 +1,7 @@
 // types/task/work-category.ts
 
 export interface WorkCategory {
-  id?: number;
+  id: number;
   name: string;
   description?: string;
   icon?: string;
@@ -13,7 +13,7 @@ export interface WorkCategory {
 export function parseWorkCategory(json: any): WorkCategory {
   const name = json.name ?? '';
   return {
-    id: json.id ?? undefined,
+    id: Number(json.id),
     name,
     description: json.description ?? undefined,
     icon: json.icon ?? generateAbbreviation(name),

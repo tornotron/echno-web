@@ -381,7 +381,7 @@ export default function NewTaskPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {workCategories.map((cat) => (
-                          <SelectItem key={cat.id} value={cat.id!.toString()}>
+                          <SelectItem key={cat.id} value={cat.id.toString()}>
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="text-xs">
                                 {cat.icon || abbreviatedName(cat)}
