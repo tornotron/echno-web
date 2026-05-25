@@ -182,7 +182,7 @@ export function generatedHeader(filename: string, date: string): string {
  * ${filename}
  *
  * AUTO-GENERATED — do not edit by hand.
- * Run \`pnpm routes:generate\` to regenerate from the filesystem.
+ * Run \`bun routes:generate\` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
  * Generated: ${date}
