@@ -1,6 +1,11 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { WorkCategory, parseWorkCategory } from '@/types/work-category';
+import {
+  WorkCategory,
+  parseWorkCategory,
+  CreateWorkCategoryRequest,
+  createWorkCategoryToJson,
+} from '@/types/work-category';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
@@ -83,20 +88,11 @@ export const workCategoryService = {
   /**
    * Create a new work category.
    */
-  async create(category: Partial<WorkCategory>): Promise<WorkCategory> {
-    if (!category.name?.trim()) {
-      throw new ApiError('Work category name is required.', 400);
-    }
-
-    const payload: Record<string, unknown> = {
-      name: category.name,
-      description: category.description ?? '',
-    };
-    if (category.icon) {
-      payload.icon = category.icon;
-    }
-    logger.debug('Creating work category with payload:', payload);
-    const data = await api.post<ApiResponse>('/category/web', payload);
+  async create(dto: CreateWorkCategoryRequest): Promise<WorkCategory> {
+    const data = await api.post<ApiResponse>(
+      '/category/web',
+      createWorkCategoryToJson(dto)
+    );
     return safeParseWorkCategory(data);
   },
 
