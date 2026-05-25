@@ -6,7 +6,7 @@ import { getOrgRoleLabel, orgRoleFromString } from '../employee/org-role';
  * Member – shape only (like Dart class)
  */
 export interface Member {
-  id?: number;
+  id: number;
   memberName: string;
   memberEmail: string;
   memberPhone: string;
@@ -51,7 +51,7 @@ export function memberRoleLabel(member: Member): string {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseMember(json: any): Member {
   return {
-    id: json.id ?? undefined,
+    id: Number(json.id),
     memberName: json.employeeName ?? json.memberName ?? '',
     memberEmail: json.emailAddress ?? json.memberEmail ?? '',
     memberPhone: json.phoneNumber ?? json.memberPhone ?? '',
