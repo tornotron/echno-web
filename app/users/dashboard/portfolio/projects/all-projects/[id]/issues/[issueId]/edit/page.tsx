@@ -44,11 +44,7 @@ import {
   getIssueTypeColor,
 } from '@/types/issue/issue-type';
 import { IssueStatus, getIssueStatusLabel } from '@/types/issue/issue-status';
-import {
-  useIssue,
-  useUpdateIssueWithFiles,
-  useDeleteIssue,
-} from '@/hooks/issue';
+import { useIssue, useUpdateIssue, useDeleteIssue } from '@/hooks/issue';
 import { useTask } from '@/hooks/task';
 import {
   useProject,
@@ -74,7 +70,7 @@ export default function EditIssuePage({ params }: PageProps) {
   const { data: projectMembers = [] } = useEmployeesByProject(
     Number.parseInt(projectId)
   );
-  const updateMutation = useUpdateIssueWithFiles();
+  const updateMutation = useUpdateIssue();
   const deleteMutation = useDeleteIssue();
 
   // Form state — initialized from loaded issue
@@ -151,7 +147,7 @@ export default function EditIssuePage({ params }: PageProps) {
       return;
     }
 
-    if (!issue?.id) return;
+    if (!issue) return;
 
     try {
       await deleteMutation.mutateAsync(issue.id);
@@ -167,7 +163,7 @@ export default function EditIssuePage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm() || !issue?.id) return;
+    if (!validateForm() || !issue) return;
 
     try {
       await updateMutation.mutateAsync({
@@ -175,7 +171,7 @@ export default function EditIssuePage({ params }: PageProps) {
         data: {
           title,
           description,
-          type: issueType,
+          issueType,
           status,
           assigneeId: assigneeId ? Number(assigneeId) : undefined,
         },
