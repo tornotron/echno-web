@@ -141,7 +141,7 @@ export default function TaskDetailPage({ params }: PageProps) {
               href={
                 routes.portfolio.projects.allProjects
                   .detail(projectId)
-                  .tasks.detail(task.id!).edit
+                  .tasks.detail(task.id).edit
               }
             >
               <Edit className="mr-2 h-4 w-4" />

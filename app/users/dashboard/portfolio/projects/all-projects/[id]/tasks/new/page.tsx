@@ -34,7 +34,8 @@ import {
   useProject,
   useEmployeesByProject,
 } from '@/hooks/project/use-projects';
-import { useCreateTaskWithFiles } from '@/hooks/task';
+import { useCreateTask } from '@/hooks/task';
+import type { CreateTaskRequest } from '@/types/task/task-create';
 import {
   useWorkCategories,
   useCreateWorkCategory,
@@ -50,7 +51,7 @@ import { routes } from '@/nav';
 export default function NewTaskPage() {
   const router = useRouter();
   const params = useParams();
-  const createTask = useCreateTaskWithFiles();
+  const createTask = useCreateTask();
 
   // Get project from URL
   const projectId = Number.parseInt(params.id as string);
@@ -85,7 +86,7 @@ export default function NewTaskPage() {
       },
       {
         onSuccess: (created) => {
-          setCategoryId(created.id?.toString() || '');
+          setCategoryId(created.id.toString());
           setNewCategoryName('');
           setNewCategoryDescription('');
           setShowCreateCategory(false);
@@ -149,24 +150,24 @@ export default function NewTaskPage() {
   };
 
   // Build task data from form state
-  const buildTaskData = () => {
+  const buildTaskData = (): CreateTaskRequest => {
     const selectedCategory = workCategories.find(
-      (c) => c.id?.toString() === categoryId
+      (c) => c.id.toString() === categoryId
     );
     return {
-      projectId,
       title,
+      projectId,
       description,
       startDate: startDate ? new Date(startDate) : undefined,
       endDate: endDate ? new Date(endDate) : undefined,
-      creator: currentEmployee,
-      category: selectedCategory,
+      creatorId: currentEmployee?.id,
+      categoryId: selectedCategory?.id,
       status,
       progress: Number.parseInt(progress),
       tags: selectedTags,
-      assignees: selectedAssignees
-        .map((sid) => projectMembers.find((m) => m.id?.toString() === sid))
-        .filter(Boolean) as typeof projectMembers,
+      assigneeIds: selectedAssignees
+        .map((sid) => projectMembers.find((m) => m.id.toString() === sid)?.id)
+        .filter((id): id is number => id !== undefined),
     };
   };
 

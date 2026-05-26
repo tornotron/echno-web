@@ -111,7 +111,7 @@ export default function NewIssuePage({ params }: PageProps) {
       });
       return false;
     }
-    if (!tasks.some((t) => t.id?.toString() === taskId)) {
+    if (!tasks.some((t) => t.id.toString() === taskId)) {
       toast.error('Validation Error', {
         description:
           'The selected task no longer exists. Please choose another.',
@@ -214,7 +214,7 @@ export default function NewIssuePage({ params }: PageProps) {
     }
   };
 
-  const selectedTask = tasks.find((t) => t.id?.toString() === taskId);
+  const selectedTask = tasks.find((t) => t.id.toString() === taskId);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -292,15 +292,13 @@ export default function NewIssuePage({ params }: PageProps) {
                       <div className="max-h-56 space-y-1 overflow-y-auto rounded-lg border border-zinc-200 p-1.5 dark:border-zinc-800">
                         {filteredTasks.length > 0 ? (
                           filteredTasks.map((task) => {
-                            const isSelected = taskId === task.id?.toString();
+                            const isSelected = taskId === task.id.toString();
                             const statusColor = getTaskStatusColor(task.status);
                             return (
                               <button
                                 key={task.id}
                                 type="button"
-                                onClick={() =>
-                                  setTaskId(task.id?.toString() || '')
-                                }
+                                onClick={() => setTaskId(task.id.toString())}
                                 className={`flex w-full items-center gap-3 rounded-md p-2.5 text-left transition-colors ${
                                   isSelected
                                     ? 'border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20'
@@ -495,7 +493,7 @@ export default function NewIssuePage({ params }: PageProps) {
                       href={
                         routes.portfolio.projects.allProjects
                           .detail(projectId)
-                          .tasks.detail(selectedTask.id!).href
+                          .tasks.detail(selectedTask.id).href
                       }
                     >
                       <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">

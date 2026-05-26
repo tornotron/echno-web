@@ -44,7 +44,8 @@ import {
   useProject,
   useEmployeesByProject,
 } from '@/hooks/project/use-projects';
-import { useTask, useUpdateTaskWithFiles, useDeleteTask } from '@/hooks/task';
+import { useTask, useUpdateTask, useDeleteTask } from '@/hooks/task';
+import type { UpdateTaskRequest } from '@/types/task/task-update';
 import {
   useWorkCategories,
   useCreateWorkCategory,
@@ -108,7 +109,7 @@ export default function EditTaskPage({ params }: PageProps) {
   const { data: projectMembers = [] } = useEmployeesByProject(projectIdNum);
   const { data: workCategories = [] } = useWorkCategories();
   const createWorkCategory = useCreateWorkCategory();
-  const updateTask = useUpdateTaskWithFiles();
+  const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
   const { data: currentEmployee } = useCurrentUserEmployee();
 
@@ -175,11 +176,11 @@ export default function EditTaskPage({ params }: PageProps) {
         ? formatDateForInput(taskToEdit.startDate)
         : '',
       endDate: taskToEdit.endDate ? formatDateForInput(taskToEdit.endDate) : '',
-      categoryId: taskToEdit.category?.id?.toString() || '',
+      categoryId: taskToEdit.category?.id.toString() || '',
       status: taskToEdit.status || TaskStatus.upcoming,
       progress: (taskToEdit.progress || 0).toString(),
       selectedAssignees:
-        taskToEdit.assignees?.map((a) => a.id?.toString() || '') || [],
+        taskToEdit.assignees?.map((a) => a.id.toString()) || [],
       selectedTags: taskToEdit.tags || [],
       description: taskToEdit.description || '',
     });
@@ -371,26 +372,27 @@ export default function EditTaskPage({ params }: PageProps) {
     if (!validateForm()) return;
 
     const selectedCategory = workCategories.find(
-      (c) => c.id?.toString() === form.categoryId
+      (c) => c.id.toString() === form.categoryId
     );
 
+    const updateData: UpdateTaskRequest = {
+      projectId: projectIdNum,
+      title: form.title,
+      description: form.description,
+      startDate: form.startDate ? new Date(form.startDate) : undefined,
+      endDate: form.endDate ? new Date(form.endDate) : undefined,
+      creatorId: currentEmployee?.id,
+      categoryId: selectedCategory?.id,
+      status: form.status,
+      progress: Number.parseInt(form.progress),
+      tags: form.selectedTags,
+      assigneeIds: form.selectedAssignees
+        .map((sid) => projectMembers.find((m) => m.id.toString() === sid)?.id)
+        .filter((id): id is number => id !== undefined),
+    };
     setPendingSubmitData({
       id: taskId,
-      data: {
-        projectId: projectIdNum,
-        title: form.title,
-        description: form.description,
-        startDate: form.startDate ? new Date(form.startDate) : undefined,
-        endDate: form.endDate ? new Date(form.endDate) : undefined,
-        creator: currentEmployee,
-        category: selectedCategory,
-        status: form.status,
-        progress: Number.parseInt(form.progress),
-        tags: form.selectedTags,
-        assignees: form.selectedAssignees
-          .map((sid) => projectMembers.find((m) => m.id?.toString() === sid))
-          .filter(Boolean) as typeof projectMembers,
-      },
+      data: updateData,
       files: { attachments },
     });
     setShowSaveDialog(true);
