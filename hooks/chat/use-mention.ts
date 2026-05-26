@@ -131,7 +131,7 @@ function filterTasks(tasks: Task[], query: string): MentionTask[] {
     .slice(0, 8)
     .map((t) => ({
       kind: 'task' as const,
-      id: t.id!,
+      id: t.id,
       title: t.title,
     }));
 }
