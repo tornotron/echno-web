@@ -52,7 +52,7 @@ import {
 } from '@/hooks/vendors';
 import type {
   VendorTaxIdentifier,
-  CreateVendorTaxIdentifierInput,
+  CreateVendorTaxIdentifierRequest,
 } from '@/types/vendor';
 
 const TAX_ID_TYPES = ['GST', 'PAN', 'TAN', 'TIN', 'CIN', 'OTHER'];
@@ -71,7 +71,7 @@ export function VendorTaxTab({ vendorId }: VendorTaxTabProps) {
     open: boolean;
     editing?: VendorTaxIdentifier;
   }>({ open: false });
-  const [form, setForm] = useState<CreateVendorTaxIdentifierInput>({
+  const [form, setForm] = useState<CreateVendorTaxIdentifierRequest>({
     type: 'GST',
     value: '',
   });

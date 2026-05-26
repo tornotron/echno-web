@@ -46,7 +46,7 @@ import {
 } from '@/hooks/vendors';
 import type {
   VendorBankAccount,
-  CreateVendorBankAccountInput,
+  CreateVendorBankAccountRequest,
 } from '@/types/vendor';
 
 interface VendorBankingTabProps {
@@ -63,7 +63,7 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
     open: boolean;
     editing?: VendorBankAccount;
   }>({ open: false });
-  const [form, setForm] = useState<CreateVendorBankAccountInput>({});
+  const [form, setForm] = useState<CreateVendorBankAccountRequest>({});
   const [toDelete, setToDelete] = useState<VendorBankAccount | null>(null);
 
   function openAdd() {

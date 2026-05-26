@@ -45,7 +45,7 @@ import {
   useUpdateVendorContact,
   useDeleteVendorContact,
 } from '@/hooks/vendors';
-import type { VendorContact, CreateVendorContactInput } from '@/types/vendor';
+import type { VendorContact, CreateVendorContactRequest } from '@/types/vendor';
 
 interface VendorContactsTabProps {
   vendorId: number;
@@ -61,7 +61,7 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
     open: boolean;
     editing?: VendorContact;
   }>({ open: false });
-  const [form, setForm] = useState<CreateVendorContactInput>({});
+  const [form, setForm] = useState<CreateVendorContactRequest>({});
   const [toDelete, setToDelete] = useState<VendorContact | null>(null);
 
   function openAdd() {
