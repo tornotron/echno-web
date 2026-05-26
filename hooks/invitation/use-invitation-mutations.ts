@@ -1,67 +1,24 @@
-/**
- * hooks/invitation/use-invitation-mutations.ts
- *
- * Contains mutation hooks for invitation operations.
- *
- * This module exposes mutation hooks that perform write operations
- * against the invitations REST endpoints (generate code, validate code
- * via mutation style, resend). Each hook provides application-level
- * side-effects such as cache invalidation and user-facing toasts.
- *
- * Error handling follows enterprise best-practices: errors are normalized
- * (ApiError), user-friendly messages are presented, and internal errors
- * are logged for diagnostics.
- */
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invitationService } from '@/services/invitation-service';
+import { api } from '@/lib/api/api-client';
 import { GenerateInviteCodeRequest } from '@/types/invitation';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import { invitationKeys } from './invitation-keys';
-import { organizationKeys } from '@/hooks/organization/organization-keys';
 
-/**
- * Hook to generate a new invite code.
- * Invalidates the invitations cache for the organization on success.
- *
- * @returns Mutation object with mutate function
- *
- * @example
- * ```tsx
- * const generateMutation = useGenerateInviteCode();
- *
- * generateMutation.mutate({
- *   organizationId: 1,
- *   request: {
- *     designation: 'Software Engineer',
- *     department: 'Engineering',
- *     email: 'employee@example.com',
- *     validityDays: 7,
- *   }
- * });
- * ```
- */
 export function useGenerateInviteCode() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      organizationId,
-      request,
-    }: {
-      organizationId: number;
-      request: GenerateInviteCodeRequest;
-    }) => invitationService.generateCode(organizationId, request),
-    onSuccess: (invitation, variables) => {
-      // Invalidate invitations list for the organization
+    mutationFn: (dto: GenerateInviteCodeRequest) =>
+      invitationService.generateCode(dto),
+    onSuccess: (invitation) => {
       queryClient.invalidateQueries({
-        queryKey: invitationKeys.byOrganization(variables.organizationId),
+        queryKey: invitationKeys.byProject(invitation.projectId),
       });
-
       toast.success('Invite Code Generated', {
-        description: `Code: ${invitation.inviteCode}. Valid for ${variables.request.validityDays || 7} days.`,
+        description: `Code: ${invitation.inviteCode}`,
       });
     },
     onError: (error) => {
@@ -73,111 +30,41 @@ export function useGenerateInviteCode() {
   });
 }
 
-/**
- * Hook to validate an invite code.
- * This is a mutation (not a query) to allow manual triggering and better error handling.
- *
- * @returns Mutation object with mutate function
- *
- * @example
- * ```tsx
- * const validateMutation = useValidateInviteCodeMutation();
- *
- * validateMutation.mutate(
- *   { userId: 1, inviteCode: 'ABC123' },
- *   {
- *     onSuccess: (result) => {
- *       if (result.valid) {
- *         // Proceed with joining organization
- *       }
- *     }
- *   }
- * );
- * ```
- */
-export function useValidateInviteCodeMutation() {
+export function useDeleteInviteCode() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      userId,
-      inviteCode,
-    }: {
-      userId: number;
-      inviteCode: string;
-    }) => invitationService.validateCode(userId, inviteCode),
-    onSuccess: (result) => {
-      if (result.valid) {
-        // Invalidate organizations and user data since validate also joins
-        queryClient.invalidateQueries({ queryKey: organizationKeys.all });
-        queryClient.invalidateQueries({ queryKey: ['user'] });
-        queryClient.invalidateQueries({ queryKey: ['employees'] });
-        toast.success('Joined Organization', {
-          description: result.invitation
-            ? `Successfully joined ${result.invitation.organizationName}`
-            : 'Successfully joined the organization',
-        });
-      } else {
-        toast.error('Invalid Invite Code', {
-          description: result.message || 'The code is invalid or has expired',
-        });
-      }
+    mutationFn: (id: number) => invitationService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: invitationKeys.all });
+      toast.success('Invite Code Deleted');
     },
     onError: (error) => {
-      const title = getErrorTitle(error, 'Validation Failed');
+      const title = getErrorTitle(error, 'Failed to Delete Invite Code');
       const description = getErrorMessage(error);
       toast.error(title, { description });
-      logger.error('Failed to validate invite code:', error);
+      logger.error('Failed to delete invite code:', error);
     },
   });
 }
 
-/**
- * Hook to resend an invitation (generates a new code with same details).
- * This is a convenience wrapper around generateInviteCode.
- *
- * @returns Mutation object with mutate function
- *
- * @example
- * ```tsx
- * const resendMutation = useResendInvitation();
- *
- * resendMutation.mutate({
- *   organizationId: 1,
- *   request: {
- *     designation: 'Software Engineer',
- *     department: 'Engineering',
- *     email: 'employee@example.com',
- *   }
- * });
- * ```
- */
-export function useResendInvitation() {
+export function useJoinWithInviteCode() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      organizationId,
-      request,
-    }: {
-      organizationId: number;
-      request: GenerateInviteCodeRequest;
-    }) => invitationService.generateCode(organizationId, request),
-    onSuccess: (invitation, variables) => {
-      // Invalidate invitations list for the organization
-      queryClient.invalidateQueries({
-        queryKey: invitationKeys.byOrganization(variables.organizationId),
-      });
-
-      toast.success('Invitation Resent', {
-        description: `New code generated: ${invitation.inviteCode}`,
-      });
+    // POST /api/v1/project/web/invite-codes/join — endpoint TBC with backend team
+    mutationFn: ({ inviteCode }: { inviteCode: string }) =>
+      api.post<void>('/api/v1/project/web/invite-codes/join', { inviteCode }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      toast.success('Joined Successfully');
     },
     onError: (error) => {
-      const title = getErrorTitle(error, 'Failed to Resend Invitation');
+      const title = getErrorTitle(error, 'Failed to Join');
       const description = getErrorMessage(error);
       toast.error(title, { description });
-      logger.error('Failed to resend invitation:', error);
+      logger.error('Failed to join with invite code:', error);
     },
   });
 }
