@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { attachmentService } from '@/services/attachment-service';
-import { Attachment } from '@/types/attachment';
+import { Attachment, UploadAttachmentRequest } from '@/types/attachment';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 
@@ -25,22 +25,10 @@ export function useUploadAttachment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (variables: {
-      entityId: number;
-      entityType: string;
-      files: File | File[];
-    }) =>
-      attachmentService.upload(
-        variables.entityId,
-        variables.entityType,
-        variables.files
-      ),
+    mutationFn: (request: UploadAttachmentRequest) =>
+      attachmentService.upload(request),
     onSuccess: (attachment: Attachment, variables) => {
-      // Update cache with new attachment
-      if (attachment.id) {
-        queryClient.setQueryData(['attachments', attachment.id], attachment);
-      }
-      // Also update the entity attachment cache
+      queryClient.setQueryData(['attachments', attachment.id], attachment);
       queryClient.setQueryData(
         ['attachments', 'entity', variables.entityId, variables.entityType],
         attachment

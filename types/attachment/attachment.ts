@@ -10,7 +10,7 @@ export enum AttachmentType {
 }
 
 export interface Attachment {
-  id?: number;
+  id: number;
   fileName: string;
   file: string;
   fileSize: number; // in bytes
@@ -99,7 +99,7 @@ export function parseAttachment(json: any): Attachment {
   const fileType = json.fileType ?? getFileTypeFromMimeType(contentType);
 
   return {
-    id: json.id ?? undefined,
+    id: Number(json.id),
     fileName: json.fileName ?? '',
     // Support multiple possible field names for the file URL
     file: json.file ?? json.fileUrl ?? json.url ?? json.downloadUrl ?? '',

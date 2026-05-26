@@ -1,6 +1,10 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { Attachment, parseAttachment } from '@/types/attachment';
+import {
+  Attachment,
+  parseAttachment,
+  UploadAttachmentRequest,
+} from '@/types/attachment';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
@@ -89,28 +93,17 @@ export const attachmentService = {
    * Upload a new attachment file for an entity.
    *
    * Endpoint: POST /v1/attachment/web/entityId/{entityId}/entityType/{entityType}
-   *
-   * @param {number} entityId - ID of the entity (user, organization, etc.)
-   * @param {string} entityType - Type of attachment (e.g., 'USER_PROFILE_PICTURE', 'CV', 'LOGO')
-   * @param {File | File[]} files - File(s) to upload
-   * @returns {Promise<Attachment>} The uploaded attachment with download URL
-   * @throws {ApiError} on network, server, or parsing errors
    */
-  async upload(
-    entityId: number,
-    entityType: string,
-    files: File | File[]
-  ): Promise<Attachment> {
+  async upload(request: UploadAttachmentRequest): Promise<Attachment> {
     const formData = new FormData();
-
-    // Handle single file or multiple files
-    const fileArray = Array.isArray(files) ? files : [files];
+    const fileArray = Array.isArray(request.files)
+      ? request.files
+      : [request.files];
     for (const file of fileArray) {
       formData.append('file', file);
     }
-
     const data = await api.postFormData<ApiResponse>(
-      `/attachment/web/entityId/${entityId}/entityType/${entityType}`,
+      `/attachment/web/entityId/${request.entityId}/entityType/${request.entityType}`,
       formData
     );
     return safeParseAttachment(data);
