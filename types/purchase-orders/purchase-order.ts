@@ -1,8 +1,6 @@
+import { parsePositiveInt } from '@/types/parse-id';
 import { PurchaseOrderStatus } from './enums';
-import type {
-  PurchaseOrderItem,
-  InlinePurchaseOrderItemInput,
-} from './purchase-order-item';
+import type { PurchaseOrderItem } from './purchase-order-item';
 import { parsePurchaseOrderItem } from './purchase-order-item';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,36 +26,9 @@ export interface PurchaseOrder {
   items: PurchaseOrderItem[];
 }
 
-export interface CreatePurchaseOrderInput {
-  poNumber: string;
-  vendorId: number;
-  projectId: number;
-  indentId?: number;
-  status: PurchaseOrderStatus;
-  createdBy: number;
-  expectedDeliveryDate?: string;
-  remarks?: string;
-  totalAmount?: number;
-  items: InlinePurchaseOrderItemInput[];
-}
-
-export interface UpdatePurchaseOrderInput {
-  id: number;
-  projectId?: number;
-  status?: PurchaseOrderStatus;
-  expectedDeliveryDate?: string;
-  remarks?: string;
-  totalAmount?: number;
-}
-
 export function parsePurchaseOrder(raw: Raw): PurchaseOrder {
-  if (!raw.id || !raw.poNumber || !raw.vendorId) {
-    throw new Error(
-      `Invalid PurchaseOrder data: missing required fields (id=${raw.id}, poNumber=${raw.poNumber}, vendorId=${raw.vendorId})`
-    );
-  }
   return {
-    id: raw.id,
+    id: parsePositiveInt(raw.id, 'parsePurchaseOrder.id'),
     poNumber: raw.poNumber,
     vendorId: raw.vendorId,
     vendorName: raw.vendorName ?? '',
