@@ -21,6 +21,7 @@ import { Attachment, parseAttachment } from '@/types/attachment';
 import { EmployeeStatus, employeeStatusFromString } from './employee-status';
 import { Department } from './departments';
 import { OrgRole, orgRoleFromString } from './org-role';
+import { parsePositiveInt } from '@/types/parse-id';
 
 /**
  * Employee interface
@@ -105,12 +106,7 @@ export function parseEmployee(json: any): Employee {
         )[0]
       : undefined;
 
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseEmployee: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseEmployee.id');
 
   return {
     id,

@@ -1,6 +1,6 @@
 // types/user/user.ts
 import { Attachment, parseAttachment } from '@/types/attachment';
-import { parsePositiveInt } from '@/lib/utils/parse-id';
+import { parsePositiveInt } from '@/types/parse-id';
 
 export interface User {
   id: number;

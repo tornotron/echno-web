@@ -3,6 +3,7 @@ import { IssueType, issueTypeFromString } from './issue-type';
 import { IssueStatus, issueStatusFromString } from './issue-status';
 import { IssueComment, parseIssueComment } from './issue-comment';
 import { Attachment, parseAttachment } from '@/types/attachment';
+import { parsePositiveInt } from '@/types/parse-id';
 import { Employee } from '@/types/employee/employee';
 import { parseUTCDate } from '@/types/date-helpers';
 
@@ -31,12 +32,7 @@ export interface Issue {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseIssue(json: any): Issue {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseIssue: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseIssue.id');
 
   return {
     id,

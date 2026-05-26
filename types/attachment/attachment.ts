@@ -1,4 +1,5 @@
 // types/attachment/attachment.ts
+import { parsePositiveInt } from '@/types/parse-id';
 
 export enum AttachmentType {
   image = 'image',
@@ -94,12 +95,7 @@ export function getFileTypeColor(type: AttachmentType): string {
 /** JSON → Attachment */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseAttachment(json: any): Attachment {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseAttachment: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseAttachment.id');
 
   // Derive fileType from contentType if not provided
   const contentType = json.contentType ?? json.mimeType ?? '';
