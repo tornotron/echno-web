@@ -9,10 +9,12 @@ import { logger } from '@/lib/logger';
 import {
   Indent,
   IndentItem,
-  CreateIndentInput,
-  UpdateIndentInput,
   parseIndent,
   parseIndentItem,
+  CreateIndentRequest,
+  UpdateIndentRequest,
+  createIndentToJson,
+  updateIndentToJson,
 } from '@/types/indents';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -40,8 +42,8 @@ function safeParseIndents(data: Raw[]): Indent[] {
 export const indentsService = {
   // ==================== Indents ====================
 
-  async create(indent: CreateIndentInput): Promise<Indent> {
-    const data = await api.post<Raw>('/indents/web', indent);
+  async create(dto: CreateIndentRequest): Promise<Indent> {
+    const data = await api.post<Raw>('/indents/web', createIndentToJson(dto));
     return safeParseIndent(data);
   },
 
@@ -60,8 +62,11 @@ export const indentsService = {
     return safeParseIndent(data);
   },
 
-  async update(id: number, indent: UpdateIndentInput): Promise<Indent> {
-    const data = await api.patch<Raw>(`/indents/web/${id}`, indent);
+  async update(id: number, dto: UpdateIndentRequest): Promise<Indent> {
+    const data = await api.patch<Raw>(
+      `/indents/web/${id}`,
+      updateIndentToJson(dto)
+    );
     return safeParseIndent(data);
   },
 

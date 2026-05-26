@@ -8,12 +8,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { indentsService } from '@/services/indents-service';
 import { indentsKeys } from './indent-keys';
 import { toast } from '@/lib/styles/toast-styles';
-import { CreateIndentInput, UpdateIndentInput } from '@/types/indents';
+import { CreateIndentRequest, UpdateIndentRequest } from '@/types/indents';
 
 export const useCreateIndent = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (indent: CreateIndentInput) => indentsService.create(indent),
+    mutationFn: (dto: CreateIndentRequest) => indentsService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: indentsKeys.all });
       toast.success('Indent created successfully.');
@@ -28,7 +28,7 @@ export const useCreateIndent = () => {
 export const useUpdateIndent = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, dto }: { id: number; dto: UpdateIndentInput }) =>
+    mutationFn: ({ id, dto }: { id: number; dto: UpdateIndentRequest }) =>
       indentsService.update(id, dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: indentsKeys.detail(data.id) });
