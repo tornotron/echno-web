@@ -169,12 +169,12 @@ export function IssueTable({
 
   const isAllSelected =
     paginatedIssues.length > 0 &&
-    paginatedIssues.every((i) => selectedIds.includes(i.id!));
+    paginatedIssues.every((i) => selectedIds.includes(i.id));
   const isSomeSelected =
-    !isAllSelected && paginatedIssues.some((i) => selectedIds.includes(i.id!));
+    !isAllSelected && paginatedIssues.some((i) => selectedIds.includes(i.id));
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? paginatedIssues.map((i) => i.id!) : []);
+    setSelectedIds(checked ? paginatedIssues.map((i) => i.id) : []);
   };
 
   const handleSelectOne = (id: number, checked: boolean) => {
@@ -317,7 +317,7 @@ export function IssueTable({
             <Link
               href={
                 routes.workforce.employees.employeeManagement.detail(
-                  issue.creator.id!
+                  issue.creator.id
                 ).href
               }
               className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
