@@ -1,6 +1,6 @@
 export const invitationKeys = {
-  byOrganization: (organizationId?: number) =>
-    ['invitations', 'organization', organizationId] as const,
-  validate: (userId?: number, inviteCode?: string) =>
-    ['invitations', 'validate', userId, inviteCode] as const,
+  all: ['invitations'] as const,
+  byProject: (projectId?: number) =>
+    ['invitations', 'project', projectId] as const,
+  detail: (id?: number) => ['invitations', 'detail', id] as const,
 };
