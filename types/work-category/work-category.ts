@@ -11,9 +11,15 @@ export interface WorkCategory {
 /** JSON → WorkCategory */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseWorkCategory(json: any): WorkCategory {
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseWorkCategory: invalid id "${json.id}" — expected a finite number`
+    );
+  }
   const name = json.name ?? '';
   return {
-    id: Number(json.id),
+    id,
     name,
     description: json.description ?? undefined,
     icon: json.icon ?? generateAbbreviation(name),
