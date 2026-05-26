@@ -1,6 +1,7 @@
 // types/user/member.ts
 import { getUserRoleLabel, userRoleFromString } from '../user';
 import { getOrgRoleLabel, orgRoleFromString } from '../employee/org-role';
+import { parsePositiveInt } from '@/types/parse-id';
 
 /**
  * Member – shape only (like Dart class)
@@ -50,12 +51,7 @@ export function memberRoleLabel(member: Member): string {
  *  ------------------------------------------------------------- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseMember(json: any): Member {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseMember: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseMember.id');
   return {
     id,
     memberName: json.employeeName ?? json.memberName ?? '',

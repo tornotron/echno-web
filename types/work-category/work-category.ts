@@ -1,4 +1,5 @@
 // types/task/work-category.ts
+import { parsePositiveInt } from '@/types/parse-id';
 
 export interface WorkCategory {
   id: number;
@@ -11,12 +12,7 @@ export interface WorkCategory {
 /** JSON → WorkCategory */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseWorkCategory(json: any): WorkCategory {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseWorkCategory: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseWorkCategory.id');
   const name = json.name ?? '';
   return {
     id,
