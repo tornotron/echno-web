@@ -1,28 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { issueCommentService } from '@/services/issue-comment-service';
-import { IssueComment } from '@/types/issue/issue-comment';
+import { CreateIssueCommentRequest } from '@/types/issue/issue-create';
+import { UpdateIssueCommentRequest } from '@/types/issue/issue-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 
-/**
- * useCreateIssueComment
- *
- * Mutation hook to create a new comment on an issue.
- * Invalidates both the comments cache and the parent issue cache
- * since comments are embedded in the issue response.
- */
 export function useCreateIssueComment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      issueId,
-      data,
-    }: {
-      issueId: number;
-      data: Partial<IssueComment>;
-    }) => issueCommentService.create(issueId, data),
+    mutationFn: (dto: CreateIssueCommentRequest) =>
+      issueCommentService.create(dto),
     onSuccess: (_, { issueId }) => {
       queryClient.invalidateQueries({ queryKey: ['issue-comments'] });
       queryClient.invalidateQueries({ queryKey: ['issues'] });
@@ -40,17 +29,17 @@ export function useCreateIssueComment() {
   });
 }
 
-/**
- * useUpdateIssueComment
- *
- * Mutation hook to update an existing issue comment.
- */
 export function useUpdateIssueComment() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<IssueComment> }) =>
-      issueCommentService.update(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: UpdateIssueCommentRequest;
+    }) => issueCommentService.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['issue-comments'] });
       queryClient.invalidateQueries({ queryKey: ['issue-comments', id] });
@@ -68,12 +57,6 @@ export function useUpdateIssueComment() {
   });
 }
 
-/**
- * useDeleteIssueComment
- *
- * Mutation hook that deletes an issue comment by id and invalidates
- * both the comments cache and the parent issues cache.
- */
 export function useDeleteIssueComment() {
   const queryClient = useQueryClient();
 
