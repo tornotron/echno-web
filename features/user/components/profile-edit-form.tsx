@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { User } from '@/types/user/user';
+import { UpdateUserRequest } from '@/types/user/user-update';
 import { useUpdateUserWithFiles } from '@/hooks/user/use-user-mutations';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { useQueryClient } from '@tanstack/react-query';
@@ -62,7 +63,7 @@ export function ProfileEditForm({
   const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
   const [pendingMutateArgs, setPendingMutateArgs] = useState<{
     id: number;
-    data: Partial<User>;
+    data: UpdateUserRequest;
     files: { profilePicture?: File; cv?: File };
   } | null>(null);
   const [showRemovePictureDialog, setShowRemovePictureDialog] = useState(false);
@@ -249,13 +250,8 @@ export function ProfileEditForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user.id) {
-      toast.error('Error', { description: 'User ID is required' });
-      return;
-    }
-
     // Prepare the update payload
-    const updates: Partial<User> = {
+    const updates: UpdateUserRequest = {
       name: formData.name,
       phone: formData.phone,
       address: formData.address,
