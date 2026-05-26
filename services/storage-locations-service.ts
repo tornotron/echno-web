@@ -8,8 +8,11 @@ import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import {
   StorageLocation,
-  CreateStorageLocationInput,
   parseStorageLocation,
+  CreateStorageLocationRequest,
+  createStorageLocationToJson,
+  UpdateStorageLocationRequest,
+  updateStorageLocationToJson,
 } from '@/types/storage-locations';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,40 +59,26 @@ export const storageLocationsService = {
     return safeParse(data);
   },
 
+  async create(dto: CreateStorageLocationRequest): Promise<StorageLocation> {
+    const data = await api.post<Raw>(
+      '/storage-locations/web',
+      createStorageLocationToJson(dto)
+    );
+    return safeParse(data);
+  },
+
   async update(
     id: number,
-    input: CreateStorageLocationInput
+    dto: UpdateStorageLocationRequest
   ): Promise<StorageLocation> {
-    const data = await api.patch<Raw>(`/storage-locations/web/${id}`, {
-      locationName: input.locationName,
-      locationType: input.locationType,
-      address: input.address ?? null,
-      projectId: input.projectId ?? null,
-      projectName: input.projectName ?? null,
-      capacity: input.capacity ?? null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
-      active: input.active ?? true,
-    });
+    const data = await api.patch<Raw>(
+      `/storage-locations/web/${id}`,
+      updateStorageLocationToJson(dto)
+    );
     return safeParse(data);
   },
 
   async delete(id: number): Promise<void> {
     await api.delete(`/storage-locations/web/${id}`);
-  },
-
-  async create(input: CreateStorageLocationInput): Promise<StorageLocation> {
-    const data = await api.post<Raw>('/storage-locations/web', {
-      locationName: input.locationName,
-      locationType: input.locationType,
-      address: input.address ?? null,
-      projectId: input.projectId ?? null,
-      projectName: input.projectName ?? null,
-      capacity: input.capacity ?? null,
-      latitude: input.latitude ?? null,
-      longitude: input.longitude ?? null,
-      active: input.active ?? true,
-    });
-    return safeParse(data);
   },
 };
