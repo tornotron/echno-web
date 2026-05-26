@@ -219,7 +219,7 @@ export function IssueOverviewTab({
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
-                            onDeleteAttachment(attachment.id!);
+                            onDeleteAttachment(attachment.id);
                           }}
                           className="absolute top-1 right-1 h-6 w-6 bg-red-500/90 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-600"
                           aria-label={`Delete ${attachment.fileName}`}
