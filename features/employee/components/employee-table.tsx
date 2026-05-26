@@ -82,7 +82,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
     paginated.length > 0 && selectedIds.length === paginated.length;
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? paginated.map((e) => e.id!) : []);
+    setSelectedIds(checked ? paginated.map((e) => e.id) : []);
   };
 
   const handleSelectOne = (id: number, checked: boolean) => {
@@ -221,7 +221,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                 onClick={() =>
                   router.push(
                     routes.workforce.employees.employeeManagement.detail(
-                      employee.id!
+                      employee.id
                     ).href
                   )
                 }
@@ -231,9 +231,9 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <Checkbox
-                    checked={selectedIds.includes(employee.id!)}
+                    checked={selectedIds.includes(employee.id)}
                     onCheckedChange={(checked) =>
-                      handleSelectOne(employee.id!, checked as boolean)
+                      handleSelectOne(employee.id, checked as boolean)
                     }
                     aria-label={`Select ${employee.name}`}
                   />
@@ -284,7 +284,7 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
                 </TableCell>
                 <TableCell>
                   <EmployeeProjectsCell
-                    employeeId={employee.id!}
+                    employeeId={employee.id}
                     projects={employee.currentProjects}
                   />
                 </TableCell>

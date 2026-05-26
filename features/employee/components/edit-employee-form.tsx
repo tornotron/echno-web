@@ -37,6 +37,7 @@ import {
   getEmployeeStatusLabel,
 } from '@/types/employee/employee-status';
 import type { Employee } from '@/types/employee';
+import type { UpdateEmployeeRequest } from '@/types/employee/employee-update';
 import { PageHeader } from '@/components/common';
 
 // Helper to get initial form data from employee
@@ -65,7 +66,7 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
   const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState<{
     id: number;
-    data: Partial<Employee>;
+    data: UpdateEmployeeRequest;
   } | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,7 +74,7 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
 
     // Build update payload matching the working Postman pattern
     // Only send employment detail fields, not professional info
-    const updateData: Partial<Employee> = {};
+    const updateData: UpdateEmployeeRequest = {};
 
     // Employment Details (matching Postman payload structure)
     if (formData.department) {
@@ -102,19 +103,19 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
       updateData.designation = formData.designation;
     }
 
-    setPendingUpdate({ id: employee.id!, data: updateData });
+    setPendingUpdate({ id: employee.id, data: updateData });
     setShowConfirmUpdate(true);
   };
 
   const handleCancel = () => {
     router.push(
-      routes.workforce.employees.employeeManagement.detail(employee.id!).href
+      routes.workforce.employees.employeeManagement.detail(employee.id).href
     );
   };
 
   return (
     <>
-      <form key={employee.id!} onSubmit={handleSubmit} className="space-y-6">
+      <form key={employee.id} onSubmit={handleSubmit} className="space-y-6">
         {/* Professional Information */}
         <Card>
           <CardHeader>
@@ -340,7 +341,7 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
             onSuccess: () => {
               router.push(
                 routes.workforce.employees.employeeManagement.detail(
-                  employee.id!
+                  employee.id
                 ).href
               );
             },

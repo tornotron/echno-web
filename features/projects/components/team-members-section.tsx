@@ -117,7 +117,7 @@ export function TeamMembersSection({
                     type="button"
                     size="sm"
                     disabled={addEmployee.isPending}
-                    onClick={() => handleAddEmployee(employee.id!)}
+                    onClick={() => handleAddEmployee(employee.id)}
                   >
                     {addEmployee.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -106,7 +106,7 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
                             <Link
                               href={
                                 routes.workforce.employees.employeeManagement.detail(
-                                  comment.author.id!
+                                  comment.author.id
                                 ).href
                               }
                               className="text-sm font-semibold text-zinc-900 hover:text-blue-600 dark:text-zinc-100 dark:hover:text-blue-400"

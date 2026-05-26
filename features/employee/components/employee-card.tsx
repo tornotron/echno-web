@@ -20,8 +20,7 @@ export function EmployeeCard({ employee }: EmployeeCardProps) {
     <Card className="transition-shadow hover:shadow-lg">
       <Link
         href={
-          routes.workforce.employees.employeeManagement.detail(employee.id!)
-            .href
+          routes.workforce.employees.employeeManagement.detail(employee.id).href
         }
         className="block"
       >

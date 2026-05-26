@@ -311,7 +311,7 @@ export function TaskOverviewTab({
                     key={i}
                     href={
                       routes.workforce.employees.employeeManagement.detail(
-                        assignee.id!
+                        assignee.id
                       ).href
                     }
                     className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -346,7 +346,7 @@ export function TaskOverviewTab({
               <Link
                 href={
                   routes.workforce.employees.employeeManagement.detail(
-                    task.creator.id!
+                    task.creator.id
                   ).href
                 }
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
