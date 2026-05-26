@@ -28,7 +28,7 @@ import { OrgRole, orgRoleFromString } from './org-role';
  */
 export interface Employee {
   // User fields (returned by backend as part of employee)
-  id?: number;
+  id: number;
   name: string;
   address: string;
   bloodGroup?: string;
@@ -105,8 +105,15 @@ export function parseEmployee(json: any): Employee {
         )[0]
       : undefined;
 
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseEmployee: invalid id "${json.id}" — expected a finite number`
+    );
+  }
+
   return {
-    id: json.id,
+    id,
     name: json.employeeName ?? '',
     address: json.address ?? '',
     bloodGroup: json.bloodGroup ?? undefined,
