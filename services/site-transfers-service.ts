@@ -9,7 +9,8 @@ import { logger } from '@/lib/logger';
 import {
   SiteTransfer,
   SiteTransferStatus,
-  CreateSiteTransferInput,
+  CreateSiteTransferRequest,
+  createSiteTransferToJson,
   parseSiteTransfer,
 } from '@/types/site-transfers';
 
@@ -36,8 +37,11 @@ function safeParseSiteTransfers(data: Raw[]): SiteTransfer[] {
 }
 
 export const siteTransfersService = {
-  async create(transfer: CreateSiteTransferInput): Promise<SiteTransfer> {
-    const data = await api.post<Raw>('/site-transfers/web', transfer);
+  async create(dto: CreateSiteTransferRequest): Promise<SiteTransfer> {
+    const data = await api.post<Raw>(
+      '/site-transfers/web',
+      createSiteTransferToJson(dto)
+    );
     return safeParseSiteTransfer(data);
   },
 
