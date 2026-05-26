@@ -3,7 +3,7 @@ import { Project, projectToJson, parseProject } from '@/types/project';
 import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface Organization {
-  id?: number;
+  id: number;
   organizationName: string;
   organizationAddress: string;
   organizationEmail: string;
@@ -60,8 +60,15 @@ export function parseOrganization(json: any): Organization {
         ? parseAttachment(json.logo ?? json.organizationLogo)
         : undefined;
 
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseOrganization: invalid id "${json.id}" — expected a finite number`
+    );
+  }
+
   return {
-    id: json.id ?? undefined,
+    id,
     organizationName: json.organizationName ?? '',
     organizationAddress: json.organizationAddress ?? '',
     organizationEmail: json.organizationEmail ?? '',
@@ -93,24 +100,6 @@ export function organizationToJson(org: Organization): Record<string, unknown> {
     // Note: logo not sent - file uploads handled via multipart
     employees: org.employees?.map((e) => employeeToJson(e)),
     projects: org.projects?.map((p) => projectToJson(p)),
-    creatorId: org.creatorId,
-    createdAt: org.createdAt?.toISOString(),
-    isActive: org.isActive,
-  };
-}
-
-/** Minimal JSON with only IDs (for API POST/PUT) */
-export function organizationToJsonWithIds(
-  org: Organization
-): Record<string, unknown> {
-  return {
-    id: org.id,
-    organizationName: org.organizationName,
-    organizationAddress: org.organizationAddress,
-    organizationEmail: org.organizationEmail,
-    organizationPhone: org.organizationPhone,
-    organizationWebsite: org.organizationWebsite,
-    // Note: logo not sent - file uploads handled via multipart
     creatorId: org.creatorId,
     createdAt: org.createdAt?.toISOString(),
     isActive: org.isActive,
