@@ -194,7 +194,7 @@ export default function OrganizationDetailPage({
                 Set as Default
               </Button>
             )}
-            <Link href={routes.organizations.detail(organization.id!).edit}>
+            <Link href={routes.organizations.detail(organization.id).edit}>
               <Button>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Organization

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { OrganizationForm } from '@/features/organization';
-import { Organization } from '@/types/organization';
+import { UpdateOrganizationRequest } from '@/types/organization';
 import { toast } from '@/lib/styles/toast-styles';
 import { useUser } from '@/hooks/user/use-user';
 import { useCreateOrganization } from '@/hooks/organization/use-organization-mutations';
@@ -13,7 +13,7 @@ export default function NewOrganizationPage() {
   const { data: currentUser, isLoading: isUserLoading } = useUser();
   const { mutate: createOrganization, isPending } = useCreateOrganization();
 
-  const handleSubmit = async (data: Partial<Organization>, logoFile?: File) => {
+  const handleSubmit = (data: UpdateOrganizationRequest, logoFile?: File) => {
     if (!currentUser?.id) {
       toast.error('User not found', {
         description: 'Please log in again',
@@ -21,13 +21,19 @@ export default function NewOrganizationPage() {
       return;
     }
 
-    const organizationData: Organization = {
-      ...data,
-      creatorId: currentUser.id,
-    } as Organization;
-
     createOrganization(
-      { data: organizationData, logoFile },
+      {
+        data: {
+          organizationName: data.organizationName!,
+          organizationAddress: data.organizationAddress!,
+          organizationEmail: data.organizationEmail!,
+          organizationPhone: data.organizationPhone!,
+          organizationWebsite: data.organizationWebsite,
+          creatorId: currentUser.id,
+          isActive: data.isActive,
+        },
+        files: logoFile ? { logo: logoFile } : undefined,
+      },
       {
         onSuccess: () => {
           router.push(routes.organizations.href);
