@@ -1,3 +1,5 @@
+import { parsePositiveInt } from '@/types/parse-id';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
 
@@ -8,17 +10,6 @@ export interface PurchaseOrderItem {
   indentItemId?: number;
   orderedQuantity: number;
   receivedQuantity: number;
-  unitPrice?: number;
-  totalPrice?: number;
-  remarks?: string;
-}
-
-/** Used when creating/updating a standalone item via purchase-order-items endpoints */
-export interface CreatePurchaseOrderItemInput {
-  purchaseOrderId: number;
-  materialId: number;
-  indentItemId?: number;
-  orderedQuantity: number;
   unitPrice?: number;
   totalPrice?: number;
   remarks?: string;
@@ -36,7 +27,7 @@ export interface InlinePurchaseOrderItemInput {
 
 export function parsePurchaseOrderItem(raw: Raw): PurchaseOrderItem {
   return {
-    id: raw.id,
+    id: parsePositiveInt(raw.id, 'parsePurchaseOrderItem.id'),
     materialId: raw.materialId,
     materialName: raw.materialName ?? '',
     indentItemId: raw.indentItemId ?? undefined,
