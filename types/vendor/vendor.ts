@@ -57,20 +57,6 @@ export interface Vendor {
   updatedAt?: Date;
 }
 
-export interface CreateVendorInput {
-  name: string;
-  email: string;
-  address?: string;
-  website?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  country?: string;
-  type?: VendorType;
-  status?: VendorStatus;
-  notes?: string;
-}
-
 export function parseVendor(raw: Raw): Vendor {
   const id = parsePositiveInt(raw.id, 'parseVendor.id');
   const name = raw.vendorName ?? raw.name ?? '';

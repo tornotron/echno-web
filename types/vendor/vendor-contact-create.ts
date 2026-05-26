@@ -1,11 +1,19 @@
-// TODO: Phase 11 — implement CreateVendorContactRequest
-// Backend §1.4
 export interface CreateVendorContactRequest {
-  contactName: string;
-  contactTitle: string;
-  email: string;
-  phone: string;
+  contactPerson?: string;
+  email?: string;
+  phone?: string;
   alternatePhone?: string;
-  department?: string;
-  isDefaultContact?: boolean;
+  primary?: boolean;
+}
+
+export function createVendorContactToJson(
+  dto: CreateVendorContactRequest
+): Record<string, unknown> {
+  return {
+    contactPerson: dto.contactPerson,
+    email: dto.email,
+    phone: dto.phone,
+    alternatePhone: dto.alternatePhone,
+    primary: dto.primary,
+  };
 }

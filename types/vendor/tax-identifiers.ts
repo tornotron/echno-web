@@ -5,8 +5,3 @@ export interface VendorTaxIdentifier {
   type: string; // "GST" | "PAN" | ...
   value: string;
 }
-
-export interface CreateVendorTaxIdentifierInput {
-  type: string;
-  value: string;
-}

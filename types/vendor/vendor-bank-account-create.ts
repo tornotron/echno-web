@@ -1,12 +1,21 @@
-// TODO: Phase 11 — implement CreateVendorBankAccountRequest
-// Backend §1.5
 export interface CreateVendorBankAccountRequest {
-  accountHolderName: string;
-  bankName: string;
-  accountNumber: string;
-  ifscCode: string;
-  accountType?: string;
-  swiftCode?: string;
-  isDefaultAccount?: boolean;
-  currency?: string;
+  bankName?: string;
+  accountNumber?: string;
+  ifscCode?: string;
+  accountHolderName?: string;
+  swift?: string;
+  default?: boolean;
+}
+
+export function createVendorBankAccountToJson(
+  dto: CreateVendorBankAccountRequest
+): Record<string, unknown> {
+  return {
+    bankName: dto.bankName,
+    accountNumber: dto.accountNumber,
+    ifscCode: dto.ifscCode,
+    accountHolderName: dto.accountHolderName,
+    swift: dto.swift,
+    default: dto.default,
+  };
 }
