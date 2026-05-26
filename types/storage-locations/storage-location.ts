@@ -35,18 +35,6 @@ export interface StorageLocation {
   active: boolean;
 }
 
-export interface CreateStorageLocationInput {
-  locationName: string;
-  locationType: StorageLocationType;
-  address?: string;
-  projectId?: number;
-  projectName?: string;
-  capacity?: number;
-  latitude?: number;
-  longitude?: number;
-  active?: boolean;
-}
-
 export function parseStorageLocation(raw: Raw): StorageLocation {
   const id = parsePositiveInt(raw.id, 'parseStorageLocation.id');
   return {
