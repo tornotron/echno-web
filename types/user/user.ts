@@ -1,5 +1,6 @@
 // types/user/user.ts
 import { Attachment, parseAttachment } from '@/types/attachment';
+import { parsePositiveInt } from '@/lib/utils/parse-id';
 
 export interface User {
   id: number;
@@ -72,12 +73,7 @@ function parseSkills(data: unknown): string[] {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseUser(json: any): User {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseUser: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseUser.id');
 
   // Parse attachments array from backend
   const attachments: Attachment[] | undefined = json.attachments
