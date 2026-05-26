@@ -10,15 +10,15 @@ import { poKeys } from './purchase-order-keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 import {
-  CreatePurchaseOrderInput,
-  UpdatePurchaseOrderInput,
+  CreatePurchaseOrderRequest,
+  UpdatePurchaseOrderRequest,
   PurchaseOrderStatus,
 } from '@/types/purchase-orders';
 
 export const useCreatePurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreatePurchaseOrderInput) =>
+    mutationFn: (dto: CreatePurchaseOrderRequest) =>
       purchaseOrdersService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: poKeys.lists() });
@@ -36,7 +36,7 @@ export const useCreatePurchaseOrder = () => {
 export const useUpdatePurchaseOrder = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: UpdatePurchaseOrderInput) =>
+    mutationFn: (dto: UpdatePurchaseOrderRequest) =>
       purchaseOrdersService.update(dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: poKeys.detail(data.id) });

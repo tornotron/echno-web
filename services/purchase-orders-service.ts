@@ -9,9 +9,11 @@ import { logger } from '@/lib/logger';
 import {
   PurchaseOrder,
   PurchaseOrderStatus,
-  CreatePurchaseOrderInput,
-  UpdatePurchaseOrderInput,
   parsePurchaseOrder,
+  CreatePurchaseOrderRequest,
+  UpdatePurchaseOrderRequest,
+  createPurchaseOrderToJson,
+  updatePurchaseOrderToJson,
 } from '@/types/purchase-orders';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -37,8 +39,11 @@ function safeParsePurchaseOrders(data: Raw[]): PurchaseOrder[] {
 }
 
 export const purchaseOrdersService = {
-  async create(dto: CreatePurchaseOrderInput): Promise<PurchaseOrder> {
-    const data = await api.post<Raw>('/purchase-orders/web', dto);
+  async create(dto: CreatePurchaseOrderRequest): Promise<PurchaseOrder> {
+    const data = await api.post<Raw>(
+      '/purchase-orders/web',
+      createPurchaseOrderToJson(dto)
+    );
     return safeParsePurchaseOrder(data);
   },
 
@@ -79,8 +84,11 @@ export const purchaseOrdersService = {
     return safeParsePurchaseOrders(data);
   },
 
-  async update(po: UpdatePurchaseOrderInput): Promise<PurchaseOrder> {
-    const data = await api.patch<Raw>(`/purchase-orders/web/${po.id}`, po);
+  async update(dto: UpdatePurchaseOrderRequest): Promise<PurchaseOrder> {
+    const data = await api.patch<Raw>(
+      `/purchase-orders/web/${dto.id}`,
+      updatePurchaseOrderToJson(dto)
+    );
     return safeParsePurchaseOrder(data);
   },
 
