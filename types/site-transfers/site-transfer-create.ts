@@ -1,5 +1,7 @@
 // TODO: Phase 13 — implement createSiteTransferToJson
 // Backend contract: POST /api/v1/site-transfers/web, docs/backend-api-docs.md §9
+import { SiteTransferStatus } from './enums';
+
 export interface CreateSiteTransferRequest {
   transferDate: Date;
   fromLocationId: number;
@@ -8,6 +10,6 @@ export interface CreateSiteTransferRequest {
   quantity: number;
   unit: string;
   reason: string;
-  status?: string;
+  status?: SiteTransferStatus;
   expectedDeliveryDate?: Date;
 }
