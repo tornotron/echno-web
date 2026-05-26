@@ -99,6 +99,12 @@ export default function NewIssuePage({ params }: PageProps) {
   }, [tasks, taskSearch]);
 
   const validateForm = () => {
+    if (!currentEmployee?.id) {
+      toast.error('Validation Error', {
+        description: 'Unable to identify current user. Please try again.',
+      });
+      return false;
+    }
     if (!taskId) {
       toast.error('Validation Error', {
         description: 'Please select a related task',
@@ -140,6 +146,12 @@ export default function NewIssuePage({ params }: PageProps) {
   };
 
   const handleSaveDraft = async () => {
+    if (!currentEmployee?.id) {
+      toast.error('Validation Error', {
+        description: 'Unable to identify current user. Please try again.',
+      });
+      return;
+    }
     if (!title.trim()) {
       toast.error('Validation Error', {
         description: 'Please fill in the title before saving draft',
@@ -156,7 +168,7 @@ export default function NewIssuePage({ params }: PageProps) {
           status: IssueStatus.open,
           projectId: Number.parseInt(projectId),
           taskId: taskId ? Number(taskId) : undefined,
-          creatorId: currentEmployee!.id!,
+          creatorId: currentEmployee.id,
           assigneeId: assigneeId ? Number(assigneeId) : undefined,
         },
         files: { attachments },
@@ -176,6 +188,9 @@ export default function NewIssuePage({ params }: PageProps) {
     e.preventDefault();
 
     if (!validateForm()) return;
+    // validateForm already returns false when currentEmployee?.id is absent;
+    // this guard exists solely to narrow the type for the compiler.
+    if (!currentEmployee?.id) return;
 
     try {
       await createMutation.mutateAsync({
@@ -186,7 +201,7 @@ export default function NewIssuePage({ params }: PageProps) {
           status,
           projectId: Number.parseInt(projectId),
           taskId: taskId ? Number(taskId) : undefined,
-          creatorId: currentEmployee!.id!,
+          creatorId: currentEmployee.id,
           assigneeId: assigneeId ? Number(assigneeId) : undefined,
         },
         files: { attachments },
@@ -626,14 +641,14 @@ export default function NewIssuePage({ params }: PageProps) {
             type="button"
             variant="outline"
             onClick={handleSaveDraft}
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || !currentEmployee?.id}
           >
             <Save className="mr-2 h-4 w-4" />
             Save as Draft
           </Button>
           <Button
             type="submit"
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || !currentEmployee?.id}
             className="ml-auto"
           >
             {createMutation.isPending ? (
