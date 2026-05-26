@@ -22,8 +22,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useValidateInviteCodeMutation } from '@/hooks/invitation';
-import { useUser } from '@/hooks/user/use-user';
+import { useJoinWithInviteCode } from '@/hooks/invitation';
 
 export default function JoinOrganizationPage() {
   const router = useRouter();
@@ -31,30 +30,27 @@ export default function JoinOrganizationPage() {
   const [joined, setJoined] = useState(false);
   const [joinedOrgName, setJoinedOrgName] = useState('');
 
-  const { data: user } = useUser();
-  const validateMutation = useValidateInviteCodeMutation();
+  const joinMutation = useJoinWithInviteCode();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!inviteCode.trim() || !user?.id) {
+    if (!inviteCode.trim()) {
       return;
     }
 
-    validateMutation.mutate(
-      { userId: user.id, inviteCode: inviteCode.trim() },
+    joinMutation.mutate(
+      { inviteCode: inviteCode.trim() },
       {
-        onSuccess: (result) => {
-          if (result.valid && result.invitation) {
-            setJoinedOrgName(result.invitation.organizationName || '');
-            setJoined(true);
-          }
+        onSuccess: () => {
+          setJoinedOrgName('');
+          setJoined(true);
         },
       }
     );
   };
 
-  const isJoining = validateMutation.isPending;
+  const isJoining = joinMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -141,7 +137,7 @@ export default function JoinOrganizationPage() {
                 </div>
 
                 {/* Error */}
-                {validateMutation.isError && (
+                {joinMutation.isError && (
                   <Alert variant="destructive">
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-5 w-5" />
@@ -167,7 +163,7 @@ export default function JoinOrganizationPage() {
                   </Button>
                   <Button
                     type="submit"
-                    disabled={isJoining || !inviteCode.trim() || !user?.id}
+                    disabled={isJoining || !inviteCode.trim()}
                   >
                     {isJoining ? (
                       <>
