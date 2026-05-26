@@ -147,23 +147,12 @@ export default function AllTasksPage() {
 
   const isAllSelected =
     paginatedTasks.length > 0 &&
-    paginatedTasks.every(
-      (t) => t.id !== undefined && selectedIds.includes(t.id!)
-    );
+    paginatedTasks.every((t) => selectedIds.includes(t.id));
   const isSomeSelected =
-    !isAllSelected &&
-    paginatedTasks.some(
-      (t) => t.id !== undefined && selectedIds.includes(t.id!)
-    );
+    !isAllSelected && paginatedTasks.some((t) => selectedIds.includes(t.id));
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(
-      checked
-        ? paginatedTasks
-            .map((t) => t.id)
-            .filter((id): id is number => id !== undefined)
-        : []
-    );
+    setSelectedIds(checked ? paginatedTasks.map((t) => t.id) : []);
   };
 
   const handleSelectOne = (id: number, checked: boolean) => {
@@ -339,7 +328,7 @@ export default function AllTasksPage() {
                           router.push(
                             routes.portfolio.projects.allProjects
                               .detail(task.projectId)
-                              .tasks.detail(task.id!).href
+                              .tasks.detail(task.id).href
                           )
                         }
                         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
@@ -599,7 +588,7 @@ export default function AllTasksPage() {
                       router.push(
                         routes.portfolio.projects.allProjects
                           .detail(task.projectId)
-                          .tasks.detail(task.id!).href
+                          .tasks.detail(task.id).href
                       )
                     }
                   >
