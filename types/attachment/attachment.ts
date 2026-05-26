@@ -94,12 +94,19 @@ export function getFileTypeColor(type: AttachmentType): string {
 /** JSON → Attachment */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseAttachment(json: any): Attachment {
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseAttachment: invalid id "${json.id}" — expected a finite number`
+    );
+  }
+
   // Derive fileType from contentType if not provided
   const contentType = json.contentType ?? json.mimeType ?? '';
   const fileType = json.fileType ?? getFileTypeFromMimeType(contentType);
 
   return {
-    id: Number(json.id),
+    id,
     fileName: json.fileName ?? '',
     // Support multiple possible field names for the file URL
     file: json.file ?? json.fileUrl ?? json.url ?? json.downloadUrl ?? '',
