@@ -1,6 +1,7 @@
 import { Employee, employeeToJson, parseEmployee } from '@/types/employee';
 import { Project, projectToJson, parseProject } from '@/types/project';
 import { Attachment, parseAttachment } from '@/types/attachment';
+import { parsePositiveInt } from '@/types/parse-id';
 
 export interface Organization {
   id: number;
@@ -60,12 +61,7 @@ export function parseOrganization(json: any): Organization {
         ? parseAttachment(json.logo ?? json.organizationLogo)
         : undefined;
 
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseOrganization: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseOrganization.id');
 
   return {
     id,

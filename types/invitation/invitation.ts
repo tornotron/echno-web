@@ -1,3 +1,5 @@
+import { parsePositiveInt } from '@/types/parse-id';
+
 export enum InvitationStatus {
   pending = 'pending',
   accepted = 'accepted',
@@ -33,18 +35,11 @@ export function getInvitationStatus(inv: Invitation): InvitationStatus {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseInvitation(json: any): Invitation {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseInvitation: invalid id "${json.id}" — expected a finite number`
-    );
-  }
-  const projectId = Number(json.projectId);
-  if (!Number.isFinite(projectId)) {
-    throw new TypeError(
-      `parseInvitation: invalid projectId "${json.projectId}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseInvitation.id');
+  const projectId = parsePositiveInt(
+    json.projectId,
+    'parseInvitation.projectId'
+  );
   return {
     id,
     projectId,
