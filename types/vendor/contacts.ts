@@ -8,11 +8,3 @@ export interface VendorContact {
   alternatePhone?: string;
   primary: boolean;
 }
-
-export interface CreateVendorContactInput {
-  contactPerson?: string;
-  email?: string;
-  phone?: string;
-  alternatePhone?: string;
-  primary?: boolean;
-}
