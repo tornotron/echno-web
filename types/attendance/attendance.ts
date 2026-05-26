@@ -1,12 +1,13 @@
 // types/attendance/attendance.ts
 // Main attendance type definition
 
+import { parsePositiveInt } from '@/types/parse-id';
 import { AttendanceStatus } from './attendance-status';
 import { ClockEvent } from './clock-event';
 import { MovementRecord } from './movement-type';
 
 export interface ShiftTiming {
-  id?: number;
+  id: number;
   shiftName: string;
   startTime: string; // HH:MM format, e.g., "09:00"
   endTime: string; // HH:MM format, e.g., "18:00"
@@ -371,6 +372,22 @@ export function calculateMonthlySalary(
     overtimePay,
     netSalary,
     attendancePercentage: (effectiveWorkDays / summary.totalWorkingDays) * 100,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseShiftTiming(raw: any): ShiftTiming {
+  return {
+    id: parsePositiveInt(raw.id, 'parseShiftTiming.id'),
+    shiftName: raw.shiftName,
+    startTime: raw.startTime,
+    endTime: raw.endTime,
+    lunchBreakStart: raw.lunchBreakStart,
+    lunchBreakEnd: raw.lunchBreakEnd,
+    gracePeriodMinutes: raw.gracePeriodMinutes,
+    minimumWorkHours: raw.minimumWorkHours,
+    halfDayWorkHours: raw.halfDayWorkHours,
+    overtimeThreshold: raw.overtimeThreshold,
   };
 }
 
