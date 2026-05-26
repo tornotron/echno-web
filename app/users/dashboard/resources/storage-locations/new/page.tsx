@@ -11,7 +11,7 @@ import {
 } from '@/components/shadcn/card';
 import { MapPin } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import { CreateStorageLocationInput } from '@/types/storage-locations';
+import { CreateStorageLocationRequest } from '@/types/storage-locations';
 import { useCreateStorageLocation } from '@/hooks/storage-locations';
 import { StorageLocationForm } from '@/features/storage-locations/components/storage-location-form';
 
@@ -19,7 +19,7 @@ export default function NewLocationPage() {
   const router = useRouter();
   const createLocation = useCreateStorageLocation();
 
-  const handleSubmit = (input: CreateStorageLocationInput) => {
+  const handleSubmit = (input: CreateStorageLocationRequest) => {
     createLocation.mutate(input, {
       onSuccess: () => {
         router.push(routes.resources.storageLocations.href);
