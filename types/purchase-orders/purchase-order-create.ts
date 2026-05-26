@@ -1,21 +1,32 @@
-// TODO: Phase 15 — implement createPurchaseOrderToJson
-// Backend contract: POST /api/v1/purchase-orders/web, docs/backend-api-docs.md §11
-export interface PurchaseOrderItemInput {
-  materialId: number;
-  quantity: number;
-  unitPrice: number;
-  total?: number;
-}
+import { PurchaseOrderStatus } from './enums';
+import type { InlinePurchaseOrderItemInput } from './purchase-order-item';
 
 export interface CreatePurchaseOrderRequest {
   poNumber: string;
   vendorId: number;
-  poDate: Date;
-  requiredDate: Date;
-  deliveryAddress: string;
+  projectId: number;
+  indentId?: number;
+  status: PurchaseOrderStatus;
+  createdBy: number;
+  expectedDeliveryDate?: string;
+  remarks?: string;
   totalAmount?: number;
-  taxAmount?: number;
-  notes?: string;
-  paymentTerms?: string;
-  items?: PurchaseOrderItemInput[];
+  items: InlinePurchaseOrderItemInput[];
+}
+
+export function createPurchaseOrderToJson(
+  dto: CreatePurchaseOrderRequest
+): Record<string, unknown> {
+  return {
+    poNumber: dto.poNumber,
+    vendorId: dto.vendorId,
+    projectId: dto.projectId,
+    indentId: dto.indentId,
+    status: dto.status,
+    createdBy: dto.createdBy,
+    expectedDeliveryDate: dto.expectedDeliveryDate,
+    remarks: dto.remarks,
+    totalAmount: dto.totalAmount,
+    items: dto.items,
+  };
 }
