@@ -1,21 +1,15 @@
 'use client';
 
 import { PageHeader } from '@/components/common';
-import { AlertCircle, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useInvitationsByProject } from '@/hooks/invitation';
 import {
   InvitationTable,
   InvitationEmptyState,
+  InvitationFetchError,
   InvitationOverview,
 } from '@/features/invitation';
 import { Button } from '@/components/shadcn/button';
-import {
-  Empty,
-  EmptyErrorMedia,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { routes } from '@/nav';
 
@@ -53,23 +47,7 @@ export default function InvitationsPage() {
           title="Project Invitations"
           description="Manage and track project invite codes"
         />
-        <Empty variant="error">
-          <EmptyErrorMedia>
-            <AlertCircle className="size-6" />
-          </EmptyErrorMedia>
-          <EmptyHeader>
-            <EmptyTitle>Failed to load invitations</EmptyTitle>
-            <EmptyDescription>
-              There was a problem fetching invitations. Please try again.
-            </EmptyDescription>
-          </EmptyHeader>
-          <Button
-            variant="outline"
-            onClick={() => globalThis.location.reload()}
-          >
-            Retry
-          </Button>
-        </Empty>
+        <InvitationFetchError />
       </div>
     );
   }
