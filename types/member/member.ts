@@ -50,8 +50,14 @@ export function memberRoleLabel(member: Member): string {
  *  ------------------------------------------------------------- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseMember(json: any): Member {
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseMember: invalid id "${json.id}" — expected a finite number`
+    );
+  }
   return {
-    id: Number(json.id),
+    id,
     memberName: json.employeeName ?? json.memberName ?? '',
     memberEmail: json.emailAddress ?? json.memberEmail ?? '',
     memberPhone: json.phoneNumber ?? json.memberPhone ?? '',
