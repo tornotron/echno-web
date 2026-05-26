@@ -21,7 +21,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { CreateStorageLocationInput } from '@/types/storage-locations';
+import { CreateStorageLocationRequest } from '@/types/storage-locations';
 import {
   useStorageLocation,
   useUpdateStorageLocation,
@@ -41,9 +41,9 @@ export default function EditLocationPage() {
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const handleSubmit = (input: CreateStorageLocationInput) => {
+  const handleSubmit = (input: CreateStorageLocationRequest) => {
     updateLocation.mutate(
-      { id: locationId, input },
+      { id: locationId, data: input },
       {
         onSuccess: () => {
           router.push(
