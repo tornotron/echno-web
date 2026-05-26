@@ -21,6 +21,8 @@ import {
   createVendorContactToJson,
   CreateVendorTaxIdentifierRequest,
   createVendorTaxIdentifierToJson,
+  UpdateVendorTaxIdentifierRequest,
+  updateVendorTaxIdentifierToJson,
   CreateVendorBankAccountRequest,
   createVendorBankAccountToJson,
   SetVendorPaymentTermsRequest,
@@ -202,11 +204,11 @@ export const vendorsService = {
   async updateTaxIdentifier(
     vendorId: number,
     taxIdId: number,
-    dto: CreateVendorTaxIdentifierRequest
+    dto: UpdateVendorTaxIdentifierRequest
   ): Promise<VendorTaxIdentifier> {
     const data = await api.patch<Raw>(
       `/vendors/web/${vendorId}/tax-identifiers/${taxIdId}`,
-      createVendorTaxIdentifierToJson(dto)
+      updateVendorTaxIdentifierToJson(dto)
     );
     return { id: data.id, type: data.type, value: data.value };
   },
