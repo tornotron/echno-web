@@ -404,7 +404,7 @@ export default function EditIssuePage({ params }: PageProps) {
                       href={
                         routes.portfolio.projects.allProjects
                           .detail(projectId)
-                          .tasks.detail(relatedTask.id!).href
+                          .tasks.detail(relatedTask.id).href
                       }
                     >
                       <div className="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 transition-colors hover:bg-zinc-100 dark:border-zinc-800 dark:hover:bg-zinc-800/50">
