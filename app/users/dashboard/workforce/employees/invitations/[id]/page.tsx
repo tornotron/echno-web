@@ -55,10 +55,19 @@ export default function InvitationPage() {
   }
 
   const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    toast.success('Copied to clipboard!');
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopied(true);
+        toast.success('Copied to clipboard!');
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        toast.error('Failed to copy', {
+          description:
+            'Could not access clipboard. Please copy the code manually.',
+        });
+      });
   };
 
   const currentStatus = getInvitationStatus(invitation);
