@@ -14,9 +14,11 @@ import {
   CreateVendorRequest,
   UpdateVendorRequest,
   CreateVendorContactRequest,
+  UpdateVendorContactRequest,
   CreateVendorTaxIdentifierRequest,
   UpdateVendorTaxIdentifierRequest,
   CreateVendorBankAccountRequest,
+  UpdateVendorBankAccountRequest,
   SetVendorPaymentTermsRequest,
 } from '@/types/vendor';
 
@@ -114,7 +116,7 @@ export const useUpdateVendorContact = (vendorId: number) => {
       contactInput,
     }: {
       contactId: number;
-      contactInput: CreateVendorContactRequest;
+      contactInput: UpdateVendorContactRequest;
     }) => vendorsService.updateContact(vendorId, contactId, contactInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -267,7 +269,7 @@ export const useUpdateVendorBankAccount = (vendorId: number) => {
       bankAccountInput,
     }: {
       accountId: number;
-      bankAccountInput: CreateVendorBankAccountRequest;
+      bankAccountInput: UpdateVendorBankAccountRequest;
     }) =>
       vendorsService.updateBankAccount(vendorId, accountId, bankAccountInput),
     onSuccess: () => {
