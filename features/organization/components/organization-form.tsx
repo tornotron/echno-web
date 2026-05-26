@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { Organization } from '@/types/organization';
+import { Organization, UpdateOrganizationRequest } from '@/types/organization';
 import {
   Building,
   Loader2,
@@ -46,7 +46,7 @@ interface OrganizationFormData {
 
 interface OrganizationFormProps {
   organization?: Organization;
-  onSubmit: (data: Partial<Organization>, logoFile?: File) => void;
+  onSubmit: (data: UpdateOrganizationRequest, logoFile?: File) => void;
   onCancel: () => void;
   onRemoveLogo?: () => Promise<void>;
   isLoading?: boolean;
@@ -122,7 +122,7 @@ export function OrganizationForm({
       return;
     }
 
-    const orgData: Partial<Organization> = {
+    const orgData: UpdateOrganizationRequest = {
       organizationName: formData.organizationName,
       organizationAddress: formData.organizationAddress,
       organizationEmail: formData.organizationEmail,
