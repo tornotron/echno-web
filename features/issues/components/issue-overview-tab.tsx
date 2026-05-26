@@ -320,7 +320,7 @@ export function IssueOverviewTab({
               <Link
                 href={
                   routes.workforce.employees.employeeManagement.detail(
-                    issue.creator.id!
+                    issue.creator.id
                   ).href
                 }
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -394,7 +394,7 @@ export function IssueOverviewTab({
               <Link
                 href={
                   routes.workforce.employees.employeeManagement.detail(
-                    issue.assignee.id!
+                    issue.assignee.id
                   ).href
                 }
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -462,7 +462,7 @@ export function IssueOverviewTab({
                     <button
                       key={member.id}
                       type="button"
-                      onClick={() => handleAssign(member.id!)}
+                      onClick={() => handleAssign(member.id)}
                       disabled={updateIssueMutation.isPending || isCurrent}
                       className={`flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors disabled:cursor-not-allowed ${
                         isCurrent

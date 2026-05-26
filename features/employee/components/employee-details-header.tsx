@@ -75,7 +75,7 @@ export function EmployeeDetailsHeader({
         </div>
         <Link
           href={
-            routes.workforce.employees.employeeManagement.detail(employee.id!)
+            routes.workforce.employees.employeeManagement.detail(employee.id)
               .edit
           }
         >
