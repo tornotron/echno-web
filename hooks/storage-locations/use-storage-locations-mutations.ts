@@ -10,18 +10,41 @@ import { storageLocationKeys } from './storage-location-keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
-import { CreateStorageLocationInput } from '@/types/storage-locations';
+import {
+  CreateStorageLocationRequest,
+  UpdateStorageLocationRequest,
+} from '@/types/storage-locations';
+
+export const useCreateStorageLocation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (dto: CreateStorageLocationRequest) =>
+      storageLocationsService.create(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
+      toast.success('Location Created', {
+        description: 'The storage location has been created successfully',
+      });
+    },
+    onError: (error) => {
+      toast.error(getErrorTitle(error, 'Failed to Create Storage Location'), {
+        description: getErrorMessage(error),
+      });
+      logger.error('Failed to create storage location:', error);
+    },
+  });
+};
 
 export const useUpdateStorageLocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
       id,
-      input,
+      data,
     }: {
       id: number;
-      input: CreateStorageLocationInput;
-    }) => storageLocationsService.update(id, input),
+      data: UpdateStorageLocationRequest;
+    }) => storageLocationsService.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
       queryClient.invalidateQueries({
@@ -58,26 +81,6 @@ export const useDeleteStorageLocation = () => {
         description: getErrorMessage(error),
       });
       logger.error('Failed to delete storage location:', error);
-    },
-  });
-};
-
-export const useCreateStorageLocation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (input: CreateStorageLocationInput) =>
-      storageLocationsService.create(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
-      toast.success('Location Created', {
-        description: 'The storage location has been created successfully',
-      });
-    },
-    onError: (error) => {
-      toast.error(getErrorTitle(error, 'Failed to Create Storage Location'), {
-        description: getErrorMessage(error),
-      });
-      logger.error('Failed to create storage location:', error);
     },
   });
 };
