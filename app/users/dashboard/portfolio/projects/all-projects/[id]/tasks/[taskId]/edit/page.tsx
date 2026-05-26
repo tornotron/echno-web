@@ -683,7 +683,7 @@ export default function EditTaskPage({ params }: PageProps) {
                 <div className="space-y-2">
                   {projectMembers.length > 0 ? (
                     projectMembers.map((member) => {
-                      const memberId = member.id!.toString();
+                      const memberId = member.id.toString();
                       const isSelected =
                         form.selectedAssignees.includes(memberId);
                       const cardClass = isSelected

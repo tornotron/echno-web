@@ -132,7 +132,7 @@ export default function EmployeeDetailPage({
         onOpenChange={setShowAssignManagerDialog}
         managers={managers}
         managersLoading={managersLoading}
-        currentEmployeeId={employee.id!}
+        currentEmployeeId={employee.id}
         defaultManagerId={employee.managerId}
         isPending={assignManagerMutation.isPending}
         onConfirm={(managerId) => {
