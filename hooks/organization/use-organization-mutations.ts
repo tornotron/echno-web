@@ -1,24 +1,24 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { organizationService } from '@/services/organization-service';
-import { Organization } from '@/types/organization/organization';
+import { CreateOrganizationRequest } from '@/types/organization/organization-create';
+import { UpdateOrganizationRequest } from '@/types/organization/organization-update';
+import { OrganizationFiles } from '@/types/organization/organization-files';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import { organizationKeys } from './organization-keys';
 
-/**
- * useCreateOrganization
- *
- * React Query mutation hook that creates an organization and invalidates
- * the `['organizations']` query on success. Errors are surfaced via
- * an application toast with context-aware messaging.
- */
 export function useCreateOrganization() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ data, logoFile }: { data: Organization; logoFile?: File }) =>
-      organizationService.create(data, logoFile),
+    mutationFn: ({
+      data,
+      files,
+    }: {
+      data: CreateOrganizationRequest;
+      files?: OrganizationFiles;
+    }) => organizationService.create(data, files),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: organizationKeys.all });
       toast.success('Organization Created', {
@@ -34,12 +34,6 @@ export function useCreateOrganization() {
   });
 }
 
-/**
- * useUpdateOrganization
- *
- * Mutation hook to update an existing organization. Expects an object
- * with `id` and `data` where `data` conforms to the `Organization` type.
- */
 export function useUpdateOrganization() {
   const queryClient = useQueryClient();
 
@@ -47,12 +41,12 @@ export function useUpdateOrganization() {
     mutationFn: ({
       id,
       data,
-      logoFile,
+      files,
     }: {
       id: number;
-      data: Organization;
-      logoFile?: File;
-    }) => organizationService.update(id, data, logoFile),
+      data: UpdateOrganizationRequest;
+      files?: OrganizationFiles;
+    }) => organizationService.update(id, data, files),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: organizationKeys.all });
       queryClient.invalidateQueries({ queryKey: organizationKeys.detail(id) });
@@ -69,12 +63,6 @@ export function useUpdateOrganization() {
   });
 }
 
-/**
- * useDeleteOrganization
- *
- * Mutation hook that deletes an organization by id and invalidates the
- * `['organizations']` cache entry on success. Errors are surfaced via toast.
- */
 export function useDeleteOrganization() {
   const queryClient = useQueryClient();
 
