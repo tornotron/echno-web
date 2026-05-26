@@ -1,9 +1,15 @@
-// TODO: Phase 11 — implement SetVendorPaymentTermsRequest
-// Backend §1.3
 export interface SetVendorPaymentTermsRequest {
-  paymentTermsType: string;
-  creditLimit: number;
-  discountPercentage?: number;
-  discountDays?: number;
-  notes?: string;
+  paymentTerms: string;
+  creditLimit?: number;
+  creditDays?: number;
+}
+
+export function setVendorPaymentTermsToJson(
+  dto: SetVendorPaymentTermsRequest
+): Record<string, unknown> {
+  return {
+    paymentTerms: dto.paymentTerms,
+    creditLimit: dto.creditLimit,
+    creditDays: dto.creditDays,
+  };
 }

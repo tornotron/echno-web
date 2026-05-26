@@ -9,12 +9,3 @@ export interface VendorBankAccount {
   swift?: string;
   default: boolean;
 }
-
-export interface CreateVendorBankAccountInput {
-  bankName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
-  accountHolderName?: string;
-  swift?: string;
-  default?: boolean;
-}

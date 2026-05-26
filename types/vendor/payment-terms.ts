@@ -6,9 +6,3 @@ export interface VendorPaymentTermsDetails {
   creditLimit?: number;
   creditDays?: number;
 }
-
-export interface CreateVendorPaymentTermsInput {
-  paymentTerms: string;
-  creditLimit?: number;
-  creditDays?: number;
-}

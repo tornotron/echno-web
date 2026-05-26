@@ -1,21 +1,33 @@
-// TODO: Phase 11 — implement createVendorToJson and sub-resource create DTOs
-// Backend contract: POST /api/v1/vendors/web, docs/backend-api-docs.md §1
+import { VendorType, VendorStatus } from './enums';
+
 export interface CreateVendorRequest {
-  vendorName: string;
-  vendorCode: string;
+  name: string;
   email: string;
-  phone: string;
-  address: string;
-  city: string;
-  country: string;
-  state?: string;
-  zipCode?: string;
+  address?: string;
   website?: string;
-  gstNumber?: string;
-  panNumber?: string;
-  bankName?: string;
-  accountNumber?: string;
-  ifscCode?: string;
-  status?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  country?: string;
+  type?: VendorType;
+  status?: VendorStatus;
   notes?: string;
+}
+
+export function createVendorToJson(
+  dto: CreateVendorRequest
+): Record<string, unknown> {
+  return {
+    vendorName: dto.name,
+    vendorEmail: dto.email,
+    vendorAddress: dto.address,
+    website: dto.website,
+    city: dto.city,
+    state: dto.state,
+    pinCode: dto.pincode,
+    country: dto.country,
+    type: dto.type,
+    status: dto.status,
+    notes: dto.notes,
+  };
 }
