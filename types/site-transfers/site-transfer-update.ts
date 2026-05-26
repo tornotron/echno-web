@@ -1,4 +1,6 @@
 // TODO: Phase 13 — implement UpdateSiteTransferRequest (once backend documents update contract)
+import { SiteTransferStatus } from './enums';
+
 export interface UpdateSiteTransferRequest {
   transferDate?: Date;
   fromLocationId?: number;
@@ -7,6 +9,6 @@ export interface UpdateSiteTransferRequest {
   quantity?: number;
   unit?: string;
   reason?: string;
-  status?: string;
+  status?: SiteTransferStatus;
   expectedDeliveryDate?: Date;
 }
