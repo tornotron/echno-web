@@ -3,13 +3,16 @@ import { purchaseOrderItemsService } from '@/services/purchase-order-items-servi
 import { poItemKeys } from './purchase-order-item-keys';
 import { poKeys } from '@/hooks/purchase-orders/purchase-order-keys';
 import { toast } from '@/lib/styles/toast-styles';
-import { CreatePurchaseOrderItemInput } from '@/types/purchase-orders';
+import {
+  CreatePurchaseOrderItemRequest,
+  UpdatePurchaseOrderItemRequest,
+} from '@/types/purchase-orders';
 
 export const useCreatePOItem = (purchaseOrderId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (item: CreatePurchaseOrderItemInput) =>
-      purchaseOrderItemsService.create(item),
+    mutationFn: (dto: CreatePurchaseOrderItemRequest) =>
+      purchaseOrderItemsService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: poItemKeys.byPO(purchaseOrderId),
@@ -29,11 +32,11 @@ export const useUpdatePOItem = (purchaseOrderId: number) => {
   return useMutation({
     mutationFn: ({
       id,
-      item,
+      data,
     }: {
       id: number;
-      item: CreatePurchaseOrderItemInput;
-    }) => purchaseOrderItemsService.update(id, item),
+      data: UpdatePurchaseOrderItemRequest;
+    }) => purchaseOrderItemsService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: poItemKeys.byPO(purchaseOrderId),

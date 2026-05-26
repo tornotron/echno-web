@@ -124,7 +124,7 @@ export function POItemsCard({ po }: POItemsCardProps) {
         try {
           await updateItem({
             id: editingItemId,
-            item: {
+            data: {
               purchaseOrderId: po.id,
               materialId: editItemRow.materialId,
               orderedQuantity: editItemRow.orderedQuantity,
