@@ -19,12 +19,16 @@ import {
   updateVendorToJson,
   CreateVendorContactRequest,
   createVendorContactToJson,
+  UpdateVendorContactRequest,
+  updateVendorContactToJson,
   CreateVendorTaxIdentifierRequest,
   createVendorTaxIdentifierToJson,
   UpdateVendorTaxIdentifierRequest,
   updateVendorTaxIdentifierToJson,
   CreateVendorBankAccountRequest,
   createVendorBankAccountToJson,
+  UpdateVendorBankAccountRequest,
+  updateVendorBankAccountToJson,
   SetVendorPaymentTermsRequest,
   setVendorPaymentTermsToJson,
   parseVendor,
@@ -169,11 +173,11 @@ export const vendorsService = {
   async updateContact(
     vendorId: number,
     contactId: number,
-    dto: CreateVendorContactRequest
+    dto: UpdateVendorContactRequest
   ): Promise<VendorContact> {
     const data = await api.patch<Raw>(
       `/vendors/web/${vendorId}/contacts/${contactId}`,
-      createVendorContactToJson(dto)
+      updateVendorContactToJson(dto)
     );
     return parseVendorContact(data);
   },
@@ -239,11 +243,11 @@ export const vendorsService = {
   async updateBankAccount(
     vendorId: number,
     accountId: number,
-    dto: CreateVendorBankAccountRequest
+    dto: UpdateVendorBankAccountRequest
   ): Promise<VendorBankAccount> {
     const data = await api.patch<Raw>(
       `/vendors/web/${vendorId}/bank-accounts/${accountId}`,
-      createVendorBankAccountToJson(dto)
+      updateVendorBankAccountToJson(dto)
     );
     return parseVendorBankAccount(data);
   },
