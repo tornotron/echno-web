@@ -16,7 +16,7 @@ import { MapPin, Save, X, Loader2 } from 'lucide-react';
 import {
   StorageLocationType,
   STORAGE_LOCATION_TYPE_LABELS,
-  CreateStorageLocationInput,
+  CreateStorageLocationRequest,
 } from '@/types/storage-locations';
 import { useProjects } from '@/hooks/project/use-projects';
 import { useGeolocation } from '@/hooks/use-geolocation';
@@ -39,7 +39,7 @@ export interface StorageLocationFormData {
 
 interface StorageLocationFormProps {
   initialData?: Partial<StorageLocationFormData>;
-  onSubmit: (input: CreateStorageLocationInput) => void;
+  onSubmit: (input: CreateStorageLocationRequest) => void;
   onCancel: () => void;
   isPending: boolean;
   submitLabel?: string;
