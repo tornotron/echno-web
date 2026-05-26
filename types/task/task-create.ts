@@ -1,16 +1,43 @@
-// TODO: Phase 10 — implement createTaskToJson and replace Partial<Task> in task-service
-// Backend contract: POST /api/v1/tasks/web (multipart/form-data), docs/backend-api-docs.md §7
+import { TaskStatus } from './task-status';
+
 export interface CreateTaskRequest {
   title: string;
+  projectId: number;
   description?: string;
-  dueDate?: Date;
-  priority?: string;
-  assignedTo?: number;
-  status?: string;
-  category?: string;
+  startDate?: Date;
+  endDate?: Date;
+  creatorId?: number;
+  categoryId?: number;
+  status?: TaskStatus;
+  progress?: number;
   tags?: string[];
+  assigneeIds?: number[];
+  priority?: string;
 }
 
 export interface TaskFiles {
   attachments?: File[];
+}
+
+export function createTaskToJson(
+  dto: CreateTaskRequest
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {
+    title: dto.title,
+    projectId: dto.projectId,
+  };
+
+  if (dto.description !== undefined) payload.description = dto.description;
+  if (dto.startDate !== undefined)
+    payload.startDate = dto.startDate.toISOString();
+  if (dto.endDate !== undefined) payload.endDate = dto.endDate.toISOString();
+  if (dto.creatorId !== undefined) payload.creatorId = dto.creatorId;
+  if (dto.categoryId !== undefined) payload.categoryId = dto.categoryId;
+  if (dto.status !== undefined) payload.status = dto.status;
+  if (dto.progress !== undefined) payload.progress = dto.progress;
+  if (dto.tags !== undefined) payload.tags = dto.tags;
+  if (dto.assigneeIds !== undefined) payload.assigneeIds = dto.assigneeIds;
+  if (dto.priority !== undefined) payload.priority = dto.priority;
+
+  return payload;
 }
