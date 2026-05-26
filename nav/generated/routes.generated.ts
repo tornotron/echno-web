@@ -2,10 +2,10 @@
  * nav/generated/routes.generated.ts
  *
  * AUTO-GENERATED — do not edit by hand.
- * Run `pnpm routes:generate` to regenerate from the filesystem.
+ * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-05-19
+ * Generated: 2026-05-26
  */
 
 import type { RouteNode } from '../types';
