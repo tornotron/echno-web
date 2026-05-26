@@ -10,7 +10,7 @@ import { TaskStatus, taskStatusFromString } from './task-status';
 import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface Task {
-  id?: number;
+  id: number;
   projectId: number;
   title: string;
   description?: string;
@@ -35,8 +35,15 @@ export const asignees = (task: Task): Employee[] | undefined => task.assignees;
 /** JSON → Task */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseTask(json: any): Task {
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseTask: invalid id "${json.id}" — expected a finite number`
+    );
+  }
+
   return {
-    id: json.id ?? undefined,
+    id,
     projectId: json.projectId ?? 1,
     title: json.title ?? 'Untitled Task',
     description: json.description ?? undefined,
