@@ -5,7 +5,7 @@ import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Upload, Loader2 } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { useUpdateIssueWithFiles } from '@/hooks/issue';
+import { useUpdateIssue } from '@/hooks/issue';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -19,7 +19,7 @@ export function IssueAttachmentsUploader({
   onUploadSuccess,
 }: IssueAttachmentsUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const updateIssueWithFiles = useUpdateIssueWithFiles();
+  const updateIssueWithFiles = useUpdateIssue();
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
