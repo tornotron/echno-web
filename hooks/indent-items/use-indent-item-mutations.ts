@@ -3,13 +3,16 @@ import { indentItemsService } from '@/services/indent-items-service';
 import { indentItemKeys } from './indent-item-keys';
 import { indentsKeys } from '@/hooks/indents/indent-keys';
 import { toast } from '@/lib/styles/toast-styles';
-import { CreateIndentItemInput } from '@/types/indents';
+import {
+  CreateIndentItemRequest,
+  UpdateIndentItemRequest,
+} from '@/types/indents';
 
 export const useCreateIndentItem = (indentId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (indentItem: CreateIndentItemInput) =>
-      indentItemsService.create(indentItem),
+    mutationFn: (dto: CreateIndentItemRequest) =>
+      indentItemsService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: indentItemKeys.byIndent(indentId),
@@ -25,13 +28,8 @@ export const useCreateIndentItem = (indentId: number) => {
 export const useUpdateIndentItem = (indentId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      indentItem: indentItem,
-    }: {
-      id: number;
-      indentItem: CreateIndentItemInput;
-    }) => indentItemsService.update(id, indentItem),
+    mutationFn: ({ id, data }: { id: number; data: UpdateIndentItemRequest }) =>
+      indentItemsService.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: indentItemKeys.byIndent(indentId),
