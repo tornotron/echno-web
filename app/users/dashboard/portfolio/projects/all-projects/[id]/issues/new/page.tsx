@@ -44,7 +44,7 @@ import {
   getTaskStatusLabel,
   getTaskStatusColor,
 } from '@/types/task/task-status';
-import { useCreateIssueWithFiles } from '@/hooks/issue';
+import { useCreateIssue } from '@/hooks/issue';
 import { useTasksByProject } from '@/hooks/task';
 import { useUser, useUserEmployees } from '@/hooks/user/use-user';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
@@ -66,7 +66,7 @@ export default function NewIssuePage({ params }: PageProps) {
   const fromTaskTitle = searchParams.get('taskTitle') || '';
   const isTaskLocked = !!fromTaskId;
 
-  const createMutation = useCreateIssueWithFiles();
+  const createMutation = useCreateIssue();
   const { data: tasks = [] } = useTasksByProject(Number.parseInt(projectId));
   const { data: projectMembers = [] } = useEmployeesByProject(
     Number.parseInt(projectId)
@@ -150,12 +150,13 @@ export default function NewIssuePage({ params }: PageProps) {
     try {
       await createMutation.mutateAsync({
         data: {
-          taskId: taskId ? Number(taskId) : undefined,
           title,
           description,
-          type: issueType,
+          issueType,
           status: IssueStatus.open,
-          creatorId: currentEmployee?.id,
+          projectId: Number.parseInt(projectId),
+          taskId: taskId ? Number(taskId) : undefined,
+          creatorId: currentEmployee!.id!,
           assigneeId: assigneeId ? Number(assigneeId) : undefined,
         },
         files: { attachments },
@@ -179,12 +180,13 @@ export default function NewIssuePage({ params }: PageProps) {
     try {
       await createMutation.mutateAsync({
         data: {
-          taskId: taskId ? Number(taskId) : undefined,
           title,
           description,
-          type: issueType,
+          issueType,
           status,
-          creatorId: currentEmployee?.id,
+          projectId: Number.parseInt(projectId),
+          taskId: taskId ? Number(taskId) : undefined,
+          creatorId: currentEmployee!.id!,
           assigneeId: assigneeId ? Number(assigneeId) : undefined,
         },
         files: { attachments },
