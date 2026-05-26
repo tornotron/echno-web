@@ -8,8 +8,11 @@ import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import {
   PurchaseOrderItem,
-  CreatePurchaseOrderItemInput,
   parsePurchaseOrderItem,
+  CreatePurchaseOrderItemRequest,
+  UpdatePurchaseOrderItemRequest,
+  createPurchaseOrderItemToJson,
+  updatePurchaseOrderItemToJson,
 } from '@/types/purchase-orders';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,16 +51,24 @@ export const purchaseOrderItemsService = {
     return data.map((item) => safeParsePurchaseOrderItem(item));
   },
 
-  async create(item: CreatePurchaseOrderItemInput): Promise<PurchaseOrderItem> {
-    const data = await api.post<Raw>('/purchase-order-items', item);
+  async create(
+    dto: CreatePurchaseOrderItemRequest
+  ): Promise<PurchaseOrderItem> {
+    const data = await api.post<Raw>(
+      '/purchase-order-items',
+      createPurchaseOrderItemToJson(dto)
+    );
     return safeParsePurchaseOrderItem(data);
   },
 
   async update(
     id: number,
-    item: CreatePurchaseOrderItemInput
+    dto: UpdatePurchaseOrderItemRequest
   ): Promise<PurchaseOrderItem> {
-    const data = await api.patch<Raw>(`/purchase-order-items/${id}`, item);
+    const data = await api.patch<Raw>(
+      `/purchase-order-items/${id}`,
+      updatePurchaseOrderItemToJson(dto)
+    );
     return safeParsePurchaseOrderItem(data);
   },
 
