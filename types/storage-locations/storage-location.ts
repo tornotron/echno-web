@@ -1,5 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
+import { parsePositiveInt } from '@/types/parse-id';
 
 export enum StorageLocationType {
   GODOWN = 'GODOWN',
@@ -47,12 +48,7 @@ export interface CreateStorageLocationInput {
 }
 
 export function parseStorageLocation(raw: Raw): StorageLocation {
-  const id = Number(raw.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseStorageLocation: invalid or missing id (got ${raw.id})`
-    );
-  }
+  const id = parsePositiveInt(raw.id, 'parseStorageLocation.id');
   return {
     id,
     locationName: raw.locationName ?? '',
