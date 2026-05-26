@@ -1,13 +1,21 @@
-// TODO: Phase 17 — implement updateIndentItemToJson
-// Backend contract: PUT /api/v1/indent-items/web/{id}, docs/backend-api-docs.md §3
-// Note: materialId, quantity, unit are required by the backend update contract
 export interface UpdateIndentItemRequest {
-  materialId: number;
-  quantity: number;
-  unit: string;
-  estimatedUnitCost?: number;
-  requiredDate?: Date;
-  purpose?: string;
-  notes?: string;
-  priority?: string;
+  indentId?: number;
+  materialId?: number;
+  requestedQuantity?: number;
+  orderedQuantity?: number;
+  additionalSpecifications?: string;
+  remarks?: string;
+}
+
+export function updateIndentItemToJson(
+  dto: UpdateIndentItemRequest
+): Record<string, unknown> {
+  return {
+    indentId: dto.indentId,
+    materialId: dto.materialId,
+    requestedQuantity: dto.requestedQuantity,
+    orderedQuantity: dto.orderedQuantity,
+    additionalSpecifications: dto.additionalSpecifications,
+    remarks: dto.remarks,
+  };
 }

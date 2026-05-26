@@ -1,3 +1,4 @@
+import { parsePositiveInt } from '@/types/parse-id';
 import type { Material } from '@/types/materials';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,18 +15,9 @@ export interface IndentItem {
   linkedPurchaseOrderNumber?: string;
 }
 
-export interface CreateIndentItemInput {
-  indentId?: number;
-  materialId: number;
-  requestedQuantity: number;
-  orderedQuantity?: number;
-  additionalSpecifications?: string;
-  remarks?: string;
-}
-
 export function parseIndentItem(raw: Raw): IndentItem {
   return {
-    id: raw.id,
+    id: parsePositiveInt(raw.id, 'parseIndentItem.id'),
     material: {
       id: raw.material?.id ?? raw.materialId ?? 0,
       sku: raw.material?.sku ?? undefined,
