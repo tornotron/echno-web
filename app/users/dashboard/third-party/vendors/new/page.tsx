@@ -28,12 +28,12 @@ import { useCreateVendor } from '@/hooks/vendors';
 import {
   VendorType,
   VendorStatus,
-  CreateVendorInput,
+  CreateVendorRequest,
   VENDOR_TYPE_LABELS,
   VENDOR_STATUS_LABELS,
 } from '@/types/vendor';
 
-const INITIAL: CreateVendorInput = {
+const INITIAL: CreateVendorRequest = {
   name: '',
   email: '',
   address: '',
@@ -49,10 +49,10 @@ const INITIAL: CreateVendorInput = {
 
 export default function VendorNewPage() {
   const router = useRouter();
-  const [form, setForm] = useState<CreateVendorInput>(INITIAL);
+  const [form, setForm] = useState<CreateVendorRequest>(INITIAL);
   const { mutate: createVendor, isPending } = useCreateVendor();
 
-  function set(field: keyof CreateVendorInput, value: string | undefined) {
+  function set(field: keyof CreateVendorRequest, value: string | undefined) {
     setForm((prev) => ({ ...prev, [field]: value || undefined }));
   }
 
