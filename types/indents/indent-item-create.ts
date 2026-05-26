@@ -1,9 +1,21 @@
-// TODO: Phase 17 — implement CreateIndentItemRequest (once backend documents create contract)
 export interface CreateIndentItemRequest {
-  indentId: number;
+  indentId?: number;
   materialId: number;
-  quantity: number;
-  unit: string;
-  estimatedUnitCost?: number;
-  requiredDate?: string; // ISO date string (YYYY-MM-DD) — convert Date at service boundary before api.post/api.put
+  requestedQuantity: number;
+  orderedQuantity?: number;
+  additionalSpecifications?: string;
+  remarks?: string;
+}
+
+export function createIndentItemToJson(
+  dto: CreateIndentItemRequest
+): Record<string, unknown> {
+  return {
+    indentId: dto.indentId,
+    materialId: dto.materialId,
+    requestedQuantity: dto.requestedQuantity,
+    orderedQuantity: dto.orderedQuantity,
+    additionalSpecifications: dto.additionalSpecifications,
+    remarks: dto.remarks,
+  };
 }
