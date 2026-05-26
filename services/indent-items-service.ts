@@ -8,8 +8,11 @@ import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import {
   IndentItem,
-  CreateIndentItemInput,
   parseIndentItem,
+  CreateIndentItemRequest,
+  UpdateIndentItemRequest,
+  createIndentItemToJson,
+  updateIndentItemToJson,
 } from '@/types/indents';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,13 +45,19 @@ export const indentItemsService = {
     return data.map((item) => parseIndentItem(item));
   },
 
-  async create(item: CreateIndentItemInput): Promise<IndentItem> {
-    const data = await api.post<Raw>('/indent-items/web', item);
+  async create(dto: CreateIndentItemRequest): Promise<IndentItem> {
+    const data = await api.post<Raw>(
+      '/indent-items/web',
+      createIndentItemToJson(dto)
+    );
     return safeParseIndentItem(data);
   },
 
-  async update(id: number, item: CreateIndentItemInput): Promise<IndentItem> {
-    const data = await api.put<Raw>(`/indent-items/web/${id}`, item);
+  async update(id: number, dto: UpdateIndentItemRequest): Promise<IndentItem> {
+    const data = await api.put<Raw>(
+      `/indent-items/web/${id}`,
+      updateIndentItemToJson(dto)
+    );
     return safeParseIndentItem(data);
   },
 
