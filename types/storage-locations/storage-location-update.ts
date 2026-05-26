@@ -24,6 +24,6 @@ export function updateStorageLocationToJson(
     capacity: dto.capacity ?? null,
     latitude: dto.latitude ?? null,
     longitude: dto.longitude ?? null,
-    active: dto.active ?? true,
+    active: dto.active,
   };
 }

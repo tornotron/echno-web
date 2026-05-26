@@ -167,7 +167,7 @@ export default function NewIssuePage({ params }: PageProps) {
           issueType,
           status: IssueStatus.open,
           projectId: Number.parseInt(projectId),
-          taskId: taskId ? Number(taskId) : undefined,
+          taskId: Number.isFinite(Number(taskId)) ? Number(taskId) : undefined,
           creatorId: currentEmployee.id,
           assigneeId: assigneeId ? Number(assigneeId) : undefined,
         },
