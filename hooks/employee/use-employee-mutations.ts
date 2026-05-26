@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { employeeService } from '@/services/employee-service';
-import { Employee } from '@/types/employee/employee';
+import { CreateEmployeeRequest } from '@/types/employee/employee-create';
+import { UpdateEmployeeRequest } from '@/types/employee/employee-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { employeeKeys } from './employee-keys';
 import { organizationKeys } from '@/hooks/organization/organization-keys';
@@ -14,8 +15,7 @@ export function useCreateEmployee() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (employee: Partial<Employee>) =>
-      employeeService.create(employee),
+    mutationFn: (dto: CreateEmployeeRequest) => employeeService.create(dto),
     onSuccess: (newEmployee) => {
       queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       toast.success('Employee Created', {
@@ -38,7 +38,7 @@ export function useUpdateEmployee() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<Employee> }) =>
+    mutationFn: ({ id, data }: { id: number; data: UpdateEmployeeRequest }) =>
       employeeService.update(id, data),
     onSuccess: (updatedEmployee, { id }) => {
       queryClient.invalidateQueries({ queryKey: employeeKeys.detail(id) });
