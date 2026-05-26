@@ -11,11 +11,12 @@ import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import {
-  CreateVendorInput,
-  CreateVendorContactInput,
-  CreateVendorTaxIdentifierInput,
-  CreateVendorBankAccountInput,
-  CreateVendorPaymentTermsInput,
+  CreateVendorRequest,
+  UpdateVendorRequest,
+  CreateVendorContactRequest,
+  CreateVendorTaxIdentifierRequest,
+  CreateVendorBankAccountRequest,
+  SetVendorPaymentTermsRequest,
 } from '@/types/vendor';
 
 // ── Core CRUD ───────────────────────────────────────────────────────────────
@@ -23,7 +24,7 @@ import {
 export const useCreateVendor = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vendor: CreateVendorInput) => vendorsService.create(vendor),
+    mutationFn: (dto: CreateVendorRequest) => vendorsService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
       toast.success('Vendor Created', {
@@ -42,10 +43,10 @@ export const useCreateVendor = () => {
 export const useUpdateVendor = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, vendor }: { id: number; vendor: CreateVendorInput }) =>
-      vendorsService.update(id, vendor),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: vendorKeys.detail(data.id) });
+    mutationFn: ({ id, data }: { id: number; data: UpdateVendorRequest }) =>
+      vendorsService.update(id, data),
+    onSuccess: (vendor) => {
+      queryClient.invalidateQueries({ queryKey: vendorKeys.detail(vendor.id) });
       queryClient.invalidateQueries({ queryKey: vendorKeys.lists() });
       toast.success('Vendor Updated', {
         description: 'The vendor has been updated successfully.',
@@ -84,8 +85,8 @@ export const useDeleteVendor = () => {
 export const useAddVendorContact = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (contactInput: CreateVendorContactInput) =>
-      vendorsService.addContact(vendorId, contactInput),
+    mutationFn: (dto: CreateVendorContactRequest) =>
+      vendorsService.addContact(vendorId, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.contacts(vendorId),
@@ -112,7 +113,7 @@ export const useUpdateVendorContact = (vendorId: number) => {
       contactInput,
     }: {
       contactId: number;
-      contactInput: CreateVendorContactInput;
+      contactInput: CreateVendorContactRequest;
     }) => vendorsService.updateContact(vendorId, contactId, contactInput),
     onSuccess: () => {
       queryClient.invalidateQueries({
@@ -160,8 +161,8 @@ export const useDeleteVendorContact = (vendorId: number) => {
 export const useAddVendorTaxIdentifier = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (taxIdentifierInput: CreateVendorTaxIdentifierInput) =>
-      vendorsService.addTaxIdentifier(vendorId, taxIdentifierInput),
+    mutationFn: (dto: CreateVendorTaxIdentifierRequest) =>
+      vendorsService.addTaxIdentifier(vendorId, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.taxIdentifiers(vendorId),
@@ -188,7 +189,7 @@ export const useUpdateVendorTaxIdentifier = (vendorId: number) => {
       taxIdentifierInput,
     }: {
       taxIdId: number;
-      taxIdentifierInput: CreateVendorTaxIdentifierInput;
+      taxIdentifierInput: CreateVendorTaxIdentifierRequest;
     }) =>
       vendorsService.updateTaxIdentifier(vendorId, taxIdId, taxIdentifierInput),
     onSuccess: () => {
@@ -237,8 +238,8 @@ export const useDeleteVendorTaxIdentifier = (vendorId: number) => {
 export const useAddVendorBankAccount = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (bankAccountInput: CreateVendorBankAccountInput) =>
-      vendorsService.addBankAccount(vendorId, bankAccountInput),
+    mutationFn: (dto: CreateVendorBankAccountRequest) =>
+      vendorsService.addBankAccount(vendorId, dto),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: vendorKeys.bankAccounts(vendorId),
@@ -265,7 +266,7 @@ export const useUpdateVendorBankAccount = (vendorId: number) => {
       bankAccountInput,
     }: {
       accountId: number;
-      bankAccountInput: CreateVendorBankAccountInput;
+      bankAccountInput: CreateVendorBankAccountRequest;
     }) =>
       vendorsService.updateBankAccount(vendorId, accountId, bankAccountInput),
     onSuccess: () => {
@@ -314,8 +315,8 @@ export const useDeleteVendorBankAccount = (vendorId: number) => {
 export const useSetVendorPaymentTerms = (vendorId: number) => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (paymentTermsInput: CreateVendorPaymentTermsInput) =>
-      vendorsService.setPaymentTerms(vendorId, paymentTermsInput),
+    mutationFn: (dto: SetVendorPaymentTermsRequest) =>
+      vendorsService.setPaymentTerms(vendorId, dto),
     onSuccess: (data) => {
       queryClient.setQueryData(vendorKeys.paymentTerms(vendorId), data);
       toast.success('Payment Terms Saved', {

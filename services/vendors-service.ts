@@ -13,11 +13,18 @@ import {
   VendorBankAccount,
   VendorPaymentTermsDetails,
   VendorSummary,
-  CreateVendorInput,
-  CreateVendorContactInput,
-  CreateVendorTaxIdentifierInput,
-  CreateVendorBankAccountInput,
-  CreateVendorPaymentTermsInput,
+  CreateVendorRequest,
+  createVendorToJson,
+  UpdateVendorRequest,
+  updateVendorToJson,
+  CreateVendorContactRequest,
+  createVendorContactToJson,
+  CreateVendorTaxIdentifierRequest,
+  createVendorTaxIdentifierToJson,
+  CreateVendorBankAccountRequest,
+  createVendorBankAccountToJson,
+  SetVendorPaymentTermsRequest,
+  setVendorPaymentTermsToJson,
   parseVendor,
 } from '@/types/vendor';
 
@@ -77,28 +84,11 @@ function parseVendorBankAccount(b: Raw): VendorBankAccount {
   };
 }
 
-// Maps frontend DTO (name/address/email) to backend field names (vendorName/vendorAddress/vendorEmail)
-function toApiPayload(vendor: CreateVendorInput): Raw {
-  return {
-    vendorName: vendor.name,
-    vendorAddress: vendor.address,
-    vendorEmail: vendor.email,
-    website: vendor.website,
-    city: vendor.city,
-    state: vendor.state,
-    pinCode: vendor.pincode,
-    country: vendor.country,
-    type: vendor.type,
-    status: vendor.status,
-    notes: vendor.notes,
-  };
-}
-
 export const vendorsService = {
   // ── Core CRUD ─────────────────────────────────────────────────────────────
 
-  async create(vendor: CreateVendorInput): Promise<Vendor> {
-    const data = await api.post<Raw>('/vendors/web', toApiPayload(vendor));
+  async create(dto: CreateVendorRequest): Promise<Vendor> {
+    const data = await api.post<Raw>('/vendors/web', createVendorToJson(dto));
     return safeParseVendor(data);
   },
 
@@ -122,10 +112,10 @@ export const vendorsService = {
     return safeParseVendor(data);
   },
 
-  async update(id: number, vendor: CreateVendorInput): Promise<Vendor> {
+  async update(id: number, dto: UpdateVendorRequest): Promise<Vendor> {
     const data = await api.patch<Raw>(
       `/vendors/web/${id}`,
-      toApiPayload(vendor)
+      updateVendorToJson(dto)
     );
     return safeParseVendor(data);
   },
@@ -165,11 +155,11 @@ export const vendorsService = {
 
   async addContact(
     vendorId: number,
-    vendor: CreateVendorContactInput
+    dto: CreateVendorContactRequest
   ): Promise<VendorContact> {
     const data = await api.post<Raw>(
       `/vendors/web/${vendorId}/contacts`,
-      vendor
+      createVendorContactToJson(dto)
     );
     return parseVendorContact(data);
   },
@@ -177,11 +167,11 @@ export const vendorsService = {
   async updateContact(
     vendorId: number,
     contactId: number,
-    vendor: CreateVendorContactInput
+    dto: CreateVendorContactRequest
   ): Promise<VendorContact> {
     const data = await api.patch<Raw>(
       `/vendors/web/${vendorId}/contacts/${contactId}`,
-      vendor
+      createVendorContactToJson(dto)
     );
     return parseVendorContact(data);
   },
@@ -200,11 +190,11 @@ export const vendorsService = {
 
   async addTaxIdentifier(
     vendorId: number,
-    vendor: CreateVendorTaxIdentifierInput
+    dto: CreateVendorTaxIdentifierRequest
   ): Promise<VendorTaxIdentifier> {
     const data = await api.post<Raw>(
       `/vendors/web/${vendorId}/tax-identifiers`,
-      vendor
+      createVendorTaxIdentifierToJson(dto)
     );
     return { id: data.id, type: data.type, value: data.value };
   },
@@ -212,11 +202,11 @@ export const vendorsService = {
   async updateTaxIdentifier(
     vendorId: number,
     taxIdId: number,
-    vendor: CreateVendorTaxIdentifierInput
+    dto: CreateVendorTaxIdentifierRequest
   ): Promise<VendorTaxIdentifier> {
     const data = await api.patch<Raw>(
       `/vendors/web/${vendorId}/tax-identifiers/${taxIdId}`,
-      vendor
+      createVendorTaxIdentifierToJson(dto)
     );
     return { id: data.id, type: data.type, value: data.value };
   },
@@ -235,11 +225,11 @@ export const vendorsService = {
 
   async addBankAccount(
     vendorId: number,
-    vendor: CreateVendorBankAccountInput
+    dto: CreateVendorBankAccountRequest
   ): Promise<VendorBankAccount> {
     const data = await api.post<Raw>(
       `/vendors/web/${vendorId}/bank-accounts`,
-      vendor
+      createVendorBankAccountToJson(dto)
     );
     return parseVendorBankAccount(data);
   },
@@ -247,11 +237,11 @@ export const vendorsService = {
   async updateBankAccount(
     vendorId: number,
     accountId: number,
-    vendor: CreateVendorBankAccountInput
+    dto: CreateVendorBankAccountRequest
   ): Promise<VendorBankAccount> {
     const data = await api.patch<Raw>(
       `/vendors/web/${vendorId}/bank-accounts/${accountId}`,
-      vendor
+      createVendorBankAccountToJson(dto)
     );
     return parseVendorBankAccount(data);
   },
@@ -282,11 +272,11 @@ export const vendorsService = {
 
   async setPaymentTerms(
     vendorId: number,
-    vendor: CreateVendorPaymentTermsInput
+    dto: SetVendorPaymentTermsRequest
   ): Promise<VendorPaymentTermsDetails> {
     const data = await api.put<Raw>(
       `/vendors/web/${vendorId}/payment-terms`,
-      vendor
+      setVendorPaymentTermsToJson(dto)
     );
     return {
       id: data.id,
