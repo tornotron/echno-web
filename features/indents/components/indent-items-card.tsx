@@ -126,7 +126,7 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
       try {
         await updateItem({
           id: editingItemId,
-          indentItem: {
+          data: {
             indentId,
             materialId: editItemRow.materialId,
             requestedQuantity: editItemRow.requestedQuantity,
