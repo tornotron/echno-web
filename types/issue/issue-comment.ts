@@ -7,7 +7,7 @@ import { parseUTCDate } from '@/types/date-helpers';
  * IssueComment – shape only
  */
 export interface IssueComment {
-  id?: number;
+  id: number;
   comment: string;
   authorId?: number;
   author?: Employee; // resolved at hook level from authorId
@@ -21,8 +21,15 @@ export interface IssueComment {
  *  ------------------------------------------------------------- */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseIssueComment(json: any): IssueComment {
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseIssueComment: invalid id "${json.id}" — expected a finite number`
+    );
+  }
+
   return {
-    id: json.id ?? undefined,
+    id,
     comment: json.comment ?? '',
     authorId: json.authorId ?? undefined,
     createdAt: parseUTCDate(json.createdAt) ?? new Date(),
