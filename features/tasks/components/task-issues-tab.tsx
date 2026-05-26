@@ -114,7 +114,7 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
                   className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   onClick={() =>
                     router.push(
-                      `${routes.portfolio.projects.allProjects.detail(task.projectId).issues.detail(issue.id!).href}?from=task&taskId=${task.id}`
+                      `${routes.portfolio.projects.allProjects.detail(task.projectId).issues.detail(issue.id).href}?from=task&taskId=${task.id}`
                     )
                   }
                 >

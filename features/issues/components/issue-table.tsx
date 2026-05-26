@@ -242,16 +242,16 @@ export function IssueTable({
               router.push(
                 routes.portfolio.projects.allProjects
                   .detail(projectId)
-                  .issues.detail(issue.id!).href
+                  .issues.detail(issue.id).href
               )
           : undefined
       }
     >
       <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
         <Checkbox
-          checked={selectedIds.includes(issue.id!)}
+          checked={selectedIds.includes(issue.id)}
           onCheckedChange={(checked) =>
-            handleSelectOne(issue.id!, checked as boolean)
+            handleSelectOne(issue.id, checked as boolean)
           }
           aria-label={`Select ${issue.title}`}
         />
@@ -528,7 +528,7 @@ export function IssueTable({
                           router.push(
                             routes.portfolio.projects.allProjects
                               .detail(projectId)
-                              .issues.detail(issue.id!).href
+                              .issues.detail(issue.id).href
                           )
                       : undefined
                   }
