@@ -12,7 +12,7 @@ import { toast } from '@/lib/styles/toast-styles';
 import { ApiError } from '@/lib/api/api-client';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 import {
-  CreateSiteTransferInput,
+  CreateSiteTransferRequest,
   SiteTransferStatus,
 } from '@/types/site-transfers';
 
@@ -36,7 +36,7 @@ export const useDeleteSiteTransfer = () => {
 export const useCreateSiteTransfer = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreateSiteTransferInput) =>
+    mutationFn: (dto: CreateSiteTransferRequest) =>
       siteTransfersService.create(dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: siteTransferKeys.all });
