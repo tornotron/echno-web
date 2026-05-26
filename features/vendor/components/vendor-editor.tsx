@@ -28,7 +28,7 @@ import { useUpdateVendor } from '@/hooks/vendors';
 import {
   VendorType,
   VendorStatus,
-  CreateVendorInput,
+  UpdateVendorRequest,
   VENDOR_TYPE_LABELS,
   VENDOR_STATUS_LABELS,
 } from '@/types/vendor';
@@ -43,7 +43,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
   const router = useRouter();
   const { mutate: updateVendor, isPending } = useUpdateVendor();
 
-  const [form, setForm] = useState<CreateVendorInput>(() => ({
+  const [form, setForm] = useState<UpdateVendorRequest>(() => ({
     name: vendor.name,
     email: vendor.email,
     address: vendor.address ?? '',
@@ -57,18 +57,18 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
     notes: vendor.notes ?? '',
   }));
 
-  function set(field: keyof CreateVendorInput, value: string | undefined) {
+  function set(field: keyof UpdateVendorRequest, value: string | undefined) {
     setForm((prev) => ({ ...prev, [field]: value || undefined }));
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name.trim() || !form.email.trim()) {
+    if (!form.name?.trim() || !form.email?.trim()) {
       toast.error('Company name and email are required.');
       return;
     }
     updateVendor(
-      { id: vendorId, vendor: form },
+      { id: vendorId, data: form },
       {
         onSuccess: () => {
           toast.success('Vendor updated successfully.');
