@@ -8,6 +8,7 @@ import {
 } from '../work-category/work-category';
 import { TaskStatus, taskStatusFromString } from './task-status';
 import { Attachment, parseAttachment } from '@/types/attachment';
+import { parsePositiveInt } from '@/types/parse-id';
 
 export interface Task {
   id: number;
@@ -35,12 +36,7 @@ export const asignees = (task: Task): Employee[] | undefined => task.assignees;
 /** JSON → Task */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseTask(json: any): Task {
-  const id = Number(json.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(
-      `parseTask: invalid id "${json.id}" — expected a finite number`
-    );
-  }
+  const id = parsePositiveInt(json.id, 'parseTask.id');
 
   return {
     id,
