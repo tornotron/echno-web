@@ -31,15 +31,12 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
   const { data: currentEmployee } = useCurrentUserEmployee();
 
   const handleAddComment = async () => {
-    if (!commentText.trim() || !currentEmployee) return;
+    if (!commentText.trim() || !currentEmployee?.id) return;
     try {
       await createCommentMutation.mutateAsync({
-        issueId: issue.id!,
-        data: {
-          comment: commentText.trim(),
-          author: currentEmployee,
-          createdAt: new Date(),
-        },
+        issueId: issue.id,
+        comment: commentText.trim(),
+        authorId: currentEmployee.id,
       });
       setCommentText('');
     } catch {
@@ -218,7 +215,7 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
                   onClick={handleAddComment}
                   disabled={
                     !commentText.trim() ||
-                    !currentEmployee ||
+                    !currentEmployee?.id ||
                     createCommentMutation.isPending
                   }
                 >

@@ -42,7 +42,7 @@ import type { Issue } from '@/types/issue/issue';
 import type { Task } from '@/types/task/task';
 import type { Project } from '@/types/project/project';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
-import { useUpdateIssueWithFiles } from '@/hooks/issue';
+import { useUpdateIssue } from '@/hooks/issue';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { IssueAttachmentsUploader } from './issue-attachments-uploader';
@@ -99,7 +99,7 @@ export function IssueOverviewTab({
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assignSearch, setAssignSearch] = useState('');
 
-  const updateIssueMutation = useUpdateIssueWithFiles();
+  const updateIssueMutation = useUpdateIssue();
   const { data: projectMembers = [] } = useEmployeesByProject(
     Number.parseInt(projectId)
   );
@@ -113,9 +113,8 @@ export function IssueOverviewTab({
   const handleAssign = async (memberId: number) => {
     try {
       await updateIssueMutation.mutateAsync({
-        id: issue.id!,
+        id: issue.id,
         data: { assigneeId: memberId },
-        files: { attachments: [] },
       });
       setAssignDialogOpen(false);
       setAssignSearch('');
@@ -127,9 +126,8 @@ export function IssueOverviewTab({
   const handleUnassign = async () => {
     try {
       await updateIssueMutation.mutateAsync({
-        id: issue.id!,
+        id: issue.id,
         data: { assigneeId: null },
-        files: { attachments: [] },
       });
       setAssignDialogOpen(false);
       setAssignSearch('');
@@ -174,7 +172,7 @@ export function IssueOverviewTab({
                 </CardTitle>
                 <CardDescription>Files attached to this issue</CardDescription>
               </div>
-              <IssueAttachmentsUploader issueId={issue.id!} />
+              <IssueAttachmentsUploader issueId={issue.id} />
             </div>
           </CardHeader>
           <CardContent>
