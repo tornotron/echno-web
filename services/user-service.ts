@@ -1,7 +1,8 @@
 import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { User, parseUser, partialUserToJson } from '@/types/user/user';
+import { User, parseUser } from '@/types/user/user';
 import { UserFiles } from '@/types/user/user-files';
+import { UpdateUserRequest, updateUserToJson } from '@/types/user/user-update';
 import { Employee, parseEmployee } from '@/types/employee';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -62,13 +63,15 @@ export const userService = {
    * Update the current authenticated user's profile (JSON only, no files).
    *
    * @param {number} id - User ID to update.
-   * @param {Partial<User>} userData - User data to update.
+   * @param {UpdateUserRequest} dto - User fields to update.
    * @returns {Promise<User>} The updated, parsed user profile.
    * @throws {ApiError} on network, server, or parsing errors
    */
-  async updateCurrentUser(id: number, userData: Partial<User>): Promise<User> {
-    const payload = partialUserToJson(userData);
-    const data = await api.patch<ApiResponse>(`/user/web/${id}`, payload);
+  async updateCurrentUser(id: number, dto: UpdateUserRequest): Promise<User> {
+    const data = await api.patch<ApiResponse>(
+      `/user/web/${id}`,
+      updateUserToJson(dto)
+    );
     return safeParseUser(data);
   },
 
@@ -82,19 +85,18 @@ export const userService = {
    * - 'cv' field: CV/resume file
    *
    * @param {number} id - User ID to update.
-   * @param {Partial<User>} userData - User data to update.
+   * @param {UpdateUserRequest} dto - User fields to update.
    * @param {UserFiles} files - Files to upload (profilePicture, cv).
    * @returns {Promise<User>} The updated, parsed user profile.
    * @throws {ApiError} on network, server, or parsing errors
    */
   async updateCurrentUserWithFiles(
     id: number,
-    userData: Partial<User>,
+    dto: UpdateUserRequest,
     files: UserFiles
   ): Promise<User> {
-    const payload = partialUserToJson(userData);
+    const payload = updateUserToJson(dto);
 
-    // Build files map with correct field names expected by backend
     const fileMap: Record<string, File[]> = {};
     if (files.profilePicture) {
       fileMap['profilePicture'] = [files.profilePicture];

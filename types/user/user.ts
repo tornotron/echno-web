@@ -2,7 +2,7 @@
 import { Attachment, parseAttachment } from '@/types/attachment';
 
 export interface User {
-  id?: number;
+  id: number;
   name: string;
   address: string;
   bloodGroup?: string;
@@ -45,7 +45,7 @@ export function userInitials(user: User): string {
  * @param date - Date object to format
  * @returns Formatted date string in "YYYY-MM-DDTHH:mm:ss" format
  */
-function formatDateForBackend(date: Date): string {
+export function formatDateForBackend(date: Date): string {
   const year = date.getUTCFullYear();
   const month = String(date.getUTCMonth() + 1).padStart(2, '0');
   const day = String(date.getUTCDate()).padStart(2, '0');
@@ -72,6 +72,13 @@ function parseSkills(data: unknown): string[] {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseUser(json: any): User {
+  const id = Number(json.id);
+  if (!Number.isFinite(id)) {
+    throw new TypeError(
+      `parseUser: invalid id "${json.id}" — expected a finite number`
+    );
+  }
+
   // Parse attachments array from backend
   const attachments: Attachment[] | undefined = json.attachments
     ? (json.attachments as unknown[]).map((att) => parseAttachment(att))
@@ -105,7 +112,7 @@ export function parseUser(json: any): User {
         : undefined;
 
   return {
-    id: json.id ?? undefined,
+    id,
     name: json.name ?? 'Not Specified',
     address: json.address ?? 'Not Specified',
     bloodGroup: json.bloodGroup ?? undefined,
@@ -148,40 +155,4 @@ export function userToJson(user: User): Record<string, unknown> {
     certifications: user.certifications,
     // Note: cv and profilePicture are not sent - file uploads handled via multipart
   };
-}
-
-/**
- * Convert partial user data to JSON for API requests.
- * Only includes fields that are actually provided in the partial user object.
- * Note: File uploads are handled separately via multipart form data.
- */
-export function partialUserToJson(
-  user: Partial<User>
-): Record<string, unknown> {
-  const payload: Record<string, unknown> = {};
-
-  if (user.id !== undefined) payload.id = user.id;
-  if (user.name !== undefined) payload.name = user.name;
-  if (user.address !== undefined) payload.address = user.address;
-  if (user.bloodGroup !== undefined) payload.bloodGroup = user.bloodGroup;
-  if (user.email !== undefined) payload.email = user.email;
-  if (user.phone !== undefined) payload.phone = user.phone;
-  if (user.gender !== undefined) payload.gender = user.gender;
-  if (user.dateOfBirth !== undefined) {
-    payload.dateOfBirth = formatDateForBackend(user.dateOfBirth);
-  }
-  if (user.qualification !== undefined)
-    payload.qualification = user.qualification;
-  if (user.skills !== undefined) payload.skills = user.skills;
-  if (user.experience !== undefined) payload.experience = user.experience;
-  if (user.emergencyContact !== undefined)
-    payload.emergencyContact = user.emergencyContact;
-  if (user.roles !== undefined) payload.roles = user.roles;
-  if (user.certifications !== undefined)
-    payload.certifications = user.certifications;
-  if (user.defaultOrganizationId !== undefined)
-    payload.defaultOrganizationId = user.defaultOrganizationId;
-  // Note: cv and profilePicture are not sent - file uploads handled via multipart
-
-  return payload;
 }

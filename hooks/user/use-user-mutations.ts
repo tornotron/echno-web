@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
-import { UserFiles } from '@/types/user';
 import { User } from '@/types/user/user';
+import { UserFiles } from '@/types/user/user-files';
+import { UpdateUserRequest } from '@/types/user/user-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
@@ -20,7 +21,7 @@ export function useUpdateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<User> }) =>
+    mutationFn: ({ id, data }: { id: number; data: UpdateUserRequest }) =>
       userService.updateCurrentUser(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
@@ -54,7 +55,7 @@ export function useUpdateUserWithFiles() {
       files,
     }: {
       id: number;
-      data: Partial<User>;
+      data: UpdateUserRequest;
       files: UserFiles;
     }) => userService.updateCurrentUserWithFiles(id, data, files),
     onSuccess: () => {
