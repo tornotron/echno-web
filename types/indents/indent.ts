@@ -1,5 +1,6 @@
+import { parsePositiveInt } from '@/types/parse-id';
 import type { IndentStatus } from './enums';
-import type { IndentItem, CreateIndentItemInput } from './indent-item';
+import type { IndentItem } from './indent-item';
 import { parseIndentItem } from './indent-item';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -18,28 +19,9 @@ export interface Indent {
   items: IndentItem[];
 }
 
-export interface CreateIndentInput {
-  indentNumber: string;
-  createdByEmployeeId: number;
-  status: IndentStatus;
-  expectedOn?: string;
-  remarks?: string;
-  projectId?: number;
-  items: CreateIndentItemInput[];
-}
-
-export interface UpdateIndentInput {
-  indentNumber?: string;
-  status?: IndentStatus;
-  expectedOn?: string;
-  remarks?: string;
-  projectId?: number;
-  items?: CreateIndentItemInput[];
-}
-
 export function parseIndent(raw: Raw): Indent {
   return {
-    id: raw.id,
+    id: parsePositiveInt(raw.id, 'parseIndent.id'),
     indentNumber: raw.indentNumber ?? '',
     createdAt: raw.createdAt,
     createdBy: {
