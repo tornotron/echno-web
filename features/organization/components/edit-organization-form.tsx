@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { Organization } from '@/types/organization';
+import { UpdateOrganizationRequest } from '@/types/organization';
 import { useOrganization } from '@/hooks/organization/use-organizations';
 import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
 import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
@@ -31,7 +31,7 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
 
   const [showConfirmUpdate, setShowConfirmUpdate] = useState(false);
   const [pendingData, setPendingData] = useState<{
-    data: Partial<Organization>;
+    data: UpdateOrganizationRequest;
     logoFile?: File;
   } | null>(null);
 
@@ -51,7 +51,7 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
     );
   }
 
-  const handleSubmit = (data: Partial<Organization>, logoFile?: File) => {
+  const handleSubmit = (data: UpdateOrganizationRequest, logoFile?: File) => {
     if (!organization) return;
     setPendingData({ data, logoFile });
     setShowConfirmUpdate(true);
@@ -59,16 +59,17 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
 
   const handleConfirmUpdate = () => {
     if (!organization || !pendingData) return;
-    const updatedOrg = { ...organization, ...pendingData.data };
     updateOrganization(
       {
-        id: organization.id!,
-        data: updatedOrg,
-        logoFile: pendingData.logoFile,
+        id: organization.id,
+        data: pendingData.data,
+        files: pendingData.logoFile
+          ? { logo: pendingData.logoFile }
+          : undefined,
       },
       {
         onSuccess: () => {
-          router.push(routes.organizations.detail(organization.id!).href);
+          router.push(routes.organizations.detail(organization.id).href);
         },
         onSettled: () => {
           setShowConfirmUpdate(false);
@@ -87,8 +88,7 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
   };
 
   const handleCancel = () => {
-    if (organization?.id)
-      router.push(routes.organizations.detail(organization.id).href);
+    router.push(routes.organizations.detail(organization!.id).href);
   };
 
   return (
