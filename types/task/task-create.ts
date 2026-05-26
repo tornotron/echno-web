@@ -8,7 +8,7 @@ export interface CreateTaskRequest {
   assignedTo?: number;
   status?: string;
   category?: string;
-  tags?: string;
+  tags?: string[];
 }
 
 export interface TaskFiles {
