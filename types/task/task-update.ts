@@ -7,5 +7,5 @@ export interface UpdateTaskRequest {
   assignedTo?: number;
   status?: string;
   category?: string;
-  tags?: string;
+  tags?: string[];
 }

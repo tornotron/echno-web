@@ -5,5 +5,5 @@ export interface CreateIndentItemRequest {
   quantity: number;
   unit: string;
   estimatedUnitCost?: number;
-  requiredDate?: Date;
+  requiredDate?: string; // ISO date string (YYYY-MM-DD) — convert Date at service boundary before api.post/api.put
 }
