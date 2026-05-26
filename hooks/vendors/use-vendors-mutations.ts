@@ -15,6 +15,7 @@ import {
   UpdateVendorRequest,
   CreateVendorContactRequest,
   CreateVendorTaxIdentifierRequest,
+  UpdateVendorTaxIdentifierRequest,
   CreateVendorBankAccountRequest,
   SetVendorPaymentTermsRequest,
 } from '@/types/vendor';
@@ -189,7 +190,7 @@ export const useUpdateVendorTaxIdentifier = (vendorId: number) => {
       taxIdentifierInput,
     }: {
       taxIdId: number;
-      taxIdentifierInput: CreateVendorTaxIdentifierRequest;
+      taxIdentifierInput: UpdateVendorTaxIdentifierRequest;
     }) =>
       vendorsService.updateTaxIdentifier(vendorId, taxIdId, taxIdentifierInput),
     onSuccess: () => {
