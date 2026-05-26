@@ -55,7 +55,7 @@ import {
 } from '@/hooks/vendors';
 import {
   PaymentTerms,
-  CreateVendorPaymentTermsInput,
+  SetVendorPaymentTermsRequest,
   PAYMENT_TERMS_LABELS,
   getVendorTypeLabel,
 } from '@/types/vendor';
@@ -77,7 +77,7 @@ export function VendorOverviewTab({
   const removePaymentTermsMutation = useDeleteVendorPaymentTerms(vendorId);
 
   const [ptDialog, setPtDialog] = useState(false);
-  const [ptForm, setPtForm] = useState<CreateVendorPaymentTermsInput>({
+  const [ptForm, setPtForm] = useState<SetVendorPaymentTermsRequest>({
     paymentTerms: '',
   });
   const [deletePt, setDeletePt] = useState(false);
