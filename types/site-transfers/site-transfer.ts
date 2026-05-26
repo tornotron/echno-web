@@ -1,8 +1,6 @@
+import { parsePositiveInt } from '@/types/parse-id';
 import { SiteTransferStatus } from './enums';
-import type {
-  SiteTransferItem,
-  CreateSiteTransferItemInput,
-} from './site-transfer-item';
+import type { SiteTransferItem } from './site-transfer-item';
 import { parseSiteTransferItem } from './site-transfer-item';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -25,21 +23,10 @@ export interface SiteTransfer {
   items: SiteTransferItem[];
 }
 
-export interface CreateSiteTransferInput {
-  transferNumber: string;
-  issueDate: string;
-  sendingPerson: number;
-  sendingProjectId: number;
-  sendingStorageLocationId: number;
-  receivingProjectId: number;
-  receivingStorageLocationId: number;
-  status: SiteTransferStatus;
-  items: CreateSiteTransferItemInput[];
-}
-
 export function parseSiteTransfer(raw: Raw): SiteTransfer {
+  const id = parsePositiveInt(raw.id, 'parseSiteTransfer.id');
   return {
-    id: raw.id,
+    id,
     transferNumber: raw.transferNumber,
     issueDate: raw.issueDate,
     sendingPerson: {
@@ -62,3 +49,5 @@ export function parseSiteTransfer(raw: Raw): SiteTransfer {
       : [],
   };
 }
+
+export { type CreateSiteTransferItemRequest } from './site-transfer-item';
