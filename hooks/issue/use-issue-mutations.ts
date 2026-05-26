@@ -1,16 +1,13 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { issueService } from '@/services/issue-service';
-import { Issue, IssueFiles } from '@/types/issue';
+import { IssueFiles } from '@/types/issue';
+import { CreateIssueRequest } from '@/types/issue/issue-create';
+import { UpdateIssueRequest } from '@/types/issue/issue-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 
-/**
- * useCreateIssueWithFiles
- *
- * Mutation hook to create a new issue with optional file attachments.
- */
-export function useCreateIssueWithFiles() {
+export function useCreateIssue() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -18,9 +15,9 @@ export function useCreateIssueWithFiles() {
       data,
       files,
     }: {
-      data: Partial<Issue>;
-      files: IssueFiles;
-    }) => issueService.createWithFiles(data, files),
+      data: CreateIssueRequest;
+      files?: IssueFiles;
+    }) => issueService.create(data, files),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['issues'] });
       toast.success('Issue Created', {
@@ -36,12 +33,7 @@ export function useCreateIssueWithFiles() {
   });
 }
 
-/**
- * useUpdateIssueWithFiles
- *
- * Mutation hook to update an existing issue with optional file attachments.
- */
-export function useUpdateIssueWithFiles() {
+export function useUpdateIssue() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -51,9 +43,9 @@ export function useUpdateIssueWithFiles() {
       files,
     }: {
       id: number;
-      data: Partial<Issue>;
-      files: IssueFiles;
-    }) => issueService.updateWithFiles(id, data, files),
+      data: UpdateIssueRequest;
+      files?: IssueFiles;
+    }) => issueService.update(id, data, files),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['issues'] });
       queryClient.invalidateQueries({ queryKey: ['issues', id] });
@@ -70,12 +62,6 @@ export function useUpdateIssueWithFiles() {
   });
 }
 
-/**
- * useDeleteIssue
- *
- * Mutation hook that deletes an issue by id and invalidates the
- * `['issues']` cache entry on success.
- */
 export function useDeleteIssue() {
   const queryClient = useQueryClient();
 
