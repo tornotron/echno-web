@@ -3,6 +3,7 @@
 import { Attachment } from '@/types/attachment/attachment';
 import { parseUTCDate } from '@/types/date-helpers';
 import { VendorType, VendorStatus, PaymentTerms } from './enums';
+import { parsePositiveInt } from '@/types/parse-id';
 import { VendorContact } from './contacts';
 import { VendorTaxIdentifier } from './tax-identifiers';
 import { VendorBankAccount } from './bank-accounts';
@@ -71,10 +72,7 @@ export interface CreateVendorInput {
 }
 
 export function parseVendor(raw: Raw): Vendor {
-  const id = Number(raw.id);
-  if (!Number.isFinite(id)) {
-    throw new TypeError(`parseVendor: invalid or missing id (got ${raw.id})`);
-  }
+  const id = parsePositiveInt(raw.id, 'parseVendor.id');
   const name = raw.vendorName ?? raw.name ?? '';
   const email = raw.vendorEmail ?? raw.email ?? '';
   if (!name) {
