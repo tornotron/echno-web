@@ -686,6 +686,7 @@ const mockProjects: Project[] = [
 
 const mockShiftTimings: ShiftTiming[] = [
   {
+    id: 1,
     shiftName: 'Day Shift - Office',
     startTime: '09:00',
     endTime: '18:00',
@@ -697,6 +698,7 @@ const mockShiftTimings: ShiftTiming[] = [
     overtimeThreshold: 9,
   },
   {
+    id: 2,
     shiftName: 'Day Shift - Site',
     startTime: '08:00',
     endTime: '17:00',
@@ -708,6 +710,7 @@ const mockShiftTimings: ShiftTiming[] = [
     overtimeThreshold: 9,
   },
   {
+    id: 3,
     shiftName: 'Early Morning Shift',
     startTime: '07:00',
     endTime: '16:00',
