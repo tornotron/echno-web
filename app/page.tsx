@@ -1,33 +1,42 @@
-import { Suspense } from 'react';
+'use client';
 
-import { MarketingNav } from '@/features/home/components/marketing-nav';
-import { MarketingFooter } from '@/features/home/components/marketing-footer';
-import { HeroSection } from '@/features/home/components/hero-section';
-import { TrustedBySection } from '@/features/home/components/trusted-by-section';
-import { ProblemsSection } from '@/features/home/components/problems-section';
-import { FeaturesSection } from '@/features/home/components/features-section';
-import { WorkflowSection } from '@/features/home/components/workflow-section';
-import { RoiSection } from '@/features/home/components/roi-section';
-import { TestimonialsSection } from '@/features/home/components/testimonials-section';
-import { PricingCtaSection } from '@/features/home/components/pricing-cta-section';
-import { HomeNotifications } from '@/features/home/components/home-notifications';
+import Image from 'next/image';
+import Link from 'next/link';
+import { signIn } from 'next-auth/react';
+import { StarsBackground } from '@/components/shadcn/star';
 
-export default function Home() {
+export default function WelcomePage() {
   return (
-    <div style={{ background: '#0a0a0a' }}>
-      <MarketingNav currentPage="Home" />
-      <Suspense fallback={null}>
-        <HomeNotifications />
-      </Suspense>
-      <HeroSection />
-      <TrustedBySection />
-      <ProblemsSection />
-      <FeaturesSection />
-      <WorkflowSection />
-      <RoiSection />
-      <TestimonialsSection />
-      <PricingCtaSection />
-      <MarketingFooter />
-    </div>
+    <StarsBackground className="flex min-h-screen items-center justify-center">
+      <div className="flex flex-col items-center gap-6">
+        <Image
+          src="/e-ai-logo.png"
+          alt="Echno"
+          width={160}
+          height={58}
+          priority
+          className="invert"
+        />
+
+        <h1 className="text-2xl font-bold tracking-tight text-white">
+          Welcome..! Echno Console
+        </h1>
+
+        <div className="flex gap-4">
+          <button
+            onClick={() => signIn('keycloak')}
+            className="rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
+          >
+            Login
+          </button>
+          <Link
+            href="/register"
+            className="rounded-lg border border-zinc-700 bg-transparent px-6 py-2.5 text-sm font-semibold text-white transition hover:border-zinc-500 hover:bg-zinc-800"
+          >
+            Register
+          </Link>
+        </div>
+      </div>
+    </StarsBackground>
   );
 }
