@@ -1,8 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockEmployees } from '@/components/shared/mock-data';
 import { useBudgetById } from '@/hooks/budgets';
+import { useEmployees } from '@/hooks/employee';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -145,6 +145,7 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
   const { data: budget, isLoading, isError } = useBudgetById(id);
+  const { data: employees = [] } = useEmployees();
 
   if (isLoading)
     return (
@@ -187,12 +188,8 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
       </Empty>
     );
 
-  const preparedByEmployee = mockEmployees.find(
-    (e) => e.id === budget.preparedBy
-  );
-  const approvedByEmployee = mockEmployees.find(
-    (e) => e.id === budget.approvedBy
-  );
+  const preparedByEmployee = employees.find((e) => e.id === budget.preparedBy);
+  const approvedByEmployee = employees.find((e) => e.id === budget.approvedBy);
 
   const budgetHealth = getBudgetHealth(budget.percentageUsed);
   const healthIconColor =
