@@ -88,11 +88,10 @@ export default function EditMaterialPage({
     updateMaterial(
       {
         id,
-        material: {
+        data: {
           materialName: form.materialName.trim(),
           sku: form.sku.trim() || undefined,
           unit: form.unit.trim(),
-          createdBy: currentEmployee.id,
           description: form.description.trim() || undefined,
           hsn: form.hsn.trim() || undefined,
           moq: form.moq === '' ? undefined : Number(form.moq),
