@@ -20,13 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import {
-  mockProjects,
-  mockEmployees,
-  mockSubContracts,
-  mockLabour,
-} from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
+import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@/hooks/employee';
+import { useSubContracts } from '@/hooks/sub-contracts';
+import { useLabour } from '@/hooks/labour';
 import {
   Payment,
   PaymentType,
@@ -125,12 +123,16 @@ interface PaymentEditFormProps {
 function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
   const router = useRouter();
   const { data: vendors = [] } = useVendors();
+  const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
+  const { data: subContracts = [] } = useSubContracts();
+  const { data: labour = [] } = useLabour();
 
   const payeeDatasets = {
     vendors,
-    employees: mockEmployees,
-    subContracts: mockSubContracts,
-    labour: mockLabour,
+    employees,
+    subContracts,
+    labour,
   };
 
   const manualEntryTypes = new Set([
@@ -372,7 +374,7 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map((project) => (
+                      {projects.map((project) => (
                         <SelectItem
                           key={project.id}
                           value={project.id.toString()}
