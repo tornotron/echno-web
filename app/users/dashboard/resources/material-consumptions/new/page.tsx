@@ -31,11 +31,8 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import {
-  useMaterials,
-  useMaterialWithStock,
-  useCreateConsumption,
-} from '@/hooks/materials';
+import { useMaterials, useMaterialWithStock } from '@/hooks/materials';
+import { useCreateConsumption } from '@/hooks/material-consumptions';
 import { useProjects } from '@/hooks/project/use-projects';
 import { useStorageLocations } from '@/hooks/storage-locations/use-storage-locations';
 import { useTasks } from '@/hooks/task/use-tasks';

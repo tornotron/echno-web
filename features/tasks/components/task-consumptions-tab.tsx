@@ -29,7 +29,7 @@ import {
 import { FlameKindling, Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { useConsumptionsByTask } from '@/hooks/materials';
+import { useConsumptionsByTask } from '@/hooks/material-consumptions';
 import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
 import type { Task } from '@/types/task/task';
 
