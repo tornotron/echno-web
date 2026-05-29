@@ -14,7 +14,7 @@ import {
   Package,
   BarChart3,
 } from 'lucide-react';
-import { useAllMaterialConsumptions } from '@/hooks/materials';
+import { useAllMaterialConsumptions } from '@/hooks/material-consumptions';
 import { ConsumptionTable } from '@/features/material-consumptions/components';
 import { ConsumptionType } from '@/types/materials';
 
