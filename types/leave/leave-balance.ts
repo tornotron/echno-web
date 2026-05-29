@@ -6,6 +6,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { parsePositiveInt } from '@/types/parse-id';
 import { TransactionType } from './leave-enums';
 
 /**
@@ -59,10 +60,7 @@ export interface LeaveTransaction {
   createdAt?: Date;
 }
 
-/**
- * Leave Balance Adjustment
- */
-export interface LeaveBalanceAdjustment {
+export interface AdjustLeaveBalanceRequest {
   employeeId: number;
   leavePolicyId: number;
   days: number;
@@ -75,7 +73,7 @@ export interface LeaveBalanceAdjustment {
  */
 export function parseLeaveBalance(json: any): LeaveBalance {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeaveBalance.id'),
     employeeId: json.employeeId ?? 0,
     leavePolicyId: json.leavePolicyId ?? json.leavePolicy?.id ?? 0,
     leaveTypeName: json.leaveTypeName ?? json.leavePolicy?.leaveTypeName,
@@ -117,7 +115,7 @@ export function parseLeaveBalanceSummary(json: any): LeaveBalanceSummary {
  */
 export function parseLeaveTransaction(json: any): LeaveTransaction {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeaveTransaction.id'),
     leaveBalanceId: json.leaveBalanceId ?? 0,
     leaveTypeName: json.leaveTypeName ?? json.leaveBalance?.leaveTypeName,
     transactionType: json.transactionType ?? TransactionType.ADJUSTMENT,

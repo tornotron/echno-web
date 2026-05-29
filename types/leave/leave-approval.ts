@@ -6,6 +6,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { parsePositiveInt } from '@/types/parse-id';
 import { ApprovalAction } from './leave-enums';
 
 /**
@@ -56,7 +57,7 @@ export interface CanApproveResponse {
  */
 export function parseLeaveApproval(json: any): LeaveApproval {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeaveApproval.id'),
     leaveRequestId: json.leaveRequestId ?? 0,
     approverId: json.approverId ?? 0,
     approverName: json.approverName,

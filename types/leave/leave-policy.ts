@@ -6,6 +6,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { parsePositiveInt } from '@/types/parse-id';
+
 /**
  * Leave Policy interface
  */
@@ -35,35 +37,11 @@ export interface LeavePolicy {
 }
 
 /**
- * Leave Policy Creation
- */
-export interface LeavePolicyCreation {
-  organizationId: number;
-  leaveTypeCode: string;
-  leaveTypeName: string;
-  description?: string;
-  annualQuota: number;
-  accrualRatePerMonth?: number;
-  carryForwardLimit?: number;
-  carryForwardExpiryMonths?: number;
-  minDaysPerRequest?: number;
-  maxDaysPerRequest?: number;
-  advanceNoticeDays?: number;
-  requiresAttachment?: boolean;
-  attachmentRequiredAfterDays?: number;
-  applicableGenders?: string;
-  minServiceMonths?: number;
-  allowHalfDay?: boolean;
-  isPaid?: boolean;
-  displayOrder?: number;
-}
-
-/**
  * Parse leave policy from JSON
  */
 export function parseLeavePolicy(json: any): LeavePolicy {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeavePolicy.id'),
     organizationId: json.organizationId ?? 0,
     leaveTypeCode: json.leaveTypeCode ?? '',
     leaveTypeName: json.leaveTypeName ?? '',
@@ -88,43 +66,11 @@ export function parseLeavePolicy(json: any): LeavePolicy {
   };
 }
 
-/**
- * Convert leave policy to JSON
- */
-export function leavePolicyToJson(policy: Partial<LeavePolicy>): any {
-  const json: any = {};
-
-  if (policy.organizationId !== undefined)
-    json.organizationId = policy.organizationId;
-  if (policy.leaveTypeCode) json.leaveTypeCode = policy.leaveTypeCode;
-  if (policy.leaveTypeName) json.leaveTypeName = policy.leaveTypeName;
-  if (policy.description !== undefined) json.description = policy.description;
-  if (policy.annualQuota !== undefined) json.annualQuota = policy.annualQuota;
-  if (policy.accrualRatePerMonth !== undefined)
-    json.accrualRatePerMonth = policy.accrualRatePerMonth;
-  if (policy.carryForwardLimit !== undefined)
-    json.carryForwardLimit = policy.carryForwardLimit;
-  if (policy.carryForwardExpiryMonths !== undefined)
-    json.carryForwardExpiryMonths = policy.carryForwardExpiryMonths;
-  if (policy.minDaysPerRequest !== undefined)
-    json.minDaysPerRequest = policy.minDaysPerRequest;
-  if (policy.maxDaysPerRequest !== undefined)
-    json.maxDaysPerRequest = policy.maxDaysPerRequest;
-  if (policy.advanceNoticeDays !== undefined)
-    json.advanceNoticeDays = policy.advanceNoticeDays;
-  if (policy.requiresAttachment !== undefined)
-    json.requiresAttachment = policy.requiresAttachment;
-  if (policy.attachmentRequiredAfterDays !== undefined)
-    json.attachmentRequiredAfterDays = policy.attachmentRequiredAfterDays;
-  if (policy.applicableGenders !== undefined)
-    json.applicableGenders = policy.applicableGenders;
-  if (policy.minServiceMonths !== undefined)
-    json.minServiceMonths = policy.minServiceMonths;
-  if (policy.allowHalfDay !== undefined)
-    json.allowHalfDay = policy.allowHalfDay;
-  if (policy.isPaid !== undefined) json.isPaid = policy.isPaid;
-  if (policy.displayOrder !== undefined)
-    json.displayOrder = policy.displayOrder;
-
-  return json;
-}
+export {
+  type CreateLeavePolicyRequest,
+  createLeavePolicyToJson,
+} from './leave-policy-create';
+export {
+  type UpdateLeavePolicyRequest,
+  updateLeavePolicyToJson,
+} from './leave-policy-update';

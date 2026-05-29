@@ -6,6 +6,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { parsePositiveInt } from '@/types/parse-id';
 import { HalfDayType, LeaveStatus } from './leave-enums';
 
 /**
@@ -46,7 +47,7 @@ export interface LeaveCountResponse {
  */
 export function parseLeaveCalendarEntry(json: any): LeaveCalendarEntry {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeaveCalendarEntry.id'),
     leaveRequestId: json.leaveRequestId ?? 0,
     employeeId: json.employeeId ?? 0,
     employeeName: json.employeeName,
