@@ -1,8 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockMembers } from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
+import { useEmployees } from '@/hooks/employee';
 import { useInvoiceById } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -111,11 +111,6 @@ const getTypeColor = (type: InvoiceType) => {
   }
 };
 
-const getUserName = (userId: number): string => {
-  const member = mockMembers.find((m) => m.id === userId);
-  return member?.memberName || `User #${userId}`;
-};
-
 export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
@@ -129,6 +124,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     isPending: isInvoiceLoading,
     isError: isInvoiceError,
   } = useInvoiceById(id);
+  const { data: employees = [] } = useEmployees();
 
   const isLoading = isVendorsLoading || isInvoiceLoading;
   const isError = isVendorsError || isInvoiceError;
@@ -136,6 +132,11 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const getVendorName = (vendorId: number): string => {
     const vendor = vendors.find((v) => v.id === vendorId);
     return vendor?.name || `Vendor #${vendorId}`;
+  };
+
+  const getUserName = (userId: number): string => {
+    const employee = employees.find((e) => e.id === userId);
+    return employee?.name || `User #${userId}`;
   };
 
   if (isLoading)

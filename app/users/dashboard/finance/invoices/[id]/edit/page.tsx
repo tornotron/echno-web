@@ -29,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { mockProjects } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 import {
   Invoice,
   InvoiceType,
@@ -120,6 +120,7 @@ interface InvoiceEditFormProps {
 
 function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
   const router = useRouter();
+  const { data: projects = [] } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
     () => initialData.lineItems
@@ -128,7 +129,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
     invoiceNumber: initialData.invoiceNumber,
     type: initialData.type,
     status: initialData.status,
-    projectId: initialData.projectId ?? mockProjects[0]?.id ?? 1,
+    projectId: initialData.projectId ?? projects[0]?.id ?? 1,
     issueDate: initialData.issueDate,
     dueDate: initialData.dueDate,
     subtotal: initialData.subtotal,
@@ -331,7 +332,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map((project) => (
+                      {projects.map((project) => (
                         <SelectItem
                           key={project.id}
                           value={project.id.toString()}

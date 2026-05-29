@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { mockProjects } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -42,6 +42,7 @@ import { toast } from '@/lib/styles/toast-styles';
 
 export default function NewInvoicePage() {
   const router = useRouter();
+  const { data: projects = [] } = useProjects();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([
@@ -68,7 +69,7 @@ export default function NewInvoicePage() {
     invoiceNumber: '',
     type: InvoiceType.purchase,
     status: InvoiceStatus.draft,
-    projectId: mockProjects[0]?.id || 1, // Default to first project
+    projectId: projects[0]?.id || 1, // Default to first project
     issueDate: new Date().toISOString(),
     dueDate: getDueDateDefault(),
     subtotal: 0,
@@ -300,7 +301,7 @@ export default function NewInvoicePage() {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map((project) => (
+                      {projects.map((project) => (
                         <SelectItem
                           key={project.id}
                           value={project.id.toString()}
