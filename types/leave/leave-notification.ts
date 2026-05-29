@@ -30,7 +30,10 @@ export interface LeaveNotification {
 export function parseLeaveNotification(json: any): LeaveNotification {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveNotification.id'),
-    employeeId: json.employeeId ?? 0,
+    employeeId: parsePositiveInt(
+      json.employeeId,
+      'parseLeaveNotification.employeeId'
+    ),
     type:
       (json.type as LeaveNotificationType) ??
       LeaveNotificationType.LEAVE_REMINDER,

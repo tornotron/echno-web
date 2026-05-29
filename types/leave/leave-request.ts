@@ -80,7 +80,10 @@ export function parseLeaveRequest(json: any): LeaveRequest {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveRequest.id'),
     requestNumber: json.requestNumber ?? '',
-    employeeId: json.employeeId ?? 0,
+    employeeId: parsePositiveInt(
+      json.employeeId,
+      'parseLeaveRequest.employeeId'
+    ),
     employeeName: json.employeeName,
     department: json.department,
     organizationId: json.organizationId,
