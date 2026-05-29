@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { mockProjects } from '@/components/shared/mock-data';
+import { useProjects } from '@/hooks/project/use-projects';
 import {
   Receipt,
   ReceiptType,
@@ -113,6 +113,7 @@ interface ReceiptEditFormProps {
 
 function ReceiptEditForm({ initialData, receiptId }: ReceiptEditFormProps) {
   const router = useRouter();
+  const { data: projects = [] } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Receipt>>(() => ({
     receiptNumber: initialData.receiptNumber,
@@ -257,7 +258,7 @@ function ReceiptEditForm({ initialData, receiptId }: ReceiptEditFormProps) {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map((project) => (
+                      {projects.map((project) => (
                         <SelectItem
                           key={project.id}
                           value={project.id.toString()}
