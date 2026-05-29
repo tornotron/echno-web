@@ -1,6 +1,8 @@
 // types/attendance/clock-event.ts
 // Clock event types for attendance tracking
 
+import { parsePositiveInt } from '@/types/parse-id';
+
 export enum ClockEventType {
   morningClockIn = 'morningClockIn',
   lunchBreakStart = 'lunchBreakStart',
@@ -100,6 +102,7 @@ export function isWithinGeofence(
 export function parseClockEvent(data: any): ClockEvent {
   return {
     ...data,
+    id: parsePositiveInt(data.id, 'parseClockEvent.id'),
     timestamp: new Date(data.timestamp),
     verifiedAt: data.verifiedAt ? new Date(data.verifiedAt) : undefined,
   };
