@@ -17,11 +17,11 @@ import { leaveKeys } from '@/hooks/leave/use-leave';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 import {
-  LeavePolicyCreation,
-  LeavePolicy,
-  LeaveBalanceAdjustment,
-  LeaveRequestCreation,
-  LeaveRequestUpdate,
+  CreateLeavePolicyRequest,
+  UpdateLeavePolicyRequest,
+  AdjustLeaveBalanceRequest,
+  CreateLeaveRequestRequest,
+  UpdateLeaveRequestRequest,
   LeaveApprovalAction,
   CalculateDays,
 } from '@/types/leave';
@@ -32,7 +32,8 @@ export const useCreateLeavePolicy = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (dto: LeavePolicyCreation) => leaveService.createPolicy(dto),
+    mutationFn: (dto: CreateLeavePolicyRequest) =>
+      leaveService.createPolicy(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
       toast.success('Leave Policy Created', {
@@ -55,7 +56,7 @@ export const useUpdateLeavePolicy = () => {
       updates,
     }: {
       policyId: number;
-      updates: Partial<LeavePolicy>;
+      updates: UpdateLeavePolicyRequest;
     }) => leaveService.updatePolicy(policyId, updates),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.policy(data.id) });
@@ -166,7 +167,7 @@ export const useAdjustBalance = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (dto: LeaveBalanceAdjustment) =>
+    mutationFn: (dto: AdjustLeaveBalanceRequest) =>
       leaveService.adjustBalance(dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
@@ -201,7 +202,8 @@ export const useCreateLeaveRequest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (dto: LeaveRequestCreation) => leaveService.createRequest(dto),
+    mutationFn: (dto: CreateLeaveRequestRequest) =>
+      leaveService.createRequest(dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({
         queryKey: leaveKeys.employeeRequests(data.employeeId),
@@ -232,7 +234,7 @@ export const useUpdateLeaveRequest = () => {
     }: {
       requestId: number;
       employeeId: number;
-      dto: LeaveRequestUpdate;
+      dto: UpdateLeaveRequestRequest;
     }) => leaveService.updateRequest(requestId, employeeId, dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(data.id) });
