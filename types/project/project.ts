@@ -4,6 +4,7 @@ import { Task, parseTask } from '@/types/task';
 import { ProjectStatus, getProjectStatus } from './project-status';
 import type { Attachment } from '../attachment';
 import { parseAttachment, attachmentToJson } from '../attachment/attachment';
+import { parsePositiveInt } from '@/types/parse-id';
 
 export interface Project {
   id: number;
@@ -45,7 +46,7 @@ export function removeMember(project: Project, employee: Employee): Project {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseProject(json: any): Project {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseProject.id'),
     projectName: json.projectName ?? '',
     projectAddress: json.projectAddress ?? '',
     status: getProjectStatus(json.status) ?? ProjectStatus.upcoming,
