@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { logger } from '@/lib/logger';
 import { useProject } from '@/hooks/project/use-projects';
 import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
-import { ProjectFiles } from '@/services/project-service';
+import { ProjectFiles } from '@/types/project';
 import {
   Card,
   CardContent,
