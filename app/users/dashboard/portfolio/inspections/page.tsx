@@ -34,7 +34,7 @@ import {
   inspectionTypeLabels,
   inspectionResultLabels,
 } from '@/types/inspection';
-import { mockInspections } from '@/components/shared/mock-data';
+import { useInspections } from '@/hooks/inspection';
 import { useProjects } from '@/hooks/project/use-projects';
 import { routes } from '@/nav';
 
@@ -66,6 +66,7 @@ const getResultBadgeColor = (result: InspectionResult): string => {
 
 export default function InspectionsPage() {
   const { data: projects = [] } = useProjects();
+  const { data: inspections = [] } = useInspections();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -81,7 +82,7 @@ export default function InspectionsPage() {
 
   // Filter inspections
   const filteredInspections = useMemo(() => {
-    return mockInspections.filter((inspection) => {
+    return inspections.filter((inspection) => {
       const matchesSearch =
         inspection.inspectionNumber
           .toLowerCase()
@@ -110,7 +111,14 @@ export default function InspectionsPage() {
         matchesProject
       );
     });
-  }, [searchQuery, statusFilter, typeFilter, resultFilter, projectFilter]);
+  }, [
+    inspections,
+    searchQuery,
+    statusFilter,
+    typeFilter,
+    resultFilter,
+    projectFilter,
+  ]);
 
   // Reset to page 1 when filters change
 
@@ -121,15 +129,15 @@ export default function InspectionsPage() {
   const paginatedInspections = filteredInspections.slice(startIndex, endIndex);
 
   // Calculate stats
-  const totalInspections = mockInspections.length;
-  const scheduledCount = mockInspections.filter(
+  const totalInspections = inspections.length;
+  const scheduledCount = inspections.filter(
     (i) => i.status === InspectionStatus.scheduled
   ).length;
-  const inProgressCount = mockInspections.filter(
+  const inProgressCount = inspections.filter(
     (i) => i.status === InspectionStatus.inProgress
   ).length;
 
-  const criticalDefectsCount = mockInspections.reduce(
+  const criticalDefectsCount = inspections.reduce(
     (sum, i) => sum + i.criticalDefects,
     0
   );

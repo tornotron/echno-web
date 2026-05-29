@@ -22,8 +22,8 @@ import {
 } from '@/components/shadcn/select';
 import { Save } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { mockEmployees } from '@/components/shared/mock-data';
 import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@/hooks/employee';
 import { routes } from '@/nav';
 import {
   InspectionStatus,
@@ -35,6 +35,7 @@ import { toast } from '@/lib/styles/toast-styles';
 export default function NewInspectionPage() {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Form state
@@ -80,7 +81,7 @@ export default function NewInspectionPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const project = projects.find((p) => p.id === Number.parseInt(projectId));
-      const inspector = mockEmployees.find(
+      const inspector = employees.find(
         (emp) => emp.id === Number.parseInt(inspectorId)
       );
 
@@ -308,7 +309,7 @@ export default function NewInspectionPage() {
                     <SelectValue placeholder="Select inspector" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem
                         key={employee.id}
                         value={employee.id?.toString() || ''}
