@@ -6,6 +6,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { parsePositiveInt } from '@/types/parse-id';
 import { LeaveNotificationType } from './leave-enums';
 
 /**
@@ -28,7 +29,7 @@ export interface LeaveNotification {
  */
 export function parseLeaveNotification(json: any): LeaveNotification {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeaveNotification.id'),
     employeeId: json.employeeId ?? 0,
     type:
       (json.type as LeaveNotificationType) ??

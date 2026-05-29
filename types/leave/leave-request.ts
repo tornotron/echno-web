@@ -6,6 +6,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
+import { parsePositiveInt } from '@/types/parse-id';
 import { LeaveStatus, HalfDayType } from './leave-enums';
 import { LeaveApproval, parseLeaveApproval } from './leave-approval';
 
@@ -48,37 +49,6 @@ export interface LeaveRequest {
 }
 
 /**
- * Leave Request Creation
- */
-export interface LeaveRequestCreation {
-  employeeId: number;
-  leavePolicyId: number;
-  startDate: string;
-  startHalfDayType?: HalfDayType | null;
-  endDate: string;
-  endHalfDayType?: HalfDayType | null;
-  reason: string;
-  contactDuringLeave?: string;
-  handoverToId?: number;
-  handoverNotes?: string;
-  submitImmediately?: boolean;
-}
-
-/**
- * Leave Request Update
- */
-export interface LeaveRequestUpdate {
-  startDate?: string;
-  startHalfDayType?: HalfDayType | null;
-  endDate?: string;
-  endHalfDayType?: HalfDayType | null;
-  reason?: string;
-  contactDuringLeave?: string;
-  handoverToId?: number;
-  handoverNotes?: string;
-}
-
-/**
  * Calculate Days Request
  */
 export interface CalculateDays {
@@ -108,7 +78,7 @@ export interface ConflictCheckResponse {
  */
 export function parseLeaveRequest(json: any): LeaveRequest {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseLeaveRequest.id'),
     requestNumber: json.requestNumber ?? '',
     employeeId: json.employeeId ?? 0,
     employeeName: json.employeeName,
@@ -145,42 +115,11 @@ export function parseLeaveRequest(json: any): LeaveRequest {
   };
 }
 
-/**
- * Convert leave request creation DTO to JSON
- */
-export function leaveRequestCreationToJson(dto: LeaveRequestCreation): any {
-  return {
-    employeeId: dto.employeeId,
-    leavePolicyId: dto.leavePolicyId,
-    startDate: dto.startDate,
-    startHalfDayType: dto.startHalfDayType,
-    endDate: dto.endDate,
-    endHalfDayType: dto.endHalfDayType,
-    reason: dto.reason,
-    contactDuringLeave: dto.contactDuringLeave,
-    handoverToId: dto.handoverToId,
-    handoverNotes: dto.handoverNotes,
-    submitImmediately: dto.submitImmediately ?? false,
-  };
-}
-
-/**
- * Convert leave request update DTO to JSON
- */
-export function leaveRequestUpdateToJson(dto: LeaveRequestUpdate): any {
-  const json: any = {};
-
-  if (dto.startDate !== undefined) json.startDate = dto.startDate;
-  if (dto.startHalfDayType !== undefined)
-    json.startHalfDayType = dto.startHalfDayType;
-  if (dto.endDate !== undefined) json.endDate = dto.endDate;
-  if (dto.endHalfDayType !== undefined)
-    json.endHalfDayType = dto.endHalfDayType;
-  if (dto.reason !== undefined) json.reason = dto.reason;
-  if (dto.contactDuringLeave !== undefined)
-    json.contactDuringLeave = dto.contactDuringLeave;
-  if (dto.handoverToId !== undefined) json.handoverToId = dto.handoverToId;
-  if (dto.handoverNotes !== undefined) json.handoverNotes = dto.handoverNotes;
-
-  return json;
-}
+export {
+  type CreateLeaveRequestRequest,
+  createLeaveRequestToJson,
+} from './leave-request-create';
+export {
+  type UpdateLeaveRequestRequest,
+  updateLeaveRequestToJson,
+} from './leave-request-update';
