@@ -1,7 +1,7 @@
 'use client';
 
-import { mockProjects } from '@/components/shared/mock-data';
 import { useInvoices } from '@/hooks/invoices';
+import { useProjects } from '@/hooks/project/use-projects';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -13,7 +13,7 @@ import { InvoicesFeature } from '@/features/invoices';
 
 export default function InvoicesPage() {
   const { data: invoices = [], isLoading, isError } = useInvoices();
-  const projects = mockProjects;
+  const { data: projects = [] } = useProjects();
 
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter(
