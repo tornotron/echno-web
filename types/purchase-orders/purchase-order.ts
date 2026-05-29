@@ -44,7 +44,10 @@ export function parsePurchaseOrder(raw: Raw): PurchaseOrder {
       typeof raw.createdBy === 'string'
         ? { id: 0, name: raw.createdBy }
         : {
-            id: raw.createdBy?.id ?? 0,
+            id: parsePositiveInt(
+              raw.createdBy?.id,
+              'parsePurchaseOrder.createdBy.id'
+            ),
             name: raw.createdBy?.employeeName ?? raw.createdBy?.name ?? '',
           },
     expectedDeliveryDate: raw.expectedDeliveryDate ?? undefined,

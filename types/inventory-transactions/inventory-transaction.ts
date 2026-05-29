@@ -41,7 +41,10 @@ export function parseInventoryTransaction(raw: Raw): InventoryTransaction {
     storageLocationName: raw.storageLocationName ?? '',
     unitCost: raw.unitCost ?? null,
     createdBy: {
-      id: raw.createdBy?.id ?? 0,
+      id: parsePositiveInt(
+        raw.createdBy?.id,
+        'parseInventoryTransaction.createdBy.id'
+      ),
       name: raw.createdBy?.employeeName ?? '',
     },
   };

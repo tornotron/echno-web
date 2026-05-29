@@ -75,7 +75,10 @@ export function parseLeaveBalance(json: any): LeaveBalance {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveBalance.id'),
     employeeId: json.employeeId ?? 0,
-    leavePolicyId: json.leavePolicyId ?? json.leavePolicy?.id ?? 0,
+    leavePolicyId: parsePositiveInt(
+      json.leavePolicyId ?? json.leavePolicy?.id,
+      'parseLeaveBalance.leavePolicyId'
+    ),
     leaveTypeName: json.leaveTypeName ?? json.leavePolicy?.leaveTypeName,
     year: json.year ?? new Date().getFullYear(),
     openingBalance: json.openingBalance ?? 0,

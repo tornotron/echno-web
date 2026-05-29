@@ -19,7 +19,10 @@ export function parseIndentItem(raw: Raw): IndentItem {
   return {
     id: parsePositiveInt(raw.id, 'parseIndentItem.id'),
     material: {
-      id: raw.material?.id ?? raw.materialId ?? 0,
+      id: parsePositiveInt(
+        raw.material?.id ?? raw.materialId,
+        'parseIndentItem.material.id'
+      ),
       sku: raw.material?.sku ?? undefined,
       materialName: raw.material?.materialName ?? raw.materialName ?? '',
       unit: raw.material?.unit ?? raw.unit ?? '',

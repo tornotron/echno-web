@@ -84,7 +84,10 @@ export function parseLeaveRequest(json: any): LeaveRequest {
     employeeName: json.employeeName,
     department: json.department,
     organizationId: json.organizationId,
-    leavePolicyId: json.leavePolicyId ?? json.leavePolicy?.id ?? 0,
+    leavePolicyId: parsePositiveInt(
+      json.leavePolicyId ?? json.leavePolicy?.id,
+      'parseLeaveRequest.leavePolicyId'
+    ),
     leaveTypeName: json.leaveTypeName ?? json.leavePolicy?.leaveTypeName,
     startDate: json.startDate ? new Date(json.startDate) : new Date(),
     startHalfDayType: json.startHalfDayType as HalfDayType,
