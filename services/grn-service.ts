@@ -8,7 +8,8 @@ import { api, ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import {
   GoodsReceivedNote,
-  CreateGrnInput,
+  CreateGrnRequest,
+  createGrnToJson,
   parseGoodsReceivedNote,
 } from '@/types/grn';
 
@@ -38,8 +39,8 @@ function safeParseGRNs(data: Raw[]): GoodsReceivedNote[] {
 }
 
 export const grnService = {
-  async create(grn: CreateGrnInput): Promise<GoodsReceivedNote> {
-    const data = await api.post<Raw>('/grns/web', grn);
+  async create(dto: CreateGrnRequest): Promise<GoodsReceivedNote> {
+    const data = await api.post<Raw>('/grns/web', createGrnToJson(dto));
     return safeParseGRN(data);
   },
 

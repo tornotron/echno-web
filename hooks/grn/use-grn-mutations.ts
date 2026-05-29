@@ -11,7 +11,7 @@ import { materialsKeys } from '@/hooks/materials/material-keys';
 import { poKeys } from '@/hooks/purchase-orders/purchase-order-keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
-import { CreateGrnInput } from '@/types/grn';
+import { CreateGrnRequest } from '@/types/grn';
 
 export const useDeleteGRN = () => {
   const queryClient = useQueryClient();
@@ -33,7 +33,7 @@ export const useDeleteGRN = () => {
 export const useCreateGRN = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreateGrnInput) => grnService.create(dto),
+    mutationFn: (dto: CreateGrnRequest) => grnService.create(dto),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       // GRN creation increases stock — invalidate material stock queries
