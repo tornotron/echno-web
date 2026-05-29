@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { useProjects } from '@/lib/hooks/use-projects';
+import { useProjects } from '@/hooks/project/use-projects';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
