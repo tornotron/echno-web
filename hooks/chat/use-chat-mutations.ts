@@ -2,10 +2,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { chatService } from '@/services/chat-service';
-import {
-  chatMessageService,
-  SendMessageData,
-} from '@/services/chat-message-service';
+import { chatMessageService } from '@/services/chat-message-service';
+import { SendMessageData } from '@/types/chat';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';

@@ -5,16 +5,8 @@
 // api.get() / api.post() etc. once the backend is ready.
 
 import { logger } from '@/lib/logger';
-import { ChatMessage, ChatEntityType } from '@/types/chat';
+import { ChatMessage, SendMessageData } from '@/types/chat';
 import { mockChatMessages } from '@/components/shared/data/chat';
-
-export interface SendMessageData {
-  content: string;
-  replyToId?: number;
-  mentions?: number[];
-  entityMentions?: { entityType: ChatEntityType; entityId: number }[];
-  attachments?: File[];
-}
 
 // In-memory store for messages created during this session (mock only)
 const sessionMessages: Record<number, ChatMessage[]> = {};
