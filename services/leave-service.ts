@@ -14,21 +14,23 @@ import { logger } from '@/lib/logger';
 import {
   LeavePolicy,
   parseLeavePolicy,
-  leavePolicyToJson,
-  LeavePolicyCreation,
+  CreateLeavePolicyRequest,
+  createLeavePolicyToJson,
+  UpdateLeavePolicyRequest,
+  updateLeavePolicyToJson,
   LeaveBalance,
   parseLeaveBalance,
   parseLeaveBalanceSummary,
   LeaveBalanceSummary,
   LeaveTransaction,
   parseLeaveTransaction,
-  LeaveBalanceAdjustment,
+  AdjustLeaveBalanceRequest,
   LeaveRequest,
   parseLeaveRequest,
-  LeaveRequestCreation,
-  LeaveRequestUpdate,
-  leaveRequestCreationToJson,
-  leaveRequestUpdateToJson,
+  CreateLeaveRequestRequest,
+  UpdateLeaveRequestRequest,
+  createLeaveRequestToJson,
+  updateLeaveRequestToJson,
   CalculateDays,
   CalculateDaysResponse,
   ConflictCheckResponse,
@@ -187,8 +189,11 @@ export const leaveService = {
   /**
    * Create a new leave policy.
    */
-  async createPolicy(dto: LeavePolicyCreation): Promise<LeavePolicy> {
-    const data = await api.post<ApiResponse>('/leave-policies/web', dto);
+  async createPolicy(dto: CreateLeavePolicyRequest): Promise<LeavePolicy> {
+    const data = await api.post<ApiResponse>(
+      '/leave-policies/web',
+      createLeavePolicyToJson(dto)
+    );
     return safeParseLeavePolicy(data);
   },
 
@@ -225,9 +230,9 @@ export const leaveService = {
    */
   async updatePolicy(
     policyId: number,
-    updates: Partial<LeavePolicy>
+    updates: UpdateLeavePolicyRequest
   ): Promise<LeavePolicy> {
-    const payload = leavePolicyToJson(updates);
+    const payload = updateLeavePolicyToJson(updates);
     const data = await api.patch<ApiResponse>(
       `/leave-policies/web/update`,
       payload,
@@ -338,7 +343,7 @@ export const leaveService = {
   /**
    * Manual balance adjustment.
    */
-  async adjustBalance(dto: LeaveBalanceAdjustment): Promise<LeaveBalance> {
+  async adjustBalance(dto: AdjustLeaveBalanceRequest): Promise<LeaveBalance> {
     const data = await api.post<ApiResponse>('/leave-balances/web/adjust', dto);
     return safeParseLeaveBalance(data);
   },
@@ -390,8 +395,8 @@ export const leaveService = {
   /**
    * Create leave request.
    */
-  async createRequest(dto: LeaveRequestCreation): Promise<LeaveRequest> {
-    const payload = leaveRequestCreationToJson(dto);
+  async createRequest(dto: CreateLeaveRequestRequest): Promise<LeaveRequest> {
+    const payload = createLeaveRequestToJson(dto);
     const data = await api.post<ApiResponse>('/leave-requests/web', payload, {
       employeeId: dto.employeeId,
     });
@@ -497,9 +502,9 @@ export const leaveService = {
   async updateRequest(
     requestId: number,
     employeeId: number,
-    dto: LeaveRequestUpdate
+    dto: UpdateLeaveRequestRequest
   ): Promise<LeaveRequest> {
-    const payload = leaveRequestUpdateToJson(dto);
+    const payload = updateLeaveRequestToJson(dto);
     const data = await api.patch<ApiResponse>(
       `/leave-requests/web/update`,
       payload,
