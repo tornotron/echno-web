@@ -23,7 +23,7 @@ import {
   User,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useMaterialConsumption } from '@/hooks/materials';
+import { useMaterialConsumption } from '@/hooks/material-consumptions';
 import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
 import {
   ConsumptionInfoCard,
