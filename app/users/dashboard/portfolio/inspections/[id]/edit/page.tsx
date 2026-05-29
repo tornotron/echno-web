@@ -22,7 +22,8 @@ import {
 } from '@/components/shadcn/select';
 import { Save } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import { mockEmployees, mockInspections } from '@/components/shared/mock-data';
+import { useInspectionById } from '@/hooks/inspection';
+import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project/use-projects';
 import { routes } from '@/nav';
 import {
@@ -40,8 +41,11 @@ export default function EditInspectionPage() {
   const router = useRouter();
   const params = useParams();
   const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
+  const inspectionId = Number.parseInt(params.id as string);
+  const { data: inspectionData, isLoading: loading } =
+    useInspectionById(inspectionId);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -65,55 +69,35 @@ export default function EditInspectionPage() {
   const [reinspectionDate, setReinspectionDate] = useState('');
   const [reinspectionNotes, setReinspectionNotes] = useState('');
 
-  // Load inspection data
+  // Populate form fields when inspection data is loaded
   useEffect(() => {
-    const loadInspection = async () => {
-      try {
-        const inspectionId = Number.parseInt(params.id as string);
-        const inspection = mockInspections.find((i) => i.id === inspectionId);
+    if (!inspectionData) return;
 
-        if (!inspection) {
-          toast.error('Inspection not found');
-          router.push(routes.portfolio.inspections.href);
-          return;
-        }
-
-        // Populate form with existing data
-        setTitle(inspection.title);
-        setType(inspection.type);
-        setStatus(inspection.status);
-        setResult(inspection.result || '');
-        setProjectId(inspection.projectId?.toString() || '');
-        setLocation(inspection.location);
-        setAreaInspected(inspection.areaInspected);
-        setScheduledDate(format(inspection.scheduledDate, 'yyyy-MM-dd'));
-        setScheduledTime(inspection.scheduledTime || '');
-        setInspectorId(inspection.inspectorId.toString());
-        setContractorName(inspection.contractorName || '');
-        setClientRepresentative(inspection.clientRepresentative || '');
-        setDrawingReference(inspection.drawingReference || '');
-        setObservationsAndComments(inspection.observationsAndComments || '');
-        setRecommendations(inspection.recommendations || '');
-        setWeatherConditions(inspection.weatherConditions || '');
-        setTemperature(inspection.temperature || '');
-        setReinspectionRequired(inspection.reinspectionRequired);
-        setReinspectionDate(
-          inspection.reinspectionDate
-            ? format(inspection.reinspectionDate, 'yyyy-MM-dd')
-            : ''
-        );
-        setReinspectionNotes(inspection.reinspectionNotes || '');
-
-        setLoading(false);
-      } catch (error) {
-        logger.error('Error loading inspection:', error);
-        toast.error('Failed to load inspection');
-        router.push(routes.portfolio.inspections.href);
-      }
-    };
-
-    loadInspection();
-  }, [params.id, router]);
+    setTitle(inspectionData.title);
+    setType(inspectionData.type);
+    setStatus(inspectionData.status);
+    setResult(inspectionData.result || '');
+    setProjectId(inspectionData.projectId?.toString() || '');
+    setLocation(inspectionData.location);
+    setAreaInspected(inspectionData.areaInspected);
+    setScheduledDate(format(inspectionData.scheduledDate, 'yyyy-MM-dd'));
+    setScheduledTime(inspectionData.scheduledTime || '');
+    setInspectorId(inspectionData.inspectorId.toString());
+    setContractorName(inspectionData.contractorName || '');
+    setClientRepresentative(inspectionData.clientRepresentative || '');
+    setDrawingReference(inspectionData.drawingReference || '');
+    setObservationsAndComments(inspectionData.observationsAndComments || '');
+    setRecommendations(inspectionData.recommendations || '');
+    setWeatherConditions(inspectionData.weatherConditions || '');
+    setTemperature(inspectionData.temperature || '');
+    setReinspectionRequired(inspectionData.reinspectionRequired);
+    setReinspectionDate(
+      inspectionData.reinspectionDate
+        ? format(inspectionData.reinspectionDate, 'yyyy-MM-dd')
+        : ''
+    );
+    setReinspectionNotes(inspectionData.reinspectionNotes || '');
+  }, [inspectionData]);
 
   // Validation
   const isFormValid = () => {
@@ -145,7 +129,7 @@ export default function EditInspectionPage() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const project = projects.find((p) => p.id === Number.parseInt(projectId));
-      const inspector = mockEmployees.find(
+      const inspector = employees.find(
         (emp) => emp.id === Number.parseInt(inspectorId)
       );
 
@@ -429,7 +413,7 @@ export default function EditInspectionPage() {
                     <SelectValue placeholder="Select inspector" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <SelectItem
                         key={employee.id}
                         value={employee.id?.toString() || ''}
