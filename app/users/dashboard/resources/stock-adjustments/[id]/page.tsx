@@ -44,7 +44,8 @@ import {
 } from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
-import { mockStockAdjustments } from '@/components/shared/mock-data';
+import { useStockAdjustment } from '@/hooks/stock-adjustments';
+import { StockAdjustmentStatus } from '@/types/resource';
 
 const handleDownloadPDF = () => {
   toast.success('Downloading stock adjustment report...');
@@ -155,11 +156,8 @@ export default function StockAdjustmentDetailPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
-
-  // In a real app, fetch data based on ID
-  const adjustment = mockStockAdjustments.find(
-    (sa) => sa.id === Number.parseInt(id)
-  );
+  const numericId = Number.parseInt(id);
+  const { data: adjustment } = useStockAdjustment(numericId);
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -280,7 +278,7 @@ export default function StockAdjustmentDetailPage({
       </div>
 
       {/* Action Buttons for Pending Status */}
-      {adjustment.status === 'Pending' && (
+      {adjustment.status === StockAdjustmentStatus.pending && (
         <div className="mb-6 flex gap-2">
           <Button onClick={handleApprove}>
             <CheckCircle2 className="mr-2 h-4 w-4" />
@@ -413,9 +411,9 @@ export default function StockAdjustmentDetailPage({
                       Origin Type
                     </div>
                     <div className="font-medium text-zinc-900 capitalize dark:text-zinc-100">
-                      {adjustment.originType === 'purchaseOrder'
+                      {adjustment.originType === 'purchase_order'
                         ? 'Purchase Order'
-                        : adjustment.originType === 'goodsReceipt'
+                        : adjustment.originType === 'goods_receipt'
                           ? 'Goods Receipt'
                           : adjustment.originType}
                     </div>

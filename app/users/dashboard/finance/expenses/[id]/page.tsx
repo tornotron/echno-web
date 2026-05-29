@@ -1,8 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockEmployees } from '@/components/shared/mock-data';
 import { useExpenseById } from '@/hooks/expenses';
+import { useEmployees } from '@/hooks/employee';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -99,6 +99,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
   const { data: expense, isLoading, isError } = useExpenseById(id);
+  const { data: employees = [] } = useEmployees();
 
   if (isLoading)
     return (
@@ -141,12 +142,10 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
       </Empty>
     );
 
-  const submittedByEmployee = mockEmployees.find(
+  const submittedByEmployee = employees.find(
     (e) => e.id === expense.submittedBy
   );
-  const approvedByEmployee = mockEmployees.find(
-    (e) => e.id === expense.approvedBy
-  );
+  const approvedByEmployee = employees.find((e) => e.id === expense.approvedBy);
 
   return (
     <div className="space-y-4 sm:space-y-6">
