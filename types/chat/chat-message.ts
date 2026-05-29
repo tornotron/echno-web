@@ -1,6 +1,7 @@
 // types/chat/chat-message.ts
 
 import { Employee } from '@/types/employee/employee';
+import { parsePositiveInt } from '@/types/parse-id';
 import { Attachment, parseAttachment } from '@/types/attachment';
 import { ChatReaction, parseChatReaction } from './chat-reaction';
 import {
@@ -43,7 +44,7 @@ function parseReplyTo(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseChatMessage(json: any): ChatMessage {
   return {
-    id: json.id ?? 0,
+    id: parsePositiveInt(json.id, 'parseChatMessage.id'),
     roomId: json.roomId ?? json.room_id ?? 0,
     senderId: json.senderId ?? json.sender_id ?? 0,
     content: json.content ?? '',

@@ -48,8 +48,14 @@ export interface LeaveCountResponse {
 export function parseLeaveCalendarEntry(json: any): LeaveCalendarEntry {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveCalendarEntry.id'),
-    leaveRequestId: json.leaveRequestId ?? 0,
-    employeeId: json.employeeId ?? 0,
+    leaveRequestId: parsePositiveInt(
+      json.leaveRequestId,
+      'parseLeaveCalendarEntry.leaveRequestId'
+    ),
+    employeeId: parsePositiveInt(
+      json.employeeId,
+      'parseLeaveCalendarEntry.employeeId'
+    ),
     employeeName: json.employeeName,
     department: json.department,
     leaveDate: json.leaveDate ? new Date(json.leaveDate) : new Date(),

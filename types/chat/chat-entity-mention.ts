@@ -1,6 +1,7 @@
 // types/chat/chat-entity-mention.ts
 
 import { ChatEntityType, chatEntityTypeFromString } from './chat-entity-type';
+import { parsePositiveInt } from '@/types/parse-id';
 
 export interface ChatEntityMention {
   entityType: ChatEntityType;
@@ -12,7 +13,10 @@ export interface ChatEntityMention {
 export function parseChatEntityMention(json: any): ChatEntityMention {
   return {
     entityType: chatEntityTypeFromString(json.entityType ?? 'task'),
-    entityId: json.entityId ?? 0,
+    entityId: parsePositiveInt(
+      json.entityId,
+      'parseChatEntityMention.entityId'
+    ),
     label: json.label ?? undefined,
   };
 }

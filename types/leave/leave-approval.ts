@@ -58,8 +58,14 @@ export interface CanApproveResponse {
 export function parseLeaveApproval(json: any): LeaveApproval {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveApproval.id'),
-    leaveRequestId: json.leaveRequestId ?? 0,
-    approverId: json.approverId ?? 0,
+    leaveRequestId: parsePositiveInt(
+      json.leaveRequestId,
+      'parseLeaveApproval.leaveRequestId'
+    ),
+    approverId: parsePositiveInt(
+      json.approverId,
+      'parseLeaveApproval.approverId'
+    ),
     approverName: json.approverName,
     approverDesignation: json.approverDesignation,
     approvalLevel: json.approvalLevel ?? 0,

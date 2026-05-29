@@ -130,7 +130,10 @@ export function parseEmployee(json: any): Employee {
     cv,
     profilePicture,
     employeeId: json.employeeId ?? json.id?.toString() ?? '',
-    organizationId: json.organizationId ?? 0,
+    organizationId: parsePositiveInt(
+      json.organizationId,
+      'parseEmployee.organizationId'
+    ),
     organizationName: json.organizationName ?? undefined,
     designation: json.designation ?? '',
     department:
