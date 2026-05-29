@@ -7,8 +7,16 @@
 //   @Issue <query>  → issue entity mention (filters project issues)
 
 import { useState, useCallback, useMemo, RefObject } from 'react';
-import { ChatParticipant } from '@/types/chat';
-import { ChatEntityType } from '@/types/chat';
+import { ChatEntityType, ChatParticipant } from '@/types/chat';
+import {
+  MentionMode,
+  MentionMember,
+  MentionTask,
+  MentionIssue,
+  MentionItem,
+  UseMentionOptions,
+  UseMentionReturn,
+} from '@/types/chat';
 import { Task } from '@/types/task/task';
 import { Issue } from '@/types/issue/issue';
 import {
@@ -16,59 +24,15 @@ import {
   buildEntityToken,
 } from '@/features/chat/utils/message-parser';
 
-// ─── Public types ───────────────────────────────────────────────────────────
-
-export type MentionMode = 'member' | 'task' | 'issue';
-
-export interface MentionMember {
-  kind: 'member';
-  employeeId: number;
-  name: string;
-  avatar?: string;
-}
-
-export interface MentionTask {
-  kind: 'task';
-  id: number;
-  title: string;
-}
-
-export interface MentionIssue {
-  kind: 'issue';
-  id: number;
-  title: string;
-}
-
-export type MentionItem = MentionMember | MentionTask | MentionIssue;
-
-export interface UseMentionOptions {
-  participants: ChatParticipant[];
-  tasks: Task[];
-  issues: Issue[];
-}
-
-export interface UseMentionReturn {
-  /** Whether the mention popup should be visible */
-  open: boolean;
-  /** Current mention mode */
-  mode: MentionMode;
-  /** Filtered items to display in the popup */
-  items: MentionItem[];
-  /** Currently highlighted index */
-  activeIndex: number;
-  /** Call on every value change from the textarea */
-  onValueChange: (value: string, cursorPos: number) => void;
-  /** Select the item at the given index (or activeIndex) */
-  selectItem: (index?: number) => void;
-  /** Move highlight up */
-  moveUp: () => void;
-  /** Move highlight down */
-  moveDown: () => void;
-  /** Dismiss the popup */
-  dismiss: () => void;
-  /** The raw search query inside the trigger */
-  query: string;
-}
+export type {
+  MentionMode,
+  MentionMember,
+  MentionTask,
+  MentionIssue,
+  MentionItem,
+  UseMentionOptions,
+  UseMentionReturn,
+} from '@/types/chat';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 

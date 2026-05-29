@@ -10,45 +10,10 @@
 
 import { useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
+import { LeaveRole, LeaveRoleContext } from '@/types/leave';
 
-// ==================== Types ====================
-
-/**
- * Leave management roles
- */
-export enum LeaveRole {
-  EMPLOYEE = 'employee',
-  MANAGER = 'manager',
-  ADMIN = 'admin',
-}
-
-/**
- * Leave role context with permissions
- */
-export interface LeaveRoleContext {
-  /** Primary role for the user */
-  role: LeaveRole;
-
-  /** Quick boolean checks */
-  isEmployee: boolean;
-  isManager: boolean;
-  isAdmin: boolean;
-
-  /** Available roles for this user (for dashboard switching) */
-  availableRoles: LeaveRole[];
-
-  /** Permission flags */
-  canApprove: boolean;
-  canManagePolicies: boolean;
-  canViewAllRequests: boolean;
-  canViewTeamRequests: boolean;
-  canViewOwnRequests: boolean;
-
-  /** Loading state */
-  isLoading: boolean;
-}
-
-// ==================== Hook ====================
+export { LeaveRole } from '@/types/leave';
+export type { LeaveRoleContext } from '@/types/leave';
 
 /**
  * Hook to determine user's leave management role and permissions.
