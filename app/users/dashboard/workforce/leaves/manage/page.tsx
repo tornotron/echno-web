@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { OrgGuard, PageHeader } from '@/components/common';
-import { useLeaveRole, LeaveRole } from '@/hooks/leave/use-leave-role';
+import { useLeaveRole } from '@/hooks/leave/use-leave-role';
+import { LeaveRole } from '@/types/leave';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
 import { DashboardSwitcher } from '@/features/leave/components/dashboard/dashboard-switcher';
