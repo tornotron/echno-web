@@ -22,7 +22,7 @@ import {
 } from '@/components/shadcn/select';
 import { X, MapPin } from 'lucide-react';
 import { Asset } from '@/types/resource';
-import { mockLocations } from '@/components/shared/mock-data';
+import { useStorageLocations } from '@/hooks/storage-locations';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface AssetTransferModalProps {
@@ -36,6 +36,7 @@ export function AssetTransferModal({
   onClose,
   onTransfer,
 }: AssetTransferModalProps) {
+  const { data: locations = [] } = useStorageLocations();
   const [formData, setFormData] = useState({
     toLocationId: '',
     transferDate: format(new Date(), 'yyyy-MM-dd'),
@@ -115,14 +116,14 @@ export function AssetTransferModal({
                     <SelectValue placeholder="Select new location" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockLocations
+                    {locations
                       .filter((loc) => loc.id !== asset.locationId)
                       .map((location) => (
                         <SelectItem
                           key={location.id}
                           value={location.id.toString()}
                         >
-                          {location.name}
+                          {location.locationName}
                           {location.address && ` - ${location.address}`}
                         </SelectItem>
                       ))}

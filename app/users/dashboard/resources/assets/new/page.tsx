@@ -26,10 +26,11 @@ import {
 import { Save, X } from 'lucide-react';
 import { AssetType, AssetStatus, AssetCondition } from '@/types/resource';
 import { toast } from '@/lib/styles/toast-styles';
-import { mockLocations } from '@/components/shared/mock-data';
+import { useStorageLocations } from '@/hooks/storage-locations';
 
 export default function NewAssetPage() {
   const router = useRouter();
+  const { data: locations = [] } = useStorageLocations();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -504,12 +505,12 @@ export default function NewAssetPage() {
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockLocations.map((location) => (
+                      {locations.map((location) => (
                         <SelectItem
                           key={location.id}
                           value={location.id.toString()}
                         >
-                          {location.name}
+                          {location.locationName}
                         </SelectItem>
                       ))}
                     </SelectContent>

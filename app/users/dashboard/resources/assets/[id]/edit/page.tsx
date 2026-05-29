@@ -35,13 +35,15 @@ import {
 } from '@/components/shadcn/empty';
 import { AssetType, AssetStatus, AssetCondition } from '@/types/resource';
 import { toast } from '@/lib/styles/toast-styles';
-import { mockAssets, mockLocations } from '@/components/shared/mock-data';
+import { useAsset } from '@/hooks/assets';
+import { useStorageLocations } from '@/hooks/storage-locations';
 
 export default function EditAssetPage() {
   const params = useParams();
   const router = useRouter();
   const assetId = Number.parseInt(params.id as string);
-  const asset = mockAssets.find((a) => a.id === assetId);
+  const { data: asset } = useAsset(assetId);
+  const { data: locations = [] } = useStorageLocations();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -626,12 +628,12 @@ export default function EditAssetPage() {
                       <SelectValue placeholder="Select location" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockLocations.map((location) => (
+                      {locations.map((location) => (
                         <SelectItem
                           key={location.id}
                           value={location.id.toString()}
                         >
-                          {location.name}
+                          {location.locationName}
                         </SelectItem>
                       ))}
                     </SelectContent>
