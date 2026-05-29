@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { projectService } from '@/services/project-service';
 import { shouldRetry } from '@/lib/utils/retry';
+export { projectKeys } from './project-keys';
 
 /**
  * Hook to fetch all projects.
