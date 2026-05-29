@@ -1,52 +1,43 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Project } from '@/types/project/project';
-import { mockProjects } from '@/components/shared/mock-data';
+import { projectService } from '@/services/project-service';
 
 // Query Keys
 export const projectKeys = {
   all: ['projects'] as const,
   lists: () => [...projectKeys.all, 'list'] as const,
-  list: (filters?: Record<string, unknown>) => [...projectKeys.lists(), filters] as const,
+  list: (filters?: Record<string, unknown>) =>
+    [...projectKeys.lists(), filters] as const,
   details: () => [...projectKeys.all, 'detail'] as const,
   detail: (id: number) => [...projectKeys.details(), id] as const,
 };
 
-// API Functions (replace with actual API calls)
+// API Functions
 const fetchProjects = async (): Promise<Project[]> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return mockProjects;
+  return projectService.getAll();
 };
 
 const fetchProjectById = async (id: number): Promise<Project> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 300));
-  const project = mockProjects.find((p) => p.id === id);
-  if (!project) throw new Error('Project not found');
-
-  return project;
+  return projectService.getById(id);
 };
 
-const createProject = async (project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return {
-    ...project,
-    id: Math.max(...mockProjects.map((p) => p.id)) + 1,
-    createdAt: new Date(),
-  };
+const createProject = async (
+  project: Omit<Project, 'id' | 'createdAt'>
+): Promise<Project> => {
+  return projectService.create(
+    project as Parameters<typeof projectService.create>[0]
+  );
 };
 
 const updateProject = async (project: Project): Promise<Project> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500));
-  return project;
+  return projectService.update(
+    project.id,
+    project as Parameters<typeof projectService.update>[1]
+  );
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const deleteProject = async (_: number): Promise<void> => {
-  // Simulate API call
-  await new Promise((resolve) => setTimeout(resolve, 500));
+const deleteProject = async (id: number): Promise<void> => {
+  return projectService.delete(id);
 };
 
 // React Query Hooks
