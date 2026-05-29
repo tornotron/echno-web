@@ -3,13 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import {
-  mockProjects,
-  mockEmployees,
-  mockSubContracts,
-  mockLabour,
-} from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
+import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@/hooks/employee';
+import { useSubContracts } from '@/hooks/sub-contracts';
+import { useLabour } from '@/hooks/labour';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -53,13 +51,17 @@ import { toast } from '@/lib/styles/toast-styles';
 export default function NewPaymentPage() {
   const router = useRouter();
   const { data: vendors = [] } = useVendors();
+  const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
+  const { data: subContracts = [] } = useSubContracts();
+  const { data: labour = [] } = useLabour();
 
   // Create datasets object for utility functions
   const payeeDatasets = {
     vendors,
-    employees: mockEmployees,
-    subContracts: mockSubContracts,
-    labour: mockLabour,
+    employees,
+    subContracts,
+    labour,
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -73,7 +75,7 @@ export default function NewPaymentPage() {
     type: PaymentType.invoice,
     status: PaymentStatus.pending,
     method: PaymentMethod.bankTransfer,
-    projectId: mockProjects[0]?.id || 1, // Default to first project
+    projectId: projects[0]?.id || 1, // Default to first project
     amount: 0,
     currency: 'INR',
     paymentDate: new Date(),
@@ -312,7 +314,7 @@ export default function NewPaymentPage() {
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {mockProjects.map((project) => (
+                      {projects.map((project) => (
                         <SelectItem
                           key={project.id}
                           value={project.id.toString()}

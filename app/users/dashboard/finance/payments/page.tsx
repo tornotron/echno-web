@@ -1,14 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import {
-  mockProjects,
-  mockEmployees,
-  mockSubContracts,
-  mockLabour,
-} from '@/components/shared/mock-data';
 import { useVendors } from '@/hooks/vendors';
 import { usePayments } from '@/hooks/payments';
+import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@/hooks/employee';
+import { useSubContracts } from '@/hooks/sub-contracts';
+import { useLabour } from '@/hooks/labour';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -21,22 +19,26 @@ import { PaymentsTable } from '@/features/payments';
 export default function PaymentsPage() {
   const { data: vendors = [] } = useVendors();
   const { data: payments = [], isLoading, isError } = usePayments();
+  const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
+  const { data: subContracts = [] } = useSubContracts();
+  const { data: labour = [] } = useLabour();
 
   const payeeDatasets = useMemo(
     () => ({
       vendors,
-      employees: mockEmployees,
-      subContracts: mockSubContracts,
-      labour: mockLabour,
+      employees,
+      subContracts,
+      labour,
     }),
-    [vendors]
+    [vendors, employees, subContracts, labour]
   );
 
   const projectById = useMemo(() => {
     const m = new Map<number, { projectName: string }>();
-    for (const p of mockProjects) m.set(p.id, p);
+    for (const p of projects) m.set(p.id, p);
     return m;
-  }, []);
+  }, [projects]);
 
   const totalPayments = payments.length;
   const completedPayments = payments.filter(

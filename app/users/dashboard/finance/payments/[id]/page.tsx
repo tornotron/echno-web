@@ -1,8 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { mockMembers } from '@/components/shared/mock-data';
 import { usePaymentById } from '@/hooks/payments';
+import { useEmployees } from '@/hooks/employee';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -101,15 +101,16 @@ const getTypeColor = (type: PaymentType) => {
   }
 };
 
-const getUserName = (userId: number): string => {
-  const member = mockMembers.find((m) => m.id === userId);
-  return member?.memberName || `User #${userId}`;
-};
-
 export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
   const { data: payment, isLoading, isError } = usePaymentById(id);
+  const { data: employees = [] } = useEmployees();
+
+  const getUserName = (userId: number): string => {
+    const employee = employees.find((e) => e.id === userId);
+    return employee?.name || `User #${userId}`;
+  };
 
   if (isLoading)
     return (
