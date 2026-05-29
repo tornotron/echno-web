@@ -54,7 +54,7 @@ import {
   calculateDepreciation,
   isMaintenanceDue,
 } from '@/types/resource';
-import { mockAssets } from '@/components/shared/mock-data';
+import { useAsset } from '@/hooks/assets';
 import { toast } from '@/lib/styles/toast-styles';
 import { AssetTransferModal } from '@/features/assets/components';
 
@@ -74,7 +74,7 @@ export default function AssetDetailPage() {
   const params = useParams();
   const router = useRouter();
   const assetId = Number.parseInt(params.id as string);
-  const asset = mockAssets.find((a) => a.id === assetId);
+  const { data: asset } = useAsset(assetId);
   const [showTransferModal, setShowTransferModal] = useState(false);
 
   const [now] = useState(() => Date.now());
