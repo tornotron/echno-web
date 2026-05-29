@@ -2,7 +2,8 @@
 
 import { Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import { useMaterials, useAllMaterialConsumptions } from '@/hooks/materials';
+import { useMaterials } from '@/hooks/materials';
+import { useAllMaterialConsumptions } from '@/hooks/material-consumptions';
 import {
   MaterialsKpiStrip,
   MaterialsDashboardTable,
