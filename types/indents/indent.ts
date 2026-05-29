@@ -25,7 +25,7 @@ export function parseIndent(raw: Raw): Indent {
     indentNumber: raw.indentNumber ?? '',
     createdAt: raw.createdAt,
     createdBy: {
-      id: raw.createdBy?.id ?? 0,
+      id: parsePositiveInt(raw.createdBy?.id, 'parseIndent.createdBy.id'),
       name: raw.createdBy?.employeeName ?? '',
     },
     status: raw.status as IndentStatus,

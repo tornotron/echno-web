@@ -30,7 +30,10 @@ export function parseSiteTransfer(raw: Raw): SiteTransfer {
     transferNumber: raw.transferNumber,
     issueDate: raw.issueDate,
     sendingPerson: {
-      id: raw.sendingPerson?.id ?? 0,
+      id: parsePositiveInt(
+        raw.sendingPerson?.id,
+        'parseSiteTransfer.sendingPerson.id'
+      ),
       name: raw.sendingPerson?.employeeName ?? raw.sendingPerson?.name ?? '',
     },
     sendingProjectId: raw.sendingProjectId ?? undefined,
