@@ -50,7 +50,10 @@ export function parseMaterialConsumption(raw: Raw): MaterialConsumption {
     taskId: raw.taskId ?? undefined,
     taskTitle: raw.taskTitle ?? undefined,
     createdBy: {
-      id: raw.createdBy?.id ?? 0,
+      id: parsePositiveInt(
+        raw.createdBy?.id,
+        'parseMaterialConsumption.createdBy.id'
+      ),
       name: raw.createdBy?.employeeName ?? raw.createdBy?.name ?? '',
     },
   };

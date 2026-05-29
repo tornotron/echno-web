@@ -29,7 +29,10 @@ export function parseGoodsReceivedNote(raw: Raw): GoodsReceivedNote {
     grnNumber: raw.grnNumber,
     receivedOn: raw.receivedOn,
     receivedBy: {
-      id: raw.receivedBy?.id ?? 0,
+      id: parsePositiveInt(
+        raw.receivedBy?.id,
+        'parseGoodsReceivedNote.receivedBy.id'
+      ),
       name: raw.receivedBy?.employeeName ?? raw.receivedBy?.name ?? '',
     },
     vendorId: raw.vendorId,
