@@ -3,8 +3,8 @@
 
 import { parsePositiveInt } from '@/types/parse-id';
 import { AttendanceStatus } from './attendance-status';
-import { ClockEvent } from './clock-event';
-import { MovementRecord } from './movement-type';
+import { ClockEvent, parseClockEvent } from './clock-event';
+import { MovementRecord, parseMovementRecord } from './movement-type';
 
 export interface ShiftTiming {
   id: number;
@@ -391,6 +391,47 @@ export function parseShiftTiming(raw: any): ShiftTiming {
   };
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseAttendanceProfile(data: any): AttendanceProfile {
+  return {
+    id: parsePositiveInt(data.id, 'parseAttendanceProfile.id'),
+    settingName: data.settingName,
+    projectId: data.projectId ?? undefined,
+    projectName: data.projectName ?? undefined,
+    checkInOutCycles: data.checkInOutCycles,
+    photoRequiredOnCheckIn: data.photoRequiredOnCheckIn,
+    photoRequiredOnCheckOut: data.photoRequiredOnCheckOut,
+    geolocationRequired: data.geolocationRequired,
+    geofenceRadiusMeters: data.geofenceRadiusMeters,
+    movementTrackingEnabled: data.movementTrackingEnabled,
+    movementPhotoRequired: data.movementPhotoRequired,
+    movementGeolocationRequired: data.movementGeolocationRequired,
+    autoMarkAbsentAfterHours: data.autoMarkAbsentAfterHours,
+    allowSelfRegularization: data.allowSelfRegularization,
+    regularizationApprovalRequired: data.regularizationApprovalRequired,
+    maxRegularizationDaysPerMonth: data.maxRegularizationDaysPerMonth,
+    defaultShiftId: data.defaultShiftId ?? undefined,
+    isActive: data.isActive,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseAttendanceRegularization(
+  data: any
+): AttendanceRegularization {
+  return {
+    id: parsePositiveInt(data.id, 'parseAttendanceRegularization.id'),
+    reason: data.reason,
+    requestedBy: data.requestedBy,
+    requestedAt: new Date(data.requestedAt),
+    approvedBy: data.approvedBy ?? undefined,
+    approvedAt: data.approvedAt ? new Date(data.approvedAt) : undefined,
+    status: data.status,
+    rejectionReason: data.rejectionReason ?? undefined,
+    missingEvents: data.missingEvents ?? [],
+  };
+}
+
 /**
  * Parse attendance from JSON
  */
@@ -398,7 +439,30 @@ export function parseShiftTiming(raw: any): ShiftTiming {
 export function parseAttendance(data: any): Attendance {
   return {
     ...data,
+    id: parsePositiveInt(data.id, 'parseAttendance.id'),
     date: new Date(data.date),
+    shiftTiming: data.shiftTiming
+      ? parseShiftTiming(data.shiftTiming)
+      : data.shiftTiming,
+    morningClockIn: data.morningClockIn
+      ? parseClockEvent(data.morningClockIn)
+      : undefined,
+    lunchBreakStart: data.lunchBreakStart
+      ? parseClockEvent(data.lunchBreakStart)
+      : undefined,
+    lunchBreakEnd: data.lunchBreakEnd
+      ? parseClockEvent(data.lunchBreakEnd)
+      : undefined,
+    eveningClockOut: data.eveningClockOut
+      ? parseClockEvent(data.eveningClockOut)
+      : undefined,
+    regularization: data.regularization
+      ? parseAttendanceRegularization(data.regularization)
+      : undefined,
+    movements: data.movements
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (data.movements as any[]).map((m) => parseMovementRecord(m))
+      : undefined,
     createdAt: new Date(data.createdAt),
     updatedAt: new Date(data.updatedAt),
     approvedAt: data.approvedAt ? new Date(data.approvedAt) : undefined,
