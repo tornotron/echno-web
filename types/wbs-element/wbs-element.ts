@@ -22,7 +22,7 @@ export interface WbsElement {
 export function parseWbsElement(raw: Raw): WbsElement {
   return {
     id: parsePositiveInt(raw.id, 'parseWbsElement.id'),
-    projectId: raw.projectId,
+    projectId: parsePositiveInt(raw.projectId, 'parseWbsElement.projectId'),
     name: raw.name ?? '',
     code: raw.code ?? undefined,
     description: raw.description ?? undefined,
