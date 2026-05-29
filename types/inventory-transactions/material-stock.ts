@@ -19,18 +19,23 @@ export interface MaterialStock {
 }
 
 export function parseMaterialStock(raw: Raw): MaterialStock {
+  if (raw === null || typeof raw !== 'object') {
+    throw new Error(`parseMaterialStock: expected object, got ${typeof raw}`);
+  }
   return {
-    materialId: raw.materialId,
+    materialId: Number(raw.materialId),
     materialName: raw.materialName ?? '',
-    locationStock: (raw.locationStock ?? []).map((ls: Raw) => ({
-      storageLocationId: ls.storageLocationId,
-      storageLocationName: ls.storageLocationName ?? '',
-      projectId: ls.projectId,
-      projectName: ls.projectName ?? '',
-      stock: ls.stock ?? 0,
-      stockValue: ls.stockValue ?? 0,
-    })),
-    totalStock: raw.totalStock ?? 0,
-    totalStockValue: raw.totalStockValue ?? 0,
+    locationStock: Array.isArray(raw.locationStock)
+      ? raw.locationStock.map((ls: Raw) => ({
+          storageLocationId: Number(ls.storageLocationId),
+          storageLocationName: ls.storageLocationName ?? '',
+          projectId: Number(ls.projectId),
+          projectName: ls.projectName ?? '',
+          stock: Number(ls.stock ?? 0),
+          stockValue: Number(ls.stockValue ?? 0),
+        }))
+      : [],
+    totalStock: Number(raw.totalStock ?? 0),
+    totalStockValue: Number(raw.totalStockValue ?? 0),
   };
 }
