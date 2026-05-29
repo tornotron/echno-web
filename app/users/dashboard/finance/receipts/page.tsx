@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { mockProjects } from '@/components/shared/mock-data';
 import { useReceipts } from '@/hooks/receipts';
+import { useProjects } from '@/hooks/project/use-projects';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -14,12 +14,13 @@ import { ReceiptsTable } from '@/features/receipts';
 
 export default function ReceiptsPage() {
   const { data: receipts = [], isLoading, isError } = useReceipts();
+  const { data: projects = [] } = useProjects();
 
   const projectById = useMemo(() => {
     const m = new Map<number, { projectName: string }>();
-    for (const p of mockProjects) m.set(p.id, p);
+    for (const p of projects) m.set(p.id, p);
     return m;
-  }, []);
+  }, [projects]);
 
   const totalReceipts = receipts.length;
   const issuedReceipts = receipts.filter(
