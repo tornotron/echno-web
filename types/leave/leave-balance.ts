@@ -74,7 +74,10 @@ export interface AdjustLeaveBalanceRequest {
 export function parseLeaveBalance(json: any): LeaveBalance {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveBalance.id'),
-    employeeId: json.employeeId ?? 0,
+    employeeId: parsePositiveInt(
+      json.employeeId,
+      'parseLeaveBalance.employeeId'
+    ),
     leavePolicyId: parsePositiveInt(
       json.leavePolicyId ?? json.leavePolicy?.id,
       'parseLeaveBalance.leavePolicyId'
@@ -102,7 +105,10 @@ export function parseLeaveBalance(json: any): LeaveBalance {
  */
 export function parseLeaveBalanceSummary(json: any): LeaveBalanceSummary {
   return {
-    employeeId: json.employeeId ?? 0,
+    employeeId: parsePositiveInt(
+      json.employeeId,
+      'parseLeaveBalanceSummary.employeeId'
+    ),
     year: json.year ?? new Date().getFullYear(),
     balances: json.balances
       ? json.balances.map((b: any) => parseLeaveBalance(b))
@@ -119,7 +125,10 @@ export function parseLeaveBalanceSummary(json: any): LeaveBalanceSummary {
 export function parseLeaveTransaction(json: any): LeaveTransaction {
   return {
     id: parsePositiveInt(json.id, 'parseLeaveTransaction.id'),
-    leaveBalanceId: json.leaveBalanceId ?? 0,
+    leaveBalanceId: parsePositiveInt(
+      json.leaveBalanceId,
+      'parseLeaveTransaction.leaveBalanceId'
+    ),
     leaveTypeName: json.leaveTypeName ?? json.leaveBalance?.leaveTypeName,
     transactionType: json.transactionType ?? TransactionType.ADJUSTMENT,
     days: json.days ?? 0,

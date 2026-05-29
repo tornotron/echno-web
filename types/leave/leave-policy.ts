@@ -42,7 +42,10 @@ export interface LeavePolicy {
 export function parseLeavePolicy(json: any): LeavePolicy {
   return {
     id: parsePositiveInt(json.id, 'parseLeavePolicy.id'),
-    organizationId: json.organizationId ?? 0,
+    organizationId: parsePositiveInt(
+      json.organizationId,
+      'parseLeavePolicy.organizationId'
+    ),
     leaveTypeCode: json.leaveTypeCode ?? '',
     leaveTypeName: json.leaveTypeName ?? '',
     description: json.description,
