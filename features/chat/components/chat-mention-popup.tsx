@@ -8,7 +8,7 @@ import {
   AvatarImage,
 } from '@/components/shadcn/avatar';
 import { Badge } from '@/components/shadcn/badge';
-import { MentionItem, MentionMode } from '@/hooks/chat/use-mention';
+import { MentionItem, MentionMode } from '@/types/chat';
 
 interface ChatMentionPopupProps {
   open: boolean;

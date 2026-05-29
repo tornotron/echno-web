@@ -6,7 +6,7 @@
 
 'use client';
 
-import { LeaveRole } from '@/hooks/leave/use-leave-role';
+import { LeaveRole } from '@/types/leave';
 import {
   Select,
   SelectContent,
