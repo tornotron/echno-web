@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { logger } from '@/lib/logger';
 import {
   Card,
   CardContent,
@@ -26,7 +24,8 @@ import {
   Cloud,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
-import { mockInspections, mockEmployees } from '@/components/shared/mock-data';
+import { useInspectionById } from '@/hooks/inspection';
+import { useEmployees } from '@/hooks/employee';
 import { useProjects } from '@/hooks/project/use-projects';
 import { routes } from '@/nav';
 import {
@@ -37,11 +36,9 @@ import {
   inspectionTypeLabels,
   inspectionResultLabels,
   checkItemStatusLabels,
-  type Inspection,
   type InspectionCheckItem,
   type InspectionDefect,
 } from '@/types/inspection';
-import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
 
 // Helper functions
@@ -100,37 +97,11 @@ export default function InspectionDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const { data: projects = [] } = useProjects();
-  const [loading, setLoading] = useState(true);
-  const [inspection, setInspection] = useState<Inspection | null>(null);
+  const { data: employees = [] } = useEmployees();
+  const inspectionId = Number.parseInt(params.id as string);
+  const { data: inspection, isLoading } = useInspectionById(inspectionId);
 
-  // Load inspection data
-  useEffect(() => {
-    const loadInspection = async () => {
-      try {
-        const inspectionId = Number.parseInt(params.id as string);
-        const foundInspection = mockInspections.find(
-          (i) => i.id === inspectionId
-        );
-
-        if (!foundInspection) {
-          toast.error('Inspection not found');
-          router.push(routes.portfolio.inspections.href);
-          return;
-        }
-
-        setInspection(foundInspection);
-        setLoading(false);
-      } catch (error) {
-        logger.error('Error loading inspection:', error);
-        toast.error('Failed to load inspection');
-        router.push(routes.portfolio.inspections.href);
-      }
-    };
-
-    loadInspection();
-  }, [params.id, router]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex min-h-[400px] items-center justify-center">
         <div className="text-center">
@@ -148,9 +119,7 @@ export default function InspectionDetailsPage() {
   }
 
   const project = projects.find((p) => p.id === inspection.projectId);
-  const inspector = mockEmployees.find(
-    (emp) => emp.id === inspection.inspectorId
-  );
+  const inspector = employees.find((emp) => emp.id === inspection.inspectorId);
 
   return (
     <div className="space-y-4 sm:space-y-6">
