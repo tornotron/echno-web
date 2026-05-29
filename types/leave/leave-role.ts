@@ -91,6 +91,23 @@ export const ROLE_PERMISSIONS: Record<LeaveRole, LeavePermissions> = {
 };
 
 /**
+ * Runtime context returned by useLeaveRole()
+ */
+export interface LeaveRoleContext {
+  role: LeaveRole;
+  isEmployee: boolean;
+  isManager: boolean;
+  isAdmin: boolean;
+  availableRoles: LeaveRole[];
+  canApprove: boolean;
+  canManagePolicies: boolean;
+  canViewAllRequests: boolean;
+  canViewTeamRequests: boolean;
+  canViewOwnRequests: boolean;
+  isLoading: boolean;
+}
+
+/**
  * Get permissions for a role
  */
 export function getPermissionsForRole(role: LeaveRole): LeavePermissions {
