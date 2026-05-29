@@ -93,7 +93,7 @@ import {
   InspectionStatus,
   InspectionType,
   InspectionResult,
-} from '@/types/inspection/inspection';
+} from '@/types/inspection';
 import { AttachmentType } from '@/types/attachment';
 
 // ═════════════════════════════════════════════════════════════════════════════
