@@ -1,3 +1,4 @@
 export * from './enums';
-export * from './stock';
+export * from './storage-location-stock';
+export * from './material-stock';
 export * from './inventory-transaction';

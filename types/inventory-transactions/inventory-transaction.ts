@@ -1,4 +1,5 @@
 import type { InventoryTransactionType } from './enums';
+import { parsePositiveInt } from '@/types/parse-id';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
@@ -24,7 +25,7 @@ export interface InventoryTransaction {
 
 export function parseInventoryTransaction(raw: Raw): InventoryTransaction {
   return {
-    id: raw.id,
+    id: parsePositiveInt(raw.id, 'parseInventoryTransaction.id'),
     transactionDate: raw.transactionDate,
     materialId: raw.materialId,
     materialName: raw.materialName ?? '',
