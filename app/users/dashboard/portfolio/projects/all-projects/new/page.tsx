@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 import { useUser } from '@/hooks/user/use-user';
 import { useCreateProjectWithFiles } from '@/hooks/project/use-project-mutations';
 import { useGeolocation } from '@/hooks/use-geolocation';
-import { ProjectFiles } from '@/services/project-service';
+import { ProjectFiles } from '@/types/project';
 import {
   Card,
   CardContent,
