@@ -6,3 +6,5 @@ export * from './chat-reaction';
 export * from './chat-entity-mention';
 export * from './chat-message';
 export * from './chat-room';
+export * from './chat-message-send';
+export * from './chat-mention';
