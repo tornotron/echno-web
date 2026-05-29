@@ -1,6 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { projectService, ProjectFiles } from '@/services/project-service';
-import { Project } from '@/types/project/project';
+import { projectService } from '@/services/project-service';
+import {
+  CreateProjectRequest,
+  UpdateProjectRequest,
+  ProjectFiles,
+} from '@/types/project';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
@@ -16,8 +20,7 @@ export function useCreateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (projectData: Partial<Project>) =>
-      projectService.create(projectData),
+    mutationFn: (dto: CreateProjectRequest) => projectService.create(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       toast.success('Project Created', {
@@ -47,7 +50,7 @@ export function useCreateProjectWithFiles() {
       data,
       files,
     }: {
-      data: Partial<Project>;
+      data: CreateProjectRequest;
       files: ProjectFiles;
     }) => projectService.createWithFiles(data, files),
     onSuccess: () => {
@@ -75,7 +78,7 @@ export function useUpdateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<Project> }) =>
+    mutationFn: ({ id, data }: { id: number; data: UpdateProjectRequest }) =>
       projectService.update(id, data),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
@@ -108,7 +111,7 @@ export function useUpdateProjectWithFiles() {
       files,
     }: {
       id: number;
-      data: Partial<Project>;
+      data: UpdateProjectRequest;
       files: ProjectFiles;
     }) => projectService.updateWithFiles(id, data, files),
     onSuccess: (_, { id }) => {
