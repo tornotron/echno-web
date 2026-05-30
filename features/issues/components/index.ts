@@ -6,3 +6,5 @@ export { IssueTable } from './issue-table';
 export { IssueOverviewTab } from './issue-overview-tab';
 export { IssueCommentsTab } from './issue-comments-tab';
 export { DeleteAttachmentDialog } from './issue-alert-dialogs';
+export { IssueForm, ISSUE_FORM_ID } from './issue-form';
+export type { IssueFormState, IssueFormSubmitData } from './issue-form';
