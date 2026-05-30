@@ -45,7 +45,7 @@ import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { useUpdateIssue } from '@/hooks/issue';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
-import { IssueAttachmentsUploader } from './issue-attachments-uploader';
+import { AttachmentsUploader } from '@/components/common';
 import {
   isValidAttachmentUrl,
   getSafeDownloadUrl,
@@ -172,7 +172,16 @@ export function IssueOverviewTab({
                 </CardTitle>
                 <CardDescription>Files attached to this issue</CardDescription>
               </div>
-              <IssueAttachmentsUploader issueId={issue.id} />
+              <AttachmentsUploader
+                onUpload={(files) =>
+                  updateIssueMutation.mutate({
+                    id: issue.id,
+                    data: {},
+                    files: { attachments: files },
+                  })
+                }
+                isPending={updateIssueMutation.isPending}
+              />
             </div>
           </CardHeader>
           <CardContent>
