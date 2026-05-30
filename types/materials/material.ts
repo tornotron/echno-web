@@ -1,5 +1,6 @@
 import { parsePositiveInt } from '@/types/parse-id';
 import { Employee, parseEmployee } from '@/types/employee';
+import { MaterialStatus } from './enum';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
@@ -22,6 +23,10 @@ export interface Material {
   safetyStock?: number;
   reorderLevel?: number;
   createdBy?: Employee;
+  category?: string;
+  status?: MaterialStatus;
+  trend?: number[];
+  ltc?: number;
 }
 
 export interface MaterialStock extends Material {
@@ -47,6 +52,10 @@ export function parseMaterial(raw: Raw): Material {
     safetyStock: raw.safetyStock ?? undefined,
     reorderLevel: raw.reorderLevel ?? undefined,
     createdBy: raw.createdBy ? parseEmployee(raw.createdBy) : undefined,
+    category: raw.category ?? undefined,
+    status: raw.status ?? undefined,
+    trend: Array.isArray(raw.trend) ? (raw.trend as number[]) : undefined,
+    ltc: raw.ltc ?? undefined,
   };
 }
 
