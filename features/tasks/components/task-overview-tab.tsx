@@ -29,7 +29,8 @@ import { format } from 'date-fns';
 import type { Task } from '@/types/task/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
-import { TaskAttachmentsUploader } from './task-attachments-uploader';
+import { AttachmentsUploader } from '@/components/common';
+import { useUpdateTask } from '@/hooks/task';
 import {
   isValidAttachmentUrl,
   getSafeDownloadUrl,
@@ -75,6 +76,8 @@ export function TaskOverviewTab({
   taskId,
   onDeleteAttachment,
 }: TaskOverviewTabProps) {
+  const updateTask = useUpdateTask();
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Main content */}
@@ -189,7 +192,16 @@ export function TaskOverviewTab({
                 </CardTitle>
                 <CardDescription>Files attached to this task</CardDescription>
               </div>
-              <TaskAttachmentsUploader taskId={taskId} />
+              <AttachmentsUploader
+                onUpload={(files) =>
+                  updateTask.mutate({
+                    id: taskId,
+                    data: {},
+                    files: { attachments: files },
+                  })
+                }
+                isPending={updateTask.isPending}
+              />
             </div>
           </CardHeader>
           <CardContent>

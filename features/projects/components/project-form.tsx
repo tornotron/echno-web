@@ -30,7 +30,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { format } from 'date-fns';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
-import { AttachmentsSection } from './attachments-section';
+import { AttachmentsSection } from '@/components/common';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -494,6 +494,7 @@ export function ProjectForm(props: ProjectFormProps) {
       {/* Edit mode: show existing attachments section */}
       {isEdit && (
         <AttachmentsSection
+          title="Project Attachments"
           existingAttachments={existingAttachments}
           newAttachments={attachments}
           onAttachmentsChange={setAttachments}
