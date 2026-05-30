@@ -1,110 +1,59 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { logger } from '@/lib/logger';
 import { useProject } from '@/hooks/project/use-projects';
 import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
-import { ProjectFiles } from '@/types/project';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { Save, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { ProjectStatus } from '@/types/project/project-status';
-import type { Project } from '@/types/project/project';
+import { PageHeader } from '@/components/common';
+import { Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { format } from 'date-fns';
-import {
-  ProjectEditForm,
-  AttachmentsSection,
-} from '@/features/projects/components';
 import { routes } from '@/nav';
+import {
+  ProjectForm,
+  PROJECT_FORM_ID,
+  type ProjectFormSubmitData,
+} from '@/features/projects/components';
 
-function EditProjectForm({ project }: { project: Project }) {
+export default function EditProjectPage() {
+  const params = useParams();
   const router = useRouter();
+  const projectId = params.id
+    ? Number.parseInt(params.id as string)
+    : undefined;
+
+  const { data: project, isLoading, error } = useProject(projectId);
   const updateProjectWithFiles = useUpdateProjectWithFiles();
 
-  const [attachments, setAttachments] = useState<File[]>([]);
+  const isSubmitting = updateProjectWithFiles.isPending;
 
-  const [formData, setFormData] = useState({
-    projectName: project.projectName,
-    projectAddress: project.projectAddress,
-    status: project.status,
-    projectLatitude: project.projectLatitude.toString(),
-    projectLongitude: project.projectLongitude.toString(),
-    startDate: project.startDate ? format(project.startDate, 'yyyy-MM-dd') : '',
-    endDate: project.endDate ? format(project.endDate, 'yyyy-MM-dd') : '',
-    description: '',
-  });
-
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleStatusChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, status: value as ProjectStatus }));
-  };
-
-  const handleLocationUpdate = useCallback(
-    (latitude: string, longitude: string) => {
-      setFormData((prev) => ({
-        ...prev,
-        projectLatitude: latitude,
-        projectLongitude: longitude,
-      }));
-    },
-    []
-  );
-
-  const handleAttachmentsChange = (files: File[]) => {
-    setAttachments(files);
-  };
-
-  const removeAttachment = (index: number) => {
-    setAttachments((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.projectName.trim()) {
-      toast.error('Project name is required');
-      return;
-    }
-
-    if (!formData.projectAddress.trim()) {
-      toast.error('Project address is required');
-      return;
-    }
-
+  function handleSubmit(data: ProjectFormSubmitData) {
+    if (!project) return;
     try {
-      const projectData = {
-        projectName: formData.projectName,
-        projectAddress: formData.projectAddress,
-        status: formData.status,
-        projectLatitude: Number.parseFloat(formData.projectLatitude) || 0,
-        projectLongitude: Number.parseFloat(formData.projectLongitude) || 0,
-        startDate: formData.startDate
-          ? new Date(formData.startDate)
-          : undefined,
-        endDate: formData.endDate ? new Date(formData.endDate) : undefined,
-      };
-
-      const files: ProjectFiles = {
-        attachments: attachments.length > 0 ? attachments : undefined,
-      };
-
       updateProjectWithFiles.mutate(
-        { id: project.id, data: projectData, files },
+        {
+          id: project.id,
+          data: {
+            projectName: data.fields.projectName,
+            projectAddress: data.fields.projectAddress,
+            status: data.fields.status,
+            projectLatitude:
+              Number.parseFloat(data.fields.projectLatitude) || 0,
+            projectLongitude:
+              Number.parseFloat(data.fields.projectLongitude) || 0,
+            startDate: data.fields.startDate
+              ? new Date(data.fields.startDate)
+              : undefined,
+            endDate: data.fields.endDate
+              ? new Date(data.fields.endDate)
+              : undefined,
+          },
+          files: {
+            attachments:
+              data.attachments.length > 0 ? data.attachments : undefined,
+          },
+        },
         {
           onSuccess: () => {
             router.push(
@@ -117,98 +66,27 @@ function EditProjectForm({ project }: { project: Project }) {
       logger.error('Error updating project:', error);
       toast.error('Failed to update project. Please try again.');
     }
-  };
-
-  const isSubmitting = updateProjectWithFiles.isPending;
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Edit Project</h1>
-        <p className="text-muted-foreground">
-          Update project information for {project.projectName}
-        </p>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Information</CardTitle>
-            <CardDescription>
-              Update the details for this project
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <ProjectEditForm
-              formData={formData}
-              onInputChange={handleInputChange}
-              onStatusChange={handleStatusChange}
-              onLocationUpdate={handleLocationUpdate}
-            />
-          </CardContent>
-        </Card>
-
-        <AttachmentsSection
-          existingAttachments={project.attachments}
-          newAttachments={attachments}
-          onAttachmentsChange={handleAttachmentsChange}
-          onRemoveAttachment={removeAttachment}
-        />
-
-        <div className="flex justify-end gap-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.back()}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
-    </div>
-  );
-}
-
-export default function EditProjectPage() {
-  const params = useParams();
-  const projectId = params.id
-    ? Number.parseInt(params.id as string)
-    : undefined;
-
-  const { data: project, isLoading, error } = useProject(projectId);
+  }
 
   if (isLoading) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="text-primary mx-auto h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground mt-4">Loading project...</p>
-        </div>
+      <div className="flex h-40 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
       </div>
     );
   }
 
-  if (error) {
+  if (error || !project) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Failed to load project</h2>
+      <div className="flex h-40 items-center justify-center text-center">
+        <div>
+          <h2 className="text-2xl font-bold">
+            {error ? 'Failed to load project' : 'Project Not Found'}
+          </h2>
           <p className="text-muted-foreground mt-2">
-            {error instanceof Error ? error.message : 'An error occurred'}
+            {error instanceof Error
+              ? error.message
+              : "The project you're looking for doesn't exist."}
           </p>
           <Button className="mt-4" asChild>
             <Link href={routes.portfolio.projects.href}>Back to Projects</Link>
@@ -218,21 +96,44 @@ export default function EditProjectPage() {
     );
   }
 
-  if (!project) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold">Project Not Found</h2>
-          <p className="text-muted-foreground mt-2">
-            The project you&apos;re looking for doesn&apos;t exist.
-          </p>
-          <Button className="mt-4" asChild>
-            <Link href={routes.portfolio.projects.href}>Back to Projects</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return <EditProjectForm project={project} />;
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        sticky
+        title="Edit Project"
+        description={`Update details for ${project.projectName}`}
+        actions={
+          <>
+            <Button variant="outline" disabled={isSubmitting} asChild>
+              <Link
+                href={
+                  routes.portfolio.projects.allProjects.detail(project.id).href
+                }
+              >
+                Cancel
+              </Link>
+            </Button>
+            <Button
+              type="submit"
+              form={PROJECT_FORM_ID}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </>
+        }
+      />
+      <ProjectForm mode="edit" project={project} onSubmit={handleSubmit} />
+    </div>
+  );
 }
