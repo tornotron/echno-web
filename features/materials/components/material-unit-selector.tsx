@@ -82,6 +82,7 @@ interface MaterialUnitSelectorProps {
   onValueChange: (value: string) => void;
   id?: string;
   required?: boolean;
+  className?: string;
 }
 
 export function MaterialUnitSelector({
@@ -89,6 +90,7 @@ export function MaterialUnitSelector({
   onValueChange,
   id,
   required,
+  className,
 }: MaterialUnitSelectorProps) {
   // Normalise to the canonical casing stored in MATERIAL_UNITS so the Select
   // pre-selects correctly when the backend returns a differently-cased string.
@@ -104,7 +106,7 @@ export function MaterialUnitSelector({
       onValueChange={onValueChange}
       required={required}
     >
-      <SelectTrigger id={id}>
+      <SelectTrigger id={id} className={className}>
         <SelectValue placeholder="Select unit" />
       </SelectTrigger>
       <SelectContent>

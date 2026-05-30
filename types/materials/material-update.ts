@@ -1,3 +1,5 @@
+import { MaterialStatus } from './enum';
+
 export interface UpdateMaterialRequest {
   materialName?: string;
   unit?: string;
@@ -13,6 +15,10 @@ export interface UpdateMaterialRequest {
   safetyStock?: number;
   reorderLevel?: number;
   unitCost?: number;
+  category?: string;
+  status?: MaterialStatus;
+  trend?: number[];
+  ltc?: number;
 }
 
 export function updateMaterialToJson(
@@ -35,5 +41,9 @@ export function updateMaterialToJson(
     ...(dto.safetyStock !== undefined && { safetyStock: dto.safetyStock }),
     ...(dto.reorderLevel !== undefined && { reorderLevel: dto.reorderLevel }),
     ...(dto.unitCost !== undefined && { unitCost: dto.unitCost }),
+    ...(dto.category !== undefined && { category: dto.category }),
+    ...(dto.status !== undefined && { status: dto.status }),
+    ...(dto.trend !== undefined && { trend: dto.trend }),
+    ...(dto.ltc !== undefined && { ltc: dto.ltc }),
   };
 }
