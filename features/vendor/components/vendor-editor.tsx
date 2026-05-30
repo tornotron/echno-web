@@ -56,15 +56,30 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
     status: vendor.status ?? VendorStatus.ACTIVE,
     notes: vendor.notes ?? '',
   }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function clearError(field: string) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
 
   function set(field: keyof UpdateVendorRequest, value: string | undefined) {
     setForm((prev) => ({ ...prev, [field]: value || undefined }));
+    clearError(field);
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.name?.trim() || !form.email?.trim()) {
-      toast.error('Company name and email are required.');
+    const newErrors: Record<string, string> = {};
+    if (!form.name?.trim()) newErrors.name = 'Company name is required';
+    if (!form.email?.trim()) newErrors.email = 'Email is required';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
     updateVendor(
@@ -101,21 +116,25 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+              <div className="space-y-1">
                 <Label htmlFor="name">
                   Company Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
                   value={form.name}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, name: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, name: e.target.value }));
+                    clearError('name');
+                  }}
                   placeholder="ABC Materials Pvt Ltd"
-                  required
+                  className={errors.name ? 'border-red-500' : ''}
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
-              <div>
+              <div className="space-y-1">
                 <Label htmlFor="email">
                   Email <span className="text-red-500">*</span>
                 </Label>
@@ -123,12 +142,16 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   id="email"
                   type="email"
                   value={form.email}
-                  onChange={(e) =>
-                    setForm((p) => ({ ...p, email: e.target.value }))
-                  }
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, email: e.target.value }));
+                    clearError('email');
+                  }}
                   placeholder="contact@abcmaterials.com"
-                  required
+                  className={errors.email ? 'border-red-500' : ''}
                 />
+                {errors.email && (
+                  <p className="text-sm text-red-500">{errors.email}</p>
+                )}
               </div>
               <div>
                 <Label htmlFor="website">Website</Label>

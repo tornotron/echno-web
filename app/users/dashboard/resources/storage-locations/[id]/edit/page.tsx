@@ -100,6 +100,7 @@ export default function EditLocationPage() {
       <div className="space-y-6">
         {/* Header */}
         <PageHeader
+          sticky
           title="Edit Location"
           description="Update the location information"
           avatar={<MapPin className="h-6 w-6" />}
