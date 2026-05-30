@@ -5,48 +5,43 @@ import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Upload, Loader2 } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { useUpdateIssue } from '@/hooks/issue';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-interface IssueAttachmentsUploaderProps {
-  issueId: number;
-  onUploadSuccess?: () => void;
+interface AttachmentsUploaderProps {
+  onUpload: (files: File[]) => void;
+  isPending?: boolean;
 }
 
-export function IssueAttachmentsUploader({
-  issueId,
-  onUploadSuccess,
-}: IssueAttachmentsUploaderProps) {
+export function AttachmentsUploader({
+  onUpload,
+  isPending = false,
+}: AttachmentsUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const updateIssueWithFiles = useUpdateIssue();
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
 
-    const selectedFiles = [...e.target.files];
-    const validFiles: File[] = [];
-    const invalidFiles: string[] = [];
+    const selected = [...e.target.files];
+    const valid: File[] = [];
+    const invalid: string[] = [];
 
-    for (const file of selectedFiles) {
+    for (const file of selected) {
       if (file.size > MAX_FILE_SIZE) {
-        invalidFiles.push(file.name);
+        invalid.push(file.name);
       } else {
-        validFiles.push(file);
+        valid.push(file);
       }
     }
 
-    if (invalidFiles.length > 0) {
+    if (invalid.length > 0) {
       toast.error('Some files exceed 10MB', {
-        description: `The following files were not uploaded: ${invalidFiles.join(', ')}`,
+        description: `Not uploaded: ${invalid.join(', ')}`,
       });
     }
 
-    if (validFiles.length > 0) {
-      updateIssueWithFiles.mutate(
-        { id: issueId, data: {}, files: { attachments: validFiles } },
-        { onSuccess: onUploadSuccess }
-      );
+    if (valid.length > 0) {
+      onUpload(valid);
     }
 
     e.target.value = '';
@@ -57,7 +52,7 @@ export function IssueAttachmentsUploader({
       <Input
         ref={inputRef}
         type="file"
-        onChange={handleFileUpload}
+        onChange={handleFileChange}
         multiple
         accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.xlsx,.xls,.dwg,.dxf"
         className="hidden"
@@ -65,10 +60,10 @@ export function IssueAttachmentsUploader({
       <Button
         variant="outline"
         size="sm"
-        disabled={updateIssueWithFiles.isPending}
+        disabled={isPending}
         onClick={() => inputRef.current?.click()}
       >
-        {updateIssueWithFiles.isPending ? (
+        {isPending ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Uploading...

@@ -40,7 +40,7 @@ import { abbreviatedName } from '@/types/work-category';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { toast } from '@/lib/styles/toast-styles';
-import { TaskAttachmentsSection } from './task-attachments-section';
+import { AttachmentsSection } from '@/components/common';
 import { CreateCategoryDialog } from './task-alert-dialogs';
 
 // ---------------------------------------------------------------------------
@@ -570,7 +570,8 @@ export function TaskForm(props: TaskFormProps) {
             </Card>
 
             {/* Attachments */}
-            <TaskAttachmentsSection
+            <AttachmentsSection
+              title="Task Attachments"
               existingAttachments={existingAttachments ?? []}
               newAttachments={attachments}
               onAttachmentsChange={setAttachments}

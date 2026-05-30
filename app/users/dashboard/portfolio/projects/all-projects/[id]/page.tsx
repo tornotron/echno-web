@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
+import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
 import { useTasksByProject } from '@/hooks/task';
 import { useIssuesByProject } from '@/hooks/issue';
 import { cn } from '@/lib/utils/index';
@@ -59,10 +60,8 @@ import { TaskStatus } from '@/types/task';
 import { IssueStatus } from '@/types/issue';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { format } from 'date-fns';
-import {
-  TeamMembersSection,
-  AttachmentsUploader,
-} from '@/features/projects/components';
+import { TeamMembersSection } from '@/features/projects/components';
+import { AttachmentsUploader } from '@/components/common';
 import { ScheduleTab } from '@/features/gantt/components/schedule-tab';
 import { WBSTree } from '@/features/wbs/components/wbs-tree';
 import { HealthTab } from '@/features/health/components/health-tab';
@@ -159,6 +158,7 @@ export default function ProjectDashboardPage() {
     isError: isIssuesError,
   } = useIssuesByProject(projectId);
   const deleteAttachmentMutation = useDeleteAttachment();
+  const updateProjectWithFiles = useUpdateProjectWithFiles();
 
   const handleDeleteAttachment = async () => {
     if (!attachmentToDelete) return;
@@ -688,7 +688,18 @@ export default function ProjectDashboardPage() {
                       Files attached to this project
                     </CardDescription>
                   </div>
-                  {projectId && <AttachmentsUploader projectId={projectId} />}
+                  {projectId && (
+                    <AttachmentsUploader
+                      onUpload={(files) =>
+                        updateProjectWithFiles.mutate({
+                          id: projectId,
+                          data: {},
+                          files: { attachments: files },
+                        })
+                      }
+                      isPending={updateProjectWithFiles.isPending}
+                    />
+                  )}
                 </CardHeader>
                 <CardContent>
                   {project.attachments && project.attachments.length > 0 ? (
