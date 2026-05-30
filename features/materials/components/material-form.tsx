@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import {
   Card,
   CardContent,
@@ -131,10 +131,6 @@ export function MaterialForm(props: MaterialFormProps) {
   const { data: storageLocations = [] } = useStorageLocations();
   const { data: projects = [] } = useProjects();
 
-  const [form, setForm] = useState<FormState>(EMPTY_FORM);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Edit: all derived fields start as overridden so DB values are preserved.
   const defaultOverrides: Overrides = isEdit
     ? { minStock: true, reorderLevel: true, maxStock: true }
     : { minStock: false, reorderLevel: false, maxStock: false };
@@ -147,12 +143,10 @@ export function MaterialForm(props: MaterialFormProps) {
     _setOverrides(next);
   }
 
-  // Prefill form when material data is available (edit mode)
-  useEffect(() => {
-    if (!isEdit) return;
+  const [form, setForm] = useState<FormState>(() => {
+    if (props.mode !== 'edit') return EMPTY_FORM;
     const m = (props as EditProps).material;
-    if (!m) return;
-    const prefilled: FormState = {
+    return {
       materialName: m.materialName,
       sku: m.sku ?? '',
       unit: m.unit,
@@ -169,17 +163,8 @@ export function MaterialForm(props: MaterialFormProps) {
       reorderLevel: m.reorderLevel === undefined ? '' : String(m.reorderLevel),
       ltc: m.ltc === undefined ? '' : String(m.ltc),
     };
-    setForm(prefilled);
-    // All threshold fields start overridden to preserve DB values
-    const ovr: Overrides = {
-      minStock: true,
-      reorderLevel: true,
-      maxStock: true,
-    };
-    overridesRef.current = ovr;
-    _setOverrides(ovr);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [(props as EditProps).material]);
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // ---------------------------------------------------------------------------
   // Field helpers
