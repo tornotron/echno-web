@@ -191,9 +191,11 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.amount || formData.amount <= 0) {
+      toast.error('Amount must be greater than 0');
+      return;
+    }
     setIsSubmitting(true);
-
-    // Simulate API call
     setTimeout(() => {
       toast.success('Payment updated successfully');
       setIsSubmitting(false);

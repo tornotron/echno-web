@@ -136,6 +136,7 @@ function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
   const [formData, setFormData] = useState<Partial<Budget>>(() => ({
     ...initialData,
   }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [lineItems, setLineItems] = useState<Partial<BudgetLineItem>[]>(
     () => initialData.lineItems ?? []
   );
@@ -144,6 +145,12 @@ function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
   >(() => initialData.paymentMilestones ?? []);
 
   const handleInputChange = (field: string, value: string | number | Date) => {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
     let newData: Partial<Budget> = { ...formData, [field]: value };
 
     if (field === 'totalAllocated') {
@@ -273,22 +280,18 @@ function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.budgetNumber?.trim()) {
-      toast.error('Budget number is required');
+    const newErrors: Record<string, string> = {};
+    if (!formData.budgetNumber?.trim())
+      newErrors.budgetNumber = 'Budget number is required';
+    if (!formData.name?.trim()) newErrors.name = 'Budget name is required';
+    if (!formData.totalAllocated || formData.totalAllocated <= 0)
+      newErrors.totalAllocated =
+        'Total allocated amount must be greater than 0';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
-
-    if (!formData.name?.trim()) {
-      toast.error('Budget name is required');
-      return;
-    }
-
-    if (!formData.totalAllocated || formData.totalAllocated <= 0) {
-      toast.error('Total allocated amount must be greater than 0');
-      return;
-    }
-
     toast.success('Budget updated successfully!');
   };
 
@@ -321,7 +324,11 @@ function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
                   onChange={(e) =>
                     handleInputChange('budgetNumber', e.target.value)
                   }
+                  className={errors.budgetNumber ? 'border-red-500' : ''}
                 />
+                {errors.budgetNumber && (
+                  <p className="text-sm text-red-500">{errors.budgetNumber}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -333,7 +340,11 @@ function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
                   placeholder="e.g., Project Alpha - Q4 2024"
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
+                  className={errors.name ? 'border-red-500' : ''}
                 />
+                {errors.name && (
+                  <p className="text-sm text-red-500">{errors.name}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -452,7 +463,13 @@ function BudgetEditForm({ initialData, budgetId }: BudgetEditFormProps) {
                       Number.parseFloat(e.target.value) || 0
                     )
                   }
+                  className={errors.totalAllocated ? 'border-red-500' : ''}
                 />
+                {errors.totalAllocated && (
+                  <p className="text-sm text-red-500">
+                    {errors.totalAllocated}
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
