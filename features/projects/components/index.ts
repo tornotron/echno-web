@@ -5,3 +5,5 @@ export { ProjectCharts } from './project-charts';
 export { TeamMembersSection } from './team-members-section';
 export { AttachmentsSection } from './attachments-section';
 export { AttachmentsUploader } from './attachments-uploader';
+export { ProjectForm, PROJECT_FORM_ID } from './project-form';
+export type { ProjectFormState, ProjectFormSubmitData } from './project-form';
