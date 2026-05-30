@@ -1,7 +1,10 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { Loader2, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/common';
+import { Button } from '@/components/shadcn/button';
+import { routes } from '@/nav';
 import { useMaterials } from '@/hooks/materials';
 import { useAllMaterialConsumptions } from '@/hooks/material-consumptions';
 import {
@@ -40,6 +43,14 @@ export default function MaterialsPage() {
       <PageHeader
         title="Materials"
         description="Manage and track all materials in your inventory"
+        actions={
+          <Button asChild>
+            <Link href={routes.resources.materials.new}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Material
+            </Link>
+          </Button>
+        }
       />
 
       <MaterialsKpiStrip materials={materials} consumptions={consumptions} />
