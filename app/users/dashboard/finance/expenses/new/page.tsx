@@ -50,6 +50,7 @@ const getDateString = (date: Date) => {
 };
 
 export default function NewExpensePage() {
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Partial<Expense>>({
     expenseNumber: '',
     type: ExpenseType.direct,
@@ -75,7 +76,17 @@ export default function NewExpensePage() {
     updatedAt: new Date(),
   });
 
+  function clearError(field: string) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
   const handleInputChange = (field: string, value: never) => {
+    clearError(field);
     let newData: Partial<Expense> = { ...formData, [field]: value };
 
     // Recalculate totals if amount or tax rate changes
@@ -106,26 +117,19 @@ export default function NewExpensePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validation
-    if (!formData.expenseNumber?.trim()) {
-      toast.error('Expense number is required');
+    const newErrors: Record<string, string> = {};
+    if (!formData.expenseNumber?.trim())
+      newErrors.expenseNumber = 'Expense number is required';
+    if (!formData.description?.trim())
+      newErrors.description = 'Description is required';
+    if (!formData.amount || formData.amount <= 0)
+      newErrors.amount = 'Amount must be greater than 0';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
-
-    if (!formData.description?.trim()) {
-      toast.error('Description is required');
-      return;
-    }
-
-    if (!formData.amount || formData.amount <= 0) {
-      toast.error('Amount must be greater than 0');
-      return;
-    }
-
-    // Success
     toast.success('Expense created successfully!');
-    // Here you would typically make an API call
   };
 
   return (
@@ -152,7 +156,11 @@ export default function NewExpensePage() {
                   onChange={(e) =>
                     handleInputChange('expenseNumber', e.target.value as never)
                   }
+                  className={errors.expenseNumber ? 'border-red-500' : ''}
                 />
+                {errors.expenseNumber && (
+                  <p className="text-sm text-red-500">{errors.expenseNumber}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -222,8 +230,11 @@ export default function NewExpensePage() {
                 onChange={(e) =>
                   handleInputChange('description', e.target.value as never)
                 }
-                className="min-h-24"
+                className={`min-h-24${errors.description ? 'border-red-500' : ''}`}
               />
+              {errors.description && (
+                <p className="text-sm text-red-500">{errors.description}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -248,7 +259,11 @@ export default function NewExpensePage() {
                   onChange={(e) =>
                     handleInputChange('amount', Number(e.target.value) as never)
                   }
+                  className={errors.amount ? 'border-red-500' : ''}
                 />
+                {errors.amount && (
+                  <p className="text-sm text-red-500">{errors.amount}</p>
+                )}
               </div>
 
               <div className="space-y-2">

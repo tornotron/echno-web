@@ -45,6 +45,7 @@ export default function NewInvoicePage() {
   const { data: projects = [] } = useProjects();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([
     {
       id: 1,
@@ -107,9 +108,15 @@ export default function NewInvoicePage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!formData.invoiceNumber?.trim())
+      newErrors.invoiceNumber = 'Invoice number is required';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
+      return;
+    }
     setIsSubmitting(true);
-
-    // Simulate API call
     setTimeout(() => {
       toast.success('Invoice created successfully');
       setIsSubmitting(false);
@@ -126,6 +133,12 @@ export default function NewInvoicePage() {
     value: string | number | Date
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const handleLineItemChange = (
@@ -230,8 +243,13 @@ export default function NewInvoicePage() {
                       handleInputChange('invoiceNumber', e.target.value)
                     }
                     placeholder="e.g., INV-2024-001"
-                    required
+                    className={errors.invoiceNumber ? 'border-red-500' : ''}
                   />
+                  {errors.invoiceNumber && (
+                    <p className="text-sm text-red-500">
+                      {errors.invoiceNumber}
+                    </p>
+                  )}
                 </div>
 
                 {/* Type */}

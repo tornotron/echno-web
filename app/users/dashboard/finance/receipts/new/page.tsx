@@ -35,6 +35,7 @@ export default function NewReceiptPage() {
   } = useProjects();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     receiptNumber: '',
     type: 'payment',
@@ -61,17 +62,21 @@ export default function NewReceiptPage() {
 
   const handleInputChange = (field: string, value: unknown) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => {
+      if (!prev[field as string]) return prev;
+      const next = { ...prev };
+      delete next[field as string];
+      return next;
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Validate required projectId
     if (!formData.projectId) {
-      toast.error('Please select a project');
+      setErrors({ projectId: 'Please select a project' });
+      toast.error('Please fix the errors in the form');
       return;
     }
-
     setIsSubmitting(true);
 
     // Simulate API call
@@ -159,7 +164,10 @@ export default function NewReceiptPage() {
                         handleInputChange('projectId', Number(value))
                       }
                     >
-                      <SelectTrigger id="projectId">
+                      <SelectTrigger
+                        id="projectId"
+                        className={errors.projectId ? 'border-red-500' : ''}
+                      >
                         <SelectValue placeholder="Select project" />
                       </SelectTrigger>
                       <SelectContent>
@@ -173,6 +181,9 @@ export default function NewReceiptPage() {
                         ))}
                       </SelectContent>
                     </Select>
+                  )}
+                  {errors.projectId && (
+                    <p className="text-sm text-red-500">{errors.projectId}</p>
                   )}
                 </div>
 

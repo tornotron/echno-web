@@ -124,8 +124,19 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
   const [formData, setFormData] = useState<Partial<Expense>>(() => ({
     ...initialData,
   }));
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function clearError(field: string) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
 
   const handleInputChange = (field: string, value: never) => {
+    clearError(field);
     let newData: Partial<Expense> = { ...formData, [field]: value };
 
     // Recalculate totals if amount or tax rate changes
@@ -156,17 +167,16 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.description?.trim()) {
-      toast.error('Description is required');
+    const newErrors: Record<string, string> = {};
+    if (!formData.description?.trim())
+      newErrors.description = 'Description is required';
+    if (!formData.amount || formData.amount <= 0)
+      newErrors.amount = 'Amount must be greater than 0';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
-
-    if (!formData.amount || formData.amount <= 0) {
-      toast.error('Amount must be greater than 0');
-      return;
-    }
-
     toast.success('Expense updated successfully!');
   };
 
@@ -288,8 +298,11 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
                 onChange={(e) =>
                   handleInputChange('description', e.target.value as never)
                 }
-                className="min-h-24"
+                className={`min-h-24${errors.description ? 'border-red-500' : ''}`}
               />
+              {errors.description && (
+                <p className="text-sm text-red-500">{errors.description}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -313,7 +326,11 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
                   onChange={(e) =>
                     handleInputChange('amount', Number(e.target.value) as never)
                   }
+                  className={errors.amount ? 'border-red-500' : ''}
                 />
+                {errors.amount && (
+                  <p className="text-sm text-red-500">{errors.amount}</p>
+                )}
               </div>
 
               <div className="space-y-2">

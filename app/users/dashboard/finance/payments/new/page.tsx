@@ -65,6 +65,7 @@ export default function NewPaymentPage() {
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPayeeType, setSelectedPayeeType] = useState<
     PayeeType | undefined
   >();
@@ -98,9 +99,17 @@ export default function NewPaymentPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const newErrors: Record<string, string> = {};
+    if (!formData.paymentNumber?.trim())
+      newErrors.paymentNumber = 'Payment number is required';
+    if (!formData.amount || formData.amount <= 0)
+      newErrors.amount = 'Amount must be greater than 0';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
+      return;
+    }
     setIsSubmitting(true);
-
-    // Simulate API call
     setTimeout(() => {
       toast.success('Payment created successfully');
       setIsSubmitting(false);
@@ -117,6 +126,12 @@ export default function NewPaymentPage() {
     value: string | number | Date
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
   };
 
   const handlePayeeTypeChange = (type: PayeeType) => {
@@ -243,8 +258,13 @@ export default function NewPaymentPage() {
                       handleInputChange('paymentNumber', e.target.value)
                     }
                     placeholder="e.g., PAY-2024-001"
-                    required
+                    className={errors.paymentNumber ? 'border-red-500' : ''}
                   />
+                  {errors.paymentNumber && (
+                    <p className="text-sm text-red-500">
+                      {errors.paymentNumber}
+                    </p>
+                  )}
                 </div>
 
                 {/* Type */}
@@ -537,10 +557,12 @@ export default function NewPaymentPage() {
                       }
                       placeholder="0.00"
                       step="0.01"
-                      className="pl-10"
-                      required
+                      className={`pl-10${errors.amount ? 'border-red-500' : ''}`}
                     />
                   </div>
+                  {errors.amount && (
+                    <p className="text-sm text-red-500">{errors.amount}</p>
+                  )}
                 </div>
 
                 {/* Currency */}
