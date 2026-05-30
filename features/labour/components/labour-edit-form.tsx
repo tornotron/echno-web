@@ -58,9 +58,26 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
     emergencyContactPhone: initialData?.emergencyContactPhone ?? '',
   }));
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function clearError(field: string) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.phone || !formData.trade) {
+    const newErrors: Record<string, string> = {};
+    if (!formData.name.trim()) newErrors.name = 'Full name is required';
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.trade.trim())
+      newErrors.trade = 'Trade/Specialization is required';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       toast.error('Please fill in all required fields');
       return;
     }
@@ -72,6 +89,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    clearError(field);
   };
 
   return (
@@ -109,7 +127,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       required
                     />
                   </div>
-                  <div>
+                  <div className="space-y-1">
                     <Label htmlFor="name">
                       Full Name <span className="text-red-500">*</span>
                     </Label>
@@ -118,10 +136,13 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       value={formData.name}
                       onChange={(e) => handleChange('name', e.target.value)}
                       placeholder="Enter full name"
-                      required
+                      className={errors.name ? 'border-red-500' : ''}
                     />
+                    {errors.name && (
+                      <p className="text-sm text-red-500">{errors.name}</p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-1">
                     <Label htmlFor="phone">
                       Phone Number <span className="text-red-500">*</span>
                     </Label>
@@ -130,6 +151,9 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       value={formData.phone}
                       onChange={(value) => handleChange('phone', value || '')}
                     />
+                    {errors.phone && (
+                      <p className="text-sm text-red-500">{errors.phone}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="email">Email</Label>
@@ -165,7 +189,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
+                  <div className="space-y-1">
                     <Label htmlFor="trade">
                       Trade/Specialization{' '}
                       <span className="text-red-500">*</span>
@@ -175,8 +199,11 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       value={formData.trade}
                       onChange={(e) => handleChange('trade', e.target.value)}
                       placeholder="e.g., Mason, Carpenter"
-                      required
+                      className={errors.trade ? 'border-red-500' : ''}
                     />
+                    {errors.trade && (
+                      <p className="text-sm text-red-500">{errors.trade}</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="skillLevel">Skill Level</Label>
