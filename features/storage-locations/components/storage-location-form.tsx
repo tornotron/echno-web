@@ -20,6 +20,7 @@ import {
 } from '@/types/storage-locations';
 import { useProjects } from '@/hooks/project/use-projects';
 import { useGeolocation } from '@/hooks/use-geolocation';
+import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 
 // ---------------------------------------------------------------------------
@@ -70,13 +71,24 @@ export function StorageLocationForm({
     active: initialData?.active ?? true,
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
   const isProjectSite =
     formData.locationType === StorageLocationType.PROJECT_SITE;
 
-  const handleInputChange = (
+  function clearError(field: string) {
+    setErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function handleInputChange(
     field: keyof StorageLocationFormData,
     value: string | boolean
-  ) => {
+  ) {
     if (
       field === 'locationType' &&
       value !== StorageLocationType.PROJECT_SITE
@@ -86,10 +98,11 @@ export function StorageLocationForm({
         locationType: value as StorageLocationType,
         projectId: '',
       });
-      return;
+    } else {
+      setFormData({ ...formData, [field]: value });
     }
-    setFormData({ ...formData, [field]: value });
-  };
+    clearError(field);
+  }
 
   const handleGetLocation = useCallback(() => {
     getCurrentLocation((lat, lng) => {
@@ -101,11 +114,20 @@ export function StorageLocationForm({
     });
   }, [getCurrentLocation]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  function validateForm(): boolean {
+    const newErrors: Record<string, string> = {};
+    const nameError = required('Location name')(formData.locationName);
+    if (nameError) newErrors.locationName = nameError;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
 
-    if (!formData.locationName.trim()) {
-      toast.error('Please enter a location name');
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error('Validation Error', {
+        description: 'Please fix the errors in the form',
+      });
       return;
     }
 
@@ -124,7 +146,7 @@ export function StorageLocationForm({
       projectName: selectedProject?.projectName,
       active: formData.active,
     });
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit}>
@@ -141,8 +163,11 @@ export function StorageLocationForm({
               onChange={(e) =>
                 handleInputChange('locationName', e.target.value)
               }
-              required
+              className={errors.locationName ? 'border-red-500' : ''}
             />
+            {errors.locationName && (
+              <p className="text-sm text-red-500">{errors.locationName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -196,19 +221,26 @@ export function StorageLocationForm({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
+          <Label htmlFor="address">
+            Address{' '}
+            <span className="text-muted-foreground text-xs">(optional)</span>
+          </Label>
           <Textarea
             id="address"
             placeholder="Enter full address"
             value={formData.address}
             onChange={(e) => handleInputChange('address', e.target.value)}
             rows={3}
+            className="resize-none"
           />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="capacity">Capacity</Label>
+            <Label htmlFor="capacity">
+              Capacity{' '}
+              <span className="text-muted-foreground text-xs">(optional)</span>
+            </Label>
             <Input
               id="capacity"
               type="number"
@@ -241,7 +273,10 @@ export function StorageLocationForm({
         {/* Location Coordinates */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <Label>Location Coordinates</Label>
+            <Label>
+              Location Coordinates{' '}
+              <span className="text-muted-foreground text-xs">(optional)</span>
+            </Label>
             <Button
               type="button"
               variant="outline"

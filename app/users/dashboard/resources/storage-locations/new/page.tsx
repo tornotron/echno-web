@@ -31,6 +31,7 @@ export default function NewLocationPage() {
     <div className="space-y-6">
       {/* Header */}
       <PageHeader
+        sticky
         title="Add New Location"
         description="Create a new storage or operational location"
         avatar={<MapPin className="h-6 w-6" />}
