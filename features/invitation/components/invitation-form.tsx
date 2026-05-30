@@ -41,18 +41,21 @@ export function InvitationForm() {
   const [generatedInvitation, setGeneratedInvitation] =
     useState<Invitation | null>(null);
   const [copied, setCopied] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const inviteCode = generatedInvitation?.inviteCode ?? '';
   const isGenerated = !!generatedInvitation;
 
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!formData.projectId || !formData.role) {
-      toast.error('Please fill in all required fields');
+    const newErrors: Record<string, string> = {};
+    if (!formData.projectId) newErrors.projectId = 'Please select a project';
+    if (!formData.role) newErrors.role = 'Please select a role';
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.error('Please fix the errors in the form');
       return;
     }
-
     generateMutation.mutate(
       {
         projectId: Number(formData.projectId),
@@ -107,13 +110,20 @@ export function InvitationForm() {
                 </Label>
                 <Select
                   value={formData.projectId}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, projectId: value })
-                  }
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, projectId: value });
+                    setErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.projectId;
+                      return n;
+                    });
+                  }}
                   disabled={isGenerated}
-                  required
                 >
-                  <SelectTrigger id="projectId">
+                  <SelectTrigger
+                    id="projectId"
+                    className={errors.projectId ? 'border-red-500' : ''}
+                  >
                     <SelectValue
                       placeholder={
                         projectsLoading
@@ -138,6 +148,9 @@ export function InvitationForm() {
                     ))}
                   </SelectContent>
                 </Select>
+                {errors.projectId && (
+                  <p className="text-sm text-red-500">{errors.projectId}</p>
+                )}
               </div>
 
               {/* Role */}
@@ -147,13 +160,20 @@ export function InvitationForm() {
                 </Label>
                 <Select
                   value={formData.role}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, role: value })
-                  }
+                  onValueChange={(value) => {
+                    setFormData({ ...formData, role: value });
+                    setErrors((prev) => {
+                      const n = { ...prev };
+                      delete n.role;
+                      return n;
+                    });
+                  }}
                   disabled={isGenerated}
-                  required
                 >
-                  <SelectTrigger id="role">
+                  <SelectTrigger
+                    id="role"
+                    className={errors.role ? 'border-red-500' : ''}
+                  >
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -168,6 +188,9 @@ export function InvitationForm() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.role && (
+                  <p className="text-sm text-red-500">{errors.role}</p>
+                )}
               </div>
 
               {/* Expiry + Max Uses */}
