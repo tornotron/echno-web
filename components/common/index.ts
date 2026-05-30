@@ -1,3 +1,5 @@
+export * from './attachments-section';
+export * from './attachments-uploader';
 export * from './footer';
 export * from './auth-button';
 export * from './pagination';
