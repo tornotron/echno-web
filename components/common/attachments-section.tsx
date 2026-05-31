@@ -181,14 +181,15 @@ export function AttachmentsSection({
         )}
 
         <div className="space-y-2">
-          {(!existingAttachments || existingAttachments.length === 0) && (
-            <div className="py-8 text-center">
-              <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                No attachments yet
-              </p>
-            </div>
-          )}
+          {(!existingAttachments || existingAttachments.length === 0) &&
+            newAttachments.length === 0 && (
+              <div className="py-8 text-center">
+                <Paperclip className="mx-auto mb-2 h-8 w-8 text-zinc-400" />
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  No attachments yet
+                </p>
+              </div>
+            )}
           <Input
             ref={inputRef}
             type="file"

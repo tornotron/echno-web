@@ -186,6 +186,8 @@ export function InspectionForm(props: InspectionFormProps) {
     if (!form.scheduledDate)
       newErrors.scheduledDate = 'Scheduled date is required';
     if (!form.inspectorId) newErrors.inspectorId = 'Please select an inspector';
+    if (form.reinspectionRequired && !form.reinspectionDate)
+      newErrors.reinspectionDate = 'Re-inspection date is required';
 
     setErrors(newErrors);
 
@@ -621,9 +623,18 @@ export function InspectionForm(props: InspectionFormProps) {
                   type="checkbox"
                   id="reinspectionRequired"
                   checked={form.reinspectionRequired}
-                  onChange={(e) =>
-                    setField('reinspectionRequired', e.target.checked)
-                  }
+                  onChange={(e) => {
+                    const checked = e.target.checked;
+                    setForm((prev) => ({
+                      ...prev,
+                      reinspectionRequired: checked,
+                      ...(checked
+                        ? {}
+                        : { reinspectionDate: '', reinspectionNotes: '' }),
+                    }));
+                    clearError('reinspectionRequired');
+                    clearError('reinspectionDate');
+                  }}
                   className="h-4 w-4 rounded border-zinc-300"
                 />
                 <Label htmlFor="reinspectionRequired" className="font-normal">
