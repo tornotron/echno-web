@@ -5,7 +5,8 @@ import { useEmployees } from '@/hooks/employee';
 import { useUserEmployees } from '@/hooks/user/use-user';
 import { Issue } from '@/types/issue/issue';
 import { Employee } from '@/types/employee/employee';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
+import { issueKeys } from './issue-keys';
 
 /** Resolve creator, assignee, and comment authors on each issue from a flat employee list. */
 function resolveEmployees(issues: Issue[], employees: Employee[]): Issue[] {
@@ -31,7 +32,7 @@ function resolveEmployees(issues: Issue[], employees: Employee[]): Issue[] {
  */
 export function useIssues() {
   const issuesQuery = useQuery({
-    queryKey: ['issues'],
+    queryKey: issueKeys.lists(),
     queryFn: () => issueService.getAll(),
     staleTime: 5 * 60 * 1000,
     retry: shouldRetry,
@@ -65,7 +66,7 @@ export function useIssues() {
  */
 export function useIssue(id?: number) {
   const issueQuery = useQuery({
-    queryKey: ['issues', id],
+    queryKey: issueKeys.detail(id ?? 0),
     queryFn: () => {
       if (!id) {
         throw new Error('Issue ID is required');
@@ -102,7 +103,7 @@ export function useIssue(id?: number) {
  */
 export function useIssuesByProject(projectId?: number) {
   const issuesQuery = useQuery({
-    queryKey: ['issues', 'project', projectId],
+    queryKey: issueKeys.byProject(projectId ?? 0),
     queryFn: () => {
       if (!projectId) {
         throw new Error('Project ID is required');
@@ -142,7 +143,7 @@ export function useIssuesByProject(projectId?: number) {
  */
 export function useIssuesByTask(taskId?: number) {
   const issuesQuery = useQuery({
-    queryKey: ['issues', 'task', taskId],
+    queryKey: issueKeys.byTask(taskId ?? 0),
     queryFn: () => {
       if (!taskId) {
         throw new Error('Task ID is required');
