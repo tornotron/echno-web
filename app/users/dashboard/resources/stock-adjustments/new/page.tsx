@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
@@ -13,15 +12,11 @@ import {
   type StockAdjustmentSubmitData,
 } from '@/features/stock-adjustments/components';
 
+function handleSubmit(_data: StockAdjustmentSubmitData) {
+  toast.error('Stock adjustment creation is not yet available');
+}
+
 export default function CreateStockAdjustmentPage() {
-  const router = useRouter();
-
-  function handleSubmit(_data: StockAdjustmentSubmitData) {
-    // TODO: wire to real mutation when stock adjustment endpoint is available
-    toast.success('Stock Adjustment created successfully');
-    router.push(routes.resources.stockAdjustments.href);
-  }
-
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader

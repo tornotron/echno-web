@@ -86,24 +86,23 @@ export default function EditTaskPage({ params }: PageProps) {
 
   function confirmSave() {
     if (!pendingSubmitData) return;
-    try {
-      updateTask.mutate(pendingSubmitData, {
-        onSuccess: () => {
-          router.push(
-            routes.portfolio.projects.allProjects
-              .detail(projectId)
-              .tasks.detail(taskId).href
-          );
-        },
-        onSettled: () => {
-          setShowSaveDialog(false);
-          setPendingSubmitData(null);
-        },
-      });
-    } catch (error) {
-      logger.error('Error updating task:', error);
-      toast.error('Failed to update task. Please try again.');
-    }
+    updateTask.mutate(pendingSubmitData, {
+      onSuccess: () => {
+        router.push(
+          routes.portfolio.projects.allProjects
+            .detail(projectId)
+            .tasks.detail(taskId).href
+        );
+      },
+      onError: (error) => {
+        logger.error('Error updating task:', error);
+        toast.error('Failed to update task. Please try again.');
+      },
+      onSettled: () => {
+        setShowSaveDialog(false);
+        setPendingSubmitData(null);
+      },
+    });
   }
 
   function confirmDelete() {
