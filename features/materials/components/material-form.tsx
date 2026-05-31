@@ -45,7 +45,7 @@ type FormState = {
   moq: string;
   minStock: string;
   maxStock: string;
-  safteyStock: string;
+  safetyStock: string;
   reorderLevel: string;
   ltc: string;
 };
@@ -66,7 +66,7 @@ const EMPTY_FORM: FormState = {
   moq: '',
   minStock: '',
   maxStock: '',
-  safteyStock: '',
+  safetyStock: '',
   reorderLevel: '',
   ltc: '',
 };
@@ -79,7 +79,7 @@ function recomputeThresholds(
   base: FormState,
   ovr: Overrides
 ): Partial<FormState> {
-  const safety = Number(base.safteyStock) || 0;
+  const safety = Number(base.safetyStock) || 0;
   const ltcVal = Number(base.ltc) || 0;
   const moqVal = Number(base.moq) || 0;
 
@@ -91,7 +91,7 @@ function recomputeThresholds(
     ? Number(base.reorderLevel) || 0
     : computedReorder;
 
-  const computedMax = effectiveReorder + moqVal - ltcVal;
+  const computedMax = Math.max(0, effectiveReorder + moqVal - ltcVal);
 
   return {
     ...(ovr.minStock ? {} : { minStock: String(computedMin) }),
@@ -159,7 +159,7 @@ export function MaterialForm(props: MaterialFormProps) {
       moq: m.moq === undefined ? '' : String(m.moq),
       minStock: m.minStock === undefined ? '' : String(m.minStock),
       maxStock: m.maxStock === undefined ? '' : String(m.maxStock),
-      safteyStock: m.safetyStock === undefined ? '' : String(m.safetyStock),
+      safetyStock: m.safetyStock === undefined ? '' : String(m.safetyStock),
       reorderLevel: m.reorderLevel === undefined ? '' : String(m.reorderLevel),
       ltc: m.ltc === undefined ? '' : String(m.ltc),
     };
@@ -269,7 +269,7 @@ export function MaterialForm(props: MaterialFormProps) {
         minStock: form.minStock === '' ? undefined : Number(form.minStock),
         maxStock: form.maxStock === '' ? undefined : Number(form.maxStock),
         safetyStock:
-          form.safteyStock === '' ? undefined : Number(form.safteyStock),
+          form.safetyStock === '' ? undefined : Number(form.safetyStock),
         reorderLevel:
           form.reorderLevel === '' ? undefined : Number(form.reorderLevel),
         ltc: form.ltc === '' ? undefined : Number(form.ltc),
@@ -285,7 +285,7 @@ export function MaterialForm(props: MaterialFormProps) {
         minStock: form.minStock === '' ? undefined : Number(form.minStock),
         maxStock: form.maxStock === '' ? undefined : Number(form.maxStock),
         safetyStock:
-          form.safteyStock === '' ? undefined : Number(form.safteyStock),
+          form.safetyStock === '' ? undefined : Number(form.safetyStock),
         reorderLevel:
           form.reorderLevel === '' ? undefined : Number(form.reorderLevel),
         ltc: form.ltc === '' ? undefined : Number(form.ltc),
@@ -405,16 +405,16 @@ export function MaterialForm(props: MaterialFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="safteyStock">Safety Stock</Label>
+                  <Label htmlFor="safetyStock">Safety Stock</Label>
                   <Input
-                    id="safteyStock"
+                    id="safetyStock"
                     type="number"
                     min="0"
                     step="any"
                     placeholder="0"
-                    value={form.safteyStock}
+                    value={form.safetyStock}
                     onChange={(e) =>
-                      handleSourceChange('safteyStock', e.target.value)
+                      handleSourceChange('safetyStock', e.target.value)
                     }
                   />
                 </div>

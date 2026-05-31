@@ -146,11 +146,19 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                     <Label htmlFor="phone">
                       Phone Number <span className="text-red-500">*</span>
                     </Label>
-                    <PhoneInput
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(value) => handleChange('phone', value || '')}
-                    />
+                    <div
+                      className={
+                        errors.phone
+                          ? 'rounded-md border border-red-500'
+                          : undefined
+                      }
+                    >
+                      <PhoneInput
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(value) => handleChange('phone', value || '')}
+                      />
+                    </div>
                     {errors.phone && (
                       <p className="text-sm text-red-500">{errors.phone}</p>
                     )}
