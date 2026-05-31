@@ -48,12 +48,13 @@ From [package.json](../package.json):
 - **Next.js 16** + **React 19** (App Router only — no `pages/`).
 - **Auth.js v5** (`next-auth@5.0.0-beta.30`) with a Keycloak (OIDC) provider —
   see [auth.ts](../auth.ts).
-- **TanStack Query v5** for client-side data fetching/caching.
-- **Zustand** for ad-hoc client state (sparingly used).
+- **TanStack Query v5** for client-side data fetching/caching (see §5 for
+  the configured global defaults).
+- **Zustand v5** for ad-hoc client state (sparingly used).
 - **Tailwind v4** + **shadcn/ui** + **Radix** primitives for UI.
-- **Zod** for runtime validation; **react-hook-form** for forms.
+- **Zod v4** for runtime validation; **react-hook-form** for forms.
 - **TypeScript** strict; path alias `@/*` → repo root (see [tsconfig.json](../tsconfig.json)).
-- **pnpm** is enforced (`preinstall: only-allow pnpm`).
+- **bun** is enforced (`preinstall: only-allow bun`). Use `bun install`, `bun dev`, etc.
 - Backend is a separate **Spring Boot** API; Next.js proxies to it
   via [app/api/v1/[...path]/route.ts](../app/api/v1/[...path]/route.ts).
 
@@ -81,7 +82,7 @@ This repo uses all of the above. Concrete examples to look at:
 - Root layout: [app/layout.tsx](../app/layout.tsx)
 - Root page (marketing): [app/page.tsx](../app/page.tsx)
 - Dashboard layout (auth-gated shell): [app/users/dashboard/layout.tsx](../app/users/dashboard/layout.tsx)
-- Dynamic project route: [app/users/dashboard/projects/[id]/page.tsx](../app/users/dashboard/projects/%5Bid%5D/page.tsx)
+- Dynamic project route: [app/users/dashboard/portfolio/projects/[id]/page.tsx](../app/users/dashboard/portfolio/projects/%5Bid%5D/page.tsx)
 - Catch-all API proxy: [app/api/v1/[...path]/route.ts](../app/api/v1/%5B...path%5D/route.ts)
 - Global error/not-found: [app/error.tsx](../app/error.tsx), [app/not-found.tsx](../app/not-found.tsx)
 
@@ -98,9 +99,24 @@ revocation checks, and token-refresh error handling.
 
 ```text
 app/                  → routing + pages + API routes (Next.js)
+  users/dashboard/    → authenticated section, grouped by domain:
+    portfolio/        → projects, inspections
+    finance/          → budgets, expenses, invoices, payments, receipts
+    resources/        → assets, goods-receipts, indents, material-consumptions,
+                        materials, purchase-orders, stock-adjustments,
+                        storage-locations, transfers
+    third-party/      → labour, sub-contracts, vendors
+    workforce/        → employees, leaves
+    site/             → site-level management
+    attendance/       → attendance module
+    chat/             → chat module
+    tasks/            → standalone task view
+    organizations/    → multi-org management
+    portal/ learning/ → additional feature areas
 auth.ts               → Auth.js config (Keycloak, JWT callbacks, refresh)
 proxy.ts              → middleware (auth gate, session checks)
 next.config.ts        → Next.js config (redirects, image hosts, output mode)
+scripts/              → Node 22 codegen scripts (generate-routes.ts, watch-routes.ts)
 
 components/
   ui/                 → raw shadcn primitives (do NOT import directly from app/features)
@@ -118,10 +134,30 @@ hooks/<domain>/       → TanStack Query hooks (queries + mutations) per domain
 
 services/             → thin API client wrappers, one file per backend resource
 
+nav/                  → navigation platform (filesystem-driven, see §7)
+  types.ts            → core RouteNode / NavItem / RouteMetadata types
+  access/             → RBAC access config per route
+  breadcrumbs/        → breadcrumb utilities
+  compose/            → merges generated routes with human metadata
+  generated/          → auto-generated from filesystem (routes, helpers, index maps)
+  indexes/            → id/path index builders
+  metadata/           → human-authored per-route UI intent (label, icon, badges…)
+  validators/         → nav-tree validation
+  index.ts            → main entry point; exports `navigation`, `routes`, `DASHBOARD_BASE`
+
+config/
+  nav.config.ts       → backward-compat shim — re-exports from @/nav (do not add new logic here)
+  auth-config.ts      → RBAC role/permission definitions
+
 lib/
   api/api-client.ts   → fetch wrapper (timeout, retry, ApiError class)
   auth/               → session-revocation, token helpers, constants
   rbac/               → role/permission helpers
+  query/              → TanStack Query shared utilities
+    options.ts        → standardQueryOptions, realtimeQueryOptions, staticQueryOptions, noCacheQueryOptions
+    retry.ts          → shouldRetry (shared retry policy for all hooks)
+  monitoring/         → metrics helpers (metrics.ts, rate-limit.ts)
+  security/           → security helpers
   utils/              → date, retry, navigation, breadcrumb, error helpers
   stores/             → Zustand stores
   styles/             → toast, Tailwind helpers
@@ -129,7 +165,6 @@ lib/
   logger.ts           → structured logger (used everywhere)
 
 types/<domain>/       → TS types + Zod parsers + (de)serializers per domain
-config/               → nav config, auth-config (single source of truth for sidebar/RBAC)
 public/               → static assets
 ```
 
@@ -187,7 +222,7 @@ understand projects, you understand all 25+ features.
 
 Concrete example for the **Projects** feature:
 
-1. Page: [app/users/dashboard/projects/page.tsx](../app/users/dashboard/projects/page.tsx)
+1. Page: [app/users/dashboard/portfolio/projects/page.tsx](../app/users/dashboard/portfolio/projects/page.tsx)
 2. Hook: [hooks/project/use-projects.ts](../hooks/project/use-projects.ts) (queries) + [hooks/project/use-project-mutations.ts](../hooks/project/use-project-mutations.ts) (mutations)
 3. Service: [services/project-service.ts](../services/project-service.ts)
 4. Types/parsers: [types/project/project.ts](../types/project/project.ts)
@@ -195,6 +230,33 @@ Concrete example for the **Projects** feature:
 
 Read those five files in that order — that's the canonical "tour of one
 feature." Every other feature is a structural copy.
+
+### TanStack Query global defaults
+
+The `QueryProvider` ([components/providers/query-provider.tsx](../components/providers/query-provider.tsx))
+sets these defaults for all hooks:
+
+| Setting                | Value                                          |
+| ---------------------- | ---------------------------------------------- |
+| `staleTime`            | 60 s — data considered fresh for 1 minute      |
+| `gcTime`               | 5 min — cache entry lives 5 min after last use |
+| `retry`                | `shouldRetry` from `lib/query/retry.ts`        |
+| `retryDelay`           | Exponential back-off, capped at 30 s           |
+| `refetchOnWindowFocus` | Production only (avoids dev noise)             |
+| `refetchOnReconnect`   | Always                                         |
+
+`shouldRetry` retries 5xx / network / 429 errors up to 3 times; skips retries
+on 4xx client errors and auth failures (401/403/404).
+
+Individual hooks that need different behaviour import a preset from
+[lib/query/options.ts](../lib/query/options.ts) and spread it into `useQuery`:
+
+| Preset                 | Use case                                      |
+| ---------------------- | --------------------------------------------- |
+| `standardQueryOptions` | Default — same as global (explicit opt-in)    |
+| `realtimeQueryOptions` | Chat messages, live dashboards — always stale |
+| `staticQueryOptions`   | Work categories, org settings — 10 min fresh  |
+| `noCacheQueryOptions`  | Unread counts, must-be-fresh data             |
 
 ### Why a proxy route for the API?
 
@@ -242,20 +304,47 @@ const session = await auth();
 ```
 
 **RBAC** is layered on top — see [lib/rbac/](../lib/rbac/), [hooks/use-authorization.ts](../hooks/use-authorization.ts),
-and the worked example at the top of
-[app/users/dashboard/projects/page.tsx](../app/users/dashboard/projects/page.tsx).
+and [config/auth-config.ts](../config/auth-config.ts).
 The pattern is "one page for everyone, conditionally render based on permissions."
 
 ---
 
-## 7. Navigation configuration
+## 7. Navigation platform (`nav/`)
 
-[config/nav.config.ts](../config/nav.config.ts) is the **single source of
-truth** for the sidebar, breadcrumbs, and route-level RBAC labels. When you
-add a new route, you also add it here. The sidebar
-([features/common/components/sidebar.tsx](../features/common/components/sidebar.tsx))
+The navigation system is a **filesystem-driven platform** in the `nav/`
+directory. It has two layers:
+
+1. **Generated** (`nav/generated/`) — auto-derived from the `app/` folder
+   tree by the codegen CLI. Contains typed route constants, path helpers, and
+   an index map. Regenerate with:
+
+   ```sh
+   bun routes:generate   # one-shot
+   bun routes:watch      # watch mode (already runs as part of `bun dev`)
+   ```
+
+2. **Human-authored** (`nav/metadata/`) — per-route UI intent: display label,
+   icon, badge, visibility, RBAC access config. Edit these when you add a new
+   route.
+
+The `nav/compose/` module merges both layers into a fully typed nav tree.
+`nav/index.ts` is the single entry point for application code:
+
+```ts
+import { navigation, routes, DASHBOARD_BASE } from '@/nav';
+
+// Type-safe route helpers — no magic strings
+routes.portfolio.projects.href; // '/users/dashboard/portfolio/projects'
+routes.portfolio.projects.detail('42').href; // '/users/dashboard/portfolio/projects/42'
+routes.finance.receipts.new.href;
+```
+
+`config/nav.config.ts` is a **backward-compat shim** that re-exports from
+`@/nav`. Do not add new logic there — migrate imports to `@/nav` directly.
+
+The sidebar ([features/common/components/sidebar.tsx](../features/common/components/sidebar.tsx))
 and breadcrumbs ([features/common/components/breadcrumbs.tsx](../features/common/components/breadcrumbs.tsx))
-read from it.
+consume `navigation` from `@/nav`.
 
 ---
 
@@ -298,32 +387,36 @@ model afterwards.
     catch-all backend proxy. Note `GET/POST/PUT/PATCH/DELETE` exports.
 14. [lib/api/api-client.ts](../lib/api/api-client.ts) — fetch wrapper used
     by every service.
-15. [config/nav.config.ts](../config/nav.config.ts) — sidebar/breadcrumb
-    source of truth.
+15. [lib/query/options.ts](../lib/query/options.ts) and
+    [lib/query/retry.ts](../lib/query/retry.ts) — shared TanStack Query presets
+    and retry policy.
+16. [nav/index.ts](../nav/index.ts) — nav platform entry point; then skim
+    `nav/types.ts` and `nav/generated/routes.generated.ts` to see the shape.
 
 ### Phase 4 — One feature end-to-end (45 min)
 
 Pick **Projects** — it's the most representative.
 
-16. [types/project/project.ts](../types/project/project.ts) — domain type +
+17. [types/project/project.ts](../types/project/project.ts) — domain type +
     parsers.
-17. [services/project-service.ts](../services/project-service.ts) — CRUD calls.
-18. [hooks/project/use-projects.ts](../hooks/project/use-projects.ts) — read
+18. [services/project-service.ts](../services/project-service.ts) — CRUD calls.
+19. [hooks/project/use-projects.ts](../hooks/project/use-projects.ts) — read
     queries.
-19. [hooks/project/use-project-mutations.ts](../hooks/project/use-project-mutations.ts)
+20. [hooks/project/use-project-mutations.ts](../hooks/project/use-project-mutations.ts)
     — read mutations + cache invalidation pattern.
-20. [features/projects/components/](../features/projects/components/) — feature UI.
-21. [app/users/dashboard/projects/page.tsx](../app/users/dashboard/projects/page.tsx)
-    — list page (also a great RBAC example, see file's header comment).
-22. [app/users/dashboard/projects/[id]/page.tsx](../app/users/dashboard/projects/%5Bid%5D/page.tsx)
+21. [features/projects/components/](../features/projects/components/) — feature UI.
+22. [app/users/dashboard/portfolio/projects/page.tsx](../app/users/dashboard/portfolio/projects/page.tsx)
+    — list page (also a great RBAC example).
+23. [app/users/dashboard/portfolio/projects/[id]/page.tsx](../app/users/dashboard/portfolio/projects/%5Bid%5D/page.tsx)
     — dynamic detail page; note `useParams()`.
 
 ### Phase 5 — Get it running (15 min)
 
-23. Copy `.env` from a teammate (Keycloak issuer/client, `BACKEND_API_URL`).
-24. `pnpm install && pnpm dev`. Visit http://localhost:3000.
-25. Sign in via Keycloak and land on `/users/dashboard`.
-26. Open DevTools → Network tab and watch a page hit `/api/v1/...` — confirm
+24. Copy `.env.local` from a teammate (Keycloak issuer/client, `BACKEND_API_URL`).
+25. `bun install && bun dev`. Visit http://localhost:3000.
+    (`bun dev` concurrently runs the route watcher + Next.js dev server.)
+26. Sign in via Keycloak and land on `/users/dashboard`.
+27. Open DevTools → Network tab and watch a page hit `/api/v1/...` — confirm
     the proxy round-trip mental model.
 
 ---
@@ -381,12 +474,15 @@ does, this is the lookup.
   catch violations.
 - **Adding a new domain**: create `types/<x>/`, `services/<x>-service.ts`,
   `hooks/<x>/use-<x>.ts` + `use-<x>-mutations.ts`,
-  `features/<x>/components/`, then the route(s) in
-  `app/users/dashboard/<x>/`. Add the route to `config/nav.config.ts`.
+  `features/<x>/components/`, then the route(s) under the appropriate
+  `app/users/dashboard/<section>/` group. Add metadata to `nav/metadata/`
+  and run `bun routes:generate`. Do **not** add logic to `config/nav.config.ts`.
 - **Use shadcn UI from `@/components/shadcn/*`**, never `@/components/ui/*`.
 - **Mark interactive pages `'use client'`** at the top. Most pages here do.
-- **Run `pnpm lint` before pushing** — Husky's pre-commit hook will run it
+- **Run `bun lint` before pushing** — Husky's pre-commit hook will run it
   on staged files anyway.
+- **Route helpers**: use `routes.*` from `@/nav` instead of hardcoded strings.
+  If you add a route and helpers are missing, run `bun routes:generate`.
 
 ---
 
