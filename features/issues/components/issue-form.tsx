@@ -49,8 +49,11 @@ import { useTasksByProject } from '@/hooks/task';
 import { useUser, useUserEmployees } from '@/hooks/user/use-user';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { toast } from '@/lib/styles/toast-styles';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { routes } from '@/nav';
 import { AttachmentsSection } from '@/components/common';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 // ---------------------------------------------------------------------------
 // Types
@@ -179,8 +182,32 @@ export function IssueForm(props: IssueFormProps) {
   const [taskSearch, setTaskSearch] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const deleteAttachment = useDeleteAttachment();
 
   const isTaskLocked = isEdit ? true : !!(props as CreateProps).initialTaskId;
+
+  function handleUploadFiles(files: File[]) {
+    const valid: File[] = [];
+    const invalid: string[] = [];
+    for (const f of files) {
+      if (f.size > MAX_FILE_SIZE) invalid.push(f.name);
+      else valid.push(f);
+    }
+    if (invalid.length > 0)
+      toast.error('Some files exceed 10MB', {
+        description: `Not added: ${invalid.join(', ')}`,
+      });
+    if (valid.length > 0) setAttachments((prev) => [...prev, ...valid]);
+  }
+
+  async function handleDeleteAttachment(id: number) {
+    try {
+      await deleteAttachment.mutateAsync(id);
+      toast.success('Attachment deleted successfully');
+    } catch {
+      toast.error('Failed to delete attachment');
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Error helpers
@@ -570,10 +597,11 @@ export function IssueForm(props: IssueFormProps) {
             title="Issue Attachments"
             existingAttachments={existingAttachments}
             newAttachments={attachments}
-            onAttachmentsChange={setAttachments}
+            onUploadFiles={handleUploadFiles}
             onRemoveAttachment={(index) =>
               setAttachments((prev) => prev.filter((_, i) => i !== index))
             }
+            onDeleteAttachment={handleDeleteAttachment}
           />
         </div>
 

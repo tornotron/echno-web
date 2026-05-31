@@ -40,7 +40,10 @@ import { abbreviatedName } from '@/types/work-category';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { toast } from '@/lib/styles/toast-styles';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { AttachmentsSection } from '@/components/common';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 import { CreateCategoryDialog } from './task-alert-dialogs';
 
 // ---------------------------------------------------------------------------
@@ -140,6 +143,30 @@ export function TaskForm(props: TaskFormProps) {
   const [tagInput, setTagInput] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const deleteAttachment = useDeleteAttachment();
+
+  function handleUploadFiles(files: File[]) {
+    const valid: File[] = [];
+    const invalid: string[] = [];
+    for (const f of files) {
+      if (f.size > MAX_FILE_SIZE) invalid.push(f.name);
+      else valid.push(f);
+    }
+    if (invalid.length > 0)
+      toast.error('Some files exceed 10MB', {
+        description: `Not added: ${invalid.join(', ')}`,
+      });
+    if (valid.length > 0) setAttachments((prev) => [...prev, ...valid]);
+  }
+
+  async function handleDeleteAttachment(id: number) {
+    try {
+      await deleteAttachment.mutateAsync(id);
+      toast.success('Attachment deleted successfully');
+    } catch {
+      toast.error('Failed to delete attachment');
+    }
+  }
 
   // Create category dialog
   const [showCreateCategory, setShowCreateCategory] = useState(false);
@@ -574,10 +601,11 @@ export function TaskForm(props: TaskFormProps) {
               title="Task Attachments"
               existingAttachments={existingAttachments ?? []}
               newAttachments={attachments}
-              onAttachmentsChange={setAttachments}
+              onUploadFiles={handleUploadFiles}
               onRemoveAttachment={(index) =>
                 setAttachments((prev) => prev.filter((_, i) => i !== index))
               }
+              onDeleteAttachment={handleDeleteAttachment}
             />
           </div>
 

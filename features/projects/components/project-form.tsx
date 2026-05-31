@@ -30,6 +30,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { format } from 'date-fns';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
+import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { AttachmentsSection } from '@/components/common';
 
 // ---------------------------------------------------------------------------
@@ -118,8 +119,32 @@ export function ProjectForm(props: ProjectFormProps) {
   const [createLocationForProject, setCreateLocationForProject] =
     useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const deleteAttachment = useDeleteAttachment();
 
   const { isLoading: isGettingLocation, getCurrentLocation } = useGeolocation();
+
+  function handleUploadFiles(files: File[]) {
+    const valid: File[] = [];
+    const invalid: string[] = [];
+    for (const f of files) {
+      if (f.size > MAX_FILE_SIZE) invalid.push(f.name);
+      else valid.push(f);
+    }
+    if (invalid.length > 0)
+      toast.error('Some files exceed 10MB', {
+        description: `Not added: ${invalid.join(', ')}`,
+      });
+    if (valid.length > 0) setAttachments((prev) => [...prev, ...valid]);
+  }
+
+  async function handleDeleteAttachment(id: number) {
+    try {
+      await deleteAttachment.mutateAsync(id);
+      toast.success('Attachment deleted successfully');
+    } catch {
+      toast.error('Failed to delete attachment');
+    }
+  }
 
   // ---------------------------------------------------------------------------
   // Field helpers
@@ -497,8 +522,9 @@ export function ProjectForm(props: ProjectFormProps) {
           title="Project Attachments"
           existingAttachments={existingAttachments}
           newAttachments={attachments}
-          onAttachmentsChange={setAttachments}
+          onUploadFiles={handleUploadFiles}
           onRemoveAttachment={removeAttachment}
+          onDeleteAttachment={handleDeleteAttachment}
         />
       )}
     </form>

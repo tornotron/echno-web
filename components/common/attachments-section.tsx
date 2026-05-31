@@ -24,8 +24,6 @@ import {
 } from 'lucide-react';
 import type { Attachment, AttachmentType } from '@/types/attachment';
 import { formatFileSize } from '@/types/attachment';
-import { toast } from '@/lib/styles/toast-styles';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -41,11 +39,12 @@ interface AttachmentsSectionProps {
   title?: string;
   existingAttachments?: Attachment[];
   newAttachments: File[];
-  onAttachmentsChange: (files: File[]) => void;
+  /** Called with the raw selected File list; caller is responsible for size validation and toasts. */
+  onUploadFiles: (files: File[]) => void;
   onRemoveAttachment: (index: number) => void;
+  /** Called with the attachment id when the user confirms deletion; caller is responsible for the mutation and toasts. */
+  onDeleteAttachment: (id: number) => void;
 }
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 const getAttachmentIcon = (type: AttachmentType) => {
   switch (type) {
@@ -72,47 +71,25 @@ export function AttachmentsSection({
   title = 'Attachments',
   existingAttachments,
   newAttachments,
-  onAttachmentsChange,
+  onUploadFiles,
   onRemoveAttachment,
+  onDeleteAttachment,
 }: AttachmentsSectionProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [attachmentToDelete, setAttachmentToDelete] = useState<number | null>(
     null
   );
-  const deleteAttachmentMutation = useDeleteAttachment();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const selected = [...e.target.files];
-    const valid: File[] = [];
-    const invalid: string[] = [];
-    for (const file of selected) {
-      if (file.size > MAX_FILE_SIZE) {
-        invalid.push(file.name);
-      } else {
-        valid.push(file);
-      }
-    }
-    if (invalid.length > 0) {
-      toast.error('Some files exceed 10MB', {
-        description: `Not added: ${invalid.join(', ')}`,
-      });
-    }
-    if (valid.length > 0) {
-      onAttachmentsChange([...newAttachments, ...valid]);
-    }
+    if (!e.target.files || e.target.files.length === 0) return;
+    onUploadFiles([...e.target.files]);
     e.target.value = '';
   };
 
-  const handleDeleteAttachment = async () => {
+  const handleConfirmDelete = () => {
     if (attachmentToDelete == null) return;
-    try {
-      await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
-      toast.success('Attachment deleted successfully');
-      setAttachmentToDelete(null);
-    } catch {
-      toast.error('Failed to delete attachment');
-    }
+    onDeleteAttachment(attachmentToDelete);
+    setAttachmentToDelete(null);
   };
 
   return (
@@ -264,7 +241,7 @@ export function AttachmentsSection({
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={handleDeleteAttachment}
+              onClick={handleConfirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete

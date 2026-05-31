@@ -4,9 +4,6 @@ import { useRef } from 'react';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Upload, Loader2 } from 'lucide-react';
-import { toast } from '@/lib/styles/toast-styles';
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 interface AttachmentsUploaderProps {
   onUpload: (files: File[]) => void;
@@ -21,29 +18,7 @@ export function AttachmentsUploader({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-
-    const selected = [...e.target.files];
-    const valid: File[] = [];
-    const invalid: string[] = [];
-
-    for (const file of selected) {
-      if (file.size > MAX_FILE_SIZE) {
-        invalid.push(file.name);
-      } else {
-        valid.push(file);
-      }
-    }
-
-    if (invalid.length > 0) {
-      toast.error('Some files exceed 10MB', {
-        description: `Not uploaded: ${invalid.join(', ')}`,
-      });
-    }
-
-    if (valid.length > 0) {
-      onUpload(valid);
-    }
-
+    onUpload([...e.target.files]);
     e.target.value = '';
   };
 
