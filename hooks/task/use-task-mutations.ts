@@ -6,7 +6,16 @@ import { UpdateTaskRequest } from '@/types/task/task-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { mergePreservingNested } from '@/lib/query/cache-merge';
 import { taskKeys } from './task-keys';
+
+const TASK_NESTED_KEYS = [
+  'creator',
+  'assignees',
+  'category',
+  'issues',
+  'attachments',
+] as const satisfies ReadonlyArray<keyof Task>;
 
 /**
  * Matches every Task[] list cache under the 'tasks' namespace while excluding
@@ -34,12 +43,15 @@ export function useCreateTask() {
       files?: TaskFiles;
     }) => taskService.create(data, files),
     onSuccess: (newTask, { data }) => {
-      // Append to main list.
+      // POST /task/web returns TaskSimpleDto — nested fields (creator,
+      // assignees, category, issues, attachments) absent. Seed for instant
+      // navigation, then invalidate the detail key so the next observer
+      // refetches the canonical full Task.
       queryClient.setQueryData<Task[]>(taskKeys.lists(), (old) =>
         old ? [...old, newTask] : [newTask]
       );
-      // Seed the detail cache so navigating to the new task page is instant.
       queryClient.setQueryData<Task>(taskKeys.detail(newTask.id), newTask);
+      queryClient.invalidateQueries({ queryKey: taskKeys.detail(newTask.id) });
       // Append to the project-scoped list only if that cache already exists.
       // Functional updater returns undefined for absent entries, avoiding a
       // spurious cache entry for projects the user hasn't visited.
@@ -133,12 +145,20 @@ export function useUpdateTask() {
       logger.error('Failed to update task:', error);
     },
     onSuccess: (updatedTask, { id }) => {
-      // Reconcile with the authoritative server response.
-      queryClient.setQueryData<Task>(taskKeys.detail(id), updatedTask);
+      // PATCH /task/web/{id} returns TaskSimpleDto — nested fields (creator,
+      // assignees, category, issues, attachments) absent. Merge preserves
+      // cached nested data; invalidate triggers a canonical refetch.
+      const merge = (old: Task | undefined): Task =>
+        old
+          ? mergePreservingNested(old, updatedTask, TASK_NESTED_KEYS)
+          : updatedTask;
+      queryClient.setQueryData<Task>(taskKeys.detail(id), merge);
       queryClient.setQueriesData<Task[]>(
         { predicate: isTaskListCache },
-        (old) => old?.map((t) => (t.id === id ? updatedTask : t))
+        (old) => old?.map((t) => (t.id === id ? merge(t) : t))
       );
+      queryClient.invalidateQueries({ queryKey: taskKeys.detail(id) });
+      queryClient.invalidateQueries({ predicate: isTaskListCache });
       toast.success('Task Updated', {
         description: 'The task has been updated successfully',
       });

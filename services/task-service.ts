@@ -11,6 +11,23 @@ import { UpdateTaskRequest, updateTaskToJson } from '@/types/task/task-update';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
 
+/**
+ * Backend response shape audit (per local-docs/backend-api-docs.md):
+ *
+ *   GET    /tasks/web                           → TaskDto[]       (full)
+ *   GET    /tasks/web/{id}                      → TaskDto         (full)
+ *   GET    /tasks/web/projectId/{projectId}     → TaskDto[]       (full)
+ *   POST   /tasks/web                           → TaskSimpleDto   (partial — no nested)
+ *   PATCH  /tasks/web/{id}                      → TaskSimpleDto   (partial — no nested)
+ *   DELETE /tasks/web/{id}                      → ApiResponse     (ack only)
+ *
+ * `create` and `update` parse a TaskSimpleDto with `parseTask`, which tolerates
+ * missing fields by setting them to undefined. The returned Task therefore lacks
+ * `creator`, `assignees`, `category`, `issues`, and `attachments`. Callers must
+ * NEVER overwrite the cached detail entry with this response — use
+ * `mergePreservingNested` from `@/lib/query/cache-merge` and invalidate the
+ * detail key to refetch the full object.
+ */
 function safeParseTask(data: ApiResponse): Task {
   try {
     return parseTask(data);

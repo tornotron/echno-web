@@ -13,6 +13,27 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiResponse = any;
 
+/**
+ * Backend response shape audit (per local-docs/backend-api-docs.md):
+ *
+ *   GET    /project/web                                       → ProjectDto[]      (full)
+ *   GET    /project/web/{id}                                  → ProjectDto        (full)
+ *   GET    /project/web/employees/{employeeId}                → ProjectDto[]      (full)
+ *   POST   /project/web                                       → ProjectSimpleDto  (partial — no nested)
+ *   PATCH  /project/web/{id}                                  → ProjectSimpleDto  (partial — no nested)
+ *   DELETE /project/web/{id}                                  → ApiResponse      (ack only)
+ *   POST   /project/web/{projectId}/employees/{employeeId}    → EmployeeDto      (the added Employee, not a Project)
+ *   DELETE /project/web/{projectId}/employees/{employeeId}    → ApiResponse      (ack only)
+ *   GET    /project/web/{projectId}/employees                 → EmployeeDto[]
+ *
+ * `create`, `createWithFiles`, `update`, `updateWithFiles` parse a
+ * ProjectSimpleDto with `parseProject`, which tolerates missing fields by
+ * setting them to undefined/empty. The returned Project therefore lacks
+ * populated `attachments`, `members`, and `tasks`. Callers must NEVER overwrite
+ * the cached detail entry with this response — use `mergePreservingNested`
+ * from `@/lib/query/cache-merge` and invalidate the detail key to refetch the
+ * full object.
+ */
 function safeParseProject(data: ApiResponse): Project {
   try {
     return parseProject(data);
@@ -120,12 +141,8 @@ export const projectService = {
     await api.delete(`/project/web/${id}`);
   },
 
-  async addEmployee(projectId: number, employeeId: number): Promise<Project> {
-    const data = await api.post<ApiResponse>(
-      `/project/web/${projectId}/employees/${employeeId}`,
-      {}
-    );
-    return safeParseProject(data);
+  async addEmployee(projectId: number, employeeId: number): Promise<void> {
+    await api.post(`/project/web/${projectId}/employees/${employeeId}`, {});
   },
 
   async removeEmployee(projectId: number, employeeId: number): Promise<void> {
