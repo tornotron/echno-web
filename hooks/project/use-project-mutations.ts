@@ -10,8 +10,15 @@ import { Employee } from '@/types/employee';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { mergePreservingNested } from '@/lib/query/cache-merge';
 import { projectKeys } from './project-keys';
 import { employeeKeys } from '@/hooks/employee/employee-keys';
+
+const PROJECT_NESTED_KEYS = [
+  'attachments',
+  'members',
+  'tasks',
+] as const satisfies ReadonlyArray<keyof Project>;
 
 /**
  * Matches every Project[] list cache under the 'projects' namespace while
@@ -169,12 +176,20 @@ export function useUpdateProject() {
       logger.error('Failed to update project:', error);
     },
     onSuccess: (updatedProject, { id }) => {
-      // Reconcile with the authoritative server response.
-      queryClient.setQueryData<Project>(projectKeys.detail(id), updatedProject);
+      // PATCH /project/web/{id} returns ProjectSimpleDto — nested arrays absent.
+      // Merge preserves cached attachments/members/tasks; invalidate triggers a
+      // canonical refetch on next observer.
+      const merge = (old: Project | undefined): Project =>
+        old
+          ? mergePreservingNested(old, updatedProject, PROJECT_NESTED_KEYS)
+          : updatedProject;
+      queryClient.setQueryData<Project>(projectKeys.detail(id), merge);
       queryClient.setQueriesData<Project[]>(
         { predicate: isProjectListCache },
-        (old) => old?.map((p) => (p.id === id ? updatedProject : p))
+        (old) => old?.map((p) => (p.id === id ? merge(p) : p))
       );
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
+      queryClient.invalidateQueries({ predicate: isProjectListCache });
       toast.success('Project Updated', {
         description: 'The project has been updated successfully',
       });
@@ -265,11 +280,21 @@ export function useUpdateProjectWithFiles() {
       logger.error('Failed to update project with files:', error);
     },
     onSuccess: (updatedProject, { id }) => {
-      queryClient.setQueryData<Project>(projectKeys.detail(id), updatedProject);
+      // PATCH multipart /project/web/{id} returns ProjectSimpleDto — nested
+      // arrays absent. Merge preserves cached attachments/members/tasks;
+      // invalidate triggers a canonical refetch so newly uploaded attachments
+      // appear on the detail page without a hard refresh.
+      const merge = (old: Project | undefined): Project =>
+        old
+          ? mergePreservingNested(old, updatedProject, PROJECT_NESTED_KEYS)
+          : updatedProject;
+      queryClient.setQueryData<Project>(projectKeys.detail(id), merge);
       queryClient.setQueriesData<Project[]>(
         { predicate: isProjectListCache },
-        (old) => old?.map((p) => (p.id === id ? updatedProject : p))
+        (old) => old?.map((p) => (p.id === id ? merge(p) : p))
       );
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
+      queryClient.invalidateQueries({ predicate: isProjectListCache });
       toast.success('Project Updated', {
         description: 'The project has been updated successfully',
       });
@@ -368,23 +393,17 @@ export function useAddEmployeeToProject() {
       toast.error(title, { description });
       logger.error('Failed to add employee to project:', error);
     },
-    onSuccess: (updatedProject, { projectId }) => {
-      // API returns the full updated Project including the new member list.
-      queryClient.setQueryData<Project>(
-        projectKeys.detail(projectId),
-        updatedProject
-      );
-      queryClient.setQueriesData<Project[]>(
-        { predicate: isProjectListCache },
-        (old) => old?.map((p) => (p.id === projectId ? updatedProject : p))
-      );
-      // Sync the standalone members list (Employee[]) from the project response.
-      queryClient.setQueryData<Employee[]>(
-        projectKeys.members(projectId),
-        updatedProject.members
-      );
-      // Invalidate employee module caches — they live in a separate namespace
-      // and may surface project membership data that we cannot patch from here.
+    onSuccess: (_data, { projectId }) => {
+      // Backend returns a generic ack (ResponseDto), not the updated Project.
+      // Optimistic update from onMutate already shows the new member; refetch
+      // canonical state in the background to reconcile.
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({ predicate: isProjectListCache });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(projectId),
+      });
       queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       toast.success('Employee Added', {
         description: 'The employee has been added to the project',
