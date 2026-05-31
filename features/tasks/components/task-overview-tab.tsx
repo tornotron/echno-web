@@ -29,8 +29,11 @@ import { format } from 'date-fns';
 import type { Task } from '@/types/task/task';
 import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
 import { useUpdateTask } from '@/hooks/task';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 import {
   isValidAttachmentUrl,
   getSafeDownloadUrl,
@@ -193,13 +196,22 @@ export function TaskOverviewTab({
                 <CardDescription>Files attached to this task</CardDescription>
               </div>
               <AttachmentsUploader
-                onUpload={(files) =>
-                  updateTask.mutate({
-                    id: taskId,
-                    data: {},
-                    files: { attachments: files },
-                  })
-                }
+                onUpload={(files) => {
+                  const valid = files.filter((f) => f.size <= MAX_FILE_SIZE);
+                  const invalid = files
+                    .filter((f) => f.size > MAX_FILE_SIZE)
+                    .map((f) => f.name);
+                  if (invalid.length > 0)
+                    toast.error('Some files exceed 10MB', {
+                      description: `Not uploaded: ${invalid.join(', ')}`,
+                    });
+                  if (valid.length > 0)
+                    updateTask.mutate({
+                      id: taskId,
+                      data: {},
+                      files: { attachments: valid },
+                    });
+                }}
                 isPending={updateTask.isPending}
               />
             </div>
