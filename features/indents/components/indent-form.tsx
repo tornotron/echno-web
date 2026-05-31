@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -82,10 +82,13 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
   const { data: projects = [] } = useProjects();
   const { data: existingIndents = [] } = useIndents();
 
+  const generatedIndentNumber = useMemo(
+    () => generateIndentNumber(existingIndents.map((i) => i.indentNumber)),
+    [existingIndents]
+  );
+
   const [form, setForm] = useState<IndentFormState>(() => ({
-    indentNumber: generateIndentNumber(
-      existingIndents.map((i) => i.indentNumber)
-    ),
+    indentNumber: '',
     status: IndentStatus.pending,
     expectedOn: '',
     remarks: '',
@@ -97,18 +100,6 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
   const [rowErrors, setRowErrors] = useState<
     Record<number, Record<string, string>>
   >({});
-
-  // Update indent number once existing indents load
-  const [indentsSeeded, setIndentsSeeded] = useState(false);
-  if (!indentsSeeded && existingIndents.length > 0) {
-    setIndentsSeeded(true);
-    setForm((prev) => ({
-      ...prev,
-      indentNumber:
-        prev.indentNumber ||
-        generateIndentNumber(existingIndents.map((i) => i.indentNumber)),
-    }));
-  }
 
   // ---------------------------------------------------------------------------
   // Field helpers
@@ -156,8 +147,12 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
     }
     setItems((prev) => prev.filter((_, i) => i !== index));
     setRowErrors((prev) => {
-      const next = { ...prev };
-      delete next[index];
+      const next: Record<number, Record<string, string>> = {};
+      for (const [k, v] of Object.entries(prev)) {
+        const key = Number(k);
+        if (key < index) next[key] = v;
+        else if (key > index) next[key - 1] = v;
+      }
       return next;
     });
   }
@@ -181,7 +176,8 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
     const newErrors: Record<string, string> = {};
     const newRowErrors: Record<number, Record<string, string>> = {};
 
-    const numberError = required('Indent number')(form.indentNumber);
+    const effectiveIndentNumber = form.indentNumber || generatedIndentNumber;
+    const numberError = required('Indent number')(effectiveIndentNumber);
     if (numberError) newErrors.indentNumber = numberError;
 
     const filledItems = items.filter((it) => it.materialId !== 0);
@@ -217,7 +213,11 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
       });
       return;
     }
-    onSubmit({ form, items: items.filter((it) => it.materialId !== 0) });
+    const effectiveIndentNumber = form.indentNumber || generatedIndentNumber;
+    onSubmit({
+      form: { ...form, indentNumber: effectiveIndentNumber },
+      items: items.filter((it) => it.materialId !== 0),
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -246,7 +246,7 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
               <Input
                 id="indentNumber"
                 placeholder="e.g. IND-2026-001"
-                value={form.indentNumber}
+                value={form.indentNumber || generatedIndentNumber}
                 onChange={(e) => setField('indentNumber', e.target.value)}
                 className={errors.indentNumber ? 'border-red-500' : ''}
               />

@@ -232,7 +232,13 @@ export function MaterialsDashboardTable({
                 className="h-9 pl-8 text-sm"
               />
             </div>
-            <Button variant="outline" size="sm" className="h-9 shrink-0 px-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 shrink-0 px-3"
+              disabled
+              title="Filters coming soon"
+            >
               <SlidersHorizontal className="size-4" />
             </Button>
           </div>

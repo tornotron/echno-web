@@ -58,6 +58,7 @@ export function AttachmentsUploader({
         className="hidden"
       />
       <Button
+        type="button"
         variant="outline"
         size="sm"
         disabled={isPending}

@@ -30,7 +30,7 @@ import {
 import { useStorageLocations } from '@/hooks/storage-locations';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -143,7 +143,9 @@ export function AssetForm(props: AssetFormProps) {
       locationId: String(a.locationId),
       assignedTo: a.assignedTo ?? '',
       assignedProject: a.assignedProject ?? '',
-      purchaseDate: format(a.purchaseDate, 'yyyy-MM-dd'),
+      purchaseDate: isValid(a.purchaseDate)
+        ? format(a.purchaseDate, 'yyyy-MM-dd')
+        : '',
       purchasePrice: String(a.purchasePrice),
       depreciationRate: String(a.depreciationRate ?? 10),
       manufacturer: a.manufacturer ?? '',

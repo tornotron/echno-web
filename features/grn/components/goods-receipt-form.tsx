@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -101,10 +101,15 @@ export function GoodsReceiptForm({
   const { data: storageLocations = [] } = useStorageLocations();
   const { data: existingGRNs = [] } = useGRNs();
 
-  const [form, setForm] = useState<GoodsReceiptFormState>(() => ({
-    grnNumber:
+  const grnNumber = useMemo(
+    () =>
       initialValues?.grnNumber ??
       generateGrnNumber(existingGRNs.map((g) => g.grnNumber)),
+    [existingGRNs, initialValues]
+  );
+
+  const [form, setForm] = useState<GoodsReceiptFormState>(() => ({
+    grnNumber: '',
     receivedOn:
       initialValues?.receivedOn ?? new Date().toISOString().slice(0, 10),
     vendorId: initialValues?.vendorId ?? 0,
@@ -124,18 +129,6 @@ export function GoodsReceiptForm({
   const [rowErrors, setRowErrors] = useState<
     Record<number, Record<string, string>>
   >({});
-
-  // Update GRN number once existing GRNs load (only if still at default)
-  const [grnsSeeded, setGrnsSeeded] = useState(false);
-  if (!grnsSeeded && existingGRNs.length > 0) {
-    setGrnsSeeded(true);
-    setForm((prev) => ({
-      ...prev,
-      grnNumber:
-        prev.grnNumber ||
-        generateGrnNumber(existingGRNs.map((g) => g.grnNumber)),
-    }));
-  }
 
   const totalCost = items.reduce(
     (sum, item) => sum + item.receivedQuantity * item.unitCost,
@@ -188,8 +181,12 @@ export function GoodsReceiptForm({
     }
     setItems((prev) => prev.filter((_, i) => i !== index));
     setRowErrors((prev) => {
-      const next = { ...prev };
-      delete next[index];
+      const next: Record<number, Record<string, string>> = {};
+      for (const [k, v] of Object.entries(prev)) {
+        const key = Number(k);
+        if (key < index) next[key] = v;
+        else if (key > index) next[key - 1] = v;
+      }
       return next;
     });
   }
@@ -256,7 +253,7 @@ export function GoodsReceiptForm({
       });
       return;
     }
-    onSubmit({ form, items, totalCost });
+    onSubmit({ form: { ...form, grnNumber }, items, totalCost });
   }
 
   // ---------------------------------------------------------------------------
@@ -286,7 +283,7 @@ export function GoodsReceiptForm({
               <Label htmlFor="grnNumber">GRN Number</Label>
               <Input
                 id="grnNumber"
-                value={form.grnNumber}
+                value={grnNumber}
                 readOnly
                 className="bg-zinc-50 font-mono dark:bg-zinc-900"
               />
