@@ -8,6 +8,8 @@ import {
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { projectKeys } from './project-keys';
+import { employeeKeys } from '@/hooks/employee/employee-keys';
 
 /**
  * useCreateProject
@@ -22,7 +24,7 @@ export function useCreateProject() {
   return useMutation({
     mutationFn: (dto: CreateProjectRequest) => projectService.create(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       toast.success('Project Created', {
         description: 'The project has been created successfully',
       });
@@ -54,7 +56,7 @@ export function useCreateProjectWithFiles() {
       files: ProjectFiles;
     }) => projectService.createWithFiles(data, files),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       toast.success('Project Created', {
         description: 'The project has been created successfully',
       });
@@ -81,8 +83,8 @@ export function useUpdateProject() {
     mutationFn: ({ id, data }: { id: number; data: UpdateProjectRequest }) =>
       projectService.update(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['projects', id] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
       toast.success('Project Updated', {
         description: 'The project has been updated successfully',
       });
@@ -115,8 +117,8 @@ export function useUpdateProjectWithFiles() {
       files: ProjectFiles;
     }) => projectService.updateWithFiles(id, data, files),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['projects', id] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
       toast.success('Project Updated', {
         description: 'The project has been updated successfully',
       });
@@ -148,9 +150,14 @@ export function useAddEmployeeToProject() {
       employeeId: number;
     }) => projectService.addEmployee(projectId, employeeId),
     onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(projectId),
+      });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       toast.success('Employee Added', {
         description: 'The employee has been added to the project',
       });
@@ -182,9 +189,14 @@ export function useRemoveEmployeeFromProject() {
       employeeId: number;
     }) => projectService.removeEmployee(projectId, employeeId),
     onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
-      queryClient.invalidateQueries({ queryKey: ['employees'] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.members(projectId),
+      });
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
       toast.success('Employee Removed', {
         description: 'The employee has been removed from the project',
       });
@@ -210,7 +222,7 @@ export function useDeleteProject() {
   return useMutation({
     mutationFn: projectService.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
       toast.success('Project Deleted', {
         description: 'The project has been deleted successfully',
       });

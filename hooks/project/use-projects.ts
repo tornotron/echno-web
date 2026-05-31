@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { projectService } from '@/services/project-service';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
+import { projectKeys } from './project-keys';
 export { projectKeys } from './project-keys';
 
 /**
@@ -9,7 +10,7 @@ export { projectKeys } from './project-keys';
  */
 export function useProjects() {
   return useQuery({
-    queryKey: ['projects'],
+    queryKey: projectKeys.lists(),
     queryFn: () => projectService.getAll(),
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: shouldRetry,
@@ -23,7 +24,7 @@ export function useProjects() {
  */
 export function useProject(id?: number) {
   return useQuery({
-    queryKey: ['projects', id],
+    queryKey: projectKeys.detail(id ?? 0),
     queryFn: () => {
       if (!id) {
         throw new Error('Project ID is required');
@@ -43,7 +44,7 @@ export function useProject(id?: number) {
  */
 export function useProjectsByOrganization(organizationId?: number) {
   return useQuery({
-    queryKey: ['projects', 'organization', organizationId],
+    queryKey: projectKeys.byOrganization(organizationId ?? 0),
     queryFn: () => {
       if (!organizationId) {
         throw new Error('Organization ID is required');
@@ -63,7 +64,7 @@ export function useProjectsByOrganization(organizationId?: number) {
  */
 export function useProjectsByEmployee(employeeId?: number) {
   return useQuery({
-    queryKey: ['projects', 'employee', employeeId],
+    queryKey: projectKeys.byEmployee(employeeId ?? 0),
     queryFn: () => {
       if (!employeeId) {
         throw new Error('Employee ID is required');
@@ -83,7 +84,7 @@ export function useProjectsByEmployee(employeeId?: number) {
  */
 export function useEmployeesByProject(projectId?: number) {
   return useQuery({
-    queryKey: ['employees', 'project', projectId],
+    queryKey: projectKeys.members(projectId ?? 0),
     queryFn: () => {
       if (!projectId) {
         throw new Error('Project ID is required');

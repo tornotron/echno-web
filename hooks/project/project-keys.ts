@@ -5,4 +5,10 @@ export const projectKeys = {
     [...projectKeys.lists(), filters] as const,
   details: () => [...projectKeys.all, 'detail'] as const,
   detail: (id: number) => [...projectKeys.details(), id] as const,
+  byOrganization: (orgId: number) =>
+    [...projectKeys.all, 'organization', orgId] as const,
+  byEmployee: (employeeId: number) =>
+    [...projectKeys.all, 'employee', employeeId] as const,
+  members: (projectId: number) =>
+    [...projectKeys.all, 'members', projectId] as const,
 };

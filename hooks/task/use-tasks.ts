@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { taskService } from '@/services/task-service';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
 import { taskKeys } from './task-keys';
 
 /**
@@ -8,7 +8,7 @@ import { taskKeys } from './task-keys';
  */
 export function useTasks() {
   return useQuery({
-    queryKey: taskKeys.all,
+    queryKey: taskKeys.lists(),
     queryFn: () => taskService.getAll(),
     staleTime: 5 * 60 * 1000,
     retry: shouldRetry,
