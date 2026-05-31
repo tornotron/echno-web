@@ -54,10 +54,15 @@ export default function NewProjectPage() {
             projectName: data.fields.projectName,
             projectAddress: data.fields.projectAddress,
             status: data.fields.status,
-            projectLatitude:
-              Number.parseFloat(data.fields.projectLatitude) || 0,
-            projectLongitude:
-              Number.parseFloat(data.fields.projectLongitude) || 0,
+            description: data.fields.description,
+            projectLatitude: (() => {
+              const v = Number.parseFloat(data.fields.projectLatitude);
+              return Number.isNaN(v) ? undefined : v;
+            })(),
+            projectLongitude: (() => {
+              const v = Number.parseFloat(data.fields.projectLongitude);
+              return Number.isNaN(v) ? undefined : v;
+            })(),
             startDate: data.fields.startDate
               ? new Date(data.fields.startDate)
               : undefined,
@@ -77,10 +82,14 @@ export default function NewProjectPage() {
                 locationName: createdProject.projectName,
                 locationType: StorageLocationType.PROJECT_SITE,
                 address: createdProject.projectAddress,
-                latitude:
-                  Number.parseFloat(data.fields.projectLatitude) || undefined,
-                longitude:
-                  Number.parseFloat(data.fields.projectLongitude) || undefined,
+                latitude: (() => {
+                  const v = Number.parseFloat(data.fields.projectLatitude);
+                  return Number.isNaN(v) ? undefined : v;
+                })(),
+                longitude: (() => {
+                  const v = Number.parseFloat(data.fields.projectLongitude);
+                  return Number.isNaN(v) ? undefined : v;
+                })(),
                 projectId: createdProject.id,
                 projectName: createdProject.projectName,
                 active: true,
