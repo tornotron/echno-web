@@ -13,6 +13,7 @@ import { materialsKeys } from '@/hooks/materials/use-materials';
 import type { Indent } from '@/types/indents';
 import type { Material } from '@/types/materials';
 import { useCurrentUserEmployee } from '@/hooks/employee';
+import { toast } from '@/lib/styles/toast-styles';
 import { useCreateSiteTransfer } from '@/hooks/site-transfers';
 import { SiteTransferStatus } from '@/types/site-transfers';
 import {
@@ -67,6 +68,7 @@ export default function NewSiteTransferPage() {
 
   function handleSubmit(data: SiteTransferSubmitData) {
     if (!currentEmployee) {
+      toast.error('Unable to determine current user.');
       return;
     }
     createTransfer(
