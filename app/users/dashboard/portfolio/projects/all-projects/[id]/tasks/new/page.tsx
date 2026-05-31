@@ -48,24 +48,23 @@ export default function NewTaskPage() {
   }
 
   function handleSubmit(data: TaskFormSubmitData) {
-    try {
-      createTask.mutate(
-        { data: buildRequest(data), files: { attachments: data.attachments } },
-        {
-          onSuccess: () => {
-            if (data.isDraft) {
-              toast.success('Draft saved');
-            }
-            router.push(
-              routes.portfolio.projects.allProjects.detail(projectId).tasks.href
-            );
-          },
-        }
-      );
-    } catch (error) {
-      logger.error('Error creating task:', error);
-      toast.error('Failed to create task. Please try again.');
-    }
+    createTask.mutate(
+      { data: buildRequest(data), files: { attachments: data.attachments } },
+      {
+        onSuccess: () => {
+          if (data.isDraft) {
+            toast.success('Draft saved');
+          }
+          router.push(
+            routes.portfolio.projects.allProjects.detail(projectId).tasks.href
+          );
+        },
+        onError: (error) => {
+          logger.error('Error creating task:', error);
+          toast.error('Failed to create task. Please try again.');
+        },
+      }
+    );
   }
 
   return (

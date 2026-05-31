@@ -38,10 +38,15 @@ export default function EditProjectPage() {
             projectName: data.fields.projectName,
             projectAddress: data.fields.projectAddress,
             status: data.fields.status,
-            projectLatitude:
-              Number.parseFloat(data.fields.projectLatitude) || 0,
-            projectLongitude:
-              Number.parseFloat(data.fields.projectLongitude) || 0,
+            description: data.fields.description ?? undefined,
+            projectLatitude: (() => {
+              const v = Number.parseFloat(data.fields.projectLatitude);
+              return Number.isNaN(v) ? undefined : v;
+            })(),
+            projectLongitude: (() => {
+              const v = Number.parseFloat(data.fields.projectLongitude);
+              return Number.isNaN(v) ? undefined : v;
+            })(),
             startDate: data.fields.startDate
               ? new Date(data.fields.startDate)
               : undefined,

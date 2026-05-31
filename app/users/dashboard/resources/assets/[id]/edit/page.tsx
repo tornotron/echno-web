@@ -55,6 +55,7 @@ export default function EditAssetPage() {
     setTimeout(() => {
       toast.success('Asset updated successfully!');
       router.push(routes.resources.assets.detail(assetId).href);
+      setIsPending(false);
     }, 1000);
   }
 

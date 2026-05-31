@@ -230,7 +230,7 @@ export default function NewExpensePage() {
                 onChange={(e) =>
                   handleInputChange('description', e.target.value as never)
                 }
-                className={`min-h-24${errors.description ? 'border-red-500' : ''}`}
+                className={`min-h-24 ${errors.description ? 'border-red-500' : ''}`}
               />
               {errors.description && (
                 <p className="text-sm text-red-500">{errors.description}</p>

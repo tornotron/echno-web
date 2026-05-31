@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
@@ -64,10 +63,16 @@ export default function NewConsumptionPage() {
         description="Log material usage or transfer"
         actions={
           <>
-            <Button variant="outline" disabled={isPending} asChild>
-              <Link href={routes.resources.materialConsumptions.href}>
-                Cancel
-              </Link>
+            <Button
+              variant="outline"
+              disabled={isPending}
+              onClick={() =>
+                fromTaskId
+                  ? router.back()
+                  : router.push(routes.resources.materialConsumptions.href)
+              }
+            >
+              Cancel
             </Button>
             <Button
               type="submit"

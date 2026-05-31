@@ -19,7 +19,13 @@ export default function NewMaterialPage() {
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { mutate: createMaterial, isPending } = useCreateMaterial();
 
-  if (!currentEmployee) return null;
+  if (!currentEmployee) {
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
 
   function handleSubmit(data: CreateMaterialRequest) {
     createMaterial(data, {
