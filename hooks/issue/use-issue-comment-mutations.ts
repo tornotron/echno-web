@@ -5,6 +5,7 @@ import { UpdateIssueCommentRequest } from '@/types/issue/issue-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { issueKeys, issueCommentKeys } from './issue-keys';
 
 export function useCreateIssueComment() {
   const queryClient = useQueryClient();
@@ -13,9 +14,9 @@ export function useCreateIssueComment() {
     mutationFn: (dto: CreateIssueCommentRequest) =>
       issueCommentService.create(dto),
     onSuccess: (_, { issueId }) => {
-      queryClient.invalidateQueries({ queryKey: ['issue-comments'] });
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
-      queryClient.invalidateQueries({ queryKey: ['issues', issueId] });
+      queryClient.invalidateQueries({ queryKey: issueCommentKeys.all });
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
+      queryClient.invalidateQueries({ queryKey: issueKeys.detail(issueId) });
       toast.success('Comment Added', {
         description: 'Your comment has been added successfully',
       });
@@ -41,9 +42,9 @@ export function useUpdateIssueComment() {
       data: UpdateIssueCommentRequest;
     }) => issueCommentService.update(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['issue-comments'] });
-      queryClient.invalidateQueries({ queryKey: ['issue-comments', id] });
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: issueCommentKeys.all });
+      queryClient.invalidateQueries({ queryKey: issueCommentKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
       toast.success('Comment Updated', {
         description: 'The comment has been updated successfully',
       });
@@ -63,8 +64,8 @@ export function useDeleteIssueComment() {
   return useMutation({
     mutationFn: issueCommentService.delete,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['issue-comments'] });
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: issueCommentKeys.all });
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
       toast.success('Comment Deleted', {
         description: 'The comment has been deleted successfully',
       });

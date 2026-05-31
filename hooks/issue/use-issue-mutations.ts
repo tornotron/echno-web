@@ -6,6 +6,7 @@ import { UpdateIssueRequest } from '@/types/issue/issue-update';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { issueKeys } from './issue-keys';
 
 export function useCreateIssue() {
   const queryClient = useQueryClient();
@@ -19,7 +20,7 @@ export function useCreateIssue() {
       files?: IssueFiles;
     }) => issueService.create(data, files),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
       toast.success('Issue Created', {
         description: 'The issue has been created successfully',
       });
@@ -47,8 +48,8 @@ export function useUpdateIssue() {
       files?: IssueFiles;
     }) => issueService.update(id, data, files),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
-      queryClient.invalidateQueries({ queryKey: ['issues', id] });
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
+      queryClient.invalidateQueries({ queryKey: issueKeys.detail(id) });
       toast.success('Issue Updated', {
         description: 'The issue has been updated successfully',
       });
@@ -68,8 +69,8 @@ export function useDeleteIssue() {
   return useMutation({
     mutationFn: issueService.delete,
     onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: ['issues'] });
-      queryClient.invalidateQueries({ queryKey: ['issues', id] });
+      queryClient.invalidateQueries({ queryKey: issueKeys.all });
+      queryClient.invalidateQueries({ queryKey: issueKeys.detail(id) });
       toast.success('Issue Deleted', {
         description: 'The issue has been deleted successfully',
       });

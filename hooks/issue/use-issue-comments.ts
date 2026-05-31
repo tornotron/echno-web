@@ -5,7 +5,8 @@ import { useEmployees } from '@/hooks/employee';
 import { useUserEmployees } from '@/hooks/user/use-user';
 import { IssueComment } from '@/types/issue/issue-comment';
 import { Employee } from '@/types/employee/employee';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
+import { issueCommentKeys } from './issue-keys';
 
 /** Resolve author on each comment from a flat employee list. */
 function resolveCommentAuthors(
@@ -25,7 +26,7 @@ function resolveCommentAuthors(
  */
 export function useIssueComments() {
   const commentsQuery = useQuery({
-    queryKey: ['issue-comments'],
+    queryKey: issueCommentKeys.lists(),
     queryFn: () => issueCommentService.getAll(),
     staleTime: 5 * 60 * 1000,
     retry: shouldRetry,
@@ -59,7 +60,7 @@ export function useIssueComments() {
  */
 export function useIssueCommentsByIssue(issueId?: number) {
   const commentsQuery = useQuery({
-    queryKey: ['issue-comments', 'issue', issueId],
+    queryKey: issueCommentKeys.byIssue(issueId ?? 0),
     queryFn: () => {
       if (!issueId) {
         throw new Error('Issue ID is required');
@@ -99,7 +100,7 @@ export function useIssueCommentsByIssue(issueId?: number) {
  */
 export function useIssueComment(id?: number) {
   const commentQuery = useQuery({
-    queryKey: ['issue-comments', id],
+    queryKey: issueCommentKeys.detail(id ?? 0),
     queryFn: () => {
       if (!id) {
         throw new Error('Issue comment ID is required');
