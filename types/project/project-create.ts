@@ -3,6 +3,7 @@ import { ProjectStatus } from './project-status';
 export interface CreateProjectRequest {
   projectName: string;
   projectAddress: string;
+  description?: string;
   status?: ProjectStatus;
   projectLongitude?: number;
   projectLatitude?: number;
@@ -18,6 +19,7 @@ export function createProjectToJson(
   return {
     projectName: dto.projectName,
     projectAddress: dto.projectAddress,
+    ...(dto.description !== undefined && { description: dto.description }),
     ...(dto.status !== undefined && { status: dto.status }),
     ...(dto.projectLongitude !== undefined && {
       projectLongitude: dto.projectLongitude,
