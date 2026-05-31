@@ -4,7 +4,9 @@ import {
   CreateProjectRequest,
   UpdateProjectRequest,
   ProjectFiles,
+  Project,
 } from '@/types/project';
+import { Employee } from '@/types/employee';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
@@ -12,19 +14,37 @@ import { projectKeys } from './project-keys';
 import { employeeKeys } from '@/hooks/employee/employee-keys';
 
 /**
- * useCreateProject
- *
- * React Query mutation hook that creates a project and invalidates
- * the `['projects']` query on success. Errors are surfaced via
- * an application toast with context-aware messaging.
+ * Matches every Project[] list cache under the 'projects' namespace while
+ * excluding detail (Project) and members (Employee[]) entries, which live
+ * under the same root key but carry a different data shape.
  */
+function isProjectListCache(query: {
+  queryKey: ReadonlyArray<unknown>;
+}): boolean {
+  const key = query.queryKey;
+  return (
+    Array.isArray(key) &&
+    key[0] === 'projects' &&
+    key[1] !== 'detail' &&
+    key[1] !== 'members'
+  );
+}
+
 export function useCreateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (dto: CreateProjectRequest) => projectService.create(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    onSuccess: (newProject) => {
+      // Append to main list — safe because we have the authoritative server object.
+      queryClient.setQueryData<Project[]>(projectKeys.lists(), (old) =>
+        old ? [...old, newProject] : [newProject]
+      );
+      // Seed detail cache so navigating to the new project page is instant.
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(newProject.id),
+        newProject
+      );
       toast.success('Project Created', {
         description: 'The project has been created successfully',
       });
@@ -38,12 +58,6 @@ export function useCreateProject() {
   });
 }
 
-/**
- * useCreateProjectWithFiles
- *
- * React Query mutation hook that creates a project with file attachments.
- * Invalidates the `['projects']` query on success.
- */
 export function useCreateProjectWithFiles() {
   const queryClient = useQueryClient();
 
@@ -55,8 +69,14 @@ export function useCreateProjectWithFiles() {
       data: CreateProjectRequest;
       files: ProjectFiles;
     }) => projectService.createWithFiles(data, files),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    onSuccess: (newProject) => {
+      queryClient.setQueryData<Project[]>(projectKeys.lists(), (old) =>
+        old ? [...old, newProject] : [newProject]
+      );
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(newProject.id),
+        newProject
+      );
       toast.success('Project Created', {
         description: 'The project has been created successfully',
       });
@@ -70,39 +90,98 @@ export function useCreateProjectWithFiles() {
   });
 }
 
-/**
- * useUpdateProject
- *
- * Mutation hook to update an existing project. Expects an object
- * with `id` and `data` where `data` conforms to the `Partial<Project>` type.
- */
 export function useUpdateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateProjectRequest }) =>
       projectService.update(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
-      toast.success('Project Updated', {
-        description: 'The project has been updated successfully',
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.detail(id) });
+      await queryClient.cancelQueries({ predicate: isProjectListCache });
+
+      const previousDetail = queryClient.getQueryData<Project>(
+        projectKeys.detail(id)
+      );
+      const previousListEntries = queryClient.getQueriesData<Project[]>({
+        predicate: isProjectListCache,
       });
+
+      // Build an optimistic snapshot from the detail cache, falling back to any
+      // list entry. memberIds is intentionally excluded — resolving ids to
+      // Employee[] objects would require a separate cache lookup.
+      const base =
+        previousDetail ??
+        previousListEntries
+          .flatMap(([, items]) => items ?? [])
+          .find((p) => p.id === id);
+
+      if (base) {
+        const optimisticProject: Project = {
+          ...base,
+          ...(data.projectName !== undefined && {
+            projectName: data.projectName,
+          }),
+          ...(data.projectAddress !== undefined && {
+            projectAddress: data.projectAddress,
+          }),
+          ...(data.status !== undefined && { status: data.status }),
+          ...(data.projectLongitude !== undefined && {
+            projectLongitude: data.projectLongitude,
+          }),
+          ...(data.projectLatitude !== undefined && {
+            projectLatitude: data.projectLatitude,
+          }),
+          ...(data.organizationId !== undefined && {
+            organizationId: data.organizationId,
+          }),
+          ...(data.startDate !== undefined && { startDate: data.startDate }),
+          ...(data.endDate !== undefined && { endDate: data.endDate }),
+          ...(data.description !== undefined && {
+            description: data.description,
+          }),
+        };
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(id),
+          optimisticProject
+        );
+        queryClient.setQueriesData<Project[]>(
+          { predicate: isProjectListCache },
+          (old) => old?.map((p) => (p.id === id ? optimisticProject : p))
+        );
+      }
+
+      return { previousDetail, previousListEntries };
     },
-    onError: (error) => {
+    onError: (error, { id }, context) => {
+      if (context?.previousDetail !== undefined) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(id),
+          context.previousDetail
+        );
+      }
+      for (const [key, value] of context?.previousListEntries ?? []) {
+        queryClient.setQueryData<Project[]>(key, value);
+      }
       const title = getErrorTitle(error, 'Failed to Update Project');
       const description = getErrorMessage(error);
       toast.error(title, { description });
       logger.error('Failed to update project:', error);
     },
+    onSuccess: (updatedProject, { id }) => {
+      // Reconcile with the authoritative server response.
+      queryClient.setQueryData<Project>(projectKeys.detail(id), updatedProject);
+      queryClient.setQueriesData<Project[]>(
+        { predicate: isProjectListCache },
+        (old) => old?.map((p) => (p.id === id ? updatedProject : p))
+      );
+      toast.success('Project Updated', {
+        description: 'The project has been updated successfully',
+      });
+    },
   });
 }
 
-/**
- * useUpdateProjectWithFiles
- *
- * Mutation hook to update an existing project with file attachments.
- */
 export function useUpdateProjectWithFiles() {
   const queryClient = useQueryClient();
 
@@ -116,28 +195,88 @@ export function useUpdateProjectWithFiles() {
       data: UpdateProjectRequest;
       files: ProjectFiles;
     }) => projectService.updateWithFiles(id, data, files),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
-      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
-      toast.success('Project Updated', {
-        description: 'The project has been updated successfully',
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: projectKeys.detail(id) });
+      await queryClient.cancelQueries({ predicate: isProjectListCache });
+
+      const previousDetail = queryClient.getQueryData<Project>(
+        projectKeys.detail(id)
+      );
+      const previousListEntries = queryClient.getQueriesData<Project[]>({
+        predicate: isProjectListCache,
       });
+
+      const base =
+        previousDetail ??
+        previousListEntries
+          .flatMap(([, items]) => items ?? [])
+          .find((p) => p.id === id);
+
+      if (base) {
+        const optimisticProject: Project = {
+          ...base,
+          ...(data.projectName !== undefined && {
+            projectName: data.projectName,
+          }),
+          ...(data.projectAddress !== undefined && {
+            projectAddress: data.projectAddress,
+          }),
+          ...(data.status !== undefined && { status: data.status }),
+          ...(data.projectLongitude !== undefined && {
+            projectLongitude: data.projectLongitude,
+          }),
+          ...(data.projectLatitude !== undefined && {
+            projectLatitude: data.projectLatitude,
+          }),
+          ...(data.organizationId !== undefined && {
+            organizationId: data.organizationId,
+          }),
+          ...(data.startDate !== undefined && { startDate: data.startDate }),
+          ...(data.endDate !== undefined && { endDate: data.endDate }),
+          ...(data.description !== undefined && {
+            description: data.description,
+          }),
+        };
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(id),
+          optimisticProject
+        );
+        queryClient.setQueriesData<Project[]>(
+          { predicate: isProjectListCache },
+          (old) => old?.map((p) => (p.id === id ? optimisticProject : p))
+        );
+      }
+
+      return { previousDetail, previousListEntries };
     },
-    onError: (error) => {
+    onError: (error, { id }, context) => {
+      if (context?.previousDetail !== undefined) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(id),
+          context.previousDetail
+        );
+      }
+      for (const [key, value] of context?.previousListEntries ?? []) {
+        queryClient.setQueryData<Project[]>(key, value);
+      }
       const title = getErrorTitle(error, 'Failed to Update Project');
       const description = getErrorMessage(error);
       toast.error(title, { description });
       logger.error('Failed to update project with files:', error);
     },
+    onSuccess: (updatedProject, { id }) => {
+      queryClient.setQueryData<Project>(projectKeys.detail(id), updatedProject);
+      queryClient.setQueriesData<Project[]>(
+        { predicate: isProjectListCache },
+        (old) => old?.map((p) => (p.id === id ? updatedProject : p))
+      );
+      toast.success('Project Updated', {
+        description: 'The project has been updated successfully',
+      });
+    },
   });
 }
 
-/**
- * useAddEmployeeToProject
- *
- * Mutation hook that adds an employee to a project via the API.
- * Invalidates both the projects list and the specific project query on success.
- */
 export function useAddEmployeeToProject() {
   const queryClient = useQueryClient();
 
@@ -149,34 +288,111 @@ export function useAddEmployeeToProject() {
       projectId: number;
       employeeId: number;
     }) => projectService.addEmployee(projectId, employeeId),
-    onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
-      queryClient.invalidateQueries({
+    onMutate: async ({ projectId, employeeId }) => {
+      await queryClient.cancelQueries({
         queryKey: projectKeys.detail(projectId),
       });
-      queryClient.invalidateQueries({
+      await queryClient.cancelQueries({ predicate: isProjectListCache });
+      await queryClient.cancelQueries({
         queryKey: projectKeys.members(projectId),
       });
-      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
-      toast.success('Employee Added', {
-        description: 'The employee has been added to the project',
+
+      const previousDetail = queryClient.getQueryData<Project>(
+        projectKeys.detail(projectId)
+      );
+      const previousListEntries = queryClient.getQueriesData<Project[]>({
+        predicate: isProjectListCache,
       });
+      const previousMembers = queryClient.getQueryData<Employee[]>(
+        projectKeys.members(projectId)
+      );
+
+      // Look up the employee object from the employee module cache so the
+      // optimistic member entry has the correct shape. If not cached,
+      // onSuccess will reconcile with the full server response.
+      const allEmployees = queryClient.getQueryData<Employee[]>(
+        employeeKeys.all
+      );
+      const employeeToAdd = allEmployees?.find((e) => e.id === employeeId);
+
+      if (employeeToAdd) {
+        if (
+          previousDetail &&
+          !previousDetail.members.some((e) => e.id === employeeId)
+        ) {
+          const optimisticProject: Project = {
+            ...previousDetail,
+            members: [...previousDetail.members, employeeToAdd],
+          };
+          queryClient.setQueryData<Project>(
+            projectKeys.detail(projectId),
+            optimisticProject
+          );
+          queryClient.setQueriesData<Project[]>(
+            { predicate: isProjectListCache },
+            (old) =>
+              old?.map((p) => (p.id === projectId ? optimisticProject : p))
+          );
+        }
+        if (
+          previousMembers &&
+          !previousMembers.some((e) => e.id === employeeId)
+        ) {
+          queryClient.setQueryData<Employee[]>(projectKeys.members(projectId), [
+            ...previousMembers,
+            employeeToAdd,
+          ]);
+        }
+      }
+
+      return { previousDetail, previousListEntries, previousMembers };
     },
-    onError: (error) => {
+    onError: (error, { projectId }, context) => {
+      if (context?.previousDetail !== undefined) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(projectId),
+          context.previousDetail
+        );
+      }
+      for (const [key, value] of context?.previousListEntries ?? []) {
+        queryClient.setQueryData<Project[]>(key, value);
+      }
+      if (context?.previousMembers !== undefined) {
+        queryClient.setQueryData<Employee[]>(
+          projectKeys.members(projectId),
+          context.previousMembers
+        );
+      }
       const title = getErrorTitle(error, 'Failed to Add Employee');
       const description = getErrorMessage(error);
       toast.error(title, { description });
       logger.error('Failed to add employee to project:', error);
     },
+    onSuccess: (updatedProject, { projectId }) => {
+      // API returns the full updated Project including the new member list.
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(projectId),
+        updatedProject
+      );
+      queryClient.setQueriesData<Project[]>(
+        { predicate: isProjectListCache },
+        (old) => old?.map((p) => (p.id === projectId ? updatedProject : p))
+      );
+      // Sync the standalone members list (Employee[]) from the project response.
+      queryClient.setQueryData<Employee[]>(
+        projectKeys.members(projectId),
+        updatedProject.members
+      );
+      // Invalidate employee module caches — they live in a separate namespace
+      // and may surface project membership data that we cannot patch from here.
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
+      toast.success('Employee Added', {
+        description: 'The employee has been added to the project',
+      });
+    },
   });
 }
 
-/**
- * useRemoveEmployeeFromProject
- *
- * Mutation hook that removes an employee from a project via the API.
- * Invalidates both the projects list and the specific project query on success.
- */
 export function useRemoveEmployeeFromProject() {
   const queryClient = useQueryClient();
 
@@ -188,41 +404,112 @@ export function useRemoveEmployeeFromProject() {
       projectId: number;
       employeeId: number;
     }) => projectService.removeEmployee(projectId, employeeId),
-    onSuccess: (_, { projectId }) => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
-      queryClient.invalidateQueries({
+    onMutate: async ({ projectId, employeeId }) => {
+      await queryClient.cancelQueries({
         queryKey: projectKeys.detail(projectId),
       });
-      queryClient.invalidateQueries({
+      await queryClient.cancelQueries({ predicate: isProjectListCache });
+      await queryClient.cancelQueries({
         queryKey: projectKeys.members(projectId),
       });
-      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
-      toast.success('Employee Removed', {
-        description: 'The employee has been removed from the project',
+
+      const previousDetail = queryClient.getQueryData<Project>(
+        projectKeys.detail(projectId)
+      );
+      const previousListEntries = queryClient.getQueriesData<Project[]>({
+        predicate: isProjectListCache,
       });
+      const previousMembers = queryClient.getQueryData<Employee[]>(
+        projectKeys.members(projectId)
+      );
+
+      if (previousDetail) {
+        const optimisticProject: Project = {
+          ...previousDetail,
+          members: previousDetail.members.filter((e) => e.id !== employeeId),
+        };
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(projectId),
+          optimisticProject
+        );
+        queryClient.setQueriesData<Project[]>(
+          { predicate: isProjectListCache },
+          (old) => old?.map((p) => (p.id === projectId ? optimisticProject : p))
+        );
+      }
+      if (previousMembers) {
+        queryClient.setQueryData<Employee[]>(
+          projectKeys.members(projectId),
+          previousMembers.filter((e) => e.id !== employeeId)
+        );
+      }
+
+      return { previousDetail, previousListEntries, previousMembers };
     },
-    onError: (error) => {
+    onError: (error, { projectId }, context) => {
+      if (context?.previousDetail !== undefined) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(projectId),
+          context.previousDetail
+        );
+      }
+      for (const [key, value] of context?.previousListEntries ?? []) {
+        queryClient.setQueryData<Project[]>(key, value);
+      }
+      if (context?.previousMembers !== undefined) {
+        queryClient.setQueryData<Employee[]>(
+          projectKeys.members(projectId),
+          context.previousMembers
+        );
+      }
       const title = getErrorTitle(error, 'Failed to Remove Employee');
       const description = getErrorMessage(error);
       toast.error(title, { description });
       logger.error('Failed to remove employee from project:', error);
     },
+    onSuccess: (_data, { projectId, employeeId }) => {
+      // API returns void; compute the removal locally from current cache state.
+      queryClient.setQueryData<Project>(projectKeys.detail(projectId), (old) =>
+        old
+          ? { ...old, members: old.members.filter((e) => e.id !== employeeId) }
+          : old
+      );
+      queryClient.setQueriesData<Project[]>(
+        { predicate: isProjectListCache },
+        (old) =>
+          old?.map((p) =>
+            p.id === projectId
+              ? { ...p, members: p.members.filter((e) => e.id !== employeeId) }
+              : p
+          )
+      );
+      // Sync the standalone members list.
+      queryClient.setQueryData<Employee[]>(
+        projectKeys.members(projectId),
+        (old) => old?.filter((e) => e.id !== employeeId)
+      );
+      // Invalidate employee module caches — same reason as addEmployee above.
+      queryClient.invalidateQueries({ queryKey: employeeKeys.all });
+      toast.success('Employee Removed', {
+        description: 'The employee has been removed from the project',
+      });
+    },
   });
 }
 
-/**
- * useDeleteProject
- *
- * Mutation hook that deletes a project by id and invalidates the
- * `['projects']` cache entry on success. Errors are surfaced via toast.
- */
 export function useDeleteProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: projectService.delete,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: projectKeys.lists() });
+    onSuccess: (_data, id) => {
+      // Remove the deleted project from every Project[] list cache.
+      queryClient.setQueriesData<Project[]>(
+        { predicate: isProjectListCache },
+        (old) => old?.filter((p) => p.id !== id)
+      );
+      // Evict the detail entry — the project no longer exists on the server.
+      queryClient.removeQueries({ queryKey: projectKeys.detail(id) });
       toast.success('Project Deleted', {
         description: 'The project has been deleted successfully',
       });
