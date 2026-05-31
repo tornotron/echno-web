@@ -93,6 +93,8 @@ import {
 } from '@/components/shadcn/empty';
 import { routes } from '@/nav';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 const getStatusBadgeColor = (status: ProjectStatus): string => {
   const colors = {
     [ProjectStatus.open]:
@@ -690,13 +692,24 @@ export default function ProjectDashboardPage() {
                   </div>
                   {projectId && (
                     <AttachmentsUploader
-                      onUpload={(files) =>
-                        updateProjectWithFiles.mutate({
-                          id: projectId,
-                          data: {},
-                          files: { attachments: files },
-                        })
-                      }
+                      onUpload={(files) => {
+                        const valid = files.filter(
+                          (f) => f.size <= MAX_FILE_SIZE
+                        );
+                        const invalid = files
+                          .filter((f) => f.size > MAX_FILE_SIZE)
+                          .map((f) => f.name);
+                        if (invalid.length > 0)
+                          toast.error('Some files exceed 10MB', {
+                            description: `Not uploaded: ${invalid.join(', ')}`,
+                          });
+                        if (valid.length > 0)
+                          updateProjectWithFiles.mutate({
+                            id: projectId,
+                            data: {},
+                            files: { attachments: valid },
+                          });
+                      }}
                       isPending={updateProjectWithFiles.isPending}
                     />
                   )}

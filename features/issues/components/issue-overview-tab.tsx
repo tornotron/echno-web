@@ -45,6 +45,7 @@ import { AttachmentType, formatFileSize } from '@/types/attachment';
 import { useUpdateIssue } from '@/hooks/issue';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
 import {
   isValidAttachmentUrl,
@@ -53,6 +54,8 @@ import {
 import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 // Attachment icon helper
 // ---------------------------------------------------------------------------
 
@@ -173,13 +176,22 @@ export function IssueOverviewTab({
                 <CardDescription>Files attached to this issue</CardDescription>
               </div>
               <AttachmentsUploader
-                onUpload={(files) =>
-                  updateIssueMutation.mutate({
-                    id: issue.id,
-                    data: {},
-                    files: { attachments: files },
-                  })
-                }
+                onUpload={(files) => {
+                  const valid = files.filter((f) => f.size <= MAX_FILE_SIZE);
+                  const invalid = files
+                    .filter((f) => f.size > MAX_FILE_SIZE)
+                    .map((f) => f.name);
+                  if (invalid.length > 0)
+                    toast.error('Some files exceed 10MB', {
+                      description: `Not uploaded: ${invalid.join(', ')}`,
+                    });
+                  if (valid.length > 0)
+                    updateIssueMutation.mutate({
+                      id: issue.id,
+                      data: {},
+                      files: { attachments: valid },
+                    });
+                }}
                 isPending={updateIssueMutation.isPending}
               />
             </div>
