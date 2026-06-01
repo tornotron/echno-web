@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { issueService } from '@/services/issue-service';
 import { Issue, IssueFiles } from '@/types/issue';
+import { Task } from '@/types/task';
 import { CreateIssueRequest } from '@/types/issue/issue-create';
 import { UpdateIssueRequest } from '@/types/issue/issue-update';
 import { toast } from '@/lib/styles/toast-styles';
@@ -64,9 +65,13 @@ export function useCreateIssue() {
           issueKeys.byTask(data.taskId),
           (old) => (old ? [...old, newIssue] : undefined)
         );
-        // Task detail caches `issues` nested array — invalidate so the task
-        // view picks up the new issue. Cross-namespace: project module owns
-        // the Task cache shape.
+        // Cross-namespace: Task entity caches `issues: Issue[]` nested.
+        // Consumers (task-overview-tab, task-issues-tab, task-table, tasks-list)
+        // read `task.issues` directly. Patch the parent's issues array so the
+        // UI updates instantly; invalidate so derived server fields refetch.
+        queryClient.setQueryData<Task>(taskKeys.detail(data.taskId), (old) =>
+          old ? { ...old, issues: [...(old.issues ?? []), newIssue] } : old
+        );
         queryClient.invalidateQueries({
           queryKey: taskKeys.detail(data.taskId),
         });
@@ -164,9 +169,22 @@ export function useUpdateIssue() {
       queryClient.invalidateQueries({ queryKey: issueKeys.detail(id) });
       queryClient.invalidateQueries({ predicate: isIssueListCache });
 
-      // Cross-namespace: task detail caches the Issue[] for that task and may
-      // show stale title/status. Invalidate when we know the task association.
+      // Cross-namespace: task detail caches `issues: Issue[]` nested. Patch
+      // the parent's issues array so consumers update instantly; invalidate
+      // so derived server fields refetch.
       if (updatedIssue.taskId !== undefined) {
+        queryClient.setQueryData<Task>(
+          taskKeys.detail(updatedIssue.taskId),
+          (old) =>
+            old
+              ? {
+                  ...old,
+                  issues: (old.issues ?? []).map((i) =>
+                    i.id === id ? updatedIssue : i
+                  ),
+                }
+              : old
+        );
         queryClient.invalidateQueries({
           queryKey: taskKeys.detail(updatedIssue.taskId),
         });
@@ -210,6 +228,14 @@ export function useDeleteIssue() {
         predicate: isIssueListCache,
       });
 
+      // Cross-namespace snapshot: parent Task caches `issues: Issue[]` nested.
+      const previousParentTask =
+        previousDetail?.taskId === undefined
+          ? undefined
+          : queryClient.getQueryData<Task>(
+              taskKeys.detail(previousDetail.taskId)
+            );
+
       // Apply deletion immediately — removed from all list caches and detail evicted.
       queryClient.setQueriesData<Issue[]>(
         { predicate: isIssueListCache },
@@ -217,12 +243,22 @@ export function useDeleteIssue() {
       );
       queryClient.removeQueries({ queryKey: issueKeys.detail(id) });
 
-      return { previousDetail, previousListEntries };
+      // Filter the issue from the parent task's issues array so consumers
+      // update instantly.
+      if (previousDetail?.taskId !== undefined && previousParentTask) {
+        queryClient.setQueryData<Task>(taskKeys.detail(previousDetail.taskId), {
+          ...previousParentTask,
+          issues: (previousParentTask.issues ?? []).filter((i) => i.id !== id),
+        });
+      }
+
+      return { previousDetail, previousListEntries, previousParentTask };
     },
     onSuccess: (_data, _id, context) => {
       // DELETE /issues/web/{id} → ApiResponse (ack).
-      // Cache was already updated optimistically in onMutate. Just trigger the
-      // cross-namespace task invalidation from the pre-deletion snapshot.
+      // Cache was already updated optimistically in onMutate. Trigger the
+      // cross-namespace task invalidation from the pre-deletion snapshot so
+      // derived server fields refetch.
       if (context?.previousDetail?.taskId !== undefined) {
         queryClient.invalidateQueries({
           queryKey: taskKeys.detail(context.previousDetail.taskId),
@@ -243,6 +279,16 @@ export function useDeleteIssue() {
         queryClient.setQueryData<Issue>(
           issueKeys.detail(id),
           context.previousDetail
+        );
+      }
+      // Restore the parent task's issues array.
+      if (
+        context?.previousDetail?.taskId !== undefined &&
+        context.previousParentTask !== undefined
+      ) {
+        queryClient.setQueryData<Task>(
+          taskKeys.detail(context.previousDetail.taskId),
+          context.previousParentTask
         );
       }
       const title = getErrorTitle(error, 'Failed to Delete Issue');
