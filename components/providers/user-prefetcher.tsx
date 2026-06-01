@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
+import { userKeys } from '@/hooks/user/user-keys';
 import { logger } from '@/lib/logger';
 import { ApiError } from '@/lib/api/api-client';
 
@@ -38,7 +39,7 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
         .getCurrentUser()
         .then((user) => {
           // Set user data in cache
-          queryClient.setQueryData(['user'], user);
+          queryClient.setQueryData(userKeys.all, user);
           logger.debug('User profile prefetched successfully');
 
           if (user?.id) {
@@ -47,7 +48,7 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
               .getUserEmployees()
               .then((employees) => {
                 // Cache all employees
-                queryClient.setQueryData(['user', 'employees'], employees);
+                queryClient.setQueryData(userKeys.employees(), employees);
                 logger.debug('User employees prefetched successfully');
 
                 // Find and cache the current employee (matching defaultOrganizationId)
