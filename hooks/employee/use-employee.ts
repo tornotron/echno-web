@@ -2,57 +2,42 @@ import { useQuery } from '@tanstack/react-query';
 import { employeeService } from '@/services/employee-service';
 import { useUser, useUserEmployees } from '@/hooks/user/use-user';
 import { useMemo } from 'react';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
+import { standardQueryOptions } from '@/lib/query/options';
 import { employeeKeys } from './employee-keys';
 
 /**
  * Hook to fetch all employees.
- * Includes retry logic for transient errors and caches data for 5 minutes.
  */
 export function useEmployees() {
   return useQuery({
-    queryKey: employeeKeys.all,
+    queryKey: employeeKeys.lists(),
     queryFn: () => employeeService.getAll(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...standardQueryOptions,
     retry: shouldRetry,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 }
 
 /**
  * Hook to fetch a single employee by ID.
- * Includes retry logic for transient errors and caches data for 5 minutes.
  */
 export function useEmployee(id: number) {
   return useQuery({
     queryKey: employeeKeys.detail(id),
     queryFn: () => employeeService.getById(id),
     enabled: !!id,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...standardQueryOptions,
     retry: shouldRetry,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 }
 
 /**
  * Hook to get the current user's employee profile.
  * Returns the employee data for the user's currently selected organization.
- * This data is prefetched by UserPrefetcher on login.
+ * Prefetched by UserPrefetcher on login.
  *
- * The hook derives the current employee from all user employees by matching
- * the user's defaultOrganizationId with the employee's organizationId.
- *
- * @returns Employee data if user is an employee in the current organization, undefined otherwise
- *
- * @example
- * ```tsx
- * const { data: employee, isLoading } = useCurrentUserEmployee();
- *
- * // employee will be the one matching user.defaultOrganizationId
- * if (employee) {
- *   console.log(`Current employee in org ${employee.organizationId}`);
- * }
- * ```
+ * Derives the current employee from the user's employee list by matching
+ * `defaultOrganizationId` with `employee.organizationId`.
  */
 export function useCurrentUserEmployee() {
   const { data: user } = useUser();
@@ -60,7 +45,6 @@ export function useCurrentUserEmployee() {
 
   const defaultOrgId = user?.defaultOrganizationId;
 
-  // Derive current employee from the list based on defaultOrganizationId
   const currentEmployee = useMemo(() => {
     if (!defaultOrgId || !employees) {
       return;
@@ -77,10 +61,6 @@ export function useCurrentUserEmployee() {
 
 /**
  * Hook to fetch all subordinates (direct reports) of a manager.
- * Includes retry logic for transient errors and caches data for 5 minutes.
- *
- * @param managerId - Employee ID of the manager
- * @returns Array of employees reporting to this manager
  */
 export function useSubordinates(managerId?: number) {
   return useQuery({
@@ -92,24 +72,19 @@ export function useSubordinates(managerId?: number) {
       return employeeService.getSubordinates(managerId);
     },
     enabled: !!managerId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...standardQueryOptions,
     retry: shouldRetry,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 }
 
 /**
  * Hook to fetch all managers in the current organization.
- * Includes retry logic for transient errors and caches data for 5 minutes.
- *
- * @returns Array of employees who are managers
  */
 export function useManagers() {
   return useQuery({
     queryKey: employeeKeys.managers(),
     queryFn: () => employeeService.getManagers(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...standardQueryOptions,
     retry: shouldRetry,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 }
