@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { siteTransfersService } from '@/services/site-transfers-service';
 import { siteTransferKeys } from './site-transfer-keys';
 import { materialsKeys } from '@/hooks/materials/material-keys';
+import { inventoryTransactionKeys } from '@/hooks/inventory-transactions/inventory-transaction-keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { ApiError } from '@/lib/api/api-client';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
@@ -100,6 +101,14 @@ export const useCreateSiteTransfer = () => {
         }
       }
 
+      // Cross-namespace: a site transfer writes new inventory-transaction
+      // rows for the source decrement. Invalidate the inventory-transactions
+      // namespace so byMaterial / byStorageLocation / byProject scoped views
+      // refresh.
+      queryClient.invalidateQueries({
+        queryKey: inventoryTransactionKeys.all,
+      });
+
       toast.success('Transfer Created', {
         description:
           'Site transfer created successfully. Stock has been updated.',
@@ -183,6 +192,13 @@ export const useUpdateSiteTransferStatus = () => {
           });
         }
       }
+
+      // Cross-namespace: a RECEIVED transition writes destination-increment
+      // inventory-transaction rows. Other transitions may also affect the
+      // log depending on the backend. Invalidate the entire namespace.
+      queryClient.invalidateQueries({
+        queryKey: inventoryTransactionKeys.all,
+      });
 
       toast.success('Status Updated', {
         description: 'The transfer status has been updated.',

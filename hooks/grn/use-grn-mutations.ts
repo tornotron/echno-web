@@ -10,6 +10,7 @@ import { grnKeys } from './grn-keys';
 import { materialsKeys } from '@/hooks/materials/material-keys';
 import { poKeys } from '@/hooks/purchase-orders/purchase-order-keys';
 import { poItemKeys } from '@/hooks/purchase-order-items/purchase-order-item-keys';
+import { inventoryTransactionKeys } from '@/hooks/inventory-transactions/inventory-transaction-keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
 import {
@@ -102,6 +103,16 @@ export const useCreateGRN = () => {
           queryKey: poItemKeys.byPO(newGrn.purchaseOrderId),
         });
       }
+
+      // Cross-namespace: GRN posting writes new inventory-transaction rows
+      // (one per item). Invalidate the entire inventory-transactions
+      // namespace — broad but correct, since byMaterial / byStorageLocation /
+      // byProject / byStorageLocationAndMaterial / paginated etc. are all
+      // potentially affected and the per-item enumeration would still need
+      // to span every scoped variant.
+      queryClient.invalidateQueries({
+        queryKey: inventoryTransactionKeys.all,
+      });
 
       toast.success('GRN Recorded', {
         description:
