@@ -16,6 +16,11 @@ import { leaveService } from '@/services/leave-service';
 import { leaveKeys } from '@/hooks/leave/use-leave';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
+import type {
+  LeavePolicy,
+  LeaveRequest,
+  LeaveNotification,
+} from '@/types/leave';
 import {
   CreateLeavePolicyRequest,
   UpdateLeavePolicyRequest,
@@ -26,6 +31,73 @@ import {
   CalculateDays,
 } from '@/types/leave';
 
+/**
+ * Matches every LeavePolicy[] list cache under the 'leave/policies' namespace,
+ * including `policies()` and `policiesByEmployee(id)`. Used by `setQueriesData`
+ * to batch-patch all policy list views.
+ */
+function isLeavePolicyListCache(query: {
+  queryKey: ReadonlyArray<unknown>;
+}): boolean {
+  const key = query.queryKey;
+  return (
+    Array.isArray(key) &&
+    key[0] === 'leave' &&
+    key[1] === 'policies' &&
+    // Exclude `policy(id)` shape: ['leave', 'policies', <number>]
+    typeof key[2] !== 'number'
+  );
+}
+
+/**
+ * Matches every LeaveRequest[] list cache under the 'leave/requests' namespace.
+ * Excludes the `request(id)` detail shape (numeric third segment).
+ */
+function isLeaveRequestListCache(query: {
+  queryKey: ReadonlyArray<unknown>;
+}): boolean {
+  const key = query.queryKey;
+  return (
+    Array.isArray(key) &&
+    key[0] === 'leave' &&
+    key[1] === 'requests' &&
+    typeof key[2] !== 'number'
+  );
+}
+
+/**
+ * Removes a leave request from the approver's `pendingApprovals` list cache
+ * and decrements the `pendingApprovalsCount` cache by 1. Used by approve /
+ * reject / delegate `onSuccess` so the approver dashboard updates instantly
+ * without a refetch.
+ */
+function patchPendingApprovalRemoval(
+  queryClient: ReturnType<typeof useQueryClient>,
+  approverId: number,
+  requestId: number
+): void {
+  queryClient.setQueryData<LeaveRequest[]>(
+    leaveKeys.pendingApprovals(approverId),
+    (old) => old?.filter((r) => r.id !== requestId)
+  );
+  patchPendingApprovalCountDelta(queryClient, approverId, -1);
+}
+
+/**
+ * Increments / decrements the cached `pendingApprovalsCount` for an approver.
+ * No-op if the count isn't cached (functional updater returns undefined).
+ */
+function patchPendingApprovalCountDelta(
+  queryClient: ReturnType<typeof useQueryClient>,
+  approverId: number,
+  delta: number
+): void {
+  queryClient.setQueryData<number>(
+    leaveKeys.pendingApprovalsCount(approverId),
+    (old) => (typeof old === 'number' ? Math.max(0, old + delta) : undefined)
+  );
+}
+
 // ==================== Leave Policy Mutations ====================
 
 export const useCreateLeavePolicy = () => {
@@ -34,8 +106,13 @@ export const useCreateLeavePolicy = () => {
   return useMutation({
     mutationFn: (dto: CreateLeavePolicyRequest) =>
       leaveService.createPolicy(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+    onSuccess: (newPolicy) => {
+      // POST /leave-policies/web → LeavePolicyDto (full).
+      // Seed detail + append to lists; no follow-up refetch needed.
+      queryClient.setQueryData(leaveKeys.policy(newPolicy.id), newPolicy);
+      queryClient.setQueryData<LeavePolicy[]>(leaveKeys.policies(), (old) =>
+        old ? [...old, newPolicy] : [newPolicy]
+      );
       toast.success('Leave Policy Created', {
         description: 'The leave policy has been created successfully.',
       });
@@ -59,8 +136,13 @@ export const useUpdateLeavePolicy = () => {
       updates: UpdateLeavePolicyRequest;
     }) => leaveService.updatePolicy(policyId, updates),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policy(data.id) });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      // PATCH /leave-policies/web/update → LeavePolicyDto (full).
+      // Patch detail + every policy-list cache directly; no invalidations needed.
+      queryClient.setQueryData(leaveKeys.policy(data.id), data);
+      queryClient.setQueriesData<LeavePolicy[]>(
+        { predicate: isLeavePolicyListCache },
+        (old) => old?.map((p) => (p.id === data.id ? data : p))
+      );
       toast.success('Leave Policy Updated', {
         description: 'The leave policy has been updated successfully.',
       });
@@ -78,8 +160,13 @@ export const useDeleteLeavePolicy = () => {
   return useMutation({
     mutationFn: (policyId: number) => leaveService.deletePolicy(policyId),
     onSuccess: (_, policyId) => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policy(policyId) });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      // DELETE /leave-policies/web/deactivate → ApiResponse (ack).
+      // Entity removed — evict detail and filter from list caches.
+      queryClient.removeQueries({ queryKey: leaveKeys.policy(policyId) });
+      queryClient.setQueriesData<LeavePolicy[]>(
+        { predicate: isLeavePolicyListCache },
+        (old) => old?.filter((p) => p.id !== policyId)
+      );
       toast.success('Leave Policy Deleted', {
         description: 'The leave policy has been deleted.',
       });
@@ -97,8 +184,21 @@ export const useActivateLeavePolicy = () => {
   return useMutation({
     mutationFn: (policyId: number) => leaveService.activatePolicy(policyId),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policy(data.id) });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      // POST /leave-policies/web/activate → ApiResponse (ack) per spec, but
+      // leaveService.activatePolicy parses the response as LeavePolicy. If
+      // the spec is correct, `data` may be empty/malformed; fall back to
+      // invalidate when patching with `data` isn't viable.
+      // FIXME: confirm backend response shape; update service signature
+      // (Promise<void>) if spec is authoritative.
+      if (data && typeof data.id === 'number') {
+        queryClient.setQueryData(leaveKeys.policy(data.id), data);
+        queryClient.setQueriesData<LeavePolicy[]>(
+          { predicate: isLeavePolicyListCache },
+          (old) => old?.map((p) => (p.id === data.id ? data : p))
+        );
+      } else {
+        queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+      }
       toast.success('Leave Policy Activated', {
         description: 'The leave policy is now active.',
       });
@@ -121,8 +221,13 @@ export const useDuplicateLeavePolicy = () => {
       policyId: number;
       targetOrganizationId: number;
     }) => leaveService.duplicatePolicy(policyId, targetOrganizationId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.policies() });
+    onSuccess: (newPolicy) => {
+      // POST /leave-policies/web/duplicate → LeavePolicyDto (full).
+      // Seed detail + append to lists; same pattern as create.
+      queryClient.setQueryData(leaveKeys.policy(newPolicy.id), newPolicy);
+      queryClient.setQueryData<LeavePolicy[]>(leaveKeys.policies(), (old) =>
+        old ? [...old, newPolicy] : [newPolicy]
+      );
       toast.success('Leave Policy Duplicated', {
         description: 'A copy of the leave policy has been created.',
       });
@@ -143,6 +248,10 @@ export const useRecalculateBalances = () => {
     mutationFn: (employeeId: number) =>
       leaveService.recalculateBalances(employeeId),
     onSuccess: (_, employeeId) => {
+      // POST /leave-balances/web/recalculate → LeaveBalanceDto per spec, but
+      // leaveService.recalculateBalances returns Promise<void> (discarded).
+      // Balances are server-recomputed; targeted invalidation is the right tool.
+      // Scoped to this employee — other employees' caches stay warm.
       queryClient.invalidateQueries({
         queryKey: leaveKeys.employeeBalances(employeeId),
       });
@@ -170,14 +279,16 @@ export const useAdjustBalance = () => {
     mutationFn: (dto: AdjustLeaveBalanceRequest) =>
       leaveService.adjustBalance(dto),
     onSuccess: (data) => {
+      // POST /leave-balances/web/adjust → LeaveTransactionDto per spec; the
+      // service parses as LeaveBalance (returns the updated balance for the
+      // adjusted policy). Patch the policy-specific balance directly; invalidate
+      // the rollups (summary + transactions list) since server recomputes them.
+      queryClient.setQueryData(
+        leaveKeys.employeePolicyBalance(data.employeeId, data.leavePolicyId),
+        data
+      );
       queryClient.invalidateQueries({
         queryKey: leaveKeys.employeeBalances(data.employeeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.employeePolicyBalance(
-          data.employeeId,
-          data.leavePolicyId
-        ),
       });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.employeeBalanceSummary(data.employeeId),
@@ -205,10 +316,14 @@ export const useCreateLeaveRequest = () => {
     mutationFn: (dto: CreateLeaveRequestRequest) =>
       leaveService.createRequest(dto),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.employeeRequests(data.employeeId),
-      });
-      // Use partial keys to match all year variants
+      // POST /leave-requests/web → LeaveRequestDto (full).
+      // Seed detail + append to every request list cache via predicate. Balance
+      // recompute happens server-side; scope invalidation to this employee.
+      queryClient.setQueryData(leaveKeys.request(data.id), data);
+      queryClient.setQueriesData<LeaveRequest[]>(
+        { predicate: isLeaveRequestListCache },
+        (old) => (old ? [...old, data] : undefined)
+      );
       queryClient.invalidateQueries({
         queryKey: [...leaveKeys.balances(), 'employee', data.employeeId],
       });
@@ -237,10 +352,13 @@ export const useUpdateLeaveRequest = () => {
       dto: UpdateLeaveRequestRequest;
     }) => leaveService.updateRequest(requestId, employeeId, dto),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.request(data.id) });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.employeeRequests(data.employeeId),
-      });
+      // PATCH /leave-requests/web/update → LeaveRequestDto (full).
+      // Patch detail + every request-list cache directly; no invalidations.
+      queryClient.setQueryData(leaveKeys.request(data.id), data);
+      queryClient.setQueriesData<LeaveRequest[]>(
+        { predicate: isLeaveRequestListCache },
+        (old) => old?.map((r) => (r.id === data.id ? data : r))
+      );
       toast.success('Leave Request Updated', {
         description: 'The leave request has been updated.',
       });
@@ -264,15 +382,20 @@ export const useSubmitLeaveRequest = () => {
       requestId: number;
     }) => leaveService.submitRequest(employeeId, requestId),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.request(data.id) });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.employeeRequests(data.employeeId),
-      });
-      // Use partial key to match all year variants
+      // POST /leave-requests/web/employeeId/{employeeId}/submit → LeaveRequestDto (full).
+      // Patch detail + lists; balance recompute is server-side; pending
+      // approvals are scoped per approver and the approver set is opaque to
+      // this employee context — invalidate the request-list namespace to
+      // refresh approver views.
+      queryClient.setQueryData(leaveKeys.request(data.id), data);
+      queryClient.setQueriesData<LeaveRequest[]>(
+        { predicate: isLeaveRequestListCache },
+        (old) => old?.map((r) => (r.id === data.id ? data : r))
+      );
       queryClient.invalidateQueries({
         queryKey: [...leaveKeys.balances(), 'employee', data.employeeId],
       });
-      // Invalidate pending approvals for potential approvers
+      // Keep: approvers are not known from this context.
       queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
       toast.success('Leave Request Submitted', {
         description: 'Your leave request has been submitted for approval.',
@@ -298,10 +421,16 @@ export const useCancelLeaveRequest = () => {
       employeeId: number;
       reason?: string;
     }) => leaveService.cancelRequest(requestId, employeeId, reason),
-    onSuccess: (_, { requestId }) => {
+    onSuccess: (_data, { requestId, employeeId }) => {
+      // POST /leave-requests/web/cancel → LeaveRequestDto per spec, but
+      // leaveService.cancelRequest returns Promise<void>.
+      // FIXME: capture the response and patch caches like useUpdateLeaveRequest.
+      // For now, scope-narrow the invalidations to this employee.
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
+      queryClient.invalidateQueries({ predicate: isLeaveRequestListCache });
+      queryClient.invalidateQueries({
+        queryKey: [...leaveKeys.balances(), 'employee', employeeId],
+      });
       toast.success('Leave Request Cancelled', {
         description: 'The leave request has been cancelled.',
       });
@@ -319,8 +448,13 @@ export const useWithdrawLeaveRequest = () => {
   return useMutation({
     mutationFn: (requestId: number) => leaveService.withdrawRequest(requestId),
     onSuccess: (_, requestId) => {
+      // POST /leave-requests/web/employeeId/{employeeId}/withdraw → LeaveRequestDto per spec,
+      // but leaveService.withdrawRequest returns Promise<void>.
+      // FIXME: capture the response and patch instead of invalidating; would
+      // also need to add employeeId to the mutation input for scoped balance
+      // invalidation.
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
+      queryClient.invalidateQueries({ predicate: isLeaveRequestListCache });
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
       toast.success('Leave Request Withdrawn', {
         description: 'The leave request has been withdrawn.',
@@ -366,7 +500,13 @@ export const useApproveLeaveRequest = () => {
       requestId: number;
       dto: LeaveApprovalAction;
     }) => leaveService.approveRequest(requestId, dto),
-    onSuccess: (_, { requestId, dto }) => {
+    onSuccess: (_data, { requestId, dto }) => {
+      // POST /leave-approvals/web/approve → LeaveRequestDto per spec, but
+      // leaveService.approveRequest returns Promise<void>.
+      // FIXME: capture the response, patch leaveKeys.request(data.id) and
+      // the lists. For now, patch what we know deterministically:
+      // remove from this approver's pending list and decrement the count.
+      patchPendingApprovalRemoval(queryClient, dto.approverId, requestId);
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalHistory(requestId),
@@ -374,12 +514,7 @@ export const useApproveLeaveRequest = () => {
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalChain(requestId),
       });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.pendingApprovals(dto.approverId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.pendingApprovalsCount(dto.approverId),
-      });
+      // Keep: balance recompute + calendar are server-side / cross-employee.
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
       queryClient.invalidateQueries({ queryKey: leaveKeys.calendar() });
       toast.success('Leave Request Approved', {
@@ -404,19 +539,16 @@ export const useRejectLeaveRequest = () => {
       requestId: number;
       dto: LeaveApprovalAction;
     }) => leaveService.rejectRequest(requestId, dto),
-    onSuccess: (_, { requestId, dto }) => {
+    onSuccess: (_data, { requestId, dto }) => {
+      // POST /leave-approvals/web/reject → LeaveRequestDto per spec.
+      // Same shape as approve: decrement pending count, remove from pending list.
+      patchPendingApprovalRemoval(queryClient, dto.approverId, requestId);
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalHistory(requestId),
       });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalChain(requestId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.pendingApprovals(dto.approverId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.pendingApprovalsCount(dto.approverId),
       });
       queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
       toast.success('Leave Request Rejected', {
@@ -441,7 +573,10 @@ export const useDelegateApproval = () => {
       requestId: number;
       dto: LeaveApprovalAction;
     }) => leaveService.delegateApproval(requestId, dto),
-    onSuccess: (_, { requestId, dto }) => {
+    onSuccess: (_data, { requestId, dto }) => {
+      // POST /leave-approvals/web/delegate → LeaveRequestDto per spec.
+      // Removes from current approver, conditionally adds to delegate target.
+      patchPendingApprovalRemoval(queryClient, dto.approverId, requestId);
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalHistory(requestId),
@@ -449,18 +584,13 @@ export const useDelegateApproval = () => {
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalChain(requestId),
       });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.pendingApprovals(dto.approverId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.pendingApprovalsCount(dto.approverId),
-      });
-      if (dto.delegateToId) {
+      if (dto.delegateToId !== undefined) {
+        // Bump the delegate's count by 1 if it's cached; their pending list
+        // requires the full LeaveRequest entity to append, which we don't have
+        // until the service captures the response. Invalidate as fallback.
+        patchPendingApprovalCountDelta(queryClient, dto.delegateToId, +1);
         queryClient.invalidateQueries({
           queryKey: leaveKeys.pendingApprovals(dto.delegateToId),
-        });
-        queryClient.invalidateQueries({
-          queryKey: leaveKeys.pendingApprovalsCount(dto.delegateToId),
         });
       }
       toast.success('Approval Delegated', {
@@ -480,10 +610,41 @@ export const useMarkNotificationAsRead = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (notificationId: number) =>
-      leaveService.markAsRead(notificationId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: leaveKeys.notifications() });
+    // Accept employeeId in addition to id so we can patch the employee's
+    // notification list, unread list, and unread count directly.
+    mutationFn: ({
+      notificationId,
+    }: {
+      notificationId: number;
+      employeeId: number;
+    }) => leaveService.markAsRead(notificationId),
+    onSuccess: (_, { notificationId, employeeId }) => {
+      // POST notifications/{id}/read → void.
+      // Remove from unread list, decrement count, flag the entry in the
+      // full employee list as read. No invalidations needed for the happy path.
+      queryClient.setQueryData<LeaveNotification[]>(
+        leaveKeys.unreadNotifications(employeeId),
+        (old) => old?.filter((n) => n.id !== notificationId)
+      );
+      queryClient.setQueryData<number>(
+        leaveKeys.unreadCount(employeeId),
+        (old) => (typeof old === 'number' ? Math.max(0, old - 1) : undefined)
+      );
+      // Patch the entry in any paginated employee notifications cache; predicate
+      // since key shape includes pagination params.
+      queryClient.setQueriesData<LeaveNotification[]>(
+        {
+          predicate: (q) =>
+            Array.isArray(q.queryKey) &&
+            q.queryKey[0] === 'leave' &&
+            q.queryKey[1] === 'notifications' &&
+            q.queryKey[2] === employeeId,
+        },
+        (old) =>
+          old?.map((n) =>
+            n.id === notificationId ? { ...n, isRead: true } : n
+          )
+      );
     },
   });
 };
@@ -494,15 +655,24 @@ export const useMarkAllNotificationsAsRead = () => {
   return useMutation({
     mutationFn: (employeeId: number) => leaveService.markAllAsRead(employeeId),
     onSuccess: (_, employeeId) => {
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.employeeNotifications(employeeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.unreadNotifications(employeeId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: leaveKeys.unreadCount(employeeId),
-      });
+      // POST notifications/read-all → void.
+      // Clear unread list, zero the count, mark all entries in the paginated
+      // employee notifications cache as read.
+      queryClient.setQueryData<LeaveNotification[]>(
+        leaveKeys.unreadNotifications(employeeId),
+        []
+      );
+      queryClient.setQueryData<number>(leaveKeys.unreadCount(employeeId), 0);
+      queryClient.setQueriesData<LeaveNotification[]>(
+        {
+          predicate: (q) =>
+            Array.isArray(q.queryKey) &&
+            q.queryKey[0] === 'leave' &&
+            q.queryKey[1] === 'notifications' &&
+            q.queryKey[2] === employeeId,
+        },
+        (old) => old?.map((n) => ({ ...n, isRead: true }))
+      );
     },
   });
 };
