@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskService } from '@/services/task-service';
 import { Task } from '@/types/task';
+import { Project } from '@/types/project';
 import { CreateTaskRequest, TaskFiles } from '@/types/task/task-create';
 import { UpdateTaskRequest } from '@/types/task/task-update';
 import { toast } from '@/lib/styles/toast-styles';
@@ -8,6 +9,7 @@ import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import { mergePreservingNested } from '@/lib/query/cache-merge';
 import { taskKeys } from './task-keys';
+import { projectKeys } from '@/hooks/project/project-keys';
 
 const TASK_NESTED_KEYS = [
   'creator',
@@ -59,6 +61,19 @@ export function useCreateTask() {
         taskKeys.byProject(data.projectId),
         (old) => (old ? [...old, newTask] : undefined)
       );
+      // Cross-namespace: Project entity carries `tasks: Task[]` nested.
+      // Consumers (gantt, evm s-curve, health, projects-grid) read
+      // `project.tasks` directly. Patch the parent's tasks array so the UI
+      // updates instantly; invalidate so derived server fields (progress %)
+      // refetch.
+      queryClient.setQueryData<Project>(
+        projectKeys.detail(data.projectId),
+        (old) =>
+          old ? { ...old, tasks: [...(old.tasks ?? []), newTask] } : old
+      );
+      queryClient.invalidateQueries({
+        queryKey: projectKeys.detail(data.projectId),
+      });
       toast.success('Task Created', {
         description: 'The task has been created successfully',
       });
@@ -159,6 +174,28 @@ export function useUpdateTask() {
       );
       queryClient.invalidateQueries({ queryKey: taskKeys.detail(id) });
       queryClient.invalidateQueries({ predicate: isTaskListCache });
+
+      // Cross-namespace: Project caches `tasks: Task[]` nested. Consumers
+      // (gantt, evm s-curve, health, projects-grid) read project.tasks
+      // directly. Patch the parent's tasks array so the UI updates instantly;
+      // invalidate so derived server fields (progress %) refetch.
+      if (updatedTask.projectId !== undefined) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(updatedTask.projectId),
+          (old) =>
+            old
+              ? {
+                  ...old,
+                  tasks: (old.tasks ?? []).map((t) =>
+                    t.id === id ? merge(t) : t
+                  ),
+                }
+              : old
+        );
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.detail(updatedTask.projectId),
+        });
+      }
       toast.success('Task Updated', {
         description: 'The task has been updated successfully',
       });
@@ -182,6 +219,15 @@ export function useDeleteTask() {
         predicate: isTaskListCache,
       });
 
+      // Cross-namespace snapshot: Project caches `tasks: Task[]` nested.
+      // Capture before applying the optimistic deletion so onError can restore.
+      const previousParentProject =
+        previousDetail?.projectId === undefined
+          ? undefined
+          : queryClient.getQueryData<Project>(
+              projectKeys.detail(previousDetail.projectId)
+            );
+
       // Apply deletion immediately — removed from all list caches and detail evicted.
       queryClient.setQueriesData<Task[]>(
         { predicate: isTaskListCache },
@@ -189,7 +235,21 @@ export function useDeleteTask() {
       );
       queryClient.removeQueries({ queryKey: taskKeys.detail(id) });
 
-      return { previousDetail, previousListEntries };
+      // Filter the task from the parent project's tasks array so consumers
+      // (gantt, evm s-curve, health) update instantly.
+      if (previousDetail?.projectId !== undefined && previousParentProject) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(previousDetail.projectId),
+          {
+            ...previousParentProject,
+            tasks: (previousParentProject.tasks ?? []).filter(
+              (t) => t.id !== id
+            ),
+          }
+        );
+      }
+
+      return { previousDetail, previousListEntries, previousParentProject };
     },
     onError: (error, id, context) => {
       // Restore list caches from snapshot.
@@ -203,13 +263,29 @@ export function useDeleteTask() {
           context.previousDetail
         );
       }
+      // Restore the parent project's tasks array.
+      if (
+        context?.previousDetail?.projectId !== undefined &&
+        context.previousParentProject !== undefined
+      ) {
+        queryClient.setQueryData<Project>(
+          projectKeys.detail(context.previousDetail.projectId),
+          context.previousParentProject
+        );
+      }
       const title = getErrorTitle(error, 'Failed to Delete Task');
       const description = getErrorMessage(error);
       toast.error(title, { description });
       logger.error('Failed to delete task:', error);
     },
-    onSuccess: () => {
-      // Cache was already updated optimistically in onMutate; just confirm to the user.
+    onSuccess: (_data, _id, context) => {
+      // Server confirmed; invalidate the parent project so derived fields
+      // (progress %) refetch with fresh data.
+      if (context?.previousDetail?.projectId !== undefined) {
+        queryClient.invalidateQueries({
+          queryKey: projectKeys.detail(context.previousDetail.projectId),
+        });
+      }
       toast.success('Task Deleted', {
         description: 'The task has been deleted successfully',
       });
