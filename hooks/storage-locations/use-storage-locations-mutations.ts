@@ -13,15 +13,41 @@ import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
 import {
   CreateStorageLocationRequest,
   UpdateStorageLocationRequest,
+  StorageLocation,
 } from '@/types/storage-locations';
+
+/**
+ * Matches every StorageLocation[] list cache under the 'storage-locations'
+ * namespace. Currently scopes to `lists()` (`['storage-locations', 'list']`),
+ * but the predicate excludes only `detail(id)` so any future shapes
+ * (`byProject(id)`, `byType(t)`, `paginated(...)`) are picked up automatically
+ * when added.
+ */
+function isStorageLocationListCache(query: {
+  queryKey: ReadonlyArray<unknown>;
+}): boolean {
+  const key = query.queryKey;
+  return (
+    Array.isArray(key) && key[0] === 'storage-locations' && key[1] !== 'detail'
+  );
+}
 
 export const useCreateStorageLocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (dto: CreateStorageLocationRequest) =>
       storageLocationsService.create(dto),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
+    onSuccess: (newLocation) => {
+      // POST /storage-locations/web → StorageLocationDto (full).
+      // Seed detail + append to main list. Zero invalidations.
+      queryClient.setQueryData(
+        storageLocationKeys.detail(newLocation.id),
+        newLocation
+      );
+      queryClient.setQueryData<StorageLocation[]>(
+        storageLocationKeys.lists(),
+        (old) => (old ? [...old, newLocation] : [newLocation])
+      );
       toast.success('Location Created', {
         description: 'The storage location has been created successfully',
       });
@@ -45,11 +71,14 @@ export const useUpdateStorageLocation = () => {
       id: number;
       data: UpdateStorageLocationRequest;
     }) => storageLocationsService.update(id, data),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
-      queryClient.invalidateQueries({
-        queryKey: storageLocationKeys.detail(id),
-      });
+    onSuccess: (updatedLocation, { id }) => {
+      // PATCH /storage-locations/web/{id} → StorageLocationDto (full).
+      // Patch detail + every list cache directly. Zero invalidations.
+      queryClient.setQueryData(storageLocationKeys.detail(id), updatedLocation);
+      queryClient.setQueriesData<StorageLocation[]>(
+        { predicate: isStorageLocationListCache },
+        (old) => old?.map((l) => (l.id === id ? updatedLocation : l))
+      );
       toast.success('Location Updated', {
         description: 'The storage location has been updated successfully',
       });
@@ -67,11 +96,14 @@ export const useDeleteStorageLocation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => storageLocationsService.delete(id),
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: storageLocationKeys.lists() });
-      queryClient.invalidateQueries({
-        queryKey: storageLocationKeys.detail(id),
-      });
+    onSuccess: (_data, id) => {
+      // DELETE /storage-locations/web/{id} → ApiResponse (ack).
+      // Entity gone — evict detail and filter from every list cache.
+      queryClient.removeQueries({ queryKey: storageLocationKeys.detail(id) });
+      queryClient.setQueriesData<StorageLocation[]>(
+        { predicate: isStorageLocationListCache },
+        (old) => old?.filter((l) => l.id !== id)
+      );
       toast.success('Location Deleted', {
         description: 'The storage location has been deleted successfully',
       });
