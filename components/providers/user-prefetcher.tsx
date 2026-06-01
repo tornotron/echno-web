@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/services/user-service';
 import { userKeys } from '@/hooks/user/user-keys';
+import { employeeKeys } from '@/hooks/employee/employee-keys';
 import { logger } from '@/lib/logger';
 import { ApiError } from '@/lib/api/api-client';
 
@@ -58,7 +59,7 @@ export function UserPrefetcher({ children }: { children: React.ReactNode }) {
                   );
                   if (currentEmployee) {
                     queryClient.setQueryData(
-                      ['employees', user.id],
+                      employeeKeys.detail(user.id),
                       currentEmployee
                     );
                     logger.debug(
