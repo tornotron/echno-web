@@ -11,11 +11,8 @@ import { userKeys } from './user-keys';
 /**
  * useUpdateUser
  *
- * React Query mutation hook that updates the current user's profile
- * and invalidates the `['user']` query on success. Errors are surfaced
- * via an application toast with context-aware messaging.
- *
- * Use this for updates without file uploads.
+ * Updates the current user's profile (no files). Backend: `PATCH /user/web/{id}
+ * → UserDto` (full). Patches `userKeys.all` directly with the response.
  */
 export function useUpdateUser() {
   const queryClient = useQueryClient();
@@ -23,8 +20,10 @@ export function useUpdateUser() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateUserRequest }) =>
       userService.updateCurrentUser(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.all });
+    onSuccess: (updatedUser) => {
+      // PATCH /user/web/{id} → UserDto (full).
+      // Direct patch — response is the canonical updated user.
+      queryClient.setQueryData<User>(userKeys.all, updatedUser);
       toast.success('Profile Updated', {
         description: 'Your profile has been updated successfully',
       });
@@ -41,9 +40,8 @@ export function useUpdateUser() {
 /**
  * useUpdateUserWithFiles
  *
- * React Query mutation hook that updates the current user's profile
- * including file uploads (profile picture, CV).
- * Uses multipart/form-data to send both JSON data and files.
+ * Updates the current user's profile including file uploads (profile picture,
+ * CV). Multipart variant of `useUpdateUser`. Same response shape — full UserDto.
  */
 export function useUpdateUserWithFiles() {
   const queryClient = useQueryClient();
@@ -58,8 +56,9 @@ export function useUpdateUserWithFiles() {
       data: UpdateUserRequest;
       files: UserFiles;
     }) => userService.updateCurrentUserWithFiles(id, data, files),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: userKeys.all });
+    onSuccess: (updatedUser) => {
+      // PATCH multipart /user/web/{id} → UserDto (full, with new attachments).
+      queryClient.setQueryData<User>(userKeys.all, updatedUser);
       toast.success('Profile Updated', {
         description: 'Your profile has been updated successfully',
       });
@@ -76,9 +75,9 @@ export function useUpdateUserWithFiles() {
 /**
  * useUpdateUserOrganization
  *
- * React Query mutation hook that updates the user's selected organization preference.
- * This is a silent mutation (no success toast) used for syncing organization
- * context across devices. Updates are optimistically applied.
+ * Updates the user's selected organization preference. Silent mutation
+ * (no success toast) used for syncing organization context across devices.
+ * Backend: same PATCH endpoint as profile update, returns full UserDto.
  */
 export function useUpdateUserOrganization() {
   const queryClient = useQueryClient();
@@ -91,15 +90,10 @@ export function useUpdateUserOrganization() {
       id: number;
       organizationId: number | null;
     }) => userService.updateUserOrganization(id, organizationId),
-    // Optimistically update the cache
     onMutate: async ({ organizationId }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: userKeys.all });
-
-      // Snapshot previous value
       const previousUser = queryClient.getQueryData<User>(userKeys.all);
 
-      // Optimistically update
       if (previousUser) {
         queryClient.setQueryData<User>(userKeys.all, {
           ...previousUser,
@@ -109,16 +103,15 @@ export function useUpdateUserOrganization() {
 
       return { previousUser };
     },
-    onSuccess: () => {
-      // Silently invalidate to ensure consistency
-      queryClient.invalidateQueries({ queryKey: userKeys.all });
+    onSuccess: (updatedUser) => {
+      // PATCH /user/web/{id} → UserDto (full).
+      // Reconcile with the server response — replaces the optimistic value.
+      queryClient.setQueryData<User>(userKeys.all, updatedUser);
     },
     onError: (error, _variables, context) => {
-      // Rollback on error
       if (context?.previousUser) {
         queryClient.setQueryData(userKeys.all, context.previousUser);
       }
-      // Silent error - just log it
       logger.error('Failed to update user organization preference:', error);
     },
   });
