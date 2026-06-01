@@ -10,6 +10,8 @@ import {
   GoodsReceivedNote,
   CreateGrnRequest,
   createGrnToJson,
+  UpdateGrnRequest,
+  updateGrnToJson,
   parseGoodsReceivedNote,
 } from '@/types/grn';
 
@@ -76,6 +78,11 @@ export const grnService = {
       endDate,
     });
     return safeParseGRNs(data);
+  },
+
+  async update(dto: UpdateGrnRequest): Promise<GoodsReceivedNote> {
+    const data = await api.patch<Raw>('/grns/web', updateGrnToJson(dto));
+    return safeParseGRN(data);
   },
 
   async delete(id: number): Promise<void> {
