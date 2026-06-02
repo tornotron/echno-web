@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { MarkAttendanceDialog } from './mark-attendance-dialog';
+import MarkAttendanceDialog from './mark-attendance-dialog';
 import { MovementLogForm } from '../movement-log-form';
 import {
   Card,
@@ -125,10 +125,9 @@ export function EmployeeDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Mark Attendance dialog */}
-      {employeeId && (
+      {/* Mark Attendance dialog — mount/unmount per open cycle. */}
+      {employeeId && markDialogOpen && (
         <MarkAttendanceDialog
-          open={markDialogOpen}
           onClose={() => setMarkDialogOpen(false)}
           employeeId={employeeId}
           todayRecord={todayRecord}
