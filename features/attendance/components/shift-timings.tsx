@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { Plus, Edit, Trash2, MoreHorizontal, Copy } from 'lucide-react';
-import type { ShiftTiming } from '@/types/attendance';
+import type { ShiftTiming } from '@/types/shift-timing';
 
 interface ShiftTimingsProps {
   shifts: ShiftTiming[];
