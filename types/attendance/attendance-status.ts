@@ -1,5 +1,7 @@
-// types/attendance/attendance-status.ts
-// Attendance status enumeration
+/**
+ * types/attendance/attendance-status.ts
+ * Attendance status enumeration
+ */
 
 export enum AttendanceStatus {
   present = 'present',
