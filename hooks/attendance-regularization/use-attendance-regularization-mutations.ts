@@ -1,0 +1,117 @@
+/**
+ * hooks/attendance-regularization/use-attendance-regularization-mutations.ts
+ *
+ * React Query mutation hooks for attendance-regularization writes.
+ *
+ * Cache discipline:
+ *   - Backend returns the base `AttendanceRegularizationDto` (Rule B). Enriched
+ *     fields like employeeId/employeeName/attendanceDate/projectId/projectName
+ *     may be absent on a freshly created entity — merge to preserve them on
+ *     the detail cache.
+ *   - Parent attendance detail embeds `.regularization`; patch it directly
+ *     when known, and invalidate the project- and employee-scoped list caches
+ *     so derived status badges refresh.
+ */
+
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { attendanceRegularizationService } from '@/services/attendance-regularization-service';
+import type {
+  Attendance,
+  CreateRegularizationRequest,
+  RegularizationDetail,
+} from '@/types/attendance';
+import { mergePreservingNested } from '@/lib/query/cache-merge';
+import { attendanceKeys } from '@/hooks/attendance/attendance-keys';
+import { attendanceRegularizationKeys } from './attendance-regularization-keys';
+
+const ENRICHED_KEYS = [
+  'employeeId',
+  'employeeName',
+  'attendanceDate',
+  'projectId',
+  'projectName',
+] as const satisfies ReadonlyArray<keyof RegularizationDetail>;
+
+/**
+ * Matches every paged Attendance list cache under the 'attendance' namespace
+ * (project- or employee-scoped). Used to invalidate derived status badges
+ * when a regularization's status changes.
+ */
+function isAttendanceListCache(query: {
+  queryKey: ReadonlyArray<unknown>;
+}): boolean {
+  const key = query.queryKey;
+  return (
+    Array.isArray(key) &&
+    key[0] === 'attendance' &&
+    (key[1] === 'project' || key[1] === 'employee')
+  );
+}
+
+export function useRequestRegularization() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      req,
+      requestedBy,
+    }: {
+      req: CreateRegularizationRequest;
+      requestedBy: string;
+    }) => attendanceRegularizationService.request(req, requestedBy),
+    onSuccess: (reg) => {
+      queryClient.setQueryData<RegularizationDetail>(
+        attendanceRegularizationKeys.detail(reg.id),
+        (old) => (old ? mergePreservingNested(old, reg, ENRICHED_KEYS) : reg)
+      );
+      // Parent attendance detail embeds the regularization.
+      queryClient.setQueryData<Attendance>(
+        attendanceKeys.byId(reg.attendanceId),
+        (old) => (old ? { ...old, regularization: reg } : old)
+      );
+      // Pending queue grows by one; list views show regularization badge.
+      queryClient.invalidateQueries({
+        queryKey: attendanceRegularizationKeys.pending(),
+      });
+      queryClient.invalidateQueries({ predicate: isAttendanceListCache });
+    },
+  });
+}
+
+export function useProcessRegularization() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+      approvedBy,
+      rejectionReason,
+    }: {
+      id: number;
+      status: 'APPROVED' | 'REJECTED';
+      approvedBy: string;
+      rejectionReason?: string;
+    }) =>
+      attendanceRegularizationService.process(
+        id,
+        status,
+        approvedBy,
+        rejectionReason
+      ),
+    onSuccess: (reg) => {
+      queryClient.setQueryData<RegularizationDetail>(
+        attendanceRegularizationKeys.detail(reg.id),
+        (old) => (old ? mergePreservingNested(old, reg, ENRICHED_KEYS) : reg)
+      );
+      // Pending queue shrinks once a request is processed.
+      queryClient.invalidateQueries({
+        queryKey: attendanceRegularizationKeys.pending(),
+      });
+      // Processing a regularization flips the parent attendance status
+      // (e.g. PENDING_REGULARIZATION → PRESENT). Refresh affected caches.
+      queryClient.invalidateQueries({
+        queryKey: attendanceKeys.byId(reg.attendanceId),
+      });
+      queryClient.invalidateQueries({ predicate: isAttendanceListCache });
+    },
+  });
+}
