@@ -1,7 +1,6 @@
 // types/attendance/movement-type.ts
-// Movement and activity types for tracking employee movements
-
-import { parsePositiveInt } from '@/types/parse-id';
+// MovementType enum + label/color/icon helpers.
+// The MovementRecord entity lives in ./movement.ts.
 
 export enum MovementType {
   siteTravel = 'siteTravel',
@@ -77,60 +76,4 @@ export function getMovementTypeIcon(type: MovementType): string {
     [MovementType.other]: 'MoreHorizontal',
   };
   return icons[type];
-}
-
-export interface MovementRecord {
-  id: number;
-  attendanceId: number;
-  employeeId: string;
-  employeeName: string;
-  movementType: MovementType;
-  fromLocation: string;
-  toLocation?: string;
-  startTime: Date;
-  endTime?: Date;
-  durationMinutes?: number;
-  distance?: number; // in kilometers
-  purpose: string;
-  remarks?: string;
-
-  // GPS tracking (optional)
-  startLatitude?: number;
-  startLongitude?: number;
-  endLatitude?: number;
-  endLongitude?: number;
-
-  // Verification
-  verifiedBy?: string;
-  verifiedAt?: Date;
-  isVerified: boolean;
-
-  // Attachments (photos, receipts, etc.)
-  attachments?: string[]; // URLs to attachments
-
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseMovementRecord(data: any): MovementRecord {
-  return {
-    ...data,
-    id: parsePositiveInt(data.id, 'parseMovementRecord.id'),
-    startTime: new Date(data.startTime),
-    endTime: data.endTime ? new Date(data.endTime) : undefined,
-    verifiedAt: data.verifiedAt ? new Date(data.verifiedAt) : undefined,
-    createdAt: new Date(data.createdAt),
-    updatedAt: new Date(data.updatedAt),
-  };
-}
-
-export interface DailyMovementSummary {
-  employeeId: string;
-  date: Date;
-  totalMovements: number;
-  totalTravelTime: number; // in minutes
-  totalDistance: number; // in kilometers
-  movements: MovementRecord[];
-  primaryActivity: MovementType;
 }
