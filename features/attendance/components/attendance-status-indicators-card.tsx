@@ -1,7 +1,12 @@
 'use client';
 
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/shadcn/badge';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import type { Attendance } from '@/types/attendance';
 
 interface Props {

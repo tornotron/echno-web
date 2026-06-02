@@ -1,6 +1,11 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import { Clock, Coffee } from 'lucide-react';
 import type { Attendance } from '@/types/attendance';
 

@@ -1,13 +1,18 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Checkbox } from '@/components/shadcn/checkbox';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Textarea } from '@/components/shadcn/textarea';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/shadcn/card';
 import {
   Dialog,
   DialogContent,
@@ -15,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 import { CheckCircle, XCircle, AlertTriangle, FileEdit } from 'lucide-react';
 import {
   useRequestRegularization,
