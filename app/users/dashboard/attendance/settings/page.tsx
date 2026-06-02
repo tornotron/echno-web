@@ -1,12 +1,18 @@
 'use client';
 
-import { Clock, Settings } from 'lucide-react';
-import { useAttendanceSettings } from '@/hooks/attendance/use-attendance-settings';
+import { Clock, Settings, AlertCircle, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useAttendanceRole } from '@/hooks/attendance';
+import { useAttendanceSettingsPage } from '@/hooks/attendance-settings';
 import { ShiftTimings } from '@/features/attendance/components/shift-timings';
 import { ShiftDialog } from '@/features/attendance/components/shift-dialog';
 import { AttendanceProfiles } from '@/features/attendance/components/attendance-profiles';
 import { ProfileDialog } from '@/features/attendance/components/profile-dialog';
 import { DeleteConfirmDialog } from '@/features/attendance/components/delete-confirm-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
+import { Button } from '@/components/shadcn/button';
+import { PageHeader } from '@/components/common';
+import { routes } from '@/nav';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -16,6 +22,9 @@ const tabs = [
 ] as const;
 
 export default function AttendanceSettingsPage() {
+  const router = useRouter();
+  const { canManageSettings, isLoading: roleLoading } = useAttendanceRole();
+
   const {
     activeTab,
     setActiveTab,
@@ -30,6 +39,8 @@ export default function AttendanceSettingsPage() {
     openEditShift,
     saveShift,
     duplicateShift,
+    // Projects
+    projects,
     // Profile
     profiles,
     profileDialogOpen,
@@ -46,24 +57,40 @@ export default function AttendanceSettingsPage() {
     deleteTarget,
     setDeleteTarget,
     confirmDelete,
-  } = useAttendanceSettings();
+  } = useAttendanceSettingsPage();
+
+  if (roleLoading) {
+    return null;
+  }
+
+  if (!canManageSettings) {
+    return (
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            You don&apos;t have permission to access attendance settings. This
+            feature is restricted to administrators.
+          </AlertDescription>
+        </Alert>
+        <Button
+          variant="outline"
+          onClick={() => router.push(routes.attendance.href)}
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Attendance
+        </Button>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-              Attendance Settings
-            </h1>
-            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Configure attendance rules, shift templates, and verification
-              requirements for your organization.
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="space-y-4 sm:space-y-6">
+      <PageHeader
+        title="Attendance Settings"
+        description="Configure attendance rules, shift templates, and verification requirements for your organization."
+      />
 
       {/* Tabs */}
       <div className="border-b border-zinc-200 dark:border-zinc-800">
@@ -126,6 +153,7 @@ export default function AttendanceSettingsPage() {
         setProfileForm={setProfileForm}
         saveProfile={saveProfile}
         shifts={shifts}
+        projects={projects}
       />
 
       <DeleteConfirmDialog
