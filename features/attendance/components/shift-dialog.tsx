@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Separator } from '@/components/shadcn/separator';
-import type { ShiftTiming } from '@/types/attendance';
+import type { ShiftTiming } from '@/types/shift-timing';
 
 interface ShiftDialogProps {
   open: boolean;
