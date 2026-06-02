@@ -18,8 +18,10 @@ import {
 } from '@/components/shadcn/select';
 import { Separator } from '@/components/shadcn/separator';
 import { Switch } from '@/components/shadcn/switch';
-import { getCycleLabel } from '../../../hooks/attendance/use-attendance-settings';
-import type { ShiftTiming, AttendanceProfile } from '@/types/attendance';
+import { getCycleLabel } from '@/hooks/attendance-settings';
+import type { ShiftTiming } from '@/types/shift-timing';
+import type { AttendanceProfile } from '@/types/attendance';
+import type { Project } from '@/types/project';
 
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
@@ -61,6 +63,7 @@ interface ProfileDialogProps {
   >;
   saveProfile: () => void;
   shifts: ShiftTiming[];
+  projects: Project[];
 }
 
 export function ProfileDialog({
@@ -71,6 +74,7 @@ export function ProfileDialog({
   setProfileForm,
   saveProfile,
   shifts,
+  projects,
 }: ProfileDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -104,6 +108,40 @@ export function ProfileDialog({
                   }))
                 }
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="project-select">Project</Label>
+              <Select
+                value={profileForm.projectId?.toString() ?? 'org-wide'}
+                onValueChange={(v) =>
+                  setProfileForm((f) => ({
+                    ...f,
+                    projectId: v === 'org-wide' ? undefined : Number(v),
+                    projectName:
+                      v === 'org-wide'
+                        ? undefined
+                        : projects.find((p) => p.id === Number(v))?.projectName,
+                  }))
+                }
+              >
+                <SelectTrigger id="project-select">
+                  <SelectValue placeholder="Select a project (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="org-wide">
+                    Organization-wide Default
+                  </SelectItem>
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id.toString()}>
+                      {p.projectName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Leave as &quot;Organization-wide Default&quot; to apply to all
+                projects, or pick a specific project for an override.
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="default-shift">Default Shift</Label>

@@ -25,8 +25,9 @@ import {
   RefreshCw,
   AlarmClock,
 } from 'lucide-react';
-import { getCycleLabel } from '../../../hooks/attendance/use-attendance-settings';
-import type { ShiftTiming, AttendanceProfile } from '@/types/attendance';
+import { getCycleLabel } from '@/hooks/attendance-settings';
+import type { ShiftTiming } from '@/types/shift-timing';
+import type { AttendanceProfile } from '@/types/attendance';
 
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
