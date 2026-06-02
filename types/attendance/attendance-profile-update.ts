@@ -1,6 +1,5 @@
 export interface UpdateAttendanceProfileRequest {
   settingName?: string;
-  projectId?: number;
   checkInOutCycles?: number;
   photoRequiredOnCheckIn?: boolean;
   photoRequiredOnCheckOut?: boolean;
@@ -13,16 +12,17 @@ export interface UpdateAttendanceProfileRequest {
   allowSelfRegularization?: boolean;
   regularizationApprovalRequired?: boolean;
   maxRegularizationDaysPerMonth?: number;
+  /** Frontend domain name; mapped to backend `defaultShiftTimingId`. */
   defaultShiftId?: number;
-  isActive?: boolean;
 }
 
 export function updateAttendanceProfileToJson(
   dto: UpdateAttendanceProfileRequest
 ): Record<string, unknown> {
+  // AttendanceSettingsPatchDto does not include `projectId` — a setting
+  // record stays bound to the project (or org) it was created for.
   const json: Record<string, unknown> = {};
   if (dto.settingName !== undefined) json.settingName = dto.settingName;
-  if (dto.projectId !== undefined) json.projectId = dto.projectId;
   if (dto.checkInOutCycles !== undefined)
     json.checkInOutCycles = dto.checkInOutCycles;
   if (dto.photoRequiredOnCheckIn !== undefined)
@@ -48,7 +48,6 @@ export function updateAttendanceProfileToJson(
   if (dto.maxRegularizationDaysPerMonth !== undefined)
     json.maxRegularizationDaysPerMonth = dto.maxRegularizationDaysPerMonth;
   if (dto.defaultShiftId !== undefined)
-    json.defaultShiftId = dto.defaultShiftId;
-  if (dto.isActive !== undefined) json.isActive = dto.isActive;
+    json.defaultShiftTimingId = dto.defaultShiftId;
   return json;
 }

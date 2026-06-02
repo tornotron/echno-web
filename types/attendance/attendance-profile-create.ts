@@ -1,53 +1,40 @@
 export interface CreateAttendanceProfileRequest {
   settingName: string;
   projectId?: number;
-  checkInOutCycles?: number;
-  photoRequiredOnCheckIn?: boolean;
-  photoRequiredOnCheckOut?: boolean;
-  geolocationRequired?: boolean;
-  geofenceRadiusMeters?: number;
-  movementTrackingEnabled?: boolean;
-  movementPhotoRequired?: boolean;
-  movementGeolocationRequired?: boolean;
-  autoMarkAbsentAfterHours?: number;
-  allowSelfRegularization?: boolean;
-  regularizationApprovalRequired?: boolean;
-  maxRegularizationDaysPerMonth?: number;
+  checkInOutCycles: number;
+  photoRequiredOnCheckIn: boolean;
+  photoRequiredOnCheckOut: boolean;
+  geolocationRequired: boolean;
+  geofenceRadiusMeters: number;
+  movementTrackingEnabled: boolean;
+  movementPhotoRequired: boolean;
+  movementGeolocationRequired: boolean;
+  autoMarkAbsentAfterHours: number;
+  allowSelfRegularization: boolean;
+  regularizationApprovalRequired: boolean;
+  maxRegularizationDaysPerMonth: number;
+  /** Frontend domain name; mapped to backend `defaultShiftTimingId`. */
   defaultShiftId?: number;
-  isActive?: boolean;
 }
 
 export function createAttendanceProfileToJson(
   dto: CreateAttendanceProfileRequest
 ): Record<string, unknown> {
-  const json: Record<string, unknown> = { settingName: dto.settingName };
-  if (dto.projectId !== undefined) json.projectId = dto.projectId;
-  if (dto.checkInOutCycles !== undefined)
-    json.checkInOutCycles = dto.checkInOutCycles;
-  if (dto.photoRequiredOnCheckIn !== undefined)
-    json.photoRequiredOnCheckIn = dto.photoRequiredOnCheckIn;
-  if (dto.photoRequiredOnCheckOut !== undefined)
-    json.photoRequiredOnCheckOut = dto.photoRequiredOnCheckOut;
-  if (dto.geolocationRequired !== undefined)
-    json.geolocationRequired = dto.geolocationRequired;
-  if (dto.geofenceRadiusMeters !== undefined)
-    json.geofenceRadiusMeters = dto.geofenceRadiusMeters;
-  if (dto.movementTrackingEnabled !== undefined)
-    json.movementTrackingEnabled = dto.movementTrackingEnabled;
-  if (dto.movementPhotoRequired !== undefined)
-    json.movementPhotoRequired = dto.movementPhotoRequired;
-  if (dto.movementGeolocationRequired !== undefined)
-    json.movementGeolocationRequired = dto.movementGeolocationRequired;
-  if (dto.autoMarkAbsentAfterHours !== undefined)
-    json.autoMarkAbsentAfterHours = dto.autoMarkAbsentAfterHours;
-  if (dto.allowSelfRegularization !== undefined)
-    json.allowSelfRegularization = dto.allowSelfRegularization;
-  if (dto.regularizationApprovalRequired !== undefined)
-    json.regularizationApprovalRequired = dto.regularizationApprovalRequired;
-  if (dto.maxRegularizationDaysPerMonth !== undefined)
-    json.maxRegularizationDaysPerMonth = dto.maxRegularizationDaysPerMonth;
-  if (dto.defaultShiftId !== undefined)
-    json.defaultShiftId = dto.defaultShiftId;
-  if (dto.isActive !== undefined) json.isActive = dto.isActive;
-  return json;
+  return {
+    settingName: dto.settingName,
+    projectId: dto.projectId ?? null,
+    checkInOutCycles: dto.checkInOutCycles,
+    photoRequiredOnCheckIn: dto.photoRequiredOnCheckIn,
+    photoRequiredOnCheckOut: dto.photoRequiredOnCheckOut,
+    geolocationRequired: dto.geolocationRequired,
+    geofenceRadiusMeters: dto.geofenceRadiusMeters,
+    movementTrackingEnabled: dto.movementTrackingEnabled,
+    movementPhotoRequired: dto.movementPhotoRequired,
+    movementGeolocationRequired: dto.movementGeolocationRequired,
+    autoMarkAbsentAfterHours: dto.autoMarkAbsentAfterHours,
+    allowSelfRegularization: dto.allowSelfRegularization,
+    regularizationApprovalRequired: dto.regularizationApprovalRequired,
+    maxRegularizationDaysPerMonth: dto.maxRegularizationDaysPerMonth,
+    defaultShiftTimingId: dto.defaultShiftId ?? null,
+  };
 }
