@@ -1,17 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { logger } from '@/lib/logger';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
+import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/shadcn/card';
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/shadcn/empty';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { Input } from '@/components/shadcn/input';
@@ -50,6 +50,7 @@ import {
   Calendar,
   Download,
   UserCheck,
+  UserX,
   Clock,
   Users,
   User,
@@ -76,12 +77,8 @@ import {
   HandshakeIcon,
   Wrench,
   FileText,
+  Search,
 } from 'lucide-react';
-import {
-  mockAttendance,
-  mockProjects,
-  mockEmployees,
-} from '@/components/shared/mock-data';
 import {
   AttendanceStatus,
   getAttendanceStatusLabel,
@@ -92,9 +89,57 @@ import {
 } from '@/types/attendance';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
+import {
+  useAttendanceByProject,
+  useApproveAttendance,
+  useMarkAbsent,
+  useAttendanceRole,
+  AttendanceRole,
+} from '@/hooks/attendance';
+import { useLogMovement } from '@/hooks/movement';
+import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@/hooks/employee';
+import { EmployeeDashboard } from '@/features/attendance/components/dashboard/employee-dashboard';
+import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
 
-export default function AttendancePage() {
-  const [selectedDate, setSelectedDate] = useState(new Date('2025-01-13'));
+const ATTENDANCE_DASHBOARD_PREFERENCE_KEY = 'attendance-dashboard-preference';
+
+function AttendancePage() {
+  const router = useRouter();
+  // ── Role-based view ────────────────────────────────────────────────────────
+  const { availableRoles, isLoading: roleLoading } = useAttendanceRole();
+  const [currentView, setCurrentView] = useState<AttendanceRole>(() => {
+    if (globalThis.window === undefined) return AttendanceRole.EMPLOYEE;
+    const saved = localStorage.getItem(ATTENDANCE_DASHBOARD_PREFERENCE_KEY);
+    if (
+      saved &&
+      Object.values(AttendanceRole).includes(saved as AttendanceRole)
+    ) {
+      return saved as AttendanceRole;
+    }
+    return AttendanceRole.EMPLOYEE;
+  });
+
+  const activeView =
+    !roleLoading && !availableRoles.includes(currentView)
+      ? AttendanceRole.EMPLOYEE
+      : currentView;
+
+  useEffect(() => {
+    if (!roleLoading && !availableRoles.includes(currentView)) {
+      localStorage.setItem(
+        ATTENDANCE_DASHBOARD_PREFERENCE_KEY,
+        AttendanceRole.EMPLOYEE
+      );
+    }
+  }, [availableRoles, roleLoading, currentView]);
+
+  const handleViewChange = (newView: AttendanceRole) => {
+    setCurrentView(newView);
+    localStorage.setItem(ATTENDANCE_DASHBOARD_PREFERENCE_KEY, newView);
+  };
+  // ── End role-based view ────────────────────────────────────────────────────
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
@@ -113,6 +158,12 @@ export default function AttendancePage() {
 
   // Movement tracking dialog state
   const [movementDialogOpen, setMovementDialogOpen] = useState(false);
+  const [movementAttendanceId, setMovementAttendanceId] = useState<
+    number | null
+  >(null);
+  const [movementEmployeeId, setMovementEmployeeId] = useState<number | null>(
+    null
+  );
 
   // Manual attendance dialog state
   const [manualAttendanceDialogOpen, setManualAttendanceDialogOpen] =
@@ -121,9 +172,7 @@ export default function AttendancePage() {
     employeeId: '',
     date: format(selectedDate, 'yyyy-MM-dd'),
     projectId: '',
-    status: AttendanceStatus.present,
-    clockInTime: '09:00',
-    clockOutTime: '18:00',
+    status: AttendanceStatus.absent,
     remarks: '',
   });
 
@@ -137,52 +186,62 @@ export default function AttendancePage() {
     distanceKm: 0,
   });
 
-  // Get attendance for selected date
-  const dateAttendance = mockAttendance.filter(
-    (att) => att.date.toDateString() === selectedDate.toDateString()
-  );
+  // ── Server data ──────────────────────────────────────────────────────────
+  const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
+  const approveMutation = useApproveAttendance();
+  const logMovementMutation = useLogMovement();
+  const markAbsentMutation = useMarkAbsent();
 
-  // Apply filters
-  const filteredAttendance = dateAttendance.filter((att) => {
-    const matchesSearch =
-      att.employeeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      att.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || att.status === statusFilter;
-    const matchesProject =
-      projectFilter === 'all' || att.projectId.toString() === projectFilter;
-    return matchesSearch && matchesStatus && matchesProject;
-  });
+  const apiParams =
+    projectFilter === 'all'
+      ? null
+      : {
+          projectId: Number(projectFilter),
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          status:
+            statusFilter === 'all'
+              ? undefined
+              : (statusFilter as AttendanceStatus),
+          search: searchQuery || undefined,
+          page: currentPage - 1, // backend is 0-based
+          size: itemsPerPage,
+        };
 
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredAttendance.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedAttendance = filteredAttendance.slice(startIndex, endIndex);
+  const { data: pagedResult, isLoading: attendanceLoading } =
+    useAttendanceByProject(apiParams);
 
-  // Calculate statistics
+  const paginatedAttendance = pagedResult?.content ?? [];
+  const totalPages = pagedResult?.totalPages ?? 0;
+
+  // Statistics from current page (accurate when a project is selected)
   const stats = {
-    total: dateAttendance.length,
-    present: dateAttendance.filter(
+    total: pagedResult?.totalElements ?? 0,
+    present: paginatedAttendance.filter(
       (a) =>
         a.status === AttendanceStatus.present ||
         a.status === AttendanceStatus.overtime
     ).length,
-    absent: dateAttendance.filter((a) => a.status === AttendanceStatus.absent)
+    absent: paginatedAttendance.filter(
+      (a) => a.status === AttendanceStatus.absent
+    ).length,
+    late: paginatedAttendance.filter((a) => a.status === AttendanceStatus.late)
       .length,
-    late: dateAttendance.filter((a) => a.status === AttendanceStatus.late)
-      .length,
-    halfDay: dateAttendance.filter((a) => a.status === AttendanceStatus.halfDay)
-      .length,
-    pending: dateAttendance.filter(
+    halfDay: paginatedAttendance.filter(
+      (a) => a.status === AttendanceStatus.halfDay
+    ).length,
+    pending: paginatedAttendance.filter(
       (a) => a.status === AttendanceStatus.pendingRegularization
     ).length,
     avgWorkHours:
-      dateAttendance.reduce((sum, a) => sum + (a.workDuration?.hours || 0), 0) /
-        dateAttendance.length || 0,
+      paginatedAttendance.reduce(
+        (sum, a) => sum + (a.workDuration?.hours || 0),
+        0
+      ) / (paginatedAttendance.length || 1),
   };
 
   const attendanceRate =
-    dateAttendance.length > 0
+    stats.total > 0
       ? ((stats.present + stats.late + stats.halfDay * 0.5) / stats.total) * 100
       : 0;
 
@@ -205,15 +264,29 @@ export default function AttendancePage() {
 
   // Approval/Rejection handlers
   const handleApprove = (ids: number[]) => {
-    // TODO: Implement API call to approve attendance
-    logger.debug(`Approving attendance: ${ids}`);
-    setSelectedAttendance([]);
+    Promise.all(
+      ids.map((id) =>
+        approveMutation.mutateAsync({ id, approvalStatus: 'APPROVED' })
+      )
+    )
+      .then(() => {
+        toast.success(`Approved ${ids.length} record(s)`);
+        setSelectedAttendance([]);
+      })
+      .catch(() => toast.error('Failed to approve some records'));
   };
 
   const handleReject = (ids: number[]) => {
-    // TODO: Implement API call to reject attendance
-    logger.debug(`Rejecting attendance: ${ids}`);
-    setSelectedAttendance([]);
+    Promise.all(
+      ids.map((id) =>
+        approveMutation.mutateAsync({ id, approvalStatus: 'REJECTED' })
+      )
+    )
+      .then(() => {
+        toast.success(`Rejected ${ids.length} record(s)`);
+        setSelectedAttendance([]);
+      })
+      .catch(() => toast.error('Failed to reject some records'));
   };
 
   const handleManualAttendance = () => {
@@ -225,22 +298,27 @@ export default function AttendancePage() {
       toast.error('Please select a project');
       return;
     }
-
-    // TODO: API call to create manual attendance
-    logger.debug('Creating manual attendance:', manualAttendanceData);
-    toast.success('Attendance marked successfully');
-
-    // Reset form and close dialog
-    setManualAttendanceData({
-      employeeId: '',
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      projectId: '',
-      status: AttendanceStatus.present,
-      clockInTime: '09:00',
-      clockOutTime: '18:00',
-      remarks: '',
-    });
-    setManualAttendanceDialogOpen(false);
+    markAbsentMutation.mutate(
+      {
+        employeeId: Number(manualAttendanceData.employeeId),
+        projectId: Number(manualAttendanceData.projectId),
+        date: manualAttendanceData.date,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Attendance marked as absent');
+          setManualAttendanceData({
+            employeeId: '',
+            date: format(selectedDate, 'yyyy-MM-dd'),
+            projectId: '',
+            status: AttendanceStatus.absent,
+            remarks: '',
+          });
+          setManualAttendanceDialogOpen(false);
+        },
+        onError: () => toast.error('Failed to mark attendance'),
+      }
+    );
   };
 
   const isAllSelected =
@@ -250,260 +328,185 @@ export default function AttendancePage() {
     selectedAttendance.length > 0 &&
     selectedAttendance.length < paginatedAttendance.length;
 
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">
-            Attendance Management
-          </h1>
-          <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-            Track employee attendance with geo-location and photo verification
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {selectedAttendance.length > 0 && (
+  // Employee view — return early so we don't call attendance-management hooks unnecessarily
+  if (activeView === AttendanceRole.EMPLOYEE) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <PageHeader
+          title="Attendance"
+          description="Your personal attendance overview"
+          actions={
             <>
               <Button
-                variant="outline"
-                className="border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-                onClick={() => handleApprove(selectedAttendance)}
+                onClick={() => router.push('/users/dashboard/attendance/mark')}
               >
-                <Check className="mr-2 h-4 w-4" />
-                Approve ({selectedAttendance.length})
+                <UserCheck className="mr-2 h-4 w-4" />
+                Mark Attendance
               </Button>
-              <Button
-                variant="outline"
-                className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                onClick={() => handleReject(selectedAttendance)}
-              >
-                <X className="mr-2 h-4 w-4" />
-                Reject ({selectedAttendance.length})
-              </Button>
+              {availableRoles.length > 1 && (
+                <AttendanceDashboardSwitcher
+                  currentRole={activeView}
+                  availableRoles={availableRoles}
+                  onRoleChange={handleViewChange}
+                />
+              )}
             </>
-          )}
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => setManualAttendanceDialogOpen(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Mark Attendance
-          </Button>
-          <Button>
-            <Calendar className="mr-2 h-4 w-4" />
-            View Calendar
-          </Button>
-        </div>
+          }
+        />
+        <EmployeeDashboard />
       </div>
+    );
+  }
 
-      {/* Statistics Cards */}
-      <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4">
-        <Card>
-          <CardContent className="pt-6">
+  return (
+    <div className="space-y-4 sm:space-y-6">
+      <PageHeader
+        title="Attendance Management"
+        description="Track employee attendance with geo-location and photo verification"
+        actions={
+          <>
+            <Button
+              onClick={() => router.push('/users/dashboard/attendance/mark')}
+            >
+              <UserCheck className="mr-2 h-4 w-4" />
+              Mark Attendance
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setManualAttendanceDialogOpen(true)}
+            >
+              <UserX className="mr-2 h-4 w-4" />
+              Mark Absent
+            </Button>
+            {availableRoles.length > 1 && (
+              <AttendanceDashboardSwitcher
+                currentRole={activeView}
+                availableRoles={availableRoles}
+                onRoleChange={handleViewChange}
+              />
+            )}
+          </>
+        }
+      />
+
+      {/* Statistics */}
+      <Card className="gap-0 p-6">
+        <div className="sm:divide-border grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+          <div className="flex flex-col gap-1 sm:pr-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Total Employees
+            </p>
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Total Employees
-                </p>
-                <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {stats.total}
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30">
-                <Users className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                {stats.total}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
+                <Users className="size-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Present Today
-                </p>
-                <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
-                  {stats.present}
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                  {attendanceRate.toFixed(1)}% rate
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                <UserCheck className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Late / Absent
-                </p>
-                <p className="mt-1 text-2xl font-bold text-orange-600 dark:text-orange-400">
-                  {stats.late + stats.absent}
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                  {stats.late} late, {stats.absent} absent
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
-                <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  Avg Work Hours
-                </p>
-                <p className="mt-1 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {stats.avgWorkHours.toFixed(1)}h
-                </p>
-                <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
-                  {stats.pending} pending approval
-                </p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 dark:bg-purple-900/30">
-                <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Daily Attendance</CardTitle>
-              <CardDescription>
-                {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-              </CardDescription>
-            </div>
-            <Input
-              type="date"
-              value={format(selectedDate, 'yyyy-MM-dd')}
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
-              className="w-48"
-            />
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              with records today
+            </p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <SearchAndFilter
-            variant="inline"
-            searchValue={searchQuery}
-            onSearchChange={(value) => {
-              setSearchQuery(value);
-              setCurrentPage(1);
-            }}
-            searchPlaceholder="Search by name or employee ID..."
-            hasActiveFilters={hasActiveFilters}
-            onClearFilters={clearFilters}
-            filters={[
-              {
-                placeholder: 'Status',
-                options: [
-                  { value: 'all', label: 'All Status' },
-                  { value: AttendanceStatus.present, label: 'Present' },
-                  { value: AttendanceStatus.absent, label: 'Absent' },
-                  { value: AttendanceStatus.late, label: 'Late' },
-                  { value: AttendanceStatus.halfDay, label: 'Half Day' },
-                  { value: AttendanceStatus.overtime, label: 'Overtime' },
-                  {
-                    value: AttendanceStatus.pendingRegularization,
-                    label: 'Pending',
-                  },
-                ],
-                value: statusFilter,
-                onChange: (value) => {
-                  setStatusFilter(value);
-                  setCurrentPage(1);
-                },
-              },
-              {
-                placeholder: 'Project',
-                options: [
-                  { value: 'all', label: 'All Projects' },
-                  ...mockProjects.map((project) => ({
-                    value: project.id.toString(),
-                    label: project.projectName,
-                  })),
-                ],
-                value: projectFilter,
-                onChange: (value) => {
-                  setProjectFilter(value);
-                  setCurrentPage(1);
-                },
-              },
-            ]}
-          />
-        </CardContent>
+          <div className="flex flex-col gap-1 sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Present Today
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {stats.present}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                <UserCheck className="size-4 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              {attendanceRate.toFixed(1)}% attendance rate
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 sm:px-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Late / Absent
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
+                {stats.late + stats.absent}
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                <AlertCircle className="size-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              {stats.late} late, {stats.absent} absent
+            </p>
+          </div>
+          <div className="flex flex-col gap-1 sm:pl-6">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Avg Work Hours
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                {stats.avgWorkHours.toFixed(1)}h
+              </p>
+              <div className="flex size-8 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-950/30">
+                <Clock className="size-4 text-purple-600 dark:text-purple-400" />
+              </div>
+            </div>
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              {stats.pending} pending approval
+            </p>
+          </div>
+        </div>
       </Card>
 
-      {/* Results Summary */}
-      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Showing {startIndex + 1} to{' '}
-          {Math.min(endIndex, filteredAttendance.length)} of{' '}
-          {filteredAttendance.length} attendance records
-        </p>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-zinc-600 dark:text-zinc-400">
-            Rows per page:
-          </span>
-          <Select
-            value={itemsPerPage.toString()}
-            onValueChange={(value) => {
-              setItemsPerPage(Number(value));
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="w-[70px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5</SelectItem>
-              <SelectItem value="10">10</SelectItem>
-              <SelectItem value="20">20</SelectItem>
-              <SelectItem value="50">50</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Bulk Action Bar — visible only when rows are selected */}
+      {selectedAttendance.length > 0 && (
+        <div className="mb-4 flex flex-col gap-3 rounded-lg border border-blue-200 bg-blue-50 p-3 sm:flex-row sm:items-center sm:justify-between dark:border-blue-900/40 dark:bg-blue-900/20">
+          <p className="text-sm font-medium text-blue-900 dark:text-blue-100">
+            {selectedAttendance.length} record(s) selected
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setSelectedAttendance([])}
+              disabled={approveMutation.isPending}
+            >
+              Clear
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+              onClick={() => handleReject(selectedAttendance)}
+              disabled={approveMutation.isPending}
+            >
+              <X className="mr-2 h-4 w-4" />
+              Reject Selected
+            </Button>
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700"
+              onClick={() => handleApprove(selectedAttendance)}
+              disabled={approveMutation.isPending}
+            >
+              <Check className="mr-2 h-4 w-4" />
+              Approve Selected
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Mobile Card View */}
-      <div className="space-y-3 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 lg:hidden">
-        {paginatedAttendance.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center">
-              <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-              <p className="text-zinc-600 dark:text-zinc-400">
-                No attendance records found
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
+      <div className="space-y-3 lg:hidden">
+        {projectFilter !== 'all' &&
+          paginatedAttendance.length > 0 &&
           paginatedAttendance.map((attendance) => (
             <Card
               key={attendance.id}
-              className="cursor-pointer"
+              className="cursor-pointer transition-shadow hover:shadow-md"
               onClick={() =>
-                (globalThis.location.href = `/dashboard/attendance/${attendance.id}`)
+                (globalThis.location.href = `/users/dashboard/attendance/${attendance.id}`)
               }
             >
               <CardContent className="p-4">
@@ -565,9 +568,8 @@ export default function AttendancePage() {
                 </div>
               </CardContent>
             </Card>
-          ))
-        )}
-        {filteredAttendance.length > 0 && (
+          ))}
+        {projectFilter !== 'all' && paginatedAttendance.length > 0 && (
           <Pagination
             currentPage={currentPage}
             totalPages={totalPages}
@@ -576,8 +578,99 @@ export default function AttendancePage() {
         )}
       </div>
 
-      {/* Attendance Table */}
+      {/* Desktop table */}
       <Card className="hidden lg:block">
+        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+          <div className="relative w-full max-w-xs">
+            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder="Search by name or employee ID…"
+              className="h-8 pl-8 text-sm"
+            />
+          </div>
+
+          <Select
+            value={statusFilter}
+            onValueChange={(value) => {
+              setStatusFilter(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-[130px] text-xs">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value={AttendanceStatus.present}>Present</SelectItem>
+              <SelectItem value={AttendanceStatus.absent}>Absent</SelectItem>
+              <SelectItem value={AttendanceStatus.late}>Late</SelectItem>
+              <SelectItem value={AttendanceStatus.halfDay}>Half Day</SelectItem>
+              <SelectItem value={AttendanceStatus.overtime}>
+                Overtime
+              </SelectItem>
+              <SelectItem value={AttendanceStatus.pendingRegularization}>
+                Pending
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={projectFilter}
+            onValueChange={(value) => {
+              setProjectFilter(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-[150px] text-xs">
+              <SelectValue placeholder="All Projects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Projects</SelectItem>
+              {projects.map((project) => (
+                <SelectItem key={project.id} value={project.id.toString()}>
+                  {project.projectName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Input
+            type="date"
+            value={format(selectedDate, 'yyyy-MM-dd')}
+            onChange={(e) => setSelectedDate(new Date(e.target.value))}
+            className="h-8 w-[150px] text-xs"
+          />
+
+          <div className="ml-auto flex items-center gap-2 border-l pl-3">
+            <span className="text-xs whitespace-nowrap text-zinc-500">
+              Rows per page
+            </span>
+            <Select
+              value={itemsPerPage.toString()}
+              onValueChange={(v) => {
+                setItemsPerPage(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-[60px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[5, 10, 20, 50, 100].map((n) => (
+                  <SelectItem key={n} value={String(n)}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+
         <CardContent className="p-0">
           <Table>
             <TableHeader>
@@ -603,13 +696,47 @@ export default function AttendancePage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAttendance.length === 0 ? (
+              {projectFilter === 'all' ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="py-12 text-center">
-                    <AlertCircle className="mx-auto mb-4 h-12 w-12 text-zinc-400" />
-                    <p className="text-zinc-600 dark:text-zinc-400">
-                      No attendance records found
-                    </p>
+                  <TableCell colSpan={9}>
+                    <Empty variant="inline">
+                      <EmptyMedia variant="icon">
+                        <AlertCircle className="size-6" />
+                      </EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>Select a project</EmptyTitle>
+                        <EmptyDescription>
+                          Pick a project from the filter above to view its
+                          attendance
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
+                  </TableCell>
+                </TableRow>
+              ) : attendanceLoading ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="py-12 text-center text-zinc-600 dark:text-zinc-400"
+                  >
+                    Loading attendance…
+                  </TableCell>
+                </TableRow>
+              ) : // eslint-disable-next-line unicorn/no-nested-ternary
+              paginatedAttendance.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9}>
+                    <Empty variant="inline">
+                      <EmptyMedia variant="icon">
+                        <AlertCircle className="size-6" />
+                      </EmptyMedia>
+                      <EmptyHeader>
+                        <EmptyTitle>No attendance records</EmptyTitle>
+                        <EmptyDescription>
+                          Try changing the date or clearing filters
+                        </EmptyDescription>
+                      </EmptyHeader>
+                    </Empty>
                   </TableCell>
                 </TableRow>
               ) : (
@@ -623,7 +750,7 @@ export default function AttendancePage() {
                       if (target.closest('button') || target.closest('a')) {
                         return;
                       }
-                      globalThis.location.href = `/dashboard/attendance/${attendance.id}`;
+                      globalThis.location.href = `/users/dashboard/attendance/${attendance.id}`;
                     }}
                   >
                     <TableCell onClick={(e) => e.stopPropagation()}>
@@ -633,20 +760,28 @@ export default function AttendancePage() {
                         aria-label={`Select ${attendance.employeeName}`}
                       />
                     </TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-3">
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        className="group flex items-center space-x-3 text-left"
+                        onClick={() =>
+                          router.push(
+                            `/users/dashboard/attendance/history?tab=team&search=${encodeURIComponent(attendance.employeeName)}`
+                          )
+                        }
+                      >
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
                           <User className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                          <p className="font-medium text-zinc-900 group-hover:text-blue-600 group-hover:underline dark:text-zinc-100 dark:group-hover:text-blue-400">
                             {attendance.employeeName}
                           </p>
                           <p className="text-sm text-zinc-500 dark:text-zinc-500">
                             {attendance.employeeId}
                           </p>
                         </div>
-                      </div>
+                      </button>
                     </TableCell>
                     <TableCell>
                       <span className="text-zinc-700 dark:text-zinc-300">
@@ -727,8 +862,7 @@ export default function AttendancePage() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-1">
                         <TooltipProvider>
-                          {attendance.status ===
-                            AttendanceStatus.pendingRegularization && (
+                          {attendance.approvalStatus === 'pending' && (
                             <>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -771,7 +905,10 @@ export default function AttendancePage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => {
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setMovementAttendanceId(attendance.id);
+                                  setMovementEmployeeId(attendance.employeeId);
                                   setMovementDialogOpen(true);
                                 }}
                                 className="relative h-8 w-8 p-0 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/20"
@@ -802,20 +939,35 @@ export default function AttendancePage() {
               )}
             </TableBody>
           </Table>
+        </CardContent>
 
-          {/* Pagination Controls */}
-          {filteredAttendance.length > 0 && (
+        {paginatedAttendance.length > 0 && (
+          <div className="flex items-center justify-between border-t px-4 py-2">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400">
+              Showing {(currentPage - 1) * itemsPerPage + 1}–
+              {Math.min(currentPage * itemsPerPage, stats.total)} of{' '}
+              {stats.total}
+            </span>
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={setCurrentPage}
             />
-          )}
-        </CardContent>
+          </div>
+        )}
       </Card>
 
       {/* Movement Tracking Dialog */}
-      <Dialog open={movementDialogOpen} onOpenChange={setMovementDialogOpen}>
+      <Dialog
+        open={movementDialogOpen}
+        onOpenChange={(open) => {
+          setMovementDialogOpen(open);
+          if (!open) {
+            setMovementAttendanceId(null);
+            setMovementEmployeeId(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
@@ -1011,27 +1163,51 @@ export default function AttendancePage() {
             </Button>
             <Button
               onClick={() => {
-                // TODO: Implement save movement logic
-                toast.success('Movement Recorded', {
-                  description: `${getMovementTypeLabel(newMovement.type)} movement has been recorded successfully.`,
-                });
-                setMovementDialogOpen(false);
-                setNewMovement({
-                  type: MovementType.siteTravel,
-                  fromLocation: '',
-                  toLocation: '',
-                  startTime: '',
-                  endTime: '',
-                  purpose: '',
-                  distanceKm: 0,
-                });
+                if (!movementAttendanceId || !movementEmployeeId) return;
+                const datePrefix = format(selectedDate, 'yyyy-MM-dd');
+                logMovementMutation.mutate(
+                  {
+                    req: {
+                      attendanceId: movementAttendanceId,
+                      movementType: newMovement.type,
+                      fromLocation: newMovement.fromLocation,
+                      toLocation: newMovement.toLocation || undefined,
+                      startTime: new Date(
+                        `${datePrefix}T${newMovement.startTime}`
+                      ),
+                      endTime: newMovement.endTime
+                        ? new Date(`${datePrefix}T${newMovement.endTime}`)
+                        : undefined,
+                      purpose: newMovement.purpose,
+                      distanceKm: newMovement.distanceKm || undefined,
+                    },
+                    employeeId: movementEmployeeId,
+                  },
+                  {
+                    onSuccess: () => {
+                      toast.success('Movement Recorded', {
+                        description: `${getMovementTypeLabel(newMovement.type)} movement has been recorded successfully.`,
+                      });
+                      setMovementDialogOpen(false);
+                      setNewMovement({
+                        type: MovementType.siteTravel,
+                        fromLocation: '',
+                        toLocation: '',
+                        startTime: '',
+                        endTime: '',
+                        purpose: '',
+                        distanceKm: 0,
+                      });
+                    },
+                    onError: () => toast.error('Failed to record movement'),
+                  }
+                );
               }}
               disabled={
                 !newMovement.fromLocation ||
-                !newMovement.toLocation ||
                 !newMovement.startTime ||
-                !newMovement.endTime ||
-                !newMovement.purpose
+                !newMovement.purpose ||
+                logMovementMutation.isPending
               }
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -1048,9 +1224,9 @@ export default function AttendancePage() {
       >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Mark Attendance Manually</DialogTitle>
+            <DialogTitle>Mark Absent</DialogTitle>
             <DialogDescription>
-              Manually mark attendance for an employee
+              Mark an employee as absent for a specific date and project
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
@@ -1070,7 +1246,7 @@ export default function AttendancePage() {
                   <SelectValue placeholder="Select employee" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockEmployees.map((employee) => (
+                  {employees.map((employee) => (
                     <SelectItem
                       key={employee.employeeId}
                       value={employee.employeeId}
@@ -1113,7 +1289,7 @@ export default function AttendancePage() {
                     <SelectValue placeholder="Select project" />
                   </SelectTrigger>
                   <SelectContent>
-                    {mockProjects.map((project) => (
+                    {projects.map((project) => (
                       <SelectItem
                         key={project.id}
                         value={project.id.toString()}
@@ -1125,96 +1301,6 @@ export default function AttendancePage() {
                 </Select>
               </div>
             </div>
-
-            {/* Status */}
-            <div className="space-y-2">
-              <Label htmlFor="status">Status *</Label>
-              <Select
-                value={manualAttendanceData.status}
-                onValueChange={(value) =>
-                  setManualAttendanceData((prev) => ({
-                    ...prev,
-                    status: value as AttendanceStatus,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={AttendanceStatus.present}>
-                    {getAttendanceStatusLabel(AttendanceStatus.present)}
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.absent}>
-                    {getAttendanceStatusLabel(AttendanceStatus.absent)}
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.late}>
-                    {getAttendanceStatusLabel(AttendanceStatus.late)}
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.halfDay}>
-                    {getAttendanceStatusLabel(AttendanceStatus.halfDay)}
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.overtime}>
-                    {getAttendanceStatusLabel(AttendanceStatus.overtime)}
-                  </SelectItem>
-                  <SelectItem value={AttendanceStatus.leave}>
-                    {getAttendanceStatusLabel(AttendanceStatus.leave)}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Clock In/Out Times (only for non-absent status) */}
-            {manualAttendanceData.status !== AttendanceStatus.absent &&
-              manualAttendanceData.status !== AttendanceStatus.leave && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="clockInTime">Clock In Time</Label>
-                    <Input
-                      id="clockInTime"
-                      type="time"
-                      value={manualAttendanceData.clockInTime}
-                      onChange={(e) =>
-                        setManualAttendanceData((prev) => ({
-                          ...prev,
-                          clockInTime: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="clockOutTime">Clock Out Time</Label>
-                    <Input
-                      id="clockOutTime"
-                      type="time"
-                      value={manualAttendanceData.clockOutTime}
-                      onChange={(e) =>
-                        setManualAttendanceData((prev) => ({
-                          ...prev,
-                          clockOutTime: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                </div>
-              )}
-
-            {/* Remarks */}
-            <div className="space-y-2">
-              <Label htmlFor="remarks">Remarks</Label>
-              <Textarea
-                id="remarks"
-                placeholder="Add any additional notes..."
-                value={manualAttendanceData.remarks}
-                onChange={(e) =>
-                  setManualAttendanceData((prev) => ({
-                    ...prev,
-                    remarks: e.target.value,
-                  }))
-                }
-                rows={3}
-              />
-            </div>
           </div>
           <DialogFooter>
             <Button
@@ -1223,9 +1309,12 @@ export default function AttendancePage() {
             >
               Cancel
             </Button>
-            <Button onClick={handleManualAttendance}>
+            <Button
+              onClick={handleManualAttendance}
+              disabled={markAbsentMutation.isPending}
+            >
               <Check className="mr-2 h-4 w-4" />
-              Mark Attendance
+              Mark Absent
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1233,3 +1322,5 @@ export default function AttendancePage() {
     </div>
   );
 }
+
+export default AttendancePage;
