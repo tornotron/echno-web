@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { logger } from '@/lib/logger';
+import { useState } from 'react';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -30,134 +29,86 @@ import { Badge } from '@/components/shadcn/badge';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
-import { Clock, UserCheck, UserX, Calendar } from 'lucide-react';
+import { UserCheck, UserX, Users } from 'lucide-react';
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
-interface Employee {
-  id: string;
-  name: string;
-  employeeId: string;
-  designation: string;
-  currentStatus?: 'present' | 'absent' | 'not-marked';
-  clockInTime?: string;
-  clockOutTime?: string;
-}
-
-interface Project {
-  id: string;
-  name: string;
-  code: string;
-}
+import {
+  useProjects,
+  useEmployeesByProject,
+} from '@/hooks/project/use-projects';
+import {
+  useAttendanceByProject,
+  useCheckIn,
+  useRecordClockEvent,
+} from '@/hooks/attendance';
+import { ClockEventType } from '@/types/attendance/clock-event';
+import { format } from 'date-fns';
 
 export function MarkAttendanceForm() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
-  const [employees, setEmployees] = useState<Employee[]>([]);
-  const [selectedEmployees, setSelectedEmployees] = useState<Set<string>>(
+  const [selectedEmployees, setSelectedEmployees] = useState<Set<number>>(
     new Set()
   );
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(false);
   const [clockInTime, setClockInTime] = useState<string>('09:00');
   const [clockOutTime, setClockOutTime] = useState<string>('18:00');
   const [remarks, setRemarks] = useState<string>('');
 
-  // Load projects on mount
-  useEffect(() => {
-    fetchProjects();
-  }, []);
+  const { data: projects = [], isLoading: projectsLoading } = useProjects();
 
-  // Load employees when project changes
-  useEffect(() => {
-    if (selectedProject) {
-      fetchEmployeesByProject(selectedProject);
-    }
-  }, [selectedProject, selectedDate]);
+  // All members assigned to the selected project — drives the table rows so
+  // managers can mark attendance for any team member, not only those with an
+  // existing record.
+  const { data: members = [], isLoading: membersLoading } =
+    useEmployeesByProject(
+      selectedProject ? Number(selectedProject) : undefined
+    );
 
-  const fetchProjects = async () => {
-    try {
-      setLoading(true);
-      // TODO: Replace with actual API call
-      const mockProjects: Project[] = [
-        { id: '1', name: 'Construction Site Alpha', code: 'CSA-001' },
-        { id: '2', name: 'Building Project Beta', code: 'BPB-002' },
-        { id: '3', name: 'Infrastructure Development', code: 'IFD-003' },
-      ];
-      setProjects(mockProjects);
-    } catch (error) {
-      logger.error('Failed to fetch projects', { error });
-      toast.error('Failed to load projects');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Today's attendance records for the same project — used to look up each
+  // member's current clock status.
+  const { data: pagedResult, isLoading: attendanceLoading } =
+    useAttendanceByProject(
+      selectedProject
+        ? {
+            projectId: Number(selectedProject),
+            date: selectedDate,
+            size: 200,
+          }
+        : null
+    );
 
-  const fetchEmployeesByProject = async (projectId: string) => {
-    try {
-      setLoading(true);
-      // TODO: Replace with actual API call
-      const mockEmployees: Employee[] = [
-        {
-          id: '1',
-          name: 'John Doe',
-          employeeId: 'EMP-001',
-          designation: 'Site Engineer',
-          currentStatus: 'not-marked',
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          employeeId: 'EMP-002',
-          designation: 'Supervisor',
-          currentStatus: 'not-marked',
-        },
-        {
-          id: '3',
-          name: 'Mike Johnson',
-          employeeId: 'EMP-003',
-          designation: 'Technician',
-          currentStatus: 'present',
-          clockInTime: '08:30',
-          clockOutTime: '17:30',
-        },
-        {
-          id: '4',
-          name: 'Sarah Williams',
-          employeeId: 'EMP-004',
-          designation: 'Labor',
-          currentStatus: 'not-marked',
-        },
-        {
-          id: '5',
-          name: 'Robert Brown',
-          employeeId: 'EMP-005',
-          designation: 'Foreman',
-          currentStatus: 'absent',
-        },
-      ];
-      setEmployees(mockEmployees);
-      setSelectedEmployees(new Set());
-    } catch (error) {
-      logger.error('Failed to fetch employees', { error });
-      toast.error('Failed to load employees');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const checkInMutation = useCheckIn();
+  const clockEventMutation = useRecordClockEvent();
+
+  const loading =
+    projectsLoading ||
+    membersLoading ||
+    attendanceLoading ||
+    checkInMutation.isPending ||
+    clockEventMutation.isPending;
+
+  // Map attendance records by employeeId for status lookup.
+  const attendanceByEmployee = new Map(
+    (pagedResult?.content ?? []).map((a) => [a.employeeId, a])
+  );
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIds = employees
-        .filter((emp) => emp.currentStatus !== 'present')
-        .map((emp) => emp.id);
-      setSelectedEmployees(new Set(allIds));
+      setSelectedEmployees(new Set(members.map((m) => m.id)));
     } else {
       setSelectedEmployees(new Set());
     }
   };
 
-  const handleSelectEmployee = (employeeId: string, checked: boolean) => {
+  const handleSelectEmployee = (employeeId: number, checked: boolean) => {
     const newSelected = new Set(selectedEmployees);
     if (checked) {
       newSelected.add(employeeId);
@@ -173,35 +124,38 @@ export function MarkAttendanceForm() {
       return;
     }
 
-    try {
-      setLoading(true);
-      // TODO: Replace with actual API call
-      logger.info('Marking clock-in for employees', {
-        employees: [...selectedEmployees],
-        project: selectedProject,
-        date: selectedDate,
-        time: clockInTime,
+    const [hours, minutes] = clockInTime.split(':').map(Number);
+    const eventTimestamp = new Date(`${selectedDate}T${clockInTime}:00`);
+    eventTimestamp.setHours(hours, minutes, 0, 0);
+
+    const promises = [...selectedEmployees].map((empId) => {
+      const existing = attendanceByEmployee.get(empId);
+      if (existing?.morningClockIn) return Promise.resolve(); // already clocked in
+      if (existing) {
+        // Attendance record exists but no clock-in yet — add the event
+        return clockEventMutation.mutateAsync({
+          attendanceId: existing.id,
+          eventType: ClockEventType.morningClockIn,
+          eventTimestamp,
+          remarks,
+        });
+      }
+      // No record yet — use check-in endpoint
+      return checkInMutation.mutateAsync({
+        employeeId: empId,
+        projectId: Number(selectedProject),
+        shiftTimingId: 1, // default shift; ideally resolved from settings
+        eventTimestamp,
         remarks,
       });
+    });
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast.success(
-        `Clock-in marked for ${selectedEmployees.size} employee(s)`
-      );
-
-      // Refresh employee list
-      if (selectedProject) {
-        await fetchEmployeesByProject(selectedProject);
-      }
+    Promise.allSettled(promises).then((results) => {
+      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      toast.success(`Clock-in marked for ${succeeded} employee(s)`);
+      setSelectedEmployees(new Set());
       setRemarks('');
-    } catch (error) {
-      logger.error('Failed to mark clock-in', { error });
-      toast.error('Failed to mark clock-in');
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const handleMarkClockOut = async () => {
@@ -210,41 +164,43 @@ export function MarkAttendanceForm() {
       return;
     }
 
-    try {
-      setLoading(true);
-      // TODO: Replace with actual API call
-      logger.info('Marking clock-out for employees', {
-        employees: [...selectedEmployees],
-        project: selectedProject,
-        date: selectedDate,
-        time: clockOutTime,
-        remarks,
-      });
+    const eventTimestamp = new Date(`${selectedDate}T${clockOutTime}:00`);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+    const promises = [...selectedEmployees]
+      .map((empId) => {
+        const existing = attendanceByEmployee.get(empId);
+        if (!existing || existing.eveningClockOut) return null; // no record or already clocked out
+        return clockEventMutation.mutateAsync({
+          attendanceId: existing.id,
+          eventType: ClockEventType.eveningClockOut,
+          eventTimestamp,
+          remarks,
+        });
+      })
+      .filter(Boolean);
 
-      toast.success(
-        `Clock-out marked for ${selectedEmployees.size} employee(s)`
+    if (promises.length === 0) {
+      toast.error(
+        'No eligible employees to clock out (must be clocked in first)'
       );
-
-      // Refresh employee list
-      if (selectedProject) {
-        await fetchEmployeesByProject(selectedProject);
-      }
-      setRemarks('');
-    } catch (error) {
-      logger.error('Failed to mark clock-out', { error });
-      toast.error('Failed to mark clock-out');
-    } finally {
-      setLoading(false);
+      return;
     }
+
+    Promise.allSettled(promises).then((results) => {
+      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
+      toast.success(`Clock-out marked for ${succeeded} employee(s)`);
+      setSelectedEmployees(new Set());
+      setRemarks('');
+    });
   };
 
   const getStatusBadge = (status?: string) => {
     switch (status) {
       case 'present': {
-        return <Badge className="bg-green-500">Present</Badge>;
+        return <Badge className="bg-green-500">Clocked Out</Badge>;
+      }
+      case 'clocked-in': {
+        return <Badge className="bg-blue-500">Clocked In</Badge>;
       }
       case 'absent': {
         return <Badge variant="destructive">Absent</Badge>;
@@ -279,8 +235,8 @@ export function MarkAttendanceForm() {
                 </SelectTrigger>
                 <SelectContent>
                   {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name} ({project.code})
+                    <SelectItem key={project.id} value={project.id.toString()}>
+                      {project.projectName}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -301,13 +257,14 @@ export function MarkAttendanceForm() {
         </CardContent>
       </Card>
 
-      {/* Employee List */}
+      {/* Project members table */}
       {selectedProject && (
         <Card>
           <CardHeader>
-            <CardTitle>Employees</CardTitle>
+            <CardTitle>Project Members</CardTitle>
             <CardDescription>
-              Select employees to mark attendance
+              Select team members to mark attendance for{' '}
+              {format(new Date(selectedDate), 'MMMM d, yyyy')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -318,19 +275,11 @@ export function MarkAttendanceForm() {
                     <TableHead className="w-12">
                       <Checkbox
                         checked={
-                          employees.length > 0 &&
-                          selectedEmployees.size ===
-                            employees.filter(
-                              (emp) => emp.currentStatus !== 'present'
-                            ).length
+                          members.length > 0 &&
+                          selectedEmployees.size === members.length
                         }
                         onCheckedChange={handleSelectAll}
-                        disabled={
-                          loading ||
-                          employees.filter(
-                            (emp) => emp.currentStatus !== 'present'
-                          ).length === 0
-                        }
+                        disabled={loading || members.length === 0}
                       />
                     </TableHead>
                     <TableHead>Employee ID</TableHead>
@@ -342,42 +291,79 @@ export function MarkAttendanceForm() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {employees.length === 0 ? (
+                  {loading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center">
-                        {loading
-                          ? 'Loading employees...'
-                          : 'No employees found for this project'}
+                      <TableCell
+                        colSpan={7}
+                        className="py-12 text-center text-zinc-500"
+                      >
+                        Loading…
+                      </TableCell>
+                    </TableRow>
+                  ) : members.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7}>
+                        <Empty variant="inline">
+                          <EmptyMedia variant="icon">
+                            <Users className="size-6" />
+                          </EmptyMedia>
+                          <EmptyHeader>
+                            <EmptyTitle>No members in this project</EmptyTitle>
+                            <EmptyDescription>
+                              Assign employees to the project to mark their
+                              attendance from here.
+                            </EmptyDescription>
+                          </EmptyHeader>
+                        </Empty>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    employees.map((employee) => {
-                      const isDisabled =
-                        loading || employee.currentStatus === 'present';
+                    members.map((member) => {
+                      const record = attendanceByEmployee.get(member.id);
+                      const clockedIn = !!record?.morningClockIn;
+                      const clockedOut = !!record?.eveningClockOut;
+                      const currentStatus = clockedOut
+                        ? 'present'
+                        : clockedIn
+                          ? 'clocked-in'
+                          : 'not-marked';
                       return (
-                        <TableRow key={employee.id}>
+                        <TableRow key={member.id}>
                           <TableCell>
                             <Checkbox
-                              checked={selectedEmployees.has(employee.id)}
+                              checked={selectedEmployees.has(member.id)}
                               onCheckedChange={(checked) =>
                                 handleSelectEmployee(
-                                  employee.id,
+                                  member.id,
                                   checked as boolean
                                 )
                               }
-                              disabled={isDisabled}
+                              disabled={loading}
                             />
                           </TableCell>
                           <TableCell className="font-medium">
-                            {employee.employeeId}
+                            {member.employeeId}
                           </TableCell>
-                          <TableCell>{employee.name}</TableCell>
-                          <TableCell>{employee.designation}</TableCell>
+                          <TableCell>{member.name}</TableCell>
                           <TableCell>
-                            {getStatusBadge(employee.currentStatus)}
+                            <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                              {member.designation || '—'}
+                            </span>
                           </TableCell>
-                          <TableCell>{employee.clockInTime || '-'}</TableCell>
-                          <TableCell>{employee.clockOutTime || '-'}</TableCell>
+                          <TableCell>{getStatusBadge(currentStatus)}</TableCell>
+                          <TableCell>
+                            {record?.morningClockIn
+                              ? format(record.morningClockIn.timestamp, 'HH:mm')
+                              : '-'}
+                          </TableCell>
+                          <TableCell>
+                            {record?.eveningClockOut
+                              ? format(
+                                  record.eveningClockOut.timestamp,
+                                  'HH:mm'
+                                )
+                              : '-'}
+                          </TableCell>
                         </TableRow>
                       );
                     })
@@ -390,7 +376,7 @@ export function MarkAttendanceForm() {
       )}
 
       {/* Attendance Actions */}
-      {selectedProject && employees.length > 0 && (
+      {selectedProject && members.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Mark Attendance</CardTitle>
