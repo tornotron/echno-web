@@ -133,7 +133,7 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
                   key={b.id}
                   className="flex items-start justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-700"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">
                         {b.bankName ?? 'Unknown Bank'}
@@ -222,7 +222,7 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
                 placeholder="Acme Supplies Pvt Ltd"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>Account Number</Label>
               <Input
                 value={form.accountNumber ?? ''}
@@ -235,7 +235,7 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
                 placeholder="9876543210"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>IFSC Code</Label>
               <Input
                 value={form.ifscCode ?? ''}
