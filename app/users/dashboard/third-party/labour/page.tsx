@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { useLabour } from '@/hooks/labour';
 import { LabourTable } from '@/features/labour';
+import { LabourStatus } from '@/types/labour';
 
 export default function LabourPage() {
   const { data: labour = [], isLoading, isError } = useLabour();
@@ -35,20 +36,22 @@ export default function LabourPage() {
   const uniqueProjects = [
     ...new Set(
       labour
-        .map((l) => l.currentProject)
+        .map((l) => l.currentProjectName)
         .filter((p): p is string => p !== undefined && p !== null)
     ),
   ].toSorted();
 
   const filteredLabour = labour.filter((l) => {
     const matchesSearch =
-      l.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.labourId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.trade.toLowerCase().includes(searchQuery.toLowerCase());
+      (l.fullName ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (l.labourId ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (l.specialization ?? '')
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || l.status === statusFilter;
-    const matchesType = typeFilter === 'all' || l.type === typeFilter;
+    const matchesType = typeFilter === 'all' || l.employmentType === typeFilter;
     const matchesProject =
-      projectFilter === 'all' || l.currentProject === projectFilter;
+      projectFilter === 'all' || l.currentProjectName === projectFilter;
     return matchesSearch && matchesStatus && matchesType && matchesProject;
   });
 
@@ -62,9 +65,9 @@ export default function LabourPage() {
 
   const stats = {
     total: labour.length,
-    active: labour.filter((l) => l.status === 'active').length,
+    active: labour.filter((l) => l.status === LabourStatus.ACTIVE).length,
     totalDue: labour.reduce((sum, l) => sum + (l.totalDue ?? 0), 0),
-    onLeave: labour.filter((l) => l.status === 'onLeave').length,
+    onLeave: labour.filter((l) => l.status === LabourStatus.ON_LEAVE).length,
   };
 
   return (
