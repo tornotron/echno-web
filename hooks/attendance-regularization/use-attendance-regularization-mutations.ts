@@ -59,6 +59,10 @@ export function useRequestRegularization() {
       requestedBy: string;
     }) => attendanceRegularizationService.request(req, requestedBy),
     onSuccess: (reg) => {
+      // POST /attendance-regularizations/web/request → AttendanceRegularizationDto
+      // (Rule B — base DTO; RegularizationDetail's enriched fields
+      // employeeId/employeeName/attendanceDate/projectId/projectName may
+      // be absent on a freshly created entity).
       queryClient.setQueryData<RegularizationDetail>(
         attendanceRegularizationKeys.detail(reg.id),
         (old) => (old ? mergePreservingNested(old, reg, ENRICHED_KEYS) : reg)
@@ -98,6 +102,8 @@ export function useProcessRegularization() {
         rejectionReason
       ),
     onSuccess: (reg) => {
+      // POST /attendance-regularizations/web/{id}/process → AttendanceRegularizationDto
+      // (Rule B — base DTO, merge to preserve enriched fields).
       queryClient.setQueryData<RegularizationDetail>(
         attendanceRegularizationKeys.detail(reg.id),
         (old) => (old ? mergePreservingNested(old, reg, ENRICHED_KEYS) : reg)
@@ -112,6 +118,19 @@ export function useProcessRegularization() {
         queryKey: attendanceKeys.byId(reg.attendanceId),
       });
       queryClient.invalidateQueries({ predicate: isAttendanceListCache });
+      // Cross-key: the underlying attendance's status change shifts monthly
+      // summary counters (presentDays vs the pending bucket). Look up the
+      // affected employee from the cached attendance detail when available;
+      // otherwise fall back to the enriched employeeId on the regularization.
+      const cachedAttendance = queryClient.getQueryData<Attendance>(
+        attendanceKeys.byId(reg.attendanceId)
+      );
+      const employeeId = cachedAttendance?.employeeId ?? reg.employeeId;
+      if (employeeId !== undefined) {
+        queryClient.invalidateQueries({
+          queryKey: [...attendanceKeys.all, 'summary', employeeId],
+        });
+      }
     },
   });
 }

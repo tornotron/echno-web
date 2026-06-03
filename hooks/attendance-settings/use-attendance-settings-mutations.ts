@@ -21,6 +21,7 @@ export function useCreateAttendanceProfile() {
   return useMutation({
     mutationFn: attendanceSettingsService.createProfile,
     onSuccess: (profile) => {
+      // POST /attendance-settings/web → AttendanceSettingsDto (Rule A, full).
       queryClient.setQueryData<AttendanceProfile[]>(
         attendanceSettingsKeys.profiles(),
         (old) => (old ? [...old, profile] : undefined)
@@ -53,6 +54,7 @@ export function useUpdateAttendanceProfile() {
       dto: Parameters<typeof attendanceSettingsService.updateProfile>[1];
     }) => attendanceSettingsService.updateProfile(id, dto),
     onSuccess: (profile) => {
+      // PATCH /attendance-settings/web/{id} → AttendanceSettingsDto (Rule A, full).
       queryClient.setQueryData<AttendanceProfile[]>(
         attendanceSettingsKeys.profiles(),
         (old) => old?.map((p) => (p.id === profile.id ? profile : p))
@@ -76,6 +78,7 @@ export function useDeleteAttendanceProfile() {
   return useMutation({
     mutationFn: (id: number) => attendanceSettingsService.deleteProfile(id),
     onSuccess: (_void, id) => {
+      // DELETE /attendance-settings/web/{id} → no body (Rule C, void).
       const removed = queryClient
         .getQueryData<AttendanceProfile[]>(attendanceSettingsKeys.profiles())
         ?.find((p) => p.id === id);
