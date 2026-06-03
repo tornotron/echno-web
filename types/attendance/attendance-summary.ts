@@ -59,7 +59,6 @@ export function calculateMonthlySalary(
     return summary;
   }
   const baseSalary = summary.baseSalary;
-  const dailySalary = baseSalary / summary.totalWorkingDays;
 
   // Effective work days with weighted credit per category.
   let effectiveWorkDays = 0;
@@ -70,6 +69,21 @@ export function calculateMonthlySalary(
   effectiveWorkDays += summary.holidays;
   effectiveWorkDays += summary.lateDays * 0.9; // 10% deduction for late
 
+  // Guard against zero working days (off-cycle / mid-month enrollment / data
+  // glitches). Without this, the ratio derivations below would yield NaN /
+  // Infinity which silently propagates through payroll.
+  if (summary.totalWorkingDays <= 0) {
+    return {
+      ...summary,
+      effectiveWorkDays,
+      attendanceDeductions: 0,
+      overtimePay: 0,
+      netSalary: baseSalary,
+      attendancePercentage: 0,
+    };
+  }
+
+  const dailySalary = baseSalary / summary.totalWorkingDays;
   const attendanceDeductions =
     (summary.totalWorkingDays - effectiveWorkDays) * dailySalary;
 

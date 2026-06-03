@@ -55,7 +55,22 @@ export function calculateWorkDuration(attendance: Attendance): WorkDuration {
     );
   }
 
-  const totalMinutes = morningSession + afternoonSession;
+  // Single-cycle days (no lunch break) and partial-cycle days (only one of
+  // the two lunch events recorded) leave morning+afternoon at 0. Fall back to
+  // the full clock-in → clock-out span when both bookends exist so we don't
+  // report 0h for an employee who worked the whole day.
+  let totalMinutes = morningSession + afternoonSession;
+  if (
+    totalMinutes === 0 &&
+    attendance.morningClockIn &&
+    attendance.eveningClockOut
+  ) {
+    totalMinutes = Math.floor(
+      (attendance.eveningClockOut.timestamp.getTime() -
+        attendance.morningClockIn.timestamp.getTime()) /
+        (1000 * 60)
+    );
+  }
   const totalHours = totalMinutes / 60;
 
   if (totalHours > attendance.shiftTiming.overtimeThreshold) {
