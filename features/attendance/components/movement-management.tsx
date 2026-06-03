@@ -38,6 +38,7 @@ import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 import { useAttendanceRole } from '@/hooks/attendance';
 import { useMovementsByAttendance, useVerifyMovement } from '@/hooks/movement';
+import { useCurrentUserEmployee } from '@/hooks/employee';
 import {
   getMovementTypeLabel,
   getMovementTypeColor,
@@ -65,6 +66,8 @@ export function MovementManagement({
   geolocationRequired = false,
 }: MovementManagementProps) {
   const { canApprove } = useAttendanceRole();
+  const { data: currentEmployee } = useCurrentUserEmployee();
+  const verifierId = currentEmployee?.name ?? currentEmployee?.employeeId ?? '';
   const { data: movements = [], isLoading } =
     useMovementsByAttendance(attendanceId);
   const verifyMutation = useVerifyMovement();
@@ -72,8 +75,12 @@ export function MovementManagement({
   const [logFormOpen, setLogFormOpen] = useState(false);
 
   function handleVerify(movement: MovementRecord) {
+    if (!verifierId) {
+      toast.error('Your employee profile is still loading. Please try again.');
+      return;
+    }
     verifyMutation.mutate(
-      { id: movement.id, verifiedBy: 'current-user' },
+      { id: movement.id, verifiedBy: verifierId },
       {
         onSuccess: () => toast.success('Movement verified'),
         onError: () => toast.error('Failed to verify movement'),

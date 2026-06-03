@@ -262,31 +262,50 @@ function AttendancePage() {
     }
   };
 
-  // Approval/Rejection handlers
+  // Approval/Rejection handlers.
+  //
+  // Use Promise.allSettled so one bad record doesn't abort the rest, then
+  // surface granular toasts. Selection retains only the failed ids so the
+  // user can retry / inspect without losing context on which records broke.
+  const runBulk = async (
+    ids: number[],
+    approvalStatus: 'APPROVED' | 'REJECTED'
+  ) => {
+    const results = await Promise.allSettled(
+      ids.map((id) => approveMutation.mutateAsync({ id, approvalStatus }))
+    );
+    const failedIds: number[] = [];
+    for (const [i, r] of results.entries()) {
+      if (r.status === 'rejected') failedIds.push(ids[i]);
+    }
+    const succeeded = ids.length - failedIds.length;
+    const verb = approvalStatus === 'APPROVED' ? 'Approved' : 'Rejected';
+
+    if (succeeded > 0 && failedIds.length === 0) {
+      toast.success(`${verb} ${succeeded} record(s)`);
+    } else if (succeeded > 0 && failedIds.length > 0) {
+      toast.error(
+        `${verb} ${succeeded} of ${ids.length} — ${failedIds.length} failed`,
+        { description: `Failed ids: ${failedIds.join(', ')}` }
+      );
+    } else {
+      toast.error(
+        `Failed to ${verb.toLowerCase()} ${failedIds.length} record(s)`
+      );
+    }
+
+    // Drop only successful ids from selection; failed ones stay selected so
+    // the user can retry without re-picking them.
+    const failedSet = new Set(failedIds);
+    setSelectedAttendance((prev) => prev.filter((id) => failedSet.has(id)));
+  };
+
   const handleApprove = (ids: number[]) => {
-    Promise.all(
-      ids.map((id) =>
-        approveMutation.mutateAsync({ id, approvalStatus: 'APPROVED' })
-      )
-    )
-      .then(() => {
-        toast.success(`Approved ${ids.length} record(s)`);
-        setSelectedAttendance([]);
-      })
-      .catch(() => toast.error('Failed to approve some records'));
+    void runBulk(ids, 'APPROVED');
   };
 
   const handleReject = (ids: number[]) => {
-    Promise.all(
-      ids.map((id) =>
-        approveMutation.mutateAsync({ id, approvalStatus: 'REJECTED' })
-      )
-    )
-      .then(() => {
-        toast.success(`Rejected ${ids.length} record(s)`);
-        setSelectedAttendance([]);
-      })
-      .catch(() => toast.error('Failed to reject some records'));
+    void runBulk(ids, 'REJECTED');
   };
 
   const handleManualAttendance = () => {
