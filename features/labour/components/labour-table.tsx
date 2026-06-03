@@ -32,7 +32,7 @@ import {
 } from '@/components/shadcn/empty';
 import { HardHat, Loader2, Search } from 'lucide-react';
 import { routes } from '@/nav';
-import type { Labour } from '@/types/third-party/labour';
+import type { Labour } from '@/types/labour';
 import { LabourRow } from './labour-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
@@ -125,10 +125,10 @@ export function LabourTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="onLeave">On Leave</SelectItem>
-            <SelectItem value="terminated">Terminated</SelectItem>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="INACTIVE">Inactive</SelectItem>
+            <SelectItem value="ON_LEAVE">On Leave</SelectItem>
+            <SelectItem value="TERMINATED">Terminated</SelectItem>
           </SelectContent>
         </Select>
         <Select value={typeFilter} onValueChange={onTypeChange}>
@@ -137,10 +137,10 @@ export function LabourTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="daily">Daily Wage</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="contract">Contract</SelectItem>
-            <SelectItem value="piece">Piece Rate</SelectItem>
+            <SelectItem value="DAILY_WAGE">Daily Wage</SelectItem>
+            <SelectItem value="MONTHLY">Monthly</SelectItem>
+            <SelectItem value="CONTRACT">Contract</SelectItem>
+            <SelectItem value="PIECE_RATE">Piece Rate</SelectItem>
           </SelectContent>
         </Select>
         <Select value={projectFilter} onValueChange={onProjectChange}>
