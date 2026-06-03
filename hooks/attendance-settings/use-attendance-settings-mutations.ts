@@ -25,9 +25,14 @@ export function useCreateAttendanceProfile() {
         attendanceSettingsKeys.profiles(),
         (old) => (old ? [...old, profile] : undefined)
       );
-      // Cross-key: a new project-scoped profile changes what
-      // `/attendance-settings/web/project/{projectId}` returns; invalidate
-      // the matching per-project settings cache.
+      // Cross-key: a new org-level profile is the resolved org default; a new
+      // project-scoped profile may also shadow the org default for the project
+      // resolver (the API falls back from project → org). Invalidate the
+      // org-level cache unconditionally and the per-project cache when the
+      // profile is project-scoped, mirroring useUpdate/useDelete.
+      queryClient.invalidateQueries({
+        queryKey: attendanceSettingsKeys.orgSettings(),
+      });
       if (profile.projectId !== undefined) {
         queryClient.invalidateQueries({
           queryKey: attendanceSettingsKeys.projectSettings(profile.projectId),
