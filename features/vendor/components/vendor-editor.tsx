@@ -116,7 +116,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="name">
                   Company Name <span className="text-red-500">*</span>
                 </Label>
@@ -134,7 +134,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   <p className="text-sm text-red-500">{errors.name}</p>
                 )}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <Label htmlFor="email">
                   Email <span className="text-red-500">*</span>
                 </Label>
@@ -153,7 +153,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   <p className="text-sm text-red-500">{errors.email}</p>
                 )}
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="website">Website</Label>
                 <Input
                   id="website"
@@ -173,7 +173,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   rows={2}
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="city">City</Label>
                 <Input
                   id="city"
@@ -182,7 +182,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   placeholder="Mumbai"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="state">State</Label>
                 <Input
                   id="state"
@@ -191,7 +191,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   placeholder="Maharashtra"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="pincode">Pin Code</Label>
                 <Input
                   id="pincode"
@@ -200,7 +200,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   placeholder="400001"
                 />
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="country">Country</Label>
                 <Input
                   id="country"
@@ -221,7 +221,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
+              <div className="space-y-2">
                 <Label>Vendor Type</Label>
                 <Select
                   value={form.type ?? ''}
@@ -244,7 +244,7 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
                   </SelectContent>
                 </Select>
               </div>
-              <div>
+              <div className="space-y-2">
                 <Label>Status</Label>
                 <Select
                   value={form.status ?? VendorStatus.ACTIVE}
