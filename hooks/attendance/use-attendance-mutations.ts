@@ -110,7 +110,11 @@ export function useCheckIn() {
         attendanceKeys.byId(attendance.id),
         attendance
       );
-      patchAttendanceInLists(queryClient, attendance);
+      // Check-in CREATES a new attendance row; patchAttendanceInLists only
+      // updates existing entries via .map, so a brand-new record wouldn't
+      // surface in cached lists. Invalidate the list caches instead so they
+      // refetch and include the new row.
+      queryClient.invalidateQueries({ predicate: isAttendanceListCache });
       // Cross-key: monthly summary aggregates counts; invalidate the matching
       // summary cache so percentages reflect the new check-in.
       queryClient.invalidateQueries({
