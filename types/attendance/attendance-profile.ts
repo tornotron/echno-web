@@ -32,6 +32,7 @@ export interface AttendanceProfile {
 export function parseAttendanceProfile(data: any): AttendanceProfile {
   return {
     id: parsePositiveInt(data.id, 'parseAttendanceProfile.id'),
+    organizationId: data.organizationId ?? undefined,
     settingName: data.settingName,
     projectId: data.projectId ?? undefined,
     projectName: data.projectName ?? undefined,
