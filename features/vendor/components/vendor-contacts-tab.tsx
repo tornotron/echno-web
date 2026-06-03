@@ -132,7 +132,7 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                   key={c.id}
                   className="flex items-start justify-between rounded-lg border border-zinc-200 p-4 dark:border-zinc-700"
                 >
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <div className="flex items-center gap-2">
                       <p className="font-medium">
                         {c.contactPerson ?? 'Unnamed'}
@@ -214,7 +214,7 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                 placeholder="Rajesh Kumar"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>Email</Label>
               <Input
                 type="email"
@@ -225,7 +225,7 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                 placeholder="rajesh@example.com"
               />
             </div>
-            <div>
+            <div className="space-y-2">
               <Label>Phone</Label>
               <PhoneInput
                 value={form.phone ?? ''}

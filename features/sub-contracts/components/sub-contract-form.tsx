@@ -209,7 +209,7 @@ export function SubContractForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="contractId">Contract ID *</Label>
                     <Input
                       id="contractId"
@@ -220,7 +220,7 @@ export function SubContractForm({
                       placeholder="SUB-001"
                     />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label htmlFor="contractorName">Contractor Name *</Label>
                     <Input
                       id="contractorName"
@@ -237,7 +237,7 @@ export function SubContractForm({
                       </p>
                     )}
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label htmlFor="contactPerson">Contact Person *</Label>
                     <Input
                       id="contactPerson"
@@ -254,7 +254,7 @@ export function SubContractForm({
                       </p>
                     )}
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label htmlFor="phone">Phone *</Label>
                     <PhoneInput
                       id="phone"
@@ -267,7 +267,7 @@ export function SubContractForm({
                       <p className="text-sm text-red-500">{errors.phone}</p>
                     )}
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Label htmlFor="email">Email *</Label>
                     <Input
                       id="email"
@@ -283,7 +283,7 @@ export function SubContractForm({
                       <p className="text-sm text-red-500">{errors.email}</p>
                     )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="workType">Work Type</Label>
                     <Select
                       value={formData.status}
@@ -307,7 +307,7 @@ export function SubContractForm({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="address">Address</Label>
                     <Textarea
                       id="address"
@@ -333,7 +333,7 @@ export function SubContractForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="status">Status *</Label>
                     <Select
                       value={formData.status}
@@ -352,7 +352,7 @@ export function SubContractForm({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="paymentTerms">Payment Terms *</Label>
                     <Select
                       value={formData.paymentTerms}
@@ -375,7 +375,7 @@ export function SubContractForm({
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="startDate">Start Date *</Label>
                     <Input
                       id="startDate"
@@ -386,7 +386,7 @@ export function SubContractForm({
                       }
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="endDate">End Date *</Label>
                     <Input
                       id="endDate"
@@ -397,7 +397,7 @@ export function SubContractForm({
                       }
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="completionPercentage">
                       Completion Percentage
                     </Label>
@@ -415,7 +415,7 @@ export function SubContractForm({
                       }
                     />
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="scope">Scope of Work *</Label>
                     <Textarea
                       id="scope"
@@ -441,7 +441,7 @@ export function SubContractForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="contractValue">Contract Value (₹) *</Label>
                     <Input
                       id="contractValue"
@@ -456,7 +456,7 @@ export function SubContractForm({
                       placeholder="2500000"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="totalPaid">Paid Amount (₹)</Label>
                     <Input
                       id="totalPaid"
@@ -471,7 +471,7 @@ export function SubContractForm({
                       placeholder="0"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="totalDue">Outstanding Amount (₹)</Label>
                     <Input
                       id="totalDue"
@@ -481,7 +481,7 @@ export function SubContractForm({
                       placeholder="Auto-calculated"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="accountNumber">Bank Account Number</Label>
                     <Input
                       id="accountNumber"
@@ -492,7 +492,7 @@ export function SubContractForm({
                       placeholder="1234567890"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="bankName">Bank Name</Label>
                     <Input
                       id="bankName"
@@ -503,7 +503,7 @@ export function SubContractForm({
                       placeholder="ICICI Bank"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="ifscCode">IFSC Code</Label>
                     <Input
                       id="ifscCode"
@@ -566,7 +566,7 @@ export function SubContractForm({
                         </Button>
                       </div>
                       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <div className="md:col-span-2">
+                        <div className="space-y-2 md:col-span-2">
                           <Label htmlFor={`milestone-name-${index}`}>
                             Milestone Name
                           </Label>
@@ -583,7 +583,7 @@ export function SubContractForm({
                             placeholder="Foundation Work"
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label htmlFor={`milestone-percentage-${index}`}>
                             Percentage (%)
                           </Label>
@@ -602,7 +602,7 @@ export function SubContractForm({
                             }
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label htmlFor={`milestone-amount-${index}`}>
                             Amount (₹)
                           </Label>
@@ -619,7 +619,7 @@ export function SubContractForm({
                             }
                           />
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label htmlFor={`milestone-status-${index}`}>
                             Status
                           </Label>
@@ -643,7 +643,7 @@ export function SubContractForm({
                             </SelectContent>
                           </Select>
                         </div>
-                        <div>
+                        <div className="space-y-2">
                           <Label htmlFor={`milestone-date-${index}`}>
                             Due Date
                           </Label>
@@ -679,7 +679,7 @@ export function SubContractForm({
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="gstNumber">GST Number</Label>
                   <Input
                     id="gstNumber"
@@ -690,7 +690,7 @@ export function SubContractForm({
                     placeholder="09AABCU9603R1ZX"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="panNumber">PAN Number</Label>
                   <Input
                     id="panNumber"
