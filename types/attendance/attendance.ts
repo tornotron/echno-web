@@ -105,13 +105,20 @@ export function determineAttendanceStatus(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function parseAttendance(data: any): Attendance {
+  // `Attendance.shiftTiming` is non-optional and downstream helpers
+  // (determineAttendanceStatus, calculateWorkDuration) dereference it
+  // unconditionally. Fail loudly here rather than silently producing an
+  // object that throws on first access elsewhere.
+  if (!data.shiftTiming) {
+    throw new Error(
+      'parseAttendance: required field `shiftTiming` is missing on the response'
+    );
+  }
   return {
     ...data,
     id: parsePositiveInt(data.id, 'parseAttendance.id'),
     date: new Date(data.date),
-    shiftTiming: data.shiftTiming
-      ? parseShiftTiming(data.shiftTiming)
-      : data.shiftTiming,
+    shiftTiming: parseShiftTiming(data.shiftTiming),
     morningClockIn: data.morningClockIn
       ? parseClockEvent(data.morningClockIn)
       : undefined,
