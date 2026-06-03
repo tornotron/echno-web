@@ -2,7 +2,7 @@ import { Payment, PayeeType } from '@/types/finance/payment';
 import type { Employee } from '@/types/employee/employee';
 import type { Vendor } from '@/types/vendor/vendor';
 import type { SubContract } from '@/types/third-party/sub-contract';
-import type { Labour } from '@/types/third-party/labour';
+import type { Labour } from '@/types/labour';
 
 export interface PayeeInfo {
   type: PayeeType;
@@ -32,8 +32,8 @@ export function getPayeeInfo(
     if (labour) {
       return {
         type: PayeeType.labour,
-        name: labour.name,
-        details: `${labour.trade} - ${labour.labourId}`,
+        name: labour.fullName ?? '',
+        details: `${labour.specialization ?? ''} - ${labour.labourId ?? ''}`,
       };
     }
   }
@@ -148,8 +148,8 @@ export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
     case PayeeType.labour: {
       return datasets.labour.map((l) => ({
         id: l.id,
-        name: l.name,
-        label: `${l.name} - ${l.trade}`,
+        name: l.fullName ?? '',
+        label: `${l.fullName ?? ''} - ${l.specialization ?? ''}`,
       }));
     }
 
