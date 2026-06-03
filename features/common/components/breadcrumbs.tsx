@@ -48,13 +48,12 @@ import { Material } from '@/types/materials';
 import { Indent } from '@/types/indents';
 import { StorageLocation } from '@/types/storage-locations/storage-location';
 import { PurchaseOrder } from '@/types/purchase-orders';
+import { Labour } from '@/types/labour';
+import { SiteTransfer } from '@/types/site-transfers';
 import {
   mockInspections,
-  mockLabour,
   mockAssets,
   mockBudgets,
-  mockLocations,
-  mockTransfers,
   mockStockAdjustments,
   mockGoodsReceipts,
   mockReceipts,
@@ -72,20 +71,11 @@ const mockFallbackResolver: FallbackNameResolver = (
     case 'inspections': {
       return mockInspections.find((i) => i.id === numericId)?.title;
     }
-    case 'labour': {
-      return mockLabour.find((l) => l.id === numericId)?.name;
-    }
     case 'assets': {
       return mockAssets.find((a) => a.id === numericId)?.name;
     }
     case 'budgets': {
       return mockBudgets.find((b: Budget) => b.id === numericId)?.budgetNumber;
-    }
-    case 'locations': {
-      return mockLocations.find((l) => l.id === numericId)?.name;
-    }
-    case 'transfers': {
-      return mockTransfers.find((t) => t.id === numericId)?.transferNumber;
     }
     case 'stock-adjustments': {
       return mockStockAdjustments.find((s) => s.id === numericId)
@@ -125,6 +115,8 @@ interface BreadcrumbsProps {
   indent?: Indent;
   storageLocation?: StorageLocation;
   purchaseOrder?: PurchaseOrder;
+  labour?: Labour;
+  siteTransfer?: SiteTransfer;
 }
 
 function getChatRoomName(room: ChatRoom): string {
@@ -153,6 +145,8 @@ export function Breadcrumbs({
   indent,
   storageLocation,
   purchaseOrder,
+  labour,
+  siteTransfer,
 }: BreadcrumbsProps) {
   const chatRoomName = chatRoom ? getChatRoomName(chatRoom) : undefined;
   const pathname = usePathname();
@@ -211,7 +205,9 @@ export function Breadcrumbs({
             material,
             indent,
             storageLocation,
-            purchaseOrder
+            purchaseOrder,
+            labour,
+            siteTransfer
           )
         : (breadcrumbNameMap[segment] ??
           segment.charAt(0).toUpperCase() + segment.slice(1));
