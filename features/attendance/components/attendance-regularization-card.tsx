@@ -89,6 +89,10 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
   }
 
   function handleSubmitRequest() {
+    if (!currentUserIdentifier) {
+      toast.error('Your employee profile is still loading. Please try again.');
+      return;
+    }
     if (!regReason.trim()) {
       toast.error('Please provide a reason');
       return;
@@ -126,6 +130,10 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
 
   function handleApproveRegularization() {
     if (!attendance.regularization) return;
+    if (!currentUserIdentifier) {
+      toast.error('Your employee profile is still loading. Please try again.');
+      return;
+    }
     processMutation.mutate(
       {
         id: attendance.regularization.id,
@@ -141,6 +149,10 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
 
   function handleRejectRegularization() {
     if (!attendance.regularization) return;
+    if (!currentUserIdentifier) {
+      toast.error('Your employee profile is still loading. Please try again.');
+      return;
+    }
     processMutation.mutate(
       {
         id: attendance.regularization.id,
@@ -200,7 +212,9 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                       setRejectReason('');
                       setRejectDialogOpen(true);
                     }}
-                    disabled={processMutation.isPending}
+                    disabled={
+                      processMutation.isPending || !currentUserIdentifier
+                    }
                   >
                     <XCircle className="mr-1 h-3.5 w-3.5" />
                     Reject
@@ -209,7 +223,9 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                     size="sm"
                     className="bg-green-600 text-white hover:bg-green-700"
                     onClick={handleApproveRegularization}
-                    disabled={processMutation.isPending}
+                    disabled={
+                      processMutation.isPending || !currentUserIdentifier
+                    }
                   >
                     <CheckCircle className="mr-1 h-3.5 w-3.5" />
                     Approve
@@ -374,7 +390,7 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
             </Button>
             <Button
               onClick={handleSubmitRequest}
-              disabled={requestMutation.isPending}
+              disabled={requestMutation.isPending || !currentUserIdentifier}
             >
               Submit Request
             </Button>
@@ -412,7 +428,7 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
             <Button
               variant="destructive"
               onClick={handleRejectRegularization}
-              disabled={processMutation.isPending}
+              disabled={processMutation.isPending || !currentUserIdentifier}
             >
               Confirm Reject
             </Button>
