@@ -22,11 +22,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { Save } from 'lucide-react';
+import { Separator } from '@/components/shadcn/separator';
+import { Loader2, Save } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
-import type { Labour } from '@/types/third-party/labour';
+import type { Labour } from '@/types/labour';
+import { EmploymentType, SkillLevel, LabourStatus } from '@/types/labour';
+import { useCreateLabour, useUpdateLabour } from '@/hooks/labour';
+import { useProjects } from '@/hooks/project';
 
 export interface LabourEditFormProps {
   initialData?: Labour;
@@ -35,27 +39,36 @@ export interface LabourEditFormProps {
 
 export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
   const router = useRouter();
+  const createLabour = useCreateLabour();
+  const updateLabour = useUpdateLabour();
+  const { data: projects = [] } = useProjects();
+  const isPending = createLabour.isPending || updateLabour.isPending;
+
   const [formData, setFormData] = useState(() => ({
     labourId: initialData?.labourId ?? '',
-    name: initialData?.name ?? '',
-    phone: initialData?.phone ?? '',
+    fullName: initialData?.fullName ?? '',
+    phoneNumber: initialData?.phoneNumber ?? '',
     email: initialData?.email ?? '',
     address: initialData?.address ?? '',
-    trade: initialData?.trade ?? '',
-    type: initialData?.type ?? 'daily',
-    skillLevel: initialData?.skillLevel ?? 'skilled',
-    status: initialData?.status ?? 'active',
+    specialization: initialData?.specialization ?? '',
+    employmentType: initialData?.employmentType ?? EmploymentType.DAILY_WAGE,
+    skillLevel: initialData?.skillLevel ?? SkillLevel.SKILLED,
+    status: initialData?.status ?? LabourStatus.ACTIVE,
     dailyRate: initialData?.dailyRate?.toString() ?? '',
     monthlyRate: initialData?.monthlyRate?.toString() ?? '',
-    overtimeRate: initialData?.overtimeRate?.toString() ?? '',
-    currentProject: initialData?.currentProject ?? '',
+    overTimeRate: initialData?.overTimeRate?.toString() ?? '',
     joiningDate: initialData?.joiningDate
-      ? format(initialData.joiningDate, 'yyyy-MM-dd')
+      ? format(new Date(initialData.joiningDate), 'yyyy-MM-dd')
       : '',
     contractorName: initialData?.contractorName ?? '',
     contractorPhone: initialData?.contractorPhone ?? '',
     emergencyContactName: initialData?.emergencyContactName ?? '',
-    emergencyContactPhone: initialData?.emergencyContactPhone ?? '',
+    emergencyContactPhone: initialData?.emergencyContactNumber ?? '',
+    currentProjectId: initialData?.currentProjectId?.toString() ?? '',
+    bankAccountNumber: initialData?.bankAccountNumber ?? '',
+    bankName: initialData?.bankName ?? '',
+    ifscCode: initialData?.ifscCode ?? '',
+    additionalNotes: initialData?.additionalNotes ?? '',
   }));
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,19 +85,61 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    if (!formData.name.trim()) newErrors.name = 'Full name is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData.trade.trim())
-      newErrors.trade = 'Trade/Specialization is required';
+    if (!formData.fullName.trim()) newErrors.fullName = 'Full name is required';
+    if (!formData.phoneNumber.trim())
+      newErrors.phoneNumber = 'Phone number is required';
+    if (!formData.specialization.trim())
+      newErrors.specialization = 'Trade/Specialization is required';
+    if (!formData.joiningDate)
+      newErrors.joiningDate = 'Joining date is required';
+    if (!formData.currentProjectId)
+      newErrors.currentProjectId = 'Project is required';
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error('Please fill in all required fields');
       return;
     }
-    toast.success(
-      isEdit ? 'Labour updated successfully' : 'Labour created successfully'
-    );
-    router.push(routes.thirdParty.labour.href);
+
+    const payload = {
+      labourID: formData.labourId || undefined,
+      fullName: formData.fullName,
+      phoneNumber: formData.phoneNumber,
+      email: formData.email || undefined,
+      address: formData.address || undefined,
+      specialization: formData.specialization,
+      employmentType: formData.employmentType,
+      skillLevel: formData.skillLevel,
+      status: formData.status,
+      joiningDate: formData.joiningDate,
+      dailyRate: formData.dailyRate ? Number(formData.dailyRate) : undefined,
+      overTimeRate: formData.overTimeRate
+        ? Number(formData.overTimeRate)
+        : undefined,
+      emergencyContactName: formData.emergencyContactName || undefined,
+      emergencyContactPhone: formData.emergencyContactPhone || undefined,
+      currentProjectId: formData.currentProjectId
+        ? Number(formData.currentProjectId)
+        : undefined,
+      bankAccountNumber: formData.bankAccountNumber || undefined,
+      bankName: formData.bankName || undefined,
+      ifscCode: formData.ifscCode || undefined,
+      additionalNotes: formData.additionalNotes || undefined,
+    };
+
+    if (isEdit && initialData) {
+      updateLabour.mutate(
+        { id: initialData.id, data: payload },
+        { onSuccess: () => router.push(routes.thirdParty.labour.href) }
+      );
+    } else {
+      createLabour.mutate(
+        { ...payload, joiningDate: formData.joiningDate },
+        {
+          onSuccess: (created) =>
+            router.push(routes.thirdParty.labour.detail(created.id).href),
+        }
+      );
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -115,55 +170,57 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div>
-                    <Label htmlFor="labourId">
-                      Labour ID <span className="text-red-500">*</span>
-                    </Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="labourId">Labour ID</Label>
                     <Input
                       id="labourId"
                       value={formData.labourId}
                       onChange={(e) => handleChange('labourId', e.target.value)}
                       placeholder="LAB-001"
-                      required
+                      maxLength={15}
                     />
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="name">
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName">
                       Full Name <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleChange('name', e.target.value)}
+                      id="fullName"
+                      value={formData.fullName}
+                      onChange={(e) => handleChange('fullName', e.target.value)}
                       placeholder="Enter full name"
-                      className={errors.name ? 'border-red-500' : ''}
+                      className={errors.fullName ? 'border-red-500' : ''}
                     />
-                    {errors.name && (
-                      <p className="text-sm text-red-500">{errors.name}</p>
+                    {errors.fullName && (
+                      <p className="text-sm text-red-500">{errors.fullName}</p>
                     )}
                   </div>
-                  <div className="space-y-1">
-                    <Label htmlFor="phone">
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber">
                       Phone Number <span className="text-red-500">*</span>
                     </Label>
                     <div
                       className={
-                        errors.phone
+                        errors.phoneNumber
                           ? 'rounded-md border border-red-500'
                           : undefined
                       }
                     >
                       <PhoneInput
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(value) => handleChange('phone', value || '')}
+                        id="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={(value) =>
+                          handleChange('phoneNumber', value || '')
+                        }
                       />
                     </div>
-                    {errors.phone && (
-                      <p className="text-sm text-red-500">{errors.phone}</p>
+                    {errors.phoneNumber && (
+                      <p className="text-sm text-red-500">
+                        {errors.phoneNumber}
+                      </p>
                     )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
                     <Input
                       id="email"
@@ -173,7 +230,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       placeholder="email@example.com"
                     />
                   </div>
-                  <div className="md:col-span-2">
+                  <div className="space-y-2 md:col-span-2">
                     <Label htmlFor="address">Address</Label>
                     <Textarea
                       id="address"
@@ -197,23 +254,27 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div className="space-y-1">
-                    <Label htmlFor="trade">
+                  <div className="space-y-2">
+                    <Label htmlFor="specialization">
                       Trade/Specialization{' '}
                       <span className="text-red-500">*</span>
                     </Label>
                     <Input
-                      id="trade"
-                      value={formData.trade}
-                      onChange={(e) => handleChange('trade', e.target.value)}
+                      id="specialization"
+                      value={formData.specialization}
+                      onChange={(e) =>
+                        handleChange('specialization', e.target.value)
+                      }
                       placeholder="e.g., Mason, Carpenter"
-                      className={errors.trade ? 'border-red-500' : ''}
+                      className={errors.specialization ? 'border-red-500' : ''}
                     />
-                    {errors.trade && (
-                      <p className="text-sm text-red-500">{errors.trade}</p>
+                    {errors.specialization && (
+                      <p className="text-sm text-red-500">
+                        {errors.specialization}
+                      </p>
                     )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="skillLevel">Skill Level</Label>
                     <Select
                       value={formData.skillLevel}
@@ -225,35 +286,49 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="unskilled">Unskilled</SelectItem>
-                        <SelectItem value="semiskilled">
+                        <SelectItem value={SkillLevel.UNSKILLED}>
+                          Unskilled
+                        </SelectItem>
+                        <SelectItem value={SkillLevel.SEMI_SKILLED}>
                           Semi-Skilled
                         </SelectItem>
-                        <SelectItem value="skilled">Skilled</SelectItem>
-                        <SelectItem value="highlySkilled">
+                        <SelectItem value={SkillLevel.SKILLED}>
+                          Skilled
+                        </SelectItem>
+                        <SelectItem value={SkillLevel.HIGHLY_SKILLED}>
                           Highly Skilled
                         </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="type">Employment Type</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="employmentType">Employment Type</Label>
                     <Select
-                      value={formData.type}
-                      onValueChange={(value) => handleChange('type', value)}
+                      value={formData.employmentType}
+                      onValueChange={(value) =>
+                        handleChange('employmentType', value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="daily">Daily Wage</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="contract">Contract</SelectItem>
-                        <SelectItem value="piece">Piece Rate</SelectItem>
+                        <SelectItem value={EmploymentType.DAILY_WAGE}>
+                          Daily Wage
+                        </SelectItem>
+                        <SelectItem value={EmploymentType.MONTHLY}>
+                          Monthly
+                        </SelectItem>
+                        <SelectItem value={EmploymentType.CONTRACT}>
+                          Contract
+                        </SelectItem>
+                        <SelectItem value={EmploymentType.PIECE_RATE}>
+                          Piece Rate
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="status">Status</Label>
                     <Select
                       value={formData.status}
@@ -263,15 +338,25 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="onLeave">On Leave</SelectItem>
-                        <SelectItem value="terminated">Terminated</SelectItem>
+                        <SelectItem value={LabourStatus.ACTIVE}>
+                          Active
+                        </SelectItem>
+                        <SelectItem value={LabourStatus.INACTIVE}>
+                          Inactive
+                        </SelectItem>
+                        <SelectItem value={LabourStatus.ON_LEAVE}>
+                          On Leave
+                        </SelectItem>
+                        <SelectItem value={LabourStatus.TERMINATED}>
+                          Terminated
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
-                    <Label htmlFor="joiningDate">Joining Date</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="joiningDate">
+                      Joining Date <span className="text-red-500">*</span>
+                    </Label>
                     <Input
                       id="joiningDate"
                       type="date"
@@ -279,20 +364,49 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       onChange={(e) =>
                         handleChange('joiningDate', e.target.value)
                       }
+                      className={errors.joiningDate ? 'border-red-500' : ''}
                     />
+                    {errors.joiningDate && (
+                      <p className="text-sm text-red-500">
+                        {errors.joiningDate}
+                      </p>
+                    )}
                   </div>
-                  <div>
-                    <Label htmlFor="currentProject">Current Project</Label>
-                    <Input
-                      id="currentProject"
-                      value={formData.currentProject}
-                      onChange={(e) =>
-                        handleChange('currentProject', e.target.value)
+                  <div className="space-y-2">
+                    <Label htmlFor="currentProjectId">
+                      Project <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={formData.currentProjectId}
+                      onValueChange={(value) =>
+                        handleChange('currentProjectId', value)
                       }
-                      placeholder="Project name"
-                    />
+                    >
+                      <SelectTrigger
+                        className={
+                          errors.currentProjectId ? 'border-red-500' : ''
+                        }
+                      >
+                        <SelectValue placeholder="Select project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {projects.map((project) => (
+                          <SelectItem
+                            key={project.id}
+                            value={String(project.id)}
+                          >
+                            {project.projectName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.currentProjectId && (
+                      <p className="text-sm text-red-500">
+                        {errors.currentProjectId}
+                      </p>
+                    )}
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="contractorName">Contractor Name</Label>
                     <Input
                       id="contractorName"
@@ -303,7 +417,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       placeholder="Contractor name"
                     />
                   </div>
-                  <div>
+                  <div className="space-y-2">
                     <Label htmlFor="contractorPhone">Contractor Phone</Label>
                     <PhoneInput
                       id="contractorPhone"
@@ -325,8 +439,8 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {formData.type === 'daily' && (
-                    <div>
+                  {formData.employmentType === EmploymentType.DAILY_WAGE && (
+                    <div className="space-y-2">
                       <Label htmlFor="dailyRate">Daily Rate (₹)</Label>
                       <Input
                         id="dailyRate"
@@ -339,8 +453,8 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       />
                     </div>
                   )}
-                  {formData.type === 'monthly' && (
-                    <div>
+                  {formData.employmentType === EmploymentType.MONTHLY && (
+                    <div className="space-y-2">
                       <Label htmlFor="monthlyRate">Monthly Rate (₹)</Label>
                       <Input
                         id="monthlyRate"
@@ -353,16 +467,63 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                       />
                     </div>
                   )}
-                  <div>
-                    <Label htmlFor="overtimeRate">Overtime Rate (₹/hr)</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="overTimeRate">Overtime Rate (₹/hr)</Label>
                     <Input
-                      id="overtimeRate"
+                      id="overTimeRate"
                       type="number"
-                      value={formData.overtimeRate}
+                      value={formData.overTimeRate}
                       onChange={(e) =>
-                        handleChange('overtimeRate', e.target.value)
+                        handleChange('overTimeRate', e.target.value)
                       }
                       placeholder="100"
+                    />
+                  </div>
+                </div>
+                <Separator />
+                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                  Banking Details
+                </p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      value={formData.bankName}
+                      onChange={(e) => handleChange('bankName', e.target.value)}
+                      placeholder="e.g., State Bank of India"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="bankAccountNumber">Account Number</Label>
+                    <Input
+                      id="bankAccountNumber"
+                      value={formData.bankAccountNumber}
+                      onChange={(e) =>
+                        handleChange('bankAccountNumber', e.target.value)
+                      }
+                      placeholder="Account number"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="ifscCode">IFSC Code</Label>
+                    <Input
+                      id="ifscCode"
+                      value={formData.ifscCode}
+                      onChange={(e) => handleChange('ifscCode', e.target.value)}
+                      placeholder="e.g., SBIN0001234"
+                    />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="additionalNotes">Additional Notes</Label>
+                    <Textarea
+                      id="additionalNotes"
+                      value={formData.additionalNotes}
+                      onChange={(e) =>
+                        handleChange('additionalNotes', e.target.value)
+                      }
+                      placeholder="Any additional information"
+                      rows={3}
                     />
                   </div>
                 </div>
@@ -380,7 +541,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="emergencyContactName">Contact Name</Label>
                   <Input
                     id="emergencyContactName"
@@ -391,7 +552,7 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                     placeholder="Enter name"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="emergencyContactPhone">Contact Phone</Label>
                   <PhoneInput
                     id="emergencyContactPhone"
@@ -406,14 +567,19 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
 
             {/* Action Buttons */}
             <div className="flex flex-col space-y-2">
-              <Button type="submit" className="w-full">
-                <Save className="mr-2 h-4 w-4" />
+              <Button type="submit" className="w-full" disabled={isPending}>
+                {isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
                 {isEdit ? 'Update Labour' : 'Create Labour'}
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 className="w-full"
+                disabled={isPending}
                 onClick={() => router.push(routes.thirdParty.labour.href)}
               >
                 Cancel

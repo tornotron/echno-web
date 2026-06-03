@@ -3,35 +3,39 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { TableCell, TableRow } from '@/components/shadcn/table';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { User } from 'lucide-react';
-import type { Labour } from '@/types/third-party/labour';
+import type { Labour } from '@/types/labour';
+import { EmploymentType, SkillLevel, LabourStatus } from '@/types/labour';
 
-const typeLabels: Record<string, string> = {
-  daily: 'Daily Wage',
-  monthly: 'Monthly',
-  contract: 'Contract',
-  piece: 'Piece Rate',
+const typeLabels: Record<EmploymentType, string> = {
+  [EmploymentType.DAILY_WAGE]: 'Daily Wage',
+  [EmploymentType.MONTHLY]: 'Monthly',
+  [EmploymentType.CONTRACT]: 'Contract',
+  [EmploymentType.PIECE_RATE]: 'Piece Rate',
 };
 
-const statusBadgeClasses: Record<string, string> = {
-  active: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-  inactive: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
-  onLeave:
+const statusBadgeClasses: Record<LabourStatus, string> = {
+  [LabourStatus.ACTIVE]:
+    'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  [LabourStatus.INACTIVE]:
+    'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+  [LabourStatus.ON_LEAVE]:
     'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-  terminated: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+  [LabourStatus.TERMINATED]:
+    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 };
 
-const statusLabels: Record<string, string> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  onLeave: 'On Leave',
-  terminated: 'Terminated',
+const statusLabels: Record<LabourStatus, string> = {
+  [LabourStatus.ACTIVE]: 'Active',
+  [LabourStatus.INACTIVE]: 'Inactive',
+  [LabourStatus.ON_LEAVE]: 'On Leave',
+  [LabourStatus.TERMINATED]: 'Terminated',
 };
 
-const skillLevelLabels: Record<string, string> = {
-  unskilled: 'Unskilled',
-  semiskilled: 'Semi-Skilled',
-  skilled: 'Skilled',
-  highlySkilled: 'Highly Skilled',
+const skillLevelLabels: Record<SkillLevel, string> = {
+  [SkillLevel.UNSKILLED]: 'Unskilled',
+  [SkillLevel.SEMI_SKILLED]: 'Semi-Skilled',
+  [SkillLevel.SKILLED]: 'Skilled',
+  [SkillLevel.HIGHLY_SKILLED]: 'Highly Skilled',
 };
 
 interface LabourRowProps {
@@ -64,7 +68,7 @@ export function LabourRow({
         <Checkbox
           checked={isSelected}
           onCheckedChange={(checked) => onSelect(checked as boolean)}
-          aria-label={`Select ${labour.name}`}
+          aria-label={`Select ${labour.fullName}`}
         />
       </TableCell>
       <TableCell>
@@ -74,10 +78,10 @@ export function LabourRow({
           </div>
           <div>
             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-              {labour.name}
+              {labour.fullName}
             </p>
             <PhoneDisplay
-              value={labour.phone}
+              value={labour.phoneNumber}
               className="text-zinc-500 dark:text-zinc-500"
             />
           </div>
@@ -85,29 +89,40 @@ export function LabourRow({
       </TableCell>
       <TableCell>
         <div>
-          <div>{labour.trade}</div>
+          <div>{labour.specialization}</div>
           <div className="text-xs text-zinc-500">
-            {skillLevelLabels[labour.skillLevel]}
+            {labour.skillLevel ? skillLevelLabels[labour.skillLevel] : '—'}
           </div>
         </div>
       </TableCell>
       <TableCell>
-        <Badge variant="outline">{typeLabels[labour.type]}</Badge>
+        {labour.employmentType ? (
+          <Badge variant="outline">{typeLabels[labour.employmentType]}</Badge>
+        ) : (
+          '—'
+        )}
       </TableCell>
       <TableCell>
-        {labour.dailyRate && `₹${labour.dailyRate}/day`}
-        {labour.monthlyRate && `₹${labour.monthlyRate.toLocaleString()}/mo`}
+        {labour.dailyRate
+          ? `₹${labour.dailyRate}/day`
+          : labour.monthlyRate
+            ? `₹${labour.monthlyRate.toLocaleString()}/mo`
+            : '—'}
       </TableCell>
       <TableCell>
-        <div className="text-sm">{labour.currentProject}</div>
+        <div className="text-sm">{labour.currentProjectName}</div>
         {labour.contractorName && (
           <div className="text-xs text-zinc-500">{labour.contractorName}</div>
         )}
       </TableCell>
       <TableCell>
-        <Badge className={statusBadgeClasses[labour.status]}>
-          {statusLabels[labour.status]}
-        </Badge>
+        {labour.status ? (
+          <Badge className={statusBadgeClasses[labour.status]}>
+            {statusLabels[labour.status]}
+          </Badge>
+        ) : (
+          '—'
+        )}
       </TableCell>
       <TableCell>
         {labour.totalDue && labour.totalDue > 0 ? (
