@@ -15,6 +15,7 @@ export function useCreateShift() {
   return useMutation({
     mutationFn: shiftTimingService.create,
     onSuccess: (shift) => {
+      // POST /shift-timings/web → ShiftTimingDto (Rule A, full).
       queryClient.setQueryData<ShiftTiming[]>(shiftTimingKeys.lists(), (old) =>
         old ? [...old, shift] : undefined
       );
@@ -33,6 +34,7 @@ export function useUpdateShift() {
       dto: Parameters<typeof shiftTimingService.update>[1];
     }) => shiftTimingService.update(id, dto),
     onSuccess: (shift) => {
+      // PATCH /shift-timings/web/{id} → ShiftTimingDto (Rule A, full).
       queryClient.setQueryData<ShiftTiming[]>(shiftTimingKeys.lists(), (old) =>
         old?.map((s) => (s.id === shift.id ? shift : s))
       );
@@ -49,6 +51,7 @@ export function useDeleteShift() {
   return useMutation({
     mutationFn: (id: number) => shiftTimingService.delete(id),
     onSuccess: (_void, id) => {
+      // DELETE /shift-timings/web/{id} → no body (Rule C, void).
       queryClient.setQueryData<ShiftTiming[]>(shiftTimingKeys.lists(), (old) =>
         old?.filter((s) => s.id !== id)
       );
