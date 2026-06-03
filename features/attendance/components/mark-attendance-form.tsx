@@ -43,6 +43,11 @@ import {
   useEmployeesByProject,
 } from '@/hooks/project/use-projects';
 import {
+  useOrgSettings,
+  useProjectSettings,
+} from '@/hooks/attendance-settings';
+import { useShifts } from '@/hooks/shift-timing';
+import {
   useAttendanceByProject,
   useCheckIn,
   useRecordClockEvent,
@@ -85,6 +90,20 @@ export function MarkAttendanceForm() {
         : null
     );
 
+  // Resolve the shift timing for this project: project-scoped settings →
+  // org default → first available shift. We refuse to dispatch a check-in
+  // until we have a real id rather than fall back to a hardcoded number that
+  // may not exist in this org.
+  const { data: projectSettings } = useProjectSettings(
+    selectedProject ? Number(selectedProject) : undefined
+  );
+  const { data: orgSettings } = useOrgSettings();
+  const { data: shifts = [] } = useShifts();
+  const resolvedShiftTimingId =
+    projectSettings?.defaultShiftId ??
+    orgSettings?.defaultShiftId ??
+    shifts[0]?.id;
+
   const checkInMutation = useCheckIn();
   const clockEventMutation = useRecordClockEvent();
 
@@ -123,6 +142,12 @@ export function MarkAttendanceForm() {
       toast.error('Please select at least one employee');
       return;
     }
+    if (!resolvedShiftTimingId) {
+      toast.error(
+        'No shift timing configured. Set a default shift in attendance settings or create one in Shift Timings.'
+      );
+      return;
+    }
 
     const [hours, minutes] = clockInTime.split(':').map(Number);
     const eventTimestamp = new Date(`${selectedDate}T${clockInTime}:00`);
@@ -144,7 +169,7 @@ export function MarkAttendanceForm() {
       return checkInMutation.mutateAsync({
         employeeId: empId,
         projectId: Number(selectedProject),
-        shiftTimingId: 1, // default shift; ideally resolved from settings
+        shiftTimingId: resolvedShiftTimingId,
         eventTimestamp,
         remarks,
       });

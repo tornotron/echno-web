@@ -182,8 +182,15 @@ export function RegularizationManagement({
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
                 {
+                  // Normalize each row to a single string key so numeric
+                  // employeeIds and string requestedBy handles don't collide
+                  // (e.g. employeeId 42 vs requestedBy "42").
                   new Set(
-                    regularizations.map((r) => r.employeeId ?? r.requestedBy)
+                    regularizations.map((r) =>
+                      r.employeeId === undefined
+                        ? `name:${r.requestedBy}`
+                        : `id:${r.employeeId}`
+                    )
                   ).size
                 }
               </p>
