@@ -8,8 +8,14 @@
  * (attachments, members, subtasks, comments, …) until the next refetch.
  *
  * `mergePreservingNested` is the canonical replacement: scalar fields from the
- * response overwrite the cache; nested keys are preserved from cache when the
- * response omits them (undefined/null/empty array).
+ * response overwrite the cache; for the `preserveKeys` we keep the cached value
+ * only when the response **omits** that field — i.e. the incoming value is
+ * `null` or `undefined`.
+ *
+ * Empty arrays (`[]`) are treated as intentional, not as "absent": the backend
+ * is telling us the collection is empty now, so we must surface that in the
+ * cache. If a future endpoint actually uses `[]` to mean "omitted", that's a
+ * backend contract bug — fix it on the backend rather than on this helper.
  *
  * Usage pattern (with invalidate as the safety net):
  *
@@ -28,9 +34,7 @@ export function mergePreservingNested<T extends object>(
   const merged = { ...cached, ...partial };
   for (const key of preserveKeys) {
     const incoming = (partial as Record<keyof T, unknown>)[key];
-    const isEmpty =
-      incoming == null || (Array.isArray(incoming) && incoming.length === 0);
-    if (isEmpty) {
+    if (incoming == null) {
       merged[key] = cached[key];
     }
   }
