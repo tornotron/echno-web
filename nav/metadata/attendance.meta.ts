@@ -1,6 +1,6 @@
 import { UserCheck, Settings, Calendar, FileText } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
-import { ADMIN_ONLY, MANAGER_AND_ABOVE } from '../access/roles';
+import { ADMIN_ONLY } from '../access/roles';
 
 export const attendanceMetadata = {
   attendance: {

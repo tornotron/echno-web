@@ -459,17 +459,13 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
 
   // ── Location detection ───────────────────────────────────────────────────────
 
-  const detectLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationState({
-        status: 'error',
-        message: 'Geolocation is not supported by your browser.',
-      });
-      return;
-    }
-    setLocationState({ status: 'detecting' });
-    setProjectMatch(null);
-
+  // Shared geolocation flow. Assumes `navigator.geolocation` exists — callers
+  // are responsible for the unavailable case (the `useState` initializer
+  // already seeds an error state on mount, and the Retry event handler
+  // re-checks below). State transitions live only inside the success/error
+  // callbacks, so this helper is safe to invoke from an effect.
+  const performLocationDetection = useCallback(() => {
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const location: GeoLocation = {
@@ -478,19 +474,16 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
           accuracy: pos.coords.accuracy,
           altitude: pos.coords.altitude ?? undefined,
         };
-        setLocationState({ status: 'detected', location });
-
-        if (projects.length === 0) return;
 
         let nearest: ProjectMatch | null = null;
         let minDist = Infinity;
-
         for (const project of projects) {
           if (
             project.projectLatitude == null ||
             project.projectLongitude == null
-          )
+          ) {
             continue;
+          }
           const projLoc: GeoLocation = {
             latitude: project.projectLatitude,
             longitude: project.projectLongitude,
@@ -501,12 +494,12 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             nearest = { project, distance };
           }
         }
-
-        // No project has GPS coordinates — fall back to the first assigned project
-        if (!nearest) {
+        // No project has GPS coordinates — fall back to the first assigned project.
+        if (!nearest && projects.length > 0) {
           nearest = { project: projects[0], distance: 0 };
         }
 
+        setLocationState({ status: 'detected', location });
         setProjectMatch(nearest);
       },
       (err) => {
@@ -524,63 +517,33 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
     );
   }, [projects]);
 
-  // Kick off geolocation once we have the project list. Initial state is
-  // already `detecting`, so the effect body itself doesn't setState — only
-  // the geolocation API's async success/error callbacks do, and those run
-  // outside the effect body (which the lint rule allows for "subscribing to
-  // an external system").
+  // Retry button entrypoint — handles the unavailable-geolocation case
+  // (surfacing the error toast-style message in state) then resets to the
+  // detecting state and re-runs the shared flow. Called from an event
+  // handler, so the synchronous setState calls here are fine.
+  const detectLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setLocationState({
+        status: 'error',
+        message: 'Geolocation is not supported by your browser.',
+      });
+      setProjectMatch(null);
+      return;
+    }
+    setLocationState({ status: 'detecting' });
+    setProjectMatch(null);
+    performLocationDetection();
+  }, [performLocationDetection]);
+
+  // Auto-detect on mount once projects load. Initial state is already
+  // `detecting`, so the effect body itself doesn't setState — only the
+  // geolocation API's async callbacks do, which the lint rule allows for
+  // "subscribing to an external system".
   useEffect(() => {
     if (locationState.status !== 'detecting') return;
-    if (!navigator.geolocation) return; // initial state already covers this
     if (projects.length === 0) return;
-
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const location: GeoLocation = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-          altitude: pos.coords.altitude ?? undefined,
-        };
-
-        let nearest: ProjectMatch | null = null;
-        let minDist = Infinity;
-        for (const project of projects) {
-          if (
-            project.projectLatitude == null ||
-            project.projectLongitude == null
-          )
-            continue;
-          const projLoc: GeoLocation = {
-            latitude: project.projectLatitude,
-            longitude: project.projectLongitude,
-          };
-          const distance = calculateDistance(location, projLoc);
-          if (distance < minDist) {
-            minDist = distance;
-            nearest = { project, distance };
-          }
-        }
-        // No project has GPS coordinates — fall back to the first assigned project.
-        if (!nearest) nearest = { project: projects[0], distance: 0 };
-
-        setLocationState({ status: 'detected', location });
-        setProjectMatch(nearest);
-      },
-      (err) => {
-        const messages: Record<number, string> = {
-          1: 'Location access denied. Please allow location access and try again.',
-          2: 'Unable to determine your location. Please try again.',
-          3: 'Location request timed out. Please try again.',
-        };
-        setLocationState({
-          status: 'error',
-          message: messages[err.code] ?? 'Failed to get location.',
-        });
-      },
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 30_000 }
-    );
-  }, [locationState.status, projects]);
+    performLocationDetection();
+  }, [locationState.status, projects.length, performLocationDetection]);
 
   // Auto-start camera once the profile says a photo is required and we have a
   // next action. startCamera's setState runs in the API's async resolve, not
