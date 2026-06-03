@@ -16,6 +16,8 @@ import { Material } from '@/types/materials';
 import { Indent } from '@/types/indents';
 import { StorageLocation } from '@/types/storage-locations/storage-location';
 import { PurchaseOrder } from '@/types/purchase-orders';
+import { Labour } from '@/types/labour';
+import { SiteTransfer } from '@/types/site-transfers';
 import { leaveFromMap } from '@/lib/utils/leave-path-map';
 
 /**
@@ -76,7 +78,9 @@ export function getNameForId(
   material?: Material,
   indent?: Indent,
   storageLocation?: StorageLocation,
-  purchaseOrder?: PurchaseOrder
+  purchaseOrder?: PurchaseOrder,
+  labour?: Labour,
+  siteTransfer?: SiteTransfer
 ): string {
   const numericId = Number.parseInt(id, 10);
   const parentSegment = context.at(-1);
@@ -103,6 +107,14 @@ export function getNameForId(
 
   if (parentSegment === 'purchase-orders') {
     return purchaseOrder?.poNumber ?? `PO ${id}`;
+  }
+
+  if (parentSegment === 'labour') {
+    return labour?.fullName ?? `Labour ${id}`;
+  }
+
+  if (parentSegment === 'transfers') {
+    return siteTransfer?.transferNumber ?? `Transfer ${id}`;
   }
 
   if (parentSegment === 'projects' || parentSegment === 'all-projects') {

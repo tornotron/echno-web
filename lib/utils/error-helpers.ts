@@ -22,7 +22,14 @@ import { ApiError } from '@/lib/api/api-client';
  */
 export function getErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
-    return error.details ?? error.message;
+    const base = error.details ?? error.message;
+    if (error.errors && Object.keys(error.errors).length > 0) {
+      const fieldMessages = Object.entries(error.errors)
+        .flatMap(([field, messages]) => messages.map((m) => `${field}: ${m}`))
+        .join('; ');
+      return `${base} — ${fieldMessages}`;
+    }
+    return base;
   }
   if (error instanceof Error) {
     return error.message;
