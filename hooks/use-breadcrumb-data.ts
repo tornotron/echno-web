@@ -12,6 +12,8 @@ import { useMaterial } from '@/hooks/materials/use-materials';
 import { useIndent } from '@/hooks/indents';
 import { useStorageLocation } from '@/hooks/storage-locations/use-storage-locations';
 import { usePurchaseOrder } from '@/hooks/purchase-orders/use-purchase-orders';
+import { useLabourById } from '@/hooks/labour';
+import { useSiteTransfer } from '@/hooks/site-transfers/use-site-transfers';
 import { Employee } from '@/types/employee/employee';
 import { Project } from '@/types/project/project';
 import { Organization } from '@/types/organization';
@@ -24,6 +26,8 @@ import { Material } from '@/types/materials';
 import { Indent } from '@/types/indents';
 import { StorageLocation } from '@/types/storage-locations';
 import { PurchaseOrder } from '@/types/purchase-orders';
+import { Labour } from '@/types/labour';
+import { SiteTransfer } from '@/types/site-transfers';
 
 interface BreadcrumbData {
   employees?: Employee[];
@@ -38,6 +42,8 @@ interface BreadcrumbData {
   indent?: Indent;
   storageLocation?: StorageLocation;
   purchaseOrder?: PurchaseOrder;
+  labour?: Labour;
+  siteTransfer?: SiteTransfer;
 }
 
 /**
@@ -75,6 +81,8 @@ export function useBreadcrumbData(): BreadcrumbData {
     indentId,
     storageLocationId,
     purchaseOrderId,
+    labourId,
+    siteTransferId,
   } = useMemo(() => {
     const leaveRequestId = parseIdFromPath(
       pathname,
@@ -107,6 +115,8 @@ export function useBreadcrumbData(): BreadcrumbData {
       pathname,
       /\/purchase-orders\/(\d+)/
     );
+    const labourId = parseIdFromPath(pathname, /\/labour\/(\d+)/);
+    const siteTransferId = parseIdFromPath(pathname, /\/transfers\/(\d+)/);
 
     return {
       leaveRequestId,
@@ -118,6 +128,8 @@ export function useBreadcrumbData(): BreadcrumbData {
       indentId,
       storageLocationId,
       purchaseOrderId,
+      labourId,
+      siteTransferId,
     };
   }, [pathname, searchParams]);
 
@@ -158,6 +170,12 @@ export function useBreadcrumbData(): BreadcrumbData {
   // Conditionally fetch purchase order details only when ID exists
   const { data: purchaseOrder } = usePurchaseOrder(purchaseOrderId ?? 0);
 
+  // Conditionally fetch labour details only when ID exists
+  const { data: labour } = useLabourById(labourId ?? 0);
+
+  // Conditionally fetch site transfer details only when ID exists
+  const { data: siteTransfer } = useSiteTransfer(siteTransferId ?? 0);
+
   return {
     employees,
     projects,
@@ -171,5 +189,7 @@ export function useBreadcrumbData(): BreadcrumbData {
     indent,
     storageLocation,
     purchaseOrder,
+    labour,
+    siteTransfer,
   };
 }
