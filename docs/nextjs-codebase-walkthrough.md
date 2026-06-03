@@ -116,7 +116,11 @@ app/                  → routing + pages + API routes (Next.js)
 auth.ts               → Auth.js config (Keycloak, JWT callbacks, refresh)
 proxy.ts              → middleware (auth gate, session checks)
 next.config.ts        → Next.js config (redirects, image hosts, output mode)
-scripts/              → Node 22 codegen scripts (generate-routes.ts, watch-routes.ts)
+scripts/              → codegen scripts (generate-routes.ts, watch-routes.ts) — run on
+                       Node.js 22+ via `node --experimental-strip-types …`, wired into
+                       package.json as `routes:generate` / `routes:watch`. Bun is used
+                       only as the package manager / dev workflow runner (e.g.
+                       `bun routes:watch` and the `only-allow bun` preinstall hook).
 
 components/
   ui/                 → raw shadcn primitives (do NOT import directly from app/features)

@@ -51,18 +51,32 @@ function isLeavePolicyListCache(query: {
 
 /**
  * Matches every LeaveRequest[] list cache under the 'leave/requests' namespace.
- * Excludes the `request(id)` detail shape (numeric third segment).
+ *
+ * Explicitly excludes:
+ *   - `request(id)` detail caches (numeric third segment),
+ *   - `pendingApprovals(approverId)` and `pendingApprovalsCount(approverId)`
+ *     caches — those are managed by approval mutations, and the count cache
+ *     stores a number (not a LeaveRequest[]), so blindly patching it would
+ *     throw at runtime.
  */
 function isLeaveRequestListCache(query: {
   queryKey: ReadonlyArray<unknown>;
 }): boolean {
   const key = query.queryKey;
-  return (
-    Array.isArray(key) &&
-    key[0] === 'leave' &&
-    key[1] === 'requests' &&
-    typeof key[2] !== 'number'
-  );
+  if (
+    !Array.isArray(key) ||
+    key[0] !== 'leave' ||
+    key[1] !== 'requests' ||
+    typeof key[2] === 'number'
+  ) {
+    return false;
+  }
+  // pendingApprovals → ['leave', 'requests', 'pending', approverId]
+  // pendingApprovalsCount → ['leave', 'requests', 'pending', approverId, 'count']
+  if (key[2] === 'pending') return false;
+  // Defensive: ignore any future count-style key under the requests namespace.
+  if (key.includes('count')) return false;
+  return true;
 }
 
 /**
