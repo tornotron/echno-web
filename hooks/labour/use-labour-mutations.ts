@@ -23,7 +23,13 @@ export function useCreateLabour() {
   return useMutation({
     mutationFn: (data: LabourCreateRequest) => labourService.create(data),
     onSuccess: (newLabour) => {
-      // POST /labour/web → LabourSimpleDto — no nested arrays; safe to seed cache directly.
+      // POST /labour/web → LabourSimpleDto (Rule B, partial). Labour is a flat
+      // type with no nested arrays, so merging degenerates to overwrite — but
+      // the SimpleDto may omit scalar fields the full LabourDto returns
+      // (`labourID` casing, `emergencyContactPhone` vs `emergencyContactNumber`,
+      // plus the org/project context naming). Seed list + detail with the
+      // SimpleDto, then invalidate detail so the next observer pulls the
+      // canonical LabourDto from GET /labour/web/{id}.
       queryClient.setQueryData<Labour[]>(labourKeys.lists(), (old) =>
         old ? [...old, newLabour] : [newLabour]
       );
@@ -31,6 +37,9 @@ export function useCreateLabour() {
         labourKeys.detail(newLabour.id),
         newLabour
       );
+      queryClient.invalidateQueries({
+        queryKey: labourKeys.detail(newLabour.id),
+      });
       toast.success('Labour Created', {
         description: 'The labour record has been created successfully',
       });
