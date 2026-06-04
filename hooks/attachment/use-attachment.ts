@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { attachmentService } from '@/services/attachment-service';
 import { Attachment } from '@/types/attachment';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
 import { attachmentKeys } from './attachment-keys';
 
 /**

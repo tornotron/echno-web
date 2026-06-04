@@ -9,7 +9,7 @@ import { useProjects } from '@/hooks/project/use-projects';
 import { ChatRoom, ChatRoomType } from '@/types/chat';
 import { Employee } from '@/types/employee/employee';
 import { Project } from '@/types/project/project';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
 
 function resolveRoomData(
   rooms: ChatRoom[],
