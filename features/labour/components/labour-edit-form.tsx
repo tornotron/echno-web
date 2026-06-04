@@ -111,15 +111,20 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
       skillLevel: formData.skillLevel,
       status: formData.status,
       joiningDate: formData.joiningDate,
-      dailyRate: formData.dailyRate ? Number(formData.dailyRate) : undefined,
-      overTimeRate: formData.overTimeRate
-        ? Number(formData.overTimeRate)
-        : undefined,
+      dailyRate: (() => {
+        const n = Number.parseFloat(formData.dailyRate);
+        return Number.isFinite(n) ? n : undefined;
+      })(),
+      overTimeRate: (() => {
+        const n = Number.parseFloat(formData.overTimeRate);
+        return Number.isFinite(n) ? n : undefined;
+      })(),
       emergencyContactName: formData.emergencyContactName || undefined,
       emergencyContactPhone: formData.emergencyContactPhone || undefined,
-      currentProjectId: formData.currentProjectId
-        ? Number(formData.currentProjectId)
-        : undefined,
+      currentProjectId: (() => {
+        const n = Number.parseInt(formData.currentProjectId, 10);
+        return Number.isFinite(n) ? n : undefined;
+      })(),
       bankAccountNumber: formData.bankAccountNumber || undefined,
       bankName: formData.bankName || undefined,
       ifscCode: formData.ifscCode || undefined,
@@ -132,13 +137,10 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
         { onSuccess: () => router.push(routes.thirdParty.labour.href) }
       );
     } else {
-      createLabour.mutate(
-        { ...payload, joiningDate: formData.joiningDate },
-        {
-          onSuccess: (created) =>
-            router.push(routes.thirdParty.labour.detail(created.id).href),
-        }
-      );
+      createLabour.mutate(payload, {
+        onSuccess: (created) =>
+          router.push(routes.thirdParty.labour.detail(created.id).href),
+      });
     }
   };
 

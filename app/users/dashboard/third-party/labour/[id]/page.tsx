@@ -44,11 +44,15 @@ const typeLabels: Record<EmploymentType, string> = {
   [EmploymentType.PIECE_RATE]: 'Piece Rate',
 };
 
-const statusColors: Record<LabourStatus, string> = {
-  [LabourStatus.ACTIVE]: 'green',
-  [LabourStatus.INACTIVE]: 'zinc',
-  [LabourStatus.ON_LEAVE]: 'orange',
-  [LabourStatus.TERMINATED]: 'red',
+const statusClassMap: Record<LabourStatus, string> = {
+  [LabourStatus.ACTIVE]:
+    'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  [LabourStatus.INACTIVE]:
+    'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+  [LabourStatus.ON_LEAVE]:
+    'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  [LabourStatus.TERMINATED]:
+    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
 };
 
 const statusLabels: Record<LabourStatus, string> = {
@@ -64,6 +68,12 @@ const skillLevelLabels: Record<SkillLevel, string> = {
   [SkillLevel.SKILLED]: 'Skilled',
   [SkillLevel.HIGHLY_SKILLED]: 'Highly Skilled',
 };
+
+function formatDate(dateString: string | undefined): string {
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  return Number.isNaN(date.getTime()) ? '—' : format(date, 'MMM dd, yyyy');
+}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -250,9 +260,7 @@ export default function LabourDetailPage({ params }: PageProps) {
                   </label>
                   <div className="mt-1">
                     {labour.status ? (
-                      <Badge
-                        className={`bg-${statusColors[labour.status]}-100 text-${statusColors[labour.status]}-700 dark:bg-${statusColors[labour.status]}-900 dark:text-${statusColors[labour.status]}-300`}
-                      >
+                      <Badge className={statusClassMap[labour.status]}>
                         {statusLabels[labour.status]}
                       </Badge>
                     ) : (
@@ -266,9 +274,7 @@ export default function LabourDetailPage({ params }: PageProps) {
                     <span>Joining Date</span>
                   </label>
                   <p className="mt-1 text-base text-zinc-900 dark:text-zinc-100">
-                    {labour.joiningDate
-                      ? format(new Date(labour.joiningDate), 'MMM dd, yyyy')
-                      : '—'}
+                    {formatDate(labour.joiningDate)}
                   </p>
                 </div>
                 <div>

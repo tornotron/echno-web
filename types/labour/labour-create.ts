@@ -1,3 +1,5 @@
+import { EmploymentType, SkillLevel } from '@/types';
+
 export interface LabourCreateRequest {
   labourID?: string;
   fullName?: string;
@@ -7,8 +9,8 @@ export interface LabourCreateRequest {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   specialization?: string;
-  employmentType?: string;
-  skillLevel?: string;
+  employmentType?: EmploymentType;
+  skillLevel?: SkillLevel;
   status?: string;
   joiningDate: string;
   currentProjectId?: number;

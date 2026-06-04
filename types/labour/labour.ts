@@ -1,23 +1,8 @@
-export enum EmploymentType {
-  DAILY_WAGE = 'DAILY_WAGE',
-  MONTHLY = 'MONTHLY',
-  CONTRACT = 'CONTRACT',
-  PIECE_RATE = 'PIECE_RATE',
-}
+import { parsePositiveInt } from '@/types/parse-id.ts';
+import { EmploymentType, SkillLevel, LabourStatus } from './enums.ts';
 
-export enum SkillLevel {
-  UNSKILLED = 'UNSKILLED',
-  SEMI_SKILLED = 'SEMI_SKILLED',
-  SKILLED = 'SKILLED',
-  HIGHLY_SKILLED = 'HIGHLY_SKILLED',
-}
-
-export enum LabourStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  ON_LEAVE = 'ON_LEAVE',
-  TERMINATED = 'TERMINATED',
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Raw = any;
 
 export interface Labour {
   id: number;
@@ -51,10 +36,32 @@ export interface Labour {
   totalPaid?: number;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function parseLabour(raw: any): Labour {
+const employmentTypeValues = new Set(Object.values(EmploymentType));
+const skillLevelValues = new Set(Object.values(SkillLevel));
+const labourStatusValues = new Set(Object.values(LabourStatus));
+
+function parseEmploymentType(raw: unknown): EmploymentType | undefined {
+  return typeof raw === 'string' &&
+    employmentTypeValues.has(raw as EmploymentType)
+    ? (raw as EmploymentType)
+    : undefined;
+}
+
+function parseSkillLevel(raw: unknown): SkillLevel | undefined {
+  return typeof raw === 'string' && skillLevelValues.has(raw as SkillLevel)
+    ? (raw as SkillLevel)
+    : undefined;
+}
+
+function parseLabourStatus(raw: unknown): LabourStatus | undefined {
+  return typeof raw === 'string' && labourStatusValues.has(raw as LabourStatus)
+    ? (raw as LabourStatus)
+    : undefined;
+}
+
+export function parseLabour(raw: Raw): Labour {
   return {
-    id: raw.id,
+    id: parsePositiveInt(raw.id, 'parseLabour.id'),
     // LabourDto uses "labourID" (uppercase); LabourSimpleDto uses "labourId"
     labourId: raw.labourId ?? raw.labourID,
     organizationId: raw.organizationId,
@@ -68,9 +75,9 @@ export function parseLabour(raw: any): Labour {
     emergencyContactNumber:
       raw.emergencyContactNumber ?? raw.emergencyContactPhone,
     specialization: raw.specialization,
-    employmentType: raw.employmentType as EmploymentType | undefined,
-    skillLevel: raw.skillLevel as SkillLevel | undefined,
-    status: raw.status as LabourStatus | undefined,
+    employmentType: parseEmploymentType(raw.employmentType),
+    skillLevel: parseSkillLevel(raw.skillLevel),
+    status: parseLabourStatus(raw.status),
     joiningDate: raw.joiningDate,
     currentProjectName: raw.currentProjectName,
     currentProjectId:
