@@ -1,4 +1,4 @@
-import type { EmploymentType, LabourStatus, SkillLevel } from './labour';
+import { EmploymentType, LabourStatus, SkillLevel } from '@/types';
 
 export interface LabourUpdateRequest {
   labourID?: string;
@@ -13,7 +13,7 @@ export interface LabourUpdateRequest {
   skillLevel?: SkillLevel;
   status?: LabourStatus;
   joiningDate?: string;
-  currentProjectId?: number;
+  currentProjectId?: number | null;
   dailyRate?: number;
   overTimeRate?: number;
   bankAccountNumber?: string;
