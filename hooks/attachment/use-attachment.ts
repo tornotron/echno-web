@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { attachmentService } from '@/services/attachment-service';
 import { Attachment } from '@/types/attachment';
 import { shouldRetry } from '@/lib/utils/retry';
+import { attachmentKeys } from './attachment-keys';
 
 /**
  * Hook to fetch attachment by entity ID and type.
@@ -20,7 +21,7 @@ import { shouldRetry } from '@/lib/utils/retry';
  */
 export function useAttachmentByEntity(entityId?: number, entityType?: string) {
   return useQuery({
-    queryKey: ['attachments', 'entity', entityId, entityType],
+    queryKey: attachmentKeys.byEntity(entityId ?? 0, entityType ?? ''),
     queryFn: () => {
       if (!entityId || !entityType) {
         throw new Error('Entity ID and attachment type are required');
@@ -51,7 +52,7 @@ export function useAttachmentByEntity(entityId?: number, entityType?: string) {
  */
 export function useAttachmentsByEntity(entityId?: number, entityType?: string) {
   return useQuery({
-    queryKey: ['attachments', 'entity', 'all', entityId, entityType],
+    queryKey: attachmentKeys.listByEntity(entityId ?? 0, entityType ?? ''),
     queryFn: () => {
       if (!entityId || !entityType) {
         throw new Error('Entity ID and attachment type are required');
