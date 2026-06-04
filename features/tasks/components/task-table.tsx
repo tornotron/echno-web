@@ -37,6 +37,7 @@ import type { Task } from '@/types/task/task';
 import { TaskStatus } from '@/types/task/task-status';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
+import { usePrefetchTask } from '@/hooks/task/use-prefetch-task';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -120,6 +121,7 @@ export function TaskTable({
   onStatusChange,
 }: TaskTableProps) {
   const router = useRouter();
+  const prefetchTask = usePrefetchTask();
   const endIndex = Math.min(startIndex + itemsPerPage, filteredTasksCount);
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
@@ -173,6 +175,8 @@ export function TaskTable({
               .tasks.detail(task.id).href
           )
         }
+        onMouseEnter={() => prefetchTask(task.id)}
+        onFocus={() => prefetchTask(task.id)}
         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
       >
         <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
@@ -450,6 +454,8 @@ export function TaskTable({
                           .tasks.detail(task.id).href
                       )
                     }
+                    onMouseEnter={() => prefetchTask(task.id)}
+                    onFocus={() => prefetchTask(task.id)}
                   >
                     <CardContent className="p-4">
                       <div className="mb-2 flex items-start justify-between gap-2">
