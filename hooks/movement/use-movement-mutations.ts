@@ -63,6 +63,9 @@ export function useLogMovement() {
         movementKeys.byAttendance(movement.attendanceId),
         (old) => (old ? [...old, movement] : undefined)
       );
+      // Cross-namespace (movement → attendance): the parent Attendance.movements
+      // array mirrors this child entity, so patch in place to avoid a parent
+      // detail refetch.
       patchMovementInParentAttendance(queryClient, movement);
     },
   });
@@ -83,6 +86,10 @@ export function useVerifyMovement() {
         movementKeys.byAttendance(movement.attendanceId),
         (old) => old?.map((m) => (m.id === movement.id ? movement : m))
       );
+      // Cross-namespace (movement → attendance): verification flips the child's
+      // `isVerified` / `verifiedBy` / `verifiedAt` fields; mirror those into
+      // the cached parent's movements array. Status of the parent attendance
+      // itself does not change, so no parent-key invalidation is needed.
       patchMovementInParentAttendance(queryClient, movement);
     },
   });
