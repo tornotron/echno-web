@@ -7,7 +7,7 @@ import { useEmployees } from '@/hooks/employee';
 import { useUserEmployees } from '@/hooks/user/use-user';
 import { ChatMessage } from '@/types/chat';
 import { Employee } from '@/types/employee/employee';
-import { shouldRetry } from '@/lib/utils/retry';
+import { shouldRetry } from '@/lib/query/retry';
 
 function resolveMessageEmployees(
   messages: ChatMessage[],
