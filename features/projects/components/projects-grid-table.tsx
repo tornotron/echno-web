@@ -46,6 +46,7 @@ import {
 } from '@/types/project/project-status';
 import type { Project } from '@/types/project/project';
 import { routes } from '@/nav';
+import { usePrefetchProject } from '@/hooks/project/use-prefetch-project';
 
 interface ProjectFilters {
   search: string;
@@ -107,6 +108,7 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
     search: '',
     status: 'all',
   });
+  const prefetchProject = usePrefetchProject();
 
   const handleFilterChange = (
     key: keyof ProjectFilters,
@@ -207,6 +209,8 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
                     routes.portfolio.projects.allProjects.detail(project.id)
                       .href
                   }
+                  onMouseEnter={() => prefetchProject(project.id)}
+                  onFocus={() => prefetchProject(project.id)}
                 >
                   <Card className="h-full cursor-pointer text-sm transition-all hover:border-indigo-300 hover:shadow-md dark:hover:border-indigo-500/40">
                     <CardHeader>
