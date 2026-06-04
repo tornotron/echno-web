@@ -94,8 +94,8 @@ import {
   useApproveAttendance,
   useMarkAbsent,
   useAttendanceRole,
-  AttendanceRole,
 } from '@/hooks/attendance';
+import { AttendanceRole } from '@/types/attendance';
 import { useLogMovement } from '@/hooks/movement';
 import { useProjects } from '@/hooks/project/use-projects';
 import { useEmployees } from '@/hooks/employee';

@@ -1,6 +1,6 @@
 'use client';
 
-import { AttendanceRole } from '@/hooks/attendance';
+import { AttendanceRole } from '@/types/attendance';
 import {
   Select,
   SelectContent,

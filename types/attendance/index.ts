@@ -18,3 +18,4 @@ export * from './clock-event-create';
 export * from './attendance-list-params';
 export * from './regularization-create';
 export * from './movement-create';
+export * from './role';
