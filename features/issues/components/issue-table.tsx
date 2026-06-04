@@ -38,6 +38,7 @@ import { IssueStatus, IssueType } from '@/types/issue';
 import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
+import { usePrefetchIssue } from '@/hooks/issue/use-prefetch-issue';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -162,6 +163,7 @@ export function IssueTable({
   onProjectChange,
 }: IssueTableProps) {
   const router = useRouter();
+  const prefetchIssue = usePrefetchIssue();
   const endIndex = Math.min(startIndex + itemsPerPage, filteredIssuesCount);
   const canNavigate = projectId !== 'all';
 
@@ -246,6 +248,8 @@ export function IssueTable({
               )
           : undefined
       }
+      onMouseEnter={canNavigate ? () => prefetchIssue(issue.id) : undefined}
+      onFocus={canNavigate ? () => prefetchIssue(issue.id) : undefined}
     >
       <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
         <Checkbox
@@ -531,6 +535,12 @@ export function IssueTable({
                               .issues.detail(issue.id).href
                           )
                       : undefined
+                  }
+                  onMouseEnter={
+                    canNavigate ? () => prefetchIssue(issue.id) : undefined
+                  }
+                  onFocus={
+                    canNavigate ? () => prefetchIssue(issue.id) : undefined
                   }
                 >
                   <CardContent className="p-4">

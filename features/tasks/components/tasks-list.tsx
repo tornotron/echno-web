@@ -37,6 +37,7 @@ import { Task, TaskStatus } from '@/types/task';
 import { Project } from '@/types/project';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
+import { usePrefetchTask } from '@/hooks/task/use-prefetch-task';
 import { TaskStatsCard } from './task-stats-card';
 
 interface TasksListProps {
@@ -86,6 +87,7 @@ function getStatusLabel(status: TaskStatus): string {
 
 export function TasksList({ tasks, projects }: TasksListProps) {
   const router = useRouter();
+  const prefetchTask = usePrefetchTask();
 
   const [projectFilter, setProjectFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -309,6 +311,8 @@ export function TasksList({ tasks, projects }: TasksListProps) {
                               .tasks.detail(task.id).href
                           )
                         }
+                        onMouseEnter={() => prefetchTask(task.id)}
+                        onFocus={() => prefetchTask(task.id)}
                         className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800"
                       >
                         <TableCell
@@ -565,6 +569,8 @@ export function TasksList({ tasks, projects }: TasksListProps) {
                           .tasks.detail(task.id).href
                       )
                     }
+                    onMouseEnter={() => prefetchTask(task.id)}
+                    onFocus={() => prefetchTask(task.id)}
                   >
                     <CardContent className="p-4">
                       <div className="mb-2 flex items-start justify-between gap-2">
