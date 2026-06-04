@@ -31,9 +31,6 @@ export function useCreateLabour() {
         labourKeys.detail(newLabour.id),
         newLabour
       );
-      queryClient.invalidateQueries({
-        queryKey: labourKeys.detail(newLabour.id),
-      });
       toast.success('Labour Created', {
         description: 'The labour record has been created successfully',
       });

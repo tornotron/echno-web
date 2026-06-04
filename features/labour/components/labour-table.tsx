@@ -115,7 +115,7 @@ export function LabourTable({
           <Input
             value={searchValue}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search by name, ID, or trade..."
+            placeholder="Search by name, ID, or specialization..."
             className="h-8 pl-8 text-sm"
           />
         </div>
@@ -220,7 +220,7 @@ export function LabourTable({
                       />
                     </TableHead>
                     <TableHead>Name & Contact</TableHead>
-                    <TableHead>Trade</TableHead>
+                    <TableHead>Specialization</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Rate</TableHead>
                     <TableHead>Project</TableHead>
