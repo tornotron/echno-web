@@ -1,49 +1,20 @@
 /**
  * hooks/attendance/use-attendance-role.ts
  *
- * Attendance management role detection hook.
- * Uses role groups from OrgRole (adminRoles, managerRoles, etc.)
- * to determine the user's attendance management permissions.
+ * Attendance management role detection hook. Resolves the user's effective
+ * attendance role (admin / manager / employee) and the associated permission
+ * flags from the authorization context.
  *
- * Role Priority: Admin > Manager > Employee
+ * Role priority: Admin > Manager > Employee.
+ *
+ * Type definitions live in `@/types/attendance/role.ts` so pages can import
+ * the enum and the return-shape interface without pulling in this hook's
+ * runtime dependencies (see Milestone 10 — Type Extraction).
  */
 
 import { useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
-
-// ==================== Types ====================
-
-export enum AttendanceRole {
-  EMPLOYEE = 'employee',
-  MANAGER = 'manager',
-  ADMIN = 'admin',
-}
-
-export interface AttendanceRoleContext {
-  /** Primary role for the user */
-  role: AttendanceRole;
-
-  /** Quick boolean checks */
-  isEmployee: boolean;
-  isManager: boolean;
-  isAdmin: boolean;
-
-  /** Available roles for this user (for dashboard switching) */
-  availableRoles: AttendanceRole[];
-
-  /** Permission flags */
-  canApprove: boolean;
-  canManageSettings: boolean;
-  canViewAllProjects: boolean;
-  canViewTeamAttendance: boolean;
-  canViewOwnAttendance: boolean;
-  canMarkAttendance: boolean;
-
-  /** Loading state */
-  isLoading: boolean;
-}
-
-// ==================== Hook ====================
+import { AttendanceRole, type AttendanceRoleContext } from '@/types/attendance';
 
 export function useAttendanceRole(): AttendanceRoleContext {
   const { isAdmin, isManagerOrAbove, isLoading } = useAuthorization();
