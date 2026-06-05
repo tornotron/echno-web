@@ -40,7 +40,7 @@ import { abbreviatedName } from '@/types/work-category';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { useCurrentUserEmployee } from '@/hooks/employee';
 import { toast } from '@/lib/styles/toast-styles';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { useDeleteAttachment } from '@tornotron/echno-core';
 import { AttachmentsSection } from '@/components/common';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;

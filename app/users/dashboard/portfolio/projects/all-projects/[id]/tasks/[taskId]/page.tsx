@@ -29,7 +29,8 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { TaskStatus, getTaskStatusLabel } from '@/types/task';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { useDeleteAttachment } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   TaskOverviewTab,
   TaskIssuesTab,
@@ -192,7 +193,14 @@ export default function TaskDetailPage({ params }: PageProps) {
         isPending={deleteAttachment.isPending}
         onConfirm={async () => {
           if (attachmentToDelete === null) return;
-          await deleteAttachment.mutateAsync(attachmentToDelete);
+          try {
+            await deleteAttachment.mutateAsync(attachmentToDelete);
+            toast.success('Attachment Deleted', {
+              description: 'The attachment has been removed.',
+            });
+          } catch {
+            toast.error('Failed to Delete Attachment');
+          }
           setAttachmentToDelete(null);
         }}
       />
