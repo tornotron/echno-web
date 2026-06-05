@@ -44,12 +44,12 @@ import {
   getTaskStatusColor,
 } from '@/types/task/task-status';
 import type { Issue } from '@/types/issue/issue';
-import type { Attachment } from '@/types/attachment';
+import type { Attachment } from '@tornotron/echno-core';
+import { useDeleteAttachment } from '@tornotron/echno-core';
 import { useTasksByProject } from '@/hooks/task';
 import { useUser, useUserEmployees } from '@/hooks/user/use-user';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { toast } from '@/lib/styles/toast-styles';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { routes } from '@/nav';
 import { AttachmentsSection } from '@/components/common';
 

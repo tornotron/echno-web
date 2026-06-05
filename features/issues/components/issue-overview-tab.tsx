@@ -41,7 +41,7 @@ import { format } from 'date-fns';
 import type { Issue } from '@/types/issue/issue';
 import type { Task } from '@/types/task/task';
 import type { Project } from '@/types/project/project';
-import { AttachmentType, formatFileSize } from '@/types/attachment';
+import { AttachmentType, formatFileSize } from '@tornotron/echno-core';
 import { useUpdateIssue } from '@/hooks/issue';
 import { useEmployeesByProject } from '@/hooks/project/use-projects';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
