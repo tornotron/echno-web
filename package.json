@@ -14,6 +14,7 @@
     "routes:watch": "node --experimental-strip-types scripts/watch-routes.ts"
   },
   "dependencies": {
+    "@tornotron/echno-core": "git@github.com:tornotron/echno-core.git#v0.1.1",
     "@base-ui/react": "^1.4.1",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
@@ -109,5 +110,8 @@
     "minimatch": ">=3.1.3",
     "picomatch": ">=2.3.2",
     "postcss": ">=8.5.10"
-  }
+  },
+  "trustedDependencies": [
+    "@tornotron/echno-core"
+  ]
 }
