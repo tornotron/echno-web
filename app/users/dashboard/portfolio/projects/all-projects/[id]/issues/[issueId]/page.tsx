@@ -5,7 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { useProject } from '@/hooks/project/use-projects';
 import { useIssue } from '@/hooks/issue';
 import { useTask } from '@/hooks/task';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { useDeleteAttachment } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Card } from '@/components/shadcn/card';
@@ -212,7 +213,14 @@ export default function IssueDetailPage({ params }: PageProps) {
         isPending={deleteAttachment.isPending}
         onConfirm={async () => {
           if (attachmentToDelete === null) return;
-          await deleteAttachment.mutateAsync(attachmentToDelete);
+          try {
+            await deleteAttachment.mutateAsync(attachmentToDelete);
+            toast.success('Attachment Deleted', {
+              description: 'The attachment has been removed.',
+            });
+          } catch {
+            toast.error('Failed to Delete Attachment');
+          }
           setAttachmentToDelete(null);
         }}
       />
