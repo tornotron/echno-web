@@ -47,8 +47,14 @@ function invalidateDerivedViews(
   queryClient: ReturnType<typeof useQueryClient>,
   projectId: number
 ) {
-  queryClient.invalidateQueries({ queryKey: wbsElementKeys.tree(projectId) });
-  queryClient.invalidateQueries({ queryKey: wbsElementKeys.leaves(projectId) });
+  queryClient.invalidateQueries({
+    queryKey: wbsElementKeys.tree(projectId),
+    exact: true,
+  });
+  queryClient.invalidateQueries({
+    queryKey: wbsElementKeys.leaves(projectId),
+    exact: true,
+  });
 }
 
 export const useCreateWbsElement = (projectId: number) => {
