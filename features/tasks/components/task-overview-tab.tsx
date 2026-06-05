@@ -27,7 +27,7 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
 import type { Task } from '@/types/task/task';
-import { AttachmentType, formatFileSize } from '@/types/attachment';
+import { AttachmentType, formatFileSize } from '@tornotron/echno-core';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
