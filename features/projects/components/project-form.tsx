@@ -30,7 +30,7 @@ import { useGeolocation } from '@/hooks/use-geolocation';
 import { format } from 'date-fns';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { useDeleteAttachment } from '@tornotron/echno-core';
 import { AttachmentsSection } from '@/components/common';
 
 // ---------------------------------------------------------------------------
