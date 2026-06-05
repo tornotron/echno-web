@@ -22,8 +22,11 @@ import {
   File,
   Trash2,
 } from 'lucide-react';
-import type { Attachment, AttachmentType } from '@/types/attachment';
-import { formatFileSize } from '@/types/attachment';
+import {
+  type Attachment,
+  type AttachmentType,
+  formatFileSize,
+} from '@tornotron/echno-core';
 import {
   AlertDialog,
   AlertDialogAction,
