@@ -58,7 +58,11 @@ import {
 } from '@/types/project/project-status';
 import { TaskStatus } from '@/types/task';
 import { IssueStatus } from '@/types/issue';
-import { AttachmentType, formatFileSize } from '@/types/attachment';
+import {
+  AttachmentType,
+  formatFileSize,
+  useDeleteAttachment,
+} from '@tornotron/echno-core';
 import { format } from 'date-fns';
 import { TeamMembersSection } from '@/features/projects/components';
 import { AttachmentsUploader } from '@/components/common';
@@ -67,7 +71,6 @@ import { WBSTree } from '@/features/wbs/components/wbs-tree';
 import { HealthTab } from '@/features/health/components/health-tab';
 import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   AlertDialog,
@@ -166,6 +169,9 @@ export default function ProjectDashboardPage() {
     if (!attachmentToDelete) return;
     try {
       await deleteAttachmentMutation.mutateAsync(attachmentToDelete);
+      toast.success('Attachment Deleted', {
+        description: 'The attachment has been removed.',
+      });
       setAttachmentToDelete(null);
     } catch {
       toast.error('Failed to delete attachment');
