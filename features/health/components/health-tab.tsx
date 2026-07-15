@@ -13,10 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { TaskStatus } from '@/types/task';
-import { ProjectStatus } from '@/types/project/project-status';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
+import { ProjectStatus } from '@tornotron/echno-core/project/types';
 import { differenceInDays, format } from 'date-fns';
-import type { Project } from '@/types/project';
+import type { Project } from '@tornotron/echno-core/project/types';
 
 type RAGStatus = 'green' | 'amber' | 'red' | 'grey';
 
