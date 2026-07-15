@@ -33,12 +33,15 @@ import {
 import { Checkbox } from '@/components/shadcn/checkbox';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import type { Issue } from '@/types/issue/issue';
-import { IssueStatus, IssueType } from '@/types/issue';
-import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
+import type { Issue } from '@tornotron/echno-core/issue/types';
+import { IssueStatus, IssueType } from '@tornotron/echno-core/issue/types';
+import {
+  getIssueTypeColor,
+  getIssueTypeLabel,
+} from '@tornotron/echno-core/issue/types';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
-import { usePrefetchIssue } from '@/hooks/issue/use-prefetch-issue';
+import { usePrefetchIssue } from '@tornotron/echno-core/issue/hooks';
 
 // ---------------------------------------------------------------------------
 // Status helpers

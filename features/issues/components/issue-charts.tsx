@@ -33,13 +33,16 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { cn } from '@/lib/utils/index';
-import { IssueStatus, getIssueStatusLabel } from '@/types/issue/issue-status';
+import {
+  IssueStatus,
+  getIssueStatusLabel,
+} from '@tornotron/echno-core/issue/types';
 import {
   IssueType,
-  getIssueTypeLabel,
   getIssueTypeColor,
-} from '@/types/issue/issue-type';
-import type { Issue } from '@/types/issue/issue';
+  getIssueTypeLabel,
+} from '@tornotron/echno-core/issue/types';
+import type { Issue } from '@tornotron/echno-core/issue/types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

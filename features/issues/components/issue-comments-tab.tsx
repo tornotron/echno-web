@@ -15,10 +15,12 @@ import { Loader2, MessageSquare, Send } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format, formatDistanceToNow } from 'date-fns';
-import type { Issue } from '@/types/issue/issue';
-import { useCreateIssueComment } from '@/hooks/issue';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import type { Issue } from '@tornotron/echno-core/issue/types';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useCreateIssueComment } from '@tornotron/echno-core/issue/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface IssueCommentsTabProps {
   issue: Issue;
@@ -38,9 +40,14 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
         comment: commentText.trim(),
         authorId: currentEmployee.id,
       });
+      toast.success('Comment Added', {
+        description: 'Your comment has been added successfully',
+      });
       setCommentText('');
-    } catch {
-      // error toast shown by mutation hook
+    } catch (error) {
+      const title = getErrorTitle(error, 'Failed to Add Comment');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
     }
   };
 
