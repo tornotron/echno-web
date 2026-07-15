@@ -17,7 +17,7 @@ import {
 } from '@/components/shadcn/avatar';
 import { User, LogOut } from 'lucide-react';
 import { handleSignOut } from '@/lib/auth/auth-utils';
-import { useUser } from '@/hooks/user/use-user';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import Link from 'next/link';
 
 const onSignOut = () => {
