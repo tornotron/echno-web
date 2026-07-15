@@ -14,9 +14,9 @@ import {
   CheckCircle2,
   Truck,
 } from 'lucide-react';
-import { usePurchaseOrders } from '@/hooks/purchase-orders/use-purchase-orders';
+import { usePurchaseOrders } from '@tornotron/echno-core/purchase-orders/hooks';
 import { PurchaseOrderTable } from '@/features/purchase-orders/components';
-import { PurchaseOrderStatus } from '@/types/purchase-orders';
+import { PurchaseOrderStatus } from '@tornotron/echno-core/purchase-orders/types';
 
 export default function PurchaseOrdersPage() {
   const { data: orders = [], isLoading } = usePurchaseOrders();

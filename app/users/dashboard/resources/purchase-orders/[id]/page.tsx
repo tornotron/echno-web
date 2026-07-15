@@ -34,14 +34,16 @@ import {
   ShoppingCart,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   usePurchaseOrder,
   useDeletePurchaseOrder,
-} from '@/hooks/purchase-orders';
+} from '@tornotron/echno-core/purchase-orders/hooks';
 import {
   purchaseOrderStatusLabels,
   purchaseOrderStatusBadgeColors,
-} from '@/types/purchase-orders';
+} from '@tornotron/echno-core/purchase-orders/types';
 import {
   DeletePODialog,
   POItemsCard,
@@ -106,6 +108,10 @@ export default function PurchaseOrderDetailPage({
         onConfirm={() =>
           deletePO(id, {
             onSuccess: () => router.push(routes.resources.purchaseOrders.href),
+            onError: (err) =>
+              toast.error(getErrorTitle(err, 'Delete Not Supported'), {
+                description: getErrorMessage(err),
+              }),
           })
         }
         isPending={isDeleting}
