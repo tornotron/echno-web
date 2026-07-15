@@ -23,8 +23,9 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/shadcn/tabs';
-import { useCurrentUserEmployee } from '@/hooks/employee';
-import { useAttendanceByEmployee, useAttendanceRole } from '@/hooks/attendance';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import { useAttendanceByEmployee } from '@tornotron/echno-core/attendance/hooks';
+import { useAttendanceRole } from '@/hooks/attendance';
 import MarkAttendanceDialog from '@/features/attendance/components/dashboard/mark-attendance-dialog';
 import { MarkAttendanceForm } from '@/features/attendance/components/mark-attendance-form';
 import { MovementLogForm } from '@/features/attendance/components/movement-log-form';
@@ -36,8 +37,8 @@ import {
   AttendanceStatus,
   getAttendanceStatusLabel,
   getAttendanceStatusColor,
-} from '@/types/attendance/attendance-status';
-import type { Attendance } from '@/types/attendance';
+} from '@tornotron/echno-core/attendance/types';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 
 export default function MarkAttendancePage() {
   const router = useRouter();
