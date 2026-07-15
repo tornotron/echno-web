@@ -2,10 +2,10 @@ import { Badge } from '@/components/shadcn/badge';
 import { TableCell, TableRow } from '@/components/shadcn/table';
 import { format } from 'date-fns';
 import {
-  consumptionTypeLabels,
   ConsumptionType,
+  consumptionTypeLabels,
   type MaterialConsumption,
-} from '@/types/materials';
+} from '@tornotron/echno-core/materials/types';
 
 const consumptionTypeBadgeColors: Record<ConsumptionType, string> = {
   [ConsumptionType.usedFromStock]:
@@ -27,8 +27,10 @@ export function ConsumptionRow({ consumption, onClick }: ConsumptionRowProps) {
       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === ' ') { e.preventDefault(); onClick(); }
-        else if (e.key === 'Enter') onClick();
+        if (e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        } else if (e.key === 'Enter') onClick();
       }}
     >
       <TableCell className="text-muted-foreground pl-6 text-sm">

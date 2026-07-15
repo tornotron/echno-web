@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { MapPin, FolderOpen } from 'lucide-react';
-import type { MaterialConsumption } from '@/types/materials';
+import type { MaterialConsumption } from '@tornotron/echno-core/materials/types';
 
 interface ConsumptionContextCardProps {
   consumption: MaterialConsumption;

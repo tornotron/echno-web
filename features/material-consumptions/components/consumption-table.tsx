@@ -33,7 +33,7 @@ import {
   ConsumptionType,
   consumptionTypeLabels,
   type MaterialConsumption,
-} from '@/types/materials';
+} from '@tornotron/echno-core/materials/types';
 import { ConsumptionRow } from './consumption-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
