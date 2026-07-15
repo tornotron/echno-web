@@ -15,21 +15,21 @@
 
 import { useState } from 'react';
 import { toast } from '@/lib/styles/toast-styles';
-import type { ShiftTiming } from '@/types/shift-timing';
-import type { AttendanceProfile } from '@/types/attendance';
-import { useAttendanceProfiles } from './use-attendance-settings';
+import type { ShiftTiming } from '@tornotron/echno-core/shift-timing/types';
+import type { AttendanceProfile } from '@tornotron/echno-core/attendance/types';
 import {
+  useAttendanceProfiles,
   useCreateAttendanceProfile,
   useUpdateAttendanceProfile,
   useDeleteAttendanceProfile,
-} from './use-attendance-settings-mutations';
+} from '@tornotron/echno-core/attendance-settings/hooks';
 import {
   useShifts,
   useCreateShift,
   useUpdateShift,
   useDeleteShift,
-} from '@/hooks/shift-timing';
-import { useProjects } from '@/hooks/project/use-projects';
+} from '@tornotron/echno-core/shift-timing/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 
 // ─── Blank form defaults ──────────────────────────────────────────────────────
 
