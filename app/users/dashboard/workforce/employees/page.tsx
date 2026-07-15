@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { PageHeader, OrgGuard } from '@/components/common';
-import { useEmployees } from '@/hooks/employee';
-import { useUser } from '@/hooks/user/use-user';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import { EmployeeOverview } from '@/features/employee/components/employee-overview';
 import { EmployeeCharts } from '@/features/employee/components/employee-charts';
 import { EmployeeEmptyState } from '@/features/employee/components/employee-empty-state';
