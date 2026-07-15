@@ -1,8 +1,11 @@
 // types/chat/chat-message.ts
 
-import { Employee } from '@/types/employee/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 import { parsePositiveInt } from '@/types/parse-id';
-import { Attachment, parseAttachment } from '@/types/attachment';
+import {
+  Attachment,
+  parseAttachment,
+} from '@tornotron/echno-core/attachment/types';
 import { ChatReaction, parseChatReaction } from './chat-reaction';
 import {
   ChatEntityMention,
@@ -28,16 +31,16 @@ export interface ChatMessage {
   updatedAt: Date;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseReplyTo(
-  raw: any
+  raw: unknown
 ): Pick<ChatMessage, 'id' | 'senderId' | 'content' | 'sender'> | undefined {
   if (!raw || typeof raw !== 'object') return undefined;
+  const r = raw as Record<string, unknown>;
   return {
-    id: raw.id ?? 0,
-    senderId: raw.senderId ?? raw.sender_id ?? 0,
-    content: raw.content ?? '',
-    sender: raw.sender,
+    id: (r.id as number) ?? 0,
+    senderId: (r.senderId as number) ?? (r.sender_id as number) ?? 0,
+    content: (r.content as string) ?? '',
+    sender: r.sender as ChatMessage['sender'],
   };
 }
 
