@@ -2,15 +2,16 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
-import { useProject } from '@/hooks/project/use-projects';
-import { useCreateTask } from '@/hooks/task';
-import { useWorkCategories } from '@/hooks/work-category';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useCreateTask } from '@tornotron/echno-core/task/hooks';
+import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import { TaskForm, type TaskFormSubmitData } from '@/features/tasks/components';
-import type { CreateTaskRequest } from '@/types/task/task-create';
+import type { CreateTaskRequest } from '@tornotron/echno-core/task/types';
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -54,14 +55,20 @@ export default function NewTaskPage() {
         onSuccess: () => {
           if (data.isDraft) {
             toast.success('Draft saved');
+          } else {
+            toast.success('Task Created', {
+              description: 'The task has been created successfully',
+            });
           }
           router.push(
             routes.portfolio.projects.allProjects.detail(projectId).tasks.href
           );
         },
         onError: (error) => {
-          logger.error('Error creating task:', error);
-          toast.error('Failed to create task. Please try again.');
+          const title = getErrorTitle(error, 'Failed to Create Task');
+          const description = getErrorMessage(error);
+          toast.error(title, { description });
+          logger.error('Failed to create task:', error);
         },
       }
     );
