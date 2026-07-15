@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Loader2 } from 'lucide-react';
-import type { Project } from '@/types/project';
+import type { Project } from '@tornotron/echno-core/project/types';
 
 interface CurrentProjectsCardProps {
   employeeProjects: Project[] | undefined;

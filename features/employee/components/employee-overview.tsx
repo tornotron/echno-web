@@ -21,7 +21,7 @@ import {
   Employee,
   EmployeeStatus,
   getEmployeeStatusLabel,
-} from '@/types/employee';
+} from '@tornotron/echno-core/employee/types';
 import { cn } from '@/lib/utils/index';
 
 interface EmployeeOverviewProps {

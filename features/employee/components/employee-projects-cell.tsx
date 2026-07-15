@@ -1,8 +1,8 @@
 'use client';
 
 import { FolderKanban, Loader2 } from 'lucide-react';
-import type { Project } from '@/types/project';
-import { useProjectsByEmployee } from '@/hooks/project';
+import type { Project } from '@tornotron/echno-core/project/types';
+import { useProjectsByEmployee } from '@tornotron/echno-core/project/hooks';
 
 interface EmployeeProjectsCellProps {
   /** Employee ID — used to fetch projects when `projects` is not provided. */

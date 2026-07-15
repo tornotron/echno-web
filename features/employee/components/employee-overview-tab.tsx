@@ -33,11 +33,11 @@ import {
   CalendarDays,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { getDepartmentLabel } from '@/types/employee';
-import type { Employee } from '@/types/employee';
-import type { OrgRole } from '@/types/employee/org-role';
-import { getOrgRoleLabel } from '@/types/employee/org-role';
-import type { Project } from '@/types/project';
+import { getDepartmentLabel } from '@tornotron/echno-core/employee/types';
+import type { Employee } from '@tornotron/echno-core/employee/types';
+import type { OrgRole } from '@tornotron/echno-core/employee/types';
+import { getOrgRoleLabel } from '@tornotron/echno-core/employee/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 import { CurrentProjectsCard } from './current-projects-card';
 
 interface EmployeeOverviewTabProps {

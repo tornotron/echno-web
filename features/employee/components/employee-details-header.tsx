@@ -4,8 +4,8 @@ import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Edit, Building } from 'lucide-react';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
-import { getDepartmentLabel } from '@/types/employee';
-import type { Employee } from '@/types/employee';
+import { getDepartmentLabel } from '@tornotron/echno-core/employee/types';
+import type { Employee } from '@tornotron/echno-core/employee/types';
 
 interface EmployeeDetailsHeaderProps {
   employee: Employee;
