@@ -33,11 +33,11 @@ import {
 } from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { Task, TaskStatus } from '@/types/task';
-import { Project } from '@/types/project';
+import { Task, TaskStatus } from '@tornotron/echno-core/task/types';
+import { Project } from '@tornotron/echno-core/project/types';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
-import { usePrefetchTask } from '@/hooks/task/use-prefetch-task';
+import { usePrefetchTask } from '@tornotron/echno-core/task/hooks';
 import { TaskStatsCard } from './task-stats-card';
 
 interface TasksListProps {

@@ -26,12 +26,16 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
-import type { Task } from '@/types/task/task';
-import { AttachmentType, formatFileSize } from '@tornotron/echno-core';
+import type { Task } from '@tornotron/echno-core/task/types';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  AttachmentType,
+  formatFileSize,
+} from '@tornotron/echno-core/attachment/types';
+import { useUpdateTask } from '@tornotron/echno-core/task/hooks';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
-import { useUpdateTask } from '@/hooks/task';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 import {
@@ -206,11 +210,29 @@ export function TaskOverviewTab({
                       description: `Not uploaded: ${invalid.join(', ')}`,
                     });
                   if (valid.length > 0)
-                    updateTask.mutate({
-                      id: taskId,
-                      data: {},
-                      files: { attachments: valid },
-                    });
+                    updateTask.mutate(
+                      {
+                        id: taskId,
+                        data: {},
+                        files: { attachments: valid },
+                      },
+                      {
+                        onSuccess: () => {
+                          toast.success('Task Updated', {
+                            description:
+                              'The task has been updated successfully',
+                          });
+                        },
+                        onError: (error) => {
+                          const title = getErrorTitle(
+                            error,
+                            'Failed to Update Task'
+                          );
+                          const description = getErrorMessage(error);
+                          toast.error(title, { description });
+                        },
+                      }
+                    );
                 }}
                 isPending={updateTask.isPending}
               />
