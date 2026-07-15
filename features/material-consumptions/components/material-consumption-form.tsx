@@ -19,11 +19,17 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { FlameKindling, AlertTriangle } from 'lucide-react';
-import { useMaterials, useMaterialWithStock } from '@/hooks/materials';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useStorageLocations } from '@/hooks/storage-locations/use-storage-locations';
-import { useTasks } from '@/hooks/task/use-tasks';
-import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
+import {
+  useMaterialWithStock,
+  useMaterials,
+} from '@tornotron/echno-core/materials/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
+import { useTasks } from '@tornotron/echno-core/task/hooks';
+import {
+  ConsumptionType,
+  consumptionTypeLabels,
+} from '@tornotron/echno-core/materials/types';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 

@@ -9,8 +9,11 @@ import {
 import { Badge } from '@/components/shadcn/badge';
 import { ClipboardList } from 'lucide-react';
 import { format } from 'date-fns';
-import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
-import type { MaterialConsumption } from '@/types/materials';
+import {
+  ConsumptionType,
+  consumptionTypeLabels,
+} from '@tornotron/echno-core/materials/types';
+import type { MaterialConsumption } from '@tornotron/echno-core/materials/types';
 
 const consumptionTypeBadgeColors: Record<ConsumptionType, string> = {
   [ConsumptionType.usedFromStock]:
