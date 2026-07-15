@@ -9,13 +9,14 @@ import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Loader2, Send, FolderOpen } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { useIndent, indentsKeys } from '@/hooks/indents/use-indents';
-import { materialsKeys } from '@/hooks/materials/use-materials';
-import type { Indent } from '@/types/indents';
-import type { Material } from '@/types/materials';
-import { useCreatePurchaseOrder } from '@/hooks/purchase-orders/use-purchase-orders-mutations';
-import { useCurrentUserEmployee } from '@/hooks/employee';
-import type { InlinePurchaseOrderItemInput } from '@/types/purchase-orders';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { useIndent, indentsKeys } from '@tornotron/echno-core/indents/hooks';
+import { materialsKeys } from '@tornotron/echno-core/materials/hooks/keys';
+import type { Indent } from '@tornotron/echno-core/indents/types';
+import type { Material } from '@tornotron/echno-core/materials/types';
+import { useCreatePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import type { InlinePurchaseOrderItemInput } from '@tornotron/echno-core/purchase-orders/types';
 import {
   PurchaseOrderForm,
   PURCHASE_ORDER_FORM_ID,
@@ -103,9 +104,14 @@ export default function NewPurchaseOrderPage() {
           })
         ),
       });
+      toast.success('Purchase Order Created', {
+        description: 'The purchase order has been created successfully.',
+      });
       router.push(routes.resources.purchaseOrders.detail(po.id).href);
-    } catch {
-      // errors handled by mutation hook
+    } catch (error) {
+      toast.error(getErrorTitle(error, 'Failed to Create Purchase Order'), {
+        description: getErrorMessage(error),
+      });
     }
   }
 
