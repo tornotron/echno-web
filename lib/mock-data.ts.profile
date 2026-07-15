@@ -18,7 +18,7 @@ import {
   ClockEventType,
   GeoLocation,
   MovementType,
-} from '@/types/attendance';
+} from '@tornotron/echno-core/attendance/types';
 import {
   LeaveRequest,
   LeaveStatus,
