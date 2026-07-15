@@ -26,7 +26,9 @@ import {
   Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useGRN, useDeleteGRN } from '@/hooks/grn';
+import { useGRN, useDeleteGRN } from '@tornotron/echno-core/grn/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   DeleteGRNDialog,
   GRNItemsCard,
@@ -87,6 +89,10 @@ export default function GRNDetailPage({
         onConfirm={() =>
           deleteGRN(id, {
             onSuccess: () => router.push(routes.resources.goodsReceipts.href),
+            onError: (err) =>
+              toast.error(getErrorTitle(err, 'Delete Not Supported'), {
+                description: getErrorMessage(err),
+              }),
           })
         }
         isPending={isDeleting}

@@ -14,7 +14,7 @@ import {
   IndianRupee,
   ShoppingCart,
 } from 'lucide-react';
-import { useGRNs } from '@/hooks/grn';
+import { useGRNs } from '@tornotron/echno-core/grn/hooks';
 import { GoodsReceiptTable } from '@/features/grn/components';
 
 export default function GoodsReceiptsPage() {
