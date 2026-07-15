@@ -28,7 +28,11 @@ import {
   ContextMenuTrigger,
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils/index';
-import { Task, TaskStatus, getTaskStatusLabel } from '@/types/task';
+import {
+  Task,
+  TaskStatus,
+  getTaskStatusLabel,
+} from '@tornotron/echno-core/task/types';
 
 type ProjectGanttTask = Task & {
   ganttId: string;
