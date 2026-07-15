@@ -1,4 +1,4 @@
-import { UserRole } from '@/types/user/user-role';
+import { UserRole } from '@tornotron/echno-core/user/types';
 
 /**
  * Registration request payload sent to the backend.
@@ -28,8 +28,10 @@ export interface RegistrationResponse {
  * Registration form data used in the UI.
  * Includes confirmPassword for client-side validation.
  */
-export interface RegistrationFormData
-  extends Omit<RegistrationRequest, 'dateOfBirth'> {
+export interface RegistrationFormData extends Omit<
+  RegistrationRequest,
+  'dateOfBirth'
+> {
   confirmPassword: string;
   dateOfBirth: Date | null;
 }
