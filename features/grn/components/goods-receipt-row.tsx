@@ -1,6 +1,6 @@
 import { TableCell, TableRow } from '@/components/shadcn/table';
 import { format } from 'date-fns';
-import type { GoodsReceivedNote } from '@/types/grn';
+import type { GoodsReceivedNote } from '@tornotron/echno-core/grn/types';
 
 interface GoodsReceiptRowProps {
   grn: GoodsReceivedNote;
@@ -15,8 +15,10 @@ export function GoodsReceiptRow({ grn, onClick }: GoodsReceiptRowProps) {
       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === ' ') { e.preventDefault(); onClick(); }
-        else if (e.key === 'Enter') onClick();
+        if (e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        } else if (e.key === 'Enter') onClick();
       }}
     >
       <TableCell className="pl-6 font-medium">{grn.grnNumber}</TableCell>

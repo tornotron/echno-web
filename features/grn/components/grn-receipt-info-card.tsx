@@ -8,7 +8,7 @@ import {
 } from '@/components/shadcn/card';
 import { Receipt } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
-import type { GoodsReceivedNote } from '@/types/grn';
+import type { GoodsReceivedNote } from '@tornotron/echno-core/grn/types';
 
 interface GRNReceiptInfoCardProps {
   grn: GoodsReceivedNote;
