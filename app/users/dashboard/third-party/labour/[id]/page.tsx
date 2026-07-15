@@ -27,8 +27,17 @@ import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useLabourById, useDeleteLabour } from '@/hooks/labour';
-import { EmploymentType, SkillLevel, LabourStatus } from '@/types/labour';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useDeleteLabour,
+  useLabourById,
+} from '@tornotron/echno-core/labour/hooks';
+import {
+  EmploymentType,
+  LabourStatus,
+  SkillLevel,
+} from '@tornotron/echno-core/labour/types';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   Empty,
   EmptyErrorMedia,
@@ -115,7 +124,17 @@ export default function LabourDetailPage({ params }: PageProps) {
 
   const handleDelete = () => {
     deleteLabour.mutate(labour.id, {
-      onSuccess: () => router.push(routes.thirdParty.labour.href),
+      onSuccess: () => {
+        toast.success('Labour Deleted', {
+          description: 'The labour record has been deleted successfully',
+        });
+        router.push(routes.thirdParty.labour.href);
+      },
+      onError: (error) => {
+        toast.error(getErrorTitle(error, 'Failed to Delete Labour'), {
+          description: getErrorMessage(error),
+        });
+      },
     });
   };
 
