@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
+import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
 import {
   isSystemAdmin as checkSystemAdmin,
   isAdmin as checkAdmin,
