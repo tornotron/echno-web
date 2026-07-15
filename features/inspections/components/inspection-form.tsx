@@ -29,8 +29,8 @@ import {
   inspectionResultLabels,
 } from '@/types/inspection';
 import type { Inspection } from '@/types/inspection';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useEmployees } from '@/hooks/employee';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
 
