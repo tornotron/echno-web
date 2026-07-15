@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { useState, use } from 'react';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Department } from '@/types/employee/departments';
+import { Department } from '@tornotron/echno-core/employee/types';
+import { useOrganization as useOrganizationQuery } from '@tornotron/echno-core/organization/hooks';
 import {
   Building2,
   MapPin,
@@ -21,7 +22,6 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { useOrganization as useOrganizationQuery } from '@/hooks/organization/use-organizations';
 import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
 import { buildTree } from '@/lib/utils/hierarchy';

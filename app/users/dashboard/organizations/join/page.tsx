@@ -22,29 +22,37 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useJoinWithInviteCode } from '@/hooks/invitation';
+import { useValidateInviteCodeMutation } from '@tornotron/echno-core/invitation/hooks';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 
 export default function JoinOrganizationPage() {
   const router = useRouter();
+  const { data: user } = useUser();
   const [inviteCode, setInviteCode] = useState('');
   const [joined, setJoined] = useState(false);
   const [joinedOrgName, setJoinedOrgName] = useState('');
+  const [invalidCode, setInvalidCode] = useState(false);
 
-  const joinMutation = useJoinWithInviteCode();
+  const joinMutation = useValidateInviteCodeMutation();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!inviteCode.trim()) {
+    if (!inviteCode.trim() || !user?.id) {
       return;
     }
 
+    setInvalidCode(false);
     joinMutation.mutate(
-      { inviteCode: inviteCode.trim() },
+      { userId: user.id, inviteCode: inviteCode.trim() },
       {
-        onSuccess: () => {
-          setJoinedOrgName('');
-          setJoined(true);
+        onSuccess: (result) => {
+          if (result.valid) {
+            setJoinedOrgName(result.invitation?.organizationName ?? '');
+            setJoined(true);
+          } else {
+            setInvalidCode(true);
+          }
         },
       }
     );
@@ -137,7 +145,7 @@ export default function JoinOrganizationPage() {
                 </div>
 
                 {/* Error */}
-                {joinMutation.isError && (
+                {(joinMutation.isError || invalidCode) && (
                   <Alert variant="destructive">
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-5 w-5" />
