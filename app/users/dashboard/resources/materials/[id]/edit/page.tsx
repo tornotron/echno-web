@@ -14,12 +14,17 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { useMaterial, useUpdateMaterial } from '@/hooks/materials';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useMaterial,
+  useUpdateMaterial,
+} from '@tornotron/echno-core/materials/hooks';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   MaterialForm,
   MATERIAL_FORM_ID,
 } from '@/features/materials/components/material-form';
-import { UpdateMaterialRequest } from '@/types/materials/material-update';
+import { UpdateMaterialRequest } from '@tornotron/echno-core/materials/types';
 
 export default function EditMaterialPage({
   params,
@@ -65,7 +70,15 @@ export default function EditMaterialPage({
       { id, data },
       {
         onSuccess: () => {
+          toast.success('Material Updated', {
+            description: 'The material has been updated successfully.',
+          });
           router.push(routes.resources.materials.detail(id).href);
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Update Material'), {
+            description: getErrorMessage(error),
+          });
         },
       }
     );

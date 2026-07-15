@@ -31,8 +31,13 @@ import {
   Tag,
   AlertTriangle,
 } from 'lucide-react';
-import { useMaterial, useDeleteMaterial } from '@/hooks/materials';
-import { useMaterialStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useDeleteMaterial,
+  useMaterial,
+} from '@tornotron/echno-core/materials/hooks';
+import { toast } from '@/lib/styles/toast-styles';
+import { useMaterialStock } from '@tornotron/echno-core/inventory-transactions/hooks';
 import {
   DeleteMaterialDialog,
   MaterialOverviewTab,
@@ -55,7 +60,17 @@ export default function MaterialDetailPage({
 
   const handleDelete = useCallback(() => {
     deleteMaterial(id, {
-      onSuccess: () => router.push(routes.resources.materials.href),
+      onSuccess: () => {
+        toast.success('Material Deleted', {
+          description: 'The material has been deleted successfully.',
+        });
+        router.push(routes.resources.materials.href);
+      },
+      onError: (error) => {
+        toast.error(getErrorTitle(error, 'Failed to Delete Material'), {
+          description: getErrorMessage(error),
+        });
+      },
     });
   }, [deleteMaterial, id, router]);
 

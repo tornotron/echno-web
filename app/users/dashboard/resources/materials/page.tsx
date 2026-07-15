@@ -5,8 +5,8 @@ import { Loader2, Plus } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { routes } from '@/nav';
-import { useMaterials } from '@/hooks/materials';
-import { useAllMaterialConsumptions } from '@/hooks/material-consumptions';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
+import { useAllMaterialConsumptions } from '@tornotron/echno-core/material-consumption/hooks';
 import {
   MaterialsKpiStrip,
   MaterialsDashboardTable,

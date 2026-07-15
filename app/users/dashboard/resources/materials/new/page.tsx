@@ -3,8 +3,10 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useCreateMaterial } from '@/hooks/materials';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useCreateMaterial } from '@tornotron/echno-core/materials/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import { toast } from '@/lib/styles/toast-styles';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Loader2, Save } from 'lucide-react';
@@ -12,7 +14,7 @@ import {
   MaterialForm,
   MATERIAL_FORM_ID,
 } from '@/features/materials/components/material-form';
-import { CreateMaterialRequest } from '@/types/materials/material-create';
+import { CreateMaterialRequest } from '@tornotron/echno-core/materials/types';
 
 export default function NewMaterialPage() {
   const router = useRouter();
@@ -30,7 +32,15 @@ export default function NewMaterialPage() {
   function handleSubmit(data: CreateMaterialRequest) {
     createMaterial(data, {
       onSuccess: (material) => {
+        toast.success('Material Created', {
+          description: 'The material has been created successfully.',
+        });
         router.push(routes.resources.materials.detail(material.id).href);
+      },
+      onError: (error) => {
+        toast.error(getErrorTitle(error, 'Failed to Create Material'), {
+          description: getErrorMessage(error),
+        });
       },
     });
   }
