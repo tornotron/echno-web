@@ -4,8 +4,8 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, MessageSquare } from 'lucide-react';
 import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
-import { useUser } from '@/hooks/user/use-user';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
+import { useUser } from '@tornotron/echno-core/user/hooks';
+import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 import { routes } from '@/nav';
 
 /**
