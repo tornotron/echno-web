@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { routes } from '@/nav';
-import type { MaterialConsumption } from '@/types/materials';
+import type { MaterialConsumption } from '@tornotron/echno-core/materials/types';
 
 interface RecentStockMovementsProps {
   consumptions: MaterialConsumption[];

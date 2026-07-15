@@ -19,12 +19,12 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { Info, RotateCcw } from 'lucide-react';
-import { useStorageLocations } from '@/hooks/storage-locations/use-storage-locations';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { MaterialUnitSelector } from './material-unit-selector';
-import { Material } from '@/types/materials';
-import { CreateMaterialRequest } from '@/types/materials/material-create';
-import { UpdateMaterialRequest } from '@/types/materials/material-update';
+import { Material } from '@tornotron/echno-core/materials/types';
+import { CreateMaterialRequest } from '@tornotron/echno-core/materials/types';
+import { UpdateMaterialRequest } from '@tornotron/echno-core/materials/types';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 

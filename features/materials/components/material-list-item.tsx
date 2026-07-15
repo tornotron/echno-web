@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Badge } from '@/components/shadcn/badge';
 import { Package } from 'lucide-react';
-import type { Material } from '@/types/materials';
+import type { Material } from '@tornotron/echno-core/materials/types';
 
 interface MaterialListItemProps {
   material: Material;

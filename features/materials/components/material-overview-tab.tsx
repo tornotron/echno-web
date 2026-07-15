@@ -21,8 +21,8 @@ import {
   BarChart3,
   IndianRupee,
 } from 'lucide-react';
-import { useMaterialStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
-import type { Material } from '@/types/materials';
+import { useMaterialStock } from '@tornotron/echno-core/inventory-transactions/hooks';
+import type { Material } from '@tornotron/echno-core/materials/types';
 
 interface MaterialOverviewTabProps {
   material: Material;
