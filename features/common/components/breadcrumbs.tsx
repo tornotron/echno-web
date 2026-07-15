@@ -2,11 +2,11 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { Employee } from '@/types/employee/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 import { LeaveRequest } from '@/types/leave';
-import { Organization } from '@/types/organization';
-import { Task } from '@/types/task';
-import { Issue } from '@/types/issue/issue';
+import { Organization } from '@tornotron/echno-core/organization/types';
+import { Task } from '@tornotron/echno-core/task/types';
+import { Issue } from '@tornotron/echno-core/issue/types';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -28,7 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu';
-import { Project } from '@/types/project/project';
+import { Project } from '@tornotron/echno-core/project/types';
 import { ChatRoom, ChatRoomType } from '@/types/chat';
 import {
   breadcrumbNameMap,
@@ -43,13 +43,13 @@ import {
   type FallbackNameResolver,
 } from '@/lib/utils/breadcrumb-utils';
 import { Budget } from '@/types/finance/budget';
-import { Vendor } from '@/types/vendor';
-import { Material } from '@/types/materials';
-import { Indent } from '@/types/indents';
-import { StorageLocation } from '@/types/storage-locations/storage-location';
-import { PurchaseOrder } from '@/types/purchase-orders';
-import { Labour } from '@/types/labour';
-import { SiteTransfer } from '@/types/site-transfers';
+import { Vendor } from '@tornotron/echno-core/vendor/types';
+import { Material } from '@tornotron/echno-core/materials/types';
+import { Indent } from '@tornotron/echno-core/indents/types';
+import { StorageLocation } from '@tornotron/echno-core/storage-locations/types';
+import { Labour } from '@tornotron/echno-core/labour/types';
+import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
+import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 import {
   mockInspections,
   mockAssets,
