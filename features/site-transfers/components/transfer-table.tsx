@@ -33,7 +33,7 @@ import {
   SiteTransferStatus,
   siteTransferStatusLabels,
   type SiteTransfer,
-} from '@/types/site-transfers';
+} from '@tornotron/echno-core/site-transfers/types';
 import { TransferRow } from './transfer-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
