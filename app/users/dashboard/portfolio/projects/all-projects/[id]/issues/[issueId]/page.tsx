@@ -2,10 +2,10 @@
 
 import { use, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useProject } from '@/hooks/project/use-projects';
-import { useIssue } from '@/hooks/issue';
-import { useTask } from '@/hooks/task';
-import { useDeleteAttachment } from '@tornotron/echno-core';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useIssue } from '@tornotron/echno-core/issue/hooks';
+import { useTask } from '@tornotron/echno-core/task/hooks';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -26,8 +26,11 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { getIssueTypeLabel, getIssueTypeColor } from '@/types/issue/issue-type';
-import { IssueStatus } from '@/types/issue';
+import {
+  getIssueTypeColor,
+  getIssueTypeLabel,
+} from '@tornotron/echno-core/issue/types';
+import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import {
   IssueOverviewTab,
   IssueCommentsTab,

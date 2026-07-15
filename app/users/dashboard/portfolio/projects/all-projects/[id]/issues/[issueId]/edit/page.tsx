@@ -12,9 +12,16 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { PageHeader } from '@/components/common';
-import { useIssue, useUpdateIssue, useDeleteIssue } from '@/hooks/issue';
-import { useProject } from '@/hooks/project/use-projects';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useDeleteIssue,
+  useIssue,
+  useUpdateIssue,
+} from '@tornotron/echno-core/issue/hooks';
+import { useProject } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
+import { toast } from '@/lib/styles/toast-styles';
+import { logger } from '@/lib/logger';
 import {
   IssueForm,
   type IssueFormSubmitData,
@@ -52,13 +59,19 @@ export default function EditIssuePage({ params }: PageProps) {
         },
         files: { attachments: data.attachments },
       });
+      toast.success('Issue Updated', {
+        description: 'The issue has been updated successfully',
+      });
       router.push(
         routes.portfolio.projects.allProjects
           .detail(projectId)
           .issues.detail(issueId).href
       );
-    } catch {
-      // error toast already shown by mutation hook
+    } catch (error) {
+      const title = getErrorTitle(error, 'Failed to Update Issue');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to update issue:', error);
     }
   }
 
@@ -73,11 +86,17 @@ export default function EditIssuePage({ params }: PageProps) {
     if (!issue) return;
     try {
       await deleteMutation.mutateAsync(issue.id);
+      toast.success('Issue Deleted', {
+        description: 'The issue has been deleted successfully',
+      });
       router.push(
         routes.portfolio.projects.allProjects.detail(projectId).issues.href
       );
-    } catch {
-      // error toast already shown by mutation hook
+    } catch (error) {
+      const title = getErrorTitle(error, 'Failed to Delete Issue');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to delete issue:', error);
     }
   }
 

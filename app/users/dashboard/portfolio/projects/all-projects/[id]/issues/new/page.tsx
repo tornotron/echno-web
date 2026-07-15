@@ -2,11 +2,14 @@
 
 import { use } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useProject } from '@/hooks/project/use-projects';
-import { useCreateIssue } from '@/hooks/issue';
-import { useUser, useUserEmployees } from '@/hooks/user/use-user';
-import { IssueStatus } from '@/types/issue/issue-status';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useCreateIssue } from '@tornotron/echno-core/issue/hooks';
+import { useUser, useUserEmployees } from '@tornotron/echno-core/user/hooks';
+import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import { PageHeader } from '@/components/common';
+import { toast } from '@/lib/styles/toast-styles';
+import { logger } from '@/lib/logger';
 import { routes } from '@/nav';
 import {
   IssueForm,
@@ -56,11 +59,17 @@ export default function NewIssuePage({ params }: PageProps) {
         data: issueData,
         files: { attachments: data.attachments },
       });
+      toast.success('Issue Created', {
+        description: 'The issue has been created successfully',
+      });
       router.push(
         routes.portfolio.projects.allProjects.detail(projectId).issues.href
       );
-    } catch {
-      // error toast already shown by mutation hook
+    } catch (error) {
+      const title = getErrorTitle(error, 'Failed to Create Issue');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
+      logger.error('Failed to create issue:', error);
     }
   }
 

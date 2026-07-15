@@ -1,13 +1,13 @@
 'use client';
 
 import { use, useState, useMemo } from 'react';
-import { useProject } from '@/hooks/project/use-projects';
-import { useIssuesByProject } from '@/hooks/issue';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useIssuesByProject } from '@tornotron/echno-core/issue/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Plus, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common/page-header';
 import Link from 'next/link';
-import { IssueStatus } from '@/types/issue';
+import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import { IssueTable, IssueStatsCard } from '@/features/issues/components';
 import { routes } from '@/nav';
 
