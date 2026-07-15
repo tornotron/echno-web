@@ -3,8 +3,12 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { TableCell, TableRow } from '@/components/shadcn/table';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import { User } from 'lucide-react';
-import type { Labour } from '@/types/labour';
-import { EmploymentType, SkillLevel, LabourStatus } from '@/types/labour';
+import {
+  EmploymentType,
+  LabourStatus,
+  SkillLevel,
+  type Labour,
+} from '@tornotron/echno-core/labour/types';
 
 const typeLabels: Record<EmploymentType, string> = {
   [EmploymentType.DAILY_WAGE]: 'Daily Wage',

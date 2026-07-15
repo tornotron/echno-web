@@ -27,10 +27,18 @@ import { Loader2, Save } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
-import type { Labour } from '@/types/labour';
-import { EmploymentType, SkillLevel, LabourStatus } from '@/types/labour';
-import { useCreateLabour, useUpdateLabour } from '@/hooks/labour';
-import { useProjects } from '@/hooks/project';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  EmploymentType,
+  LabourStatus,
+  SkillLevel,
+  type Labour,
+} from '@tornotron/echno-core/labour/types';
+import {
+  useCreateLabour,
+  useUpdateLabour,
+} from '@tornotron/echno-core/labour/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 
 export interface LabourEditFormProps {
   initialData?: Labour;
@@ -134,12 +142,33 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
     if (isEdit && initialData) {
       updateLabour.mutate(
         { id: initialData.id, data: payload },
-        { onSuccess: () => router.push(routes.thirdParty.labour.href) }
+        {
+          onSuccess: () => {
+            toast.success('Labour Updated', {
+              description: 'The labour record has been updated successfully',
+            });
+            router.push(routes.thirdParty.labour.href);
+          },
+          onError: (error) => {
+            toast.error(getErrorTitle(error, 'Failed to Update Labour'), {
+              description: getErrorMessage(error),
+            });
+          },
+        }
       );
     } else {
       createLabour.mutate(payload, {
-        onSuccess: (created) =>
-          router.push(routes.thirdParty.labour.detail(created.id).href),
+        onSuccess: (created) => {
+          toast.success('Labour Created', {
+            description: 'The labour record has been created successfully',
+          });
+          router.push(routes.thirdParty.labour.detail(created.id).href);
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Create Labour'), {
+            description: getErrorMessage(error),
+          });
+        },
       });
     }
   };
