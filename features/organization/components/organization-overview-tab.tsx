@@ -10,7 +10,7 @@ import { Mail, Phone, Globe, Users, Briefcase } from 'lucide-react';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import type { Organization } from '@/types/organization/organization';
+import type { Organization } from '@tornotron/echno-core/organization/types';
 
 interface OrganizationOverviewTabProps {
   organization: Organization;
