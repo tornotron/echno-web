@@ -6,7 +6,7 @@ import {
   useEmployeeBalanceSummary,
   useEmployeeRequests,
 } from '@/hooks/leave/use-leave';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { OrgGuard } from '@/components/common';
 import { LeaveApplyForm } from '@/features/leave/components/leave-apply-form';
 

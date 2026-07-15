@@ -23,7 +23,7 @@ import { Card } from '@/components/shadcn/card';
 import { OrgGuard, PageHeader } from '@/components/common';
 import { BalancesTabContent } from '@/features/leave/components/balances-tab-content';
 import { TransactionsTabContent } from '@/features/leave/components/transactions-tab-content';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { format } from 'date-fns';
 
 function downloadCsv(filename: string, rows: string[][]) {

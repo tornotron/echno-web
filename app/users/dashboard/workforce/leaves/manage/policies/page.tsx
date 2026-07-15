@@ -33,7 +33,7 @@ import { LeavePoliciesManager } from '@/features/leave/components/leave-policies
 import { TableSkeleton } from '@/features/leave/components/skeletons';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useAllLeavePolicies } from '@/hooks/leave/use-leave';
-import { useUser } from '@/hooks/user/use-user';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
 

@@ -23,7 +23,7 @@ import {
   useEmployeeRequests,
 } from '@/hooks/leave/use-leave';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { LeaveStatus } from '@/types/leave';
 import { FileText, Clock, Calendar, AlertCircle, Plus } from 'lucide-react';
 import { routes } from '@/nav';
