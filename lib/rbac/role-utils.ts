@@ -1,4 +1,4 @@
-import { OrgRole, isAdmin } from '@/types/employee/org-role';
+import { OrgRole, isAdmin } from '@tornotron/echno-core/employee/types';
 
 /**
  * Check if user has system admin role.
@@ -29,4 +29,4 @@ export {
   isInspector,
   isManagerOrAbove,
   isSupervisorOrAbove,
-} from '@/types/employee/org-role';
+} from '@tornotron/echno-core';

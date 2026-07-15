@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { Project } from '@/types/project/project';
-import { ProjectStatus } from '@/types/project/project-status';
+import type { Project } from '@tornotron/echno-core/project/types';
+import { ProjectStatus } from '@tornotron/echno-core/project/types';
 
 interface ProjectState {
   // Selected project for viewing/editing
@@ -38,10 +38,14 @@ export const useProjectStore = create<ProjectState>()(
   devtools(
     (set) => ({
       selectedProject: null,
-      setSelectedProject: (project: Project | null) => set({ selectedProject: project }),
+      setSelectedProject: (project: Project | null) =>
+        set({ selectedProject: project }),
 
       filters: initialFilters,
-      setFilter: (key: keyof ProjectState['filters'], value: ProjectState['filters'][keyof ProjectState['filters']]) =>
+      setFilter: (
+        key: keyof ProjectState['filters'],
+        value: ProjectState['filters'][keyof ProjectState['filters']]
+      ) =>
         set((state: ProjectState) => ({
           filters: { ...state.filters, [key]: value },
         })),
@@ -50,7 +54,9 @@ export const useProjectStore = create<ProjectState>()(
       recentlyViewed: [],
       addRecentlyViewed: (projectId: number) =>
         set((state: ProjectState) => {
-          const filtered = state.recentlyViewed.filter((id: number) => id !== projectId);
+          const filtered = state.recentlyViewed.filter(
+            (id: number) => id !== projectId
+          );
           return {
             recentlyViewed: [projectId, ...filtered].slice(0, 10), // Keep last 10
           };
