@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { useExpenseById } from '@/hooks/expenses';
-import { useEmployees } from '@/hooks/employee';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
