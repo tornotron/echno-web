@@ -38,12 +38,16 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import type { Issue } from '@/types/issue/issue';
-import type { Task } from '@/types/task/task';
-import type { Project } from '@/types/project/project';
-import { AttachmentType, formatFileSize } from '@tornotron/echno-core';
-import { useUpdateIssue } from '@/hooks/issue';
-import { useEmployeesByProject } from '@/hooks/project/use-projects';
+import type { Issue } from '@tornotron/echno-core/issue/types';
+import type { Task } from '@tornotron/echno-core/task/types';
+import type { Project } from '@tornotron/echno-core/project/types';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  AttachmentType,
+  formatFileSize,
+} from '@tornotron/echno-core/attachment/types';
+import { useUpdateIssue } from '@tornotron/echno-core/issue/hooks';
+import { useEmployeesByProject } from '@tornotron/echno-core/project/hooks';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
@@ -119,10 +123,15 @@ export function IssueOverviewTab({
         id: issue.id,
         data: { assigneeId: memberId },
       });
+      toast.success('Issue Updated', {
+        description: 'The issue has been updated successfully',
+      });
       setAssignDialogOpen(false);
       setAssignSearch('');
-    } catch {
-      // error toast shown by mutation
+    } catch (error) {
+      const title = getErrorTitle(error, 'Failed to Update Issue');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
     }
   };
 
@@ -132,10 +141,15 @@ export function IssueOverviewTab({
         id: issue.id,
         data: { assigneeId: null },
       });
+      toast.success('Issue Updated', {
+        description: 'The issue has been updated successfully',
+      });
       setAssignDialogOpen(false);
       setAssignSearch('');
-    } catch {
-      // error toast shown by mutation
+    } catch (error) {
+      const title = getErrorTitle(error, 'Failed to Update Issue');
+      const description = getErrorMessage(error);
+      toast.error(title, { description });
     }
   };
 
@@ -186,11 +200,29 @@ export function IssueOverviewTab({
                       description: `Not uploaded: ${invalid.join(', ')}`,
                     });
                   if (valid.length > 0)
-                    updateIssueMutation.mutate({
-                      id: issue.id,
-                      data: {},
-                      files: { attachments: valid },
-                    });
+                    updateIssueMutation.mutate(
+                      {
+                        id: issue.id,
+                        data: {},
+                        files: { attachments: valid },
+                      },
+                      {
+                        onSuccess: () => {
+                          toast.success('Issue Updated', {
+                            description:
+                              'The issue has been updated successfully',
+                          });
+                        },
+                        onError: (error) => {
+                          const title = getErrorTitle(
+                            error,
+                            'Failed to Update Issue'
+                          );
+                          const description = getErrorMessage(error);
+                          toast.error(title, { description });
+                        },
+                      }
+                    );
                 }}
                 isPending={updateIssueMutation.isPending}
               />
