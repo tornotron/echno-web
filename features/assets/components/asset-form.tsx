@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -27,7 +27,7 @@ import {
   assetStatusLabels,
   assetConditionLabels,
 } from '@/types/resource';
-import { useStorageLocations } from '@/hooks/storage-locations';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 import { format, isValid } from 'date-fns';
@@ -64,6 +64,48 @@ export interface AssetFormData {
   policyNumber: string;
   insuranceExpiry: string;
   notes: string;
+}
+
+function assetToForm(a: Asset): AssetFormData {
+  return {
+    name: a.name,
+    description: a.description ?? '',
+    type: a.type,
+    category: a.category ?? '',
+    status: a.status,
+    condition: a.condition,
+    locationId: String(a.locationId),
+    assignedTo: a.assignedTo ?? '',
+    assignedProject: a.assignedProject ?? '',
+    purchaseDate: isValid(a.purchaseDate)
+      ? format(a.purchaseDate, 'yyyy-MM-dd')
+      : '',
+    purchasePrice: String(a.purchasePrice),
+    depreciationRate: String(a.depreciationRate ?? 10),
+    manufacturer: a.manufacturer ?? '',
+    model: a.model ?? '',
+    serialNumber: a.serialNumber ?? '',
+    registrationNumber: a.registrationNumber ?? '',
+    warrantyExpiry: a.warrantyExpiry
+      ? format(a.warrantyExpiry, 'yyyy-MM-dd')
+      : '',
+    maintenanceSchedule: a.maintenanceSchedule ?? '',
+    usageHours: a.usageHours === undefined ? '' : String(a.usageHours),
+    maxUsageHours: a.maxUsageHours === undefined ? '' : String(a.maxUsageHours),
+    lastMaintenanceDate: a.lastMaintenanceDate
+      ? format(a.lastMaintenanceDate, 'yyyy-MM-dd')
+      : '',
+    nextMaintenanceDate: a.nextMaintenanceDate
+      ? format(a.nextMaintenanceDate, 'yyyy-MM-dd')
+      : '',
+    fuelType: a.fuelType ?? '',
+    insuranceProvider: a.insuranceProvider ?? '',
+    policyNumber: a.policyNumber ?? '',
+    insuranceExpiry: a.insuranceExpiry
+      ? format(a.insuranceExpiry, 'yyyy-MM-dd')
+      : '',
+    notes: a.notes ?? '',
+  };
 }
 
 const EMPTY_FORM: AssetFormData = {
@@ -126,55 +168,10 @@ export function AssetForm(props: AssetFormProps) {
   const isEdit = mode === 'edit';
 
   const { data: locations = [] } = useStorageLocations();
-  const [form, setForm] = useState<AssetFormData>(EMPTY_FORM);
+  const [form, setForm] = useState<AssetFormData>(() =>
+    isEdit ? assetToForm((props as EditProps).asset) : EMPTY_FORM
+  );
   const [errors, setErrors] = useState<Record<string, string>>({});
-
-  // Prefill from asset data in edit mode
-  useEffect(() => {
-    if (!isEdit) return;
-    const a = (props as EditProps).asset;
-    setForm({
-      name: a.name,
-      description: a.description ?? '',
-      type: a.type,
-      category: a.category ?? '',
-      status: a.status,
-      condition: a.condition,
-      locationId: String(a.locationId),
-      assignedTo: a.assignedTo ?? '',
-      assignedProject: a.assignedProject ?? '',
-      purchaseDate: isValid(a.purchaseDate)
-        ? format(a.purchaseDate, 'yyyy-MM-dd')
-        : '',
-      purchasePrice: String(a.purchasePrice),
-      depreciationRate: String(a.depreciationRate ?? 10),
-      manufacturer: a.manufacturer ?? '',
-      model: a.model ?? '',
-      serialNumber: a.serialNumber ?? '',
-      registrationNumber: a.registrationNumber ?? '',
-      warrantyExpiry: a.warrantyExpiry
-        ? format(a.warrantyExpiry, 'yyyy-MM-dd')
-        : '',
-      maintenanceSchedule: a.maintenanceSchedule ?? '',
-      usageHours: a.usageHours === undefined ? '' : String(a.usageHours),
-      maxUsageHours:
-        a.maxUsageHours === undefined ? '' : String(a.maxUsageHours),
-      lastMaintenanceDate: a.lastMaintenanceDate
-        ? format(a.lastMaintenanceDate, 'yyyy-MM-dd')
-        : '',
-      nextMaintenanceDate: a.nextMaintenanceDate
-        ? format(a.nextMaintenanceDate, 'yyyy-MM-dd')
-        : '',
-      fuelType: a.fuelType ?? '',
-      insuranceProvider: a.insuranceProvider ?? '',
-      policyNumber: a.policyNumber ?? '',
-      insuranceExpiry: a.insuranceExpiry
-        ? format(a.insuranceExpiry, 'yyyy-MM-dd')
-        : '',
-      notes: a.notes ?? '',
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [(props as EditProps).asset]);
 
   // ---------------------------------------------------------------------------
   // Field helpers
