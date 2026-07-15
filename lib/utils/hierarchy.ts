@@ -1,4 +1,4 @@
-import type { Employee } from '@/types/employee';
+import type { Employee } from '@tornotron/echno-core/employee/types';
 
 export type TreeNode = Employee & { children: TreeNode[] };
 

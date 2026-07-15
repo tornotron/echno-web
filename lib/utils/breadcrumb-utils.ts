@@ -5,20 +5,20 @@
  * human-readable names for dynamic ID segments in the URL.
  */
 
-import { Employee } from '@/types/employee/employee';
 import { LeaveRequest } from '@/types/leave';
-import { Organization } from '@/types/organization';
-import { Task } from '@/types/task';
-import { Issue } from '@/types/issue/issue';
-import { Project } from '@/types/project/project';
-import { Vendor } from '@/types/vendor';
-import { Material } from '@/types/materials';
-import { Indent } from '@/types/indents';
-import { StorageLocation } from '@/types/storage-locations/storage-location';
-import { PurchaseOrder } from '@/types/purchase-orders';
-import { Labour } from '@/types/labour';
-import { SiteTransfer } from '@/types/site-transfers';
+import { Material } from '@tornotron/echno-core/materials/types';
+import { Indent } from '@tornotron/echno-core/indents/types';
+import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
+import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 import { leaveFromMap } from '@/lib/utils/leave-path-map';
+import { Employee } from '@tornotron/echno-core/employee/types';
+import { Issue } from '@tornotron/echno-core/issue/types';
+import { Labour } from '@tornotron/echno-core/labour/types';
+import { Organization } from '@tornotron/echno-core/organization/types';
+import { Project } from '@tornotron/echno-core/project/types';
+import { StorageLocation } from '@tornotron/echno-core/storage-locations/types';
+import { Task } from '@tornotron/echno-core/task/types';
+import { Vendor } from '@tornotron/echno-core/vendor/types';
 
 /**
  * Optional callback used by `getNameForId` to resolve names for segments
@@ -61,7 +61,15 @@ export interface BreadcrumbItemData {
  * @param projects      – Optional list of projects for lookup.
  * @param task              – Optional single task for lookup.
  * @param issue             – Optional single issue for lookup.
+ * @param chatRoomName
  * @param fallbackResolver  – Optional callback for segments backed by mock/placeholder data.
+ * @param vendor
+ * @param material
+ * @param indent
+ * @param storageLocation
+ * @param purchaseOrder
+ * @param labour
+ * @param siteTransfer
  */
 export function getNameForId(
   id: string,
