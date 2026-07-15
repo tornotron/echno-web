@@ -7,7 +7,7 @@ import { Button } from '@/components/shadcn/button';
 import { Plus, Search, Building2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
+import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 
 export default function OrganizationsPage() {
   const [searchQuery, setSearchQuery] = useState('');

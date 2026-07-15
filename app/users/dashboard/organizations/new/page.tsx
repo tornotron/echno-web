@@ -2,10 +2,11 @@
 
 import { useRouter } from 'next/navigation';
 import { OrganizationForm } from '@/features/organization';
-import { UpdateOrganizationRequest } from '@/types/organization';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { UpdateOrganizationRequest } from '@tornotron/echno-core/organization/types';
+import { useCreateOrganization } from '@tornotron/echno-core/organization/hooks';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import { toast } from '@/lib/styles/toast-styles';
-import { useUser } from '@/hooks/user/use-user';
-import { useCreateOrganization } from '@/hooks/organization/use-organization-mutations';
 import { routes } from '@/nav';
 
 export default function NewOrganizationPage() {
@@ -36,7 +37,15 @@ export default function NewOrganizationPage() {
       },
       {
         onSuccess: () => {
+          toast.success('Organization Created', {
+            description: 'The organization has been created successfully',
+          });
           router.push(routes.organizations.href);
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Create Organization'), {
+            description: getErrorMessage(error),
+          });
         },
       }
     );
