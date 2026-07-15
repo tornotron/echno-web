@@ -23,10 +23,10 @@ import {
   Trash2,
 } from 'lucide-react';
 import {
+  formatFileSize,
   type Attachment,
   type AttachmentType,
-  formatFileSize,
-} from '@tornotron/echno-core';
+} from '@tornotron/echno-core/attachment/types';
 import {
   AlertDialog,
   AlertDialogAction,
