@@ -29,9 +29,12 @@ import {
 import { FlameKindling, Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
-import { useConsumptionsByTask } from '@/hooks/material-consumptions';
-import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
-import type { Task } from '@/types/task/task';
+import {
+  ConsumptionType,
+  consumptionTypeLabels,
+} from '@tornotron/echno-core/materials/types';
+import { useConsumptionsByTask } from '@tornotron/echno-core/material-consumption/hooks';
+import type { Task } from '@tornotron/echno-core/task/types';
 
 const consumptionTypeBadgeColors: Record<ConsumptionType, string> = {
   [ConsumptionType.usedFromStock]:

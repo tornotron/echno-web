@@ -27,8 +27,8 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import Link from 'next/link';
-import type { Task } from '@/types/task/task';
-import { getIssueTypeLabel } from '@/types/issue/issue-type';
+import type { Task } from '@tornotron/echno-core/task/types';
+import { getIssueTypeLabel } from '@tornotron/echno-core/issue/types';
 import { routes } from '@/nav';
 
 // ---------------------------------------------------------------------------
