@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { getRoleBasedNavigationItems } from './leave-navigation-items';
 
 /**

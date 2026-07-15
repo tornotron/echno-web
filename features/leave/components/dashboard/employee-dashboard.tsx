@@ -41,7 +41,7 @@ import {
   useEmployeeRequests,
 } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { format, isFuture } from 'date-fns';
 import { routes } from '@/nav';
 
