@@ -9,11 +9,13 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { Organization } from '@/types/organization';
+import { Organization } from '@tornotron/echno-core/organization/types';
+import {
+  useUpdateUserOrganization,
+  useUser,
+} from '@tornotron/echno-core/user/hooks';
+import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 import { logger } from '@/lib/logger';
-import { useUser } from '@/hooks/user/use-user';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
-import { useUpdateUserOrganization } from '@/hooks/user/use-user-mutations';
 
 interface OrganizationContextType {
   defaultOrganization: Organization | null;
