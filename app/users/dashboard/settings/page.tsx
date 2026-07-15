@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { useUser } from '@/hooks/user/use-user';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import {
   Card,
   CardContent,
