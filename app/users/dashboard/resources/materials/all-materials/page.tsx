@@ -14,7 +14,7 @@ import {
   WarehouseIcon,
   Loader2,
 } from 'lucide-react';
-import { useMaterials } from '@/hooks/materials';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { MATERIAL_UNITS } from '@/features/materials/components/material-unit-selector';
 import { MaterialList } from '@/features/materials/components';
 
