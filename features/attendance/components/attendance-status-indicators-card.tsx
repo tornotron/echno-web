@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import type { Attendance } from '@/types/attendance';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 
 interface Props {
   attendance: Attendance;

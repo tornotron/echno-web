@@ -27,20 +27,26 @@ import {
   Camera,
   RotateCcw,
 } from 'lucide-react';
-import type { Attendance, AttendanceProfile } from '@/types/attendance';
-import type { Project } from '@/types/project';
+import type {
+  Attendance,
+  AttendanceProfile,
+} from '@tornotron/echno-core/attendance/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 import {
   ClockEventType,
   calculateDistance,
   type GeoLocation,
-} from '@/types/attendance/clock-event';
-import { useProjectsByEmployee } from '@/hooks/project/use-projects';
+} from '@tornotron/echno-core/attendance/types';
+import { useProjectsByEmployee } from '@tornotron/echno-core/project/hooks';
 import {
   useOrgSettings,
   useProjectSettings,
-} from '@/hooks/attendance-settings';
-import { useShifts } from '@/hooks/shift-timing';
-import { useCheckIn, useRecordClockEvent } from '@/hooks/attendance';
+} from '@tornotron/echno-core/attendance-settings/hooks';
+import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
+import {
+  useCheckIn,
+  useRecordClockEvent,
+} from '@tornotron/echno-core/attendance/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
 

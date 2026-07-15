@@ -25,16 +25,16 @@ import { CheckCircle, XCircle, AlertTriangle, FileEdit } from 'lucide-react';
 import {
   useRequestRegularization,
   useProcessRegularization,
-} from '@/hooks/attendance-regularization';
+} from '@tornotron/echno-core/attendance-regularization/hooks';
 import { useAttendanceRole } from '@/hooks/attendance';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   getClockEventLabel,
   ClockEventType,
   AttendanceStatus,
-} from '@/types/attendance';
-import type { Attendance } from '@/types/attendance';
+} from '@tornotron/echno-core/attendance/types';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
 
 interface Props {

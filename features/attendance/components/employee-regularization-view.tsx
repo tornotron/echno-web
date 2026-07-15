@@ -46,9 +46,9 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { format, subDays } from 'date-fns';
-import { useAttendanceByEmployee } from '@/hooks/attendance';
-import { useCurrentUserEmployee } from '@/hooks/employee';
-import type { RegularizationDetail } from '@/types/attendance/regularization';
+import { useAttendanceByEmployee } from '@tornotron/echno-core/attendance/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import type { RegularizationDetail } from '@tornotron/echno-core/attendance/types';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 

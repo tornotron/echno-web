@@ -19,8 +19,11 @@ import {
   LogOut,
   PlayCircle,
 } from 'lucide-react';
-import { getClockEventLabel, ClockEventType } from '@/types/attendance';
-import type { Attendance } from '@/types/attendance';
+import {
+  getClockEventLabel,
+  ClockEventType,
+} from '@tornotron/echno-core/attendance/types';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
 
 interface Props {

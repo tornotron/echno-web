@@ -22,11 +22,11 @@ import {
 } from '@/components/shadcn/dialog';
 import { Loader2, MapPin, Route } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { useLogMovement } from '@/hooks/movement';
+import { useLogMovement } from '@tornotron/echno-core/movement/hooks';
 import {
   MovementType,
   getMovementTypeLabel,
-} from '@/types/attendance/movement-type';
+} from '@tornotron/echno-core/attendance/types';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

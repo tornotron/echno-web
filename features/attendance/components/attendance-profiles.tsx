@@ -26,8 +26,8 @@ import {
   AlarmClock,
 } from 'lucide-react';
 import { getCycleLabel } from '@/hooks/attendance-settings';
-import type { ShiftTiming } from '@/types/shift-timing';
-import type { AttendanceProfile } from '@/types/attendance';
+import type { ShiftTiming } from '@tornotron/echno-core/shift-timing/types';
+import type { AttendanceProfile } from '@tornotron/echno-core/attendance/types';
 
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
