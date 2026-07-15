@@ -19,10 +19,14 @@ import {
   Users,
   Wrench,
 } from 'lucide-react';
-import { Task, TaskStatus, getTaskStatusLabel } from '@/types/task';
+import {
+  Task,
+  TaskStatus,
+  getTaskStatusLabel,
+} from '@tornotron/echno-core/task/types';
 import { Badge } from '@/components/shadcn/badge';
-import { getIssueStatusLabel } from '@/types/issue';
-import { IssueType } from '@/types/issue/issue-type';
+import { getIssueStatusLabel } from '@tornotron/echno-core/issue/types';
+import { IssueType } from '@tornotron/echno-core/issue/types';
 import {
   Avatar,
   AvatarFallback,
