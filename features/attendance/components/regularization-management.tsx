@@ -55,9 +55,9 @@ import { useAttendanceRole } from '@/hooks/attendance';
 import {
   usePendingRegularizations,
   useProcessRegularization,
-} from '@/hooks/attendance-regularization';
-import { useCurrentUserEmployee } from '@/hooks/employee';
-import type { RegularizationDetail } from '@/types/attendance/regularization';
+} from '@tornotron/echno-core/attendance-regularization/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import type { RegularizationDetail } from '@tornotron/echno-core/attendance/types';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 

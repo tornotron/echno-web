@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Separator } from '@/components/shadcn/separator';
-import type { ShiftTiming } from '@/types/shift-timing';
+import type { ShiftTiming } from '@tornotron/echno-core/shift-timing/types';
 
 interface ShiftDialogProps {
   open: boolean;

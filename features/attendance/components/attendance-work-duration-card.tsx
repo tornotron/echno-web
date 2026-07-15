@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Clock, Coffee } from 'lucide-react';
-import type { Attendance } from '@/types/attendance';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 
 interface Props {
   attendance: Attendance;

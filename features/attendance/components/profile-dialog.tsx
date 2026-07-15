@@ -19,9 +19,9 @@ import {
 import { Separator } from '@/components/shadcn/separator';
 import { Switch } from '@/components/shadcn/switch';
 import { getCycleLabel } from '@/hooks/attendance-settings';
-import type { ShiftTiming } from '@/types/shift-timing';
-import type { AttendanceProfile } from '@/types/attendance';
-import type { Project } from '@/types/project';
+import type { ShiftTiming } from '@tornotron/echno-core/shift-timing/types';
+import type { AttendanceProfile } from '@tornotron/echno-core/attendance/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 
 // ─── Sub-component ────────────────────────────────────────────────────────────
 

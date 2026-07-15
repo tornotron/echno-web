@@ -1,6 +1,6 @@
 'use client';
 
-import { AttendanceRole } from '@/types/attendance';
+import { AttendanceRole } from '@tornotron/echno-core/attendance/types';
 import {
   Select,
   SelectContent,
