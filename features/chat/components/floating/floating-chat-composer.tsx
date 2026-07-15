@@ -5,8 +5,8 @@ import { Send, X } from 'lucide-react';
 import { Button } from '@/components/shadcn/button';
 import { Textarea } from '@/components/shadcn/textarea';
 import { ChatMessage, ChatParticipant } from '@/types/chat';
-import { Task } from '@/types/task/task';
-import { Issue } from '@/types/issue/issue';
+import { Task } from '@tornotron/echno-core/task/types';
+import { Issue } from '@tornotron/echno-core/issue/types';
 import {
   parseMentions,
   stripMentions,
