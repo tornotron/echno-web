@@ -47,22 +47,25 @@ import {
   User,
 } from 'lucide-react';
 import { format, startOfMonth, subDays } from 'date-fns';
-import { attendanceService } from '@/services/attendance-service';
-import { attendanceKeys } from '@/hooks/attendance/attendance-keys';
+import { attendanceService } from '@tornotron/echno-core/attendance/services';
+import { attendanceKeys } from '@tornotron/echno-core/attendance/hooks/keys';
 import {
+  useEmployeesByProject,
   useProjects,
   useProjectsByEmployee,
-  useEmployeesByProject,
-} from '@/hooks/project/use-projects';
-import { useEmployees, useCurrentUserEmployee } from '@/hooks/employee';
+} from '@tornotron/echno-core/project/hooks';
+import {
+  useCurrentUserEmployee,
+  useEmployees,
+} from '@tornotron/echno-core/employee/hooks';
 import { useAttendanceRole } from '@/hooks/attendance';
-import type { Attendance } from '@/types/attendance';
-import type { Employee } from '@/types/employee';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
+import type { Employee } from '@tornotron/echno-core/employee/types';
 import {
   AttendanceStatus,
   getAttendanceStatusColor,
   getAttendanceStatusLabel,
-} from '@/types/attendance/attendance-status';
+} from '@tornotron/echno-core/attendance/types';
 
 // Hard cap on parallel attendance fan-out so we never fire 500 queries
 // when an admin views "all employees, all projects".

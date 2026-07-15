@@ -49,13 +49,13 @@ import {
 import {
   useAttendanceByEmployee,
   useAttendanceSummary,
-} from '@/hooks/attendance';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+} from '@tornotron/echno-core/attendance/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   AttendanceStatus,
   getAttendanceStatusLabel,
   getAttendanceStatusColor,
-} from '@/types/attendance/attendance-status';
+} from '@tornotron/echno-core/attendance/types';
 import { format, startOfMonth, subDays } from 'date-fns';
 
 // ─── Attendance History ───────────────────────────────────────────────────────

@@ -37,13 +37,16 @@ import {
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 import { useAttendanceRole } from '@/hooks/attendance';
-import { useMovementsByAttendance, useVerifyMovement } from '@/hooks/movement';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import {
+  useMovementsByAttendance,
+  useVerifyMovement,
+} from '@tornotron/echno-core/movement/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   getMovementTypeLabel,
   getMovementTypeColor,
-} from '@/types/attendance/movement-type';
-import type { MovementRecord } from '@/types/attendance/movement';
+} from '@tornotron/echno-core/attendance/types';
+import type { MovementRecord } from '@tornotron/echno-core/attendance/types';
 import { MovementLogForm } from './movement-log-form';
 
 // ─── Types ────────────────────────────────────────────────────────────────────

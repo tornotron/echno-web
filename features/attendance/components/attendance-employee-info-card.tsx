@@ -11,8 +11,8 @@ import { User, Building } from 'lucide-react';
 import {
   getAttendanceStatusLabel,
   getAttendanceStatusColor,
-} from '@/types/attendance';
-import type { Attendance } from '@/types/attendance';
+} from '@tornotron/echno-core/attendance/types';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 
 interface Props {
   attendance: Attendance;

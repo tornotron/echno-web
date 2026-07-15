@@ -39,20 +39,20 @@ import {
 } from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
 import {
-  useProjects,
   useEmployeesByProject,
-} from '@/hooks/project/use-projects';
+  useProjects,
+} from '@tornotron/echno-core/project/hooks';
 import {
   useOrgSettings,
   useProjectSettings,
-} from '@/hooks/attendance-settings';
-import { useShifts } from '@/hooks/shift-timing';
+} from '@tornotron/echno-core/attendance-settings/hooks';
+import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
 import {
   useAttendanceByProject,
   useCheckIn,
   useRecordClockEvent,
-} from '@/hooks/attendance';
-import { ClockEventType } from '@/types/attendance/clock-event';
+} from '@tornotron/echno-core/attendance/hooks';
+import { ClockEventType } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
 
 export function MarkAttendanceForm() {
