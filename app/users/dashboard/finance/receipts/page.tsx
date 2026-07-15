@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react';
 import { useReceipts } from '@/hooks/receipts';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
