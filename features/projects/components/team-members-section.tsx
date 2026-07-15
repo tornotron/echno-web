@@ -3,14 +3,16 @@
 import { useState } from 'react';
 import { Button } from '@/components/shadcn/button';
 import { Plus, X, Loader2 } from 'lucide-react';
-import type { Employee } from '@/types/employee';
-import { getDepartmentLabel } from '@/types/employee/departments';
-import { EmployeeAvatar } from '@/components/shared/employee-avatar';
-import { useEmployees } from '@/hooks/employee/use-employee';
+import type { Employee } from '@tornotron/echno-core/employee/types';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { getDepartmentLabel } from '@tornotron/echno-core/employee/types';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import {
   useAddEmployeeToProject,
   useRemoveEmployeeFromProject,
-} from '@/hooks/project/use-project-mutations';
+} from '@tornotron/echno-core/project/hooks';
+import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   Dialog,
   DialogContent,
@@ -59,7 +61,15 @@ export function TeamMembersSection({
       { projectId, employeeId },
       {
         onSuccess: () => {
+          toast.success('Employee Added', {
+            description: 'The employee has been added to the project',
+          });
           onDialogOpenChange(false);
+        },
+        onError: (error) => {
+          const title = getErrorTitle(error, 'Failed to Add Employee');
+          const description = getErrorMessage(error);
+          toast.error(title, { description });
         },
       }
     );
@@ -71,7 +81,15 @@ export function TeamMembersSection({
       { projectId, employeeId: employeeToRemove.id },
       {
         onSuccess: () => {
+          toast.success('Employee Removed', {
+            description: 'The employee has been removed from the project',
+          });
           setEmployeeToRemove(null);
+        },
+        onError: (error) => {
+          const title = getErrorTitle(error, 'Failed to Remove Employee');
+          const description = getErrorMessage(error);
+          toast.error(title, { description });
         },
       }
     );

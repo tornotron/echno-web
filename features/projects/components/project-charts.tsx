@@ -33,9 +33,9 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { cn } from '@/lib/utils/index';
-import { ProjectStatus } from '@/types/project/project-status';
-import { TaskStatus } from '@/types/task';
-import type { Project } from '@/types/project/project';
+import { ProjectStatus } from '@tornotron/echno-core/project/types';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
