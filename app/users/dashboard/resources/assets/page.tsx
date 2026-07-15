@@ -28,7 +28,7 @@ import {
   isMaintenanceDue,
 } from '@/types/resource';
 import { useAssets } from '@/hooks/assets';
-import { useStorageLocations } from '@/hooks/storage-locations';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { AssetList } from '@/features/assets/components';
 
 export default function AssetsPage() {
@@ -101,11 +101,11 @@ export default function AssetsPage() {
 
   const hasActiveFilters = Boolean(
     searchQuery ||
-      typeFilter !== 'all' ||
-      statusFilter !== 'all' ||
-      conditionFilter !== 'all' ||
-      locationFilter !== 'all' ||
-      maintenanceDueFilter
+    typeFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    conditionFilter !== 'all' ||
+    locationFilter !== 'all' ||
+    maintenanceDueFilter
   );
 
   if (isLoading) {
