@@ -2,11 +2,11 @@
 
 import { useMemo } from 'react';
 import { PageHeader, OrgGuard } from '@/components/common';
-import { useEmployees } from '@/hooks/employee';
-import { useUser } from '@/hooks/user/use-user';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import { EmployeeTable } from '@/features/employee/components/employee-table';
 import { EmployeeEmptyState } from '@/features/employee/components/employee-empty-state';
-import { Employee } from '@/types/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 
 export default function EmployeesPage() {
   const { data: user, isLoading: isUserLoading, error: userError } = useUser();

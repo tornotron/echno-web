@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { useRouter } from 'next/navigation';
-import { useEmployees } from '@/hooks/employee';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { Loader2 } from 'lucide-react';
 import { EditEmployeeForm } from '@/features/employee/components/edit-employee-form';
 import { EmployeeErrorState } from '@/features/employee/components/employee-error-state';
