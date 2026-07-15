@@ -86,19 +86,19 @@ import {
   MovementType,
   getMovementTypeLabel,
   getMovementTypeIcon,
-} from '@/types/attendance';
+} from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   useAttendanceByProject,
   useApproveAttendance,
   useMarkAbsent,
-  useAttendanceRole,
-} from '@/hooks/attendance';
-import { AttendanceRole } from '@/types/attendance';
-import { useLogMovement } from '@/hooks/movement';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useEmployees } from '@/hooks/employee';
+} from '@tornotron/echno-core/attendance/hooks';
+import { useAttendanceRole } from '@/hooks/attendance';
+import { AttendanceRole } from '@tornotron/echno-core/attendance/types';
+import { useLogMovement } from '@tornotron/echno-core/movement/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { EmployeeDashboard } from '@/features/attendance/components/dashboard/employee-dashboard';
 import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
 
