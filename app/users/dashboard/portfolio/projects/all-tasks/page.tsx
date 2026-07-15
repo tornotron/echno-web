@@ -1,7 +1,7 @@
 'use client';
 
-import { useTasks } from '@/hooks/task';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useTasks } from '@tornotron/echno-core/task/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common/page-header';
 import { TasksList } from '@/features/tasks/components';
