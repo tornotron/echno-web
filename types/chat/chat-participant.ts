@@ -1,6 +1,6 @@
 // types/chat/chat-participant.ts
 
-import { Employee } from '@/types/employee/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 import {
   ChatParticipantRole,
   chatParticipantRoleFromString,

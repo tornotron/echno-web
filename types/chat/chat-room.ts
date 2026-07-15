@@ -1,6 +1,6 @@
 // types/chat/chat-room.ts
 
-import { Project } from '@/types/project/project';
+import { Project } from '@tornotron/echno-core/project/types';
 import { parsePositiveInt } from '@/types/parse-id';
 import { ChatRoomType, chatRoomTypeFromString } from './chat-room-type';
 import { ChatParticipant, parseChatParticipant } from './chat-participant';

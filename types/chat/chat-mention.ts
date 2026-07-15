@@ -1,6 +1,6 @@
 import type { ChatParticipant } from './chat-participant';
-import type { Task } from '@/types/task/task';
-import type { Issue } from '@/types/issue/issue';
+import type { Task } from '@tornotron/echno-core/task/types';
+import type { Issue } from '@tornotron/echno-core/issue/types';
 
 export type MentionMode = 'member' | 'task' | 'issue';
 

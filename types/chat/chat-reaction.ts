@@ -1,6 +1,6 @@
 // types/chat/chat-reaction.ts
 
-import { Employee } from '@/types/employee/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 
 export interface ChatReaction {
   emoji: string;
