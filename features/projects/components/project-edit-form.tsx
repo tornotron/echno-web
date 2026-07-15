@@ -14,7 +14,7 @@ import {
 import {
   ProjectStatus,
   getProjectStatusLabel,
-} from '@/types/project/project-status';
+} from '@tornotron/echno-core/project/types';
 import { MapPin, Loader2 } from 'lucide-react';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { useCallback } from 'react';

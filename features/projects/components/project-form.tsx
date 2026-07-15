@@ -24,13 +24,13 @@ import { FileText, MapPin, Loader2, Upload, X } from 'lucide-react';
 import {
   ProjectStatus,
   getProjectStatusLabel,
-} from '@/types/project/project-status';
-import type { Project } from '@/types/project/project';
+} from '@tornotron/echno-core/project/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { format } from 'date-fns';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
-import { useDeleteAttachment } from '@tornotron/echno-core';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
 
 // ---------------------------------------------------------------------------

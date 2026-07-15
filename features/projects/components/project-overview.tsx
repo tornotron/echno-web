@@ -19,10 +19,10 @@ import {
 } from '@/components/shadcn/chart';
 import {
   ProjectStatus,
-  getProjectStatusLabel,
   getProjectStatusColor,
-} from '@/types/project/project-status';
-import type { Project } from '@/types/project/project';
+  getProjectStatusLabel,
+} from '@tornotron/echno-core/project/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 import { cn } from '@/lib/utils/index';
 import { routes } from '@/nav';
 
