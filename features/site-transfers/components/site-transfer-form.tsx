@@ -28,12 +28,12 @@ import {
 } from '@/components/shadcn/table';
 import { AlertTriangle, ArrowRightLeft, Plus, Trash2 } from 'lucide-react';
 import {
-  useMaterials,
   useMaterialWithStock,
-} from '@/hooks/materials/use-materials';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useStorageLocations } from '@/hooks/storage-locations/use-storage-locations';
-import { useSiteTransfers } from '@/hooks/site-transfers';
+  useMaterials,
+} from '@tornotron/echno-core/materials/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
+import { useSiteTransfers } from '@tornotron/echno-core/site-transfers/hooks';
 import { generateTransferNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';

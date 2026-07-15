@@ -5,7 +5,7 @@ import {
   siteTransferStatusBadgeColors,
   siteTransferStatusLabels,
   type SiteTransfer,
-} from '@/types/site-transfers';
+} from '@tornotron/echno-core/site-transfers/types';
 
 interface TransferRowProps {
   transfer: SiteTransfer;
@@ -20,8 +20,10 @@ export function TransferRow({ transfer, onClick }: TransferRowProps) {
       className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
       onClick={onClick}
       onKeyDown={(e) => {
-        if (e.key === ' ') { e.preventDefault(); onClick(); }
-        else if (e.key === 'Enter') onClick();
+        if (e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        } else if (e.key === 'Enter') onClick();
       }}
     >
       <TableCell className="pl-6 font-medium">

@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { Package } from 'lucide-react';
-import type { SiteTransfer } from '@/types/site-transfers';
+import type { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 
 interface SiteTransferItemsCardProps {
   transfer: SiteTransfer;

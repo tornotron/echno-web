@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { MapPin } from 'lucide-react';
-import type { SiteTransfer } from '@/types/site-transfers';
+import type { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 
 interface SiteTransferLocationsCardProps {
   transfer: SiteTransfer;
