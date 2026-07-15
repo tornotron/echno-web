@@ -1,8 +1,8 @@
 import { Payment, PayeeType } from '@/types/finance/payment';
-import type { Employee } from '@/types/employee/employee';
-import type { Vendor } from '@/types/vendor/vendor';
+import { Employee } from '@tornotron/echno-core/employee/types';
+import { Labour } from '@tornotron/echno-core/labour/types';
+import { Vendor } from '@tornotron/echno-core/vendor/types';
 import type { SubContract } from '@/types/third-party/sub-contract';
-import type { Labour } from '@/types/labour';
 
 export interface PayeeInfo {
   type: PayeeType;
