@@ -5,7 +5,7 @@ import { Loader2, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import { routes } from '@/nav';
-import { useVendor } from '@/hooks/vendors';
+import { useVendor } from '@tornotron/echno-core/vendor/hooks';
 import { VendorEditor } from '@/features/vendor/components/vendor-editor';
 import {
   Empty,
