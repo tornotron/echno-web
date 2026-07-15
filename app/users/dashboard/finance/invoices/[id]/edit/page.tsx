@@ -29,7 +29,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import {
   Invoice,
   InvoiceType,
