@@ -6,8 +6,9 @@ import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { AlertTriangle, ClipboardList, Loader2, Send } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { useCreateConsumption } from '@/hooks/material-consumptions';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useCreateConsumption } from '@tornotron/echno-core/material-consumption/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   MaterialConsumptionForm,
   MATERIAL_CONSUMPTION_FORM_ID,
@@ -43,6 +44,9 @@ export default function NewConsumptionPage() {
       },
       {
         onSuccess: (consumption) => {
+          toast.success('Consumption Recorded', {
+            description: 'Material consumption has been recorded successfully.',
+          });
           if (fromTaskId) {
             router.back();
           } else {
@@ -51,6 +55,10 @@ export default function NewConsumptionPage() {
             );
           }
         },
+        onError: (error) =>
+          toast.error(getErrorTitle(error, 'Failed to Record Consumption'), {
+            description: getErrorMessage(error),
+          }),
       }
     );
   }

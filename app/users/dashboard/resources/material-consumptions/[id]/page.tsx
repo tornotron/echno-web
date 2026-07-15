@@ -23,8 +23,11 @@ import {
   User,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useMaterialConsumption } from '@/hooks/material-consumptions';
-import { ConsumptionType, consumptionTypeLabels } from '@/types/materials';
+import {
+  ConsumptionType,
+  consumptionTypeLabels,
+} from '@tornotron/echno-core/materials/types';
+import { useMaterialConsumption } from '@tornotron/echno-core/material-consumption/hooks';
 import {
   ConsumptionInfoCard,
   ConsumptionContextCard,
