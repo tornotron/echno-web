@@ -32,7 +32,7 @@ import {
 } from '@/components/shadcn/empty';
 import { HardHat, Loader2, Search } from 'lucide-react';
 import { routes } from '@/nav';
-import type { Labour } from '@/types/labour';
+import type { Labour } from '@tornotron/echno-core/labour/types';
 import { LabourRow } from './labour-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
