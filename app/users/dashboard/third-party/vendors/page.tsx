@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { PageHeader } from '@/components/common';
-import { useVendorsPaginated } from '@/hooks/vendors';
+import { useVendorsPaginated } from '@tornotron/echno-core/vendor/hooks';
 import { VendorListView } from '@/features/vendor';
 
 const PAGE_SIZE = 10;
