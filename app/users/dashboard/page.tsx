@@ -47,14 +47,14 @@ import {
   RadialBar,
 } from 'recharts';
 import { dashboardData } from '@/components/shared/mock-data';
-import { useEmployees } from '@/hooks/employee';
-import { useProjects } from '@/hooks/project';
-import { useTasks } from '@/hooks/task';
-import { useIssues } from '@/hooks/issue';
-import { useUser } from '@/hooks/user/use-user';
-import { ProjectStatus } from '@/types/project/project-status';
-import { TaskStatus } from '@/types/task/task-status';
-import { IssueStatus } from '@/types/issue/issue-status';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useTasks } from '@tornotron/echno-core/task/hooks';
+import { useIssues } from '@tornotron/echno-core/issue/hooks';
+import { useUser } from '@tornotron/echno-core/user/hooks';
+import { ProjectStatus } from '@tornotron/echno-core/project/types';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
+import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import Link from 'next/link';
 import {
   Users,
