@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { organizationService } from '@/services/organization-service';
-import { organizationKeys } from '@/hooks/organization/organization-keys';
-import { logger } from '@/lib/logger';
+import { logger } from '@tornotron/echno-core';
+import { organizationService } from '@tornotron/echno-core/organization/services';
+import { organizationKeys } from '@tornotron/echno-core/organization/hooks/keys';
 
 /**
  * useOrganizationPrefetch

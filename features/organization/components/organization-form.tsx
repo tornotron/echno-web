@@ -13,7 +13,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { Organization, UpdateOrganizationRequest } from '@/types/organization';
+import {
+  Organization,
+  UpdateOrganizationRequest,
+} from '@tornotron/echno-core/organization/types';
 import {
   Building,
   Loader2,

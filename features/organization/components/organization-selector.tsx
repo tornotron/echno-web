@@ -11,7 +11,7 @@ import {
 import { Building } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useOrganizations } from '@/hooks/organization/use-organizations';
+import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 
 export function OrganizationSelector() {
   const { data: session } = useSession();
