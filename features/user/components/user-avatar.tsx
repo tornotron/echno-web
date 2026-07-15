@@ -1,6 +1,6 @@
 'use client';
 
-import { User, userInitials } from '@/types/user/user';
+import { User, userInitials } from '@tornotron/echno-core/user/types';
 import { getAvatarColor } from '@/lib/utils/user-profile-utils';
 import {
   Avatar,
