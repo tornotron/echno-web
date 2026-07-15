@@ -41,12 +41,21 @@
 //
 // ═══════════════════════════════════════════════════════════════════════════════
 
-import { Employee, EmployeeStatus, Department } from '@/types/employee';
-import { Organization } from '@/types/organization';
-import { Project, ProjectStatus } from '@/types/project';
-import { Task, TaskStatus } from '@/types/task';
-import { WorkCategory } from '@/types/work-category';
-import { Issue, IssueStatus, IssueType, IssueComment } from '@/types/issue';
+import {
+  Department,
+  Employee,
+  EmployeeStatus,
+} from '@tornotron/echno-core/employee/types';
+import { Organization } from '@tornotron/echno-core/organization/types';
+import { Project, ProjectStatus } from '@tornotron/echno-core/project/types';
+import { Task, TaskStatus } from '@tornotron/echno-core/task/types';
+import { WorkCategory } from '@tornotron/echno-core/work-category/types';
+import {
+  Issue,
+  IssueComment,
+  IssueStatus,
+  IssueType,
+} from '@tornotron/echno-core/issue/types';
 import { Member } from '@/types/member';
 import { Location } from '@/types/resource/location';
 import { InventoryItem } from '@/types/resource/inventory';
@@ -82,7 +91,7 @@ import {
   InspectionType,
   InspectionResult,
 } from '@/types/inspection';
-import { AttachmentType } from '@/types/attachment';
+import { AttachmentType } from '@tornotron/echno-core/attachment/types';
 
 // ═════════════════════════════════════════════════════════════════════════════
 // 1. USERS
@@ -4216,11 +4225,11 @@ export function getOrganizationOverview(organizationId: number) {
 // Vendors now use real API via useVendors() hook from @/hooks/vendors
 // ═════════════════════════════════════════════════════════════════════════════
 import {
-  type Labour,
   EmploymentType,
   LabourStatus,
   SkillLevel,
-} from '@/types/labour';
+  type Labour,
+} from '@tornotron/echno-core/labour/types';
 import {
   SubContract,
   ContractType,

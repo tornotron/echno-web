@@ -1,6 +1,6 @@
 'use client';
 
-import { Employee } from '@/types/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 import {
   Avatar,
   AvatarImage,
