@@ -7,8 +7,8 @@ import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Send } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
-import { useCreateIndent } from '@/hooks/indents';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCreateIndent } from '@tornotron/echno-core/indents/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   IndentForm,
   INDENT_FORM_ID,
@@ -45,9 +45,12 @@ export default function NewIndentPage() {
           remarks: item.remarks.trim() || undefined,
         })),
       });
+      toast.success('Indent created successfully.');
       router.push(routes.resources.indents.detail(indent.id).href);
-    } catch {
-      // errors handled by mutation hook
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to create indent.'
+      );
     }
   }
 

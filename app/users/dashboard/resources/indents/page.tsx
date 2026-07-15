@@ -21,9 +21,9 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { useIndentsPaginated } from '@/hooks/indents';
+import { useIndentsPaginated } from '@tornotron/echno-core/indents/hooks';
 import { IndentTable } from '@/features/indents/components';
-import { IndentStatus } from '@/types/indents';
+import { IndentStatus } from '@tornotron/echno-core/indents/types';
 
 export default function IndentsPage() {
   const {
