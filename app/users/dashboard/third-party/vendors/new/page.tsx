@@ -24,14 +24,14 @@ import {
 import { toast } from '@/lib/styles/toast-styles';
 import { Building2, Save, X } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import { useCreateVendor } from '@/hooks/vendors';
+import { useCreateVendor } from '@tornotron/echno-core/vendor/hooks';
 import {
-  VendorType,
-  VendorStatus,
   CreateVendorRequest,
-  VENDOR_TYPE_LABELS,
   VENDOR_STATUS_LABELS,
-} from '@/types/vendor';
+  VENDOR_TYPE_LABELS,
+  VendorStatus,
+  VendorType,
+} from '@tornotron/echno-core/vendor/types';
 
 const INITIAL: CreateVendorRequest = {
   name: '',

@@ -22,10 +22,10 @@ import {
 } from '@/components/shadcn/empty';
 import {
   useVendor,
-  useVendorContacts,
   useVendorBankAccounts,
-} from '@/hooks/vendors';
-import { getVendorTypeLabel } from '@/types/vendor';
+  useVendorContacts,
+} from '@tornotron/echno-core/vendor/hooks';
+import { getVendorTypeLabel } from '@tornotron/echno-core/vendor/types';
 import {
   VendorStatusBadge,
   VendorOverviewTab,
