@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/hooks/user/use-user';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import { UserProfileView } from '@/features/user/components/user-profile-view';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { toast } from '@/lib/styles/toast-styles';
