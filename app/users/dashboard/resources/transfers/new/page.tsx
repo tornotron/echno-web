@@ -8,14 +8,16 @@ import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { AlertTriangle, FolderOpen, Loader2, Send } from 'lucide-react';
-import { useIndent, indentsKeys } from '@/hooks/indents/use-indents';
-import { materialsKeys } from '@/hooks/materials/use-materials';
-import type { Indent } from '@/types/indents';
-import type { Material } from '@/types/materials';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useIndent, indentsKeys } from '@tornotron/echno-core/indents/hooks';
+import { materialsKeys } from '@tornotron/echno-core/materials/hooks/keys';
+import type { Indent } from '@tornotron/echno-core/indents/types';
+import type { Material } from '@tornotron/echno-core/materials/types';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
-import { useCreateSiteTransfer } from '@/hooks/site-transfers';
-import { SiteTransferStatus } from '@/types/site-transfers';
+import { useCreateSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { ApiError } from '@/lib/api/api-client';
+import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
 import {
   SiteTransferForm,
   SITE_TRANSFER_FORM_ID,
@@ -89,7 +91,25 @@ export default function NewSiteTransferPage() {
       },
       {
         onSuccess: (transfer) => {
+          toast.success('Transfer Created', {
+            description:
+              'Site transfer created successfully. Stock has been updated.',
+          });
           router.push(routes.resources.transfers.detail(transfer.id).href);
+        },
+        onError: (err) => {
+          const message = getErrorMessage(err);
+          const isInsufficientStock =
+            err instanceof ApiError &&
+            err.status === 400 &&
+            message.toLowerCase().includes('insufficient stock');
+          if (isInsufficientStock) {
+            toast.error('Insufficient Stock', { description: message });
+          } else {
+            toast.error(getErrorTitle(err, 'Failed to Create Transfer'), {
+              description: message,
+            });
+          }
         },
       }
     );

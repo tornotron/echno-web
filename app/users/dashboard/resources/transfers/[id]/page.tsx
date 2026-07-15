@@ -29,12 +29,14 @@ import {
   useSiteTransfer,
   useDeleteSiteTransfer,
   useUpdateSiteTransferStatus,
-} from '@/hooks/site-transfers';
+} from '@tornotron/echno-core/site-transfers/hooks';
 import {
   SiteTransferStatus,
   siteTransferStatusLabels,
   siteTransferStatusBadgeColors,
-} from '@/types/site-transfers';
+} from '@tornotron/echno-core/site-transfers/types';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   SiteTransferConfirmDialog,
   SiteTransferItemsCard,
@@ -159,7 +161,22 @@ export default function SiteTransferDetailPage({
                   requestConfirm(
                     'Update Status',
                     `Mark this transfer as "${siteTransferStatusLabels[next]}"?`,
-                    () => updateStatus({ id, status: next })
+                    () =>
+                      updateStatus(
+                        { id, status: next },
+                        {
+                          onSuccess: () =>
+                            toast.success('Status Updated', {
+                              description:
+                                'The transfer status has been updated.',
+                            }),
+                          onError: (err) =>
+                            toast.error(
+                              getErrorTitle(err, 'Failed to Update Status'),
+                              { description: getErrorMessage(err) }
+                            ),
+                        }
+                      )
                   )
                 }
               >
@@ -182,6 +199,11 @@ export default function SiteTransferDetailPage({
                     deleteTransfer(id, {
                       onSuccess: () =>
                         router.push(routes.resources.transfers.href),
+                      onError: (err) =>
+                        toast.error(
+                          getErrorTitle(err, 'Delete Not Supported'),
+                          { description: getErrorMessage(err) }
+                        ),
                     }),
                   'destructive'
                 )

@@ -14,9 +14,9 @@ import {
   Clock,
   Package,
 } from 'lucide-react';
-import { useSiteTransfers } from '@/hooks/site-transfers';
-import { TransferTable } from '@/features/site-transfer/components';
-import { SiteTransferStatus } from '@/types/site-transfers';
+import { useSiteTransfers } from '@tornotron/echno-core/site-transfers/hooks';
+import { TransferTable } from '@/features/site-transfers/components';
+import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
 
 export default function SiteTransfersPage() {
   const { data: transfers = [], isLoading } = useSiteTransfers();
