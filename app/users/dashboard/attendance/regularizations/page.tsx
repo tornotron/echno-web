@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/common';
 import { FileEdit } from 'lucide-react';
 import { useAttendanceRole } from '@/hooks/attendance';
-import { AttendanceRole } from '@/types/attendance';
+import { AttendanceRole } from '@tornotron/echno-core/attendance/types';
 import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
 import { RegularizationManagement } from '@/features/attendance/components/regularization-management';
 import { EmployeeRegularizationView } from '@/features/attendance/components/employee-regularization-view';

@@ -6,7 +6,10 @@ import { Button } from '@/components/shadcn/button';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { PageHeader } from '@/components/common';
 import { CheckCircle, AlertTriangle, Download, History } from 'lucide-react';
-import { useAttendanceById, useApproveAttendance } from '@/hooks/attendance';
+import {
+  useAttendanceById,
+  useApproveAttendance,
+} from '@tornotron/echno-core/attendance/hooks';
 import { useAttendanceRole } from '@/hooks/attendance';
 import { MovementManagement } from '@/features/attendance/components/movement-management';
 import {
