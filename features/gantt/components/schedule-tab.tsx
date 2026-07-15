@@ -8,8 +8,8 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { GanttChart } from './gantt-chart';
-import type { Project } from '@/types/project';
-import { TaskStatus } from '@/types/task';
+import type { Project } from '@tornotron/echno-core/project/types';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
 
 interface ScheduleTabProps {
   project: Project;

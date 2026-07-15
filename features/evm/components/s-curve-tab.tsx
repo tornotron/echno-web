@@ -32,8 +32,8 @@ import {
   isAfter,
   startOfMonth,
 } from 'date-fns';
-import { TaskStatus } from '@/types/task';
-import type { Project } from '@/types/project';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 
 function generateSCurveData(project: Project) {
   if (!project.startDate || !project.endDate) return [];

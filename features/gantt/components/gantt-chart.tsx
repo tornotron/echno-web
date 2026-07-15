@@ -5,7 +5,7 @@ import {
   type GanttMarkerProps,
 } from '@/components/shadcn/gantt';
 import { format } from 'date-fns';
-import type { Task } from '@/types/task';
+import type { Task } from '@tornotron/echno-core/task/types';
 
 function buildProjectGanttMarkers(tasks: Task[]): GanttMarkerProps[] {
   const markers: GanttMarkerProps[] = [];
