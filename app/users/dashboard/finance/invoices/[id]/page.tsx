@@ -1,8 +1,8 @@
 'use client';
 
 import { use } from 'react';
-import { useVendors } from '@/hooks/vendors';
-import { useEmployees } from '@/hooks/employee';
+import { useVendors } from '@tornotron/echno-core/vendor/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useInvoiceById } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
