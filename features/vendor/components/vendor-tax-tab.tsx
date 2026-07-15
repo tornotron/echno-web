@@ -44,16 +44,17 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
-  useVendorTaxIdentifiers,
   useAddVendorTaxIdentifier,
-  useUpdateVendorTaxIdentifier,
   useDeleteVendorTaxIdentifier,
-} from '@/hooks/vendors';
+  useUpdateVendorTaxIdentifier,
+  useVendorTaxIdentifiers,
+} from '@tornotron/echno-core/vendor/hooks';
 import type {
-  VendorTaxIdentifier,
   CreateVendorTaxIdentifierRequest,
-} from '@/types/vendor';
+  VendorTaxIdentifier,
+} from '@tornotron/echno-core/vendor/types';
 
 const TAX_ID_TYPES = ['GST', 'PAN', 'TAN', 'TIN', 'CIN', 'OTHER'];
 
@@ -97,14 +98,30 @@ export function VendorTaxTab({ vendorId }: VendorTaxTabProps) {
       toast.success(dialog.editing ? 'Tax ID updated.' : 'Tax ID added.');
       setDialog({ open: false });
     };
-    const mutateOptions = { onSuccess };
     if (dialog.editing) {
       updateTax.mutate(
         { taxIdId: dialog.editing.id, taxIdentifierInput: form },
-        mutateOptions
+        {
+          onSuccess,
+          onError: (error) => {
+            toast.error(
+              getErrorTitle(error, 'Failed to Update Tax Identifier'),
+              {
+                description: getErrorMessage(error),
+              }
+            );
+          },
+        }
       );
     } else {
-      addTax.mutate(form, mutateOptions);
+      addTax.mutate(form, {
+        onSuccess,
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Add Tax Identifier'), {
+            description: getErrorMessage(error),
+          });
+        },
+      });
     }
   }
 
@@ -252,6 +269,14 @@ export function VendorTaxTab({ vendorId }: VendorTaxTabProps) {
                   onSuccess: () => {
                     toast.success('Tax identifier removed.');
                     setToDelete(null);
+                  },
+                  onError: (error) => {
+                    toast.error(
+                      getErrorTitle(error, 'Failed to Delete Tax Identifier'),
+                      {
+                        description: getErrorMessage(error),
+                      }
+                    );
                   },
                 });
               }}

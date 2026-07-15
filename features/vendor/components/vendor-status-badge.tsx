@@ -1,5 +1,8 @@
 import { Badge } from '@/components/shadcn/badge';
-import { VendorStatus, getVendorStatusLabel } from '@/types/vendor';
+import {
+  VendorStatus,
+  getVendorStatusLabel,
+} from '@tornotron/echno-core/vendor/types';
 import { cn } from '@/lib/utils';
 
 const STATUS_CLASSES: Record<VendorStatus, string> = {

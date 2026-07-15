@@ -39,13 +39,17 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { PhoneDisplay, PhoneInput } from '@/components/shadcn/phone-input';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
-  useVendorContacts,
   useAddVendorContact,
-  useUpdateVendorContact,
   useDeleteVendorContact,
-} from '@/hooks/vendors';
-import type { VendorContact, CreateVendorContactRequest } from '@/types/vendor';
+  useUpdateVendorContact,
+  useVendorContacts,
+} from '@tornotron/echno-core/vendor/hooks';
+import type {
+  CreateVendorContactRequest,
+  VendorContact,
+} from '@tornotron/echno-core/vendor/types';
 
 interface VendorContactsTabProps {
   vendorId: number;
@@ -90,14 +94,27 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
       toast.success(dialog.editing ? 'Contact updated.' : 'Contact added.');
       setDialog({ open: false });
     };
-    const mutateOptions = { onSuccess };
     if (dialog.editing) {
       updateContact.mutate(
         { contactId: dialog.editing.id, contactInput: form },
-        mutateOptions
+        {
+          onSuccess,
+          onError: (error) => {
+            toast.error(getErrorTitle(error, 'Failed to Update Contact'), {
+              description: getErrorMessage(error),
+            });
+          },
+        }
       );
     } else {
-      addContact.mutate(form, mutateOptions);
+      addContact.mutate(form, {
+        onSuccess,
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Add Contact'), {
+            description: getErrorMessage(error),
+          });
+        },
+      });
     }
   }
 
@@ -301,6 +318,14 @@ export function VendorContactsTab({ vendorId }: VendorContactsTabProps) {
                   onSuccess: () => {
                     toast.success('Contact removed.');
                     setToDelete(null);
+                  },
+                  onError: (error) => {
+                    toast.error(
+                      getErrorTitle(error, 'Failed to Delete Contact'),
+                      {
+                        description: getErrorMessage(error),
+                      }
+                    );
                   },
                 });
               }}
