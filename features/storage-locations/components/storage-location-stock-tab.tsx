@@ -32,9 +32,9 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { useStorageLocationStock } from '@/hooks/inventory-transactions/use-inventory-transactions';
-import { useProjects } from '@/hooks/project/use-projects';
-import type { LocationMaterialStock } from '@/types/inventory-transactions';
+import { useStorageLocationStock } from '@tornotron/echno-core/inventory-transactions/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import type { LocationMaterialStock } from '@tornotron/echno-core/inventory-transactions/types';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50];
 
