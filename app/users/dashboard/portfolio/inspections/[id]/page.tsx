@@ -25,8 +25,8 @@ import {
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useInspectionById } from '@/hooks/inspection';
-import { useEmployees } from '@/hooks/employee';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
 import {
   InspectionStatus,

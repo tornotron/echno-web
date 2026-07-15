@@ -35,7 +35,7 @@ import {
   inspectionResultLabels,
 } from '@/types/inspection';
 import { useInspections } from '@/hooks/inspection';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
@@ -144,10 +144,10 @@ export default function InspectionsPage() {
 
   const hasActiveFilters = Boolean(
     searchQuery ||
-      statusFilter !== 'all' ||
-      typeFilter !== 'all' ||
-      resultFilter !== 'all' ||
-      projectFilter !== 'all'
+    statusFilter !== 'all' ||
+    typeFilter !== 'all' ||
+    resultFilter !== 'all' ||
+    projectFilter !== 'all'
   );
 
   const clearFilters = () => {
