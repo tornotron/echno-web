@@ -7,8 +7,8 @@ import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { MapPin, Plus, Building2, BarChart3, CheckCircle2 } from 'lucide-react';
-import { StorageLocationType } from '@/types/storage-locations';
-import { useStorageLocations } from '@/hooks/storage-locations';
+import { StorageLocationType } from '@tornotron/echno-core/storage-locations/types';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { StorageLocationGrid } from '@/features/storage-locations/components';
 
 interface LocationFilters {

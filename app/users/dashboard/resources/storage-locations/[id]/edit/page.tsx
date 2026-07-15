@@ -21,12 +21,14 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { CreateStorageLocationRequest } from '@/types/storage-locations';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { CreateStorageLocationRequest } from '@tornotron/echno-core/storage-locations/types';
 import {
+  useDeleteStorageLocation,
   useStorageLocation,
   useUpdateStorageLocation,
-  useDeleteStorageLocation,
-} from '@/hooks/storage-locations';
+} from '@tornotron/echno-core/storage-locations/hooks';
+import { toast } from '@/lib/styles/toast-styles';
 import { StorageLocationForm } from '@/features/storage-locations/components/storage-location-form';
 import { DeleteStorageLocationDialog } from '@/features/storage-locations/components/storage-location-alert-dialogs';
 
@@ -46,8 +48,17 @@ export default function EditLocationPage() {
       { id: locationId, data: input },
       {
         onSuccess: () => {
+          toast.success('Location Updated', {
+            description: 'The storage location has been updated successfully',
+          });
           router.push(
             routes.resources.storageLocations.detail(locationId).href
+          );
+        },
+        onError: (error) => {
+          toast.error(
+            getErrorTitle(error, 'Failed to Update Storage Location'),
+            { description: getErrorMessage(error) }
           );
         },
       }
@@ -57,7 +68,15 @@ export default function EditLocationPage() {
   const handleDelete = () => {
     deleteLocation.mutate(locationId, {
       onSuccess: () => {
+        toast.success('Location Deleted', {
+          description: 'The storage location has been deleted successfully',
+        });
         router.push(routes.resources.storageLocations.href);
+      },
+      onError: (error) => {
+        toast.error(getErrorTitle(error, 'Failed to Delete Storage Location'), {
+          description: getErrorMessage(error),
+        });
       },
     });
   };
