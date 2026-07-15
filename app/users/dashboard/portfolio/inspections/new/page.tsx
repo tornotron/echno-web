@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { logger } from '@/lib/logger';
 import { useRouter } from 'next/navigation';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useEmployees } from '@/hooks/employee';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { InspectionStatus } from '@/types/inspection';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
