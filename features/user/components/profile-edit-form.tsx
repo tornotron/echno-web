@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { User } from '@/types/user/user';
-import { UpdateUserRequest } from '@/types/user/user-update';
-import { useUpdateUserWithFiles } from '@/hooks/user/use-user-mutations';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { UpdateUserRequest, User } from '@tornotron/echno-core/user/types';
+import { useUpdateUserWithFiles } from '@tornotron/echno-core/user/hooks';
+import { userKeys } from '@tornotron/echno-core/user/hooks/keys';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { useQueryClient } from '@tanstack/react-query';
-import { userKeys } from '@/hooks/user/user-keys';
 import { Button } from '@/components/shadcn/button';
 import { PhoneInput } from '@/components/shadcn/phone-input';
 import {
@@ -749,7 +749,16 @@ export function ProfileEditForm({
               setProfilePictureFile(null);
               setCvFile(null);
 
+              toast.success('Profile Updated', {
+                description: 'Your profile has been updated successfully',
+              });
+
               if (onSuccess) onSuccess();
+            },
+            onError: (error) => {
+              const title = getErrorTitle(error, 'Failed to Update Profile');
+              const description = getErrorMessage(error);
+              toast.error(title, { description });
             },
             onSettled: () => {
               setShowConfirmUpdate(false);
