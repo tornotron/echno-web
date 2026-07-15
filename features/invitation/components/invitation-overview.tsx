@@ -7,7 +7,7 @@ import {
   Invitation,
   InvitationStatus,
   getInvitationStatus,
-} from '@/types/invitation';
+} from '@tornotron/echno-core/invitation/types';
 import { cn } from '@/lib/utils/index';
 
 interface InvitationOverviewProps {
@@ -38,7 +38,7 @@ const STATUS_BADGE_VARIANT: Record<
   [InvitationStatus.expired]: 'outline',
 };
 
-const ROLE_DOT = [
+const DEPT_DOT = [
   'bg-violet-500',
   'bg-blue-500',
   'bg-emerald-500',
@@ -58,6 +58,7 @@ function formatDate(date: Date | null | undefined) {
   });
 }
 
+// Build SVG donut arc path data
 function buildDonutSegments(
   slices: { value: number; color: string }[],
   r = 45,
@@ -125,7 +126,16 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
   const recentInvitations = useMemo(
     () =>
       [...invitations]
-        .toSorted((a, b) => b.createdDate.getTime() - a.createdDate.getTime())
+        .filter((inv) => inv.employeeDetails.joiningDate ?? inv.expiryDate)
+        .toSorted((a, b) => {
+          const da = new Date(
+            a.employeeDetails.joiningDate ?? a.expiryDate!
+          ).getTime();
+          const db = new Date(
+            b.employeeDetails.joiningDate ?? b.expiryDate!
+          ).getTime();
+          return db - da;
+        })
         .slice(0, 4),
     [invitations]
   );
@@ -187,6 +197,7 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
             </text>
           </svg>
 
+          {/* Legend — right of donut */}
           <div className="space-y-1.5">
             {(Object.entries(statusCounts) as [InvitationStatus, number][]).map(
               ([status, count]) => (
@@ -222,22 +233,27 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
             <div className="space-y-3">
               {recentInvitations.map((inv, i) => {
                 const status = getInvitationStatus(inv);
+                const name =
+                  inv.employeeDetails.employeeName ??
+                  inv.employeeDetails.email ??
+                  inv.inviteCode;
+                const date = inv.employeeDetails.joiningDate ?? inv.expiryDate;
                 return (
                   <div key={inv.id} className="flex items-center gap-2.5">
                     <div
                       className={cn(
                         'flex size-7 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold text-white',
-                        ROLE_DOT[i % ROLE_DOT.length]
+                        DEPT_DOT[i % DEPT_DOT.length]
                       )}
                     >
-                      {inv.inviteCode.slice(0, 2).toUpperCase()}
+                      {name.slice(0, 2).toUpperCase()}
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <span className="truncate font-mono text-xs font-medium text-zinc-700 dark:text-zinc-300">
-                        {inv.inviteCode}
+                      <span className="truncate text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                        {name}
                       </span>
                       <span className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">
-                        {inv.role}
+                        {inv.employeeDetails.designation}
                       </span>
                     </div>
                     <div className="flex flex-col items-end gap-0.5">
@@ -248,7 +264,7 @@ export function InvitationOverview({ invitations }: InvitationOverviewProps) {
                         {status}
                       </Badge>
                       <span className="text-[10px] text-zinc-400">
-                        {formatDate(inv.expiryDate ?? inv.createdDate)}
+                        {formatDate(date)}
                       </span>
                     </div>
                   </div>

@@ -10,7 +10,10 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { Invitation, getInvitationStatus } from '@/types/invitation/invitation';
+import {
+  Invitation,
+  getInvitationStatus,
+} from '@tornotron/echno-core/invitation/types';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Input } from '@/components/shadcn/input';
@@ -32,6 +35,7 @@ import {
 import { Pagination } from '@/components/common';
 import { format } from 'date-fns';
 import { InvitationStatusBadge } from './invitation-status-badge';
+import { InvitationAvatar } from './invitation-avatar';
 import { routes } from '@/nav';
 
 function CopyButton({ text }: { text: string }) {
@@ -69,6 +73,7 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [departmentFilter, setDepartmentFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -78,13 +83,18 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
     return invitations.filter((inv) => {
       const matchesSearch =
         !q ||
+        inv.employeeDetails.employeeName?.toLowerCase().includes(q) ||
         inv.inviteCode.toLowerCase().includes(q) ||
-        inv.role.toLowerCase().includes(q);
+        inv.employeeDetails.employeeId?.toLowerCase().includes(q) ||
+        inv.employeeDetails.email?.toLowerCase().includes(q);
       const matchesStatus =
         statusFilter === 'all' || getInvitationStatus(inv) === statusFilter;
-      return matchesSearch && matchesStatus;
+      const matchesDept =
+        departmentFilter === 'all' ||
+        inv.employeeDetails.department === departmentFilter;
+      return matchesSearch && matchesStatus && matchesDept;
     });
-  }, [invitations, searchQuery, statusFilter]);
+  }, [invitations, searchQuery, statusFilter, departmentFilter]);
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -116,7 +126,7 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            placeholder="Search by code or role..."
+            placeholder="Search by name, code, email..."
             className="h-8 pl-8 text-sm"
           />
         </div>
@@ -137,6 +147,26 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
             <SelectItem value="accepted">Accepted</SelectItem>
             <SelectItem value="rejected">Rejected</SelectItem>
             <SelectItem value="expired">Expired</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={departmentFilter}
+          onValueChange={(v) => {
+            setDepartmentFilter(v);
+            setCurrentPage(1);
+          }}
+        >
+          <SelectTrigger className="h-8 w-[150px] text-xs">
+            <SelectValue placeholder="All Departments" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Departments</SelectItem>
+            <SelectItem value="Engineering">Engineering</SelectItem>
+            <SelectItem value="Quality">Quality</SelectItem>
+            <SelectItem value="Safety">Safety</SelectItem>
+            <SelectItem value="Human Resources">Human Resources</SelectItem>
+            <SelectItem value="Operations">Operations</SelectItem>
           </SelectContent>
         </Select>
 
@@ -176,10 +206,10 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
                   aria-label="Select all"
                 />
               </TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Employee</TableHead>
+              <TableHead>Designation</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Invite Code</TableHead>
-              <TableHead>Uses</TableHead>
               <TableHead>Expires</TableHead>
             </TableRow>
           </TableHeader>
@@ -222,12 +252,28 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
                     onCheckedChange={(checked) =>
                       handleSelectOne(invitation.inviteCode, checked as boolean)
                     }
-                    aria-label={`Select ${invitation.inviteCode}`}
+                    aria-label={`Select ${invitation.employeeDetails.employeeName || 'invitation'}`}
                   />
                 </TableCell>
                 <TableCell>
-                  <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {invitation.role || '—'}
+                  <div className="flex items-center space-x-3">
+                    <InvitationAvatar
+                      name={invitation.employeeDetails.employeeName}
+                    />
+                    <div>
+                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {invitation.employeeDetails.employeeName || 'N/A'}
+                      </p>
+                      <p className="text-xs text-zinc-500">
+                        {invitation.employeeDetails.employeeId ||
+                          'Not Assigned'}
+                      </p>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className="text-zinc-700 dark:text-zinc-300">
+                    {invitation.employeeDetails.designation}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -242,14 +288,6 @@ export function InvitationTable({ invitations }: InvitationTableProps) {
                     </span>
                     <CopyButton text={invitation.inviteCode} />
                   </div>
-                </TableCell>
-                <TableCell>
-                  <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                    {invitation.usageCount}
-                    {invitation.maxUsageCount == null
-                      ? ' / ∞'
-                      : ` / ${invitation.maxUsageCount}`}
-                  </span>
                 </TableCell>
                 <TableCell>
                   {invitation.expiryDate ? (

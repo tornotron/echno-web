@@ -1,6 +1,6 @@
 'use client';
 
-import QRCodeSVG from 'react-qr-code';
+import QRCode from 'react-qr-code';
 import { Button } from '@/components/shadcn/button';
 import { Download } from 'lucide-react';
 import {
@@ -75,11 +75,11 @@ export function InvitationQRCode({
   return (
     <div className="flex flex-col items-center gap-4">
       <div className="rounded-lg border-4 border-white bg-white p-4 shadow-lg">
-        <QRCodeSVG
+        <QRCode
           id={`qr-code-${inviteCode}`}
           value={qrValue}
           size={size}
-          level="H" // High error correction
+          level="H"
         />
       </div>
 
@@ -116,7 +116,7 @@ export function InvitationQRCodeDialog({
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm">
-            <QRCodeSVG value={inviteCode} size={16} className="mr-2" />
+            <QRCode value={inviteCode} size={16} className="mr-2" />
             Show QR Code
           </Button>
         )}
