@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { OrgGuard, PageHeader } from '@/components/common';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { LeaveRole } from '@/types/leave';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
 import { DashboardSwitcher } from '@/features/leave/components/dashboard/dashboard-switcher';
 import { EmployeeDashboard } from '@/features/leave/components/dashboard/employee-dashboard';

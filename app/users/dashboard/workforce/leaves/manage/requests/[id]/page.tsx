@@ -65,8 +65,8 @@ import {
   useCancelLeaveRequest,
   useDelegateApproval,
 } from '@/hooks/leave/use-leave-mutations';
-import { useManagers } from '@/hooks/employee';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useManagers } from '@tornotron/echno-core/employee/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { LeaveStatus, ApprovalAction } from '@/types/leave';
 import { toast } from '@/lib/styles/toast-styles';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';

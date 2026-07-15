@@ -30,8 +30,11 @@ import { Calendar, Users, Download, Filter } from 'lucide-react';
 import { OrgGuard, PageHeader } from '@/components/common';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { format, startOfMonth, endOfMonth } from 'date-fns';
-import { Department, getDepartmentLabel } from '@/types/employee/departments';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import {
+  Department,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   LeaveCalendarGrid,
   CalendarView,

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { OrgGuard, PageHeader } from '@/components/common';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   useOrganizationRequests,
   useAllLeavePolicies,
