@@ -30,14 +30,15 @@ import {
 } from '@/components/shadcn/alert-dialog';
 import { Pencil, Check, X, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useUpdateIndent } from '@/hooks/indents';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useUpdateIndent } from '@tornotron/echno-core/indents/hooks';
+import { toast } from '@/lib/styles/toast-styles';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import {
   IndentStatus,
   indentStatusLabels,
   indentStatusBadgeColors,
-} from '@/types/indents';
-import type { Indent } from '@/types/indents';
+} from '@tornotron/echno-core/indents/types';
+import type { Indent } from '@tornotron/echno-core/indents/types';
 
 interface IndentInfoCardProps {
   indent: Indent;
@@ -98,8 +99,11 @@ export function IndentInfoCard({ indent }: IndentInfoCardProps) {
         },
       });
       setIsEditing(false);
-    } catch {
-      // handled by mutation hook
+      toast.success('Indent updated successfully.');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to update indent.'
+      );
     }
   }
 
