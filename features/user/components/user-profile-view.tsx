@@ -1,4 +1,4 @@
-import { User } from '@/types/user/user';
+import { User } from '@tornotron/echno-core/user/types';
 import {
   formatDate,
   formatDateShort,
