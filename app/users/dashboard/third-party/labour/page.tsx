@@ -14,9 +14,9 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useLabour } from '@/hooks/labour';
+import { useLabour } from '@tornotron/echno-core/labour/hooks';
+import { LabourStatus } from '@tornotron/echno-core/labour/types';
 import { LabourTable } from '@/features/labour';
-import { LabourStatus } from '@/types/labour';
 
 export default function LabourPage() {
   const { data: labour = [], isLoading, isError } = useLabour();

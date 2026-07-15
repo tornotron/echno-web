@@ -4,7 +4,7 @@ import { useParams } from 'next/navigation';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { Loader2, HardHat } from 'lucide-react';
-import { useLabourById } from '@/hooks/labour';
+import { useLabourById } from '@tornotron/echno-core/labour/hooks';
 import {
   Empty,
   EmptyErrorMedia,
