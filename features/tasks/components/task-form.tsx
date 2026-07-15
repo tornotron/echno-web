@@ -30,17 +30,21 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react';
-import { TaskStatus, getTaskStatusLabel } from '@/types/task/task-status';
-import type { Task } from '@/types/task/task';
 import {
-  useWorkCategories,
-  useCreateWorkCategory,
-} from '@/hooks/work-category';
-import { abbreviatedName } from '@/types/work-category';
-import { useEmployeesByProject } from '@/hooks/project/use-projects';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+  TaskStatus,
+  getTaskStatusLabel,
+} from '@tornotron/echno-core/task/types';
+import type { Task } from '@tornotron/echno-core/task/types';
+import { useEmployeesByProject } from '@tornotron/echno-core/project/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
-import { useDeleteAttachment } from '@tornotron/echno-core';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useCreateWorkCategory,
+  useWorkCategories,
+} from '@tornotron/echno-core/work-category/hooks';
+import { abbreviatedName } from '@tornotron/echno-core/work-category/types';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -267,6 +271,14 @@ export function TaskForm(props: TaskFormProps) {
           setNewCategoryName('');
           setNewCategoryDescription('');
           setShowCreateCategory(false);
+          toast.success('Category Created', {
+            description: 'The work category has been created successfully',
+          });
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Create Category'), {
+            description: getErrorMessage(error),
+          });
         },
       }
     );
