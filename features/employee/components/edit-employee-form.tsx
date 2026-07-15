@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/shadcn/button';
 import { SaveEmployeeDialog } from './employee-alert-dialogs';
-import { useUpdateEmployee } from '@/hooks/employee/use-employee-mutations';
+import { useUpdateEmployee } from '@tornotron/echno-core/employee/hooks';
+import { toast } from '@/lib/styles/toast-styles';
 import {
   Card,
   CardContent,
@@ -31,13 +32,16 @@ import {
 } from 'lucide-react';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
-import { Department, getDepartmentLabel } from '@/types/employee/departments';
+import {
+  Department,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
 import {
   EmployeeStatus,
   getEmployeeStatusLabel,
-} from '@/types/employee/employee-status';
-import type { Employee } from '@/types/employee';
-import type { UpdateEmployeeRequest } from '@/types/employee/employee-update';
+} from '@tornotron/echno-core/employee/types';
+import type { Employee } from '@tornotron/echno-core/employee/types';
+import type { UpdateEmployeeRequest } from '@tornotron/echno-core/employee/types';
 import { PageHeader } from '@/components/common';
 
 // Helper to get initial form data from employee
@@ -338,12 +342,21 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
         onConfirm={() => {
           if (!pendingUpdate) return;
           updateEmployee.mutate(pendingUpdate, {
-            onSuccess: () => {
+            onSuccess: (data) => {
+              const displayName = data?.name || employee.name || 'Employee';
+              toast.success('Employee Updated', {
+                description: `${displayName}'s information has been updated.`,
+              });
               router.push(
                 routes.workforce.employees.employeeManagement.detail(
                   employee.id
                 ).href
               );
+            },
+            onError: (error) => {
+              toast.error('Failed to update employee', {
+                description: error.message,
+              });
             },
             onSettled: () => {
               setShowConfirmUpdate(false);

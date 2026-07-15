@@ -39,12 +39,12 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
+  Department,
   Employee,
   EmployeeStatus,
-  Department,
   getDepartmentLabel,
   getEmployeeStatusLabel,
-} from '@/types/employee';
+} from '@tornotron/echno-core/employee/types';
 import { cn } from '@/lib/utils/index';
 
 // ─── Status colours + static ChartConfig ─────────────────────────────────────

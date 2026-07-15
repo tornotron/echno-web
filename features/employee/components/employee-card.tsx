@@ -1,6 +1,9 @@
 'use client';
 
-import { Employee, getDepartmentLabel } from '@/types/employee';
+import {
+  Employee,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
 import { Card, CardContent } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { Mail, Building, IdCard } from 'lucide-react';

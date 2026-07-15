@@ -11,11 +11,11 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import {
+  Department,
   Employee,
   EmployeeStatus,
-  Department,
   getDepartmentLabel,
-} from '@/types/employee';
+} from '@tornotron/echno-core/employee/types';
 import { Badge } from '@/components/shadcn/badge';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
