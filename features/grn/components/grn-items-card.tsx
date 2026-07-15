@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { Package } from 'lucide-react';
-import type { GoodsReceivedNote } from '@/types/grn';
+import type { GoodsReceivedNote } from '@tornotron/echno-core/grn/types';
 
 interface GRNItemsCardProps {
   grn: GoodsReceivedNote;

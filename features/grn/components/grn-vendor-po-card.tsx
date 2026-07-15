@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Building2 } from 'lucide-react';
-import type { GoodsReceivedNote } from '@/types/grn';
+import type { GoodsReceivedNote } from '@tornotron/echno-core/grn/types';
 
 interface GRNVendorPOCardProps {
   grn: GoodsReceivedNote;
