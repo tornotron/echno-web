@@ -14,11 +14,11 @@ import {
 } from '@/components/shadcn/select';
 import { MapPin, Save, X, Loader2 } from 'lucide-react';
 import {
-  StorageLocationType,
-  STORAGE_LOCATION_TYPE_LABELS,
   CreateStorageLocationRequest,
-} from '@/types/storage-locations';
-import { useProjects } from '@/hooks/project/use-projects';
+  STORAGE_LOCATION_TYPE_LABELS,
+  StorageLocationType,
+} from '@tornotron/echno-core/storage-locations/types';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useGeolocation } from '@/hooks/use-geolocation';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';

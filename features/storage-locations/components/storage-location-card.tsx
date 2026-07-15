@@ -17,10 +17,10 @@ import {
   XCircle,
 } from 'lucide-react';
 import {
-  StorageLocationType,
   STORAGE_LOCATION_TYPE_LABELS,
+  StorageLocationType,
   type StorageLocation,
-} from '@/types/storage-locations';
+} from '@tornotron/echno-core/storage-locations/types';
 
 const getLocationIcon = (type: StorageLocationType) => {
   switch (type) {

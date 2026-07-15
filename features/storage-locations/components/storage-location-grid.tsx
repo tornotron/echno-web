@@ -24,7 +24,7 @@ import { routes } from '@/nav';
 import {
   STORAGE_LOCATION_TYPE_LABELS,
   type StorageLocation,
-} from '@/types/storage-locations';
+} from '@tornotron/echno-core/storage-locations/types';
 import { StorageLocationCard } from './storage-location-card';
 
 interface StorageLocationGridProps {
