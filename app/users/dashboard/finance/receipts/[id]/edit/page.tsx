@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import {
   Receipt,
   ReceiptType,
