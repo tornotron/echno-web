@@ -1,9 +1,12 @@
 import type { ReactNode } from 'react';
 import { Badge } from '@/components/shadcn/badge';
 import { Network, Users } from 'lucide-react';
-import { Department, getDepartmentLabel } from '@/types/employee/departments';
+import {
+  Department,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
 import type { TreeNode } from '@/lib/utils/hierarchy';
-import type { Employee } from '@/types/employee';
+import type { Employee } from '@tornotron/echno-core/employee/types';
 
 interface OrganizationHierarchyTabProps {
   hierarchyDepartments: Department[];

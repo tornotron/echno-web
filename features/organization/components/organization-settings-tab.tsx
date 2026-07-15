@@ -11,7 +11,7 @@ import { Separator } from '@/components/shadcn/separator';
 import { Settings, User, Star } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import type { Organization } from '@/types/organization/organization';
+import type { Organization } from '@tornotron/echno-core/organization/types';
 
 interface OrganizationSettingsTabProps {
   organization: Organization;

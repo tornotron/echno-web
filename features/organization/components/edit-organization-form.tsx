@@ -3,11 +3,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
-import { UpdateOrganizationRequest } from '@/types/organization';
-import { useOrganization } from '@/hooks/organization/use-organizations';
-import { useUpdateOrganization } from '@/hooks/organization/use-organization-mutations';
-import { useDeleteAttachment } from '@/hooks/attachment/use-attachment-mutations';
-import { organizationKeys } from '@/hooks/organization/organization-keys';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { UpdateOrganizationRequest } from '@tornotron/echno-core/organization/types';
+import {
+  useOrganization,
+  useUpdateOrganization,
+} from '@tornotron/echno-core/organization/hooks';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
+import { organizationKeys } from '@tornotron/echno-core/organization/hooks/keys';
+import { toast } from '@/lib/styles/toast-styles';
 import { SaveOrganizationDialog } from './organization-alert-dialogs';
 import { OrganizationForm } from './organization-form';
 import { routes } from '@/nav';
@@ -69,7 +73,15 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
       },
       {
         onSuccess: () => {
+          toast.success('Organization Updated', {
+            description: 'The organization has been updated successfully',
+          });
           router.push(routes.organizations.detail(organization.id).href);
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Update Organization'), {
+            description: getErrorMessage(error),
+          });
         },
         onSettled: () => {
           setShowConfirmUpdate(false);

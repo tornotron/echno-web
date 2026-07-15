@@ -1,6 +1,6 @@
 'use client';
 
-import { Organization } from '@/types/organization';
+import { Organization } from '@tornotron/echno-core/organization/types';
 import {
   Card,
   CardContent,
