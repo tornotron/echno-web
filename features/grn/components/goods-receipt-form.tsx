@@ -28,12 +28,12 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { Receipt, Package, Plus, Trash2 } from 'lucide-react';
-import { useVendors } from '@/hooks/vendors/use-vendors';
-import { usePurchaseOrders } from '@/hooks/purchase-orders/use-purchase-orders';
-import { useMaterials } from '@/hooks/materials/use-materials';
-import { useStorageLocations } from '@/hooks/storage-locations/use-storage-locations';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useGRNs } from '@/hooks/grn';
+import { useVendors } from '@tornotron/echno-core/vendor/hooks';
+import { usePurchaseOrders } from '@tornotron/echno-core/purchase-orders/hooks';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useGRNs } from '@tornotron/echno-core/grn/hooks';
 import { generateGrnNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';

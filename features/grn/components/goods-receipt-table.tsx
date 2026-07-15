@@ -29,7 +29,7 @@ import {
 } from '@/components/shadcn/empty';
 import { Receipt, Search } from 'lucide-react';
 import { routes } from '@/nav';
-import type { GoodsReceivedNote } from '@/types/grn';
+import type { GoodsReceivedNote } from '@tornotron/echno-core/grn/types';
 import { GoodsReceiptRow } from './goods-receipt-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
