@@ -27,8 +27,8 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { Loader2 } from 'lucide-react';
-import type { Employee } from '@/types/employee';
-import { OrgRole, getOrgRoleLabel } from '@/types/employee/org-role';
+import type { Employee } from '@tornotron/echno-core/employee/types';
+import { OrgRole, getOrgRoleLabel } from '@tornotron/echno-core/employee/types';
 
 // ---------------------------------------------------------------------------
 // Assign / Change Manager Dialog

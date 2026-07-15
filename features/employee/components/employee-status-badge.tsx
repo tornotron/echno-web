@@ -1,5 +1,5 @@
 import { Badge } from '@/components/shadcn/badge';
-import { EmployeeStatus } from '@/types/employee';
+import { EmployeeStatus } from '@tornotron/echno-core/employee/types';
 import { cn } from '@/lib/utils';
 
 const STATUS_STYLES: Record<string, string> = {
