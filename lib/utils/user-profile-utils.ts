@@ -1,5 +1,5 @@
 // lib/utils/user-profile-utils.ts
-import { User } from '@/types/user';
+import { User } from '@tornotron/echno-core/user/types';
 
 // Re-export date utilities for backward compatibility
 
