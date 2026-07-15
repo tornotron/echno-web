@@ -37,7 +37,10 @@ import {
 } from '@/components/shadcn/table';
 import { Pagination } from '@/components/common';
 import { routes } from '@/nav';
-import type { Material, MaterialStatus } from '@/types/materials';
+import type {
+  Material,
+  MaterialStatus,
+} from '@tornotron/echno-core/materials/types';
 
 const ITEMS_PER_PAGE_OPTIONS = ['5', '10', '20', '50'];
 

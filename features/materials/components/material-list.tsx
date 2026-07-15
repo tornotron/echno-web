@@ -21,7 +21,7 @@ import {
 } from '@/components/shadcn/empty';
 import { Loader2, Package, Plus, Search } from 'lucide-react';
 import { routes } from '@/nav';
-import type { Material } from '@/types/materials';
+import type { Material } from '@tornotron/echno-core/materials/types';
 import { MaterialListItem } from './material-list-item';
 
 interface UnitOption {
