@@ -11,10 +11,10 @@ import {
   useToggleReaction,
   useMarkRoomAsRead,
 } from '@/hooks/chat/use-chat-mutations';
-import { useUser } from '@/hooks/user/use-user';
-import { useUserEmployees } from '@/hooks/user/use-user';
-import { useTasksByProject } from '@/hooks/task';
-import { useIssuesByProject } from '@/hooks/issue';
+import { useUser } from '@tornotron/echno-core/user/hooks';
+import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
+import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
+import { useIssuesByProject } from '@tornotron/echno-core/issue/hooks';
 import { ChatMessage, ChatRoomType } from '@/types/chat';
 import { ChatRoomHeader } from './chat-room-header';
 import { ChatMessageList } from './chat-message-list';
