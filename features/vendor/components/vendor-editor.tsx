@@ -24,15 +24,15 @@ import {
 import { toast } from '@/lib/styles/toast-styles';
 import { Building2, Save, X } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import { useUpdateVendor } from '@/hooks/vendors';
+import { useUpdateVendor } from '@tornotron/echno-core/vendor/hooks';
 import {
-  VendorType,
-  VendorStatus,
   UpdateVendorRequest,
-  VENDOR_TYPE_LABELS,
   VENDOR_STATUS_LABELS,
-} from '@/types/vendor';
-import type { Vendor } from '@/types/vendor';
+  VENDOR_TYPE_LABELS,
+  VendorStatus,
+  VendorType,
+} from '@tornotron/echno-core/vendor/types';
+import type { Vendor } from '@tornotron/echno-core/vendor/types';
 
 interface VendorEditorProps {
   vendor: Vendor;

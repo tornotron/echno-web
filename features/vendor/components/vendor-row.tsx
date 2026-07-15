@@ -1,7 +1,7 @@
 import { Badge } from '@/components/shadcn/badge';
 import { TableCell, TableRow } from '@/components/shadcn/table';
-import { getVendorTypeLabel } from '@/types/vendor';
-import type { Vendor } from '@/types/vendor';
+import { getVendorTypeLabel } from '@tornotron/echno-core/vendor/types';
+import type { Vendor } from '@tornotron/echno-core/vendor/types';
 import { VendorAvatar } from './vendor-avatar';
 import { VendorStatusBadge } from './vendor-status-badge';
 

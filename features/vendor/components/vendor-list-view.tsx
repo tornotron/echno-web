@@ -2,8 +2,8 @@
 
 import { Card } from '@/components/shadcn/card';
 import { Building2, TrendingUp, DollarSign, ShoppingCart } from 'lucide-react';
-import { VendorStatus } from '@/types/vendor';
-import type { Vendor } from '@/types/vendor';
+import { VendorStatus } from '@tornotron/echno-core/vendor/types';
+import type { Vendor } from '@tornotron/echno-core/vendor/types';
 import { VendorTable } from './vendor-table';
 
 interface VendorListViewProps {

@@ -38,16 +38,17 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
-  useVendorBankAccounts,
   useAddVendorBankAccount,
-  useUpdateVendorBankAccount,
   useDeleteVendorBankAccount,
-} from '@/hooks/vendors';
+  useUpdateVendorBankAccount,
+  useVendorBankAccounts,
+} from '@tornotron/echno-core/vendor/hooks';
 import type {
-  VendorBankAccount,
   CreateVendorBankAccountRequest,
-} from '@/types/vendor';
+  VendorBankAccount,
+} from '@tornotron/echno-core/vendor/types';
 
 interface VendorBankingTabProps {
   vendorId: number;
@@ -91,14 +92,27 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
       );
       setDialog({ open: false });
     };
-    const mutateOptions = { onSuccess };
     if (dialog.editing) {
       updateBank.mutate(
         { accountId: dialog.editing.id, bankAccountInput: form },
-        mutateOptions
+        {
+          onSuccess,
+          onError: (error) => {
+            toast.error(getErrorTitle(error, 'Failed to Update Bank Account'), {
+              description: getErrorMessage(error),
+            });
+          },
+        }
       );
     } else {
-      addBank.mutate(form, mutateOptions);
+      addBank.mutate(form, {
+        onSuccess,
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Add Bank Account'), {
+            description: getErrorMessage(error),
+          });
+        },
+      });
     }
   }
 
@@ -314,6 +328,14 @@ export function VendorBankingTab({ vendorId }: VendorBankingTabProps) {
                   onSuccess: () => {
                     toast.success('Bank account removed.');
                     setToDelete(null);
+                  },
+                  onError: (error) => {
+                    toast.error(
+                      getErrorTitle(error, 'Failed to Delete Bank Account'),
+                      {
+                        description: getErrorMessage(error),
+                      }
+                    );
                   },
                 });
               }}
