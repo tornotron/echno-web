@@ -36,8 +36,15 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useIndent, useDeleteIndent } from '@/hooks/indents';
-import { indentStatusLabels, indentStatusBadgeColors } from '@/types/indents';
+import {
+  useIndent,
+  useDeleteIndent,
+} from '@tornotron/echno-core/indents/hooks';
+import { toast } from '@/lib/styles/toast-styles';
+import {
+  indentStatusLabels,
+  indentStatusBadgeColors,
+} from '@tornotron/echno-core/indents/types';
 import {
   DeleteIndentDialog,
   IndentItemsCard,
@@ -117,7 +124,14 @@ export default function IndentDetailPage({
         indentNumber={indent.indentNumber}
         onConfirm={() =>
           deleteIndent(id, {
-            onSuccess: () => router.push(routes.resources.indents.href),
+            onSuccess: () => {
+              toast.success('Indent deleted.');
+              router.push(routes.resources.indents.href);
+            },
+            onError: (err) =>
+              toast.error(
+                err instanceof Error ? err.message : 'Failed to delete indent.'
+              ),
           })
         }
         isPending={isDeleting}
