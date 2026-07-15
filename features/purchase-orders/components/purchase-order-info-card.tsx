@@ -32,14 +32,16 @@ import {
 } from '@/components/shadcn/alert-dialog';
 import { Loader2, Pencil, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
-import { useUpdatePurchaseOrder } from '@/hooks/purchase-orders';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useUpdatePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import {
   PurchaseOrderStatus,
   purchaseOrderStatusLabels,
   purchaseOrderStatusBadgeColors,
-} from '@/types/purchase-orders';
-import type { PurchaseOrder } from '@/types/purchase-orders';
+} from '@tornotron/echno-core/purchase-orders/types';
+import type { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 
 interface POInfoCardProps {
   po: PurchaseOrder;
@@ -100,8 +102,13 @@ export function POInfoCard({ po }: POInfoCardProps) {
         remarks: po.remarks,
       });
       setIsEditing(false);
-    } catch {
-      // handled by mutation
+      toast.success('Purchase Order Updated', {
+        description: 'The purchase order has been updated successfully.',
+      });
+    } catch (error) {
+      toast.error(getErrorTitle(error, 'Failed to Update Purchase Order'), {
+        description: getErrorMessage(error),
+      });
     }
   }
 

@@ -34,18 +34,18 @@ import {
   Trash2,
   AlertTriangle,
 } from 'lucide-react';
-import { useVendors } from '@/hooks/vendors/use-vendors';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useIndents } from '@/hooks/indents/use-indents';
+import { useVendors } from '@tornotron/echno-core/vendor/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useIndents } from '@tornotron/echno-core/indents/hooks';
 import {
-  useMaterials,
   useMaterialWithStock,
-} from '@/hooks/materials/use-materials';
-import { usePurchaseOrders } from '@/hooks/purchase-orders/use-purchase-orders';
+  useMaterials,
+} from '@tornotron/echno-core/materials/hooks';
+import { usePurchaseOrders } from '@tornotron/echno-core/purchase-orders/hooks';
 import {
   PurchaseOrderStatus,
   purchaseOrderStatusLabels,
-} from '@/types/purchase-orders';
+} from '@tornotron/echno-core/purchase-orders/types';
 import { generatePoNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
