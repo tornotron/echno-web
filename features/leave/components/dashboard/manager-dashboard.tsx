@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 import { Skeleton } from '@/components/shadcn/skeleton';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { useApprovalsForApprover } from '@/hooks/leave/use-approvals-for-approver';
 import { format } from 'date-fns';
 import { routes } from '@/nav';

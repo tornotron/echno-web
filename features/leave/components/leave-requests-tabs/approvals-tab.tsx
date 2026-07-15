@@ -37,7 +37,10 @@ import {
   getLeaveStatusLabel,
   getLeaveStatusColor,
 } from '@/types/leave';
-import { Department, getDepartmentLabel } from '@/types/employee/departments';
+import {
+  Department,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
 import {
   AlertCircle,
   Calendar,

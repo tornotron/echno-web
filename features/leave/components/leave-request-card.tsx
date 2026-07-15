@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { cn } from '@/lib/utils';
 import { routes } from '@/nav';
 
