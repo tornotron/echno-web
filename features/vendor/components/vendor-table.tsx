@@ -23,12 +23,12 @@ import {
 } from '@/components/shadcn/table';
 import { Building2, Loader2, Search } from 'lucide-react';
 import {
-  VendorStatus,
-  VendorType,
   VENDOR_STATUS_LABELS,
   VENDOR_TYPE_LABELS,
-} from '@/types/vendor';
-import type { Vendor } from '@/types/vendor';
+  VendorStatus,
+  VendorType,
+} from '@tornotron/echno-core/vendor/types';
+import type { Vendor } from '@tornotron/echno-core/vendor/types';
 import { VendorRow } from './vendor-row';
 import {
   Empty,

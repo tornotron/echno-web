@@ -49,17 +49,20 @@ import {
 } from 'lucide-react';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
-  useVendorPaymentTerms,
-  useSetVendorPaymentTerms,
   useDeleteVendorPaymentTerms,
-} from '@/hooks/vendors';
+  useSetVendorPaymentTerms,
+  useVendorPaymentTerms,
+} from '@tornotron/echno-core/vendor/hooks';
 import {
+  PAYMENT_TERMS_LABELS,
   PaymentTerms,
   SetVendorPaymentTermsRequest,
-  PAYMENT_TERMS_LABELS,
   getVendorTypeLabel,
-} from '@/types/vendor';
-import type { Vendor, VendorPaymentTermsDetails } from '@/types/vendor';
+} from '@tornotron/echno-core/vendor/types';
+import type {
+  Vendor,
+  VendorPaymentTermsDetails,
+} from '@tornotron/echno-core/vendor/types';
 import { VendorStatusBadge } from './vendor-status-badge';
 import { VendorField } from './vendor-field';
 
