@@ -43,10 +43,10 @@ import {
 import {
   ProjectStatus,
   getProjectStatusLabel,
-} from '@/types/project/project-status';
-import type { Project } from '@/types/project/project';
+} from '@tornotron/echno-core/project/types';
+import type { Project } from '@tornotron/echno-core/project/types';
 import { routes } from '@/nav';
-import { usePrefetchProject } from '@/hooks/project/use-prefetch-project';
+import { usePrefetchProject } from '@tornotron/echno-core/project/hooks';
 
 interface ProjectFilters {
   search: string;
