@@ -3,9 +3,9 @@
 import { useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
-import { userService } from '@/services/user-service';
-import { userKeys } from '@/hooks/user/user-keys';
-import { employeeKeys } from '@/hooks/employee/employee-keys';
+import { userService } from '@tornotron/echno-core/user/services';
+import { userKeys } from '@tornotron/echno-core/user/hooks/keys';
+import { employeeKeys } from '@tornotron/echno-core/employee/hooks/keys';
 import { logger } from '@/lib/logger';
 import { ApiError } from '@/lib/api/api-client';
 
