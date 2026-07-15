@@ -1,4 +1,4 @@
-import { Organization } from '@/types/organization';
+import { Organization } from '@tornotron/echno-core/organization/types';
 
 export const mockOrganizations: Organization[] = [
   /**
