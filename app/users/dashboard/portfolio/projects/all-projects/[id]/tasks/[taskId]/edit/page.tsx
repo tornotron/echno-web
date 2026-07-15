@@ -13,10 +13,15 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { PageHeader } from '@/components/common';
-import { useProject } from '@/hooks/project/use-projects';
-import { useTask, useUpdateTask, useDeleteTask } from '@/hooks/task';
-import { useWorkCategories } from '@/hooks/work-category';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import {
+  useDeleteTask,
+  useTask,
+  useUpdateTask,
+} from '@tornotron/echno-core/task/hooks';
+import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import {
@@ -25,7 +30,7 @@ import {
   DeleteTaskDialog,
   type TaskFormSubmitData,
 } from '@/features/tasks/components';
-import type { UpdateTaskRequest } from '@/types/task/task-update';
+import type { UpdateTaskRequest } from '@tornotron/echno-core/task/types';
 
 interface PageProps {
   params: Promise<{ id: string; taskId: string }>;
@@ -88,6 +93,9 @@ export default function EditTaskPage({ params }: PageProps) {
     if (!pendingSubmitData) return;
     updateTask.mutate(pendingSubmitData, {
       onSuccess: () => {
+        toast.success('Task Updated', {
+          description: 'The task has been updated successfully',
+        });
         router.push(
           routes.portfolio.projects.allProjects
             .detail(projectId)
@@ -95,8 +103,10 @@ export default function EditTaskPage({ params }: PageProps) {
         );
       },
       onError: (error) => {
-        logger.error('Error updating task:', error);
-        toast.error('Failed to update task. Please try again.');
+        const title = getErrorTitle(error, 'Failed to Update Task');
+        const description = getErrorMessage(error);
+        toast.error(title, { description });
+        logger.error('Failed to update task:', error);
       },
       onSettled: () => {
         setShowSaveDialog(false);
@@ -108,9 +118,18 @@ export default function EditTaskPage({ params }: PageProps) {
   function confirmDelete() {
     deleteTask.mutate(taskId, {
       onSuccess: () => {
+        toast.success('Task Deleted', {
+          description: 'The task has been deleted successfully',
+        });
         router.push(
           routes.portfolio.projects.allProjects.detail(projectId).tasks.href
         );
+      },
+      onError: (error) => {
+        const title = getErrorTitle(error, 'Failed to Delete Task');
+        const description = getErrorMessage(error);
+        toast.error(title, { description });
+        logger.error('Failed to delete task:', error);
       },
       onSettled: () => setShowDeleteDialog(false),
     });

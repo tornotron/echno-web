@@ -1,8 +1,8 @@
 'use client';
 
 import { use, useState } from 'react';
-import { useProject } from '@/hooks/project/use-projects';
-import { useTask } from '@/hooks/task';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useTask } from '@tornotron/echno-core/task/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Card } from '@/components/shadcn/card';
@@ -28,8 +28,11 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { TaskStatus, getTaskStatusLabel } from '@/types/task';
-import { useDeleteAttachment } from '@tornotron/echno-core';
+import {
+  TaskStatus,
+  getTaskStatusLabel,
+} from '@tornotron/echno-core/task/types';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   TaskOverviewTab,

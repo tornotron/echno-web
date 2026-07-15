@@ -2,8 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { useProject } from '@/hooks/project/use-projects';
-import { useTasksByProject } from '@/hooks/task';
+import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Plus, AlertCircle, ArrowLeft, Loader2 } from 'lucide-react';
 import {
@@ -15,7 +15,7 @@ import {
 } from '@/components/shadcn/empty';
 import { PageHeader } from '@/components/common/page-header';
 import Link from 'next/link';
-import { TaskStatus } from '@/types/task';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
 import { TaskTable, TaskStatsCard } from '@/features/tasks/components';
 import { routes } from '@/nav';
 
