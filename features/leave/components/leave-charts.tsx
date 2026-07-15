@@ -25,7 +25,10 @@ import {
 } from '@/components/shadcn/chart';
 import { TreeMap } from '@/components/shadcn/tree-map';
 import { LeaveRequest, LeaveStatus, getLeaveStatusLabel } from '@/types/leave';
-import { Department, getDepartmentLabel } from '@/types/employee';
+import {
+  Department,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
 import { Button } from '@/components/shadcn/button';
 import {
   Select,

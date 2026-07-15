@@ -43,7 +43,7 @@ import {
   useAllLeavePolicies,
 } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
-import { useCurrentUserEmployee } from '@/hooks/employee';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { routes } from '@/nav';

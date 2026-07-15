@@ -32,8 +32,11 @@ import { useOrganizationRequests } from '@/hooks/leave/use-leave';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { LeaveStatus } from '@/types/leave';
-import { Department, getDepartmentLabel } from '@/types/employee/departments';
-import { FileText, Calendar, Clock, AlertCircle, Search } from 'lucide-react';
+import {
+  Department,
+  getDepartmentLabel,
+} from '@tornotron/echno-core/employee/types';
+import { FileText, Calendar, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { routes } from '@/nav';
 
@@ -57,7 +60,7 @@ export function AllRequestsTab() {
   const [perPage, setPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  const { data: requests, isLoading, error } = useOrganizationRequests();
+  const { data: requests } = useOrganizationRequests();
 
   const departments = useMemo(
     () =>
