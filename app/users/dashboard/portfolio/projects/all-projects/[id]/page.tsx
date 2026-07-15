@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useProject } from '@/hooks/project/use-projects';
-import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
-import { useTasksByProject } from '@/hooks/task';
-import { useIssuesByProject } from '@/hooks/issue';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useProject,
+  useUpdateProjectWithFiles,
+} from '@tornotron/echno-core/project/hooks';
+import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
+import { useIssuesByProject } from '@tornotron/echno-core/issue/hooks';
 import { cn } from '@/lib/utils/index';
 import {
   Card,
@@ -55,14 +58,14 @@ import {
 import {
   ProjectStatus,
   getProjectStatusLabel,
-} from '@/types/project/project-status';
-import { TaskStatus } from '@/types/task';
-import { IssueStatus } from '@/types/issue';
+} from '@tornotron/echno-core/project/types';
+import { TaskStatus } from '@tornotron/echno-core/task/types';
+import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import {
   AttachmentType,
   formatFileSize,
-  useDeleteAttachment,
-} from '@tornotron/echno-core';
+} from '@tornotron/echno-core/attachment/types';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { format } from 'date-fns';
 import { TeamMembersSection } from '@/features/projects/components';
 import { AttachmentsUploader } from '@/components/common';
@@ -710,11 +713,29 @@ export default function ProjectDashboardPage() {
                             description: `Not uploaded: ${invalid.join(', ')}`,
                           });
                         if (valid.length > 0)
-                          updateProjectWithFiles.mutate({
-                            id: projectId,
-                            data: {},
-                            files: { attachments: valid },
-                          });
+                          updateProjectWithFiles.mutate(
+                            {
+                              id: projectId,
+                              data: {},
+                              files: { attachments: valid },
+                            },
+                            {
+                              onSuccess: () => {
+                                toast.success('Project Updated', {
+                                  description:
+                                    'The project has been updated successfully',
+                                });
+                              },
+                              onError: (error) => {
+                                const title = getErrorTitle(
+                                  error,
+                                  'Failed to Update Project'
+                                );
+                                const description = getErrorMessage(error);
+                                toast.error(title, { description });
+                              },
+                            }
+                          );
                       }}
                       isPending={updateProjectWithFiles.isPending}
                     />

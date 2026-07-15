@@ -11,7 +11,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { FolderKanban, Loader2, Plus } from 'lucide-react';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { ProjectsGridTable } from '@/features/projects/components';
 import { routes } from '@/nav';
 
