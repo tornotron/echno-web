@@ -1,6 +1,12 @@
 // types/user/member.ts
-import { getUserRoleLabel, userRoleFromString } from '../user';
-import { getOrgRoleLabel, orgRoleFromString } from '../employee/org-role';
+import {
+  getUserRoleLabel,
+  userRoleFromString,
+} from '@tornotron/echno-core/user/types';
+import {
+  getOrgRoleLabel,
+  orgRoleFromString,
+} from '@tornotron/echno-core/employee/types';
 import { parsePositiveInt } from '@/types/parse-id';
 
 /**
