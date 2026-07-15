@@ -39,7 +39,7 @@ import {
   invoiceTypeLabels,
   invoiceStatusLabels,
 } from '@/types/finance/invoice';
-import { Project } from '@/types/project';
+import { Project } from '@tornotron/echno-core/project/types';
 import { InvoiceRow } from './invoice-row';
 
 interface InvoicesFeatureProps {
