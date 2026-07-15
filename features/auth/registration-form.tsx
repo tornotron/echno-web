@@ -21,7 +21,7 @@ import {
   initialRegistrationFormData,
   toRegistrationRequest,
 } from '@/types/auth/registration';
-import { UserRole, getUserRoleLabel } from '@/types/user/user-role';
+import { UserRole, getUserRoleLabel } from '@tornotron/echno-core/user/types';
 import { authService } from '@/services/auth-service';
 import { ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
