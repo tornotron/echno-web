@@ -20,11 +20,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { useVendors } from '@/hooks/vendors';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useEmployees } from '@/hooks/employee';
+import { useVendors } from '@tornotron/echno-core/vendor/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
-import { useLabour } from '@/hooks/labour';
 import {
   Payment,
   PaymentType,
