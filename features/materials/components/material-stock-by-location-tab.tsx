@@ -52,13 +52,13 @@ import { format } from 'date-fns';
 import {
   useMaterialStock,
   useInventoryTransactionsByStorageLocationAndMaterial,
-} from '@/hooks/inventory-transactions/use-inventory-transactions';
+} from '@tornotron/echno-core/inventory-transactions/hooks';
 import {
   InventoryTransactionType,
   inventoryTransactionTypeLabels,
   inventoryTransactionTypeBadgeColors,
-} from '@/types/inventory-transactions';
-import type { LocationStock } from '@/types/inventory-transactions';
+} from '@tornotron/echno-core/inventory-transactions/types';
+import type { LocationStock } from '@tornotron/echno-core/inventory-transactions/types';
 
 // ---------------------------------------------------------------------------
 // Helpers

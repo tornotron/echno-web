@@ -21,7 +21,10 @@ import {
   type ChartConfig,
 } from '@/components/shadcn/chart';
 import { cn } from '@/lib/utils/tailwind-utils';
-import type { Material, MaterialConsumption } from '@/types/materials';
+import type {
+  Material,
+  MaterialConsumption,
+} from '@tornotron/echno-core/materials/types';
 
 interface MaterialsChartsRowProps {
   materials: Material[];

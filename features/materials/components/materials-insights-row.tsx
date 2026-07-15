@@ -13,7 +13,10 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { routes } from '@/nav';
-import type { Material, MaterialConsumption } from '@/types/materials';
+import type {
+  Material,
+  MaterialConsumption,
+} from '@tornotron/echno-core/materials/types';
 
 export function StockValueByMaterial({ materials }: { materials: Material[] }) {
   const stockValueData = useMemo(() => {

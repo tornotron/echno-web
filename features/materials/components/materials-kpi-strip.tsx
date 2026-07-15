@@ -19,7 +19,10 @@ import {
   CHART_PALETTE,
   type ChartConfig,
 } from '@/components/shadcn/chart';
-import type { Material, MaterialConsumption } from '@/types/materials';
+import type {
+  Material,
+  MaterialConsumption,
+} from '@tornotron/echno-core/materials/types';
 
 interface MaterialsKpiStripProps {
   materials: Material[];
