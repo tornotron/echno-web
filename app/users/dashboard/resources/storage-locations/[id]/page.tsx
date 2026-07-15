@@ -35,9 +35,9 @@ import {
   Loader2,
 } from 'lucide-react';
 import {
-  StorageLocationType,
   STORAGE_LOCATION_TYPE_LABELS,
-} from '@/types/storage-locations';
+  StorageLocationType,
+} from '@tornotron/echno-core/storage-locations/types';
 import {
   Empty,
   EmptyMedia,
@@ -45,7 +45,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { useStorageLocation } from '@/hooks/storage-locations';
+import { useStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
 import { StorageLocationStockTab } from '@/features/storage-locations/components';
 
 export default function ViewLocationPage() {

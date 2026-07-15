@@ -11,8 +11,10 @@ import {
 } from '@/components/shadcn/card';
 import { MapPin } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import { CreateStorageLocationRequest } from '@/types/storage-locations';
-import { useCreateStorageLocation } from '@/hooks/storage-locations';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { CreateStorageLocationRequest } from '@tornotron/echno-core/storage-locations/types';
+import { useCreateStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
+import { toast } from '@/lib/styles/toast-styles';
 import { StorageLocationForm } from '@/features/storage-locations/components/storage-location-form';
 
 export default function NewLocationPage() {
@@ -22,7 +24,15 @@ export default function NewLocationPage() {
   const handleSubmit = (input: CreateStorageLocationRequest) => {
     createLocation.mutate(input, {
       onSuccess: () => {
+        toast.success('Location Created', {
+          description: 'The storage location has been created successfully',
+        });
         router.push(routes.resources.storageLocations.href);
+      },
+      onError: (error) => {
+        toast.error(getErrorTitle(error, 'Failed to Create Storage Location'), {
+          description: getErrorMessage(error),
+        });
       },
     });
   };
