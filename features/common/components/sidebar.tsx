@@ -2,8 +2,8 @@
 
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
-import { useEmployeeRoles } from '@/hooks/employee/use-employee-roles';
-import { isManagerOrAbove } from '@/types/employee';
+import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
+import { isManagerOrAbove } from '@tornotron/echno-core/employee/types';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
 import { Badge } from '@/components/shadcn/badge';
 import {

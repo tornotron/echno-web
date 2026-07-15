@@ -18,12 +18,12 @@ import { ThemeToggle } from '@/components/common/theme-toggle';
 import { CommandPalette } from '@/features/common/components/command-palette';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useUser } from '@/hooks/user/use-user';
+import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { Suspense, useEffect } from 'react';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useTasks } from '@/hooks/task/use-tasks';
-import { useIssues } from '@/hooks/issue/use-issues';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useTasks } from '@tornotron/echno-core/task/hooks';
+import { useIssues } from '@tornotron/echno-core/issue/hooks';
 import { routes } from '@/nav';
 
 interface AppLayoutProps {
