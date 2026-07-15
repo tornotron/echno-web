@@ -1,4 +1,4 @@
-import { User } from '@/types/user';
+import { User } from '@tornotron/echno-core/user/types';
 
 export const mockUsers: User[] = [
   // System Admin - Full system access

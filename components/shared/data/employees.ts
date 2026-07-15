@@ -1,12 +1,12 @@
 import {
+  Department,
   Employee,
   EmployeeStatus,
-  Department,
   OrgRole,
-} from '@/types/employee';
+} from '@tornotron/echno-core/employee/types';
 import { mockUsers } from './users';
 import { mockOrganizations } from './organizations';
-import { Project, ProjectStatus } from '@/types/project';
+import { Project, ProjectStatus } from '@tornotron/echno-core/project/types';
 
 // Define projects inline to avoid circular dependency
 const projectsForEmployees: Project[] = [
