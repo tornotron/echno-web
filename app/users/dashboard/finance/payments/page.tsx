@@ -1,12 +1,12 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useVendors } from '@/hooks/vendors';
+import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { usePayments } from '@/hooks/payments';
-import { useProjects } from '@/hooks/project/use-projects';
-import { useEmployees } from '@/hooks/employee';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
-import { useLabour } from '@/hooks/labour';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
