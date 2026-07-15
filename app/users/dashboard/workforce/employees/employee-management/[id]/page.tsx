@@ -8,24 +8,25 @@ import {
   RemoveRoleDialog,
 } from '@/features/employee/components/employee-alert-dialogs';
 import { User, Loader2, CalendarDays } from 'lucide-react';
-import { OrgRole, getOrgRoleLabel } from '@/types/employee/org-role';
+import { OrgRole, getOrgRoleLabel } from '@tornotron/echno-core/employee/types';
 import {
+  useCurrentUserEmployee,
   useEmployees,
   useManagers,
-  useCurrentUserEmployee,
-} from '@/hooks/employee';
-import { useAssignManager } from '@/hooks/employee/use-employee-mutations';
-import { useRoleManagement } from '@/hooks/role-management/use-role-management';
+} from '@tornotron/echno-core/employee/hooks';
+import { useAssignManager } from '@tornotron/echno-core/employee/hooks';
 import {
+  useRoleManagement,
   useAssignRole,
   useUnassignRole,
-} from '@/hooks/role-management/use-role-management-mutations';
+} from '@tornotron/echno-core/role-management/hooks';
 import { useAuthorization } from '@/hooks/use-authorization';
-import { useProjectsByEmployee } from '@/hooks/project';
+import { useProjectsByEmployee } from '@tornotron/echno-core/project/hooks';
 import { EmployeeLeaveSection } from '@/features/leave/components/employee-leave-section';
 import { EmployeeOverviewTab } from '@/features/employee/components/employee-overview-tab';
 import { EmployeeErrorState } from '@/features/employee/components/employee-error-state';
 import { EmployeeDetailsHeader } from '@/features/employee/components/employee-details-header';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface EmployeeDetailPageProps {
   params: Promise<{
@@ -139,7 +140,19 @@ export default function EmployeeDetailPage({
           if (!employee.id) return;
           assignManagerMutation.mutate(
             { employeeId: employee.id, managerId },
-            { onSuccess: () => setShowAssignManagerDialog(false) }
+            {
+              onSuccess: (updatedEmployee) => {
+                toast.success('Manager Assigned', {
+                  description: `${updatedEmployee.managerName || 'Manager'} has been assigned successfully.`,
+                });
+                setShowAssignManagerDialog(false);
+              },
+              onError: (error) => {
+                toast.error('Failed to assign manager', {
+                  description: error.message,
+                });
+              },
+            }
           );
         }}
       />
@@ -153,7 +166,18 @@ export default function EmployeeDetailPage({
           if (!employee.id) return;
           assignRole.mutate(
             { employeeId: employee.id, orgRole: role },
-            { onSuccess: () => setShowAssignRoleDialog(false) }
+            {
+              onSuccess: () => {
+                toast.success('Role Assigned', {
+                  description: `${getOrgRoleLabel(role)} has been assigned successfully.`,
+                });
+                setShowAssignRoleDialog(false);
+              },
+              onError: (error) =>
+                toast.error('Failed to assign role', {
+                  description: error.message,
+                }),
+            }
           );
         }}
       />
@@ -170,7 +194,17 @@ export default function EmployeeDetailPage({
           if (!roleToRemove || !employee.id) return;
           unassignRole.mutate(
             { employeeId: employee.id, orgRole: roleToRemove },
-            { onSettled: () => setRoleToRemove(null) }
+            {
+              onSuccess: () =>
+                toast.success('Role Removed', {
+                  description: `${getOrgRoleLabel(roleToRemove)} has been removed successfully.`,
+                }),
+              onError: (error) =>
+                toast.error('Failed to remove role', {
+                  description: error.message,
+                }),
+              onSettled: () => setRoleToRemove(null),
+            }
           );
         }}
       />
