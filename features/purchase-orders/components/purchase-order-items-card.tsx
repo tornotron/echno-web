@@ -39,10 +39,14 @@ import {
   useCreatePOItem,
   useUpdatePOItem,
   useDeletePOItem,
-} from '@/hooks/purchase-order-items';
-import { useMaterials } from '@/hooks/materials';
-import { PurchaseOrderStatus } from '@/types/purchase-orders';
-import type { PurchaseOrder, PurchaseOrderItem } from '@/types/purchase-orders';
+} from '@tornotron/echno-core/purchase-order-items/hooks';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
+import { toast } from '@/lib/styles/toast-styles';
+import { PurchaseOrderStatus } from '@tornotron/echno-core/purchase-orders/types';
+import type {
+  PurchaseOrder,
+  PurchaseOrderItem,
+} from '@tornotron/echno-core/purchase-orders/types';
 
 interface ItemRow {
   materialId: number;
@@ -136,8 +140,11 @@ export function POItemsCard({ po }: POItemsCardProps) {
             },
           });
           setEditingItemId(null);
-        } catch {
-          // handled by mutation
+          toast.success('Item updated.');
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : 'Failed to update item.'
+          );
         }
       }
     );
@@ -162,8 +169,11 @@ export function POItemsCard({ po }: POItemsCardProps) {
           });
           setIsAddingItem(false);
           setNewItemRow(emptyItemRow);
-        } catch {
-          // handled by mutation
+          toast.success('Item added.');
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : 'Failed to add item.'
+          );
         }
       }
     );
@@ -176,8 +186,11 @@ export function POItemsCard({ po }: POItemsCardProps) {
       async () => {
         try {
           await deleteItem(itemId);
-        } catch {
-          // handled by mutation
+          toast.success('Item removed.');
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : 'Failed to remove item.'
+          );
         }
       },
       'destructive'

@@ -20,8 +20,10 @@ import {
   AlertDialogTitle,
 } from '@/components/shadcn/alert-dialog';
 import { Loader2, Pencil, Check, X } from 'lucide-react';
-import { useUpdatePurchaseOrder } from '@/hooks/purchase-orders';
-import type { PurchaseOrder } from '@/types/purchase-orders';
+import { useUpdatePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
+import type { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 
 interface PORemarksCardProps {
   po: PurchaseOrder;
@@ -47,8 +49,13 @@ export function PORemarksCard({ po }: PORemarksCardProps) {
         remarks: remarksText.trim() || undefined,
       });
       setIsEditing(false);
-    } catch {
-      // handled by mutation
+      toast.success('Purchase Order Updated', {
+        description: 'The purchase order has been updated successfully.',
+      });
+    } catch (error) {
+      toast.error(getErrorTitle(error, 'Failed to Update Purchase Order'), {
+        description: getErrorMessage(error),
+      });
     }
   }
 
