@@ -14,9 +14,9 @@ import {
   Package,
   BarChart3,
 } from 'lucide-react';
-import { useAllMaterialConsumptions } from '@/hooks/material-consumptions';
 import { ConsumptionTable } from '@/features/material-consumptions/components';
-import { ConsumptionType } from '@/types/materials';
+import { ConsumptionType } from '@tornotron/echno-core/materials/types';
+import { useAllMaterialConsumptions } from '@tornotron/echno-core/material-consumption/hooks';
 
 export default function MaterialConsumptionsPage() {
   const { data: consumptions = [], isLoading } = useAllMaterialConsumptions();
