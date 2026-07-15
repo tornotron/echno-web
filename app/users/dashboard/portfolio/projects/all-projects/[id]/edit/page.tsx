@@ -3,8 +3,11 @@
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { logger } from '@/lib/logger';
-import { useProject } from '@/hooks/project/use-projects';
-import { useUpdateProjectWithFiles } from '@/hooks/project/use-project-mutations';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useProject,
+  useUpdateProjectWithFiles,
+} from '@tornotron/echno-core/project/hooks';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
@@ -61,15 +64,23 @@ export default function EditProjectPage() {
         },
         {
           onSuccess: () => {
+            toast.success('Project Updated', {
+              description: 'The project has been updated successfully',
+            });
             router.push(
               routes.portfolio.projects.allProjects.detail(project.id).href
             );
+          },
+          onError: (error) => {
+            const title = getErrorTitle(error, 'Failed to Update Project');
+            const description = getErrorMessage(error);
+            toast.error(title, { description });
+            logger.error('Failed to update project:', error);
           },
         }
       );
     } catch (error) {
       logger.error('Error updating project:', error);
-      toast.error('Failed to update project. Please try again.');
     }
   }
 

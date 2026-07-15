@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { FolderKanban, Plus } from 'lucide-react';
 import { PageHeader, OrgGuard } from '@/components/common';
-import { useUser } from '@/hooks/user/use-user';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useUser } from '@tornotron/echno-core/user/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { ProjectOverview } from '@/features/projects/components/project-overview';
 import { ProjectCharts } from '@/features/projects/components/project-charts';
 import { Button } from '@/components/shadcn/button';
