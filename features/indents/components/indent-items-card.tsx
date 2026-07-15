@@ -40,9 +40,10 @@ import {
   useCreateIndentItem,
   useUpdateIndentItem,
   useDeleteIndentItem,
-} from '@/hooks/indent-items';
-import { useMaterials } from '@/hooks/materials';
-import type { IndentItem } from '@/types/indents';
+} from '@tornotron/echno-core/indent-items/hooks';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
+import { toast } from '@/lib/styles/toast-styles';
+import type { IndentItem } from '@tornotron/echno-core/indents/types';
 
 interface ItemRow {
   materialId: number;
@@ -136,8 +137,11 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
           },
         });
         setEditingItemId(null);
-      } catch {
-        // handled by mutation hook
+        toast.success('Item updated.');
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to update item.'
+        );
       }
     });
   }
@@ -156,8 +160,11 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
         });
         setIsAddingItem(false);
         setNewItemRow(emptyItemRow);
-      } catch {
-        // handled by mutation hook
+        toast.success('Item added.');
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : 'Failed to add item.'
+        );
       }
     });
   }
@@ -169,8 +176,11 @@ export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
       async () => {
         try {
           await deleteItem(itemId);
-        } catch {
-          // handled by mutation hook
+          toast.success('Item removed.');
+        } catch (error) {
+          toast.error(
+            error instanceof Error ? error.message : 'Failed to remove item.'
+          );
         }
       },
       'destructive'

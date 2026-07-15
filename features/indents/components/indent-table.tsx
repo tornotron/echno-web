@@ -29,7 +29,11 @@ import {
 } from '@/components/shadcn/empty';
 import { ClipboardList, Search } from 'lucide-react';
 import { routes } from '@/nav';
-import { IndentStatus, indentStatusLabels, type Indent } from '@/types/indents';
+import {
+  IndentStatus,
+  indentStatusLabels,
+  type Indent,
+} from '@tornotron/echno-core/indents/types';
 import { IndentRow } from './indent-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];

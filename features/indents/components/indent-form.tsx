@@ -28,10 +28,13 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { FileText, Package, Plus, Trash2 } from 'lucide-react';
-import { useMaterials } from '@/hooks/materials';
-import { useIndents } from '@/hooks/indents';
-import { useProjects } from '@/hooks/project/use-projects';
-import { IndentStatus, indentStatusLabels } from '@/types/indents';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
+import { useIndents } from '@tornotron/echno-core/indents/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import {
+  IndentStatus,
+  indentStatusLabels,
+} from '@tornotron/echno-core/indents/types';
 import { generateIndentNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';

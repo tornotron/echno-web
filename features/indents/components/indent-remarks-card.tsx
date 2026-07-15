@@ -20,8 +20,9 @@ import {
   AlertDialogTitle,
 } from '@/components/shadcn/alert-dialog';
 import { Pencil, Check, X, Loader2 } from 'lucide-react';
-import { useUpdateIndent } from '@/hooks/indents';
-import type { Indent } from '@/types/indents';
+import { useUpdateIndent } from '@tornotron/echno-core/indents/hooks';
+import { toast } from '@/lib/styles/toast-styles';
+import type { Indent } from '@tornotron/echno-core/indents/types';
 
 interface IndentRemarksCardProps {
   indent: Indent;
@@ -55,8 +56,11 @@ export function IndentRemarksCard({ indent }: IndentRemarksCardProps) {
         },
       });
       setIsEditing(false);
-    } catch {
-      // handled by mutation hook
+      toast.success('Indent updated successfully.');
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to update indent.'
+      );
     }
   }
 
