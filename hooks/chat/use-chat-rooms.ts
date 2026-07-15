@@ -3,12 +3,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { chatService } from '@/services/chat-service';
-import { useEmployees } from '@/hooks/employee';
-import { useUserEmployees } from '@/hooks/user/use-user';
-import { useProjects } from '@/hooks/project/use-projects';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { ChatRoom, ChatRoomType } from '@/types/chat';
-import { Employee } from '@/types/employee/employee';
-import { Project } from '@/types/project/project';
+import { Employee } from '@tornotron/echno-core/employee/types';
+import { Project } from '@tornotron/echno-core/project/types';
 import { shouldRetry } from '@/lib/query/retry';
 
 function resolveRoomData(

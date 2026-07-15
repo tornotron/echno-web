@@ -17,8 +17,8 @@ import {
   UseMentionOptions,
   UseMentionReturn,
 } from '@/types/chat';
-import { Task } from '@/types/task/task';
-import { Issue } from '@/types/issue/issue';
+import { Task } from '@tornotron/echno-core/task/types';
+import { Issue } from '@tornotron/echno-core/issue/types';
 import {
   buildMentionToken,
   buildEntityToken,

@@ -3,10 +3,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { chatMessageService } from '@/services/chat-message-service';
-import { useEmployees } from '@/hooks/employee';
-import { useUserEmployees } from '@/hooks/user/use-user';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
 import { ChatMessage } from '@/types/chat';
-import { Employee } from '@/types/employee/employee';
+import { Employee } from '@tornotron/echno-core/employee/types';
 import { shouldRetry } from '@/lib/query/retry';
 
 function resolveMessageEmployees(
