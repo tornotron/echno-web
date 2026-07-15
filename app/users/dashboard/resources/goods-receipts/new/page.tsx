@@ -12,10 +12,11 @@ import { toast } from '@/lib/styles/toast-styles';
 import {
   usePurchaseOrder,
   poKeys,
-} from '@/hooks/purchase-orders/use-purchase-orders';
-import { useCurrentUserEmployee } from '@/hooks/employee';
-import { useCreateGRN } from '@/hooks/grn';
-import type { PurchaseOrder } from '@/types/purchase-orders';
+} from '@tornotron/echno-core/purchase-orders/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import { useCreateGRN } from '@tornotron/echno-core/grn/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import type { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 import {
   GoodsReceiptForm,
   GOODS_RECEIPT_FORM_ID,
@@ -97,8 +98,16 @@ export default function NewGRNPage() {
       },
       {
         onSuccess: (grn) => {
+          toast.success('GRN Recorded', {
+            description:
+              'Goods received note recorded successfully. Stock has been updated.',
+          });
           router.push(routes.resources.goodsReceipts.detail(grn.id).href);
         },
+        onError: (err) =>
+          toast.error(getErrorTitle(err, 'Failed to Record GRN'), {
+            description: getErrorMessage(err),
+          }),
       }
     );
   }
