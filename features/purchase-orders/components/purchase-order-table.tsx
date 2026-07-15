@@ -33,7 +33,7 @@ import {
   PurchaseOrderStatus,
   purchaseOrderStatusLabels,
   type PurchaseOrder,
-} from '@/types/purchase-orders';
+} from '@tornotron/echno-core/purchase-orders/types';
 import { PurchaseOrderRow } from './purchase-order-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
