@@ -3,10 +3,11 @@
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { logger } from '@/lib/logger';
-import { useUser } from '@/hooks/user/use-user';
-import { useCreateProjectWithFiles } from '@/hooks/project/use-project-mutations';
-import { useCreateStorageLocation } from '@/hooks/storage-locations';
-import { StorageLocationType } from '@/types/storage-locations';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { useUser } from '@tornotron/echno-core/user/hooks';
+import { useCreateProjectWithFiles } from '@tornotron/echno-core/project/hooks';
+import { useCreateStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
+import { StorageLocationType } from '@tornotron/echno-core/storage-locations/types';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
@@ -78,33 +79,57 @@ export default function NewProjectPage() {
         {
           onSuccess: (createdProject) => {
             if (data.createLocationForProject) {
-              createStorageLocation.mutate({
-                locationName: createdProject.projectName,
-                locationType: StorageLocationType.PROJECT_SITE,
-                address: createdProject.projectAddress,
-                latitude: (() => {
-                  const v = Number.parseFloat(data.fields.projectLatitude);
-                  return Number.isNaN(v) ? undefined : v;
-                })(),
-                longitude: (() => {
-                  const v = Number.parseFloat(data.fields.projectLongitude);
-                  return Number.isNaN(v) ? undefined : v;
-                })(),
-                projectId: createdProject.id,
-                projectName: createdProject.projectName,
-                active: true,
-              });
+              createStorageLocation.mutate(
+                {
+                  locationName: createdProject.projectName,
+                  locationType: StorageLocationType.PROJECT_SITE,
+                  address: createdProject.projectAddress,
+                  latitude: (() => {
+                    const v = Number.parseFloat(data.fields.projectLatitude);
+                    return Number.isNaN(v) ? undefined : v;
+                  })(),
+                  longitude: (() => {
+                    const v = Number.parseFloat(data.fields.projectLongitude);
+                    return Number.isNaN(v) ? undefined : v;
+                  })(),
+                  projectId: createdProject.id,
+                  projectName: createdProject.projectName,
+                  active: true,
+                },
+                {
+                  onSuccess: () => {
+                    toast.success('Location Created', {
+                      description:
+                        'The storage location has been created successfully',
+                    });
+                  },
+                  onError: (error) => {
+                    toast.error(
+                      getErrorTitle(error, 'Failed to Create Storage Location'),
+                      { description: getErrorMessage(error) }
+                    );
+                  },
+                }
+              );
             }
+            toast.success('Project Created', {
+              description: 'The project has been created successfully',
+            });
             router.push(
               routes.portfolio.projects.allProjects.detail(createdProject.id)
                 .href
             );
           },
+          onError: (error) => {
+            const title = getErrorTitle(error, 'Failed to Create Project');
+            const description = getErrorMessage(error);
+            toast.error(title, { description });
+            logger.error('Failed to create project:', error);
+          },
         }
       );
     } catch (error) {
       logger.error('Error creating project:', error);
-      toast.error('Failed to create project. Please try again.');
     }
   }
 
