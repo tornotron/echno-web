@@ -35,20 +35,23 @@ import {
 import Link from 'next/link';
 import {
   IssueType,
-  getIssueTypeLabel,
   getIssueTypeColor,
-} from '@/types/issue/issue-type';
-import { IssueStatus, getIssueStatusLabel } from '@/types/issue/issue-status';
+  getIssueTypeLabel,
+} from '@tornotron/echno-core/issue/types';
 import {
-  getTaskStatusLabel,
+  IssueStatus,
+  getIssueStatusLabel,
+} from '@tornotron/echno-core/issue/types';
+import {
   getTaskStatusColor,
-} from '@/types/task/task-status';
-import type { Issue } from '@/types/issue/issue';
-import type { Attachment } from '@tornotron/echno-core';
-import { useDeleteAttachment } from '@tornotron/echno-core';
-import { useTasksByProject } from '@/hooks/task';
-import { useUser, useUserEmployees } from '@/hooks/user/use-user';
-import { useEmployeesByProject } from '@/hooks/project/use-projects';
+  getTaskStatusLabel,
+} from '@tornotron/echno-core/task/types';
+import type { Issue } from '@tornotron/echno-core/issue/types';
+import type { Attachment } from '@tornotron/echno-core/attachment/types';
+import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
+import { useTasksByProject } from '@tornotron/echno-core/task/hooks';
+import { useUser, useUserEmployees } from '@tornotron/echno-core/user/hooks';
+import { useEmployeesByProject } from '@tornotron/echno-core/project/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import { AttachmentsSection } from '@/components/common';
