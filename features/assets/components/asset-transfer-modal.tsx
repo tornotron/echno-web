@@ -22,7 +22,7 @@ import {
 } from '@/components/shadcn/select';
 import { X, MapPin } from 'lucide-react';
 import { Asset } from '@/types/resource';
-import { useStorageLocations } from '@/hooks/storage-locations';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface AssetTransferModalProps {
