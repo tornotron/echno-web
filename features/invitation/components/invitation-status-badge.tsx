@@ -1,6 +1,6 @@
 import { Badge } from '@/components/shadcn/badge';
 import { Clock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { InvitationStatus } from '@/types/invitation/invitation';
+import { InvitationStatus } from '@tornotron/echno-core/invitation/types';
 import { cn } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<
