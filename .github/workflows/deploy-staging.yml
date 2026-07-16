@@ -52,6 +52,8 @@ jobs:
           build-args: |
             NODE_ENV=production
             NEXT_PUBLIC_API_URL=/api/v1
+          secrets: |
+            github_token=${{ secrets.GH_PACKAGES_TOKEN }}
 
   # ------------ Job 2: Deploy to Server ------------
   deploy:

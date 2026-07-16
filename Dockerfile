@@ -3,8 +3,10 @@ FROM oven/bun:1-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+COPY package.json bun.lock bunfig.toml ./
+RUN --mount=type=secret,id=github_token \
+    GITHUB_TOKEN="$(cat /run/secrets/github_token)" \
+    bun install --frozen-lockfile
 
 # Stage 2: Builder
 FROM oven/bun:1-alpine AS builder
