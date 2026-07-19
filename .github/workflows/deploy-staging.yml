@@ -122,12 +122,28 @@ jobs:
         working-directory: deployment/ansible
         run: ansible-galaxy collection install -r requirements.yml -p collections
 
+      # A runner joining the tailnet does not receive tailnet DNS, so no
+      # hostname resolves. The address is read from the network map, matched on
+      # DNSName because the retired droplet still reports the same HostName.
+      - name: Resolve the host on the tailnet
+        id: host
+        run: |
+          ip=$(tailscale status --json \
+            | jq -r '.Peer[] | select(.DNSName | startswith("echno-staging.")) | .TailscaleIPs[0]')
+          count=$(printf '%s\n' "$ip" | grep -c . || true)
+          if [ "$count" -ne 1 ]; then
+            echo "Expected exactly one host, matched $count:"; printf '%s\n' "$ip"; exit 1
+          fi
+          echo "Deploying to $ip"
+          echo "ip=$ip" >> "$GITHUB_OUTPUT"
+
       - name: Deploy
         working-directory: deployment/ansible
         run: |
           printf '%s' "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > .vault_pass
           chmod 600 .vault_pass
           ansible-playbook -i inventory/staging-do.yml playbooks/deploy-apps.yml \
+            -e "ansible_host=${{ steps.host.outputs.ip }}" \
             -e "echno_frontend_image_digest=${{ needs.build.outputs.digest }}" \
             -e "vault_ghcr_pull_token=${{ secrets.GITHUB_TOKEN }}"
 
