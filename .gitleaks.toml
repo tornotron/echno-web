@@ -1,0 +1,7 @@
+# Extends the default rules; only adds exclusions for verified example data.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "JSDoc @example blocks showing the shape of a Keycloak token. The values are truncated illustrations, not credentials."
+paths = ['''types/keycloak/keycloak-token\.ts''']
