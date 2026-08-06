@@ -147,9 +147,7 @@ export default function InspectionDetailsPage() {
           <Button
             variant="outline"
             onClick={() =>
-              router.push(
-                routes.portfolio.inspections.detail(inspection.id).edit
-              )
+              router.push(routes.inspections.detail(inspection.id).edit)
             }
           >
             <Edit className="mr-2 h-4 w-4" />

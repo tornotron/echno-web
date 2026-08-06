@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import { logger } from '@/lib/logger';
-import { useRouter, useParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
-import { useInspectionById } from '@/hooks/inspection';
+import { useRouter } from 'next/navigation';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { InspectionStatus } from '@/types/inspection';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
@@ -15,12 +14,8 @@ import {
   type InspectionFormSubmitData,
 } from '@/features/inspections/components';
 
-export default function EditInspectionPage() {
+export default function NewInspectionPage() {
   const router = useRouter();
-  const params = useParams();
-  const inspectionId = Number.parseInt(params.id as string);
-
-  const { data: inspectionData, isLoading } = useInspectionById(inspectionId);
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployees();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,13 +33,13 @@ export default function EditInspectionPage() {
       const inspector = employees.find(
         (emp) => emp.id === Number.parseInt(fields.inspectorId)
       );
+      const inspectionNumber = `INS-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999) + 1).padStart(4, '0')}`;
 
-      logger.debug('Updating inspection:', {
-        id: inspectionId,
+      logger.debug('Creating inspection:', {
+        inspectionNumber,
         title: fields.title,
         type: fields.type,
-        status: fields.status,
-        result: fields.result || undefined,
+        status: InspectionStatus.scheduled,
         projectId: Number.parseInt(fields.projectId),
         projectName: project?.projectName,
         location: fields.location,
@@ -57,54 +52,26 @@ export default function EditInspectionPage() {
         clientRepresentative: fields.clientRepresentative || undefined,
         drawingReference: fields.drawingReference || undefined,
         observationsAndComments: fields.observationsAndComments || undefined,
-        recommendations: fields.recommendations || undefined,
-        weatherConditions: fields.weatherConditions || undefined,
-        temperature: fields.temperature || undefined,
-        reinspectionRequired: fields.reinspectionRequired,
-        reinspectionDate: fields.reinspectionDate
-          ? new Date(fields.reinspectionDate)
-          : undefined,
-        reinspectionNotes: fields.reinspectionNotes || undefined,
-        updatedAt: new Date(),
       });
 
-      toast.success('Inspection updated successfully!');
-      router.push(
-        routes.portfolio.inspections.detail(params.id as string).href
-      );
+      toast.success('Inspection scheduled successfully!');
+      router.push(routes.inspections.href);
     } catch (error) {
-      logger.error('Error updating inspection:', error);
-      toast.error('Failed to update inspection');
+      logger.error('Error creating inspection:', error);
+      toast.error('Failed to create inspection');
     } finally {
       setIsSubmitting(false);
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-      </div>
-    );
-  }
-
-  if (!inspectionData) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center">
-        <p className="text-zinc-500">Inspection not found.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
-        title="Edit Inspection"
-        description="Update inspection details and results"
+        title="Schedule New Inspection"
+        description="Schedule a new inspection for your construction project"
       />
       <InspectionForm
-        mode="edit"
-        inspection={inspectionData}
+        mode="create"
         isSubmitting={isSubmitting}
         onSubmit={handleSubmit}
         onCancel={() => router.back()}
