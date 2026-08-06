@@ -422,9 +422,7 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
               {receipt.projectId && (
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(
-                      receipt.projectId
-                    ).href
+                    routes.projects.allProjects.detail(receipt.projectId).href
                   }
                   className="block"
                 >

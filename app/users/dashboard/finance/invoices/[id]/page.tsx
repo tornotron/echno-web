@@ -546,9 +546,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               {invoice.projectId && (
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(
-                      invoice.projectId
-                    ).href
+                    routes.projects.allProjects.detail(invoice.projectId).href
                   }
                   className="block"
                 >
