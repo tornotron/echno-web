@@ -14,11 +14,10 @@ interface ChatEntityMentionCardProps {
 
 const ENTITY_HREF: Record<ChatEntityType, (id: number) => string> = {
   [ChatEntityType.task]: (id) =>
-    routes.portfolio.projects.allProjects.detail(id).tasks.href,
+    routes.projects.allProjects.detail(id).tasks.href,
   [ChatEntityType.issue]: (id) =>
-    routes.portfolio.projects.allProjects.detail(id).issues.href,
-  [ChatEntityType.project]: (id) =>
-    routes.portfolio.projects.allProjects.detail(id).href,
+    routes.projects.allProjects.detail(id).issues.href,
+  [ChatEntityType.project]: (id) => routes.projects.allProjects.detail(id).href,
 };
 
 const ENTITY_ICON: Record<ChatEntityType, React.ElementType> = {
