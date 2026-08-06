@@ -369,7 +369,7 @@ export default function ExternalPortalDashboard() {
                 </CardDescription>
               </div>
               <Button variant="outline" size="sm" asChild>
-                <Link href={routes.portfolio.projects.href}>
+                <Link href={routes.projects.href}>
                   View All <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>
@@ -405,9 +405,7 @@ export default function ExternalPortalDashboard() {
                     <Button variant="outline" size="sm" asChild>
                       <Link
                         href={
-                          routes.portfolio.projects.allProjects.detail(
-                            project.id
-                          ).href
+                          routes.projects.allProjects.detail(project.id).href
                         }
                       >
                         View Details

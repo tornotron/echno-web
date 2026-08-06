@@ -49,7 +49,7 @@ export default function DashboardNotFound() {
             <p>
               Lost? Check out{' '}
               <Link
-                href={routes.portfolio.projects.href}
+                href={routes.projects.href}
                 className="text-primary hover:underline"
               >
                 your projects
