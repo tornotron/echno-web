@@ -15,7 +15,7 @@ export const resourcesMetadata = {
     label: 'Resources',
     icon: Boxes,
     nonInteractive: true,
-    order: 5,
+    order: 6,
   },
 
   'resources-assets': {

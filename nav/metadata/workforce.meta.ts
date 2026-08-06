@@ -13,7 +13,7 @@ export const workforceMetadata = {
     label: 'Workforce',
     icon: Users,
     nonInteractive: true,
-    order: 4,
+    order: 5,
   },
 
   // ── employees ─────────────────────────────────────────────────────────────

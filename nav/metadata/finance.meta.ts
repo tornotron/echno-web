@@ -13,7 +13,7 @@ export const financeMetadata = {
     label: 'Finance',
     icon: Wallet,
     nonInteractive: true,
-    order: 6,
+    order: 7,
   },
 
   // ── receipts ──────────────────────────────────────────────────────────────

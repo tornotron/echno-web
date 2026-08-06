@@ -6,7 +6,7 @@ export const thirdPartyMetadata = {
     label: 'Third Party',
     icon: Handshake,
     nonInteractive: true,
-    order: 8,
+    order: 9,
   },
 
   'third-party-labour': {
