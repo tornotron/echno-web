@@ -63,9 +63,8 @@ export default function EditIssuePage({ params }: PageProps) {
         description: 'The issue has been updated successfully',
       });
       router.push(
-        routes.portfolio.projects.allProjects
-          .detail(projectId)
-          .issues.detail(issueId).href
+        routes.projects.allProjects.detail(projectId).issues.detail(issueId)
+          .href
       );
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Update Issue');
@@ -89,9 +88,7 @@ export default function EditIssuePage({ params }: PageProps) {
       toast.success('Issue Deleted', {
         description: 'The issue has been deleted successfully',
       });
-      router.push(
-        routes.portfolio.projects.allProjects.detail(projectId).issues.href
-      );
+      router.push(routes.projects.allProjects.detail(projectId).issues.href);
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Delete Issue');
       const description = getErrorMessage(error);
@@ -123,8 +120,7 @@ export default function EditIssuePage({ params }: PageProps) {
         <Button
           onClick={() =>
             router.push(
-              routes.portfolio.projects.allProjects.detail(projectId).issues
-                .href
+              routes.projects.allProjects.detail(projectId).issues.href
             )
           }
         >

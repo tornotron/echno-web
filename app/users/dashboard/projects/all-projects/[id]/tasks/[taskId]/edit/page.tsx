@@ -97,9 +97,8 @@ export default function EditTaskPage({ params }: PageProps) {
           description: 'The task has been updated successfully',
         });
         router.push(
-          routes.portfolio.projects.allProjects
-            .detail(projectId)
-            .tasks.detail(taskId).href
+          routes.projects.allProjects.detail(projectId).tasks.detail(taskId)
+            .href
         );
       },
       onError: (error) => {
@@ -121,9 +120,7 @@ export default function EditTaskPage({ params }: PageProps) {
         toast.success('Task Deleted', {
           description: 'The task has been deleted successfully',
         });
-        router.push(
-          routes.portfolio.projects.allProjects.detail(projectId).tasks.href
-        );
+        router.push(routes.projects.allProjects.detail(projectId).tasks.href);
       },
       onError: (error) => {
         const title = getErrorTitle(error, 'Failed to Delete Task');
@@ -158,7 +155,7 @@ export default function EditTaskPage({ params }: PageProps) {
         <Button
           onClick={() =>
             router.push(
-              routes.portfolio.projects.allProjects.detail(projectId).tasks.href
+              routes.projects.allProjects.detail(projectId).tasks.href
             )
           }
         >

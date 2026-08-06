@@ -60,9 +60,7 @@ export default function NewTaskPage() {
               description: 'The task has been created successfully',
             });
           }
-          router.push(
-            routes.portfolio.projects.allProjects.detail(projectId).tasks.href
-          );
+          router.push(routes.projects.allProjects.detail(projectId).tasks.href);
         },
         onError: (error) => {
           const title = getErrorTitle(error, 'Failed to Create Task');

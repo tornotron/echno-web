@@ -67,9 +67,7 @@ export default function EditProjectPage() {
             toast.success('Project Updated', {
               description: 'The project has been updated successfully',
             });
-            router.push(
-              routes.portfolio.projects.allProjects.detail(project.id).href
-            );
+            router.push(routes.projects.allProjects.detail(project.id).href);
           },
           onError: (error) => {
             const title = getErrorTitle(error, 'Failed to Update Project');
@@ -105,7 +103,7 @@ export default function EditProjectPage() {
               : "The project you're looking for doesn't exist."}
           </p>
           <Button className="mt-4" asChild>
-            <Link href={routes.portfolio.projects.href}>Back to Projects</Link>
+            <Link href={routes.projects.href}>Back to Projects</Link>
           </Button>
         </div>
       </div>
@@ -121,11 +119,7 @@ export default function EditProjectPage() {
         actions={
           <>
             <Button variant="outline" disabled={isSubmitting} asChild>
-              <Link
-                href={
-                  routes.portfolio.projects.allProjects.detail(project.id).href
-                }
-              >
+              <Link href={routes.projects.allProjects.detail(project.id).href}>
                 Cancel
               </Link>
             </Button>

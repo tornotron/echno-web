@@ -202,11 +202,7 @@ export default function ProjectDashboardPage() {
             {error instanceof Error ? error.message : 'An error occurred'}
           </EmptyDescription>
         </EmptyHeader>
-        <Button
-          onClick={() =>
-            router.push(routes.portfolio.projects.allProjects.href)
-          }
-        >
+        <Button onClick={() => router.push(routes.projects.allProjects.href)}>
           Back to Projects
         </Button>
       </Empty>
@@ -225,11 +221,7 @@ export default function ProjectDashboardPage() {
             The project you&apos;re looking for doesn&apos;t exist.
           </EmptyDescription>
         </EmptyHeader>
-        <Button
-          onClick={() =>
-            router.push(routes.portfolio.projects.allProjects.href)
-          }
-        >
+        <Button onClick={() => router.push(routes.projects.allProjects.href)}>
           Back to Projects
         </Button>
       </Empty>
@@ -249,11 +241,7 @@ export default function ProjectDashboardPage() {
             again.
           </EmptyDescription>
         </EmptyHeader>
-        <Button
-          onClick={() =>
-            router.push(routes.portfolio.projects.allProjects.href)
-          }
-        >
+        <Button onClick={() => router.push(routes.projects.allProjects.href)}>
           Back to Projects
         </Button>
       </Empty>
@@ -307,11 +295,7 @@ export default function ProjectDashboardPage() {
         }
         actions={
           <Button variant="outline" size="sm" asChild>
-            <Link
-              href={
-                routes.portfolio.projects.allProjects.detail(project.id).edit
-              }
-            >
+            <Link href={routes.projects.allProjects.detail(project.id).edit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Project
             </Link>
@@ -444,8 +428,7 @@ export default function ProjectDashboardPage() {
                 </p>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(project.id)
-                      .tasks.href
+                    routes.projects.allProjects.detail(project.id).tasks.href
                   }
                   className="text-primary text-xs hover:underline"
                 >
@@ -549,8 +532,7 @@ export default function ProjectDashboardPage() {
                 </p>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(project.id)
-                      .issues.href
+                    routes.projects.allProjects.detail(project.id).issues.href
                   }
                   className="text-primary text-xs hover:underline"
                 >
@@ -822,8 +804,7 @@ export default function ProjectDashboardPage() {
                   >
                     <Link
                       href={
-                        routes.portfolio.projects.allProjects.detail(project.id)
-                          .tasks.new
+                        routes.projects.allProjects.detail(project.id).tasks.new
                       }
                     >
                       <ListTodo className="mr-2 h-4 w-4" />
@@ -835,7 +816,7 @@ export default function ProjectDashboardPage() {
                     className="w-full justify-start"
                     asChild
                   >
-                    <Link href={routes.portfolio.inspections.new}>
+                    <Link href={routes.inspections.new}>
                       <ClipboardCheck className="mr-2 h-4 w-4" />
                       Schedule Inspection
                     </Link>
@@ -847,8 +828,8 @@ export default function ProjectDashboardPage() {
                   >
                     <Link
                       href={
-                        routes.portfolio.projects.allProjects.detail(project.id)
-                          .issues.new
+                        routes.projects.allProjects.detail(project.id).issues
+                          .new
                       }
                     >
                       <AlertCircle className="mr-2 h-4 w-4" />

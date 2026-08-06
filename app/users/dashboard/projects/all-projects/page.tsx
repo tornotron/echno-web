@@ -50,7 +50,7 @@ export default function ProjectsManagePage() {
         description="Manage and monitor all construction projects"
         actions={
           <Button asChild>
-            <Link href={routes.portfolio.projects.allProjects.new}>
+            <Link href={routes.projects.allProjects.new}>
               <Plus className="mr-2 h-4 w-4" />
               Add Project
             </Link>

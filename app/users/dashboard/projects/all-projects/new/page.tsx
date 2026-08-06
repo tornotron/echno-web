@@ -116,8 +116,7 @@ export default function NewProjectPage() {
               description: 'The project has been created successfully',
             });
             router.push(
-              routes.portfolio.projects.allProjects.detail(createdProject.id)
-                .href
+              routes.projects.allProjects.detail(createdProject.id).href
             );
           },
           onError: (error) => {
@@ -142,9 +141,7 @@ export default function NewProjectPage() {
         actions={
           <>
             <Button variant="outline" disabled={isSubmitting} asChild>
-              <Link href={routes.portfolio.projects.allProjects.href}>
-                Cancel
-              </Link>
+              <Link href={routes.projects.allProjects.href}>Cancel</Link>
             </Button>
             <Button
               type="submit"

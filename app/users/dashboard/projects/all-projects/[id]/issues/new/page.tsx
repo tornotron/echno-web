@@ -62,9 +62,7 @@ export default function NewIssuePage({ params }: PageProps) {
       toast.success('Issue Created', {
         description: 'The issue has been created successfully',
       });
-      router.push(
-        routes.portfolio.projects.allProjects.detail(projectId).issues.href
-      );
+      router.push(routes.projects.allProjects.detail(projectId).issues.href);
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Create Issue');
       const description = getErrorMessage(error);

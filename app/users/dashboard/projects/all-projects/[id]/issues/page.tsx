@@ -80,10 +80,7 @@ export default function IssuesPage({ params }: PageProps) {
         actions={
           <Button asChild>
             <Link
-              href={
-                routes.portfolio.projects.allProjects.detail(projectId).issues
-                  .new
-              }
+              href={routes.projects.allProjects.detail(projectId).issues.new}
             >
               <Plus className="mr-2 h-4 w-4" />
               New Issue
