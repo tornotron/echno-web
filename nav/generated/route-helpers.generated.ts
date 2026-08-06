@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-06-02
+ * Generated: 2026-08-06
  */
 
 const BASE = '/users/dashboard';
@@ -72,6 +72,15 @@ export const routes = {
     },
   },
 
+  inspections: {
+    href: b('/inspections'),
+    new: b('/inspections/new'),
+    detail: (id: string | number) => ({
+      href: b(`/inspections/${id}`),
+      edit: b(`/inspections/${id}/edit`),
+    }),
+  },
+
   learning: b('/learning'),
 
   organizations: {
@@ -86,45 +95,34 @@ export const routes = {
 
   portal: b('/portal'),
 
-  portfolio: {
-    href: b('/portfolio'),
-    inspections: {
-      href: b('/portfolio/inspections'),
-      new: b('/portfolio/inspections/new'),
+  projects: {
+    href: b('/projects'),
+    allIssues: b('/projects/all-issues'),
+    allProjects: {
+      href: b('/projects/all-projects'),
+      new: b('/projects/all-projects/new'),
       detail: (id: string | number) => ({
-        href: b(`/portfolio/inspections/${id}`),
-        edit: b(`/portfolio/inspections/${id}/edit`),
+        href: b(`/projects/all-projects/${id}`),
+        edit: b(`/projects/all-projects/${id}/edit`),
+        issues: {
+          href: b(`/projects/all-projects/${id}/issues`),
+          new: b(`/projects/all-projects/${id}/issues/new`),
+          detail: (issueId: string | number) => ({
+            href: b(`/projects/all-projects/${id}/issues/${issueId}`),
+            edit: b(`/projects/all-projects/${id}/issues/${issueId}/edit`),
+          }),
+        },
+        tasks: {
+          href: b(`/projects/all-projects/${id}/tasks`),
+          new: b(`/projects/all-projects/${id}/tasks/new`),
+          detail: (taskId: string | number) => ({
+            href: b(`/projects/all-projects/${id}/tasks/${taskId}`),
+            edit: b(`/projects/all-projects/${id}/tasks/${taskId}/edit`),
+          }),
+        },
       }),
     },
-    projects: {
-      href: b('/portfolio/projects'),
-      allIssues: b('/portfolio/projects/all-issues'),
-      allProjects: {
-        href: b('/portfolio/projects/all-projects'),
-        new: b('/portfolio/projects/all-projects/new'),
-        detail: (id: string | number) => ({
-          href: b(`/portfolio/projects/all-projects/${id}`),
-          edit: b(`/portfolio/projects/all-projects/${id}/edit`),
-          issues: {
-            href: b(`/portfolio/projects/all-projects/${id}/issues`),
-            new: b(`/portfolio/projects/all-projects/${id}/issues/new`),
-            detail: (issueId: string | number) => ({
-              href: b(`/portfolio/projects/all-projects/${id}/issues/${issueId}`),
-              edit: b(`/portfolio/projects/all-projects/${id}/issues/${issueId}/edit`),
-            }),
-          },
-          tasks: {
-            href: b(`/portfolio/projects/all-projects/${id}/tasks`),
-            new: b(`/portfolio/projects/all-projects/${id}/tasks/new`),
-            detail: (taskId: string | number) => ({
-              href: b(`/portfolio/projects/all-projects/${id}/tasks/${taskId}`),
-              edit: b(`/portfolio/projects/all-projects/${id}/tasks/${taskId}/edit`),
-            }),
-          },
-        }),
-      },
-      allTasks: b('/portfolio/projects/all-tasks'),
-    },
+    allTasks: b('/projects/all-tasks'),
   },
 
   resources: {
