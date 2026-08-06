@@ -245,7 +245,7 @@ export function IssueTable({
         canNavigate
           ? () =>
               router.push(
-                routes.portfolio.projects.allProjects
+                routes.projects.allProjects
                   .detail(projectId)
                   .issues.detail(issue.id).href
               )
@@ -299,7 +299,7 @@ export function IssueTable({
             onClick={(e) => {
               e.stopPropagation();
               router.push(
-                routes.portfolio.projects.allProjects
+                routes.projects.allProjects
                   .detail(projectId)
                   .tasks.detail(issue.taskId!).href
               );
@@ -470,8 +470,7 @@ export function IssueTable({
                 <Button asChild>
                   <Link
                     href={
-                      routes.portfolio.projects.allProjects.detail(projectId)
-                        .issues.new
+                      routes.projects.allProjects.detail(projectId).issues.new
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -533,7 +532,7 @@ export function IssueTable({
                     canNavigate
                       ? () =>
                           router.push(
-                            routes.portfolio.projects.allProjects
+                            routes.projects.allProjects
                               .detail(projectId)
                               .issues.detail(issue.id).href
                           )
@@ -584,7 +583,7 @@ export function IssueTable({
                             e.stopPropagation();
                             if (issue.taskId) {
                               router.push(
-                                routes.portfolio.projects.allProjects
+                                routes.projects.allProjects
                                   .detail(projectId)
                                   .tasks.detail(issue.taskId).href
                               );
@@ -640,8 +639,7 @@ export function IssueTable({
               <Button asChild>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(projectId)
-                      .issues.new
+                    routes.projects.allProjects.detail(projectId).issues.new
                   }
                 >
                   <Plus className="mr-2 h-4 w-4" />

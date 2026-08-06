@@ -334,7 +334,7 @@ export function IssueOverviewTab({
                 </label>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects
+                    routes.projects.allProjects
                       .detail(projectId)
                       .tasks.detail(relatedTask.id).href
                   }

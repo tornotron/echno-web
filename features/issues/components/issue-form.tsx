@@ -650,7 +650,7 @@ export function IssueForm(props: IssueFormProps) {
                   </p>
                   <Link
                     href={
-                      routes.portfolio.projects.allProjects
+                      routes.projects.allProjects
                         .detail(projectId)
                         .tasks.detail(selectedTask.id).href
                     }
