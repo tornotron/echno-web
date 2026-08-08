@@ -51,7 +51,6 @@ import { Labour } from '@tornotron/echno-core/labour/types';
 import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 import {
-  mockInspections,
   mockAssets,
   mockBudgets,
   mockStockAdjustments,
@@ -68,9 +67,6 @@ const mockFallbackResolver: FallbackNameResolver = (
   numericId
 ) => {
   switch (parentSegment) {
-    case 'inspections': {
-      return mockInspections.find((i) => i.id === numericId)?.title;
-    }
     case 'assets': {
       return mockAssets.find((a) => a.id === numericId)?.name;
     }

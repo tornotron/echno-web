@@ -3,13 +3,12 @@ import type { MetadataRegistry } from '../types';
 
 export const inspectionsMetadata = {
   // ── module root ───────────────────────────────────────────────────────────
+  // The module is a placeholder while it is rebuilt, so it currently has no
+  // child routes. Re-add new/[id]/[id]-edit entries when those pages return.
   inspections: {
     label: 'Inspections',
     icon: ClipboardCheck,
     order: 4,
     breadcrumb: 'Inspections',
   },
-  'inspections-new': { label: 'New Inspection', sidebarHidden: true },
-  'inspections-[id]': { label: 'Inspection', sidebarHidden: true },
-  'inspections-[id]-edit': { label: 'Edit', sidebarHidden: true },
 } satisfies MetadataRegistry;

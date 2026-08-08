@@ -275,34 +275,7 @@ export const ROUTE_TREE: RouteNode = {
     path: '/users/dashboard/inspections',
     isDynamic: false,
     isCatchAll: false,
-    children: [
-      {
-        id: 'inspections-new',
-        segment: 'new',
-        path: '/users/dashboard/inspections/new',
-        isDynamic: false,
-        isCatchAll: false,
-        children: [],
-      },
-      {
-        id: 'inspections-[id]',
-        segment: '[id]',
-        path: '/users/dashboard/inspections/[id]',
-        isDynamic: true,
-        isCatchAll: false,
-        paramName: 'id',
-        children: [
-            {
-              id: 'inspections-[id]-edit',
-              segment: 'edit',
-              path: '/users/dashboard/inspections/[id]/edit',
-              isDynamic: false,
-              isCatchAll: false,
-              children: [],
-            },
-          ],
-      },
-    ],
+    children: [],
   },
   {
     id: 'learning',

@@ -72,14 +72,7 @@ export const routes = {
     },
   },
 
-  inspections: {
-    href: b('/inspections'),
-    new: b('/inspections/new'),
-    detail: (id: string | number) => ({
-      href: b(`/inspections/${id}`),
-      edit: b(`/inspections/${id}/edit`),
-    }),
-  },
+  inspections: b('/inspections'),
 
   learning: b('/learning'),
 
