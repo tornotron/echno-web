@@ -816,9 +816,9 @@ export default function ProjectDashboardPage() {
                     className="w-full justify-start"
                     asChild
                   >
-                    <Link href={routes.inspections.new}>
+                    <Link href={routes.inspections}>
                       <ClipboardCheck className="mr-2 h-4 w-4" />
-                      Schedule Inspection
+                      Inspections
                     </Link>
                   </Button>
                   <Button

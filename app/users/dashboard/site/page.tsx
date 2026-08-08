@@ -534,9 +534,9 @@ export default function SiteOperationsDashboard() {
               className="h-auto flex-col gap-2 py-4"
               asChild
             >
-              <Link href={routes.inspections.new}>
+              <Link href={routes.inspections}>
                 <ClipboardCheck className="h-5 w-5" />
-                <span>New Inspection</span>
+                <span>Inspections</span>
               </Link>
             </Button>
             <Button
