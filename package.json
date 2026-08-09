@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test": "bun test",
     "preinstall": "npx only-allow bun",
     "prepare": "husky",
     "routes:generate": "node --experimental-strip-types scripts/generate-routes.ts",

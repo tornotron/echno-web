@@ -1,0 +1,32 @@
+name: Test
+
+# Unit tests, gating every PR and push to the working branches. Kept separate
+# from the existing lint-and-build workflow so the test signal is independent.
+
+on:
+  pull_request:
+    branches: [development, staging, production]
+  push:
+    branches: [development]
+
+permissions:
+  contents: read
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@735343b667d3e6f658f44d0eca948eb6282f2b76 # v2.0.2
+
+      - name: Install dependencies
+        env:
+          # @tornotron/echno-core is pulled from GitHub Packages (see bunfig.toml).
+          GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
+        run: bun install --frozen-lockfile
+
+      - name: Unit tests
+        run: bun test
