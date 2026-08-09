@@ -35,33 +35,34 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  // Security headers configuration — NOT CURRENTLY APPLIED.
-  // Security headers are not set anywhere in this app yet. The block below is
-  // a template kept for future enablement; uncommenting it will apply the
-  // headers globally to every page, document, and API response.
-  // Before enabling:
-  //  • Tune the CSP to your real asset hosts and tighten 'unsafe-inline' if possible.
-  //  • Confirm HSTS is only enabled on production HTTPS deployments.
-  //  • Validate with browser DevTools and a security scanner after deploying.
-  // async headers() {
-  //   return [
-  //     {
-  //       source: "/(.*)",
-  //       headers: [
-  //         { key: "X-Content-Type-Options", value: "nosniff" },
-  //         { key: "X-Frame-Options", value: "DENY" },
-  //         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  //         { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  //         { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-  //         {
-  //           key: "Content-Security-Policy",
-  //           value:
-  //             "default-src 'self'; script-src 'self' 'unsafe-inline' https://trusted.cdn.example.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://images.unsplash.com https://echno-object-store.blr1.digitaloceanspaces.com; font-src 'self' https://fonts.gstatic.com;"
-  //         }
-  //       ]
-  //     }
-  //   ];
-  // }
+  // Security headers, applied to every response. These are the safe set that
+  // cannot break page rendering: clickjacking (X-Frame-Options), MIME sniffing
+  // (X-Content-Type-Options), referrer leakage, feature access, and HTTPS pinning.
+  // Note: an enforcing Content-Security-Policy is intentionally NOT set here yet.
+  // A wrong CSP silently breaks the SPA (blocks scripts/styles/fonts/XHR), so it
+  // needs to be tuned to the real asset and connect hosts and validated against a
+  // running app (with nonces for inline scripts) before enforcing. HSTS is set
+  // without `preload` to avoid an irreversible domain-wide commitment on staging.
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
