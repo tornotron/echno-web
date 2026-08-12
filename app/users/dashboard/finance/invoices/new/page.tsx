@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import { useCreateInvoice } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -45,8 +47,8 @@ import { toast } from '@/lib/styles/toast-styles';
 export default function NewInvoicePage() {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
+  const { mutate: createInvoice, isPending } = useCreateInvoice();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [lineItems, setLineItems] = useState<InvoiceLineDraft[]>([
     {
@@ -91,20 +93,46 @@ export default function NewInvoicePage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    if (!formData.invoiceNumber?.trim())
-      newErrors.invoiceNumber = 'Invoice number is required';
+    if (!formData.projectId) newErrors.projectId = 'Project is required';
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error('Please fix the errors in the form');
       return;
     }
-    setIsSubmitting(true);
-    // TODO(construction-finance): wire create/update payload
-    setTimeout(() => {
-      toast.success('Invoice created successfully');
-      setIsSubmitting(false);
-      router.push(routes.finance.invoices.href);
-    }, 1000);
+
+    // The backend assigns the invoice number and forces the initial status, so
+    // neither is sent; money totals are recomputed server-side from the lines.
+    createInvoice(
+      {
+        type: formData.type,
+        projectId: formData.projectId,
+        issueDate: format(new Date(formData.issueDate), 'yyyy-MM-dd'),
+        dueDate: format(new Date(formData.dueDate), 'yyyy-MM-dd'),
+        paymentTerms: formData.paymentTerms.trim() || undefined,
+        paymentMethod: formData.paymentMethod.trim() || undefined,
+        gstNumber: formData.gstNumber.trim() || undefined,
+        taxType: formData.taxType.trim() || undefined,
+        notes: formData.notes.trim() || undefined,
+        lines: lineItems.map((item) => ({
+          description: item.description,
+          quantity: item.quantity,
+          unit: item.unit,
+          unitPrice: item.unitPrice,
+          taxRate: item.taxRate,
+        })),
+      },
+      {
+        onSuccess: (invoice) => {
+          toast.success('Invoice created successfully');
+          router.push(routes.finance.invoices.detail(invoice.id).href);
+        },
+        onError: (err) => {
+          toast.error(getErrorTitle(err, 'Failed to create invoice'), {
+            description: getErrorMessage(err),
+          });
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
@@ -214,23 +242,16 @@ export default function NewInvoicePage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Invoice Number */}
                 <div className="space-y-2">
-                  <Label htmlFor="invoiceNumber">
-                    Invoice Number <span className="text-destructive">*</span>
-                  </Label>
+                  <Label htmlFor="invoiceNumber">Invoice Number</Label>
                   <Input
                     id="invoiceNumber"
-                    value={formData.invoiceNumber}
-                    onChange={(e) =>
-                      handleInputChange('invoiceNumber', e.target.value)
-                    }
-                    placeholder="e.g., INV-2024-001"
-                    className={errors.invoiceNumber ? 'border-red-500' : ''}
+                    value="Assigned on save"
+                    disabled
+                    className="bg-muted"
                   />
-                  {errors.invoiceNumber && (
-                    <p className="text-sm text-red-500">
-                      {errors.invoiceNumber}
-                    </p>
-                  )}
+                  <p className="text-muted-foreground text-xs">
+                    Generated automatically when the invoice is created.
+                  </p>
                 </div>
 
                 {/* Type */}
@@ -264,31 +285,16 @@ export default function NewInvoicePage() {
 
                 {/* Status */}
                 <div className="space-y-2">
-                  <Label htmlFor="status">
-                    Status <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) =>
-                      handleInputChange(
-                        'status',
-                        value as ConstructionInvoiceStatus
-                      )
-                    }
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(invoiceStatusLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="status">Status</Label>
+                  <Input
+                    id="status"
+                    value={invoiceStatusLabels[formData.status]}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    Set automatically when the invoice is created.
+                  </p>
                 </div>
 
                 {/* Project */}
@@ -627,15 +633,15 @@ export default function NewInvoicePage() {
 
           {/* Form Actions */}
           <div className="flex gap-4">
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Creating...' : 'Create Invoice'}
+              {isPending ? 'Creating...' : 'Create Invoice'}
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={handleCancel}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel

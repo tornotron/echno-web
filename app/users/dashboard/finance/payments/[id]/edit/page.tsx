@@ -37,7 +37,8 @@ import {
   paymentStatusLabels,
   paymentMethodLabels,
 } from '@/types/finance/payment';
-import { usePaymentById } from '@/hooks/payments';
+import { usePaymentById, useUpdatePayment } from '@/hooks/payments';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { getPayeesByType, getPayeeInfo } from '@/lib/utils/payment-utils';
 import {
   Save,
@@ -128,6 +129,7 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
   const { data: employees = [] } = useEmployees();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
+  const { mutate: updatePayment, isPending } = useUpdatePayment();
 
   const payeeDatasets = {
     vendors,
@@ -157,7 +159,6 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
     return p.payeeType;
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPayeeType, setSelectedPayeeType] = useState<
     ConstructionPayeeType | undefined
   >(() => derivePayeeType(initialData));
@@ -198,13 +199,48 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
       toast.error('Amount must be greater than 0');
       return;
     }
-    setIsSubmitting(true);
-    // TODO(construction-finance): wire create/update payload
-    setTimeout(() => {
-      toast.success('Payment updated successfully');
-      setIsSubmitting(false);
-      router.push(routes.finance.payments.detail(paymentId).href);
-    }, 1000);
+
+    // Update is a full replacement; the payment number stays backend-owned and
+    // is not sent. Processing status is editable here.
+    updatePayment(
+      {
+        id: paymentId,
+        req: {
+          type: formData.type,
+          status: formData.status,
+          method: formData.method,
+          payeeType: formData.payeeType,
+          projectId: formData.projectId,
+          amount: formData.amount,
+          currency: formData.currency.trim() || undefined,
+          paymentDate: format(new Date(formData.paymentDate), 'yyyy-MM-dd'),
+          vendorId: formData.vendorId,
+          employeeId: formData.employeeId,
+          subContractId: formData.subContractId,
+          labourId: formData.labourId,
+          payeeName: formData.payeeName.trim() || undefined,
+          payeeDetails: formData.payeeDetails.trim() || undefined,
+          transactionId: formData.transactionId.trim() || undefined,
+          referenceNumber: formData.referenceNumber.trim() || undefined,
+          bankName: formData.bankName.trim() || undefined,
+          accountNumber: formData.accountNumber.trim() || undefined,
+          ifscCode: formData.ifscCode.trim() || undefined,
+          description: formData.description.trim() || undefined,
+          notes: formData.notes.trim() || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Payment updated successfully');
+          router.push(routes.finance.payments.detail(paymentId).href);
+        },
+        onError: (err) => {
+          toast.error(getErrorTitle(err, 'Failed to update payment'), {
+            description: getErrorMessage(err),
+          });
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
@@ -768,14 +804,14 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
               type="button"
               variant="outline"
               onClick={handleCancel}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>
