@@ -3,15 +3,22 @@
 import { useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useEmployeeRoles } from '@tornotron/echno-core/employee/hooks';
-import { isManagerOrAbove } from '@tornotron/echno-core/employee/types';
+import {
+  isAdmin as hasAdminRole,
+  isManagerOrAbove as hasManagerRole,
+} from '@tornotron/echno-core/employee/types';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
+import { handleSignOut } from '@/lib/auth/auth-utils';
 import { Badge } from '@/components/shadcn/badge';
 import {
   getSidebarItems,
+  groupBySection,
   isPathActive,
-  type NavItem as CentralNavItem,
-} from '@/lib/utils/navigation-utils';
-import { ChevronRight, Lock } from 'lucide-react';
+  resolveSidebarAccess,
+  type ResolvedNavItem,
+  type Role,
+} from '@/nav';
+import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -21,6 +28,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -28,6 +36,7 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarRail,
   useSidebar,
 } from '@/components/shadcn/sidebar';
 import {
@@ -39,6 +48,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu';
 import {
@@ -48,57 +59,48 @@ import {
 } from '@/components/shadcn/avatar';
 
 // ---------------------------------------------------------------------------
-// Sidebar NavItem — local shape consumed by the sidebar rendering logic.
-// Derived from the centralized CentralNavItem at runtime via `toSidebarItem`.
+// Role bridge
 // ---------------------------------------------------------------------------
 
-interface SidebarNavItem {
-  title: string;
-  url: string;
-  icon: React.ComponentType<{ className?: string }>;
-  requiredRoles?: string[];
-  hideForRoles?: string[];
-  hideWhenLocked?: boolean;
-  items?: {
-    title: string;
-    url: string;
-    icon: React.ComponentType<{ className?: string }>;
-    requiredRoles?: string[];
-  }[];
+/**
+ * Collapse the backend's ~48 `OrgRole` values into the coarse tier that
+ * `nav/access` evaluates (`admin | manager | employee`).
+ *
+ * The nav AccessConfig constants (ADMIN_ONLY, MANAGER_AND_ABOVE) are written
+ * in terms of tiers, while `Employee.orgRoles` carries job-family roles like
+ * SYSTEM_ADMIN or SITE_MANAGER. Without this mapping the two vocabularies
+ * never intersect and every gated item reads as locked.
+ */
+function toNavRole(orgRoles: string[]): Role {
+  if (hasAdminRole(orgRoles)) return 'admin';
+  if (hasManagerRole(orgRoles)) return 'manager';
+  return 'employee';
+}
+
+// ---------------------------------------------------------------------------
+// Active-path resolution
+// ---------------------------------------------------------------------------
+
+function collectPaths(items: ResolvedNavItem[]): string[] {
+  return items.flatMap((item) => [item.path, ...collectPaths(item.children)]);
 }
 
 /**
- * Convert a centralized NavItem into the local SidebarNavItem shape.
- * Recursively maps children → items.
+ * The single most specific nav path matching the current URL.
+ * Longest match wins, so /…/chat never lights up Home as well.
  */
-function toSidebarItem(item: CentralNavItem): SidebarNavItem {
-  // Lucide icons satisfy React.ComponentType<{ className?: string }>
-  const Icon = item.icon as
-    | React.ComponentType<{ className?: string }>
-    | undefined;
-  return {
-    title: item.label,
-    url: item.path,
-    // Provide a transparent fallback so the sidebar never receives `undefined` as icon
-    icon: Icon ?? ((() => null) as React.ComponentType<{ className?: string }>),
-    requiredRoles: item.roles,
-    hideForRoles: item.hideForRoles,
-    hideWhenLocked: item.hideWhenLocked,
-    items: item.children?.map((child) => ({
-      title: child.label,
-      url: child.path,
-      icon:
-        (child.icon as React.ComponentType<{ className?: string }>) ??
-        ((() => null) as React.ComponentType<{ className?: string }>),
-      requiredRoles: child.roles,
-    })),
-  };
+function findActivePath(
+  items: ResolvedNavItem[],
+  pathname: string
+): string | undefined {
+  return collectPaths(items)
+    .filter((path) => isPathActive(path, pathname))
+    .toSorted((a, b) => b.length - a.length)[0];
 }
 
-/** Sidebar items derived from the centralized navigation config. */
-const navItems: SidebarNavItem[] = getSidebarItems().map((item) =>
-  toSidebarItem(item)
-);
+// ---------------------------------------------------------------------------
+// Sidebar
+// ---------------------------------------------------------------------------
 
 interface AppSidebarProps {
   /** Total unread chat messages across all rooms, injected by the app layer. */
@@ -111,118 +113,196 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
   const router = useRouter();
   const { state } = useSidebar();
 
-  // Get employee roles for authorization checks
   const { orgRoles, employee } = useEmployeeRoles();
 
-  // Get leave management pending approvals count for badge (only for managers/admins)
-  const canApproveLeaves = isManagerOrAbove(orgRoles);
+  // Pending leave approvals drive a badge, and only managers/admins can approve.
+  const canApproveLeaves = hasManagerRole(orgRoles as string[]);
   const { data: leavePendingCount } = usePendingApprovalsCount(
     canApproveLeaves ? employee?.id || 0 : 0
   );
 
-  // Helper to check if user can see item (module access + role check)
-  const canSeeItem = (item: {
-    requiredRoles?: string[];
-    hideForRoles?: string[];
-  }): boolean => {
-    // Check if item should be hidden for user's roles
-    if (item.hideForRoles && item.hideForRoles.length > 0) {
-      const shouldHide = item.hideForRoles.some((role) =>
-        (orgRoles as string[]).includes(role)
-      );
-      if (shouldHide) return false;
-    }
+  /** Badge counts keyed by nav route id. */
+  const badges = useMemo<Record<string, number | undefined>>(
+    () => ({
+      chat: chatUnreadCount,
+      'workforce-leaves': leavePendingCount,
+    }),
+    [chatUnreadCount, leavePendingCount]
+  );
 
-    // Check role requirement
-    // If requiredRoles is undefined or empty, all users can see the item
-    if (item.requiredRoles && item.requiredRoles.length > 0) {
-      // User must have at least one of the required roles
-      const hasRequiredRole = item.requiredRoles.some((role) =>
-        (orgRoles as string[]).includes(role)
-      );
-      if (!hasRequiredRole) return false;
-    }
-    return true;
-  };
+  const sections = useMemo(() => {
+    const items = resolveSidebarAccess(getSidebarItems(), {
+      role: toNavRole(orgRoles as string[]),
+      isAuthenticated: true,
+    });
+    return groupBySection(items);
+  }, [orgRoles]);
 
-  // Memoize navigation items rendering to prevent flickering
-  const navigationItems = useMemo(() => {
-    return navItems
-      .filter((item) => {
-        // If item should be hidden when locked and user doesn't have access, filter it out
-        if (item.hideWhenLocked && !canSeeItem(item)) {
-          return false;
-        }
-        return true;
-      })
-      .map((item) => {
-        const hasAccess = canSeeItem(item);
-        // Filter child items - show all but mark as locked
-        const processedItems = item.items?.map((child) => ({
-          ...child,
-          hasAccess: canSeeItem(child),
-        }));
-        // Only show children that user has access to OR show all if parent is locked
-        const filteredItems = hasAccess
-          ? processedItems?.filter((child) => child.hasAccess)
-          : processedItems;
-        const hasChildren = filteredItems && filteredItems.length > 0;
-
-        let isChildActive = false;
-        let activeChildUrl = '';
-
-        if (hasChildren && filteredItems && hasAccess) {
-          // Find the most specific matching child (longest URL that matches)
-          const matchingChildren = filteredItems.filter(
-            (child) => child.hasAccess && isPathActive(child.url, pathname)
-          );
-
-          if (matchingChildren.length > 0) {
-            // Sort by URL length (descending) to get the most specific match
-            matchingChildren.sort((a, b) => b.url.length - a.url.length);
-            activeChildUrl = matchingChildren[0].url;
-            isChildActive = true;
-          }
-        }
-
-        // For items without children, use prefix matching so sub-routes
-        // still highlight the parent — but only when
-        // no *other* nav item has a longer, more specific URL that also
-        // matches (prevents Dashboard from highlighting when on Chat).
-        let isActive = false;
-        if (hasAccess && !isChildActive) {
-          if (hasChildren) {
-            isActive = pathname === item.url;
-          } else if (isPathActive(item.url, pathname)) {
-            // Check that no sibling nav item has a more specific match
-            const moreSpecificSibling = navItems.some(
-              (other) =>
-                other.url !== item.url &&
-                other.url.length > item.url.length &&
-                isPathActive(other.url, pathname)
-            );
-            isActive = !moreSpecificSibling;
-          }
-        }
-
-        return {
-          ...item,
-          items: filteredItems,
-          hasChildren,
-          isChildActive,
-          isActive,
-          activeChildUrl,
-          hasAccess,
-          isLocked: !hasAccess,
-        };
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname, orgRoles]);
+  const activePath = useMemo(
+    () =>
+      findActivePath(
+        sections.flatMap((g) => g.items),
+        pathname
+      ),
+    [sections, pathname]
+  );
 
   // Only show sidebar for authenticated users
   if (!session) {
     return null;
   }
+
+  function renderBadge(id: string, className: string) {
+    const count = badges[id];
+    if (!count || count <= 0) return null;
+    return (
+      <Badge variant="destructive" className={className}>
+        {count > 99 ? '99+' : count}
+      </Badge>
+    );
+  }
+
+  function tooltipFor(item: ResolvedNavItem) {
+    if (item.locked) return `${item.label} (Locked)`;
+    const count = badges[item.id];
+    if (count && count > 0) return `${item.label} (${count})`;
+    return item.label;
+  }
+
+  function renderItem(item: ResolvedNavItem) {
+    const Icon = item.icon;
+    const hasChildren = item.children.length > 0;
+    const childActive = item.children.some((c) => c.path === activePath);
+
+    // ── Locked ──────────────────────────────────────────────────────────────
+    if (item.locked) {
+      return (
+        <SidebarMenuItem key={item.id}>
+          <SidebarMenuButton
+            tooltip={tooltipFor(item)}
+            className="cursor-not-allowed opacity-60"
+            disabled
+          >
+            {Icon && <Icon className="text-zinc-400" />}
+            <span className="text-zinc-500">{item.label}</span>
+            {state !== 'collapsed' && (
+              <Lock className="ml-auto h-3 w-3 text-zinc-400" />
+            )}
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
+    // ── Leaf ────────────────────────────────────────────────────────────────
+    if (!hasChildren) {
+      return (
+        <SidebarMenuItem key={item.id}>
+          <SidebarMenuButton
+            asChild
+            isActive={item.path === activePath}
+            tooltip={tooltipFor(item)}
+          >
+            <Link href={item.path} className="relative">
+              {Icon && <Icon />}
+              <span>{item.label}</span>
+              {renderBadge(item.id, 'ml-auto h-5 min-w-5 px-1 text-xs')}
+            </Link>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      );
+    }
+
+    // ── Parent, collapsed rail → flyout dropdown ────────────────────────────
+    if (state === 'collapsed') {
+      return (
+        <SidebarMenuItem key={item.id}>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                tooltip={{ children: tooltipFor(item), side: 'right' }}
+                isActive={childActive}
+                className="relative"
+              >
+                {Icon && <Icon />}
+                <span>{item.label}</span>
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="start" className="w-52">
+              <DropdownMenuLabel>{item.label}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {item.children.map((child) => {
+                const ChildIcon = child.icon;
+                return (
+                  <DropdownMenuItem
+                    key={child.id}
+                    className="flex cursor-pointer items-center gap-2"
+                    onSelect={() => router.push(child.path)}
+                  >
+                    {ChildIcon && <ChildIcon className="h-4 w-4" />}
+                    <span>{child.label}</span>
+                    {renderBadge(child.id, 'ml-auto h-5 min-w-5 px-1 text-xs')}
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      );
+    }
+
+    // ── Parent, expanded → collapsible group ────────────────────────────────
+    return (
+      <Collapsible
+        key={item.id}
+        defaultOpen={childActive}
+        className="group/collapsible"
+      >
+        <SidebarMenuItem>
+          <CollapsibleTrigger asChild>
+            <SidebarMenuButton tooltip={item.label} isActive={childActive}>
+              {Icon && <Icon />}
+              <span>{item.label}</span>
+              {renderBadge(item.id, 'mr-2 ml-auto h-5 min-w-5 px-1 text-xs')}
+              <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+            </SidebarMenuButton>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <SidebarMenuSub>
+              {item.children.map((child) => {
+                const ChildIcon = child.icon;
+                return (
+                  <SidebarMenuSubItem key={child.id}>
+                    <SidebarMenuSubButton
+                      asChild
+                      isActive={child.path === activePath}
+                    >
+                      <Link href={child.path}>
+                        {ChildIcon && <ChildIcon />}
+                        <span>{child.label}</span>
+                        {renderBadge(
+                          child.id,
+                          'ml-auto h-5 min-w-5 px-1 text-xs'
+                        )}
+                      </Link>
+                    </SidebarMenuSubButton>
+                  </SidebarMenuSubItem>
+                );
+              })}
+            </SidebarMenuSub>
+          </CollapsibleContent>
+        </SidebarMenuItem>
+      </Collapsible>
+    );
+  }
+
+  const userName = session.user?.name || 'User';
+  const initials =
+    userName
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((n) => n[0].toUpperCase())
+      .join('') || 'U';
 
   return (
     <SidebarPrimitive collapsible="icon">
@@ -255,244 +335,76 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => {
-                // Locked item without children - show with lock icon
-                if (item.isLocked && !item.hasChildren) {
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        tooltip={`${item.title} (Locked)`}
-                        className="cursor-not-allowed opacity-60"
-                        disabled
-                      >
-                        <item.icon className="text-zinc-400" />
-                        <span className="text-zinc-500">{item.title}</span>
-                        <Lock className="ml-auto h-3 w-3 text-zinc-400" />
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                }
-
-                if (!item.hasChildren) {
-                  const isChat = item.title === 'Chat';
-                  const showChatBadge = isChat && chatUnreadCount > 0;
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={item.isActive}
-                        tooltip={
-                          showChatBadge
-                            ? `${item.title} (${chatUnreadCount} unread)`
-                            : item.title
-                        }
-                      >
-                        <Link href={item.url} className="relative">
-                          <item.icon />
-                          <span>{item.title}</span>
-                          {showChatBadge && (
-                            <Badge
-                              variant="destructive"
-                              className="ml-auto h-5 min-w-5 px-1 text-xs"
-                            >
-                              {chatUnreadCount > 99 ? '99+' : chatUnreadCount}
-                            </Badge>
-                          )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                }
-
-                // Locked item with children - show collapsed with lock
-                if (item.isLocked && state === 'collapsed') {
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        tooltip={{
-                          children: `${item.title} (Locked)`,
-                          side: 'right',
-                        }}
-                        className="cursor-not-allowed opacity-60"
-                        disabled
-                      >
-                        <item.icon className="text-zinc-400" />
-                        <span className="text-zinc-500">{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                }
-
-                // When collapsed, show dropdown menu
-                if (state === 'collapsed') {
-                  // Check if this is Leave Management item to show badge in tooltip
-                  const isLeaveManagement = item.title === 'Leave Management';
-                  const tooltipText =
-                    isLeaveManagement &&
-                    leavePendingCount &&
-                    leavePendingCount > 0
-                      ? `${item.title} (${leavePendingCount} pending)`
-                      : item.title;
-
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <SidebarMenuButton
-                            tooltip={{
-                              children: tooltipText,
-                              side: 'right',
-                            }}
-                            isActive={item.isActive || item.isChildActive}
-                            className="relative"
-                          >
-                            <item.icon />
-                            <span>{item.title}</span>
-                            {isLeaveManagement &&
-                              leavePendingCount &&
-                              leavePendingCount > 0 && (
-                                <span className="bg-destructive text-destructive-foreground absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px]">
-                                  {leavePendingCount > 9
-                                    ? '9+'
-                                    : leavePendingCount}
-                                </span>
-                              )}
-                          </SidebarMenuButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          side="right"
-                          align="start"
-                          className="w-48"
-                        >
-                          {item.items?.map((subItem) => (
-                            <DropdownMenuItem
-                              key={subItem.title}
-                              className="flex cursor-pointer items-center gap-2"
-                              onSelect={() => router.push(subItem.url)}
-                            >
-                              <subItem.icon className="h-4 w-4" />
-                              <span>{subItem.title}</span>
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </SidebarMenuItem>
-                  );
-                }
-
-                // Locked item with children - show expanded with lock
-                if (item.isLocked) {
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton
-                        tooltip={`${item.title} (Locked)`}
-                        className="cursor-not-allowed opacity-60"
-                        disabled
-                      >
-                        <item.icon className="text-zinc-400" />
-                        <span className="text-zinc-500">{item.title}</span>
-                        <Lock className="ml-auto h-3 w-3 text-zinc-400" />
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                }
-
-                // When expanded, show collapsible menu
-                // Check if this is Leave Management item to show badge
-                const isLeaveManagement = item.title === 'Leave Management';
-                const showBadge =
-                  isLeaveManagement &&
-                  leavePendingCount &&
-                  leavePendingCount > 0;
-
-                return (
-                  <Collapsible
-                    key={item.title}
-                    defaultOpen={item.isChildActive}
-                    className="group/collapsible"
-                  >
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          tooltip={item.title}
-                          isActive={item.isActive}
-                        >
-                          <item.icon />
-                          <span>{item.title}</span>
-                          {showBadge && (
-                            <Badge
-                              variant="destructive"
-                              className="mr-2 ml-auto h-5 min-w-5 px-1 text-xs"
-                            >
-                              {leavePendingCount}
-                            </Badge>
-                          )}
-                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.items?.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={subItem.url === item.activeChildUrl}
-                              >
-                                <Link href={subItem.url}>
-                                  <subItem.icon />
-                                  <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {sections.map((group) => (
+          <SidebarGroup key={group.section.id}>
+            <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => renderItem(item))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
 
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              className="group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:!p-0"
-            >
-              <Avatar className="size-8 shrink-0">
-                <AvatarImage
-                  src={employee?.profilePicture?.file}
-                  alt={session.user?.name || 'User'}
-                />
-                <AvatarFallback className="bg-zinc-500 text-xs font-semibold text-white">
-                  {session.user?.name
-                    ?.split(' ')
-                    .filter(Boolean)
-                    .slice(0, 2)
-                    .map((n) => n[0].toUpperCase())
-                    .join('') || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 overflow-hidden group-data-[collapsible=icon]:hidden">
-                <p className="truncate text-sm font-semibold">
-                  {session.user?.name || 'User'}
-                </p>
-                <p className="truncate text-xs opacity-50">
-                  {session.user?.email || ''}
-                </p>
-              </div>
-              <ChevronRight className="ml-auto size-4 shrink-0 opacity-50 group-data-[collapsible=icon]:hidden" />
-            </SidebarMenuButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0!"
+                >
+                  <Avatar className="size-8 shrink-0">
+                    <AvatarImage
+                      src={employee?.profilePicture?.file}
+                      alt={userName}
+                    />
+                    <AvatarFallback className="bg-zinc-500 text-xs font-semibold text-white">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 overflow-hidden text-left group-data-[collapsible=icon]:hidden">
+                    <p className="truncate text-sm font-semibold">{userName}</p>
+                    <p className="truncate text-xs opacity-50">
+                      {session.user?.email || ''}
+                    </p>
+                  </div>
+                  <ChevronRight className="ml-auto size-4 shrink-0 opacity-50 group-data-[collapsible=icon]:hidden" />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="right"
+                align="end"
+                sideOffset={8}
+                className="min-w-56"
+              >
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="truncate text-sm font-medium">
+                      {userName}
+                    </span>
+                    <span className="text-muted-foreground truncate text-xs">
+                      {session.user?.email || ''}
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onSelect={() => handleSignOut()}
+                >
+                  <LogOut className="size-4" />
+                  Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      <SidebarRail />
     </SidebarPrimitive>
   );
 }

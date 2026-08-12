@@ -72,9 +72,14 @@ export { OPEN_ACCESS, ADMIN_ONLY, MANAGER_AND_ABOVE } from './access/roles';
 export {
   canAccess,
   filterNavByAccess,
+  resolveSidebarAccess,
   isManagerOrAbove,
   isAdmin,
 } from './access/evaluate';
+export type { AccessContext, ResolvedNavItem } from './access/evaluate';
+
+export { SIDEBAR_SECTIONS, DEFAULT_SECTION, groupBySection } from './sections';
+export type { NavSection, SectionGroup } from './sections';
 
 export { routes } from './generated/route-helpers.generated';
 export type { Routes } from './generated/route-helpers.generated';

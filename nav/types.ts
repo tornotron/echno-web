@@ -50,6 +50,11 @@ export interface RouteMetadata {
   description?: string;
   /** Sidebar render order (lower = higher). Defaults to 999. */
   order?: number;
+  /**
+   * Sidebar section this item groups under (see nav/sections.ts).
+   * Only meaningful on top-level items; ignored on children.
+   */
+  section?: string;
   /** Excluded from sidebar but still generates breadcrumbs. */
   sidebarHidden?: boolean;
   /** Excluded from the breadcrumb trail entirely. */
@@ -83,6 +88,8 @@ export interface ComposedNavItem {
   icon?: LucideIcon;
   breadcrumb?: string;
   description?: string;
+  /** Sidebar section id; undefined falls back to DEFAULT_SECTION at render. */
+  section?: string;
   sidebarHidden: boolean;
   breadcrumbHidden: boolean;
   nonInteractive: boolean;
