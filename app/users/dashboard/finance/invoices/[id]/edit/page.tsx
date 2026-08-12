@@ -3,7 +3,8 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
-import { useInvoiceById } from '@/hooks/invoices';
+import { useInvoiceById, useUpdateInvoice } from '@/hooks/invoices';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -122,7 +123,7 @@ interface InvoiceEditFormProps {
 function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: updateInvoice, isPending } = useUpdateInvoice();
   const [lineItems, setLineItems] = useState<InvoiceLineDraft[]>(() =>
     initialData.lines.map((line) => ({
       id: line.id,
@@ -158,14 +159,48 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
 
-    // TODO(construction-finance): wire create/update payload
-    setTimeout(() => {
-      toast.success('Invoice updated successfully');
-      setIsSubmitting(false);
-      router.push(routes.finance.invoices.detail(invoiceId).href);
-    }, 1000);
+    // Update is a full replacement: lifecycle status is editable here, while
+    // paymentStatus and the settled paymentDate stay backend-owned and are
+    // carried over from the loaded invoice. Money totals are recomputed
+    // server-side from the lines.
+    updateInvoice(
+      {
+        id: invoiceId,
+        req: {
+          type: formData.type,
+          status: formData.status,
+          paymentStatus: initialData.paymentStatus,
+          projectId: formData.projectId,
+          issueDate: format(new Date(formData.issueDate), 'yyyy-MM-dd'),
+          dueDate: format(new Date(formData.dueDate), 'yyyy-MM-dd'),
+          paymentDate: initialData.paymentDate,
+          paymentTerms: formData.paymentTerms.trim() || undefined,
+          paymentMethod: formData.paymentMethod.trim() || undefined,
+          gstNumber: formData.gstNumber.trim() || undefined,
+          taxType: formData.taxType.trim() || undefined,
+          notes: formData.notes.trim() || undefined,
+          lines: lineItems.map((item) => ({
+            description: item.description,
+            quantity: item.quantity,
+            unit: item.unit,
+            unitPrice: item.unitPrice,
+            taxRate: item.taxRate,
+          })),
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Invoice updated successfully');
+          router.push(routes.finance.invoices.detail(invoiceId).href);
+        },
+        onError: (err) => {
+          toast.error(getErrorTitle(err, 'Failed to update invoice'), {
+            description: getErrorMessage(err),
+          });
+        },
+      }
+    );
   };
 
   const handleInputChange = (
@@ -681,9 +716,9 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
 
           {/* Form Actions */}
           <div className="flex gap-4">
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Updating...' : 'Update Invoice'}
+              {isPending ? 'Updating...' : 'Update Invoice'}
             </Button>
             <Button variant="outline" asChild>
               <Link href={routes.finance.invoices.detail(invoiceId).href}>

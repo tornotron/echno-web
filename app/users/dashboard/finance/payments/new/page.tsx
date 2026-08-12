@@ -7,7 +7,9 @@ import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { useSubContracts } from '@/hooks/sub-contracts';
+import { useCreatePayment } from '@/hooks/payments';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -58,6 +60,7 @@ export default function NewPaymentPage() {
   const { data: employees = [] } = useEmployees();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
+  const { mutate: createPayment, isPending } = useCreatePayment();
 
   // Create datasets object for utility functions
   const payeeDatasets = {
@@ -67,7 +70,6 @@ export default function NewPaymentPage() {
     labour,
   };
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPayeeType, setSelectedPayeeType] = useState<
     ConstructionPayeeType | undefined
@@ -103,8 +105,6 @@ export default function NewPaymentPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    if (!formData.paymentNumber?.trim())
-      newErrors.paymentNumber = 'Payment number is required';
     if (!formData.amount || formData.amount <= 0)
       newErrors.amount = 'Amount must be greater than 0';
     if (Object.keys(newErrors).length > 0) {
@@ -112,13 +112,44 @@ export default function NewPaymentPage() {
       toast.error('Please fix the errors in the form');
       return;
     }
-    setIsSubmitting(true);
-    // TODO(construction-finance): wire create/update payload
-    setTimeout(() => {
-      toast.success('Payment created successfully');
-      setIsSubmitting(false);
-      router.push(routes.finance.payments.href);
-    }, 1000);
+
+    // The backend assigns the payment number and always starts a new voucher
+    // PENDING, so neither is sent.
+    createPayment(
+      {
+        type: formData.type,
+        method: formData.method,
+        payeeType: formData.payeeType,
+        projectId: formData.projectId,
+        amount: formData.amount,
+        currency: formData.currency.trim() || undefined,
+        paymentDate: format(new Date(formData.paymentDate), 'yyyy-MM-dd'),
+        vendorId: formData.vendorId,
+        employeeId: formData.employeeId,
+        subContractId: formData.subContractId,
+        labourId: formData.labourId,
+        payeeName: formData.payeeName.trim() || undefined,
+        payeeDetails: formData.payeeDetails.trim() || undefined,
+        transactionId: formData.transactionId.trim() || undefined,
+        referenceNumber: formData.referenceNumber.trim() || undefined,
+        bankName: formData.bankName.trim() || undefined,
+        accountNumber: formData.accountNumber.trim() || undefined,
+        ifscCode: formData.ifscCode.trim() || undefined,
+        description: formData.description.trim() || undefined,
+        notes: formData.notes.trim() || undefined,
+      },
+      {
+        onSuccess: (payment) => {
+          toast.success('Payment created successfully');
+          router.push(routes.finance.payments.detail(payment.id).href);
+        },
+        onError: (err) => {
+          toast.error(getErrorTitle(err, 'Failed to create payment'), {
+            description: getErrorMessage(err),
+          });
+        },
+      }
+    );
   };
 
   const handleCancel = () => {
@@ -222,23 +253,16 @@ export default function NewPaymentPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 {/* Payment Number */}
                 <div className="space-y-2">
-                  <Label htmlFor="paymentNumber">
-                    Payment Number <span className="text-destructive">*</span>
-                  </Label>
+                  <Label htmlFor="paymentNumber">Payment Number</Label>
                   <Input
                     id="paymentNumber"
-                    value={formData.paymentNumber}
-                    onChange={(e) =>
-                      handleInputChange('paymentNumber', e.target.value)
-                    }
-                    placeholder="e.g., PAY-2024-001"
-                    className={errors.paymentNumber ? 'border-red-500' : ''}
+                    value="Assigned on save"
+                    disabled
+                    className="bg-muted"
                   />
-                  {errors.paymentNumber && (
-                    <p className="text-sm text-red-500">
-                      {errors.paymentNumber}
-                    </p>
-                  )}
+                  <p className="text-muted-foreground text-xs">
+                    Generated automatically when the payment is created.
+                  </p>
                 </div>
 
                 {/* Type */}
@@ -272,31 +296,16 @@ export default function NewPaymentPage() {
 
                 {/* Status */}
                 <div className="space-y-2">
-                  <Label htmlFor="status">
-                    Status <span className="text-destructive">*</span>
-                  </Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) =>
-                      handleInputChange(
-                        'status',
-                        value as ConstructionPaymentVoucherStatus
-                      )
-                    }
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(paymentStatusLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="status">Status</Label>
+                  <Input
+                    id="status"
+                    value={paymentStatusLabels[formData.status]}
+                    disabled
+                    className="bg-muted"
+                  />
+                  <p className="text-muted-foreground text-xs">
+                    A new payment always starts pending.
+                  </p>
                 </div>
 
                 {/* Project */}
@@ -700,14 +709,14 @@ export default function NewPaymentPage() {
               type="button"
               variant="outline"
               onClick={handleCancel}
-              disabled={isSubmitting}
+              disabled={isPending}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Creating...' : 'Create Payment'}
+              {isPending ? 'Creating...' : 'Create Payment'}
             </Button>
           </div>
         </form>
