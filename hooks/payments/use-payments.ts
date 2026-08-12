@@ -8,7 +8,7 @@ export const usePayments = () =>
     queryFn: () => paymentsService.getAll(),
   });
 
-export const usePaymentById = (id: number) =>
+export const usePaymentById = (id: string) =>
   useQuery({
     queryKey: paymentKeys.detail(id),
     queryFn: () => paymentsService.getById(id),

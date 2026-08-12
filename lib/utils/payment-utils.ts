@@ -1,11 +1,14 @@
-import { Payment, PayeeType } from '@/types/finance/payment';
+import {
+  ConstructionPayment,
+  ConstructionPayeeType,
+} from '@/types/finance/payment';
 import { Employee } from '@tornotron/echno-core/employee/types';
 import { Labour } from '@tornotron/echno-core/labour/types';
 import { Vendor } from '@tornotron/echno-core/vendor/types';
 import type { SubContract } from '@/types/third-party/sub-contract';
 
 export interface PayeeInfo {
-  type: PayeeType;
+  type: ConstructionPayeeType;
   name: string;
   company?: string;
   details?: string;
@@ -23,7 +26,7 @@ export interface PayeeDatasets {
  * Priority: labourId > subContractId > vendorId > employeeId > payeeType
  */
 export function getPayeeInfo(
-  payment: Payment,
+  payment: ConstructionPayment,
   datasets: PayeeDatasets
 ): PayeeInfo {
   // Check labour
@@ -31,7 +34,7 @@ export function getPayeeInfo(
     const labour = datasets.labour.find((l) => l.id === payment.labourId);
     if (labour) {
       return {
-        type: PayeeType.labour,
+        type: ConstructionPayeeType.LABOUR,
         name: labour.fullName ?? '',
         details: `${labour.specialization ?? ''} - ${labour.labourId ?? ''}`,
       };
@@ -45,7 +48,7 @@ export function getPayeeInfo(
     );
     if (contract) {
       return {
-        type: PayeeType.subContractor,
+        type: ConstructionPayeeType.SUB_CONTRACTOR,
         name: contract.contractorName,
         company: contract.contractorCompany,
         details: contract.contractId,
@@ -58,7 +61,7 @@ export function getPayeeInfo(
     const vendor = datasets.vendors.find((v) => v.id === payment.vendorId);
     if (vendor) {
       return {
-        type: PayeeType.vendor,
+        type: ConstructionPayeeType.VENDOR,
         name: vendor.contactPerson || vendor.name,
         company: vendor.contactPerson ? vendor.name : undefined,
         details: vendor.address,
@@ -73,7 +76,7 @@ export function getPayeeInfo(
     );
     if (employee) {
       return {
-        type: PayeeType.employee,
+        type: ConstructionPayeeType.EMPLOYEE,
         name: employee.name,
         details: employee.employeeId,
       };
@@ -91,7 +94,7 @@ export function getPayeeInfo(
 
   // Default fallback
   return {
-    type: PayeeType.other,
+    type: ConstructionPayeeType.OTHER,
     name: 'Unknown Payee',
   };
 }
@@ -125,9 +128,12 @@ export function matchesAmountSearch(
 /**
  * Gets all payees of a specific type
  */
-export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
+export function getPayeesByType(
+  type: ConstructionPayeeType,
+  datasets: PayeeDatasets
+) {
   switch (type) {
-    case PayeeType.employee: {
+    case ConstructionPayeeType.EMPLOYEE: {
       return datasets.employees
         .filter((e): e is Employee & { id: number } => e.id != null)
         .map((e) => ({
@@ -137,7 +143,7 @@ export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
         }));
     }
 
-    case PayeeType.vendor: {
+    case ConstructionPayeeType.VENDOR: {
       return datasets.vendors.map((v) => ({
         id: v.id,
         name: v.name,
@@ -145,7 +151,7 @@ export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
       }));
     }
 
-    case PayeeType.labour: {
+    case ConstructionPayeeType.LABOUR: {
       return datasets.labour.map((l) => ({
         id: l.id,
         name: l.fullName ?? '',
@@ -153,7 +159,7 @@ export function getPayeesByType(type: PayeeType, datasets: PayeeDatasets) {
       }));
     }
 
-    case PayeeType.subContractor: {
+    case ConstructionPayeeType.SUB_CONTRACTOR: {
       return datasets.subContracts.map((c) => ({
         id: c.id,
         name: c.contractorName,

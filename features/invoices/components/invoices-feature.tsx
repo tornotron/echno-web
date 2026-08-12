@@ -33,9 +33,9 @@ import {
 } from '@/components/shadcn/empty';
 import Link from 'next/link';
 import {
-  Invoice,
-  InvoiceType,
-  InvoiceStatus,
+  ConstructionInvoice,
+  ConstructionInvoiceType,
+  ConstructionInvoiceStatus,
   invoiceTypeLabels,
   invoiceStatusLabels,
 } from '@/types/finance/invoice';
@@ -43,7 +43,7 @@ import { Project } from '@tornotron/echno-core/project/types';
 import { InvoiceRow } from './invoice-row';
 
 interface InvoicesFeatureProps {
-  invoices: Invoice[];
+  invoices: ConstructionInvoice[];
   projects: Project[];
   isLoading?: boolean;
   isError?: boolean;
@@ -61,7 +61,7 @@ export function InvoicesFeature({
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   // Filter invoices based on search and filters
   const filteredInvoices = useMemo(() => {
@@ -101,7 +101,7 @@ export function InvoicesFeature({
     }
   };
 
-  const handleSelectOne = (id: number, checked: boolean) => {
+  const handleSelectOne = (id: string, checked: boolean) => {
     if (checked) {
       setSelectedIds([...selectedIds, id]);
     } else {
@@ -159,29 +159,29 @@ export function InvoicesFeature({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value={InvoiceStatus.draft}>
-              {invoiceStatusLabels[InvoiceStatus.draft]}
+            <SelectItem value={ConstructionInvoiceStatus.DRAFT}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.DRAFT]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.pending}>
-              {invoiceStatusLabels[InvoiceStatus.pending]}
+            <SelectItem value={ConstructionInvoiceStatus.PENDING}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.PENDING]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.sent}>
-              {invoiceStatusLabels[InvoiceStatus.sent]}
+            <SelectItem value={ConstructionInvoiceStatus.SENT}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.SENT]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.partiallyPaid}>
-              {invoiceStatusLabels[InvoiceStatus.partiallyPaid]}
+            <SelectItem value={ConstructionInvoiceStatus.PARTIALLY_PAID}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.PARTIALLY_PAID]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.paid}>
-              {invoiceStatusLabels[InvoiceStatus.paid]}
+            <SelectItem value={ConstructionInvoiceStatus.PAID}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.PAID]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.overdue}>
-              {invoiceStatusLabels[InvoiceStatus.overdue]}
+            <SelectItem value={ConstructionInvoiceStatus.OVERDUE}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.OVERDUE]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.cancelled}>
-              {invoiceStatusLabels[InvoiceStatus.cancelled]}
+            <SelectItem value={ConstructionInvoiceStatus.CANCELLED}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.CANCELLED]}
             </SelectItem>
-            <SelectItem value={InvoiceStatus.disputed}>
-              {invoiceStatusLabels[InvoiceStatus.disputed]}
+            <SelectItem value={ConstructionInvoiceStatus.DISPUTED}>
+              {invoiceStatusLabels[ConstructionInvoiceStatus.DISPUTED]}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -198,17 +198,17 @@ export function InvoicesFeature({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value={InvoiceType.purchase}>
-              {invoiceTypeLabels[InvoiceType.purchase]}
+            <SelectItem value={ConstructionInvoiceType.PURCHASE}>
+              {invoiceTypeLabels[ConstructionInvoiceType.PURCHASE]}
             </SelectItem>
-            <SelectItem value={InvoiceType.sales}>
-              {invoiceTypeLabels[InvoiceType.sales]}
+            <SelectItem value={ConstructionInvoiceType.SALES}>
+              {invoiceTypeLabels[ConstructionInvoiceType.SALES]}
             </SelectItem>
-            <SelectItem value={InvoiceType.expense}>
-              {invoiceTypeLabels[InvoiceType.expense]}
+            <SelectItem value={ConstructionInvoiceType.EXPENSE}>
+              {invoiceTypeLabels[ConstructionInvoiceType.EXPENSE]}
             </SelectItem>
-            <SelectItem value={InvoiceType.service}>
-              {invoiceTypeLabels[InvoiceType.service]}
+            <SelectItem value={ConstructionInvoiceType.SERVICE}>
+              {invoiceTypeLabels[ConstructionInvoiceType.SERVICE]}
             </SelectItem>
           </SelectContent>
         </Select>

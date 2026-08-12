@@ -6,67 +6,15 @@ import { TableRow, TableCell } from '@/components/shadcn/table';
 import { FileText, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import {
-  Invoice,
-  InvoiceType,
-  InvoiceStatus,
+  ConstructionInvoice,
   invoiceTypeLabels,
   invoiceStatusLabels,
+  getInvoiceStatusColor,
+  getInvoiceTypeColor,
 } from '@/types/finance/invoice';
 
-const getStatusColor = (status: InvoiceStatus) => {
-  switch (status) {
-    case InvoiceStatus.paid: {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case InvoiceStatus.partiallyPaid: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case InvoiceStatus.pending: {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    case InvoiceStatus.sent: {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-    }
-    case InvoiceStatus.draft: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-    case InvoiceStatus.overdue: {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case InvoiceStatus.cancelled: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-    case InvoiceStatus.disputed: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getTypeColor = (type: InvoiceType) => {
-  switch (type) {
-    case InvoiceType.purchase: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case InvoiceType.sales: {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case InvoiceType.expense: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    case InvoiceType.service: {
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
 export interface InvoiceRowProps {
-  invoice: Invoice;
+  invoice: ConstructionInvoice;
   isSelected: boolean;
   onSelect: (checked: boolean) => void;
   projectName: string | undefined;
@@ -120,7 +68,7 @@ export function InvoiceRow({
         </div>
       </TableCell>
       <TableCell>
-        <Badge className={getTypeColor(invoice.type)}>
+        <Badge className={getInvoiceTypeColor(invoice.type)}>
           {invoiceTypeLabels[invoice.type]}
         </Badge>
       </TableCell>
@@ -137,16 +85,18 @@ export function InvoiceRow({
       <TableCell>
         <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
           <Calendar className="h-3 w-3 text-zinc-400" />
-          <span>{format(invoice.issueDate, 'dd MMM yyyy')}</span>
+          <span>
+            {invoice.issueDate ? format(invoice.issueDate, 'dd MMM yyyy') : '—'}
+          </span>
         </div>
       </TableCell>
       <TableCell>
         <span className="text-sm text-zinc-700 dark:text-zinc-300">
-          {format(invoice.dueDate, 'dd MMM yyyy')}
+          {invoice.dueDate ? format(invoice.dueDate, 'dd MMM yyyy') : '—'}
         </span>
       </TableCell>
       <TableCell>
-        <Badge className={getStatusColor(invoice.status)}>
+        <Badge className={getInvoiceStatusColor(invoice.status)}>
           {invoiceStatusLabels[invoice.status]}
         </Badge>
       </TableCell>

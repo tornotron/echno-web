@@ -8,7 +8,7 @@ export const useInvoices = () =>
     queryFn: () => invoicesService.getAll(),
   });
 
-export const useInvoiceById = (id: number) =>
+export const useInvoiceById = (id: string) =>
   useQuery({
     queryKey: invoiceKeys.detail(id),
     queryFn: () => invoicesService.getById(id),

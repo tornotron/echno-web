@@ -8,7 +8,7 @@ import { Card } from '@/components/shadcn/card';
 import { FileText, DollarSign, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { InvoiceStatus } from '@/types/finance/invoice';
+import { ConstructionInvoiceStatus } from '@/types/finance/invoice';
 import { InvoicesFeature } from '@/features/invoices';
 
 export default function InvoicesPage() {
@@ -17,10 +17,12 @@ export default function InvoicesPage() {
 
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter(
-    (i) => i.status === InvoiceStatus.paid
+    (i) => i.status === ConstructionInvoiceStatus.PAID
   ).length;
   const pendingInvoices = invoices.filter(
-    (i) => i.status === InvoiceStatus.pending || i.status === InvoiceStatus.sent
+    (i) =>
+      i.status === ConstructionInvoiceStatus.PENDING ||
+      i.status === ConstructionInvoiceStatus.SENT
   ).length;
   const totalAmount = invoices.reduce((sum, i) => sum + i.totalAmount, 0);
 

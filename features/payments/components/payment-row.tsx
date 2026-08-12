@@ -6,13 +6,13 @@ import { TableRow, TableCell } from '@/components/shadcn/table';
 import { CreditCard, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import {
-  Payment,
-  PaymentType,
-  PaymentStatus,
+  ConstructionPayment,
   paymentTypeLabels,
   paymentStatusLabels,
   paymentMethodLabels,
   payeeTypeLabels,
+  getPaymentStatusColor,
+  getPaymentTypeColor,
 } from '@/types/finance/payment';
 import {
   getPayeeInfo,
@@ -20,57 +20,8 @@ import {
   PayeeDatasets,
 } from '@/lib/utils/payment-utils';
 
-const getStatusColor = (status: PaymentStatus) => {
-  switch (status) {
-    case PaymentStatus.completed: {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case PaymentStatus.processing: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case PaymentStatus.pending: {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    case PaymentStatus.failed: {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case PaymentStatus.cancelled: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-    case PaymentStatus.refunded: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getTypeColor = (type: PaymentType) => {
-  switch (type) {
-    case PaymentType.invoice: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case PaymentType.salary: {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-    }
-    case PaymentType.advance: {
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400';
-    }
-    case PaymentType.expense: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    case PaymentType.refund: {
-      return 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
 export interface PaymentRowProps {
-  payment: Payment;
+  payment: ConstructionPayment;
   isSelected: boolean;
   onSelect: (checked: boolean) => void;
   projectName: string;
@@ -145,7 +96,7 @@ export function PaymentRow({
         </Badge>
       </TableCell>
       <TableCell>
-        <Badge className={getTypeColor(payment.type)}>
+        <Badge className={getPaymentTypeColor(payment.type)}>
           {paymentTypeLabels[payment.type]}
         </Badge>
       </TableCell>
@@ -162,7 +113,11 @@ export function PaymentRow({
       <TableCell>
         <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
           <Calendar className="h-3 w-3 text-zinc-400" />
-          <span>{format(payment.paymentDate, 'dd MMM yyyy')}</span>
+          <span>
+            {payment.paymentDate
+              ? format(payment.paymentDate, 'dd MMM yyyy')
+              : '—'}
+          </span>
         </div>
       </TableCell>
       <TableCell>
@@ -171,7 +126,7 @@ export function PaymentRow({
         </span>
       </TableCell>
       <TableCell>
-        <Badge className={getStatusColor(payment.status)}>
+        <Badge className={getPaymentStatusColor(payment.status)}>
           {paymentStatusLabels[payment.status]}
         </Badge>
       </TableCell>

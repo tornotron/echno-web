@@ -31,10 +31,11 @@ import {
 } from '@/components/shadcn/table';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import {
-  Invoice,
-  InvoiceType,
-  InvoiceStatus,
-  InvoiceLineItem,
+  ConstructionInvoice,
+  ConstructionInvoiceType,
+  ConstructionInvoiceStatus,
+  InvoiceLineDraft,
+  InvoiceFormData,
   invoiceTypeLabels,
   invoiceStatusLabels,
 } from '@/types/finance/invoice';
@@ -66,7 +67,7 @@ interface EditInvoicePageProps {
 
 export default function EditInvoicePage({ params }: EditInvoicePageProps) {
   const resolvedParams = use(params);
-  const id = Number.parseInt(resolvedParams.id);
+  const id = resolvedParams.id;
   const { data: invoice, isLoading, isError } = useInvoiceById(id);
 
   if (isLoading)
@@ -114,24 +115,34 @@ export default function EditInvoicePage({ params }: EditInvoicePageProps) {
 }
 
 interface InvoiceEditFormProps {
-  initialData: Invoice;
-  invoiceId: number;
+  initialData: ConstructionInvoice;
+  invoiceId: string;
 }
 
 function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>(
-    () => initialData.lineItems
+  const [lineItems, setLineItems] = useState<InvoiceLineDraft[]>(() =>
+    initialData.lines.map((line) => ({
+      id: line.id,
+      description: line.description ?? '',
+      quantity: line.quantity,
+      unit: line.unit,
+      unitPrice: line.unitPrice,
+      taxRate: line.taxRate,
+      taxAmount: line.taxAmount,
+      subtotal: line.subtotal,
+      total: line.total,
+    }))
   );
-  const [formData, setFormData] = useState<Partial<Invoice>>(() => ({
+  const [formData, setFormData] = useState<InvoiceFormData>(() => ({
     invoiceNumber: initialData.invoiceNumber,
     type: initialData.type,
     status: initialData.status,
     projectId: initialData.projectId ?? projects[0]?.id ?? 1,
-    issueDate: initialData.issueDate,
-    dueDate: initialData.dueDate,
+    issueDate: initialData.issueDate ?? '',
+    dueDate: initialData.dueDate ?? '',
     subtotal: initialData.subtotal,
     taxAmount: initialData.taxAmount,
     discountAmount: initialData.discountAmount,
@@ -149,6 +160,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
     e.preventDefault();
     setIsSubmitting(true);
 
+    // TODO(construction-finance): wire create/update payload
     setTimeout(() => {
       toast.success('Invoice updated successfully');
       setIsSubmitting(false);
@@ -157,15 +169,15 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
   };
 
   const handleInputChange = (
-    field: keyof Invoice,
-    value: string | number | Date
+    field: keyof InvoiceFormData,
+    value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleLineItemChange = (
     index: number,
-    field: keyof InvoiceLineItem,
+    field: keyof InvoiceLineDraft,
     value: string | number
   ) => {
     const newItems = [...lineItems];
@@ -181,7 +193,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
       item.total = item.subtotal + item.taxAmount;
     }
 
-    (item as InvoiceLineItem)[field] = value as never;
+    (item as InvoiceLineDraft)[field] = value as never;
     newItems[index] = item;
     setLineItems(newItems);
 
@@ -195,13 +207,12 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
       taxAmount,
       totalAmount,
       balanceAmount: totalAmount - (prev.paidAmount || 0),
-      lineItems: newItems,
     }));
   };
 
   const addLineItem = () => {
-    const newItem: InvoiceLineItem = {
-      id: Math.max(...lineItems.map((i) => i.id), 0) + 1,
+    const newItem: InvoiceLineDraft = {
+      id: crypto.randomUUID(),
       description: '',
       quantity: 1,
       unit: 'LS',
@@ -229,7 +240,6 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
         taxAmount,
         totalAmount,
         balanceAmount: totalAmount - (prev.paidAmount || 0),
-        lineItems: newItems,
       }));
     }
   };
@@ -273,7 +283,10 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
-                      handleInputChange('type', value as InvoiceType)
+                      handleInputChange(
+                        'type',
+                        value as ConstructionInvoiceType
+                      )
                     }
                   >
                     <SelectTrigger id="type">
@@ -299,7 +312,10 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
                   <Select
                     value={formData.status}
                     onValueChange={(value) =>
-                      handleInputChange('status', value as InvoiceStatus)
+                      handleInputChange(
+                        'status',
+                        value as ConstructionInvoiceStatus
+                      )
                     }
                   >
                     <SelectTrigger id="status">
