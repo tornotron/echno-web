@@ -1,11 +1,11 @@
-import { mockPayments } from '@/components/shared/mock-data';
-import type { Payment } from '@/types/finance/payment';
+import { financeConstructionPaymentService } from '@tornotron/echno-core/finance-construction-payment/services';
+import type { ConstructionPayment } from '@tornotron/echno-core/finance/types';
 
 export const paymentsService = {
-  async getAll(): Promise<Payment[]> {
-    return mockPayments as Payment[];
+  async getAll(): Promise<ConstructionPayment[]> {
+    return financeConstructionPaymentService.getAll();
   },
-  async getById(id: number): Promise<Payment | null> {
-    return (mockPayments as Payment[]).find((p) => p.id === id) ?? null;
+  async getById(id: string): Promise<ConstructionPayment> {
+    return financeConstructionPaymentService.getById(id);
   },
 };

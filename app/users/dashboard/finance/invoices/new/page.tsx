@@ -30,10 +30,12 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import {
-  Invoice,
-  InvoiceType,
-  InvoiceStatus,
-  InvoiceLineItem,
+  ConstructionInvoiceType,
+  ConstructionInvoiceStatus,
+  InvoiceLineDraft,
+  InvoiceFormData,
+  invoiceTypeLabels,
+  invoiceStatusLabels,
 } from '@/types/finance/invoice';
 import { Save, X, Plus, Trash2, Hash, Calendar } from 'lucide-react';
 import { PageHeader } from '@/components/common';
@@ -46,9 +48,9 @@ export default function NewInvoicePage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [lineItems, setLineItems] = useState<InvoiceLineItem[]>([
+  const [lineItems, setLineItems] = useState<InvoiceLineDraft[]>([
     {
-      id: 1,
+      id: crypto.randomUUID(),
       description: '',
       quantity: 1,
       unit: 'LS',
@@ -66,10 +68,10 @@ export default function NewInvoicePage() {
     return date.toISOString();
   };
 
-  const [formData, setFormData] = useState<Partial<Invoice>>({
+  const [formData, setFormData] = useState<InvoiceFormData>({
     invoiceNumber: '',
-    type: InvoiceType.purchase,
-    status: InvoiceStatus.draft,
+    type: ConstructionInvoiceType.PURCHASE,
+    status: ConstructionInvoiceStatus.DRAFT,
     projectId: projects[0]?.id || 1, // Default to first project
     issueDate: new Date().toISOString(),
     dueDate: getDueDateDefault(),
@@ -80,31 +82,11 @@ export default function NewInvoicePage() {
     paidAmount: 0,
     balanceAmount: 0,
     paymentTerms: 'Net 30',
+    paymentMethod: '',
     gstNumber: '',
     taxType: 'GST',
     notes: '',
-    createdBy: 1,
-    createdAt: new Date(),
-    updatedAt: new Date(),
   });
-
-  const invoiceTypeLabels: Record<InvoiceType, string> = {
-    [InvoiceType.purchase]: 'Purchase Invoice',
-    [InvoiceType.sales]: 'Sales Invoice',
-    [InvoiceType.expense]: 'Expense Invoice',
-    [InvoiceType.service]: 'Service Invoice',
-  };
-
-  const invoiceStatusLabels: Record<InvoiceStatus, string> = {
-    [InvoiceStatus.draft]: 'Draft',
-    [InvoiceStatus.pending]: 'Pending',
-    [InvoiceStatus.sent]: 'Sent',
-    [InvoiceStatus.partiallyPaid]: 'Partially Paid',
-    [InvoiceStatus.paid]: 'Paid',
-    [InvoiceStatus.overdue]: 'Overdue',
-    [InvoiceStatus.cancelled]: 'Cancelled',
-    [InvoiceStatus.disputed]: 'Disputed',
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,6 +99,7 @@ export default function NewInvoicePage() {
       return;
     }
     setIsSubmitting(true);
+    // TODO(construction-finance): wire create/update payload
     setTimeout(() => {
       toast.success('Invoice created successfully');
       setIsSubmitting(false);
@@ -129,8 +112,8 @@ export default function NewInvoicePage() {
   };
 
   const handleInputChange = (
-    field: keyof Invoice,
-    value: string | number | Date
+    field: keyof InvoiceFormData,
+    value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
@@ -143,7 +126,7 @@ export default function NewInvoicePage() {
 
   const handleLineItemChange = (
     index: number,
-    field: keyof InvoiceLineItem,
+    field: keyof InvoiceLineDraft,
     value: string | number
   ) => {
     const newItems = [...lineItems];
@@ -159,7 +142,7 @@ export default function NewInvoicePage() {
       item.total = item.subtotal + item.taxAmount;
     }
 
-    (item as InvoiceLineItem)[field] = value as never;
+    (item as InvoiceLineDraft)[field] = value as never;
     newItems[index] = item;
     setLineItems(newItems);
 
@@ -174,13 +157,12 @@ export default function NewInvoicePage() {
       taxAmount,
       totalAmount,
       balanceAmount: totalAmount - (prev.paidAmount || 0),
-      lineItems: newItems,
     }));
   };
 
   const addLineItem = () => {
-    const newItem: InvoiceLineItem = {
-      id: Math.max(...lineItems.map((i) => i.id), 0) + 1,
+    const newItem: InvoiceLineDraft = {
+      id: crypto.randomUUID(),
       description: '',
       quantity: 1,
       unit: 'LS',
@@ -209,7 +191,6 @@ export default function NewInvoicePage() {
         taxAmount,
         totalAmount,
         balanceAmount: totalAmount - (prev.paidAmount || 0),
-        lineItems: newItems,
       }));
     }
   };
@@ -260,7 +241,10 @@ export default function NewInvoicePage() {
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
-                      handleInputChange('type', value as InvoiceType)
+                      handleInputChange(
+                        'type',
+                        value as ConstructionInvoiceType
+                      )
                     }
                   >
                     <SelectTrigger id="type">
@@ -286,7 +270,10 @@ export default function NewInvoicePage() {
                   <Select
                     value={formData.status}
                     onValueChange={(value) =>
-                      handleInputChange('status', value as InvoiceStatus)
+                      handleInputChange(
+                        'status',
+                        value as ConstructionInvoiceStatus
+                      )
                     }
                   >
                     <SelectTrigger id="status">

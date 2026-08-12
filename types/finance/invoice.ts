@@ -1,124 +1,125 @@
 // types/finance/invoice.ts
+//
+// Web-side presentation helpers for construction invoices. The domain types
+// and enums are owned by @tornotron/echno-core; this module re-exports them so
+// the app has a single import point, and adds the label and colour maps used by
+// the invoice list and detail views.
 
-export enum InvoiceType {
-  purchase = 'purchase', // Invoice from vendor for purchases
-  sales = 'sales', // Invoice to client for work done
-  expense = 'expense', // General expense invoice
-  service = 'service', // Service-related invoice
-}
+import {
+  ConstructionInvoiceType,
+  ConstructionInvoiceStatus,
+} from '@tornotron/echno-core/finance/types';
 
-export enum InvoiceStatus {
-  draft = 'draft',
-  pending = 'pending',
-  sent = 'sent',
-  partiallyPaid = 'partially_paid',
-  paid = 'paid',
-  overdue = 'overdue',
-  cancelled = 'cancelled',
-  disputed = 'disputed',
-}
+export type {
+  ConstructionInvoice,
+  ConstructionInvoiceLine,
+} from '@tornotron/echno-core/finance/types';
+export {
+  ConstructionInvoiceType,
+  ConstructionInvoiceStatus,
+  ConstructionInvoicePaymentStatus,
+} from '@tornotron/echno-core/finance/types';
 
-export enum PaymentStatus {
-  unpaid = 'unpaid',
-  partiallyPaid = 'partially_paid',
-  paid = 'paid',
-  refunded = 'refunded',
-  cancelled = 'cancelled',
-}
+// Editable draft shapes for the create / edit forms. These are web-only view
+// models; the create/update payloads sent to the backend are the
+// Create/UpdateConstructionInvoiceRequest types owned by echno-core.
 
-export interface InvoiceLineItem {
-  id: number;
+export interface InvoiceLineDraft {
+  id: string;
   description: string;
   quantity: number;
   unit: string;
   unitPrice: number;
-  taxRate: number; // Percentage (e.g., 18 for 18%)
+  taxRate: number;
   taxAmount: number;
-  discountRate?: number; // Percentage
-  discountAmount?: number;
-  subtotal: number; // quantity * unitPrice
-  total: number; // subtotal + tax - discount
-  // Optional references
-  inventoryItemId?: number; // If related to inventory
-  assetId?: number; // If related to asset
-  taskId?: number; // If related to specific task
+  subtotal: number;
+  total: number;
 }
 
-export interface Invoice {
-  id: number;
-  invoiceNumber: string; // e.g., "INV-2024-001"
-  type: InvoiceType;
-  status: InvoiceStatus;
-  paymentStatus: PaymentStatus;
-
-  // Relationships
-  projectId: number; // Foreign key to Project (required for tracking)
-  vendorId?: number; // Foreign key to Vendor (for purchase invoices)
-  organizationId?: number; // Foreign key to Organization
-  purchaseOrderId?: number; // Foreign key to PurchaseOrder (if applicable)
-  goodsReceiptId?: number; // Foreign key to GoodsReceipt (if applicable)
-
-  // Invoice Details
-  issueDate: string; // ISO date string
-  dueDate: string; // ISO date string
-  paymentDate?: string; // ISO date string
-
-  // Line Items
-  lineItems: InvoiceLineItem[];
-
-  // Calculations
-  subtotal: number; // Sum of all line item subtotals
-  taxAmount: number; // Sum of all line item taxes
-  discountAmount: number; // Sum of all line item discounts
-  totalAmount: number; // subtotal + tax - discount
-  paidAmount: number; // Amount paid so far
-  balanceAmount: number; // totalAmount - paidAmount
-
-  // Payment Details
-  paymentTerms?: string; // e.g., "Net 30"
-  paymentMethod?: string; // e.g., "Bank Transfer", "Cheque"
-
-  // Tax Information
-  gstNumber?: string;
-  taxType?: string; // e.g., "GST", "IGST", "VAT"
-
-  // Additional Information
-  notes?: string;
-  termsAndConditions?: string;
-  attachments?: string[]; // URLs or file paths
-
-  // Approval
-  approvedBy?: number; // Employee ID
-  approvedAt?: Date;
-
-  // Audit
-  createdBy: number; // Employee ID
-  createdAt: Date;
-  updatedAt: Date;
+export interface InvoiceFormData {
+  invoiceNumber: string;
+  type: ConstructionInvoiceType;
+  status: ConstructionInvoiceStatus;
+  projectId: number;
+  issueDate: string;
+  dueDate: string;
+  subtotal: number;
+  taxAmount: number;
+  discountAmount: number;
+  totalAmount: number;
+  paidAmount: number;
+  balanceAmount: number;
+  paymentTerms: string;
+  paymentMethod: string;
+  gstNumber: string;
+  taxType: string;
+  notes: string;
 }
 
-export const invoiceTypeLabels: Record<InvoiceType, string> = {
-  purchase: 'Purchase Invoice',
-  sales: 'Sales Invoice',
-  expense: 'Expense Invoice',
-  service: 'Service Invoice',
+export const invoiceTypeLabels: Record<ConstructionInvoiceType, string> = {
+  [ConstructionInvoiceType.PURCHASE]: 'Purchase Invoice',
+  [ConstructionInvoiceType.SALES]: 'Sales Invoice',
+  [ConstructionInvoiceType.EXPENSE]: 'Expense Invoice',
+  [ConstructionInvoiceType.SERVICE]: 'Service Invoice',
 };
 
-export const invoiceStatusLabels: Record<InvoiceStatus, string> = {
-  draft: 'Draft',
-  pending: 'Pending',
-  sent: 'Sent',
-  partially_paid: 'Partially Paid',
-  paid: 'Paid',
-  overdue: 'Overdue',
-  cancelled: 'Cancelled',
-  disputed: 'Disputed',
+export const invoiceStatusLabels: Record<ConstructionInvoiceStatus, string> = {
+  [ConstructionInvoiceStatus.DRAFT]: 'Draft',
+  [ConstructionInvoiceStatus.PENDING]: 'Pending',
+  [ConstructionInvoiceStatus.SENT]: 'Sent',
+  [ConstructionInvoiceStatus.PARTIALLY_PAID]: 'Partially Paid',
+  [ConstructionInvoiceStatus.PAID]: 'Paid',
+  [ConstructionInvoiceStatus.OVERDUE]: 'Overdue',
+  [ConstructionInvoiceStatus.CANCELLED]: 'Cancelled',
+  [ConstructionInvoiceStatus.DISPUTED]: 'Disputed',
 };
 
-export const paymentStatusLabels: Record<PaymentStatus, string> = {
-  unpaid: 'Unpaid',
-  partially_paid: 'Partially Paid',
-  paid: 'Paid',
-  refunded: 'Refunded',
-  cancelled: 'Cancelled',
+const zinc = 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
+
+export const getInvoiceStatusColor = (
+  status: ConstructionInvoiceStatus
+): string => {
+  switch (status) {
+    case ConstructionInvoiceStatus.PAID: {
+      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+    }
+    case ConstructionInvoiceStatus.PARTIALLY_PAID: {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+    }
+    case ConstructionInvoiceStatus.PENDING: {
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
+    }
+    case ConstructionInvoiceStatus.SENT: {
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
+    }
+    case ConstructionInvoiceStatus.OVERDUE: {
+      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
+    }
+    case ConstructionInvoiceStatus.DISPUTED: {
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+    }
+    default: {
+      return zinc;
+    }
+  }
+};
+
+export const getInvoiceTypeColor = (type: ConstructionInvoiceType): string => {
+  switch (type) {
+    case ConstructionInvoiceType.PURCHASE: {
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
+    }
+    case ConstructionInvoiceType.SALES: {
+      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
+    }
+    case ConstructionInvoiceType.EXPENSE: {
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
+    }
+    case ConstructionInvoiceType.SERVICE: {
+      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400';
+    }
+    default: {
+      return zinc;
+    }
+  }
 };

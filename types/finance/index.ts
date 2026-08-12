@@ -1,32 +1,33 @@
 // types/finance/index.ts
 
-// Export invoice types
+// Export construction invoice types and presentation helpers
 export type {
-  InvoiceType,
-  InvoiceStatus,
-  PaymentStatus as InvoicePaymentStatus,
-  InvoiceLineItem,
-  Invoice,
+  ConstructionInvoice,
+  ConstructionInvoiceLine,
+  InvoiceLineDraft,
+  InvoiceFormData,
 } from './invoice';
 
 export {
+  ConstructionInvoiceType,
+  ConstructionInvoiceStatus,
+  ConstructionInvoicePaymentStatus,
   invoiceTypeLabels,
   invoiceStatusLabels,
-  paymentStatusLabels as invoicePaymentStatusLabels,
 } from './invoice';
 
-// Export payment types
-export type {
-  PaymentType,
-  PaymentMethod,
-  PaymentStatus,
-  Payment,
-} from './payment';
+// Export construction payment types and presentation helpers
+export type { ConstructionPayment, PaymentFormData } from './payment';
 
 export {
+  ConstructionPaymentType,
+  ConstructionPaymentVoucherStatus,
+  ConstructionPaymentMethod,
+  ConstructionPayeeType,
   paymentTypeLabels,
-  paymentMethodLabels,
   paymentStatusLabels,
+  paymentMethodLabels,
+  payeeTypeLabels,
 } from './payment';
 
 // Export receipt types

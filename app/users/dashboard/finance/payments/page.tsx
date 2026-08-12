@@ -13,7 +13,7 @@ import { Card } from '@/components/shadcn/card';
 import { CreditCard, DollarSign, CheckCircle, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { PaymentStatus } from '@/types/finance/payment';
+import { ConstructionPaymentVoucherStatus } from '@/types/finance/payment';
 import { PaymentsTable } from '@/features/payments';
 
 export default function PaymentsPage() {
@@ -42,13 +42,13 @@ export default function PaymentsPage() {
 
   const totalPayments = payments.length;
   const completedPayments = payments.filter(
-    (p) => p.status === PaymentStatus.completed
+    (p) => p.status === ConstructionPaymentVoucherStatus.COMPLETED
   ).length;
   const pendingPayments = payments.filter(
-    (p) => p.status === PaymentStatus.pending
+    (p) => p.status === ConstructionPaymentVoucherStatus.PENDING
   ).length;
   const totalAmount = payments
-    .filter((p) => p.status === PaymentStatus.completed)
+    .filter((p) => p.status === ConstructionPaymentVoucherStatus.COMPLETED)
     .reduce((sum, p) => sum + p.amount, 0);
 
   return (

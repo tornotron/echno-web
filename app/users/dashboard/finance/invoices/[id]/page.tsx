@@ -2,7 +2,6 @@
 
 import { use } from 'react';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useInvoiceById } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -31,7 +30,6 @@ import {
   Building,
   Hash,
   CheckCircle,
-  Paperclip,
   AlertCircle,
   Loader2,
 } from 'lucide-react';
@@ -47,10 +45,11 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
-  InvoiceType,
-  InvoiceStatus,
+  ConstructionInvoiceStatus,
   invoiceTypeLabels,
   invoiceStatusLabels,
+  getInvoiceStatusColor,
+  getInvoiceTypeColor,
 } from '@/types/finance/invoice';
 
 interface InvoiceDetailPageProps {
@@ -59,61 +58,9 @@ interface InvoiceDetailPageProps {
   }>;
 }
 
-const getStatusColor = (status: InvoiceStatus) => {
-  switch (status) {
-    case InvoiceStatus.paid: {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case InvoiceStatus.partiallyPaid: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case InvoiceStatus.pending: {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    case InvoiceStatus.sent: {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-    }
-    case InvoiceStatus.draft: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-    case InvoiceStatus.overdue: {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case InvoiceStatus.cancelled: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-    case InvoiceStatus.disputed: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getTypeColor = (type: InvoiceType) => {
-  switch (type) {
-    case InvoiceType.purchase: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case InvoiceType.sales: {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case InvoiceType.expense: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    case InvoiceType.service: {
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
 export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const resolvedParams = use(params);
-  const id = Number.parseInt(resolvedParams.id);
+  const id = resolvedParams.id;
   const {
     data: vendors = [],
     isPending: isVendorsLoading,
@@ -124,7 +71,6 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     isPending: isInvoiceLoading,
     isError: isInvoiceError,
   } = useInvoiceById(id);
-  const { data: employees = [] } = useEmployees();
 
   const isLoading = isVendorsLoading || isInvoiceLoading;
   const isError = isVendorsError || isInvoiceError;
@@ -132,11 +78,6 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const getVendorName = (vendorId: number): string => {
     const vendor = vendors.find((v) => v.id === vendorId);
     return vendor?.name || `Vendor #${vendorId}`;
-  };
-
-  const getUserName = (userId: number): string => {
-    const employee = employees.find((e) => e.id === userId);
-    return employee?.name || `User #${userId}`;
   };
 
   if (isLoading)
@@ -189,10 +130,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
         description={invoice.notes}
         actions={
           <>
-            <Badge className={getStatusColor(invoice.status)}>
+            <Badge className={getInvoiceStatusColor(invoice.status)}>
               {invoiceStatusLabels[invoice.status]}
             </Badge>
-            <Badge className={getTypeColor(invoice.type)}>
+            <Badge className={getInvoiceTypeColor(invoice.type)}>
               {invoiceTypeLabels[invoice.type]}
             </Badge>
             <Button variant="outline" disabled>
@@ -233,7 +174,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                   {invoice.taxAmount > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="text-zinc-600 dark:text-zinc-400">
-                        Tax ({invoice.lineItems[0]?.taxRate || 18}%)
+                        Tax ({invoice.lines[0]?.taxRate || 18}%)
                       </span>
                       <span className="font-medium">
                         ₹{invoice.taxAmount.toLocaleString('en-IN')}
@@ -320,7 +261,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {invoice.lineItems.map((item, index) => (
+                    {invoice.lines.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell className="font-medium">
                           {index + 1}
@@ -434,53 +375,22 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
             </CardContent>
           </Card>
 
-          {/* Notes and Attachments */}
-          {(invoice.notes ||
-            (invoice.attachments && invoice.attachments.length > 0)) && (
+          {/* Notes */}
+          {invoice.notes && (
             <Card>
               <CardHeader>
                 <CardTitle>Additional Information</CardTitle>
-                <CardDescription>Notes and attachments</CardDescription>
+                <CardDescription>Notes</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {invoice.notes && (
-                  <div>
-                    <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                      Notes
-                    </p>
-                    <p className="text-zinc-900 dark:text-zinc-100">
-                      {invoice.notes}
-                    </p>
-                  </div>
-                )}
-                {invoice.attachments && invoice.attachments.length > 0 && (
-                  <>
-                    {invoice.notes && <Separator />}
-                    <div>
-                      <p className="mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                        Attachments
-                      </p>
-                      <div className="space-y-2">
-                        {invoice.attachments.map((attachment, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Paperclip className="h-4 w-4 text-zinc-400" />
-                              <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                                {attachment.split('/').pop()}
-                              </span>
-                            </div>
-                            <Button variant="ghost" size="sm">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
+                <div>
+                  <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                    Notes
+                  </p>
+                  <p className="text-zinc-900 dark:text-zinc-100">
+                    {invoice.notes}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -506,7 +416,8 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                         </p>
                         <p className="text-sm text-orange-800 dark:text-orange-200">
                           ₹{invoice.balanceAmount.toLocaleString('en-IN')}
-                          {invoice.status === InvoiceStatus.overdue && (
+                          {invoice.status ===
+                            ConstructionInvoiceStatus.OVERDUE && (
                             <span className="ml-1">- OVERDUE</span>
                           )}
                         </p>
@@ -598,95 +509,6 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                     No related records
                   </p>
                 )}
-            </CardContent>
-          </Card>
-
-          {/* Approval Information */}
-          {invoice.approvedBy && invoice.approvedAt && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Approval</CardTitle>
-                <CardDescription>Invoice approval status</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-start space-x-3">
-                  <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Approved</p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {format(invoice.approvedAt, 'dd MMM yyyy, hh:mm a')}
-                    </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      By{' '}
-                      <Link
-                        href={
-                          routes.workforce.employees.employeeManagement.detail(
-                            invoice.approvedBy
-                          ).href
-                        }
-                        className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        {getUserName(invoice.approvedBy)}
-                      </Link>
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Audit Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Audit Trail</CardTitle>
-              <CardDescription>Invoice history</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                    <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Invoice Created</p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {format(invoice.createdAt, 'dd MMM yyyy, hh:mm a')}
-                    </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      By{' '}
-                      <Link
-                        href={
-                          routes.workforce.employees.employeeManagement.detail(
-                            invoice.createdBy
-                          ).href
-                        }
-                        className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        {getUserName(invoice.createdBy)}
-                      </Link>
-                    </p>
-                  </div>
-                </div>
-                {invoice.createdAt.getTime() !==
-                  invoice.updatedAt.getTime() && (
-                  <>
-                    <Separator />
-                    <div className="flex items-start space-x-3">
-                      <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-                        <Edit className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Last Updated</p>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                          {format(invoice.updatedAt, 'dd MMM yyyy, hh:mm a')}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
             </CardContent>
           </Card>
         </div>

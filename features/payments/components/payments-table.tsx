@@ -33,10 +33,10 @@ import {
 } from '@/components/shadcn/empty';
 import Link from 'next/link';
 import {
-  Payment,
-  PaymentType,
-  PaymentStatus,
-  PaymentMethod,
+  ConstructionPayment,
+  ConstructionPaymentType,
+  ConstructionPaymentVoucherStatus,
+  ConstructionPaymentMethod,
   paymentTypeLabels,
   paymentStatusLabels,
   paymentMethodLabels,
@@ -50,7 +50,7 @@ import {
 import { PaymentRow } from './payment-row';
 
 export interface PaymentsTableProps {
-  payments: Payment[];
+  payments: ConstructionPayment[];
   isLoading: boolean;
   isError: boolean;
   payeeDatasets: PayeeDatasets;
@@ -72,7 +72,7 @@ export function PaymentsTable({
   const [payeeTypeFilter, setPayeeTypeFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const filteredPayments = useMemo(() => {
     return payments.filter((payment) => {
@@ -136,7 +136,7 @@ export function PaymentsTable({
     }
   };
 
-  const handleSelectOne = (id: number, checked: boolean) => {
+  const handleSelectOne = (id: string, checked: boolean) => {
     if (checked) {
       setSelectedIds([...selectedIds, id]);
     } else {
@@ -150,10 +150,10 @@ export function PaymentsTable({
 
   const hasActiveFilters = Boolean(
     searchQuery ||
-      statusFilter !== 'all' ||
-      typeFilter !== 'all' ||
-      methodFilter !== 'all' ||
-      payeeTypeFilter !== 'all'
+    statusFilter !== 'all' ||
+    typeFilter !== 'all' ||
+    methodFilter !== 'all' ||
+    payeeTypeFilter !== 'all'
   );
 
   const clearFilters = () => {
@@ -194,23 +194,23 @@ export function PaymentsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value={PaymentStatus.completed}>
-              {paymentStatusLabels[PaymentStatus.completed]}
+            <SelectItem value={ConstructionPaymentVoucherStatus.COMPLETED}>
+              {paymentStatusLabels[ConstructionPaymentVoucherStatus.COMPLETED]}
             </SelectItem>
-            <SelectItem value={PaymentStatus.pending}>
-              {paymentStatusLabels[PaymentStatus.pending]}
+            <SelectItem value={ConstructionPaymentVoucherStatus.PENDING}>
+              {paymentStatusLabels[ConstructionPaymentVoucherStatus.PENDING]}
             </SelectItem>
-            <SelectItem value={PaymentStatus.processing}>
-              {paymentStatusLabels[PaymentStatus.processing]}
+            <SelectItem value={ConstructionPaymentVoucherStatus.PROCESSING}>
+              {paymentStatusLabels[ConstructionPaymentVoucherStatus.PROCESSING]}
             </SelectItem>
-            <SelectItem value={PaymentStatus.failed}>
-              {paymentStatusLabels[PaymentStatus.failed]}
+            <SelectItem value={ConstructionPaymentVoucherStatus.FAILED}>
+              {paymentStatusLabels[ConstructionPaymentVoucherStatus.FAILED]}
             </SelectItem>
-            <SelectItem value={PaymentStatus.cancelled}>
-              {paymentStatusLabels[PaymentStatus.cancelled]}
+            <SelectItem value={ConstructionPaymentVoucherStatus.CANCELLED}>
+              {paymentStatusLabels[ConstructionPaymentVoucherStatus.CANCELLED]}
             </SelectItem>
-            <SelectItem value={PaymentStatus.refunded}>
-              {paymentStatusLabels[PaymentStatus.refunded]}
+            <SelectItem value={ConstructionPaymentVoucherStatus.REFUNDED}>
+              {paymentStatusLabels[ConstructionPaymentVoucherStatus.REFUNDED]}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -227,23 +227,23 @@ export function PaymentsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value={PaymentType.invoice}>
-              {paymentTypeLabels[PaymentType.invoice]}
+            <SelectItem value={ConstructionPaymentType.INVOICE}>
+              {paymentTypeLabels[ConstructionPaymentType.INVOICE]}
             </SelectItem>
-            <SelectItem value={PaymentType.salary}>
-              {paymentTypeLabels[PaymentType.salary]}
+            <SelectItem value={ConstructionPaymentType.SALARY}>
+              {paymentTypeLabels[ConstructionPaymentType.SALARY]}
             </SelectItem>
-            <SelectItem value={PaymentType.advance}>
-              {paymentTypeLabels[PaymentType.advance]}
+            <SelectItem value={ConstructionPaymentType.ADVANCE}>
+              {paymentTypeLabels[ConstructionPaymentType.ADVANCE]}
             </SelectItem>
-            <SelectItem value={PaymentType.expense}>
-              {paymentTypeLabels[PaymentType.expense]}
+            <SelectItem value={ConstructionPaymentType.EXPENSE}>
+              {paymentTypeLabels[ConstructionPaymentType.EXPENSE]}
             </SelectItem>
-            <SelectItem value={PaymentType.refund}>
-              {paymentTypeLabels[PaymentType.refund]}
+            <SelectItem value={ConstructionPaymentType.REFUND}>
+              {paymentTypeLabels[ConstructionPaymentType.REFUND]}
             </SelectItem>
-            <SelectItem value={PaymentType.other}>
-              {paymentTypeLabels[PaymentType.other]}
+            <SelectItem value={ConstructionPaymentType.OTHER}>
+              {paymentTypeLabels[ConstructionPaymentType.OTHER]}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -260,26 +260,26 @@ export function PaymentsTable({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Methods</SelectItem>
-            <SelectItem value={PaymentMethod.cash}>
-              {paymentMethodLabels[PaymentMethod.cash]}
+            <SelectItem value={ConstructionPaymentMethod.CASH}>
+              {paymentMethodLabels[ConstructionPaymentMethod.CASH]}
             </SelectItem>
-            <SelectItem value={PaymentMethod.bankTransfer}>
-              {paymentMethodLabels[PaymentMethod.bankTransfer]}
+            <SelectItem value={ConstructionPaymentMethod.BANK_TRANSFER}>
+              {paymentMethodLabels[ConstructionPaymentMethod.BANK_TRANSFER]}
             </SelectItem>
-            <SelectItem value={PaymentMethod.neft}>
-              {paymentMethodLabels[PaymentMethod.neft]}
+            <SelectItem value={ConstructionPaymentMethod.NEFT}>
+              {paymentMethodLabels[ConstructionPaymentMethod.NEFT]}
             </SelectItem>
-            <SelectItem value={PaymentMethod.rtgs}>
-              {paymentMethodLabels[PaymentMethod.rtgs]}
+            <SelectItem value={ConstructionPaymentMethod.RTGS}>
+              {paymentMethodLabels[ConstructionPaymentMethod.RTGS]}
             </SelectItem>
-            <SelectItem value={PaymentMethod.upi}>
-              {paymentMethodLabels[PaymentMethod.upi]}
+            <SelectItem value={ConstructionPaymentMethod.UPI}>
+              {paymentMethodLabels[ConstructionPaymentMethod.UPI]}
             </SelectItem>
-            <SelectItem value={PaymentMethod.cheque}>
-              {paymentMethodLabels[PaymentMethod.cheque]}
+            <SelectItem value={ConstructionPaymentMethod.CHEQUE}>
+              {paymentMethodLabels[ConstructionPaymentMethod.CHEQUE]}
             </SelectItem>
-            <SelectItem value={PaymentMethod.card}>
-              {paymentMethodLabels[PaymentMethod.card]}
+            <SelectItem value={ConstructionPaymentMethod.CARD}>
+              {paymentMethodLabels[ConstructionPaymentMethod.CARD]}
             </SelectItem>
           </SelectContent>
         </Select>

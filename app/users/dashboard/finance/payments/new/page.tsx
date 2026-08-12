@@ -26,12 +26,15 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
-  Payment,
-  PaymentType,
-  PaymentStatus,
-  PaymentMethod,
-  PayeeType,
+  ConstructionPaymentType,
+  ConstructionPaymentVoucherStatus,
+  ConstructionPaymentMethod,
+  ConstructionPayeeType,
+  PaymentFormData,
   payeeTypeLabels,
+  paymentTypeLabels,
+  paymentStatusLabels,
+  paymentMethodLabels,
 } from '@/types/finance/payment';
 import { getPayeesByType } from '@/lib/utils/payment-utils';
 import {
@@ -67,19 +70,19 @@ export default function NewPaymentPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [selectedPayeeType, setSelectedPayeeType] = useState<
-    PayeeType | undefined
+    ConstructionPayeeType | undefined
   >();
   const [showManualPayeeEntry, setShowManualPayeeEntry] = useState(false);
 
-  const [formData, setFormData] = useState<Partial<Payment>>({
+  const [formData, setFormData] = useState<PaymentFormData>({
     paymentNumber: '',
-    type: PaymentType.invoice,
-    status: PaymentStatus.pending,
-    method: PaymentMethod.bankTransfer,
+    type: ConstructionPaymentType.INVOICE,
+    status: ConstructionPaymentVoucherStatus.PENDING,
+    method: ConstructionPaymentMethod.BANK_TRANSFER,
     projectId: projects[0]?.id || 1, // Default to first project
     amount: 0,
     currency: 'INR',
-    paymentDate: new Date(),
+    paymentDate: new Date().toISOString(),
     transactionId: '',
     referenceNumber: '',
     bankName: '',
@@ -110,6 +113,7 @@ export default function NewPaymentPage() {
       return;
     }
     setIsSubmitting(true);
+    // TODO(construction-finance): wire create/update payload
     setTimeout(() => {
       toast.success('Payment created successfully');
       setIsSubmitting(false);
@@ -122,8 +126,8 @@ export default function NewPaymentPage() {
   };
 
   const handleInputChange = (
-    field: keyof Payment,
-    value: string | number | Date
+    field: keyof PaymentFormData,
+    value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => {
@@ -134,19 +138,19 @@ export default function NewPaymentPage() {
     });
   };
 
-  const handlePayeeTypeChange = (type: PayeeType) => {
+  const handlePayeeTypeChange = (type: ConstructionPayeeType) => {
     setSelectedPayeeType(type);
 
     // Determine if manual entry is needed
     const needsManualEntry = [
-      PayeeType.consultant,
-      PayeeType.utility,
-      PayeeType.government,
-      PayeeType.insurance,
-      PayeeType.bank,
-      PayeeType.legal,
-      PayeeType.rental,
-      PayeeType.other,
+      ConstructionPayeeType.CONSULTANT,
+      ConstructionPayeeType.UTILITY,
+      ConstructionPayeeType.GOVERNMENT,
+      ConstructionPayeeType.INSURANCE,
+      ConstructionPayeeType.BANK,
+      ConstructionPayeeType.LEGAL,
+      ConstructionPayeeType.RENTAL,
+      ConstructionPayeeType.OTHER,
     ].includes(type);
 
     setShowManualPayeeEntry(needsManualEntry);
@@ -165,7 +169,7 @@ export default function NewPaymentPage() {
   };
 
   const handlePayeeEntityChange = (entityId: number) => {
-    const updates: Partial<Payment> = {
+    const updates: Partial<PaymentFormData> = {
       vendorId: undefined,
       employeeId: undefined,
       subContractId: undefined,
@@ -175,55 +179,25 @@ export default function NewPaymentPage() {
     };
 
     switch (selectedPayeeType) {
-      case PayeeType.vendor: {
+      case ConstructionPayeeType.VENDOR: {
         updates.vendorId = entityId;
         break;
       }
-      case PayeeType.employee: {
+      case ConstructionPayeeType.EMPLOYEE: {
         updates.employeeId = entityId;
         break;
       }
-      case PayeeType.subContractor: {
+      case ConstructionPayeeType.SUB_CONTRACTOR: {
         updates.subContractId = entityId;
         break;
       }
-      case PayeeType.labour: {
+      case ConstructionPayeeType.LABOUR: {
         updates.labourId = entityId;
         break;
       }
     }
 
     setFormData((prev) => ({ ...prev, ...updates }));
-  };
-
-  const paymentTypeLabels: Record<PaymentType, string> = {
-    [PaymentType.invoice]: 'Invoice Payment',
-    [PaymentType.salary]: 'Salary Payment',
-    [PaymentType.advance]: 'Advance Payment',
-    [PaymentType.expense]: 'Expense Payment',
-    [PaymentType.refund]: 'Refund',
-    [PaymentType.other]: 'Other',
-  };
-
-  const paymentStatusLabels: Record<PaymentStatus, string> = {
-    [PaymentStatus.pending]: 'Pending',
-    [PaymentStatus.processing]: 'Processing',
-    [PaymentStatus.completed]: 'Completed',
-    [PaymentStatus.failed]: 'Failed',
-    [PaymentStatus.cancelled]: 'Cancelled',
-    [PaymentStatus.refunded]: 'Refunded',
-  };
-
-  const paymentMethodLabels: Record<PaymentMethod, string> = {
-    [PaymentMethod.cash]: 'Cash',
-    [PaymentMethod.cheque]: 'Cheque',
-    [PaymentMethod.bankTransfer]: 'Bank Transfer',
-    [PaymentMethod.upi]: 'UPI',
-    [PaymentMethod.card]: 'Card',
-    [PaymentMethod.neft]: 'NEFT',
-    [PaymentMethod.rtgs]: 'RTGS',
-    [PaymentMethod.imps]: 'IMPS',
-    [PaymentMethod.other]: 'Other',
   };
 
   return (
@@ -275,7 +249,10 @@ export default function NewPaymentPage() {
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
-                      handleInputChange('type', value as PaymentType)
+                      handleInputChange(
+                        'type',
+                        value as ConstructionPaymentType
+                      )
                     }
                   >
                     <SelectTrigger id="type">
@@ -301,7 +278,10 @@ export default function NewPaymentPage() {
                   <Select
                     value={formData.status}
                     onValueChange={(value) =>
-                      handleInputChange('status', value as PaymentStatus)
+                      handleInputChange(
+                        'status',
+                        value as ConstructionPaymentVoucherStatus
+                      )
                     }
                   >
                     <SelectTrigger id="status">
@@ -377,7 +357,10 @@ export default function NewPaymentPage() {
                   <Select
                     value={formData.method}
                     onValueChange={(value) =>
-                      handleInputChange('method', value as PaymentMethod)
+                      handleInputChange(
+                        'method',
+                        value as ConstructionPaymentMethod
+                      )
                     }
                   >
                     <SelectTrigger id="method">
@@ -434,7 +417,7 @@ export default function NewPaymentPage() {
                   <Select
                     value={selectedPayeeType}
                     onValueChange={(value) =>
-                      handlePayeeTypeChange(value as PayeeType)
+                      handlePayeeTypeChange(value as ConstructionPayeeType)
                     }
                   >
                     <SelectTrigger id="payeeType">

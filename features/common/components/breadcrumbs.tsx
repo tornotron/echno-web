@@ -57,8 +57,6 @@ import {
   mockStockAdjustments,
   mockGoodsReceipts,
   mockReceipts,
-  mockPayments,
-  mockInvoices,
   mockExpenses,
 } from '@/components/shared/mock-data';
 import { routes } from '@/nav';
@@ -86,12 +84,6 @@ const mockFallbackResolver: FallbackNameResolver = (
     }
     case 'receipts': {
       return mockReceipts.find((r) => r.id === numericId)?.receiptNumber;
-    }
-    case 'payments': {
-      return mockPayments.find((p) => p.id === numericId)?.paymentNumber;
-    }
-    case 'invoices': {
-      return mockInvoices.find((i) => i.id === numericId)?.invoiceNumber;
     }
     case 'expenses': {
       return mockExpenses.find((e) => e.id === numericId)?.expenseNumber;

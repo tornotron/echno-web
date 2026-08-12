@@ -26,11 +26,12 @@ import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
 import {
-  Payment,
-  PaymentType,
-  PaymentStatus,
-  PaymentMethod,
-  PayeeType,
+  ConstructionPayment,
+  ConstructionPaymentType,
+  ConstructionPaymentVoucherStatus,
+  ConstructionPaymentMethod,
+  ConstructionPayeeType,
+  PaymentFormData,
   payeeTypeLabels,
   paymentTypeLabels,
   paymentStatusLabels,
@@ -68,7 +69,7 @@ interface EditPaymentPageProps {
 
 export default function EditPaymentPage({ params }: EditPaymentPageProps) {
   const resolvedParams = use(params);
-  const id = Number.parseInt(resolvedParams.id);
+  const id = resolvedParams.id;
   const { data: payment, isLoading, isError } = usePaymentById(id);
 
   if (isLoading)
@@ -116,8 +117,8 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
 }
 
 interface PaymentEditFormProps {
-  initialData: Payment;
-  paymentId: number;
+  initialData: ConstructionPayment;
+  paymentId: string;
 }
 
 function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
@@ -136,42 +137,44 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
   };
 
   const manualEntryTypes = new Set([
-    PayeeType.consultant,
-    PayeeType.utility,
-    PayeeType.government,
-    PayeeType.insurance,
-    PayeeType.bank,
-    PayeeType.legal,
-    PayeeType.rental,
-    PayeeType.other,
+    ConstructionPayeeType.CONSULTANT,
+    ConstructionPayeeType.UTILITY,
+    ConstructionPayeeType.GOVERNMENT,
+    ConstructionPayeeType.INSURANCE,
+    ConstructionPayeeType.BANK,
+    ConstructionPayeeType.LEGAL,
+    ConstructionPayeeType.RENTAL,
+    ConstructionPayeeType.OTHER,
   ]);
 
-  const derivePayeeType = (p: Payment): PayeeType | undefined => {
-    if (p.vendorId) return PayeeType.vendor;
-    if (p.employeeId) return PayeeType.employee;
-    if (p.subContractId) return PayeeType.subContractor;
-    if (p.labourId) return PayeeType.labour;
+  const derivePayeeType = (
+    p: ConstructionPayment
+  ): ConstructionPayeeType | undefined => {
+    if (p.vendorId) return ConstructionPayeeType.VENDOR;
+    if (p.employeeId) return ConstructionPayeeType.EMPLOYEE;
+    if (p.subContractId) return ConstructionPayeeType.SUB_CONTRACTOR;
+    if (p.labourId) return ConstructionPayeeType.LABOUR;
     return p.payeeType;
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedPayeeType, setSelectedPayeeType] = useState<
-    PayeeType | undefined
+    ConstructionPayeeType | undefined
   >(() => derivePayeeType(initialData));
   const [showManualPayeeEntry, setShowManualPayeeEntry] = useState(() => {
     const t = derivePayeeType(initialData);
     return t ? manualEntryTypes.has(t) : false;
   });
 
-  const [formData, setFormData] = useState<Partial<Payment>>(() => ({
+  const [formData, setFormData] = useState<PaymentFormData>(() => ({
     paymentNumber: initialData.paymentNumber,
     type: initialData.type,
     status: initialData.status,
     method: initialData.method,
     projectId: initialData.projectId,
     amount: initialData.amount,
-    currency: initialData.currency,
-    paymentDate: initialData.paymentDate,
+    currency: initialData.currency ?? 'INR',
+    paymentDate: initialData.paymentDate ?? '',
     transactionId: initialData.transactionId ?? '',
     referenceNumber: initialData.referenceNumber ?? '',
     bankName: initialData.bankName ?? '',
@@ -196,6 +199,7 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
       return;
     }
     setIsSubmitting(true);
+    // TODO(construction-finance): wire create/update payload
     setTimeout(() => {
       toast.success('Payment updated successfully');
       setIsSubmitting(false);
@@ -208,25 +212,25 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
   };
 
   const handleInputChange = (
-    field: keyof Payment,
-    value: string | number | Date
+    field: keyof PaymentFormData,
+    value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePayeeTypeChange = (type: PayeeType) => {
+  const handlePayeeTypeChange = (type: ConstructionPayeeType) => {
     setSelectedPayeeType(type);
 
     // Determine if manual entry is needed
     const needsManualEntry = [
-      PayeeType.consultant,
-      PayeeType.utility,
-      PayeeType.government,
-      PayeeType.insurance,
-      PayeeType.bank,
-      PayeeType.legal,
-      PayeeType.rental,
-      PayeeType.other,
+      ConstructionPayeeType.CONSULTANT,
+      ConstructionPayeeType.UTILITY,
+      ConstructionPayeeType.GOVERNMENT,
+      ConstructionPayeeType.INSURANCE,
+      ConstructionPayeeType.BANK,
+      ConstructionPayeeType.LEGAL,
+      ConstructionPayeeType.RENTAL,
+      ConstructionPayeeType.OTHER,
     ].includes(type);
 
     setShowManualPayeeEntry(needsManualEntry);
@@ -245,7 +249,7 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
   };
 
   const handlePayeeEntityChange = (entityId: number) => {
-    const updates: Partial<Payment> = {
+    const updates: Partial<PaymentFormData> = {
       vendorId: undefined,
       employeeId: undefined,
       subContractId: undefined,
@@ -255,19 +259,19 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
     };
 
     switch (selectedPayeeType) {
-      case PayeeType.vendor: {
+      case ConstructionPayeeType.VENDOR: {
         updates.vendorId = entityId;
         break;
       }
-      case PayeeType.employee: {
+      case ConstructionPayeeType.EMPLOYEE: {
         updates.employeeId = entityId;
         break;
       }
-      case PayeeType.subContractor: {
+      case ConstructionPayeeType.SUB_CONTRACTOR: {
         updates.subContractId = entityId;
         break;
       }
-      case PayeeType.labour: {
+      case ConstructionPayeeType.LABOUR: {
         updates.labourId = entityId;
         break;
       }
@@ -317,7 +321,10 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
                   <Select
                     value={formData.type}
                     onValueChange={(value) =>
-                      handleInputChange('type', value as PaymentType)
+                      handleInputChange(
+                        'type',
+                        value as ConstructionPaymentType
+                      )
                     }
                   >
                     <SelectTrigger id="type">
@@ -343,7 +350,10 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
                   <Select
                     value={formData.status}
                     onValueChange={(value) =>
-                      handleInputChange('status', value as PaymentStatus)
+                      handleInputChange(
+                        'status',
+                        value as ConstructionPaymentVoucherStatus
+                      )
                     }
                   >
                     <SelectTrigger id="status">
@@ -418,7 +428,10 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
                   <Select
                     value={formData.method}
                     onValueChange={(value) =>
-                      handleInputChange('method', value as PaymentMethod)
+                      handleInputChange(
+                        'method',
+                        value as ConstructionPaymentMethod
+                      )
                     }
                   >
                     <SelectTrigger id="method">
@@ -475,7 +488,7 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
                   <Select
                     value={selectedPayeeType}
                     onValueChange={(value) =>
-                      handlePayeeTypeChange(value as PayeeType)
+                      handlePayeeTypeChange(value as ConstructionPayeeType)
                     }
                   >
                     <SelectTrigger id="payeeType">

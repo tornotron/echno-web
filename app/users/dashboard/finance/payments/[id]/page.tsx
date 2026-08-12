@@ -22,7 +22,6 @@ import {
   FileText,
   Hash,
   CheckCircle,
-  Paperclip,
   User,
   Briefcase,
   Loader2,
@@ -39,11 +38,11 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { format } from 'date-fns';
 import {
-  PaymentType,
-  PaymentStatus,
   paymentTypeLabels,
   paymentStatusLabels,
   paymentMethodLabels,
+  getPaymentStatusColor,
+  getPaymentTypeColor,
 } from '@/types/finance/payment';
 
 interface PaymentDetailPageProps {
@@ -52,58 +51,9 @@ interface PaymentDetailPageProps {
   }>;
 }
 
-const getStatusColor = (status: PaymentStatus) => {
-  switch (status) {
-    case PaymentStatus.completed: {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    case PaymentStatus.processing: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case PaymentStatus.pending: {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    case PaymentStatus.failed: {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case PaymentStatus.cancelled: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-    case PaymentStatus.refunded: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getTypeColor = (type: PaymentType) => {
-  switch (type) {
-    case PaymentType.invoice: {
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-    }
-    case PaymentType.salary: {
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
-    }
-    case PaymentType.advance: {
-      return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400';
-    }
-    case PaymentType.expense: {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    case PaymentType.refund: {
-      return 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
 export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const resolvedParams = use(params);
-  const id = Number.parseInt(resolvedParams.id);
+  const id = resolvedParams.id;
   const { data: payment, isLoading, isError } = usePaymentById(id);
   const { data: employees = [] } = useEmployees();
 
@@ -160,10 +110,10 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
         description={payment.description}
         actions={
           <>
-            <Badge className={getStatusColor(payment.status)}>
+            <Badge className={getPaymentStatusColor(payment.status)}>
               {paymentStatusLabels[payment.status]}
             </Badge>
-            <Badge className={getTypeColor(payment.type)}>
+            <Badge className={getPaymentTypeColor(payment.type)}>
               {paymentTypeLabels[payment.type]}
             </Badge>
             <Button variant="outline">
@@ -280,7 +230,9 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     Payment Date
                   </p>
                   <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {format(payment.paymentDate, 'dd MMM yyyy, hh:mm a')}
+                    {payment.paymentDate
+                      ? format(payment.paymentDate, 'dd MMM yyyy, hh:mm a')
+                      : '—'}
                   </p>
                 </div>
               </div>
@@ -350,53 +302,22 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
             </Card>
           )}
 
-          {/* Notes and Attachments */}
-          {(payment.notes ||
-            (payment.attachments && payment.attachments.length > 0)) && (
+          {/* Notes */}
+          {payment.notes && (
             <Card>
               <CardHeader>
                 <CardTitle>Additional Information</CardTitle>
-                <CardDescription>Notes and attachments</CardDescription>
+                <CardDescription>Notes</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {payment.notes && (
-                  <div>
-                    <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                      Notes
-                    </p>
-                    <p className="text-zinc-900 dark:text-zinc-100">
-                      {payment.notes}
-                    </p>
-                  </div>
-                )}
-                {payment.attachments && payment.attachments.length > 0 && (
-                  <>
-                    {payment.notes && <Separator />}
-                    <div>
-                      <p className="mb-3 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                        Attachments
-                      </p>
-                      <div className="space-y-2">
-                        {payment.attachments.map((attachment, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
-                          >
-                            <div className="flex items-center space-x-3">
-                              <Paperclip className="h-4 w-4 text-zinc-400" />
-                              <span className="text-sm text-zinc-900 dark:text-zinc-100">
-                                {attachment.split('/').pop()}
-                              </span>
-                            </div>
-                            <Button variant="ghost" size="sm">
-                              <Download className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                )}
+                <div>
+                  <p className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                    Notes
+                  </p>
+                  <p className="text-zinc-900 dark:text-zinc-100">
+                    {payment.notes}
+                  </p>
+                </div>
               </CardContent>
             </Card>
           )}
@@ -523,59 +444,6 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
               </CardContent>
             </Card>
           )}
-
-          {/* Audit Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Audit Trail</CardTitle>
-              <CardDescription>Payment history</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                    <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Payment Created</p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      {format(payment.createdAt, 'dd MMM yyyy, hh:mm a')}
-                    </p>
-                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      By{' '}
-                      <Link
-                        href={
-                          routes.workforce.employees.employeeManagement.detail(
-                            payment.createdBy
-                          ).href
-                        }
-                        className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
-                      >
-                        {getUserName(payment.createdBy)}
-                      </Link>
-                    </p>
-                  </div>
-                </div>
-                {payment.createdAt.getTime() !==
-                  payment.updatedAt.getTime() && (
-                  <>
-                    <Separator />
-                    <div className="flex items-start space-x-3">
-                      <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/20">
-                        <Edit className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">Last Updated</p>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                          {format(payment.updatedAt, 'dd MMM yyyy, hh:mm a')}
-                        </p>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>

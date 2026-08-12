@@ -15,7 +15,7 @@
     "routes:watch": "node --experimental-strip-types scripts/watch-routes.ts"
   },
   "dependencies": {
-    "@tornotron/echno-core": "0.26.1",
+    "@tornotron/echno-core": "0.28.0",
     "@base-ui/react": "^1.4.1",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/modifiers": "^9.0.0",
