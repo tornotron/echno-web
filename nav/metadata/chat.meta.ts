@@ -5,6 +5,7 @@ export const chatMetadata = {
   chat: {
     label: 'Chat',
     icon: MessagesSquare,
+    section: 'overview',
     order: 2,
   },
   'chat-[roomId]': {

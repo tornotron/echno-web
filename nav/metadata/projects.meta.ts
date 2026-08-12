@@ -6,6 +6,7 @@ export const projectsMetadata = {
   projects: {
     label: 'Projects',
     icon: FolderKanban,
+    section: 'projects',
     order: 3,
     breadcrumb: 'Projects',
   },

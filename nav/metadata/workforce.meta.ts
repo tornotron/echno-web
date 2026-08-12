@@ -13,6 +13,7 @@ export const workforceMetadata = {
     label: 'Workforce',
     icon: Users,
     nonInteractive: true,
+    section: 'workforce',
     order: 5,
   },
 

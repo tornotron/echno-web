@@ -8,6 +8,7 @@ export const inspectionsMetadata = {
   inspections: {
     label: 'Inspections',
     icon: ClipboardCheck,
+    section: 'inspections',
     order: 4,
     breadcrumb: 'Inspections',
   },

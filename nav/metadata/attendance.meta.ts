@@ -6,6 +6,7 @@ export const attendanceMetadata = {
   attendance: {
     label: 'Attendance',
     icon: UserCheck,
+    section: 'workforce',
     order: 8,
   },
   'attendance-mark': {
