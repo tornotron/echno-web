@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -8,16 +7,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { Input } from '@/components/shadcn/input';
-import { Label } from '@/components/shadcn/label';
-import { Textarea } from '@/components/shadcn/textarea';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
+  TextField,
+  SelectField,
+  TextareaField,
+  DateField,
+  type SelectOption,
+} from '@/components/common/form';
 import {
   Asset,
   AssetType,
@@ -29,14 +25,14 @@ import {
 } from '@/types/resource';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { required } from '@/lib/validators';
-import { toast } from '@/lib/styles/toast-styles';
+import { useEntityForm, type FormErrors } from '@/hooks/use-entity-form';
 import { format, isValid } from 'date-fns';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-export interface AssetFormData {
+export type AssetFormData = {
   name: string;
   description: string;
   type: AssetType | '';
@@ -64,7 +60,7 @@ export interface AssetFormData {
   policyNumber: string;
   insuranceExpiry: string;
   notes: string;
-}
+};
 
 function assetToForm(a: Asset): AssetFormData {
   return {
@@ -159,6 +155,50 @@ export const ASSET_FORM_ID = 'asset-form';
 
 const FUEL_TYPES = ['Diesel', 'Petrol', 'Electric', 'CNG', 'Hybrid', 'N/A'];
 
+const typeOptions: SelectOption[] = (
+  Object.entries(assetTypeLabels) as [AssetType, string][]
+).map(([value, label]) => ({ value, label }));
+
+const statusOptions: SelectOption[] = (
+  Object.entries(assetStatusLabels) as [AssetStatus, string][]
+).map(([value, label]) => ({ value, label }));
+
+const conditionOptions: SelectOption[] = (
+  Object.entries(assetConditionLabels) as [AssetCondition, string][]
+).map(([value, label]) => ({ value, label }));
+
+const fuelOptions: SelectOption[] = FUEL_TYPES.map((f) => ({
+  value: f,
+  label: f === 'N/A' ? 'Not Applicable' : f,
+}));
+
+// ---------------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------------
+
+function validateAsset(form: AssetFormData): FormErrors<AssetFormData> {
+  const errors: FormErrors<AssetFormData> = {};
+
+  const nameError = required('Asset name')(form.name);
+  if (nameError) errors.name = nameError;
+
+  const typeError = required('Asset type')(form.type);
+  if (typeError) errors.type = typeError;
+
+  const locationError = required('Location')(form.locationId);
+  if (locationError) errors.locationId = locationError;
+
+  const purchaseDateError = required('Purchase date')(form.purchaseDate);
+  if (purchaseDateError) errors.purchaseDate = purchaseDateError;
+
+  const purchasePriceError = required('Purchase price')(form.purchasePrice);
+  if (purchasePriceError) errors.purchasePrice = purchasePriceError;
+  else if (Number(form.purchasePrice) < 0)
+    errors.purchasePrice = 'Purchase price must be a positive number';
+
+  return errors;
+}
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -168,78 +208,18 @@ export function AssetForm(props: AssetFormProps) {
   const isEdit = mode === 'edit';
 
   const { data: locations = [] } = useStorageLocations();
-  const [form, setForm] = useState<AssetFormData>(() =>
-    isEdit ? assetToForm((props as EditProps).asset) : EMPTY_FORM
+  const { form, errors, set, handleSubmit } = useEntityForm<AssetFormData>(
+    isEdit ? assetToForm((props as EditProps).asset) : EMPTY_FORM,
+    validateAsset
   );
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // ---------------------------------------------------------------------------
-  // Field helpers
-  // ---------------------------------------------------------------------------
-
-  function clearError(field: string) {
-    setErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
-  }
-
-  function set(field: keyof AssetFormData, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-    clearError(field);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Validation
-  // ---------------------------------------------------------------------------
-
-  function validateForm(): boolean {
-    const newErrors: Record<string, string> = {};
-
-    const nameError = required('Asset name')(form.name);
-    if (nameError) newErrors.name = nameError;
-
-    const typeError = required('Asset type')(form.type);
-    if (typeError) newErrors.type = typeError;
-
-    const locationError = required('Location')(form.locationId);
-    if (locationError) newErrors.locationId = locationError;
-
-    const purchaseDateError = required('Purchase date')(form.purchaseDate);
-    if (purchaseDateError) newErrors.purchaseDate = purchaseDateError;
-
-    const purchasePriceError = required('Purchase price')(form.purchasePrice);
-    if (purchasePriceError) newErrors.purchasePrice = purchasePriceError;
-    else if (Number(form.purchasePrice) < 0)
-      newErrors.purchasePrice = 'Purchase price must be a positive number';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Submit
-  // ---------------------------------------------------------------------------
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!validateForm()) {
-      toast.error('Validation Error', {
-        description: 'Please fix the errors in the form',
-      });
-      return;
-    }
-    props.onSubmit(form);
-  }
-
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
+  const locationOptions: SelectOption[] = locations.map((loc) => ({
+    value: String(loc.id),
+    label: loc.locationName,
+  }));
 
   return (
-    <form id={ASSET_FORM_ID} onSubmit={handleSubmit}>
+    <form id={ASSET_FORM_ID} onSubmit={handleSubmit(props.onSubmit)}>
       <div className="grid gap-6 md:grid-cols-3">
         {/* Main — 2 cols */}
         <div className="space-y-6 md:col-span-2">
@@ -255,113 +235,77 @@ export function AssetForm(props: AssetFormProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="name">
-                    Asset Name <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Excavator CAT 320D"
-                    value={form.name}
-                    onChange={(e) => set('name', e.target.value)}
-                    className={errors.name ? 'border-red-500' : ''}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-red-500">{errors.name}</p>
-                  )}
-                </div>
+                <TextField
+                  className="md:col-span-2"
+                  label="Asset Name"
+                  name="name"
+                  required
+                  placeholder="e.g., Excavator CAT 320D"
+                  value={form.name}
+                  set={set}
+                  error={errors.name}
+                />
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="description">Description</Label>
-                  <Textarea
-                    id="description"
-                    placeholder="Enter asset description..."
-                    value={form.description}
-                    onChange={(e) => set('description', e.target.value)}
-                    rows={3}
-                  />
-                </div>
+                <TextareaField
+                  className="md:col-span-2"
+                  label="Description"
+                  name="description"
+                  placeholder="Enter asset description..."
+                  rows={3}
+                  value={form.description}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="type">
-                    Asset Type <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={form.type}
-                    onValueChange={(v) => set('type', v)}
-                  >
-                    <SelectTrigger
-                      id="type"
-                      className={errors.type ? 'border-red-500' : ''}
-                    >
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(
-                        Object.entries(assetTypeLabels) as [AssetType, string][]
-                      ).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.type && (
-                    <p className="text-sm text-red-500">{errors.type}</p>
-                  )}
-                </div>
+                <SelectField
+                  label="Asset Type"
+                  name="type"
+                  required
+                  placeholder="Select type"
+                  options={typeOptions}
+                  value={form.type}
+                  set={set}
+                  error={errors.type}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Input
-                    id="category"
-                    placeholder="e.g., Excavators"
-                    value={form.category}
-                    onChange={(e) => set('category', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Category"
+                  name="category"
+                  placeholder="e.g., Excavators"
+                  value={form.category}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="manufacturer">Manufacturer</Label>
-                  <Input
-                    id="manufacturer"
-                    placeholder="e.g., Caterpillar"
-                    value={form.manufacturer}
-                    onChange={(e) => set('manufacturer', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Manufacturer"
+                  name="manufacturer"
+                  placeholder="e.g., Caterpillar"
+                  value={form.manufacturer}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="model">Model</Label>
-                  <Input
-                    id="model"
-                    placeholder="e.g., 320D"
-                    value={form.model}
-                    onChange={(e) => set('model', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Model"
+                  name="model"
+                  placeholder="e.g., 320D"
+                  value={form.model}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="serialNumber">Serial Number</Label>
-                  <Input
-                    id="serialNumber"
-                    placeholder="e.g., CAT320D2024001"
-                    value={form.serialNumber}
-                    onChange={(e) => set('serialNumber', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Serial Number"
+                  name="serialNumber"
+                  placeholder="e.g., CAT320D2024001"
+                  value={form.serialNumber}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="registrationNumber">
-                    Registration Number
-                  </Label>
-                  <Input
-                    id="registrationNumber"
-                    placeholder="e.g., KA-01-EQ-1234"
-                    value={form.registrationNumber}
-                    onChange={(e) => set('registrationNumber', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Registration Number"
+                  name="registrationNumber"
+                  placeholder="e.g., KA-01-EQ-1234"
+                  value={form.registrationNumber}
+                  set={set}
+                />
               </div>
             </CardContent>
           </Card>
@@ -376,68 +320,44 @@ export function AssetForm(props: AssetFormProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="purchaseDate">
-                    Purchase Date <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="purchaseDate"
-                    type="date"
-                    value={form.purchaseDate}
-                    onChange={(e) => set('purchaseDate', e.target.value)}
-                    className={errors.purchaseDate ? 'border-red-500' : ''}
-                  />
-                  {errors.purchaseDate && (
-                    <p className="text-sm text-red-500">
-                      {errors.purchaseDate}
-                    </p>
-                  )}
-                </div>
+                <DateField
+                  label="Purchase Date"
+                  name="purchaseDate"
+                  required
+                  value={form.purchaseDate}
+                  set={set}
+                  error={errors.purchaseDate}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="purchasePrice">
-                    Purchase Price (₹) <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="purchasePrice"
-                    type="number"
-                    min="0"
-                    placeholder="e.g., 8500000"
-                    value={form.purchasePrice}
-                    onChange={(e) => set('purchasePrice', e.target.value)}
-                    className={errors.purchasePrice ? 'border-red-500' : ''}
-                  />
-                  {errors.purchasePrice && (
-                    <p className="text-sm text-red-500">
-                      {errors.purchasePrice}
-                    </p>
-                  )}
-                </div>
+                <TextField
+                  label="Purchase Price (₹)"
+                  name="purchasePrice"
+                  required
+                  type="number"
+                  min="0"
+                  placeholder="e.g., 8500000"
+                  value={form.purchasePrice}
+                  set={set}
+                  error={errors.purchasePrice}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="depreciationRate">
-                    Depreciation Rate (%)
-                  </Label>
-                  <Input
-                    id="depreciationRate"
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    placeholder="e.g., 10"
-                    value={form.depreciationRate}
-                    onChange={(e) => set('depreciationRate', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Depreciation Rate (%)"
+                  name="depreciationRate"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  placeholder="e.g., 10"
+                  value={form.depreciationRate}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="warrantyExpiry">Warranty Expiry</Label>
-                  <Input
-                    id="warrantyExpiry"
-                    type="date"
-                    value={form.warrantyExpiry}
-                    onChange={(e) => set('warrantyExpiry', e.target.value)}
-                  />
-                </div>
+                <DateField
+                  label="Warranty Expiry"
+                  name="warrantyExpiry"
+                  value={form.warrantyExpiry}
+                  set={set}
+                />
               </div>
             </CardContent>
           </Card>
@@ -453,94 +373,61 @@ export function AssetForm(props: AssetFormProps) {
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 {isEdit && (
-                  <div className="space-y-2">
-                    <Label htmlFor="usageHours">Current Usage Hours</Label>
-                    <Input
-                      id="usageHours"
-                      type="number"
-                      min="0"
-                      placeholder="e.g., 4200"
-                      value={form.usageHours}
-                      onChange={(e) => set('usageHours', e.target.value)}
-                    />
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <Label htmlFor="maxUsageHours">Max Usage Hours</Label>
-                  <Input
-                    id="maxUsageHours"
+                  <TextField
+                    label="Current Usage Hours"
+                    name="usageHours"
                     type="number"
                     min="0"
-                    placeholder="e.g., 15000"
-                    value={form.maxUsageHours}
-                    onChange={(e) => set('maxUsageHours', e.target.value)}
+                    placeholder="e.g., 4200"
+                    value={form.usageHours}
+                    set={set}
                   />
-                </div>
+                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="fuelType">Fuel Type</Label>
-                  <Select
-                    value={form.fuelType || 'none'}
-                    onValueChange={(v) =>
-                      set('fuelType', v === 'none' ? '' : v)
-                    }
-                  >
-                    <SelectTrigger id="fuelType">
-                      <SelectValue placeholder="Select fuel type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Not specified</SelectItem>
-                      {FUEL_TYPES.map((f) => (
-                        <SelectItem key={f} value={f}>
-                          {f === 'N/A' ? 'Not Applicable' : f}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <TextField
+                  label="Max Usage Hours"
+                  name="maxUsageHours"
+                  type="number"
+                  min="0"
+                  placeholder="e.g., 15000"
+                  value={form.maxUsageHours}
+                  set={set}
+                />
 
-                <div className="space-y-2 md:col-span-2">
-                  <Label htmlFor="maintenanceSchedule">
-                    Maintenance Schedule
-                  </Label>
-                  <Input
-                    id="maintenanceSchedule"
-                    placeholder="e.g., Every 500 hours"
-                    value={form.maintenanceSchedule}
-                    onChange={(e) => set('maintenanceSchedule', e.target.value)}
-                  />
-                </div>
+                <SelectField
+                  label="Fuel Type"
+                  name="fuelType"
+                  placeholder="Select fuel type"
+                  options={fuelOptions}
+                  noneOption={{ value: 'none', label: 'Not specified' }}
+                  value={form.fuelType}
+                  set={set}
+                />
+
+                <TextField
+                  className="md:col-span-2"
+                  label="Maintenance Schedule"
+                  name="maintenanceSchedule"
+                  placeholder="e.g., Every 500 hours"
+                  value={form.maintenanceSchedule}
+                  set={set}
+                />
 
                 {isEdit && (
                   <>
-                    <div className="space-y-2">
-                      <Label htmlFor="lastMaintenanceDate">
-                        Last Maintenance Date
-                      </Label>
-                      <Input
-                        id="lastMaintenanceDate"
-                        type="date"
-                        value={form.lastMaintenanceDate}
-                        onChange={(e) =>
-                          set('lastMaintenanceDate', e.target.value)
-                        }
-                      />
-                    </div>
+                    <DateField
+                      label="Last Maintenance Date"
+                      name="lastMaintenanceDate"
+                      value={form.lastMaintenanceDate}
+                      set={set}
+                    />
 
-                    <div className="space-y-2">
-                      <Label htmlFor="nextMaintenanceDate">
-                        Next Maintenance Date
-                      </Label>
-                      <Input
-                        id="nextMaintenanceDate"
-                        type="date"
-                        value={form.nextMaintenanceDate}
-                        onChange={(e) =>
-                          set('nextMaintenanceDate', e.target.value)
-                        }
-                      />
-                    </div>
+                    <DateField
+                      label="Next Maintenance Date"
+                      name="nextMaintenanceDate"
+                      value={form.nextMaintenanceDate}
+                      set={set}
+                    />
                   </>
                 )}
               </div>
@@ -555,35 +442,28 @@ export function AssetForm(props: AssetFormProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="insuranceProvider">Insurance Provider</Label>
-                  <Input
-                    id="insuranceProvider"
-                    placeholder="e.g., HDFC Ergo"
-                    value={form.insuranceProvider}
-                    onChange={(e) => set('insuranceProvider', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Insurance Provider"
+                  name="insuranceProvider"
+                  placeholder="e.g., HDFC Ergo"
+                  value={form.insuranceProvider}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="policyNumber">Policy Number</Label>
-                  <Input
-                    id="policyNumber"
-                    placeholder="e.g., HDFC-EQ-2024-001"
-                    value={form.policyNumber}
-                    onChange={(e) => set('policyNumber', e.target.value)}
-                  />
-                </div>
+                <TextField
+                  label="Policy Number"
+                  name="policyNumber"
+                  placeholder="e.g., HDFC-EQ-2024-001"
+                  value={form.policyNumber}
+                  set={set}
+                />
 
-                <div className="space-y-2">
-                  <Label htmlFor="insuranceExpiry">Insurance Expiry</Label>
-                  <Input
-                    id="insuranceExpiry"
-                    type="date"
-                    value={form.insuranceExpiry}
-                    onChange={(e) => set('insuranceExpiry', e.target.value)}
-                  />
-                </div>
+                <DateField
+                  label="Insurance Expiry"
+                  name="insuranceExpiry"
+                  value={form.insuranceExpiry}
+                  set={set}
+                />
               </div>
             </CardContent>
           </Card>
@@ -594,16 +474,14 @@ export function AssetForm(props: AssetFormProps) {
               <CardTitle>Additional Information</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Any additional notes or comments..."
-                  value={form.notes}
-                  onChange={(e) => set('notes', e.target.value)}
-                  rows={4}
-                />
-              </div>
+              <TextareaField
+                label="Notes"
+                name="notes"
+                placeholder="Any additional notes or comments..."
+                rows={4}
+                value={form.notes}
+                set={set}
+              />
             </CardContent>
           </Card>
         </div>
@@ -616,87 +494,35 @@ export function AssetForm(props: AssetFormProps) {
               <CardTitle>Status & Location</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">
-                  Status <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={form.status}
-                  onValueChange={(v) => set('status', v as AssetStatus)}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(
-                      Object.entries(assetStatusLabels) as [
-                        AssetStatus,
-                        string,
-                      ][]
-                    ).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectField
+                label="Status"
+                name="status"
+                required
+                options={statusOptions}
+                value={form.status}
+                set={set}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="condition">
-                  Condition <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={form.condition}
-                  onValueChange={(v) => set('condition', v as AssetCondition)}
-                >
-                  <SelectTrigger id="condition">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(
-                      Object.entries(assetConditionLabels) as [
-                        AssetCondition,
-                        string,
-                      ][]
-                    ).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <SelectField
+                label="Condition"
+                name="condition"
+                required
+                options={conditionOptions}
+                value={form.condition}
+                set={set}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="locationId">
-                  Location <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={form.locationId || 'none'}
-                  onValueChange={(v) =>
-                    set('locationId', v === 'none' ? '' : v)
-                  }
-                >
-                  <SelectTrigger
-                    id="locationId"
-                    className={errors.locationId ? 'border-red-500' : ''}
-                  >
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select location</SelectItem>
-                    {locations.map((loc) => (
-                      <SelectItem key={loc.id} value={String(loc.id)}>
-                        {loc.locationName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.locationId && (
-                  <p className="text-sm text-red-500">{errors.locationId}</p>
-                )}
-              </div>
+              <SelectField
+                label="Location"
+                name="locationId"
+                required
+                placeholder="Select location"
+                options={locationOptions}
+                noneOption={{ value: 'none', label: 'Select location' }}
+                value={form.locationId}
+                set={set}
+                error={errors.locationId}
+              />
             </CardContent>
           </Card>
 
@@ -706,25 +532,21 @@ export function AssetForm(props: AssetFormProps) {
               <CardTitle>Assignment (Optional)</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="assignedTo">Assigned To</Label>
-                <Input
-                  id="assignedTo"
-                  placeholder="e.g., John Doe"
-                  value={form.assignedTo}
-                  onChange={(e) => set('assignedTo', e.target.value)}
-                />
-              </div>
+              <TextField
+                label="Assigned To"
+                name="assignedTo"
+                placeholder="e.g., John Doe"
+                value={form.assignedTo}
+                set={set}
+              />
 
-              <div className="space-y-2">
-                <Label htmlFor="assignedProject">Assigned Project</Label>
-                <Input
-                  id="assignedProject"
-                  placeholder="e.g., Metro Line Extension"
-                  value={form.assignedProject}
-                  onChange={(e) => set('assignedProject', e.target.value)}
-                />
-              </div>
+              <TextField
+                label="Assigned Project"
+                name="assignedProject"
+                placeholder="e.g., Metro Line Extension"
+                value={form.assignedProject}
+                set={set}
+              />
             </CardContent>
           </Card>
         </div>
