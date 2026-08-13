@@ -1,46 +1,81 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { routes } from '@/nav';
-import { Pagination } from '@/components/common';
-import { Button } from '@/components/shadcn/button';
-import { Checkbox } from '@/components/shadcn/checkbox';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
-import { Input } from '@/components/shadcn/input';
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/shadcn/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
-import { FileText, Search, Loader2 } from 'lucide-react';
-import {
-  Empty,
-  EmptyErrorMedia,
-  EmptyMedia,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from '@/components/shadcn/empty';
 import Link from 'next/link';
+import { format } from 'date-fns';
+import { routes } from '@/nav';
+import { DataTable, type DataTableColumn } from '@/components/common';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { TableCell } from '@/components/shadcn/table';
+import { FileText, Calendar } from 'lucide-react';
 import {
   ConstructionInvoice,
   ConstructionInvoiceType,
   ConstructionInvoiceStatus,
   invoiceTypeLabels,
   invoiceStatusLabels,
+  getInvoiceStatusColor,
+  getInvoiceTypeColor,
 } from '@/types/finance/invoice';
 import { Project } from '@tornotron/echno-core/project/types';
-import { InvoiceRow } from './invoice-row';
+
+const statusOptions = [
+  { value: 'all', label: 'All Statuses' },
+  {
+    value: ConstructionInvoiceStatus.DRAFT,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.DRAFT],
+  },
+  {
+    value: ConstructionInvoiceStatus.PENDING,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.PENDING],
+  },
+  {
+    value: ConstructionInvoiceStatus.SENT,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.SENT],
+  },
+  {
+    value: ConstructionInvoiceStatus.PARTIALLY_PAID,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.PARTIALLY_PAID],
+  },
+  {
+    value: ConstructionInvoiceStatus.PAID,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.PAID],
+  },
+  {
+    value: ConstructionInvoiceStatus.OVERDUE,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.OVERDUE],
+  },
+  {
+    value: ConstructionInvoiceStatus.CANCELLED,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.CANCELLED],
+  },
+  {
+    value: ConstructionInvoiceStatus.DISPUTED,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.DISPUTED],
+  },
+];
+
+const typeOptions = [
+  { value: 'all', label: 'All Types' },
+  {
+    value: ConstructionInvoiceType.PURCHASE,
+    label: invoiceTypeLabels[ConstructionInvoiceType.PURCHASE],
+  },
+  {
+    value: ConstructionInvoiceType.SALES,
+    label: invoiceTypeLabels[ConstructionInvoiceType.SALES],
+  },
+  {
+    value: ConstructionInvoiceType.EXPENSE,
+    label: invoiceTypeLabels[ConstructionInvoiceType.EXPENSE],
+  },
+  {
+    value: ConstructionInvoiceType.SERVICE,
+    label: invoiceTypeLabels[ConstructionInvoiceType.SERVICE],
+  },
+];
 
 interface InvoicesFeatureProps {
   invoices: ConstructionInvoice[];
@@ -56,291 +91,175 @@ export function InvoicesFeature({
   isError = false,
 }: InvoicesFeatureProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  // Filter invoices based on search and filters
-  const filteredInvoices = useMemo(() => {
-    return invoices.filter((invoice) => {
-      // Search filter
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch =
-        !searchQuery ||
-        invoice.invoiceNumber.toLowerCase().includes(searchLower) ||
-        invoice.notes?.toLowerCase().includes(searchLower) ||
-        invoice.paymentTerms?.toLowerCase().includes(searchLower);
+  const projectNameById = useMemo(() => {
+    const m = new Map<number, string | undefined>();
+    for (const project of projects) m.set(project.id, project.projectName);
+    return m;
+  }, [projects]);
 
-      // Status filter
-      const matchesStatus =
-        statusFilter === 'all' || invoice.status === statusFilter;
-
-      // Type filter
-      const matchesType = typeFilter === 'all' || invoice.type === typeFilter;
-
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [invoices, searchQuery, statusFilter, typeFilter]);
-
-  // Pagination
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredInvoices.length / itemsPerPage);
-  const safePage = Math.min(currentPage, Math.max(1, totalPages));
-
-  // Selection handlers
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(paginatedInvoices.map((i) => i.id));
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-    }
-  };
-
-  const isAllSelected =
-    paginatedInvoices.length > 0 &&
-    paginatedInvoices.every((invoice) => selectedIds.includes(invoice.id));
-
-  const hasActiveFilters = Boolean(
-    searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
+  const columns = useMemo<DataTableColumn<ConstructionInvoice>[]>(
+    () => [
+      {
+        id: 'invoiceNumber',
+        header: 'Invoice Number',
+        cell: (invoice) => (
+          <TableCell>
+            <div className="flex items-center space-x-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                <FileText className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {invoice.invoiceNumber}
+                </p>
+                {invoice.paymentTerms && (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                    Terms: {invoice.paymentTerms}
+                  </p>
+                )}
+              </div>
+            </div>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'type',
+        header: 'Type',
+        cell: (invoice) => (
+          <TableCell>
+            <Badge className={getInvoiceTypeColor(invoice.type)}>
+              {invoiceTypeLabels[invoice.type]}
+            </Badge>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'project',
+        header: 'Project',
+        cell: (invoice) => (
+          <TableCell>
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {projectNameById.get(invoice.projectId)}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'amount',
+        header: 'Amount',
+        cell: (invoice) => (
+          <TableCell>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              ₹{invoice.totalAmount.toLocaleString('en-IN')}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'issueDate',
+        header: 'Issue Date',
+        cell: (invoice) => (
+          <TableCell>
+            <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <Calendar className="h-3 w-3 text-zinc-400" />
+              <span>
+                {invoice.issueDate
+                  ? format(invoice.issueDate, 'dd MMM yyyy')
+                  : '—'}
+              </span>
+            </div>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'dueDate',
+        header: 'Due Date',
+        cell: (invoice) => (
+          <TableCell>
+            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+              {invoice.dueDate ? format(invoice.dueDate, 'dd MMM yyyy') : '—'}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        cell: (invoice) => (
+          <TableCell>
+            <Badge className={getInvoiceStatusColor(invoice.status)}>
+              {invoiceStatusLabels[invoice.status]}
+            </Badge>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'balance',
+        header: 'Balance',
+        cell: (invoice) => (
+          <TableCell>
+            <span
+              className={`font-semibold ${
+                invoice.balanceAmount > 0
+                  ? 'text-orange-600 dark:text-orange-400'
+                  : 'text-green-600 dark:text-green-400'
+              }`}
+            >
+              ₹{invoice.balanceAmount.toLocaleString('en-IN')}
+            </span>
+          </TableCell>
+        ),
+      },
+    ],
+    [projectNameById]
   );
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setTypeFilter('all');
-    setCurrentPage(1);
-  };
-
-  // Helper to get project name
-  const getProjectName = (projectId: number) => {
-    const project = projects.find((p) => p.id === projectId);
-    return project?.projectName;
-  };
-
   return (
-    <Card>
-      <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-        {/* Search input */}
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search by invoice number, notes..."
-            className="h-8 pl-8 text-sm"
-          />
-        </div>
-        {/* Status filter */}
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => {
-            setStatusFilter(v);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.DRAFT}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.DRAFT]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.PENDING}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.PENDING]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.SENT}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.SENT]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.PARTIALLY_PAID}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.PARTIALLY_PAID]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.PAID}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.PAID]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.OVERDUE}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.OVERDUE]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.CANCELLED}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.CANCELLED]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceStatus.DISPUTED}>
-              {invoiceStatusLabels[ConstructionInvoiceStatus.DISPUTED]}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {/* Type filter */}
-        <Select
-          value={typeFilter}
-          onValueChange={(v) => {
-            setTypeFilter(v);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value={ConstructionInvoiceType.PURCHASE}>
-              {invoiceTypeLabels[ConstructionInvoiceType.PURCHASE]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceType.SALES}>
-              {invoiceTypeLabels[ConstructionInvoiceType.SALES]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceType.EXPENSE}>
-              {invoiceTypeLabels[ConstructionInvoiceType.EXPENSE]}
-            </SelectItem>
-            <SelectItem value={ConstructionInvoiceType.SERVICE}>
-              {invoiceTypeLabels[ConstructionInvoiceType.SERVICE]}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {/* Rows per page — pushed to right */}
-        <div className="ml-auto flex items-center gap-2 border-l pl-3">
-          <span className="text-xs whitespace-nowrap text-zinc-500">
-            Rows per page
-          </span>
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(v) => {
-              setItemsPerPage(Number(v));
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-16 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 20, 50, 100].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-0">
-        {(() => {
-          if (isLoading)
-            return (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-              </div>
-            );
-          if (isError)
-            return (
-              <CardContent>
-                <Empty variant="default">
-                  <EmptyErrorMedia>
-                    <FileText className="size-6" />
-                  </EmptyErrorMedia>
-                  <EmptyHeader>
-                    <EmptyTitle>Failed to load invoices</EmptyTitle>
-                    <EmptyDescription>
-                      An unexpected error occurred. Please try again.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </CardContent>
-            );
-          if (paginatedInvoices.length > 0)
-            return (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={handleSelectAll}
-                        aria-label="Select all"
-                      />
-                    </TableHead>
-                    <TableHead>Invoice Number</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Issue Date</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Balance</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedInvoices.map((invoice) => (
-                    <InvoiceRow
-                      key={invoice.id}
-                      invoice={invoice}
-                      isSelected={selectedIds.includes(invoice.id)}
-                      onSelect={(checked) =>
-                        handleSelectOne(invoice.id, checked as boolean)
-                      }
-                      projectName={getProjectName(invoice.projectId)}
-                      onClick={() =>
-                        router.push(
-                          routes.finance.invoices.detail(invoice.id).href
-                        )
-                      }
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            );
-          return (
-            <CardContent>
-              <Empty variant="default">
-                <EmptyMedia variant="icon">
-                  <FileText className="size-6" />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>No invoices found</EmptyTitle>
-                  <EmptyDescription>
-                    {hasActiveFilters
-                      ? 'Try adjusting your search or filters.'
-                      : 'Add your first invoice to get started.'}
-                  </EmptyDescription>
-                </EmptyHeader>
-                {!hasActiveFilters && (
-                  <Button asChild>
-                    <Link href={routes.finance.invoices.new}>New Invoice</Link>
-                  </Button>
-                )}
-              </Empty>
-            </CardContent>
-          );
-        })()}
-      </CardContent>
-
-      <div className="flex items-center justify-between border-t px-4 py-2">
-        <span className="text-sm text-zinc-500">
-          {filteredInvoices.length === 0
-            ? '0 records'
-            : `${startIndex + 1}–${Math.min(endIndex, filteredInvoices.length)} of ${filteredInvoices.length} ${filteredInvoices.length === 1 ? 'invoice' : 'invoices'}`}
-        </span>
-        <Pagination
-          currentPage={safePage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
-    </Card>
+    <DataTable<ConstructionInvoice>
+      data={invoices}
+      columns={columns}
+      getRowId={(invoice) => invoice.id}
+      isLoading={isLoading}
+      isError={isError}
+      enableSelection
+      searchPlaceholder="Search by invoice number, notes..."
+      searchPredicate={(invoice, query) => {
+        const searchLower = query.toLowerCase();
+        return (
+          invoice.invoiceNumber.toLowerCase().includes(searchLower) ||
+          (invoice.notes?.toLowerCase().includes(searchLower) ?? false) ||
+          (invoice.paymentTerms?.toLowerCase().includes(searchLower) ?? false)
+        );
+      }}
+      filters={[
+        {
+          id: 'status',
+          placeholder: 'Status',
+          options: statusOptions,
+          predicate: (invoice, value) => invoice.status === value,
+        },
+        {
+          id: 'type',
+          placeholder: 'Type',
+          options: typeOptions,
+          predicate: (invoice, value) => invoice.type === value,
+        },
+      ]}
+      onRowClick={(invoice) =>
+        router.push(routes.finance.invoices.detail(invoice.id).href)
+      }
+      entityNoun={{ one: 'invoice', many: 'invoices' }}
+      errorIcon={<FileText className="size-6" />}
+      errorTitle="Failed to load invoices"
+      emptyIcon={<FileText className="size-6" />}
+      emptyTitle="No invoices found"
+      emptyDescription="Add your first invoice to get started."
+      emptyAction={
+        <Button asChild>
+          <Link href={routes.finance.invoices.new}>New Invoice</Link>
+        </Button>
+      }
+    />
   );
 }
