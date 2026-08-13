@@ -1,37 +1,19 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { routes } from '@/nav';
-import { Pagination } from '@/components/common';
-import { Button } from '@/components/shadcn/button';
-import { Checkbox } from '@/components/shadcn/checkbox';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
-import { Input } from '@/components/shadcn/input';
-import {
-  Table,
-  TableBody,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/shadcn/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select';
-import { CreditCard, Search, Loader2 } from 'lucide-react';
-import {
-  Empty,
-  EmptyErrorMedia,
-  EmptyMedia,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-} from '@/components/shadcn/empty';
 import Link from 'next/link';
+import { format } from 'date-fns';
+import { routes } from '@/nav';
+import {
+  DataTable,
+  type DataTableColumn,
+  type DataTableFilter,
+} from '@/components/common';
+import { Button } from '@/components/shadcn/button';
+import { Badge } from '@/components/shadcn/badge';
+import { TableCell } from '@/components/shadcn/table';
+import { CreditCard, Calendar } from 'lucide-react';
 import {
   ConstructionPayment,
   ConstructionPaymentType,
@@ -41,13 +23,111 @@ import {
   paymentStatusLabels,
   paymentMethodLabels,
   payeeTypeLabels,
+  getPaymentStatusColor,
+  getPaymentTypeColor,
 } from '@/types/finance/payment';
 import {
   getPayeeInfo,
+  formatPayeeName,
   matchesAmountSearch,
   PayeeDatasets,
 } from '@/lib/utils/payment-utils';
-import { PaymentRow } from './payment-row';
+
+const statusOptions = [
+  { value: 'all', label: 'All Statuses' },
+  {
+    value: ConstructionPaymentVoucherStatus.COMPLETED,
+    label: paymentStatusLabels[ConstructionPaymentVoucherStatus.COMPLETED],
+  },
+  {
+    value: ConstructionPaymentVoucherStatus.PENDING,
+    label: paymentStatusLabels[ConstructionPaymentVoucherStatus.PENDING],
+  },
+  {
+    value: ConstructionPaymentVoucherStatus.PROCESSING,
+    label: paymentStatusLabels[ConstructionPaymentVoucherStatus.PROCESSING],
+  },
+  {
+    value: ConstructionPaymentVoucherStatus.FAILED,
+    label: paymentStatusLabels[ConstructionPaymentVoucherStatus.FAILED],
+  },
+  {
+    value: ConstructionPaymentVoucherStatus.CANCELLED,
+    label: paymentStatusLabels[ConstructionPaymentVoucherStatus.CANCELLED],
+  },
+  {
+    value: ConstructionPaymentVoucherStatus.REFUNDED,
+    label: paymentStatusLabels[ConstructionPaymentVoucherStatus.REFUNDED],
+  },
+];
+
+const typeOptions = [
+  { value: 'all', label: 'All Types' },
+  {
+    value: ConstructionPaymentType.INVOICE,
+    label: paymentTypeLabels[ConstructionPaymentType.INVOICE],
+  },
+  {
+    value: ConstructionPaymentType.SALARY,
+    label: paymentTypeLabels[ConstructionPaymentType.SALARY],
+  },
+  {
+    value: ConstructionPaymentType.ADVANCE,
+    label: paymentTypeLabels[ConstructionPaymentType.ADVANCE],
+  },
+  {
+    value: ConstructionPaymentType.EXPENSE,
+    label: paymentTypeLabels[ConstructionPaymentType.EXPENSE],
+  },
+  {
+    value: ConstructionPaymentType.REFUND,
+    label: paymentTypeLabels[ConstructionPaymentType.REFUND],
+  },
+  {
+    value: ConstructionPaymentType.OTHER,
+    label: paymentTypeLabels[ConstructionPaymentType.OTHER],
+  },
+];
+
+const methodOptions = [
+  { value: 'all', label: 'All Methods' },
+  {
+    value: ConstructionPaymentMethod.CASH,
+    label: paymentMethodLabels[ConstructionPaymentMethod.CASH],
+  },
+  {
+    value: ConstructionPaymentMethod.BANK_TRANSFER,
+    label: paymentMethodLabels[ConstructionPaymentMethod.BANK_TRANSFER],
+  },
+  {
+    value: ConstructionPaymentMethod.NEFT,
+    label: paymentMethodLabels[ConstructionPaymentMethod.NEFT],
+  },
+  {
+    value: ConstructionPaymentMethod.RTGS,
+    label: paymentMethodLabels[ConstructionPaymentMethod.RTGS],
+  },
+  {
+    value: ConstructionPaymentMethod.UPI,
+    label: paymentMethodLabels[ConstructionPaymentMethod.UPI],
+  },
+  {
+    value: ConstructionPaymentMethod.CHEQUE,
+    label: paymentMethodLabels[ConstructionPaymentMethod.CHEQUE],
+  },
+  {
+    value: ConstructionPaymentMethod.CARD,
+    label: paymentMethodLabels[ConstructionPaymentMethod.CARD],
+  },
+];
+
+const payeeTypeOptions = [
+  { value: 'all', label: 'All Payee Types' },
+  ...Object.entries(payeeTypeLabels).map(([value, label]) => ({
+    value,
+    label,
+  })),
+];
 
 export interface PaymentsTableProps {
   payments: ConstructionPayment[];
@@ -65,378 +145,216 @@ export function PaymentsTable({
   projectById,
 }: PaymentsTableProps) {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [methodFilter, setMethodFilter] = useState<string>('all');
-  const [payeeTypeFilter, setPayeeTypeFilter] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const filteredPayments = useMemo(() => {
-    return payments.filter((payment) => {
-      const searchLower = searchQuery.toLowerCase();
-      const payeeInfo = getPayeeInfo(payment, payeeDatasets);
-      const payeeName = payeeInfo.name.toLowerCase();
-      const payeeCompany = payeeInfo.company?.toLowerCase() ?? '';
-
-      const matchesSearch =
-        !searchQuery ||
-        payment.paymentNumber.toLowerCase().includes(searchLower) ||
-        payment.transactionId?.toLowerCase().includes(searchLower) ||
-        payment.referenceNumber?.toLowerCase().includes(searchLower) ||
-        payment.description?.toLowerCase().includes(searchLower) ||
-        payment.bankName?.toLowerCase().includes(searchLower) ||
-        payeeName.includes(searchLower) ||
-        payeeCompany.includes(searchLower) ||
-        matchesAmountSearch(payment.amount, searchQuery);
-
-      const matchesStatus =
-        statusFilter === 'all' || payment.status === statusFilter;
-
-      const matchesType = typeFilter === 'all' || payment.type === typeFilter;
-
-      const matchesMethod =
-        methodFilter === 'all' || payment.method === methodFilter;
-
-      const matchesPayeeType =
-        payeeTypeFilter === 'all' ||
-        getPayeeInfo(payment, payeeDatasets).type === payeeTypeFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesType &&
-        matchesMethod &&
-        matchesPayeeType
-      );
-    });
-  }, [
-    payments,
-    searchQuery,
-    statusFilter,
-    typeFilter,
-    methodFilter,
-    payeeTypeFilter,
-    payeeDatasets,
-  ]);
-
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
-  const safePage = Math.min(currentPage, Math.max(1, totalPages));
-
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedIds(paginatedPayments.map((p) => p.id));
-    } else {
-      setSelectedIds([]);
-    }
-  };
-
-  const handleSelectOne = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedIds([...selectedIds, id]);
-    } else {
-      setSelectedIds(selectedIds.filter((selectedId) => selectedId !== id));
-    }
-  };
-
-  const isAllSelected =
-    paginatedPayments.length > 0 &&
-    paginatedPayments.every((p) => selectedIds.includes(p.id));
-
-  const hasActiveFilters = Boolean(
-    searchQuery ||
-    statusFilter !== 'all' ||
-    typeFilter !== 'all' ||
-    methodFilter !== 'all' ||
-    payeeTypeFilter !== 'all'
+  const columns = useMemo<DataTableColumn<ConstructionPayment>[]>(
+    () => [
+      {
+        id: 'paymentNumber',
+        header: 'Payment Number',
+        cell: (payment) => (
+          <TableCell>
+            <div className="flex items-center space-x-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-blue-500 to-blue-600">
+                <CreditCard className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {payment.paymentNumber}
+                </p>
+                {payment.referenceNumber && (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                    Ref: {payment.referenceNumber}
+                  </p>
+                )}
+              </div>
+            </div>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'payeeName',
+        header: 'Payee Name',
+        cell: (payment) => {
+          const payeeInfo = getPayeeInfo(payment, payeeDatasets);
+          return (
+            <TableCell>
+              <div>
+                <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                  {formatPayeeName(payeeInfo)}
+                </p>
+                {payeeInfo.details && (
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                    {payeeInfo.details}
+                  </p>
+                )}
+              </div>
+            </TableCell>
+          );
+        },
+      },
+      {
+        id: 'payeeType',
+        header: 'Payee Type',
+        cell: (payment) => {
+          const payeeInfo = getPayeeInfo(payment, payeeDatasets);
+          return (
+            <TableCell>
+              <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400">
+                {payeeTypeLabels[payeeInfo.type]}
+              </Badge>
+            </TableCell>
+          );
+        },
+      },
+      {
+        id: 'type',
+        header: 'Type',
+        cell: (payment) => (
+          <TableCell>
+            <Badge className={getPaymentTypeColor(payment.type)}>
+              {paymentTypeLabels[payment.type]}
+            </Badge>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'project',
+        header: 'Project',
+        cell: (payment) => (
+          <TableCell>
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              {projectById.get(payment.projectId)?.projectName ||
+                'Unknown Project'}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'amount',
+        header: 'Amount',
+        cell: (payment) => (
+          <TableCell>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              ₹{payment.amount.toLocaleString('en-IN')}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'date',
+        header: 'Date',
+        cell: (payment) => (
+          <TableCell>
+            <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
+              <Calendar className="h-3 w-3 text-zinc-400" />
+              <span>
+                {payment.paymentDate
+                  ? format(payment.paymentDate, 'dd MMM yyyy')
+                  : '—'}
+              </span>
+            </div>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'method',
+        header: 'Method',
+        cell: (payment) => (
+          <TableCell>
+            <span className="text-zinc-700 dark:text-zinc-300">
+              {paymentMethodLabels[payment.method]}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        cell: (payment) => (
+          <TableCell>
+            <Badge className={getPaymentStatusColor(payment.status)}>
+              {paymentStatusLabels[payment.status]}
+            </Badge>
+          </TableCell>
+        ),
+      },
+    ],
+    [payeeDatasets, projectById]
   );
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setTypeFilter('all');
-    setMethodFilter('all');
-    setPayeeTypeFilter('all');
-    setCurrentPage(1);
-  };
+  const filters = useMemo<DataTableFilter<ConstructionPayment>[]>(
+    () => [
+      {
+        id: 'status',
+        placeholder: 'Status',
+        options: statusOptions,
+        predicate: (payment, value) => payment.status === value,
+      },
+      {
+        id: 'type',
+        placeholder: 'Type',
+        options: typeOptions,
+        predicate: (payment, value) => payment.type === value,
+      },
+      {
+        id: 'method',
+        placeholder: 'Method',
+        options: methodOptions,
+        predicate: (payment, value) => payment.method === value,
+      },
+      {
+        id: 'payeeType',
+        placeholder: 'Payee Type',
+        options: payeeTypeOptions,
+        predicate: (payment, value) =>
+          getPayeeInfo(payment, payeeDatasets).type === value,
+      },
+    ],
+    [payeeDatasets]
+  );
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-        {/* Search input */}
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            placeholder="Search by payment #, payee name, amount, transaction..."
-            className="h-8 pl-8 text-sm"
-          />
-        </div>
-        {/* Status filter */}
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => {
-            setStatusFilter(v);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            <SelectItem value={ConstructionPaymentVoucherStatus.COMPLETED}>
-              {paymentStatusLabels[ConstructionPaymentVoucherStatus.COMPLETED]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentVoucherStatus.PENDING}>
-              {paymentStatusLabels[ConstructionPaymentVoucherStatus.PENDING]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentVoucherStatus.PROCESSING}>
-              {paymentStatusLabels[ConstructionPaymentVoucherStatus.PROCESSING]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentVoucherStatus.FAILED}>
-              {paymentStatusLabels[ConstructionPaymentVoucherStatus.FAILED]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentVoucherStatus.CANCELLED}>
-              {paymentStatusLabels[ConstructionPaymentVoucherStatus.CANCELLED]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentVoucherStatus.REFUNDED}>
-              {paymentStatusLabels[ConstructionPaymentVoucherStatus.REFUNDED]}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {/* Type filter */}
-        <Select
-          value={typeFilter}
-          onValueChange={(v) => {
-            setTypeFilter(v);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value={ConstructionPaymentType.INVOICE}>
-              {paymentTypeLabels[ConstructionPaymentType.INVOICE]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentType.SALARY}>
-              {paymentTypeLabels[ConstructionPaymentType.SALARY]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentType.ADVANCE}>
-              {paymentTypeLabels[ConstructionPaymentType.ADVANCE]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentType.EXPENSE}>
-              {paymentTypeLabels[ConstructionPaymentType.EXPENSE]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentType.REFUND}>
-              {paymentTypeLabels[ConstructionPaymentType.REFUND]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentType.OTHER}>
-              {paymentTypeLabels[ConstructionPaymentType.OTHER]}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {/* Method filter */}
-        <Select
-          value={methodFilter}
-          onValueChange={(v) => {
-            setMethodFilter(v);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue placeholder="Method" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Methods</SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.CASH}>
-              {paymentMethodLabels[ConstructionPaymentMethod.CASH]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.BANK_TRANSFER}>
-              {paymentMethodLabels[ConstructionPaymentMethod.BANK_TRANSFER]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.NEFT}>
-              {paymentMethodLabels[ConstructionPaymentMethod.NEFT]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.RTGS}>
-              {paymentMethodLabels[ConstructionPaymentMethod.RTGS]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.UPI}>
-              {paymentMethodLabels[ConstructionPaymentMethod.UPI]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.CHEQUE}>
-              {paymentMethodLabels[ConstructionPaymentMethod.CHEQUE]}
-            </SelectItem>
-            <SelectItem value={ConstructionPaymentMethod.CARD}>
-              {paymentMethodLabels[ConstructionPaymentMethod.CARD]}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        {/* Payee Type filter */}
-        <Select
-          value={payeeTypeFilter}
-          onValueChange={(v) => {
-            setPayeeTypeFilter(v);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="h-8 w-32 text-xs">
-            <SelectValue placeholder="Payee Type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Payee Types</SelectItem>
-            {Object.entries(payeeTypeLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {/* Rows per page */}
-        <div className="ml-auto flex items-center gap-2 border-l pl-3">
-          <span className="text-xs whitespace-nowrap text-zinc-500">
-            Rows per page
-          </span>
-          <Select
-            value={String(itemsPerPage)}
-            onValueChange={(v) => {
-              setItemsPerPage(Number(v));
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-16 text-xs">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[5, 10, 20, 50, 100].map((n) => (
-                <SelectItem key={n} value={String(n)}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-0">
-        {(() => {
-          if (isLoading)
-            return (
-              <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
-              </div>
-            );
-          if (isError)
-            return (
-              <CardContent>
-                <Empty variant="default">
-                  <EmptyErrorMedia>
-                    <CreditCard className="size-6" />
-                  </EmptyErrorMedia>
-                  <EmptyHeader>
-                    <EmptyTitle>Failed to load payments</EmptyTitle>
-                    <EmptyDescription>
-                      An unexpected error occurred. Please try again.
-                    </EmptyDescription>
-                  </EmptyHeader>
-                </Empty>
-              </CardContent>
-            );
-          if (paginatedPayments.length > 0)
-            return (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox
-                        checked={isAllSelected}
-                        onCheckedChange={handleSelectAll}
-                        aria-label="Select all"
-                      />
-                    </TableHead>
-                    <TableHead>Payment Number</TableHead>
-                    <TableHead>Payee Name</TableHead>
-                    <TableHead>Payee Type</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {paginatedPayments.map((payment) => (
-                    <PaymentRow
-                      key={payment.id}
-                      payment={payment}
-                      isSelected={selectedIds.includes(payment.id)}
-                      onSelect={(checked) =>
-                        handleSelectOne(payment.id, checked)
-                      }
-                      projectName={
-                        projectById.get(payment.projectId)?.projectName ||
-                        'Unknown Project'
-                      }
-                      payeeDatasets={payeeDatasets}
-                      onClick={() =>
-                        router.push(
-                          routes.finance.payments.detail(payment.id).href
-                        )
-                      }
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            );
-          return (
-            <CardContent>
-              <Empty variant="default">
-                <EmptyMedia variant="icon">
-                  <CreditCard className="size-6" />
-                </EmptyMedia>
-                <EmptyHeader>
-                  <EmptyTitle>No payments found</EmptyTitle>
-                  <EmptyDescription>
-                    {hasActiveFilters
-                      ? 'Try adjusting your search or filters.'
-                      : 'Add your first payment to get started.'}
-                  </EmptyDescription>
-                </EmptyHeader>
-                {!hasActiveFilters && (
-                  <Button asChild>
-                    <Link href={routes.finance.payments.new}>New Payment</Link>
-                  </Button>
-                )}
-              </Empty>
-            </CardContent>
-          );
-        })()}
-      </CardContent>
-
-      <div className="flex items-center justify-between border-t px-4 py-2">
-        <span className="text-sm text-zinc-500">
-          {filteredPayments.length === 0
-            ? '0 records'
-            : `${startIndex + 1}–${Math.min(endIndex, filteredPayments.length)} of ${filteredPayments.length} ${filteredPayments.length === 1 ? 'payment' : 'payments'}`}
-        </span>
-        <Pagination
-          currentPage={safePage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-      </div>
-    </Card>
+    <DataTable<ConstructionPayment>
+      data={payments}
+      columns={columns}
+      getRowId={(payment) => payment.id}
+      isLoading={isLoading}
+      isError={isError}
+      enableSelection
+      searchPlaceholder="Search by payment #, payee name, amount, transaction..."
+      searchPredicate={(payment, query) => {
+        const searchLower = query.toLowerCase();
+        const payeeInfo = getPayeeInfo(payment, payeeDatasets);
+        const payeeName = payeeInfo.name.toLowerCase();
+        const payeeCompany = payeeInfo.company?.toLowerCase() ?? '';
+        return (
+          payment.paymentNumber.toLowerCase().includes(searchLower) ||
+          (payment.transactionId?.toLowerCase().includes(searchLower) ??
+            false) ||
+          (payment.referenceNumber?.toLowerCase().includes(searchLower) ??
+            false) ||
+          (payment.description?.toLowerCase().includes(searchLower) ?? false) ||
+          (payment.bankName?.toLowerCase().includes(searchLower) ?? false) ||
+          payeeName.includes(searchLower) ||
+          payeeCompany.includes(searchLower) ||
+          matchesAmountSearch(payment.amount, query)
+        );
+      }}
+      filters={filters}
+      onRowClick={(payment) =>
+        router.push(routes.finance.payments.detail(payment.id).href)
+      }
+      entityNoun={{ one: 'payment', many: 'payments' }}
+      errorIcon={<CreditCard className="size-6" />}
+      errorTitle="Failed to load payments"
+      emptyIcon={<CreditCard className="size-6" />}
+      emptyTitle="No payments found"
+      emptyDescription="Add your first payment to get started."
+      emptyAction={
+        <Button asChild>
+          <Link href={routes.finance.payments.new}>New Payment</Link>
+        </Button>
+      }
+    />
   );
 }

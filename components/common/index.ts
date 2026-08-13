@@ -3,6 +3,7 @@ export * from './attachments-uploader';
 export * from './footer';
 export * from './auth-button';
 export * from './pagination';
+export * from './data-table';
 export * from './search-and-filter';
 export * from './page-header';
 export * from './org-guard';
