@@ -8,7 +8,7 @@ export const useInspections = () =>
     queryFn: () => inspectionService.getAll(),
   });
 
-export const useInspectionById = (id: number) =>
+export const useInspectionById = (id: string) =>
   useQuery({
     queryKey: inspectionKeys.detail(id),
     queryFn: () => inspectionService.getById(id),

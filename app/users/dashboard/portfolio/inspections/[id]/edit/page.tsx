@@ -1,12 +1,18 @@
 'use client';
 
-import { useState } from 'react';
-import { logger } from '@/lib/logger';
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
-import { useInspectionById } from '@/hooks/inspection';
-import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import {
+  useInspectionById,
+  useUpdateInspection,
+} from '@/hooks/inspection';
+import type {
+  UpdateInspectionRequest,
+  InspectionType,
+  InspectionStatus,
+  InspectionResult,
+} from '@/types/inspection';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
@@ -18,66 +24,73 @@ import {
 export default function EditInspectionPage() {
   const router = useRouter();
   const params = useParams();
-  const inspectionId = Number.parseInt(params.id as string);
+  const inspectionId = params.id as string;
 
   const { data: inspectionData, isLoading } = useInspectionById(inspectionId);
-  const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { mutate: updateInspection, isPending } = useUpdateInspection();
 
-  async function handleSubmit(data: InspectionFormSubmitData) {
+  function handleSubmit(data: InspectionFormSubmitData) {
+    if (!inspectionData) return;
     const { fields } = data;
-    setIsSubmitting(true);
-    try {
-      // Simulate API call — inspection module not yet wired to backend
-      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      const project = projects.find(
-        (p) => p.id === Number.parseInt(fields.projectId)
-      );
-      const inspector = employees.find(
-        (emp) => emp.id === Number.parseInt(fields.inspectorId)
-      );
+    // PUT is a full replacement; the check items and defects are not edited on
+    // this form, so the existing rows are threaded through unchanged. The
+    // summary counts are recomputed server-side from them.
+    const req: UpdateInspectionRequest = {
+      title: fields.title,
+      type: fields.type as InspectionType,
+      status: fields.status as InspectionStatus,
+      result: (fields.result || undefined) as InspectionResult | undefined,
+      projectId: Number.parseInt(fields.projectId),
+      location: fields.location,
+      areaInspected: fields.areaInspected,
+      scheduledDate: fields.scheduledDate,
+      inspectorId: Number.parseInt(fields.inspectorId),
+      drawingReference: fields.drawingReference.trim() || undefined,
+      scheduledTime: fields.scheduledTime.trim() || undefined,
+      clientRepresentative: fields.clientRepresentative.trim() || undefined,
+      weatherConditions: fields.weatherConditions.trim() || undefined,
+      temperature: fields.temperature.trim() || undefined,
+      checkItems: inspectionData.checkItems.map((item) => ({
+        category: item.category,
+        checkPoint: item.checkPoint,
+        specification: item.specification,
+        status: item.status,
+        remarks: item.remarks,
+        photosRequired: item.photosRequired,
+        photos: item.photos,
+        measurement: item.measurement,
+        expectedValue: item.expectedValue,
+        priority: item.priority,
+      })),
+      defects: inspectionData.defects.map((defect) => ({
+        category: defect.category,
+        description: defect.description,
+        severity: defect.severity,
+        location: defect.location,
+        photos: defect.photos,
+        correctiveAction: defect.correctiveAction,
+        responsibleParty: defect.responsibleParty,
+        targetDate: defect.targetDate,
+        status: defect.status,
+        resolvedDate: defect.resolvedDate,
+      })),
+    };
 
-      logger.debug('Updating inspection:', {
-        id: inspectionId,
-        title: fields.title,
-        type: fields.type,
-        status: fields.status,
-        result: fields.result || undefined,
-        projectId: Number.parseInt(fields.projectId),
-        projectName: project?.projectName,
-        location: fields.location,
-        areaInspected: fields.areaInspected,
-        scheduledDate: new Date(fields.scheduledDate),
-        scheduledTime: fields.scheduledTime || undefined,
-        inspectorId: Number.parseInt(fields.inspectorId),
-        inspectorName: inspector?.name,
-        contractorName: fields.contractorName || undefined,
-        clientRepresentative: fields.clientRepresentative || undefined,
-        drawingReference: fields.drawingReference || undefined,
-        observationsAndComments: fields.observationsAndComments || undefined,
-        recommendations: fields.recommendations || undefined,
-        weatherConditions: fields.weatherConditions || undefined,
-        temperature: fields.temperature || undefined,
-        reinspectionRequired: fields.reinspectionRequired,
-        reinspectionDate: fields.reinspectionDate
-          ? new Date(fields.reinspectionDate)
-          : undefined,
-        reinspectionNotes: fields.reinspectionNotes || undefined,
-        updatedAt: new Date(),
-      });
-
-      toast.success('Inspection updated successfully!');
-      router.push(
-        routes.portfolio.inspections.detail(params.id as string).href
-      );
-    } catch (error) {
-      logger.error('Error updating inspection:', error);
-      toast.error('Failed to update inspection');
-    } finally {
-      setIsSubmitting(false);
-    }
+    updateInspection(
+      { id: inspectionId, req },
+      {
+        onSuccess: () => {
+          toast.success('Inspection updated successfully!');
+          router.push(routes.portfolio.inspections.detail(inspectionId).href);
+        },
+        onError: (err) => {
+          toast.error(getErrorTitle(err, 'Failed to update inspection'), {
+            description: getErrorMessage(err),
+          });
+        },
+      }
+    );
   }
 
   if (isLoading) {
@@ -105,7 +118,7 @@ export default function EditInspectionPage() {
       <InspectionForm
         mode="edit"
         inspection={inspectionData}
-        isSubmitting={isSubmitting}
+        isSubmitting={isPending}
         onSubmit={handleSubmit}
         onCancel={() => router.back()}
       />

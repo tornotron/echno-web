@@ -22,6 +22,7 @@ import {
   Clock,
   Thermometer,
   Cloud,
+  Users,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useInspectionById } from '@/hooks/inspection';
@@ -44,19 +45,19 @@ import { format } from 'date-fns';
 // Helper functions
 const getStatusBadge = (status: InspectionStatus): string => {
   const colors: Record<InspectionStatus, string> = {
-    [InspectionStatus.scheduled]:
+    [InspectionStatus.SCHEDULED]:
       'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    [InspectionStatus.inProgress]:
+    [InspectionStatus.IN_PROGRESS]:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    [InspectionStatus.completed]:
+    [InspectionStatus.COMPLETED]:
       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    [InspectionStatus.failed]:
+    [InspectionStatus.FAILED]:
       'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    [InspectionStatus.passed]:
+    [InspectionStatus.PASSED]:
       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    [InspectionStatus.passedWithRemarks]:
+    [InspectionStatus.PASSED_WITH_REMARKS]:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    [InspectionStatus.cancelled]:
+    [InspectionStatus.CANCELLED]:
       'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
   };
   return colors[status] || 'bg-zinc-100 text-zinc-800';
@@ -64,13 +65,13 @@ const getStatusBadge = (status: InspectionStatus): string => {
 
 const getResultBadge = (result: InspectionResult): string => {
   const colors: Record<InspectionResult, string> = {
-    [InspectionResult.passed]:
+    [InspectionResult.PASSED]:
       'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    [InspectionResult.failed]:
+    [InspectionResult.FAILED]:
       'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    [InspectionResult.passedWithRemarks]:
+    [InspectionResult.PASSED_WITH_REMARKS]:
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    [InspectionResult.pending]:
+    [InspectionResult.PENDING]:
       'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
   };
   return colors[result] || 'bg-zinc-100 text-zinc-800';
@@ -78,13 +79,13 @@ const getResultBadge = (result: InspectionResult): string => {
 
 const getCheckItemIcon = (status: CheckItemStatus) => {
   switch (status) {
-    case CheckItemStatus.passed: {
+    case CheckItemStatus.PASSED: {
       return <CheckCircle2 className="h-5 w-5 text-green-600" />;
     }
-    case CheckItemStatus.failed: {
+    case CheckItemStatus.FAILED: {
       return <XCircle className="h-5 w-5 text-red-600" />;
     }
-    case CheckItemStatus.notApplicable: {
+    case CheckItemStatus.NOT_APPLICABLE: {
       return <div className="h-5 w-5 text-zinc-400">N/A</div>;
     }
     default: {
@@ -98,7 +99,7 @@ export default function InspectionDetailsPage() {
   const params = useParams();
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployees();
-  const inspectionId = Number.parseInt(params.id as string);
+  const inspectionId = params.id as string;
   const { data: inspection, isLoading } = useInspectionById(inspectionId);
 
   if (isLoading) {
@@ -120,6 +121,10 @@ export default function InspectionDetailsPage() {
 
   const project = projects.find((p) => p.id === inspection.projectId);
   const inspector = employees.find((emp) => emp.id === inspection.inspectorId);
+  const compliance =
+    inspection.totalCheckPoints > 0
+      ? (inspection.passedCheckPoints / inspection.totalCheckPoints) * 100
+      : 0;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -175,10 +180,10 @@ export default function InspectionDetailsPage() {
                 {inspectionTypeLabels[inspection.type]}
               </Badge>
             </div>
-            {inspection.compliancePercentage !== undefined && (
+            {inspection.totalCheckPoints > 0 && (
               <div className="text-right">
                 <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {inspection.compliancePercentage.toFixed(1)}%
+                  {compliance.toFixed(1)}%
                 </div>
                 <div className="text-sm text-zinc-600 dark:text-zinc-400">
                   Compliance
@@ -218,22 +223,24 @@ export default function InspectionDetailsPage() {
                       Location
                     </div>
                     <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {inspection.location}
+                      {inspection.location || 'Not specified'}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-3">
-                  <FileText className="mt-1 h-5 w-5 text-zinc-500" />
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Area Inspected
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {inspection.areaInspected}
+                {inspection.areaInspected && (
+                  <div className="flex items-start gap-3">
+                    <FileText className="mt-1 h-5 w-5 text-zinc-500" />
+                    <div>
+                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Area Inspected
+                      </div>
+                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {inspection.areaInspected}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
 
                 <div className="flex items-start gap-3">
                   <Calendar className="mt-1 h-5 w-5 text-zinc-500" />
@@ -242,7 +249,9 @@ export default function InspectionDetailsPage() {
                       Scheduled Date
                     </div>
                     <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {format(inspection.scheduledDate, 'PPP')}
+                      {inspection.scheduledDate
+                        ? format(new Date(inspection.scheduledDate), 'PPP')
+                        : 'Not scheduled'}
                       {inspection.scheduledTime &&
                         ` at ${inspection.scheduledTime}`}
                     </div>
@@ -276,20 +285,10 @@ export default function InspectionDetailsPage() {
                 )}
               </div>
 
-              {(inspection.contractorName ||
-                inspection.clientRepresentative) && (
+              {(inspection.clientRepresentative ||
+                inspection.attendees.length > 0) && (
                 <div className="mt-4 border-t pt-4">
                   <div className="grid gap-4 md:grid-cols-2">
-                    {inspection.contractorName && (
-                      <div>
-                        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Contractor
-                        </div>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {inspection.contractorName}
-                        </div>
-                      </div>
-                    )}
                     {inspection.clientRepresentative && (
                       <div>
                         <div className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -297,6 +296,17 @@ export default function InspectionDetailsPage() {
                         </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-100">
                           {inspection.clientRepresentative}
+                        </div>
+                      </div>
+                    )}
+                    {inspection.attendees.length > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                          <Users className="h-4 w-4" />
+                          Attendees
+                        </div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {inspection.attendees.join(', ')}
                         </div>
                       </div>
                     )}
@@ -346,7 +356,7 @@ export default function InspectionDetailsPage() {
           )}
 
           {/* Check Items */}
-          {inspection.checkItems && inspection.checkItems.length > 0 && (
+          {inspection.checkItems.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Inspection Checklist</CardTitle>
@@ -360,7 +370,7 @@ export default function InspectionDetailsPage() {
                   {inspection.checkItems.map(
                     (item: InspectionCheckItem, index: number) => (
                       <div
-                        key={index}
+                        key={item.id || index}
                         className="flex items-start gap-3 rounded-lg border p-3"
                       >
                         {getCheckItemIcon(item.status)}
@@ -386,7 +396,7 @@ export default function InspectionDetailsPage() {
           )}
 
           {/* Defects */}
-          {inspection.defects && inspection.defects.length > 0 && (
+          {inspection.defects.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -402,7 +412,7 @@ export default function InspectionDetailsPage() {
                   {inspection.defects.map(
                     (defect: InspectionDefect, index: number) => (
                       <div
-                        key={index}
+                        key={defect.id || index}
                         className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950"
                       >
                         <div className="flex items-start justify-between gap-3">
@@ -422,55 +432,25 @@ export default function InspectionDetailsPage() {
                               </div>
                             )}
                           </div>
-                          <Badge
-                            variant="outline"
-                            className={
-                              defect.severity === 'critical'
-                                ? 'border-red-600 text-red-600'
-                                : defect.severity === 'major'
-                                  ? 'border-orange-600 text-orange-600'
-                                  : 'border-yellow-600 text-yellow-600'
-                            }
-                          >
-                            {defect.severity}
-                          </Badge>
+                          {defect.severity && (
+                            <Badge
+                              variant="outline"
+                              className={
+                                defect.severity === 'critical'
+                                  ? 'border-red-600 text-red-600'
+                                  : defect.severity === 'major'
+                                    ? 'border-orange-600 text-orange-600'
+                                    : 'border-yellow-600 text-yellow-600'
+                              }
+                            >
+                              {defect.severity}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     )
                   )}
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Observations & Recommendations */}
-          {(inspection.observationsAndComments ||
-            inspection.recommendations) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Observations & Recommendations</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {inspection.observationsAndComments && (
-                  <div>
-                    <div className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                      Observations & Comments
-                    </div>
-                    <div className="rounded-lg bg-zinc-50 p-4 text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100">
-                      {inspection.observationsAndComments}
-                    </div>
-                  </div>
-                )}
-                {inspection.recommendations && (
-                  <div>
-                    <div className="mb-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                      Recommendations
-                    </div>
-                    <div className="rounded-lg bg-blue-50 p-4 text-zinc-900 dark:bg-blue-950 dark:text-zinc-100">
-                      {inspection.recommendations}
-                    </div>
-                  </div>
-                )}
               </CardContent>
             </Card>
           )}
@@ -496,9 +476,7 @@ export default function InspectionDetailsPage() {
                 <div className="mt-2 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700">
                   <div
                     className="h-2 rounded-full bg-green-600"
-                    style={{
-                      width: `${inspection.totalCheckPoints > 0 ? (inspection.passedCheckPoints / inspection.totalCheckPoints) * 100 : 0}%`,
-                    }}
+                    style={{ width: `${compliance}%` }}
                   />
                 </div>
               </div>
@@ -523,76 +501,19 @@ export default function InspectionDetailsPage() {
               </div>
 
               {inspection.defectsFound > 0 && (
-                <>
-                  <div className="border-t pt-4">
-                    <div className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Defects by Severity
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Critical
-                        </span>
-                        <span className="font-semibold text-red-700 dark:text-red-400">
-                          {inspection.criticalDefects}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Major
-                        </span>
-                        <span className="font-semibold text-orange-700 dark:text-orange-400">
-                          {inspection.majorDefects}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Minor
-                        </span>
-                        <span className="font-semibold text-yellow-700 dark:text-yellow-400">
-                          {inspection.minorDefects}
-                        </span>
-                      </div>
-                    </div>
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Defects Found
+                    </span>
+                    <span className="font-semibold text-red-700 dark:text-red-400">
+                      {inspection.defectsFound}
+                    </span>
                   </div>
-                </>
+                </div>
               )}
             </CardContent>
           </Card>
-
-          {/* Re-inspection */}
-          {inspection.reinspectionRequired && (
-            <Card className="border-yellow-300 dark:border-yellow-700">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-yellow-700 dark:text-yellow-400">
-                  <AlertTriangle className="h-5 w-5" />
-                  Re-inspection Required
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {inspection.reinspectionDate && (
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Scheduled Date
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {format(inspection.reinspectionDate, 'PPP')}
-                    </div>
-                  </div>
-                )}
-                {inspection.reinspectionNotes && (
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Notes
-                    </div>
-                    <div className="mt-1 text-sm text-zinc-900 dark:text-zinc-100">
-                      {inspection.reinspectionNotes}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
 
           {/* Timestamps */}
           <Card>
@@ -600,20 +521,26 @@ export default function InspectionDetailsPage() {
               <CardTitle>Timestamps</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              <div>
-                <div className="text-zinc-600 dark:text-zinc-400">Created</div>
-                <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {format(inspection.createdAt, 'PPp')}
+              {inspection.createdAt && (
+                <div>
+                  <div className="text-zinc-600 dark:text-zinc-400">
+                    Created
+                  </div>
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {format(new Date(inspection.createdAt), 'PPp')}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <div className="text-zinc-600 dark:text-zinc-400">
-                  Last Updated
+              )}
+              {inspection.updatedAt && (
+                <div>
+                  <div className="text-zinc-600 dark:text-zinc-400">
+                    Last Updated
+                  </div>
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {format(new Date(inspection.updatedAt), 'PPp')}
+                  </div>
                 </div>
-                <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                  {format(inspection.updatedAt, 'PPp')}
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
         </div>
