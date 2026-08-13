@@ -36,36 +36,46 @@ import {
 } from '@/types/inspection';
 import { useInspections } from '@/hooks/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { routes } from '@/nav';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
-  const colors = {
-    scheduled: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-    'in-progress':
+  const colors: Record<InspectionStatus, string> = {
+    [InspectionStatus.SCHEDULED]:
+      'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    [InspectionStatus.IN_PROGRESS]:
       'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    completed: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
-    failed: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    passed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    'passed-with-remarks':
+    [InspectionStatus.COMPLETED]:
+      'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+    [InspectionStatus.FAILED]:
+      'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    [InspectionStatus.PASSED]:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    [InspectionStatus.PASSED_WITH_REMARKS]:
       'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    cancelled: 'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
+    [InspectionStatus.CANCELLED]:
+      'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
   };
   return colors[status];
 };
 
 const getResultBadgeColor = (result: InspectionResult): string => {
-  const colors = {
-    passed: 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    failed: 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-    'passed-with-remarks':
+  const colors: Record<InspectionResult, string> = {
+    [InspectionResult.PASSED]:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    [InspectionResult.FAILED]:
+      'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+    [InspectionResult.PASSED_WITH_REMARKS]:
       'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    pending: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
+    [InspectionResult.PENDING]:
+      'bg-zinc-100 text-zinc-700 dark:bg-zinc-900 dark:text-zinc-300',
   };
   return colors[result];
 };
 
 export default function InspectionsPage() {
   const { data: projects = [] } = useProjects();
+  const { data: employees = [] } = useEmployees();
   const { data: inspections = [] } = useInspections();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -80,19 +90,20 @@ export default function InspectionsPage() {
   );
   const [projectFilter, setProjectFilter] = useState<number | 'all'>('all');
 
+  const inspectorName = (inspectorId: number): string | undefined =>
+    employees.find((emp) => emp.id === inspectorId)?.name;
+
   // Filter inspections
   const filteredInspections = useMemo(() => {
     return inspections.filter((inspection) => {
+      const query = searchQuery.toLowerCase();
       const matchesSearch =
-        inspection.inspectionNumber
+        inspection.inspectionNumber.toLowerCase().includes(query) ||
+        inspection.title.toLowerCase().includes(query) ||
+        (inspection.location ?? '').toLowerCase().includes(query) ||
+        (inspectorName(inspection.inspectorId) ?? '')
           .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        inspection.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        inspection.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (inspection.inspectorName &&
-          inspection.inspectorName
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()));
+          .includes(query);
 
       const matchesStatus =
         statusFilter === 'all' || inspection.status === statusFilter;
@@ -111,16 +122,16 @@ export default function InspectionsPage() {
         matchesProject
       );
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     inspections,
+    employees,
     searchQuery,
     statusFilter,
     typeFilter,
     resultFilter,
     projectFilter,
   ]);
-
-  // Reset to page 1 when filters change
 
   // Pagination
   const totalPages = Math.ceil(filteredInspections.length / itemsPerPage);
@@ -131,16 +142,13 @@ export default function InspectionsPage() {
   // Calculate stats
   const totalInspections = inspections.length;
   const scheduledCount = inspections.filter(
-    (i) => i.status === InspectionStatus.scheduled
+    (i) => i.status === InspectionStatus.SCHEDULED
   ).length;
   const inProgressCount = inspections.filter(
-    (i) => i.status === InspectionStatus.inProgress
+    (i) => i.status === InspectionStatus.IN_PROGRESS
   ).length;
 
-  const criticalDefectsCount = inspections.reduce(
-    (sum, i) => sum + i.criticalDefects,
-    0
-  );
+  const defectsCount = inspections.reduce((sum, i) => sum + i.defectsFound, 0);
 
   const hasActiveFilters = Boolean(
     searchQuery ||
@@ -227,15 +235,15 @@ export default function InspectionsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-xs font-medium sm:text-sm">
-              Critical Defects
+              Defects Found
             </CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {criticalDefectsCount}
+              {defectsCount}
             </div>
-            <p className="text-muted-foreground text-xs">Needs attention</p>
+            <p className="text-muted-foreground text-xs">Across all reports</p>
           </CardContent>
         </Card>
       </div>
@@ -256,16 +264,16 @@ export default function InspectionsPage() {
             placeholder: 'Status',
             options: [
               { value: 'all', label: 'All Statuses' },
-              { value: InspectionStatus.scheduled, label: 'Scheduled' },
-              { value: InspectionStatus.inProgress, label: 'In Progress' },
-              { value: InspectionStatus.completed, label: 'Completed' },
-              { value: InspectionStatus.passed, label: 'Passed' },
-              { value: InspectionStatus.failed, label: 'Failed' },
+              { value: InspectionStatus.SCHEDULED, label: 'Scheduled' },
+              { value: InspectionStatus.IN_PROGRESS, label: 'In Progress' },
+              { value: InspectionStatus.COMPLETED, label: 'Completed' },
+              { value: InspectionStatus.PASSED, label: 'Passed' },
+              { value: InspectionStatus.FAILED, label: 'Failed' },
               {
-                value: InspectionStatus.passedWithRemarks,
+                value: InspectionStatus.PASSED_WITH_REMARKS,
                 label: 'Passed with Remarks',
               },
-              { value: InspectionStatus.cancelled, label: 'Cancelled' },
+              { value: InspectionStatus.CANCELLED, label: 'Cancelled' },
             ],
             value: statusFilter,
             onChange: (value) => {
@@ -277,15 +285,15 @@ export default function InspectionsPage() {
             placeholder: 'Type',
             options: [
               { value: 'all', label: 'All Types' },
-              { value: InspectionType.safety, label: 'Safety' },
-              { value: InspectionType.quality, label: 'Quality' },
-              { value: InspectionType.progress, label: 'Progress' },
-              { value: InspectionType.final, label: 'Final' },
-              { value: InspectionType.structural, label: 'Structural' },
-              { value: InspectionType.electrical, label: 'Electrical' },
-              { value: InspectionType.plumbing, label: 'Plumbing' },
-              { value: InspectionType.finishing, label: 'Finishing' },
-              { value: InspectionType.compliance, label: 'Compliance' },
+              { value: InspectionType.SAFETY, label: 'Safety' },
+              { value: InspectionType.QUALITY, label: 'Quality' },
+              { value: InspectionType.PROGRESS, label: 'Progress' },
+              { value: InspectionType.FINAL, label: 'Final' },
+              { value: InspectionType.STRUCTURAL, label: 'Structural' },
+              { value: InspectionType.ELECTRICAL, label: 'Electrical' },
+              { value: InspectionType.PLUMBING, label: 'Plumbing' },
+              { value: InspectionType.FINISHING, label: 'Finishing' },
+              { value: InspectionType.COMPLIANCE, label: 'Compliance' },
             ],
             value: typeFilter,
             onChange: (value) => {
@@ -297,13 +305,13 @@ export default function InspectionsPage() {
             placeholder: 'Result',
             options: [
               { value: 'all', label: 'All Results' },
-              { value: InspectionResult.passed, label: 'Passed' },
-              { value: InspectionResult.failed, label: 'Failed' },
+              { value: InspectionResult.PASSED, label: 'Passed' },
+              { value: InspectionResult.FAILED, label: 'Failed' },
               {
-                value: InspectionResult.passedWithRemarks,
+                value: InspectionResult.PASSED_WITH_REMARKS,
                 label: 'Passed with Remarks',
               },
-              { value: InspectionResult.pending, label: 'Pending' },
+              { value: InspectionResult.PENDING, label: 'Pending' },
             ],
             value: resultFilter,
             onChange: (value) => {
@@ -392,7 +400,7 @@ export default function InspectionsPage() {
                             </Badge>
                             {inspection.result &&
                               inspection.result !==
-                                InspectionResult.pending && (
+                                InspectionResult.PENDING && (
                                 <Badge
                                   className={getResultBadgeColor(
                                     inspection.result
@@ -414,7 +422,7 @@ export default function InspectionsPage() {
                             Location:
                           </span>
                           <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {inspection.location}
+                            {inspection.location || 'Not specified'}
                           </p>
                         </div>
                         <div>
@@ -422,7 +430,8 @@ export default function InspectionsPage() {
                             Inspector:
                           </span>
                           <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {inspection.inspectorName || 'Not assigned'}
+                            {inspectorName(inspection.inspectorId) ||
+                              'Not assigned'}
                           </p>
                         </div>
                         <div>
@@ -430,7 +439,12 @@ export default function InspectionsPage() {
                             Date:
                           </span>
                           <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {format(inspection.scheduledDate, 'MMM dd, yyyy')}
+                            {inspection.scheduledDate
+                              ? format(
+                                  new Date(inspection.scheduledDate),
+                                  'MMM dd, yyyy'
+                                )
+                              : '—'}
                           </p>
                         </div>
                         <div>
@@ -439,38 +453,10 @@ export default function InspectionsPage() {
                           </span>
                           <p className="font-medium text-zinc-900 dark:text-zinc-100">
                             {inspection.defectsFound}
-                            {inspection.criticalDefects > 0 && (
-                              <span className="ml-1 text-red-600">
-                                ({inspection.criticalDefects} critical)
-                              </span>
-                            )}
                           </p>
                         </div>
                       </div>
                     </div>
-
-                    {/* Right Section */}
-                    {inspection.status !== InspectionStatus.scheduled &&
-                      inspection.compliancePercentage > 0 && (
-                        <div className="flex flex-col gap-2 lg:items-end">
-                          <div className="text-right">
-                            <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                              Compliance
-                            </p>
-                            <p
-                              className={`text-xl font-bold ${
-                                inspection.compliancePercentage >= 95
-                                  ? 'text-green-600'
-                                  : inspection.compliancePercentage >= 80
-                                    ? 'text-orange-600'
-                                    : 'text-red-600'
-                              }`}
-                            >
-                              {inspection.compliancePercentage.toFixed(2)}%
-                            </p>
-                          </div>
-                        </div>
-                      )}
                   </div>
                 </Link>
               ))}

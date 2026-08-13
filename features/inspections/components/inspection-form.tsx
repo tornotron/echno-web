@@ -32,12 +32,14 @@ import type { Inspection } from '@/types/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
-import { format } from 'date-fns';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+// The form only carries fields the backend inspection DTO owns. The inspection
+// number, initial status and the summary counts are assigned server-side, so
+// they are not part of the form state.
 export interface InspectionFormState {
   title: string;
   type: InspectionType | '';
@@ -49,16 +51,10 @@ export interface InspectionFormState {
   scheduledDate: string;
   scheduledTime: string;
   inspectorId: string;
-  contractorName: string;
   clientRepresentative: string;
   drawingReference: string;
-  observationsAndComments: string;
-  recommendations: string;
   weatherConditions: string;
   temperature: string;
-  reinspectionRequired: boolean;
-  reinspectionDate: string;
-  reinspectionNotes: string;
 }
 
 export interface InspectionFormSubmitData {
@@ -95,16 +91,10 @@ const EMPTY_FORM: InspectionFormState = {
   scheduledDate: '',
   scheduledTime: '',
   inspectorId: '',
-  contractorName: '',
   clientRepresentative: '',
   drawingReference: '',
-  observationsAndComments: '',
-  recommendations: '',
   weatherConditions: '',
   temperature: '',
-  reinspectionRequired: false,
-  reinspectionDate: '',
-  reinspectionNotes: '',
 };
 
 // ---------------------------------------------------------------------------
@@ -127,23 +117,15 @@ export function InspectionForm(props: InspectionFormProps) {
       status: inspection.status,
       result: inspection.result || '',
       projectId: inspection.projectId?.toString() || '',
-      location: inspection.location,
-      areaInspected: inspection.areaInspected,
-      scheduledDate: format(inspection.scheduledDate, 'yyyy-MM-dd'),
+      location: inspection.location || '',
+      areaInspected: inspection.areaInspected || '',
+      scheduledDate: inspection.scheduledDate || '',
       scheduledTime: inspection.scheduledTime || '',
       inspectorId: inspection.inspectorId.toString(),
-      contractorName: inspection.contractorName || '',
       clientRepresentative: inspection.clientRepresentative || '',
       drawingReference: inspection.drawingReference || '',
-      observationsAndComments: inspection.observationsAndComments || '',
-      recommendations: inspection.recommendations || '',
       weatherConditions: inspection.weatherConditions || '',
       temperature: inspection.temperature || '',
-      reinspectionRequired: inspection.reinspectionRequired,
-      reinspectionDate: inspection.reinspectionDate
-        ? format(inspection.reinspectionDate, 'yyyy-MM-dd')
-        : '',
-      reinspectionNotes: inspection.reinspectionNotes || '',
     };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -186,8 +168,6 @@ export function InspectionForm(props: InspectionFormProps) {
     if (!form.scheduledDate)
       newErrors.scheduledDate = 'Scheduled date is required';
     if (!form.inspectorId) newErrors.inspectorId = 'Please select an inspector';
-    if (form.reinspectionRequired && !form.reinspectionDate)
-      newErrors.reinspectionDate = 'Re-inspection date is required';
 
     setErrors(newErrors);
 
@@ -490,31 +470,18 @@ export function InspectionForm(props: InspectionFormProps) {
               )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="contractorName">
-                  Contractor Name (Optional)
-                </Label>
-                <Input
-                  id="contractorName"
-                  value={form.contractorName}
-                  onChange={(e) => setField('contractorName', e.target.value)}
-                  placeholder="e.g., ABC Constructions"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientRepresentative">
-                  Client Representative (Optional)
-                </Label>
-                <Input
-                  id="clientRepresentative"
-                  value={form.clientRepresentative}
-                  onChange={(e) =>
-                    setField('clientRepresentative', e.target.value)
-                  }
-                  placeholder="e.g., Mr. Sharma"
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="clientRepresentative">
+                Client Representative (Optional)
+              </Label>
+              <Input
+                id="clientRepresentative"
+                value={form.clientRepresentative}
+                onChange={(e) =>
+                  setField('clientRepresentative', e.target.value)
+                }
+                placeholder="e.g., Mr. Sharma"
+              />
             </div>
           </CardContent>
         </Card>
@@ -553,124 +520,6 @@ export function InspectionForm(props: InspectionFormProps) {
                   />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Observations & Recommendations */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {isEdit
-                ? 'Observations & Recommendations'
-                : 'Additional Information'}
-            </CardTitle>
-            <CardDescription>
-              {isEdit
-                ? 'Add observations, comments, and recommendations'
-                : 'Add any additional notes or observations'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="observationsAndComments">
-                Observations & Comments (Optional)
-              </Label>
-              <Textarea
-                id="observationsAndComments"
-                value={form.observationsAndComments}
-                onChange={(e) =>
-                  setField('observationsAndComments', e.target.value)
-                }
-                placeholder={
-                  isEdit
-                    ? 'Enter observations and comments...'
-                    : 'Enter any initial observations or special instructions...'
-                }
-                rows={4}
-              />
-            </div>
-
-            {isEdit && (
-              <div className="space-y-2">
-                <Label htmlFor="recommendations">
-                  Recommendations (Optional)
-                </Label>
-                <Textarea
-                  id="recommendations"
-                  value={form.recommendations}
-                  onChange={(e) => setField('recommendations', e.target.value)}
-                  placeholder="Enter recommendations..."
-                  rows={4}
-                />
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Re-inspection — edit mode only */}
-        {isEdit && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Re-inspection</CardTitle>
-              <CardDescription>
-                Manage re-inspection requirements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="reinspectionRequired"
-                  checked={form.reinspectionRequired}
-                  onChange={(e) => {
-                    const checked = e.target.checked;
-                    setForm((prev) => ({
-                      ...prev,
-                      reinspectionRequired: checked,
-                      ...(checked
-                        ? {}
-                        : { reinspectionDate: '', reinspectionNotes: '' }),
-                    }));
-                    clearError('reinspectionRequired');
-                    clearError('reinspectionDate');
-                  }}
-                  className="h-4 w-4 rounded border-zinc-300"
-                />
-                <Label htmlFor="reinspectionRequired" className="font-normal">
-                  Re-inspection Required
-                </Label>
-              </div>
-
-              {form.reinspectionRequired && (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="reinspectionDate">Re-inspection Date</Label>
-                    <Input
-                      id="reinspectionDate"
-                      type="date"
-                      value={form.reinspectionDate}
-                      onChange={(e) =>
-                        setField('reinspectionDate', e.target.value)
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="reinspectionNotes">
-                      Re-inspection Notes
-                    </Label>
-                    <Textarea
-                      id="reinspectionNotes"
-                      value={form.reinspectionNotes}
-                      onChange={(e) =>
-                        setField('reinspectionNotes', e.target.value)
-                      }
-                      placeholder="Enter re-inspection notes..."
-                      rows={3}
-                    />
-                  </div>
-                </>
-              )}
             </CardContent>
           </Card>
         )}

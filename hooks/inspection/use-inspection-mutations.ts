@@ -3,13 +3,13 @@ import { inspectionService } from '@/services/inspection-service';
 import type {
   CreateInspectionRequest,
   UpdateInspectionRequest,
-} from '@/types/inspection';
+} from '@tornotron/echno-core/inspection/types';
 import { inspectionKeys } from './inspection-keys';
 
 export const useCreateInspection = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreateInspectionRequest) => inspectionService.create(dto),
+    mutationFn: (req: CreateInspectionRequest) => inspectionService.create(req),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: inspectionKeys.lists() });
     },
@@ -19,8 +19,8 @@ export const useCreateInspection = () => {
 export const useUpdateInspection = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, dto }: { id: number; dto: UpdateInspectionRequest }) =>
-      inspectionService.update(id, dto),
+    mutationFn: ({ id, req }: { id: string; req: UpdateInspectionRequest }) =>
+      inspectionService.update(id, req),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: inspectionKeys.lists() });
       queryClient.invalidateQueries({
