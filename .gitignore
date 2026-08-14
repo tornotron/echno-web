@@ -47,3 +47,7 @@ next-env.d.ts
 # local
 local-docs/
 commit-msg.md
+
+# build/report artifacts
+lint_report.txt
+tsconfig.tsbuildinfo
