@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import {
-  useIssues,
-  useIssuesByProject,
+  useIssuesPage,
+  useIssueStats,
 } from '@tornotron/echno-core/issue/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
-import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import { IssueTable, IssueStatsCard } from '@/features/issues/components';
 import { PageHeader } from '@/components/common/page-header';
+import { useDebounce } from '@/hooks/use-debounce';
 import { routes } from '@/nav';
 
 export default function AllIssuesPage() {
@@ -24,58 +24,40 @@ export default function AllIssuesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const selectedProjectId =
-    projectFilter === 'all' ? undefined : Number(projectFilter);
+  // Debounce the search box so a request fires when the user pauses, not on
+  // every keystroke.
+  const debouncedSearch = useDebounce(searchQuery);
 
-  const { data: allIssues = [], isLoading: isAllIssuesLoading } = useIssues();
-  const { data: projectIssues = [], isLoading: isProjectIssuesLoading } =
-    useIssuesByProject(selectedProjectId);
+  const projectId = projectFilter === 'all' ? undefined : Number(projectFilter);
+  const status = statusFilter === 'all' ? undefined : statusFilter;
+  const type = typeFilter === 'all' ? undefined : typeFilter;
+  const search = debouncedSearch.trim() || undefined;
 
-  const issues = selectedProjectId ? projectIssues : allIssues;
-  const isLoading =
-    isProjectsLoading ||
-    (selectedProjectId ? isProjectIssuesLoading : isAllIssuesLoading);
+  // Filters (minus paging) shared by the page query and the stats query.
+  const filters = { projectId, search, type };
 
-  const filteredIssues = useMemo(() => {
-    return issues.filter((issue) => {
-      const q = searchQuery.toLowerCase();
-      const matchesSearch =
-        !searchQuery ||
-        issue.title.toLowerCase().includes(q) ||
-        issue.description?.toLowerCase().includes(q) ||
-        issue.creator?.name?.toLowerCase().includes(q);
-      const matchesStatus =
-        statusFilter === 'all' || issue.status === statusFilter;
-      const matchesType = typeFilter === 'all' || issue.type === typeFilter;
-      return matchesSearch && matchesStatus && matchesType;
-    });
-  }, [issues, searchQuery, statusFilter, typeFilter]);
+  const { data: page, isLoading: isPageLoading } = useIssuesPage({
+    ...filters,
+    status,
+    page: currentPage - 1,
+    size: itemsPerPage,
+  });
+  const { data: stats } = useIssueStats(filters);
 
-  const totalPages = Math.ceil(filteredIssues.length / itemsPerPage);
+  const paginatedIssues = page?.content ?? [];
+  const totalIssues = page?.totalElements ?? 0;
+  const totalPages = page?.totalPages ?? 0;
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedIssues = filteredIssues.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
 
-  const totalIssues = filteredIssues.length;
-  const openIssues = filteredIssues.filter(
-    (i) => i.status === IssueStatus.open
-  ).length;
-  const inProgressIssues = filteredIssues.filter(
-    (i) => i.status === IssueStatus.inProgress
-  ).length;
-  const resolvedIssues = filteredIssues.filter(
-    (i) => i.status === IssueStatus.resolved
-  ).length;
+  const isLoading = isProjectsLoading || isPageLoading;
 
   const hasActiveFilters =
-    !!searchQuery ||
+    !!search ||
     statusFilter !== 'all' ||
     typeFilter !== 'all' ||
     projectFilter !== 'all';
 
-  if (isLoading && issues.length === 0) {
+  if (isLoading && paginatedIssues.length === 0) {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-zinc-400" />
@@ -89,13 +71,12 @@ export default function AllIssuesPage() {
         title="Issues"
         description="Track and manage issues across all projects"
         actions={
-          selectedProjectId ? (
+          projectId ? (
             <Button asChild>
               <Link
                 href={
-                  routes.portfolio.projects.allProjects.detail(
-                    selectedProjectId
-                  ).issues.new
+                  routes.portfolio.projects.allProjects.detail(projectId).issues
+                    .new
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
@@ -107,15 +88,15 @@ export default function AllIssuesPage() {
       />
 
       <IssueStatsCard
-        totalIssues={totalIssues}
-        openIssues={openIssues}
-        inProgressIssues={inProgressIssues}
-        resolvedIssues={resolvedIssues}
+        totalIssues={stats?.total ?? 0}
+        openIssues={stats?.byStatus.open ?? 0}
+        inProgressIssues={stats?.byStatus.inProgress ?? 0}
+        resolvedIssues={stats?.byStatus.resolved ?? 0}
       />
 
       <IssueTable
         paginatedIssues={paginatedIssues}
-        filteredIssuesCount={filteredIssues.length}
+        filteredIssuesCount={totalIssues}
         startIndex={startIndex}
         itemsPerPage={itemsPerPage}
         onItemsPerPageChange={(n) => {
