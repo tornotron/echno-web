@@ -11,7 +11,11 @@ import {
 import { Badge } from '@/components/shadcn/badge';
 import { TableCell } from '@/components/shadcn/table';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
-import { DataTable, type DataTableColumn } from '@/components/common';
+import {
+  DataTable,
+  type DataTableColumn,
+  type DataTableManualControls,
+} from '@/components/common';
 import { EmployeeProjectsCell } from './employee-projects-cell';
 import { EmployeeStatusBadge } from './employee-status-badge';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
@@ -126,9 +130,22 @@ const columns: DataTableColumn<Employee>[] = [
 
 interface EmployeeTableProps {
   employees: Employee[];
+  /**
+   * When provided, the table is server-paginated: `employees` is the current
+   * page and search/filter/paging are delegated to these controls. Omit for
+   * the default client-side behavior.
+   */
+  manual?: DataTableManualControls;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export function EmployeeTable({ employees }: EmployeeTableProps) {
+export function EmployeeTable({
+  employees,
+  manual,
+  isLoading,
+  isError,
+}: EmployeeTableProps) {
   const router = useRouter();
 
   return (
@@ -137,6 +154,9 @@ export function EmployeeTable({ employees }: EmployeeTableProps) {
       columns={columns}
       getRowId={(employee) => employee.id}
       enableSelection
+      manual={manual}
+      isLoading={isLoading}
+      isError={isError}
       searchPlaceholder="Search by name, email, phone or ID..."
       searchPredicate={(employee, query) => {
         const q = query.toLowerCase();
