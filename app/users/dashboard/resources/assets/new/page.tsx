@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -8,6 +7,8 @@ import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
+import { getErrorMessage } from '@tornotron/echno-core';
+import { useCreateAsset } from '@/hooks/assets/use-assets';
 import {
   AssetForm,
   AssetFormData,
@@ -16,15 +17,19 @@ import {
 
 export default function NewAssetPage() {
   const router = useRouter();
-  const [isPending, setIsPending] = useState(false);
+  const createAsset = useCreateAsset();
+  const isPending = createAsset.isPending;
 
-  function handleSubmit(data: AssetFormData) {
-    setIsPending(true);
-    // TODO: replace with real mutation when asset create endpoint is wired
-    setTimeout(() => {
+  async function handleSubmit(data: AssetFormData) {
+    try {
+      await createAsset.mutateAsync(data);
       toast.success('Asset registered successfully!');
       router.push(routes.resources.assets.href);
-    }, 1000);
+    } catch (error) {
+      toast.error('Failed to register asset', {
+        description: getErrorMessage(error),
+      });
+    }
   }
 
   return (

@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -8,6 +7,7 @@ import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Cog, Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
+import { getErrorMessage } from '@tornotron/echno-core';
 import {
   Empty,
   EmptyMedia,
@@ -16,6 +16,7 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { useAsset } from '@/hooks/assets';
+import { useUpdateAsset } from '@/hooks/assets/use-assets';
 import {
   AssetForm,
   AssetFormData,
@@ -28,7 +29,8 @@ export default function EditAssetPage() {
   const router = useRouter();
 
   const { data: asset } = useAsset(assetId);
-  const [isPending, setIsPending] = useState(false);
+  const updateAsset = useUpdateAsset();
+  const isPending = updateAsset.isPending;
 
   if (!asset) {
     return (
@@ -49,14 +51,16 @@ export default function EditAssetPage() {
     );
   }
 
-  function handleSubmit(data: AssetFormData) {
-    setIsPending(true);
-    // TODO: replace with real mutation when asset update endpoint is wired
-    setTimeout(() => {
+  async function handleSubmit(data: AssetFormData) {
+    try {
+      await updateAsset.mutateAsync({ id: assetId, form: data });
       toast.success('Asset updated successfully!');
       router.push(routes.resources.assets.detail(assetId).href);
-      setIsPending(false);
-    }, 1000);
+    } catch (error) {
+      toast.error('Failed to update asset', {
+        description: getErrorMessage(error),
+      });
+    }
   }
 
   return (
