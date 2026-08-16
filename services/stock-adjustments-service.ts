@@ -1,6 +1,5 @@
-import { ApiError } from '@/lib/api/api-client';
+import { ApiError, api } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { mockStockAdjustments } from '@/components/shared/mock-data';
 import type {
   StockAdjustment,
   StockAdjustmentLineItem,
@@ -8,6 +7,7 @@ import type {
   StockAdjustmentStatus,
   StockAdjustmentReason,
 } from '@/types/resource';
+import type { StockAdjustmentSubmitData } from '@/features/stock-adjustments/components/stock-adjustment-form';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
@@ -112,17 +112,80 @@ function safeParseStockAdjustment(raw: Raw): StockAdjustment {
   }
 }
 
-// TODO: Replace mock data with real API calls once the stock-adjustments backend is available.
-//   getAll:  api.get<Raw[]>('/stock-adjustments/web')
-//   getById: api.get<Raw>(`/stock-adjustments/web/${id}`)
+const BASE = '/stock-adjustments/web';
+
+/**
+ * Maps the adjustment form (header + line items) to the backend
+ * `StockAdjustmentCreationDto`. The form collects display strings for
+ * type/reason/location and per-line current/counted quantities; the line
+ * adjustment is `counted - current`. `justification` is required by the
+ * backend, so it falls back to the notes or a placeholder.
+ */
+function toPayload(data: StockAdjustmentSubmitData): Record<string, unknown> {
+  const { form, items } = data;
+  const lineItems = items.map((item) => {
+    const adjustmentQuantity = item.countedStock - item.currentStock;
+    return {
+      description: item.description || undefined,
+      systemQuantity: item.currentStock,
+      physicalQuantity: item.countedStock,
+      adjustmentQuantity,
+      unit: item.unit || undefined,
+      unitValue: item.unitCost,
+      totalAdjustmentValue: adjustmentQuantity * item.unitCost,
+      reason: item.reason || form.adjustmentReason || undefined,
+    };
+  });
+  const totalAdjustmentValue = lineItems.reduce(
+    (sum, li) => sum + (li.totalAdjustmentValue ?? 0),
+    0
+  );
+  const totalVarianceQuantity = lineItems.reduce(
+    (sum, li) => sum + (li.adjustmentQuantity ?? 0),
+    0
+  );
+  return {
+    adjustmentNumber: form.adjustmentNumber || undefined,
+    type: form.adjustmentType || undefined,
+    status: 'draft',
+    adjustmentDate: form.adjustmentDate || undefined,
+    effectiveDate: form.adjustmentDate || undefined,
+    primaryReason: form.adjustmentReason || undefined,
+    justification: form.notes || 'Stock adjustment',
+    notes: form.notes || undefined,
+    totalAdjustmentValue,
+    totalVarianceQuantity,
+    lineItems,
+  };
+}
+
+/** Backend-backed stock adjustments (`/api/v1/stock-adjustments/web`). */
 export const stockAdjustmentsService = {
   async getAll(): Promise<StockAdjustment[]> {
-    return mockStockAdjustments.map((raw) => safeParseStockAdjustment(raw));
+    const data = await api.get<Raw>(BASE);
+    const rows: Raw[] = Array.isArray(data) ? data : (data?.content ?? []);
+    return rows.map((raw) => safeParseStockAdjustment(raw));
   },
 
   async getById(id: number): Promise<StockAdjustment> {
-    const raw = mockStockAdjustments.find((a) => a.id === id);
-    if (!raw) throw new ApiError(`Stock adjustment ${id} not found.`, 404);
+    const raw = await api.get<Raw>(`${BASE}/${id}`);
     return safeParseStockAdjustment(raw);
+  },
+
+  async create(data: StockAdjustmentSubmitData): Promise<StockAdjustment> {
+    const raw = await api.post<Raw>(BASE, toPayload(data));
+    return safeParseStockAdjustment(raw);
+  },
+
+  async update(
+    id: number,
+    data: StockAdjustmentSubmitData
+  ): Promise<StockAdjustment> {
+    const raw = await api.put<Raw>(`${BASE}/${id}`, toPayload(data));
+    return safeParseStockAdjustment(raw);
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`${BASE}/${id}`);
   },
 };
