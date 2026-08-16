@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState, useEffect } from 'react';
+import { use, useState } from 'react';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -43,6 +43,13 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
+import { getErrorMessage } from '@tornotron/echno-core';
+import {
+  useStockAdjustment,
+  useUpdateStockAdjustment,
+} from '@/hooks/stock-adjustments/use-stock-adjustments';
+import type { StockAdjustmentSubmitData } from '@/features/stock-adjustments/components/stock-adjustment-form';
+import type { StockAdjustment } from '@/types/resource';
 
 interface AdjustmentItem {
   id: number;
@@ -54,101 +61,90 @@ interface AdjustmentItem {
   reason: string;
 }
 
-// Mock data
-const mockStockAdjustments = [
-  {
-    id: 1,
-    adjustmentNumber: 'SA-2024-001',
-    adjustmentType: 'Physical Count',
-    adjustmentDate: new Date('2024-01-15'),
-    reason: 'Annual stock verification',
-    location: 'Warehouse A',
-    status: 'Completed',
-    createdBy: 15,
-    approvedBy: 3,
-    approvedAt: new Date('2024-01-16'),
-    createdAt: new Date('2024-01-15'),
-    updatedAt: new Date('2024-01-16'),
-    notes:
-      'Annual physical count completed. Minor discrepancies found in Zone B.',
-    items: [
-      {
-        id: 1,
-        description: 'Portland Cement - Grade 43',
-        currentStock: 500,
-        countedStock: 485,
-        unit: 'bags',
-        unitCost: 350,
-        reason: 'Damaged bags found during inspection',
-      },
-      {
-        id: 2,
-        description: 'Steel Rebar 12mm',
-        currentStock: 1200,
-        countedStock: 1215,
-        unit: 'pcs',
-        unitCost: 65,
-        reason: 'Miscount in previous entry',
-      },
-    ],
-  },
-];
-
 export default function EditStockAdjustmentPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const router = useRouter();
+  const { data: adjustment, isLoading, isError } = useStockAdjustment(
+    Number.parseInt(id)
+  );
 
-  const [loading, setLoading] = useState(true);
-  const [adjustmentNumber, setAdjustmentNumber] = useState('');
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-7xl space-y-6">
+        <div className="flex h-96 items-center justify-center">
+          <div className="text-zinc-500 dark:text-zinc-400">
+            Loading adjustment...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !adjustment) {
+    return (
+      <Empty variant="default">
+        <EmptyMedia variant="icon">
+          <Settings className="size-6" />
+        </EmptyMedia>
+        <EmptyHeader>
+          <EmptyTitle>Stock adjustment not found</EmptyTitle>
+          <EmptyDescription>
+            This record may have been deleted or the link is invalid.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button asChild variant="outline">
+          <Link href={routes.resources.stockAdjustments.href}>
+            Back to Stock Adjustments
+          </Link>
+        </Button>
+      </Empty>
+    );
+  }
+
+  return <AdjustmentEditor adjustment={adjustment} id={id} />;
+}
+
+function AdjustmentEditor({
+  adjustment,
+  id,
+}: {
+  adjustment: StockAdjustment;
+  id: string;
+}) {
+  const numericId = Number.parseInt(id);
+  const router = useRouter();
+  const updateAdjustment = useUpdateStockAdjustment();
+
+  const [adjustmentNumber] = useState(adjustment.adjustmentNumber);
 
   // Basic Information
-  const [adjustmentDate, setAdjustmentDate] = useState('');
-  const [adjustmentType, setAdjustmentType] = useState('Physical Count');
+  const [adjustmentDate, setAdjustmentDate] = useState(
+    format(adjustment.adjustmentDate, 'yyyy-MM-dd')
+  );
+  const [adjustmentType, setAdjustmentType] = useState<string>(
+    adjustment.type
+  );
   const [location, setLocation] = useState('');
-  const [adjustmentReason, setAdjustmentReason] = useState('');
-  const [notes, setNotes] = useState('');
+  const [adjustmentReason, setAdjustmentReason] = useState(
+    adjustment.justification || adjustment.primaryReason
+  );
+  const [notes, setNotes] = useState(adjustment.notes || '');
 
   // Adjustment Items
-  const [items, setItems] = useState<AdjustmentItem[]>([]);
-
-  useEffect(() => {
-    // Simulate API call
-    const foundAdjustment = mockStockAdjustments.find(
-      (sa) => sa.id === Number.parseInt(id)
-    );
-
-    if (foundAdjustment) {
-      setTimeout(() => {
-        setAdjustmentNumber(foundAdjustment.adjustmentNumber);
-        setAdjustmentDate(format(foundAdjustment.adjustmentDate, 'yyyy-MM-dd'));
-        setAdjustmentType(foundAdjustment.adjustmentType);
-        setLocation(foundAdjustment.location);
-        setAdjustmentReason(foundAdjustment.reason);
-        setNotes(foundAdjustment.notes || '');
-
-        // Map items
-        const adjustmentItems: AdjustmentItem[] = foundAdjustment.items.map(
-          (item) => ({
-            id: item.id,
-            description: item.description,
-            currentStock: item.currentStock,
-            countedStock: item.countedStock,
-            unit: item.unit,
-            unitCost: item.unitCost,
-            reason: item.reason,
-          })
-        );
-        setItems(adjustmentItems);
-        setLoading(false);
-      }, 0);
-    } else {
-      setTimeout(() => setLoading(false), 0);
-    }
-  }, [id]);
+  const [items, setItems] = useState<AdjustmentItem[]>(
+    adjustment.lineItems.map((li, index) => ({
+      id: li.id || index + 1,
+      description: li.description,
+      currentStock: li.systemQuantity,
+      countedStock: li.physicalQuantity,
+      unit: li.unit,
+      unitCost: li.unitValue,
+      reason: li.reason || li.reasonDetails || '',
+    }))
+  );
 
   const addItem = () => {
     setItems([
@@ -208,7 +204,7 @@ export default function EditStockAdjustmentPage({
     return { totalItems, totalImpact, surplusItems, shortageItems };
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Validation
     if (!location) {
       toast.error('Please select a location');
@@ -229,46 +225,32 @@ export default function EditStockAdjustmentPage({
       return;
     }
 
-    toast.success('Stock Adjustment updated successfully');
-    router.push(routes.resources.stockAdjustments.detail(id).href);
+    const data: StockAdjustmentSubmitData = {
+      form: {
+        adjustmentNumber,
+        adjustmentDate,
+        adjustmentType,
+        location,
+        adjustmentReason,
+        notes,
+      },
+      items,
+    };
+
+    try {
+      await updateAdjustment.mutateAsync({ id: numericId, data });
+      toast.success('Stock Adjustment updated successfully');
+      router.push(routes.resources.stockAdjustments.detail(id).href);
+    } catch (error) {
+      toast.error('Failed to update stock adjustment', {
+        description: getErrorMessage(error),
+      });
+    }
   };
 
   const handleCancel = () => {
     router.push(routes.resources.stockAdjustments.detail(id).href);
   };
-
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-7xl space-y-6">
-        <div className="flex h-96 items-center justify-center">
-          <div className="text-zinc-500 dark:text-zinc-400">
-            Loading adjustment...
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!adjustmentNumber) {
-    return (
-      <Empty variant="default">
-        <EmptyMedia variant="icon">
-          <Settings className="size-6" />
-        </EmptyMedia>
-        <EmptyHeader>
-          <EmptyTitle>Stock adjustment not found</EmptyTitle>
-          <EmptyDescription>
-            This record may have been deleted or the link is invalid.
-          </EmptyDescription>
-        </EmptyHeader>
-        <Button asChild variant="outline">
-          <Link href={routes.resources.stockAdjustments.href}>
-            Back to Stock Adjustments
-          </Link>
-        </Button>
-      </Empty>
-    );
-  }
 
   const { totalItems, totalImpact, surplusItems, shortageItems } =
     calculateTotals();
@@ -284,7 +266,7 @@ export default function EditStockAdjustmentPage({
             <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit}>
+            <Button onClick={handleSubmit} disabled={updateAdjustment.isPending}>
               <Save className="mr-2 h-4 w-4" />
               Save Changes
             </Button>
@@ -536,16 +518,16 @@ export default function EditStockAdjustmentPage({
                         <div className="flex items-center gap-1">
                           {difference > 0 ? (
                             <TrendingUp className="h-4 w-4 text-green-500" />
-                          ) : difference < 0 ? (
+                          ) : (difference < 0 ? (
                             <TrendingDown className="h-4 w-4 text-red-500" />
-                          ) : null}
+                          ) : null)}
                           <span
                             className={`font-semibold ${
                               difference > 0
                                 ? 'text-green-600 dark:text-green-400'
-                                : difference < 0
+                                : (difference < 0
                                   ? 'text-red-600 dark:text-red-400'
-                                  : 'text-zinc-900 dark:text-zinc-100'
+                                  : 'text-zinc-900 dark:text-zinc-100')
                             }`}
                           >
                             {difference > 0 ? '+' : ''}
@@ -562,9 +544,9 @@ export default function EditStockAdjustmentPage({
                           className={`font-semibold ${
                             impact > 0
                               ? 'text-green-600 dark:text-green-400'
-                              : impact < 0
+                              : (impact < 0
                                 ? 'text-red-600 dark:text-red-400'
-                                : 'text-zinc-900 dark:text-zinc-100'
+                                : 'text-zinc-900 dark:text-zinc-100')
                           }`}
                         >
                           {impact > 0 ? '+' : ''}₹{impact.toLocaleString()}
@@ -619,9 +601,9 @@ export default function EditStockAdjustmentPage({
                   className={`text-lg font-bold ${
                     totalImpact > 0
                       ? 'text-green-600 dark:text-green-400'
-                      : totalImpact < 0
+                      : (totalImpact < 0
                         ? 'text-red-600 dark:text-red-400'
-                        : 'text-zinc-900 dark:text-zinc-100'
+                        : 'text-zinc-900 dark:text-zinc-100')
                   }`}
                 >
                   {totalImpact > 0 ? '+' : ''}₹
