@@ -1,4 +1,4 @@
-import { ApiError } from '@/lib/api/api-client';
+import { ApiError, api } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import type {
   Asset,
@@ -6,7 +6,7 @@ import type {
   AssetCondition,
   AssetType,
 } from '@/types/resource';
-import { mockAssets } from '@/components/shared/mock-data';
+import type { AssetFormData } from '@/features/assets/components/asset-form';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
@@ -90,17 +90,81 @@ function parseAsset(raw: Raw): Asset {
   };
 }
 
-// TODO: Replace mock data with real API calls once the assets backend is available.
-//   getAll:  api.get<Raw[]>('/assets/web')
-//   getById: api.get<Raw>(`/assets/web/${id}`)
+const BASE = '/assets/web';
+
+const text = (v: string): string | undefined => (v.trim() === '' ? undefined : v);
+const number = (v: string): number | undefined =>
+  v.trim() === '' ? undefined : Number(v);
+
+/**
+ * Maps the (all-string) asset form to the backend `AssetCreationDto` JSON.
+ * Empty fields are dropped; `condition` is sent as-is (the backend accepts it
+ * via `@JsonAlias` onto `assetCondition`); `currentValue` defaults to the
+ * purchase price on create.
+ */
+function formToPayload(form: AssetFormData): Record<string, unknown> {
+  const purchasePrice = number(form.purchasePrice);
+  return {
+    name: form.name,
+    description: text(form.description),
+    type: text(form.type),
+    category: text(form.category),
+    status: form.status,
+    condition: form.condition,
+    locationId: number(form.locationId),
+    assignedTo: text(form.assignedTo),
+    assignedProject: text(form.assignedProject),
+    purchaseDate: text(form.purchaseDate),
+    purchasePrice,
+    currentValue: purchasePrice,
+    depreciationRate: number(form.depreciationRate),
+    manufacturer: text(form.manufacturer),
+    model: text(form.model),
+    serialNumber: text(form.serialNumber),
+    registrationNumber: text(form.registrationNumber),
+    warrantyExpiry: text(form.warrantyExpiry),
+    maintenanceSchedule: text(form.maintenanceSchedule),
+    usageHours: number(form.usageHours),
+    maxUsageHours: number(form.maxUsageHours),
+    lastMaintenanceDate: text(form.lastMaintenanceDate),
+    nextMaintenanceDate: text(form.nextMaintenanceDate),
+    fuelType: text(form.fuelType),
+    insuranceProvider: text(form.insuranceProvider),
+    policyNumber: text(form.policyNumber),
+    insuranceExpiry: text(form.insuranceExpiry),
+    notes: text(form.notes),
+  };
+}
+
+/** Backend-backed asset register (`/api/v1/assets/web`). */
 export const assetsService = {
   async getAll(): Promise<Asset[]> {
-    return mockAssets;
+    const data = await api.get<Raw>(BASE);
+    const rows: Raw[] = Array.isArray(data) ? data : (data?.content ?? []);
+    try {
+      return rows.map((row) => parseAsset(row));
+    } catch (error) {
+      logger.error('Failed to parse assets:', error);
+      throw new ApiError('Failed to process asset data. Please try again.', 422);
+    }
   },
 
   async getById(id: number): Promise<Asset> {
-    const asset = mockAssets.find((a) => a.id === id);
-    if (!asset) throw new ApiError(`Asset ${id} not found.`, 404);
-    return asset;
+    const data = await api.get<Raw>(`${BASE}/${id}`);
+    return parseAsset(data);
+  },
+
+  async create(form: AssetFormData): Promise<Asset> {
+    const data = await api.post<Raw>(BASE, formToPayload(form));
+    return parseAsset(data);
+  },
+
+  async update(id: number, form: AssetFormData): Promise<Asset> {
+    const data = await api.put<Raw>(`${BASE}/${id}`, formToPayload(form));
+    return parseAsset(data);
+  },
+
+  async remove(id: number): Promise<void> {
+    await api.delete(`${BASE}/${id}`);
   },
 };
