@@ -1,11 +1,14 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { FileText, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-import { useSubContract } from '@/hooks/sub-contracts';
+import { toast } from '@/lib/styles/toast-styles';
+import { getErrorMessage } from '@tornotron/echno-core';
+import { useSubContract, useUpdateSubContract } from '@/hooks/sub-contracts';
+import type { SubContractFormValues } from '@/features/sub-contracts/components/sub-contract-form';
 import {
   Empty,
   EmptyErrorMedia,
@@ -17,13 +20,27 @@ import { SubContractForm } from '@/features/sub-contracts';
 
 export default function SubContractEditPage() {
   const params = useParams();
+  const router = useRouter();
   const isEditMode = params.id !== 'new';
   const contractId = isEditMode ? Number(params.id) : 0;
+  const updateSubContract = useUpdateSubContract();
   const {
     data: subContractData,
     isLoading,
     isError,
   } = useSubContract(contractId);
+
+  async function handleSubmit(values: SubContractFormValues) {
+    try {
+      await updateSubContract.mutateAsync({ id: contractId, values });
+      toast.success('Sub-contract updated successfully');
+      router.push(routes.thirdParty.subContracts.detail(contractId).href);
+    } catch (error) {
+      toast.error('Failed to update sub-contract', {
+        description: getErrorMessage(error),
+      });
+    }
+  }
 
   if (isEditMode && isLoading) {
     return (
@@ -59,6 +76,8 @@ export default function SubContractEditPage() {
       initialData={subContractData}
       isEditMode={isEditMode}
       id={params.id as string}
+      onSubmit={handleSubmit}
+      isSubmitting={updateSubContract.isPending}
     />
   );
 }

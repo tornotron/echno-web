@@ -47,10 +47,40 @@ interface Milestone {
   date: string;
 }
 
+export interface SubContractFormValues {
+  contractId: string;
+  contractorName: string;
+  contactPerson: string;
+  phone: string;
+  email: string;
+  address: string;
+  workType: string;
+  status: string;
+  scope: string;
+  contractValue: number;
+  totalPaid: number;
+  totalDue: number;
+  startDate: string;
+  endDate: string;
+  completionPercentage: number;
+  gstNumber: string;
+  panNumber: string;
+  accountNumber: string;
+  bankName: string;
+  ifscCode: string;
+  paymentTerms: string;
+  milestones: Milestone[];
+  notes: string;
+}
+
 export interface SubContractFormProps {
   initialData?: SubContract;
   isEditMode: boolean;
   id?: string;
+  /** When provided, called with the validated form values instead of the mock submit. */
+  onSubmit?: (values: SubContractFormValues) => void;
+  /** Disables the submit button while a mutation is in flight. */
+  isSubmitting?: boolean;
 }
 
 function normalizeDate(date?: Date | string, fallbackToday = false): string {
@@ -66,16 +96,19 @@ export function SubContractForm({
   initialData,
   isEditMode,
   id,
+  onSubmit,
+  isSubmitting = false,
 }: SubContractFormProps) {
   const router = useRouter();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SubContractFormValues>({
     contractId: initialData?.contractId ?? '',
     contractorName: initialData?.contractorName ?? '',
     contactPerson: initialData?.contactPerson ?? '',
     phone: initialData?.phone ?? '',
     email: initialData?.email ?? '',
     address: initialData?.address ?? '',
+    workType: initialData?.type ?? 'construction',
     status: initialData?.status ?? 'active',
     scope: initialData?.scope ?? '',
     contractValue: initialData?.contractValue ?? 0,
@@ -161,6 +194,10 @@ export function SubContractForm({
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       toast.error('Please fill in all required fields');
+      return;
+    }
+    if (onSubmit) {
+      onSubmit(formData);
       return;
     }
     setTimeout(() => {
@@ -286,9 +323,9 @@ export function SubContractForm({
                   <div className="space-y-2">
                     <Label htmlFor="workType">Work Type</Label>
                     <Select
-                      value={formData.status}
+                      value={formData.workType}
                       onValueChange={(value) =>
-                        handleInputChange('status', value)
+                        handleInputChange('workType', value)
                       }
                     >
                       <SelectTrigger>
@@ -723,7 +760,7 @@ export function SubContractForm({
             {/* Action Buttons */}
             <Card>
               <CardContent className="space-y-2 pt-6">
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
                   <Save className="mr-2 h-4 w-4" />
                   {isEditMode ? 'Update Sub-Contract' : 'Create Sub-Contract'}
                 </Button>
