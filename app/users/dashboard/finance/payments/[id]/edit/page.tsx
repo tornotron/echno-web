@@ -22,7 +22,7 @@ import {
 } from '@/components/shadcn/select';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
 import {
@@ -126,7 +126,7 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
   const router = useRouter();
   const { data: vendors = [] } = useVendors();
   const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
   const { mutate: updatePayment, isPending } = useUpdatePayment();

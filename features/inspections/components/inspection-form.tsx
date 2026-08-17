@@ -30,7 +30,7 @@ import {
 } from '@/types/inspection';
 import type { Inspection } from '@/types/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 
 // ---------------------------------------------------------------------------
@@ -106,7 +106,7 @@ export function InspectionForm(props: InspectionFormProps) {
   const { isSubmitting, onCancel } = props;
 
   const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
 
   const [form, setForm] = useState<InspectionFormState>(() => {
     if (props.mode !== 'edit') return EMPTY_FORM;

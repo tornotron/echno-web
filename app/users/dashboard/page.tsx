@@ -47,7 +47,7 @@ import {
   RadialBar,
 } from 'recharts';
 import { dashboardData } from '@/components/shared/mock-data';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useTasks } from '@tornotron/echno-core/task/hooks';
 import { useIssues } from '@tornotron/echno-core/issue/hooks';
@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
   // Real data hooks
   const { data: user } = useUser();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const { data: projects = [] } = useProjects();
   const { data: tasks = [] } = useTasks();
   const { data: issues = [] } = useIssues();

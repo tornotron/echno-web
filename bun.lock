@@ -24,7 +24,7 @@
         "@radix-ui/react-tabs": "^1.1.13",
         "@radix-ui/react-tooltip": "^1.2.8",
         "@tanstack/react-query": "^5.90.12",
-        "@tornotron/echno-core": "^1.1.0",
+        "@tornotron/echno-core": "^1.2.1",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "cmdk": "^1.1.1",
@@ -459,7 +459,7 @@
 
     "@tanstack/react-query": ["@tanstack/react-query@5.101.0", "", { "dependencies": { "@tanstack/query-core": "5.101.0" }, "peerDependencies": { "react": "^18 || ^19" } }, "sha512-rLlJXSpkqfizLWgkR5+eLeIk0MvTx/meEIR7LRjxic+qxiQP8zVjq7BqQkiCMNLQBlLfuOLqqr6KO5GtrDlmSg=="],
 
-    "@tornotron/echno-core": ["@tornotron/echno-core@1.1.0", "https://npm.pkg.github.com/download/@tornotron/echno-core/1.1.0/893c79d6084cc13362f8481fc054781bbb5b2865", { "dependencies": { "@tanstack/react-query": "^5.90.12", "zod": "^4.3.6" }, "peerDependencies": { "react": ">=18" } }, "sha512-B4izgD88KmnEzG1s/mjdO9/l3e15Yh99dogyx04SjaRb8WrWnT8Pm1k5j+65Wn+ey+jJmiHBL+OxiFFbkjhS0w=="],
+    "@tornotron/echno-core": ["@tornotron/echno-core@1.2.1", "https://npm.pkg.github.com/download/@tornotron/echno-core/1.2.1/f5977a62d19a3a4401123b6fa8ec495287b0c145", { "dependencies": { "@tanstack/react-query": "^5.90.12", "zod": "^4.3.6" }, "peerDependencies": { "react": ">=18" } }, "sha512-POAWu/JyVZko3iQ4RaRS1phC2AIR8KmPtoGerxaU63XW+h9ZEPVcUJxgqusjBMNISc3Lf0KPsy8YRsN3pQ3EFQ=="],
 
     "@tybys/wasm-util": ["@tybys/wasm-util@0.10.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-RoBvJ2X0wuKlWFIjrwffGw1IqZHKQqzIchKaadZZfnNpsAYp2mM0h36JtPCjNDAHGgYez/15uMBpfGwchhiMgg=="],
 

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { usePayments } from '@/hooks/payments';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
 import { PageHeader } from '@/components/common';
@@ -20,7 +20,7 @@ export default function PaymentsPage() {
   const { data: vendors = [] } = useVendors();
   const { data: payments = [], isLoading, isError } = usePayments();
   const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
 

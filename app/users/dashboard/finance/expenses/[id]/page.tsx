@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { useExpenseById } from '@/hooks/expenses';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -99,7 +99,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
   const { data: expense, isLoading, isError } = useExpenseById(id);
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
 
   if (isLoading)
     return (
