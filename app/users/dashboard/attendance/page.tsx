@@ -98,7 +98,7 @@ import { useAttendanceRole } from '@/hooks/attendance';
 import { AttendanceRole } from '@tornotron/echno-core/attendance/types';
 import { useLogMovement } from '@tornotron/echno-core/movement/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { EmployeeDashboard } from '@/features/attendance/components/dashboard/employee-dashboard';
 import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
 
@@ -188,7 +188,7 @@ function AttendancePage() {
 
   // ── Server data ──────────────────────────────────────────────────────────
   const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const approveMutation = useApproveAttendance();
   const logMovementMutation = useLogMovement();
   const markAbsentMutation = useMarkAbsent();

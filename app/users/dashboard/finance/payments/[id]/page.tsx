@@ -2,7 +2,7 @@
 
 import { use } from 'react';
 import { usePaymentById } from '@/hooks/payments';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -55,7 +55,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const { data: payment, isLoading, isError } = usePaymentById(id);
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
 
   const getUserName = (userId: number): string => {
     const employee = employees.find((e) => e.id === userId);

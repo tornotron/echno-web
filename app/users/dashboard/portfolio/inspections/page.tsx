@@ -36,7 +36,7 @@ import {
 } from '@/types/inspection';
 import { useInspections } from '@/hooks/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { routes } from '@/nav';
 
 const getStatusBadgeColor = (status: InspectionStatus): string => {
@@ -75,7 +75,7 @@ const getResultBadgeColor = (result: InspectionResult): string => {
 
 export default function InspectionsPage() {
   const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const { data: inspections = [] } = useInspections();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);

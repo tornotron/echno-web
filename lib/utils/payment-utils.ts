@@ -2,7 +2,7 @@ import {
   ConstructionPayment,
   ConstructionPayeeType,
 } from '@/types/finance/payment';
-import { Employee } from '@tornotron/echno-core/employee/types';
+import { EmployeeLookup } from '@tornotron/echno-core/employee/types';
 import { Labour } from '@tornotron/echno-core/labour/types';
 import { Vendor } from '@tornotron/echno-core/vendor/types';
 import type { SubContract } from '@/types/third-party/sub-contract';
@@ -16,7 +16,7 @@ export interface PayeeInfo {
 
 export interface PayeeDatasets {
   vendors: Vendor[];
-  employees: Employee[];
+  employees: EmployeeLookup[];
   subContracts: SubContract[];
   labour: Labour[];
 }
@@ -135,7 +135,7 @@ export function getPayeesByType(
   switch (type) {
     case ConstructionPayeeType.EMPLOYEE: {
       return datasets.employees
-        .filter((e): e is Employee & { id: number } => e.id != null)
+        .filter((e): e is EmployeeLookup & { id: number } => e.id != null)
         .map((e) => ({
           id: e.id,
           name: e.name,

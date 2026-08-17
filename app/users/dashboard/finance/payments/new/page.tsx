@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { useSubContracts } from '@/hooks/sub-contracts';
@@ -57,7 +57,7 @@ export default function NewPaymentPage() {
   const router = useRouter();
   const { data: vendors = [] } = useVendors();
   const { data: projects = [] } = useProjects();
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
   const { mutate: createPayment, isPending } = useCreatePayment();
