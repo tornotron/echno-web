@@ -13,69 +13,31 @@ const MARKETING_PATHS = new Set([
 ]);
 
 /**
- * Builds a Content-Security-Policy carrying a fresh per-request script nonce.
- * The nonce lets script-src drop 'unsafe-inline' and 'unsafe-eval': Next.js reads
- * it from the request's content-security-policy header and stamps it onto the
- * scripts it emits, so its own inline bootstrap is allowed while an injected inline
- * <script> is not. No 'strict-dynamic', so host allow-lists still apply ('self' for
- * the chunk files, the Cloudflare host for its beacon). Styles keep 'unsafe-inline'
- * because Next injects inline <style> that cannot be nonced.
- */
-function buildCsp() {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  const nonce = btoa(String.fromCodePoint(...bytes));
-  const policy = [
-    "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://static.cloudflareinsights.com`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://echno-object-store.blr1.digitaloceanspaces.com https://images.unsplash.com",
-    "font-src 'self' data:",
-    "connect-src 'self' https://cloudflareinsights.com",
-    "frame-ancestors 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    'report-uri /api/csp-report',
-  ].join('; ');
-  return { nonce, policy };
-}
-
-/**
- * Auth middleware + Content-Security-Policy.
+ * Auth middleware
  *
- * Enforces authentication and session-state routing, and sets the CSP (with the
- * script nonce above) on every document response. Authorization (what a user is
- * allowed to do) is the backend's job and the frontend's role system; this layer
- * only decides which page tree the request belongs in.
+ * Enforces authentication and session-state routing. Authorization (what a
+ * user is allowed to do) is the backend's job and the frontend's role system;
+ * this layer only decides which page tree the request belongs in.
  *
  * Flow (top to bottom, first match wins):
  *   1. Session error  → bounce to home with error param.
  *   2. Anonymous on protected route → bounce to home with callback.
  *   3. Authenticated on marketing route (no error param) → forward to dashboard.
- *   4. Otherwise pass through (with the nonce set on the forwarded request so Next
- *      can stamp its scripts).
+ *   4. Otherwise pass through.
  *
- * The matcher (below) excludes API routes, so the BFF proxy path is never made to
- * decrypt the session cookie here; it resolves auth itself.
+ * Session revocation is detected by the JWT callback in `auth.ts`, which
+ * stamps `req.auth.error = 'SessionRevoked'`. We do not re-check the
+ * revocation store here — single source of truth.
+ *
+ * The matcher (below) intentionally excludes API routes; each API route is
+ * responsible for its own auth handling. This avoids decrypting the JWT
+ * cookie on every backend proxy call inside the middleware layer.
  */
 export default auth((req) => {
   const { pathname } = req.nextUrl;
   const isLoggedIn = !!req.auth;
   const sessionError = req.auth?.error;
   const hasErrorParam = req.nextUrl.searchParams.has('error');
-
-  const { nonce, policy } = buildCsp();
-  const withCsp = (res: NextResponse) => {
-    res.headers.set('content-security-policy', policy);
-    return res;
-  };
-  // Pass the request through, forwarding the nonce so Next.js stamps its scripts.
-  const passThrough = () => {
-    const requestHeaders = new Headers(req.headers);
-    requestHeaders.set('x-nonce', nonce);
-    requestHeaders.set('content-security-policy', policy);
-    return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
-  };
 
   // 1. Session errors (expired refresh, revoked session) → home with error.
   //    Home itself is allowed through so it can render the error toast.
@@ -84,7 +46,7 @@ export default auth((req) => {
     sessionError === 'SessionRevoked'
   ) {
     if (pathname === '/') {
-      return passThrough();
+      return NextResponse.next();
     }
 
     const url = new URL('/', req.url);
@@ -98,7 +60,7 @@ export default auth((req) => {
         error: sessionError,
       });
     }
-    return withCsp(NextResponse.redirect(url));
+    return NextResponse.redirect(url);
   }
 
   // 2. Anonymous user trying to reach a protected area → login (home) with callback.
@@ -107,7 +69,7 @@ export default auth((req) => {
   if (!isLoggedIn && isProtected) {
     const url = new URL('/', req.url);
     url.searchParams.set('callbackUrl', pathname);
-    return withCsp(NextResponse.redirect(url));
+    return NextResponse.redirect(url);
   }
 
   // 3. Authenticated user on a marketing page → straight to dashboard.
@@ -119,28 +81,28 @@ export default auth((req) => {
     MARKETING_PATHS.has(pathname) &&
     !(pathname === '/' && hasErrorParam)
   ) {
-    return withCsp(NextResponse.redirect(new URL('/users/dashboard', req.url)));
+    return NextResponse.redirect(new URL('/users/dashboard', req.url));
   }
 
-  // 4. Pass through.
-  return passThrough();
+  return NextResponse.next();
 });
 
 /**
- * Matcher: every document request, so the CSP is set app-wide (matching the
- * previous static header). API routes and Next's static assets are excluded -
- * the BFF at `/api/v1/*` resolves auth itself, and decrypting the session cookie
- * for every backend proxy call would add latency to the hottest path. Prefetches
- * are excluded so a cached prefetch response cannot carry a stale nonce.
+ * Matcher: only the pages this middleware actually needs to gate.
+ *
+ * We deliberately omit `/api/*` — API routes resolve auth themselves where
+ * needed (e.g. the BFF at `/api/v1/*` calls `getSessionTokens`). Decrypting
+ * the JWT cookie inside middleware for every backend proxy call is wasted
+ * work and adds latency to the hottest path in the app.
  */
 export const config = {
   matcher: [
-    {
-      source: '/((?!api|_next/static|_next/image|favicon.ico).*)',
-      missing: [
-        { type: 'header', key: 'next-router-prefetch' },
-        { type: 'header', key: 'purpose', value: 'prefetch' },
-      ],
-    },
+    '/',
+    '/about',
+    '/features',
+    '/plans',
+    '/contact',
+    '/users/dashboard/:path*',
+    '/profile/:path*',
   ],
 };
