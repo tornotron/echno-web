@@ -1,13 +1,14 @@
 import type { NextConfig } from 'next';
 
 /**
- * Report-only Content-Security-Policy. Permissive where the app is known to need
- * it (Next.js ships inline scripts/styles; images come from DO Spaces + Unsplash;
- * the browser only talks to same-origin `/api`), so the useful signal is any
- * *unexpected* host. `report-uri` posts violations to the collector endpoint.
- * Tighten toward nonce-based `script-src` once the reports are clean.
+ * Enforced Content-Security-Policy. Permissive where the app is known to need it
+ * (Next.js ships inline scripts/styles; images come from DO Spaces + Unsplash; the
+ * browser only talks to same-origin `/api`), so anything from an unexpected host is
+ * blocked. `report-uri` keeps posting violations to the collector so a resource an
+ * unvisited page needs surfaces as a report rather than a silent break. Next tightening
+ * step is a nonce-based `script-src` to drop `unsafe-inline`/`unsafe-eval`.
  */
-const cspReportOnly = [
+const csp = [
   "default-src 'self'",
   // Cloudflare injects its privacy-analytics beacon on proxied responses; it loads
   // from static.cloudflareinsights.com and posts back to cloudflareinsights.com.
@@ -60,10 +61,10 @@ const nextConfig: NextConfig = {
   // Security headers, applied to every response. These are the safe set that
   // cannot break page rendering: clickjacking (X-Frame-Options), MIME sniffing
   // (X-Content-Type-Options), referrer leakage, feature access, and HTTPS pinning.
-  // CSP ships in *report-only* mode: it never blocks anything, it only reports
-  // violations to /api/csp-report so the real asset/connect/script hosts can be
-  // measured before an enforcing policy is turned on (with nonces for inline
-  // scripts). HSTS is set without `preload` to avoid an irreversible domain-wide
+  // CSP is now enforced (after a clean report-only period): it blocks resources
+  // from unexpected hosts while still posting violations to /api/csp-report, so a
+  // resource an unvisited page needs surfaces as a report rather than a silent
+  // break. HSTS is set without `preload` to avoid an irreversible domain-wide
   // commitment on staging.
   async headers() {
     return [
@@ -82,8 +83,8 @@ const nextConfig: NextConfig = {
             value: 'max-age=63072000; includeSubDomains',
           },
           {
-            key: 'Content-Security-Policy-Report-Only',
-            value: cspReportOnly,
+            key: 'Content-Security-Policy',
+            value: csp,
           },
         ],
       },
