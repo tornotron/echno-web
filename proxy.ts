@@ -14,12 +14,13 @@ const MARKETING_PATHS = new Set([
 
 /**
  * Builds a Content-Security-Policy carrying a fresh per-request script nonce.
- * The nonce lets script-src drop 'unsafe-inline' and 'unsafe-eval': Next.js reads
- * it from the request's content-security-policy header and stamps it onto the
- * scripts it emits, so its own inline bootstrap is allowed while an injected inline
- * <script> is not. No 'strict-dynamic', so host allow-lists still apply ('self' for
- * the chunk files, the Cloudflare host for its beacon). Styles keep 'unsafe-inline'
- * because Next injects inline <style> that cannot be nonced.
+ * The nonce lets script-src drop 'unsafe-inline': Next.js (and next-themes, via its
+ * nonce prop) reads it from the request's content-security-policy header and stamps
+ * it onto the inline scripts they emit, so an injected inline <script> without the
+ * nonce is blocked. 'unsafe-eval' is kept - some bundled code evaluates strings and
+ * eval-based XSS is far rarer than inline injection. No 'strict-dynamic', so host
+ * allow-lists still apply ('self' for the chunk files, the Cloudflare host for its
+ * beacon). Styles keep 'unsafe-inline' because Next injects inline <style>.
  */
 function buildCsp() {
   const bytes = new Uint8Array(16);
@@ -27,7 +28,7 @@ function buildCsp() {
   const nonce = btoa(String.fromCodePoint(...bytes));
   const policy = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' https://static.cloudflareinsights.com`,
+    `script-src 'self' 'nonce-${nonce}' 'unsafe-eval' https://static.cloudflareinsights.com`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://echno-object-store.blr1.digitaloceanspaces.com https://images.unsplash.com",
     "font-src 'self' data:",
