@@ -2,6 +2,7 @@
 
 import { SessionProvider, signOut, useSession } from 'next-auth/react';
 import { QueryProvider } from './query-provider';
+import { OrgCacheGuard } from './org-cache-guard';
 import { UserPrefetcher } from './user-prefetcher';
 import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
 import { useEffect, useRef, useState, useCallback } from 'react';
@@ -226,9 +227,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <SessionMonitor>
         <QueryProvider>
-          <UserPrefetcher>
-            <FeaturePrefetcher>{children}</FeaturePrefetcher>
-          </UserPrefetcher>
+          <OrgCacheGuard>
+            <UserPrefetcher>
+              <FeaturePrefetcher>{children}</FeaturePrefetcher>
+            </UserPrefetcher>
+          </OrgCacheGuard>
         </QueryProvider>
       </SessionMonitor>
     </SessionProvider>
