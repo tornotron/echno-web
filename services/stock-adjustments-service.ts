@@ -23,7 +23,7 @@ function parseMaybeDate(val: unknown): Date | undefined {
   return parseDate(val);
 }
 
-function parseLineItem(raw: Raw): StockAdjustmentLineItem {
+export function parseLineItem(raw: Raw): StockAdjustmentLineItem {
   return {
     id: raw.id ?? 0,
     inventoryItemId: raw.inventoryItemId ?? undefined,
@@ -43,7 +43,7 @@ function parseLineItem(raw: Raw): StockAdjustmentLineItem {
   };
 }
 
-function parseStockAdjustment(raw: Raw): StockAdjustment {
+export function parseStockAdjustment(raw: Raw): StockAdjustment {
   if (!raw?.id) {
     throw new Error(`Invalid StockAdjustment data: missing id`);
   }
@@ -121,7 +121,7 @@ const BASE = '/stock-adjustments/web';
  * adjustment is `counted - current`. `justification` is required by the
  * backend, so it falls back to the notes or a placeholder.
  */
-function toPayload(data: StockAdjustmentSubmitData): Record<string, unknown> {
+export function toPayload(data: StockAdjustmentSubmitData): Record<string, unknown> {
   const { form, items } = data;
   const lineItems = items.map((item) => {
     const adjustmentQuantity = item.countedStock - item.currentStock;

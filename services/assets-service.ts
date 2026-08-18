@@ -35,7 +35,7 @@ function parseLocation(raw: Raw): Asset['location'] {
   };
 }
 
-function parseAsset(raw: Raw): Asset {
+export function parseAsset(raw: Raw): Asset {
   if (!raw?.id) {
     throw new Error(`Invalid Asset data: missing id`);
   }
@@ -102,7 +102,7 @@ const number = (v: string): number | undefined =>
  * via `@JsonAlias` onto `assetCondition`); `currentValue` defaults to the
  * purchase price on create.
  */
-function formToPayload(form: AssetFormData): Record<string, unknown> {
+export function formToPayload(form: AssetFormData): Record<string, unknown> {
   const purchasePrice = number(form.purchasePrice);
   return {
     name: form.name,
