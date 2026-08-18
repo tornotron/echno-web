@@ -67,7 +67,7 @@ function parseMilestone(raw: Raw): ContractMilestone {
 }
 
 /** Derives a coarse payment status from the recorded amounts (the backend does not store one). */
-function derivePaymentStatus(
+export function derivePaymentStatus(
   contractValue: number,
   totalPaid: number
 ): ContractPaymentStatus {
@@ -89,7 +89,7 @@ function daysBetween(start?: Date, end?: Date): number {
  * web field names here; contractor company, location, financial links and document
  * urls have no backend column yet, so they default.
  */
-function parseSubContract(raw: Raw): SubContract {
+export function parseSubContract(raw: Raw): SubContract {
   if (!raw?.id) {
     throw new Error('Invalid SubContract data: missing id');
   }
@@ -201,7 +201,7 @@ const empty = (v?: string): string | undefined =>
  * falls back to the contract id (the form collects an id, not a separate name);
  * milestones map percentage/date onto the backend `paymentPercentage`/`targetDate`.
  */
-function toPayload(values: SubContractFormValues): Record<string, unknown> {
+export function toPayload(values: SubContractFormValues): Record<string, unknown> {
   return {
     contractId: empty(values.contractId),
     contractName: empty(values.contractId) ?? values.contractorName,
