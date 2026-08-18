@@ -1,2 +1,6 @@
 [install.scopes]
 "@tornotron" = { url = "https://npm.pkg.github.com/", token = "$GITHUB_TOKEN" }
+
+[test]
+# Registers happy-dom + jest-dom before the suite so component/hook tests can render.
+preload = ["./test/setup.ts"]
