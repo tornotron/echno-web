@@ -26,17 +26,38 @@ const MARKETING_PATHS = new Set([
  * Cloudflare host for its beacon). Styles keep 'unsafe-inline' because Next injects
  * inline <style>.
  */
+/**
+ * Object-storage origins the browser is allowed to `PUT` to for direct-to-
+ * storage attachment uploads (presigned flow). Sourced from
+ * `NEXT_PUBLIC_STORAGE_ORIGIN`, which may hold one origin or a comma-separated
+ * list (DO Spaces for echno.xyz, MinIO for echno.in). Falls back to an empty
+ * list when unset, so the CSP degrades to `'self'` + Cloudflare only rather
+ * than breaking the build.
+ */
+function storageOrigins(): string[] {
+  const raw = process.env.NEXT_PUBLIC_STORAGE_ORIGIN;
+  if (!raw) return [];
+  return raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
+
 function buildCsp() {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
   const nonce = btoa(String.fromCodePoint(...bytes));
+  // The direct PUT to object storage is a cross-origin request from the
+  // browser, so each storage origin must be allow-listed in connect-src (the
+  // signed url carries its own auth; CORS on the bucket is the other half).
+  const connectSrc = ["'self'", 'https://cloudflareinsights.com', ...storageOrigins()].join(' ');
   const policy = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://static.cloudflareinsights.com`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https://echno-object-store.blr1.digitaloceanspaces.com https://images.unsplash.com",
     "font-src 'self' data:",
-    "connect-src 'self' https://cloudflareinsights.com",
+    `connect-src ${connectSrc}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

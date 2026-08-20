@@ -20,6 +20,8 @@ import {
   useTask,
   useUpdateTask,
 } from '@tornotron/echno-core/task/hooks';
+import { taskKeys } from '@tornotron/echno-core/task/hooks/keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
@@ -31,6 +33,8 @@ import {
   type TaskFormSubmitData,
 } from '@/features/tasks/components';
 import type { UpdateTaskRequest } from '@tornotron/echno-core/task/types';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
 interface PageProps {
   params: Promise<{ id: string; taskId: string }>;
@@ -48,14 +52,18 @@ export default function EditTaskPage({ params }: PageProps) {
   const { data: currentEmployee } = useCurrentUserEmployee();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+  const directUpload = useDirectAttachmentUpload();
+  const queryClient = useQueryClient();
 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [pendingSubmitData, setPendingSubmitData] = useState<
-    Parameters<typeof updateTask.mutate>[0] | null
-  >(null);
+  const [pendingSubmitData, setPendingSubmitData] = useState<{
+    id: number;
+    data: UpdateTaskRequest;
+    attachments: File[];
+  } | null>(null);
 
-  const isSubmitting = updateTask.isPending;
+  const isSubmitting = updateTask.isPending || directUpload.isUploading;
   const isDeleting = deleteTask.isPending;
 
   function handleSubmit(data: TaskFormSubmitData) {
@@ -84,35 +92,61 @@ export default function EditTaskPage({ params }: PageProps) {
     setPendingSubmitData({
       id: taskId,
       data: updateData,
-      files: { attachments: data.attachments },
+      attachments: data.attachments,
     });
     setShowSaveDialog(true);
   }
 
   function confirmSave() {
     if (!pendingSubmitData) return;
-    updateTask.mutate(pendingSubmitData, {
-      onSuccess: () => {
-        toast.success('Task Updated', {
-          description: 'The task has been updated successfully',
-        });
-        router.push(
-          routes.portfolio.projects.allProjects
-            .detail(projectId)
-            .tasks.detail(taskId).href
-        );
-      },
-      onError: (error) => {
-        const title = getErrorTitle(error, 'Failed to Update Task');
-        const description = getErrorMessage(error);
-        toast.error(title, { description });
-        logger.error('Failed to update task:', error);
-      },
-      onSettled: () => {
-        setShowSaveDialog(false);
-        setPendingSubmitData(null);
-      },
-    });
+    const { id, data, attachments } = pendingSubmitData;
+    // Update the task JSON-only, then upload any newly-added attachments
+    // direct-to-storage. The legacy multipart path (passing
+    // `files: { attachments }` into the update mutation) still works and is the
+    // fallback until this flow is verified across entity types.
+    updateTask.mutate(
+      { id, data },
+      {
+        onSuccess: async () => {
+          if (attachments.length > 0) {
+            const result = await directUpload.upload(
+              id,
+              AttachmentEntityType.TASK_ATTACHMENTS,
+              attachments
+            );
+            // The JSON-only update set the task cache with pre-upload
+            // attachments; invalidate so the detail refetches the new files.
+            if (result.attachments.length > 0) {
+              queryClient.invalidateQueries({ queryKey: taskKeys.detail(id) });
+            }
+            if (result.errors.length > 0) {
+              toast.warning('Task updated, some files failed', {
+                description: `${result.errors.length} of ${attachments.length} attachment(s) did not upload. Please try adding them again.`,
+              });
+              return;
+            }
+          }
+          toast.success('Task Updated', {
+            description: 'The task has been updated successfully',
+          });
+          router.push(
+            routes.portfolio.projects.allProjects
+              .detail(projectId)
+              .tasks.detail(taskId).href
+          );
+        },
+        onError: (error) => {
+          const title = getErrorTitle(error, 'Failed to Update Task');
+          const description = getErrorMessage(error);
+          toast.error(title, { description });
+          logger.error('Failed to update task:', error);
+        },
+        onSettled: () => {
+          setShowSaveDialog(false);
+          setPendingSubmitData(null);
+        },
+      }
+    );
   }
 
   function confirmDelete() {
@@ -186,6 +220,7 @@ export default function EditTaskPage({ params }: PageProps) {
         task={taskToEdit}
         isSubmitting={isSubmitting}
         isDeleting={isDeleting}
+        uploadStates={directUpload.states}
         onSubmit={handleSubmit}
         onDelete={() => setShowDeleteDialog(true)}
         onCancel={() => router.back()}

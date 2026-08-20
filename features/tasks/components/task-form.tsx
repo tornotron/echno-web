@@ -46,6 +46,7 @@ import {
 import { abbreviatedName } from '@tornotron/echno-core/work-category/types';
 import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
+import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 import { CreateCategoryDialog } from './task-alert-dialogs';
@@ -77,6 +78,8 @@ interface CreateProps {
   projectId: number;
   projectName?: string;
   isSubmitting: boolean;
+  /** Per-file direct-upload progress, index-aligned to the selected files. */
+  uploadStates?: FileUploadState[];
   onSubmit: (data: TaskFormSubmitData) => void;
   onCancel: () => void;
 }
@@ -88,6 +91,8 @@ interface EditProps {
   task: Task;
   isSubmitting: boolean;
   isDeleting: boolean;
+  /** Per-file direct-upload progress, index-aligned to the selected files. */
+  uploadStates?: FileUploadState[];
   onSubmit: (data: TaskFormSubmitData) => void;
   onDelete: () => void;
   onCancel: () => void;
@@ -613,6 +618,7 @@ export function TaskForm(props: TaskFormProps) {
               title="Task Attachments"
               existingAttachments={existingAttachments ?? []}
               newAttachments={attachments}
+              uploadStates={props.uploadStates}
               onUploadFiles={handleUploadFiles}
               onRemoveAttachment={(index) =>
                 setAttachments((prev) => prev.filter((_, i) => i !== index))

@@ -12,6 +12,8 @@ import type {
   ProjectType,
   UpdateProjectRequest,
 } from '@tornotron/echno-core/project/types';
+import { projectKeys } from '@tornotron/echno-core/project/hooks/keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
@@ -22,6 +24,8 @@ import {
   PROJECT_FORM_ID,
   type ProjectFormSubmitData,
 } from '@/features/projects/components';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
 export default function EditProjectPage() {
   const params = useParams();
@@ -32,8 +36,11 @@ export default function EditProjectPage() {
 
   const { data: project, isLoading, error } = useProject(projectId);
   const updateProjectWithFiles = useUpdateProjectWithFiles();
+  const directUpload = useDirectAttachmentUpload();
+  const queryClient = useQueryClient();
 
-  const isSubmitting = updateProjectWithFiles.isPending;
+  const isSubmitting =
+    updateProjectWithFiles.isPending || directUpload.isUploading;
 
   function handleSubmit(data: ProjectFormSubmitData) {
     if (!project) return;
@@ -64,13 +71,34 @@ export default function EditProjectPage() {
         {
           id: project.id,
           data: updateData,
-          files: {
-            attachments:
-              data.attachments.length > 0 ? data.attachments : undefined,
-          },
+          // Update the project JSON-only (no attachments in the multipart body);
+          // newly-added attachments upload direct-to-storage in onSuccess. The
+          // legacy path of passing `files: { attachments }` here still works and
+          // is the fallback until this flow is verified across entity types.
+          files: {},
         },
         {
-          onSuccess: () => {
+          onSuccess: async () => {
+            if (data.attachments.length > 0) {
+              const result = await directUpload.upload(
+                project.id,
+                AttachmentEntityType.PROJECT_ATTACHMENTS,
+                data.attachments
+              );
+              // The JSON-only update set the project cache with pre-upload
+              // attachments; invalidate so the detail refetches the new files.
+              if (result.attachments.length > 0) {
+                queryClient.invalidateQueries({
+                  queryKey: projectKeys.detail(project.id),
+                });
+              }
+              if (result.errors.length > 0) {
+                toast.warning('Project updated, some files failed', {
+                  description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. Please try adding them again.`,
+                });
+                return;
+              }
+            }
             toast.success('Project Updated', {
               description: 'The project has been updated successfully',
             });
@@ -156,7 +184,12 @@ export default function EditProjectPage() {
           </>
         }
       />
-      <ProjectForm mode="edit" project={project} onSubmit={handleSubmit} />
+      <ProjectForm
+        mode="edit"
+        project={project}
+        uploadStates={directUpload.states}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

@@ -47,10 +47,14 @@ import {
   formatFileSize,
 } from '@tornotron/echno-core/attachment/types';
 import { useUpdateIssue } from '@tornotron/echno-core/issue/hooks';
+import { issueKeys } from '@tornotron/echno-core/issue/hooks/keys';
 import { useEmployeesByProject } from '@tornotron/echno-core/project/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 import {
   isValidAttachmentUrl,
   getSafeDownloadUrl,
@@ -107,6 +111,8 @@ export function IssueOverviewTab({
   const [assignSearch, setAssignSearch] = useState('');
 
   const updateIssueMutation = useUpdateIssue();
+  const directUpload = useDirectAttachmentUpload();
+  const queryClient = useQueryClient();
   const { data: projectMembers = [] } = useEmployeesByProject(
     Number.parseInt(projectId)
   );
@@ -190,7 +196,7 @@ export function IssueOverviewTab({
                 <CardDescription>Files attached to this issue</CardDescription>
               </div>
               <AttachmentsUploader
-                onUpload={(files) => {
+                onUpload={async (files) => {
                   const valid = files.filter((f) => f.size <= MAX_FILE_SIZE);
                   const invalid = files
                     .filter((f) => f.size > MAX_FILE_SIZE)
@@ -199,32 +205,38 @@ export function IssueOverviewTab({
                     toast.error('Some files exceed 10MB', {
                       description: `Not uploaded: ${invalid.join(', ')}`,
                     });
-                  if (valid.length > 0)
-                    updateIssueMutation.mutate(
-                      {
-                        id: issue.id,
-                        data: {},
-                        files: { attachments: valid },
-                      },
-                      {
-                        onSuccess: () => {
-                          toast.success('Issue Updated', {
-                            description:
-                              'The issue has been updated successfully',
-                          });
-                        },
-                        onError: (error) => {
-                          const title = getErrorTitle(
-                            error,
-                            'Failed to Update Issue'
-                          );
-                          const description = getErrorMessage(error);
-                          toast.error(title, { description });
-                        },
-                      }
+                  if (valid.length === 0) return;
+                  // Direct-to-storage upload against the existing issue id.
+                  try {
+                    const result = await directUpload.upload(
+                      issue.id,
+                      AttachmentEntityType.ISSUE_ATTACHMENTS,
+                      valid
                     );
+                    // The direct-upload hook only appends to the standalone
+                    // attachment-list cache; refetch the issue so its embedded
+                    // `attachments` (rendered here) reflect the new files.
+                    if (result.attachments.length > 0) {
+                      queryClient.invalidateQueries({
+                        queryKey: issueKeys.detail(issue.id),
+                      });
+                    }
+                    if (result.errors.length > 0) {
+                      toast.warning('Some files failed to upload', {
+                        description: `${result.errors.length} of ${valid.length} file(s) did not upload. Please try again.`,
+                      });
+                    } else {
+                      toast.success('Attachments uploaded', {
+                        description: 'The files have been attached to the issue',
+                      });
+                    }
+                  } catch (error) {
+                    const title = getErrorTitle(error, 'Failed to Upload Files');
+                    const description = getErrorMessage(error);
+                    toast.error(title, { description });
+                  }
                 }}
-                isPending={updateIssueMutation.isPending}
+                isPending={directUpload.isUploading}
               />
             </div>
           </CardHeader>

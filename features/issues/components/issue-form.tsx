@@ -55,6 +55,7 @@ import { useEmployeesByProject } from '@tornotron/echno-core/project/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import { AttachmentsSection } from '@/components/common';
+import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -85,6 +86,8 @@ interface CreateProps {
   initialTaskId?: string;
   initialTaskTitle?: string;
   isSubmitting: boolean;
+  /** Per-file direct-upload progress, index-aligned to the selected files. */
+  uploadStates?: FileUploadState[];
   onSubmit: (data: IssueFormSubmitData) => void;
   onCancel: () => void;
 }
@@ -96,6 +99,8 @@ interface EditProps {
   existingAttachments?: Attachment[];
   isSubmitting: boolean;
   isDeleting: boolean;
+  /** Per-file direct-upload progress, index-aligned to the selected files. */
+  uploadStates?: FileUploadState[];
   onSubmit: (data: IssueFormSubmitData) => void;
   onDelete: () => void;
   onCancel: () => void;
@@ -600,6 +605,7 @@ export function IssueForm(props: IssueFormProps) {
             title="Issue Attachments"
             existingAttachments={existingAttachments}
             newAttachments={attachments}
+            uploadStates={props.uploadStates}
             onUploadFiles={handleUploadFiles}
             onRemoveAttachment={(index) =>
               setAttachments((prev) => prev.filter((_, i) => i !== index))

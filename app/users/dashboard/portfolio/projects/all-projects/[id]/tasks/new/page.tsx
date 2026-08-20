@@ -12,6 +12,8 @@ import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import { TaskForm, type TaskFormSubmitData } from '@/features/tasks/components';
 import type { CreateTaskRequest } from '@tornotron/echno-core/task/types';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
 export default function NewTaskPage() {
   const router = useRouter();
@@ -22,8 +24,9 @@ export default function NewTaskPage() {
   const { data: workCategories = [] } = useWorkCategories();
   const { data: currentEmployee } = useCurrentUserEmployee();
   const createTask = useCreateTask();
+  const directUpload = useDirectAttachmentUpload();
 
-  const isSubmitting = createTask.isPending;
+  const isSubmitting = createTask.isPending || directUpload.isUploading;
 
   function buildRequest(data: TaskFormSubmitData): CreateTaskRequest {
     const selectedCategory = workCategories.find(
@@ -49,10 +52,32 @@ export default function NewTaskPage() {
   }
 
   function handleSubmit(data: TaskFormSubmitData) {
+    // Create the task JSON-only, then upload attachments direct-to-storage
+    // against the new id. The legacy multipart path (passing
+    // `files: { attachments }` into the create mutation) still works and is the
+    // fallback until this flow is verified across entity types.
     createTask.mutate(
-      { data: buildRequest(data), files: { attachments: data.attachments } },
+      { data: buildRequest(data) },
       {
-        onSuccess: () => {
+        onSuccess: async (created) => {
+          if (data.attachments.length > 0) {
+            const result = await directUpload.upload(
+              created.id,
+              AttachmentEntityType.TASK_ATTACHMENTS,
+              data.attachments
+            );
+            if (result.errors.length > 0) {
+              toast.warning('Task created, some files failed', {
+                description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. You can re-add them from the task.`,
+              });
+              router.push(
+                routes.portfolio.projects.allProjects.detail(projectId).tasks
+                  .href
+              );
+              return;
+            }
+          }
+
           if (data.isDraft) {
             toast.success('Draft saved');
           } else {
@@ -89,6 +114,7 @@ export default function NewTaskPage() {
         projectId={projectId}
         projectName={project?.projectName}
         isSubmitting={isSubmitting}
+        uploadStates={directUpload.states}
         onSubmit={handleSubmit}
         onCancel={() => router.back()}
       />

@@ -18,10 +18,14 @@ import {
   useIssue,
   useUpdateIssue,
 } from '@tornotron/echno-core/issue/hooks';
+import { issueKeys } from '@tornotron/echno-core/issue/hooks/keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { useProject } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 import {
   IssueForm,
   type IssueFormSubmitData,
@@ -39,13 +43,19 @@ export default function EditIssuePage({ params }: PageProps) {
   const { data: project } = useProject(Number.parseInt(projectId));
   const updateMutation = useUpdateIssue();
   const deleteMutation = useDeleteIssue();
+  const directUpload = useDirectAttachmentUpload();
+  const queryClient = useQueryClient();
 
-  const isSubmitting = updateMutation.isPending;
+  const isSubmitting = updateMutation.isPending || directUpload.isUploading;
   const isDeleting = deleteMutation.isPending;
 
   async function handleSubmit(data: IssueFormSubmitData) {
     if (!issue) return;
     try {
+      // Update the issue JSON-only, then upload any newly-added attachments
+      // direct-to-storage. The legacy multipart path (passing
+      // `files: { attachments }` here) still works and is the fallback until
+      // this flow is verified across entity types.
       await updateMutation.mutateAsync({
         id: issue.id,
         data: {
@@ -57,8 +67,29 @@ export default function EditIssuePage({ params }: PageProps) {
             ? Number(data.fields.assigneeId)
             : undefined,
         },
-        files: { attachments: data.attachments },
       });
+
+      if (data.attachments.length > 0) {
+        const result = await directUpload.upload(
+          issue.id,
+          AttachmentEntityType.ISSUE_ATTACHMENTS,
+          data.attachments
+        );
+        // The JSON-only update set the issue cache with pre-upload attachments;
+        // invalidate so the detail page refetches with the new files.
+        if (result.attachments.length > 0) {
+          queryClient.invalidateQueries({
+            queryKey: issueKeys.detail(issue.id),
+          });
+        }
+        if (result.errors.length > 0) {
+          toast.warning('Issue updated, some files failed', {
+            description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. Please try adding them again.`,
+          });
+          return;
+        }
+      }
+
       toast.success('Issue Updated', {
         description: 'The issue has been updated successfully',
       });
@@ -151,6 +182,7 @@ export default function EditIssuePage({ params }: PageProps) {
         existingAttachments={issue.attachments}
         isSubmitting={isSubmitting}
         isDeleting={isDeleting}
+        uploadStates={directUpload.states}
         onSubmit={handleSubmit}
         onDelete={handleDelete}
         onCancel={() => router.back()}
