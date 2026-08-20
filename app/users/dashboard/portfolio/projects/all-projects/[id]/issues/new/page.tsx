@@ -11,6 +11,8 @@ import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { routes } from '@/nav';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 import {
   IssueForm,
   type IssueFormSubmitData,
@@ -30,13 +32,14 @@ export default function NewIssuePage({ params }: PageProps) {
 
   const { data: project } = useProject(Number.parseInt(projectId));
   const createMutation = useCreateIssue();
+  const directUpload = useDirectAttachmentUpload();
   const { data: user } = useUser();
   const { data: employees = [] } = useUserEmployees();
   const currentEmployee = employees.find(
     (emp) => emp.organizationId === user?.defaultOrganizationId
   );
 
-  const isSubmitting = createMutation.isPending;
+  const isSubmitting = createMutation.isPending || directUpload.isUploading;
 
   async function handleSubmit(data: IssueFormSubmitData) {
     if (!currentEmployee?.id) return;
@@ -55,10 +58,29 @@ export default function NewIssuePage({ params }: PageProps) {
     };
 
     try {
-      await createMutation.mutateAsync({
-        data: issueData,
-        files: { attachments: data.attachments },
-      });
+      // Create the issue JSON-only, then upload attachments direct-to-storage
+      // against the new id. The legacy multipart path (passing
+      // `files: { attachments }` into the create mutation) still works and is
+      // the fallback until this flow is verified across entity types.
+      const created = await createMutation.mutateAsync({ data: issueData });
+
+      if (data.attachments.length > 0) {
+        const result = await directUpload.upload(
+          created.id,
+          AttachmentEntityType.ISSUE_ATTACHMENTS,
+          data.attachments
+        );
+        if (result.errors.length > 0) {
+          toast.warning('Issue created, some files failed', {
+            description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. You can re-add them from the issue.`,
+          });
+          router.push(
+            routes.portfolio.projects.allProjects.detail(projectId).issues.href
+          );
+          return;
+        }
+      }
+
       toast.success('Issue Created', {
         description: 'The issue has been created successfully',
       });
@@ -89,6 +111,7 @@ export default function NewIssuePage({ params }: PageProps) {
         initialTaskId={fromTaskId}
         initialTaskTitle={fromTaskTitle}
         isSubmitting={isSubmitting}
+        uploadStates={directUpload.states}
         onSubmit={handleSubmit}
         onCancel={() => router.back()}
       />

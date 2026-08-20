@@ -21,7 +21,11 @@ import {
   Box,
   File,
   Trash2,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
+import { Progress } from '@/components/shadcn/progress';
+import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
 import {
   formatFileSize,
   type Attachment,
@@ -47,7 +51,29 @@ interface AttachmentsSectionProps {
   onRemoveAttachment: (index: number) => void;
   /** Called with the attachment id when the user confirms deletion; caller is responsible for the mutation and toasts. */
   onDeleteAttachment: (id: number) => void;
+  /**
+   * Optional per-file upload state for the direct-to-storage flow, index-aligned
+   * to `newAttachments`. When present, each pending file shows a progress bar and
+   * a success/failure indicator instead of a plain remove button.
+   */
+  uploadStates?: FileUploadState[];
 }
+
+const getNewFileStatusIcon = (status?: FileUploadState['status']) => {
+  if (status === 'done') {
+    return (
+      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+    );
+  }
+  if (status === 'error') {
+    return (
+      <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+    );
+  }
+  return (
+    <FileText className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+  );
+};
 
 const getAttachmentIcon = (type: AttachmentType) => {
   switch (type) {
@@ -77,6 +103,7 @@ export function AttachmentsSection({
   onUploadFiles,
   onRemoveAttachment,
   onDeleteAttachment,
+  uploadStates,
 }: AttachmentsSectionProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [attachmentToDelete, setAttachmentToDelete] = useState<number | null>(
@@ -197,34 +224,55 @@ export function AttachmentsSection({
             <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
               New Files to Upload ({newAttachments.length})
             </p>
-            {newAttachments.map((file, index) => (
-              <div
-                key={`${file.name}-${index}`}
-                className="flex items-center justify-between rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20"
-              >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <FileText className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
-                      {file.name}
-                    </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      {(file.size / 1024 / 1024).toFixed(2)} MB
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => onRemoveAttachment(index)}
-                  aria-label={`Remove attachment ${index + 1}`}
+            {newAttachments.map((file, index) => {
+              const state = uploadStates?.[index];
+              return (
+                <div
+                  key={`${file.name}-${index}`}
+                  className="space-y-2 rounded-lg bg-blue-50 p-3 dark:bg-blue-900/20"
                 >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      {getNewFileStatusIcon(state?.status)}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                          {state?.status === 'uploading' &&
+                            ` · ${state.percent}%`}
+                          {state?.status === 'done' && ' · Uploaded'}
+                        </p>
+                      </div>
+                    </div>
+                    {/* Hide remove while uploading; keep it for pending/failed
+                        files so the user can drop a file that will not retry. */}
+                    {state?.status !== 'uploading' && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => onRemoveAttachment(index)}
+                        aria-label={`Remove attachment ${index + 1}`}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  {state?.status === 'uploading' && (
+                    <Progress value={state.percent} className="h-1.5" />
+                  )}
+                  {state?.status === 'error' && (
+                    <p className="text-xs text-red-600 dark:text-red-400">
+                      {state.error || 'Upload failed'}. This file was not saved;
+                      remove it and try again.
+                    </p>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </CardContent>

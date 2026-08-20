@@ -32,10 +32,13 @@ import {
   AttachmentType,
   formatFileSize,
 } from '@tornotron/echno-core/attachment/types';
-import { useUpdateTask } from '@tornotron/echno-core/task/hooks';
+import { taskKeys } from '@tornotron/echno-core/task/hooks/keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { toast } from '@/lib/styles/toast-styles';
 import { AttachmentsUploader } from '@/components/common';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 import {
@@ -83,7 +86,8 @@ export function TaskOverviewTab({
   taskId,
   onDeleteAttachment,
 }: TaskOverviewTabProps) {
-  const updateTask = useUpdateTask();
+  const directUpload = useDirectAttachmentUpload();
+  const queryClient = useQueryClient();
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -200,7 +204,7 @@ export function TaskOverviewTab({
                 <CardDescription>Files attached to this task</CardDescription>
               </div>
               <AttachmentsUploader
-                onUpload={(files) => {
+                onUpload={async (files) => {
                   const valid = files.filter((f) => f.size <= MAX_FILE_SIZE);
                   const invalid = files
                     .filter((f) => f.size > MAX_FILE_SIZE)
@@ -209,32 +213,38 @@ export function TaskOverviewTab({
                     toast.error('Some files exceed 10MB', {
                       description: `Not uploaded: ${invalid.join(', ')}`,
                     });
-                  if (valid.length > 0)
-                    updateTask.mutate(
-                      {
-                        id: taskId,
-                        data: {},
-                        files: { attachments: valid },
-                      },
-                      {
-                        onSuccess: () => {
-                          toast.success('Task Updated', {
-                            description:
-                              'The task has been updated successfully',
-                          });
-                        },
-                        onError: (error) => {
-                          const title = getErrorTitle(
-                            error,
-                            'Failed to Update Task'
-                          );
-                          const description = getErrorMessage(error);
-                          toast.error(title, { description });
-                        },
-                      }
+                  if (valid.length === 0) return;
+                  // Direct-to-storage upload against the existing task id.
+                  try {
+                    const result = await directUpload.upload(
+                      taskId,
+                      AttachmentEntityType.TASK_ATTACHMENTS,
+                      valid
                     );
+                    // The direct-upload hook only appends to the standalone
+                    // attachment-list cache; refetch the task so its embedded
+                    // `attachments` (rendered here) reflect the new files.
+                    if (result.attachments.length > 0) {
+                      queryClient.invalidateQueries({
+                        queryKey: taskKeys.detail(taskId),
+                      });
+                    }
+                    if (result.errors.length > 0) {
+                      toast.warning('Some files failed to upload', {
+                        description: `${result.errors.length} of ${valid.length} file(s) did not upload. Please try again.`,
+                      });
+                    } else {
+                      toast.success('Attachments uploaded', {
+                        description: 'The files have been attached to the task',
+                      });
+                    }
+                  } catch (error) {
+                    const title = getErrorTitle(error, 'Failed to Upload Files');
+                    const description = getErrorMessage(error);
+                    toast.error(title, { description });
+                  }
                 }}
-                isPending={updateTask.isPending}
+                isPending={directUpload.isUploading}
               />
             </div>
           </CardHeader>

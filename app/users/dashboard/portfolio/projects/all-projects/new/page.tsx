@@ -10,6 +10,8 @@ import type {
   ProjectType,
   CreateProjectRequest,
 } from '@tornotron/echno-core/project/types';
+import { projectKeys } from '@tornotron/echno-core/project/hooks/keys';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCreateStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
 import { StorageLocationType } from '@tornotron/echno-core/storage-locations/types';
 import { Button } from '@/components/shadcn/button';
@@ -22,14 +24,19 @@ import {
   PROJECT_FORM_ID,
   type ProjectFormSubmitData,
 } from '@/features/projects/components';
+import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
+import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
 export default function NewProjectPage() {
   const router = useRouter();
   const { data: currentUser, isLoading: isUserLoading } = useUser();
   const createProjectWithFiles = useCreateProjectWithFiles();
   const createStorageLocation = useCreateStorageLocation();
+  const directUpload = useDirectAttachmentUpload();
+  const queryClient = useQueryClient();
 
-  const isSubmitting = createProjectWithFiles.isPending;
+  const isSubmitting =
+    createProjectWithFiles.isPending || directUpload.isUploading;
 
   if (isUserLoading) {
     return (
@@ -78,13 +85,33 @@ export default function NewProjectPage() {
       createProjectWithFiles.mutate(
         {
           data: createData,
-          files: {
-            attachments:
-              data.attachments.length > 0 ? data.attachments : undefined,
-          },
+          // Create the project JSON-only (no attachments in the multipart body);
+          // attachments upload direct-to-storage in onSuccess against the new
+          // id. The legacy path of passing `files: { attachments }` here still
+          // works and is the fallback until this flow is verified per entity.
+          files: {},
         },
         {
-          onSuccess: (createdProject) => {
+          onSuccess: async (createdProject) => {
+            if (data.attachments.length > 0) {
+              const result = await directUpload.upload(
+                createdProject.id,
+                AttachmentEntityType.PROJECT_ATTACHMENTS,
+                data.attachments
+              );
+              // The create set the project detail cache with no attachments;
+              // invalidate so the detail page refetches the new files.
+              if (result.attachments.length > 0) {
+                queryClient.invalidateQueries({
+                  queryKey: projectKeys.detail(createdProject.id),
+                });
+              }
+              if (result.errors.length > 0) {
+                toast.warning('Project created, some files failed', {
+                  description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. You can re-add them from the project.`,
+                });
+              }
+            }
             if (data.createLocationForProject) {
               createStorageLocation.mutate(
                 {
@@ -173,7 +200,11 @@ export default function NewProjectPage() {
           </>
         }
       />
-      <ProjectForm mode="create" onSubmit={handleSubmit} />
+      <ProjectForm
+        mode="create"
+        uploadStates={directUpload.states}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

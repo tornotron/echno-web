@@ -20,7 +20,15 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { Checkbox } from '@/components/shadcn/checkbox';
-import { FileText, MapPin, Loader2, Upload, X } from 'lucide-react';
+import {
+  FileText,
+  MapPin,
+  Loader2,
+  Upload,
+  X,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react';
 import {
   ProjectStatus,
   ProjectType,
@@ -33,6 +41,8 @@ import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
+import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
+import { Progress } from '@/components/shadcn/progress';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -91,12 +101,16 @@ export interface ProjectFormSubmitData {
 
 interface CreateProps {
   mode: 'create';
+  /** Per-file direct-upload progress, index-aligned to the selected files. */
+  uploadStates?: FileUploadState[];
   onSubmit: (data: ProjectFormSubmitData) => void;
 }
 
 interface EditProps {
   mode: 'edit';
   project: Project;
+  /** Per-file direct-upload progress, index-aligned to the selected files. */
+  uploadStates?: FileUploadState[];
   onSubmit: (data: ProjectFormSubmitData) => void;
 }
 
@@ -105,6 +119,20 @@ type ProjectFormProps = CreateProps | EditProps;
 export const PROJECT_FORM_ID = 'project-form';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+const getNewFileStatusIcon = (status?: FileUploadState['status']) => {
+  if (status === 'done') {
+    return (
+      <CheckCircle2 className="h-4 w-4 shrink-0 text-green-600 dark:text-green-400" />
+    );
+  }
+  if (status === 'error') {
+    return (
+      <AlertCircle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
+    );
+  }
+  return <FileText className="h-4 w-4 shrink-0 text-zinc-500" />;
+};
 
 const EMPTY_FORM: ProjectFormState = {
   projectName: '',
@@ -517,33 +545,52 @@ export function ProjectForm(props: ProjectFormProps) {
                       <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
                         Selected Files ({attachments.length})
                       </p>
-                      {attachments.map((file, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
-                        >
-                          <div className="flex items-center gap-2 overflow-hidden">
-                            <FileText className="h-4 w-4 shrink-0 text-zinc-500" />
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
-                                {file.name}
-                              </p>
-                              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                                {(file.size / 1024 / 1024).toFixed(2)} MB
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={() => removeAttachment(index)}
+                      {attachments.map((file, index) => {
+                        const state = props.uploadStates?.[index];
+                        return (
+                          <div
+                            key={index}
+                            className="space-y-2 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800"
                           >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                {getNewFileStatusIcon(state?.status)}
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm text-zinc-900 dark:text-zinc-100">
+                                    {file.name}
+                                  </p>
+                                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                                    {(file.size / 1024 / 1024).toFixed(2)} MB
+                                    {state?.status === 'uploading' &&
+                                      ` · ${state.percent}%`}
+                                    {state?.status === 'done' && ' · Uploaded'}
+                                  </p>
+                                </div>
+                              </div>
+                              {state?.status !== 'uploading' && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => removeAttachment(index)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              )}
+                            </div>
+                            {state?.status === 'uploading' && (
+                              <Progress value={state.percent} className="h-1.5" />
+                            )}
+                            {state?.status === 'error' && (
+                              <p className="text-xs text-red-600 dark:text-red-400">
+                                {state.error || 'Upload failed'}. This file was
+                                not saved; remove it and try again.
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -581,6 +628,7 @@ export function ProjectForm(props: ProjectFormProps) {
           title="Project Attachments"
           existingAttachments={existingAttachments}
           newAttachments={attachments}
+          uploadStates={props.uploadStates}
           onUploadFiles={handleUploadFiles}
           onRemoveAttachment={removeAttachment}
           onDeleteAttachment={handleDeleteAttachment}
