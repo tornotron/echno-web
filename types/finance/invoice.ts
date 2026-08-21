@@ -65,7 +65,8 @@ export const invoiceTypeLabels: Record<ConstructionInvoiceType, string> = {
 
 export const invoiceStatusLabels: Record<ConstructionInvoiceStatus, string> = {
   [ConstructionInvoiceStatus.DRAFT]: 'Draft',
-  [ConstructionInvoiceStatus.PENDING]: 'Pending',
+  [ConstructionInvoiceStatus.PENDING]: 'Pending Approval',
+  [ConstructionInvoiceStatus.APPROVED]: 'Approved',
   [ConstructionInvoiceStatus.SENT]: 'Sent',
   [ConstructionInvoiceStatus.PARTIALLY_PAID]: 'Partially Paid',
   [ConstructionInvoiceStatus.PAID]: 'Paid',
@@ -83,6 +84,9 @@ export const getInvoiceStatusColor = (
     case ConstructionInvoiceStatus.PAID: {
       return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
     }
+    case ConstructionInvoiceStatus.APPROVED: {
+      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-400';
+    }
     case ConstructionInvoiceStatus.PARTIALLY_PAID: {
       return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
     }
@@ -92,7 +96,8 @@ export const getInvoiceStatusColor = (
     case ConstructionInvoiceStatus.SENT: {
       return 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400';
     }
-    case ConstructionInvoiceStatus.OVERDUE: {
+    case ConstructionInvoiceStatus.OVERDUE:
+    case ConstructionInvoiceStatus.CANCELLED: {
       return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
     }
     case ConstructionInvoiceStatus.DISPUTED: {
