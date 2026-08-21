@@ -2,6 +2,7 @@
 
 import { useInvoices } from '@/hooks/invoices';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -14,6 +15,7 @@ import { InvoicesFeature } from '@/features/invoices';
 export default function InvoicesPage() {
   const { data: invoices = [], isLoading, isError } = useInvoices();
   const { data: projects = [] } = useProjects();
+  const { data: vendors = [] } = useVendors();
 
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter(
@@ -107,6 +109,7 @@ export default function InvoicesPage() {
       <InvoicesFeature
         invoices={invoices}
         projects={projects}
+        vendors={vendors}
         isLoading={isLoading}
         isError={isError}
       />

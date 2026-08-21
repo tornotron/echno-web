@@ -17,9 +17,10 @@ import {
   invoiceTypeLabels,
   invoiceStatusLabels,
   getInvoiceStatusColor,
-  getInvoiceTypeColor,
 } from '@/types/finance/invoice';
 import { Project } from '@tornotron/echno-core/project/types';
+import { Vendor } from '@tornotron/echno-core/vendor/types';
+import { InvoiceActions } from './invoice-actions';
 
 const statusOptions = [
   { value: 'all', label: 'All Statuses' },
@@ -30,6 +31,10 @@ const statusOptions = [
   {
     value: ConstructionInvoiceStatus.PENDING,
     label: invoiceStatusLabels[ConstructionInvoiceStatus.PENDING],
+  },
+  {
+    value: ConstructionInvoiceStatus.APPROVED,
+    label: invoiceStatusLabels[ConstructionInvoiceStatus.APPROVED],
   },
   {
     value: ConstructionInvoiceStatus.SENT,
@@ -80,6 +85,7 @@ const typeOptions = [
 interface InvoicesFeatureProps {
   invoices: ConstructionInvoice[];
   projects: Project[];
+  vendors: Vendor[];
   isLoading?: boolean;
   isError?: boolean;
 }
@@ -87,6 +93,7 @@ interface InvoicesFeatureProps {
 export function InvoicesFeature({
   invoices,
   projects,
+  vendors,
   isLoading = false,
   isError = false,
 }: InvoicesFeatureProps) {
@@ -97,6 +104,12 @@ export function InvoicesFeature({
     for (const project of projects) m.set(project.id, project.projectName);
     return m;
   }, [projects]);
+
+  const vendorNameById = useMemo(() => {
+    const m = new Map<number, string | undefined>();
+    for (const vendor of vendors) m.set(vendor.id, vendor.name);
+    return m;
+  }, [vendors]);
 
   const columns = useMemo<DataTableColumn<ConstructionInvoice>[]>(
     () => [
@@ -113,24 +126,11 @@ export function InvoicesFeature({
                 <p className="font-medium text-zinc-900 dark:text-zinc-100">
                   {invoice.invoiceNumber}
                 </p>
-                {invoice.paymentTerms && (
-                  <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                    Terms: {invoice.paymentTerms}
-                  </p>
-                )}
+                <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                  {invoiceTypeLabels[invoice.type]}
+                </p>
               </div>
             </div>
-          </TableCell>
-        ),
-      },
-      {
-        id: 'type',
-        header: 'Type',
-        cell: (invoice) => (
-          <TableCell>
-            <Badge className={getInvoiceTypeColor(invoice.type)}>
-              {invoiceTypeLabels[invoice.type]}
-            </Badge>
           </TableCell>
         ),
       },
@@ -140,25 +140,28 @@ export function InvoicesFeature({
         cell: (invoice) => (
           <TableCell>
             <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-              {projectNameById.get(invoice.projectId)}
+              {projectNameById.get(invoice.projectId) ?? '—'}
             </span>
           </TableCell>
         ),
       },
       {
-        id: 'amount',
-        header: 'Amount',
+        id: 'vendor',
+        header: 'Vendor/Payee',
         cell: (invoice) => (
           <TableCell>
-            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-              ₹{invoice.totalAmount.toLocaleString('en-IN')}
+            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+              {invoice.vendorId
+                ? (vendorNameById.get(invoice.vendorId) ??
+                  `Vendor #${invoice.vendorId}`)
+                : '—'}
             </span>
           </TableCell>
         ),
       },
       {
         id: 'issueDate',
-        header: 'Issue Date',
+        header: 'Invoice Date',
         cell: (invoice) => (
           <TableCell>
             <div className="flex items-center space-x-2 text-sm text-zinc-600 dark:text-zinc-400">
@@ -184,6 +187,17 @@ export function InvoicesFeature({
         ),
       },
       {
+        id: 'amount',
+        header: 'Amount',
+        cell: (invoice) => (
+          <TableCell>
+            <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+              ₹{invoice.totalAmount.toLocaleString('en-IN')}
+            </span>
+          </TableCell>
+        ),
+      },
+      {
         id: 'status',
         header: 'Status',
         cell: (invoice) => (
@@ -195,24 +209,28 @@ export function InvoicesFeature({
         ),
       },
       {
-        id: 'balance',
-        header: 'Balance',
+        id: 'paymentMethod',
+        header: 'Payment Method',
         cell: (invoice) => (
           <TableCell>
-            <span
-              className={`font-semibold ${
-                invoice.balanceAmount > 0
-                  ? 'text-orange-600 dark:text-orange-400'
-                  : 'text-green-600 dark:text-green-400'
-              }`}
-            >
-              ₹{invoice.balanceAmount.toLocaleString('en-IN')}
+            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+              {invoice.paymentMethod || '—'}
             </span>
           </TableCell>
         ),
       },
+      {
+        id: 'actions',
+        header: <span className="sr-only">Actions</span>,
+        headClassName: 'w-12',
+        cell: (invoice) => (
+          <TableCell>
+            <InvoiceActions invoice={invoice} variant="menu" />
+          </TableCell>
+        ),
+      },
     ],
-    [projectNameById]
+    [projectNameById, vendorNameById]
   );
 
   return (
