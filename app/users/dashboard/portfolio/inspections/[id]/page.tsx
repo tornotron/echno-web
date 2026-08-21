@@ -23,6 +23,8 @@ import {
   Thermometer,
   Cloud,
   Users,
+  Sparkles,
+  ShieldAlert,
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useInspectionById } from '@/hooks/inspection';
@@ -32,11 +34,15 @@ import { routes } from '@/nav';
 import {
   InspectionStatus,
   InspectionResult,
+  InspectionOrigin,
   CheckItemStatus,
   inspectionStatusLabels,
   inspectionTypeLabels,
   inspectionResultLabels,
   checkItemStatusLabels,
+  complianceRiskLevelLabels,
+  complianceRiskLevelBadgeColors,
+  compliancePhaseLabels,
   type InspectionCheckItem,
   type InspectionDefect,
 } from '@/types/inspection';
@@ -59,6 +65,8 @@ const getStatusBadge = (status: InspectionStatus): string => {
       'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
     [InspectionStatus.CANCELLED]:
       'bg-zinc-100 text-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
+    [InspectionStatus.SUGGESTED]:
+      'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300',
   };
   return colors[status] || 'bg-zinc-100 text-zinc-800';
 };
@@ -179,6 +187,26 @@ export default function InspectionDetailsPage() {
               <Badge variant="outline">
                 {inspectionTypeLabels[inspection.type]}
               </Badge>
+              {inspection.origin === InspectionOrigin.AI_GENERATED && (
+                <Badge className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300">
+                  <Sparkles className="mr-1 h-3 w-3" />
+                  AI-suggested
+                </Badge>
+              )}
+              {inspection.riskLevel && (
+                <Badge
+                  className={
+                    complianceRiskLevelBadgeColors[inspection.riskLevel]
+                  }
+                >
+                  {complianceRiskLevelLabels[inspection.riskLevel]} risk
+                </Badge>
+              )}
+              {inspection.compliancePhase && (
+                <Badge variant="outline">
+                  {compliancePhaseLabels[inspection.compliancePhase]}
+                </Badge>
+              )}
             </div>
             {inspection.totalCheckPoints > 0 && (
               <div className="text-right">
@@ -197,6 +225,79 @@ export default function InspectionDetailsPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Details - 2 columns */}
         <div className="space-y-6 lg:col-span-2">
+          {/* AI Compliance Analysis (AI-generated compliance inspections only) */}
+          {inspection.origin === InspectionOrigin.AI_GENERATED && (
+            <Card className="border-violet-200 dark:border-violet-900">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-violet-600" />
+                  AI-suggested Compliance
+                </CardTitle>
+                <CardDescription>
+                  This compliance was proposed by the AI compliance analysis.
+                  Review it before acting on it.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  {inspection.riskLevel && (
+                    <div className="flex items-center gap-2">
+                      <ShieldAlert className="h-4 w-4 text-zinc-500" />
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Risk level
+                      </span>
+                      <Badge
+                        className={
+                          complianceRiskLevelBadgeColors[inspection.riskLevel]
+                        }
+                      >
+                        {complianceRiskLevelLabels[inspection.riskLevel]}
+                      </Badge>
+                    </div>
+                  )}
+                  {inspection.compliancePhase && (
+                    <Badge variant="outline">
+                      {compliancePhaseLabels[inspection.compliancePhase]}
+                    </Badge>
+                  )}
+                </div>
+
+                {inspection.aiRationale && (
+                  <div>
+                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Rationale
+                    </div>
+                    <p className="mt-1 text-sm whitespace-pre-line text-zinc-600 dark:text-zinc-400">
+                      {inspection.aiRationale}
+                    </p>
+                  </div>
+                )}
+
+                {inspection.resolutionOptions && (
+                  <div>
+                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Resolution options
+                    </div>
+                    <p className="mt-1 text-sm whitespace-pre-line text-zinc-600 dark:text-zinc-400">
+                      {inspection.resolutionOptions}
+                    </p>
+                  </div>
+                )}
+
+                {inspection.complianceRuleRef && (
+                  <div>
+                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Reference
+                    </div>
+                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                      {inspection.complianceRuleRef}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Basic Information */}
           <Card>
             <CardHeader>

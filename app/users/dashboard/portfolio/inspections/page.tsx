@@ -33,6 +33,9 @@ import {
   inspectionStatusLabels,
   inspectionTypeLabels,
   inspectionResultLabels,
+  complianceRiskLevelLabels,
+  complianceRiskLevelBadgeColors,
+  compliancePhaseLabels,
 } from '@/types/inspection';
 import { useInspections } from '@/hooks/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
@@ -55,6 +58,8 @@ const getStatusBadgeColor = (status: InspectionStatus): string => {
       'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
     [InspectionStatus.CANCELLED]:
       'bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-300',
+    [InspectionStatus.SUGGESTED]:
+      'bg-violet-100 text-violet-700 dark:bg-violet-900 dark:text-violet-300',
   };
   return colors[status];
 };
@@ -409,6 +414,31 @@ export default function InspectionsPage() {
                                   {inspectionResultLabels[inspection.result]}
                                 </Badge>
                               )}
+                            {inspection.riskLevel && (
+                              <Badge
+                                className={
+                                  complianceRiskLevelBadgeColors[
+                                    inspection.riskLevel
+                                  ]
+                                }
+                              >
+                                {
+                                  complianceRiskLevelLabels[
+                                    inspection.riskLevel
+                                  ]
+                                }{' '}
+                                risk
+                              </Badge>
+                            )}
+                            {inspection.compliancePhase && (
+                              <Badge variant="outline">
+                                {
+                                  compliancePhaseLabels[
+                                    inspection.compliancePhase
+                                  ]
+                                }
+                              </Badge>
+                            )}
                           </div>
                           <p className="text-sm text-zinc-600 dark:text-zinc-400">
                             {inspection.title}

@@ -6,6 +6,10 @@ import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useCreateProjectWithFiles } from '@tornotron/echno-core/project/hooks';
+import type {
+  ProjectType,
+  CreateProjectRequest,
+} from '@tornotron/echno-core/project/types';
 import { useCreateStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
 import { StorageLocationType } from '@tornotron/echno-core/storage-locations/types';
 import { Button } from '@/components/shadcn/button';
@@ -48,29 +52,32 @@ export default function NewProjectPage() {
       toast.error('User not found', { description: 'Please log in again' });
       return;
     }
+    // `projectType` is included so the chosen category flows through once the
+    // core project serializer forwards it (core 1.4.0 types the field on
+    // Project but does not yet emit it on create/update).
+    const createData: CreateProjectRequest & { projectType?: ProjectType } = {
+      projectName: data.fields.projectName,
+      projectAddress: data.fields.projectAddress,
+      status: data.fields.status,
+      projectType: data.fields.projectType || undefined,
+      description: data.fields.description,
+      projectLatitude: (() => {
+        const v = Number.parseFloat(data.fields.projectLatitude);
+        return Number.isNaN(v) ? undefined : v;
+      })(),
+      projectLongitude: (() => {
+        const v = Number.parseFloat(data.fields.projectLongitude);
+        return Number.isNaN(v) ? undefined : v;
+      })(),
+      startDate: data.fields.startDate
+        ? new Date(data.fields.startDate)
+        : undefined,
+      endDate: data.fields.endDate ? new Date(data.fields.endDate) : undefined,
+    };
     try {
       createProjectWithFiles.mutate(
         {
-          data: {
-            projectName: data.fields.projectName,
-            projectAddress: data.fields.projectAddress,
-            status: data.fields.status,
-            description: data.fields.description,
-            projectLatitude: (() => {
-              const v = Number.parseFloat(data.fields.projectLatitude);
-              return Number.isNaN(v) ? undefined : v;
-            })(),
-            projectLongitude: (() => {
-              const v = Number.parseFloat(data.fields.projectLongitude);
-              return Number.isNaN(v) ? undefined : v;
-            })(),
-            startDate: data.fields.startDate
-              ? new Date(data.fields.startDate)
-              : undefined,
-            endDate: data.fields.endDate
-              ? new Date(data.fields.endDate)
-              : undefined,
-          },
+          data: createData,
           files: {
             attachments:
               data.attachments.length > 0 ? data.attachments : undefined,

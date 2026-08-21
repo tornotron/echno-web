@@ -8,6 +8,10 @@ import {
   useProject,
   useUpdateProjectWithFiles,
 } from '@tornotron/echno-core/project/hooks';
+import type {
+  ProjectType,
+  UpdateProjectRequest,
+} from '@tornotron/echno-core/project/types';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
@@ -33,30 +37,33 @@ export default function EditProjectPage() {
 
   function handleSubmit(data: ProjectFormSubmitData) {
     if (!project) return;
+    // `projectType` is included so the chosen category flows through once the
+    // core project serializer forwards it (core 1.4.0 types the field on
+    // Project but does not yet emit it on create/update).
+    const updateData: UpdateProjectRequest & { projectType?: ProjectType } = {
+      projectName: data.fields.projectName,
+      projectAddress: data.fields.projectAddress,
+      status: data.fields.status,
+      projectType: data.fields.projectType || undefined,
+      description: data.fields.description ?? undefined,
+      projectLatitude: (() => {
+        const v = Number.parseFloat(data.fields.projectLatitude);
+        return Number.isNaN(v) ? undefined : v;
+      })(),
+      projectLongitude: (() => {
+        const v = Number.parseFloat(data.fields.projectLongitude);
+        return Number.isNaN(v) ? undefined : v;
+      })(),
+      startDate: data.fields.startDate
+        ? new Date(data.fields.startDate)
+        : undefined,
+      endDate: data.fields.endDate ? new Date(data.fields.endDate) : undefined,
+    };
     try {
       updateProjectWithFiles.mutate(
         {
           id: project.id,
-          data: {
-            projectName: data.fields.projectName,
-            projectAddress: data.fields.projectAddress,
-            status: data.fields.status,
-            description: data.fields.description ?? undefined,
-            projectLatitude: (() => {
-              const v = Number.parseFloat(data.fields.projectLatitude);
-              return Number.isNaN(v) ? undefined : v;
-            })(),
-            projectLongitude: (() => {
-              const v = Number.parseFloat(data.fields.projectLongitude);
-              return Number.isNaN(v) ? undefined : v;
-            })(),
-            startDate: data.fields.startDate
-              ? new Date(data.fields.startDate)
-              : undefined,
-            endDate: data.fields.endDate
-              ? new Date(data.fields.endDate)
-              : undefined,
-          },
+          data: updateData,
           files: {
             attachments:
               data.attachments.length > 0 ? data.attachments : undefined,
