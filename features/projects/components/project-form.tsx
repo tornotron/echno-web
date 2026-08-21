@@ -23,6 +23,7 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { FileText, MapPin, Loader2, Upload, X } from 'lucide-react';
 import {
   ProjectStatus,
+  ProjectType,
   getProjectStatusLabel,
 } from '@tornotron/echno-core/project/types';
 import type { Project } from '@tornotron/echno-core/project/types';
@@ -39,6 +40,7 @@ import { AttachmentsSection } from '@/components/common';
 
 const PROJECT_STATUSES = [
   ProjectStatus.upcoming,
+  ProjectStatus.approved,
   ProjectStatus.open,
   ProjectStatus.onHold,
   ProjectStatus.completed,
@@ -47,10 +49,33 @@ const PROJECT_STATUSES = [
   ProjectStatus.dropped,
 ];
 
+const PROJECT_TYPES = [
+  ProjectType.RESIDENTIAL,
+  ProjectType.COMMERCIAL,
+  ProjectType.INDUSTRIAL,
+  ProjectType.INFRASTRUCTURE,
+  ProjectType.INSTITUTIONAL,
+  ProjectType.MIXED_USE,
+  ProjectType.OTHER,
+];
+
+const projectTypeLabels: Record<ProjectType, string> = {
+  [ProjectType.RESIDENTIAL]: 'Residential',
+  [ProjectType.COMMERCIAL]: 'Commercial',
+  [ProjectType.INDUSTRIAL]: 'Industrial',
+  [ProjectType.INFRASTRUCTURE]: 'Infrastructure',
+  [ProjectType.INSTITUTIONAL]: 'Institutional',
+  [ProjectType.MIXED_USE]: 'Mixed use',
+  [ProjectType.OTHER]: 'Other',
+};
+
+const PROJECT_TYPE_NONE = 'none';
+
 export interface ProjectFormState {
   projectName: string;
   projectAddress: string;
   status: ProjectStatus;
+  projectType: ProjectType | '';
   projectLatitude: string;
   projectLongitude: string;
   startDate: string;
@@ -85,6 +110,7 @@ const EMPTY_FORM: ProjectFormState = {
   projectName: '',
   projectAddress: '',
   status: ProjectStatus.upcoming,
+  projectType: '',
   projectLatitude: '',
   projectLongitude: '',
   startDate: '',
@@ -106,6 +132,7 @@ export function ProjectForm(props: ProjectFormProps) {
       projectName: project.projectName,
       projectAddress: project.projectAddress,
       status: project.status,
+      projectType: project.projectType ?? '',
       projectLatitude: project.projectLatitude.toString(),
       projectLongitude: project.projectLongitude.toString(),
       startDate: project.startDate
@@ -310,6 +337,38 @@ export function ProjectForm(props: ProjectFormProps) {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Project Type */}
+          <div className="space-y-2">
+            <Label htmlFor="projectType">
+              Project Type{' '}
+              <span className="text-muted-foreground text-xs">(optional)</span>
+            </Label>
+            <Select
+              value={form.projectType || PROJECT_TYPE_NONE}
+              onValueChange={(v) =>
+                setField(
+                  'projectType',
+                  v === PROJECT_TYPE_NONE ? '' : (v as ProjectType)
+                )
+              }
+            >
+              <SelectTrigger id="projectType">
+                <SelectValue placeholder="Select project type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={PROJECT_TYPE_NONE}>Not specified</SelectItem>
+                {PROJECT_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {projectTypeLabels[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Drives which statutory compliances the AI analysis considers.
+            </p>
           </div>
 
           {/* Dates */}

@@ -34,6 +34,7 @@ const STATUS_COLORS: Record<ProjectStatus, string> = {
   [ProjectStatus.open]: '#4CAF50',
   [ProjectStatus.closed]: '#2A5797',
   [ProjectStatus.upcoming]: '#2196F3',
+  [ProjectStatus.approved]: '#009688',
   [ProjectStatus.completed]: '#9C27B0',
   [ProjectStatus.onHold]: '#FF9800',
   [ProjectStatus.cancelled]: '#9E9E9E',

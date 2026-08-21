@@ -10,6 +10,9 @@ import {
   InspectionType,
   InspectionResult,
   CheckItemStatus,
+  InspectionOrigin,
+  ComplianceRiskLevel,
+  CompliancePhase,
 } from '@tornotron/echno-core/inspection/types';
 
 export {
@@ -17,6 +20,9 @@ export {
   InspectionType,
   InspectionResult,
   CheckItemStatus,
+  InspectionOrigin,
+  ComplianceRiskLevel,
+  CompliancePhase,
 } from '@tornotron/echno-core/inspection/types';
 
 export const inspectionStatusLabels: Record<InspectionStatus, string> = {
@@ -27,7 +33,51 @@ export const inspectionStatusLabels: Record<InspectionStatus, string> = {
   [InspectionStatus.PASSED]: 'Passed',
   [InspectionStatus.PASSED_WITH_REMARKS]: 'Passed with Remarks',
   [InspectionStatus.CANCELLED]: 'Cancelled',
+  [InspectionStatus.SUGGESTED]: 'Suggested',
 };
+
+// How an inspection came to exist. Compliance inspections produced by the AI
+// generation flow are AI_GENERATED; everything else is MANUAL.
+export const inspectionOriginLabels: Record<InspectionOrigin, string> = {
+  [InspectionOrigin.MANUAL]: 'Manual',
+  [InspectionOrigin.AI_GENERATED]: 'AI Generated',
+};
+
+// Risk severity attached to a compliance-type inspection.
+export const complianceRiskLevelLabels: Record<ComplianceRiskLevel, string> = {
+  [ComplianceRiskLevel.LOW]: 'Low',
+  [ComplianceRiskLevel.MEDIUM]: 'Medium',
+  [ComplianceRiskLevel.HIGH]: 'High',
+  [ComplianceRiskLevel.CRITICAL]: 'Critical',
+};
+
+// Badge colours for the compliance risk level, low (green) through critical
+// (red), matching the palette used by the inspection status/result badges.
+export const complianceRiskLevelBadgeColors: Record<ComplianceRiskLevel, string> =
+  {
+    [ComplianceRiskLevel.LOW]:
+      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+    [ComplianceRiskLevel.MEDIUM]:
+      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+    [ComplianceRiskLevel.HIGH]:
+      'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+    [ComplianceRiskLevel.CRITICAL]:
+      'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+  };
+
+// Construction-lifecycle phase a compliance applies to.
+export const compliancePhaseLabels: Record<CompliancePhase, string> = {
+  [CompliancePhase.PRE_CONSTRUCTION]: 'Pre-construction',
+  [CompliancePhase.ONGOING]: 'Ongoing',
+  [CompliancePhase.POST_CONSTRUCTION]: 'Post-construction',
+};
+
+// Phases in lifecycle order, used to group compliances into sections.
+export const compliancePhaseOrder: CompliancePhase[] = [
+  CompliancePhase.PRE_CONSTRUCTION,
+  CompliancePhase.ONGOING,
+  CompliancePhase.POST_CONSTRUCTION,
+];
 
 export const inspectionTypeLabels: Record<InspectionType, string> = {
   [InspectionType.SAFETY]: 'Safety Inspection',

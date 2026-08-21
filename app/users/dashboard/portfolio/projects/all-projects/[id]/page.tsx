@@ -52,6 +52,7 @@ import {
   HeartPulse,
   TrendingUp,
   ShieldAlert,
+  ShieldCheck,
   Clock,
   CheckCircle,
 } from 'lucide-react';
@@ -74,6 +75,7 @@ import { WBSTree } from '@/features/wbs/components/wbs-tree';
 import { HealthTab } from '@/features/health/components/health-tab';
 import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
+import { ProjectComplianceTab } from '@/features/compliance/components';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   AlertDialog,
@@ -107,6 +109,8 @@ const getStatusBadgeColor = (status: ProjectStatus): string => {
       'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
     [ProjectStatus.upcoming]:
       'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
+    [ProjectStatus.approved]:
+      'bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-300',
     [ProjectStatus.completed]:
       'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300',
     [ProjectStatus.closed]:
@@ -345,6 +349,13 @@ export default function ProjectDashboardPage() {
           <TabsTrigger value="risks" className="flex items-center gap-1.5">
             <ShieldAlert className="h-4 w-4" />
             Risks
+          </TabsTrigger>
+          <TabsTrigger
+            value="compliance"
+            className="flex items-center gap-1.5"
+          >
+            <ShieldCheck className="h-4 w-4" />
+            Compliance
           </TabsTrigger>
         </TabsList>
 
@@ -936,6 +947,11 @@ export default function ProjectDashboardPage() {
         {/* ── Risks ────────────────────────────────────────────────────────── */}
         <TabsContent value="risks" className="mt-6">
           <RisksTab projectId={project.id} />
+        </TabsContent>
+
+        {/* ── Compliance ───────────────────────────────────────────────────── */}
+        <TabsContent value="compliance" className="mt-6">
+          <ProjectComplianceTab projectId={project.id} />
         </TabsContent>
       </Tabs>
 

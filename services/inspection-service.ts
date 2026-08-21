@@ -1,13 +1,18 @@
-import { inspectionService as coreInspectionService } from '@tornotron/echno-core/inspection/services';
+import {
+  inspectionService as coreInspectionService,
+  type InspectionListParams,
+} from '@tornotron/echno-core/inspection/services';
 import type {
   Inspection,
   CreateInspectionRequest,
   UpdateInspectionRequest,
 } from '@tornotron/echno-core/inspection/types';
 
+export type { InspectionListParams } from '@tornotron/echno-core/inspection/services';
+
 export const inspectionService = {
-  async getAll(): Promise<Inspection[]> {
-    return coreInspectionService.getAll();
+  async getAll(params?: InspectionListParams): Promise<Inspection[]> {
+    return coreInspectionService.getAll(params);
   },
   async getById(id: string): Promise<Inspection> {
     return coreInspectionService.getById(id);
@@ -17,5 +22,10 @@ export const inspectionService = {
   },
   async update(id: string, req: UpdateInspectionRequest): Promise<Inspection> {
     return coreInspectionService.update(id, req);
+  },
+  // Re-runs AI compliance generation for a project and returns the compliance
+  // inspections it produced. Generation is idempotent server-side.
+  async regenerateCompliance(projectId: number): Promise<Inspection[]> {
+    return coreInspectionService.regenerateCompliance(projectId);
   },
 };
