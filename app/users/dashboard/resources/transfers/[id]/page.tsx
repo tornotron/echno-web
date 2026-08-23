@@ -4,6 +4,7 @@ import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Empty,
@@ -265,7 +266,20 @@ export default function SiteTransferDetailPage({
             </p>
             <div className="flex min-w-0 items-center justify-between gap-2">
               <p className="min-w-0 truncate text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {transfer.sendingPerson.name}
+                {transfer.sendingPerson?.id ? (
+                  <Link
+                    href={employeeFilterHref(
+                      routes.resources.transfers.href,
+                      transfer.sendingPerson.id,
+                      'sender'
+                    )}
+                    className="hover:underline"
+                  >
+                    {transfer.sendingPerson.name}
+                  </Link>
+                ) : (
+                  transfer.sendingPerson?.name
+                )}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
                 <User className="size-4 text-orange-600 dark:text-orange-400" />

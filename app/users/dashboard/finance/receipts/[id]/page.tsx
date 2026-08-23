@@ -38,6 +38,8 @@ import {
 } from '@/components/shadcn/empty';
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   ReceiptType,
@@ -93,6 +95,13 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
   const { data: receipt, isLoading, isError } = useReceiptById(id);
+  const { data: employees = [] } = useEmployeeLookup();
+
+  const getEmployeeName = (employeeId?: number): string => {
+    if (!employeeId) return '—';
+    const employee = employees.find((e) => e.id === employeeId);
+    return employee?.name || `User #${employeeId}`;
+  };
 
   if (isLoading)
     return (
@@ -469,7 +478,21 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
                       {format(receipt.issuedAt, 'dd MMM yyyy, hh:mm a')}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      By User #{receipt.issuedBy}
+                      By{' '}
+                      {receipt.issuedBy ? (
+                        <Link
+                          href={employeeFilterHref(
+                            routes.finance.receipts.href,
+                            receipt.issuedBy,
+                            'issuer'
+                          )}
+                          className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          {getEmployeeName(receipt.issuedBy)}
+                        </Link>
+                      ) : (
+                        getEmployeeName(receipt.issuedBy)
+                      )}
                     </p>
                   </div>
                 </div>
@@ -484,7 +507,21 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
                       {format(receipt.createdAt, 'dd MMM yyyy, hh:mm a')}
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                      By User #{receipt.createdBy}
+                      By{' '}
+                      {receipt.createdBy ? (
+                        <Link
+                          href={employeeFilterHref(
+                            routes.finance.receipts.href,
+                            receipt.createdBy,
+                            'creator'
+                          )}
+                          className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          {getEmployeeName(receipt.createdBy)}
+                        </Link>
+                      ) : (
+                        getEmployeeName(receipt.createdBy)
+                      )}
                     </p>
                   </div>
                 </div>

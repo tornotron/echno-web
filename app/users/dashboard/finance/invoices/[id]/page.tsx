@@ -47,6 +47,7 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   ConstructionInvoiceStatus,
@@ -235,7 +236,9 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               <FileText className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">Project</p>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Project
+              </p>
               {invoice.projectId ? (
                 <Link
                   href={
@@ -599,8 +602,21 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                       <div>
                         <p className="text-sm font-medium">Submitted</p>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                          {getEmployeeName(invoice.submittedBy)} on{' '}
-                          {formatDateTime(invoice.submittedAt)}
+                          {invoice.submittedBy ? (
+                            <Link
+                              href={employeeFilterHref(
+                                routes.finance.invoices.href,
+                                invoice.submittedBy,
+                                'submitter'
+                              )}
+                              className="font-medium hover:underline"
+                            >
+                              {getEmployeeName(invoice.submittedBy)}
+                            </Link>
+                          ) : (
+                            getEmployeeName(invoice.submittedBy)
+                          )}{' '}
+                          on {formatDateTime(invoice.submittedAt)}
                         </p>
                       </div>
                     </li>
@@ -611,8 +627,21 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                       <div>
                         <p className="text-sm font-medium">Approved</p>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                          {getEmployeeName(invoice.approvedBy)} on{' '}
-                          {formatDateTime(invoice.approvedAt)}
+                          {invoice.approvedBy ? (
+                            <Link
+                              href={employeeFilterHref(
+                                routes.finance.invoices.href,
+                                invoice.approvedBy,
+                                'approver'
+                              )}
+                              className="font-medium hover:underline"
+                            >
+                              {getEmployeeName(invoice.approvedBy)}
+                            </Link>
+                          ) : (
+                            getEmployeeName(invoice.approvedBy)
+                          )}{' '}
+                          on {formatDateTime(invoice.approvedAt)}
                         </p>
                       </div>
                     </li>
@@ -625,7 +654,20 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                           Payment recorded by
                         </p>
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                          {getEmployeeName(invoice.paymentRecordedBy)}
+                          {invoice.paymentRecordedBy ? (
+                            <Link
+                              href={employeeFilterHref(
+                                routes.finance.invoices.href,
+                                invoice.paymentRecordedBy,
+                                'payment-recorder'
+                              )}
+                              className="font-medium hover:underline"
+                            >
+                              {getEmployeeName(invoice.paymentRecordedBy)}
+                            </Link>
+                          ) : (
+                            getEmployeeName(invoice.paymentRecordedBy)
+                          )}
                         </p>
                       </div>
                     </li>

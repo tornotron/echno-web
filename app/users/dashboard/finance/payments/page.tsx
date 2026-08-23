@@ -7,7 +7,12 @@ import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { CreditCard, DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -23,6 +28,16 @@ export default function PaymentsPage() {
   const { data: employees = [] } = useEmployeeLookup();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const filteredPayments =
+    employeeId != null && role
+      ? payments.filter((r) =>
+          rowMatchesEmployeeFilter(r, employeeId, role, {
+            verifier: (p) => p.verifiedBy,
+          })
+        )
+      : payments;
 
   const payeeDatasets = useMemo(
     () => ({
@@ -129,8 +144,16 @@ export default function PaymentsPage() {
         </div>
       </Card>
 
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
+
       <PaymentsTable
-        payments={payments}
+        payments={filteredPayments}
         isLoading={isLoading}
         isError={isError}
         payeeDatasets={payeeDatasets}

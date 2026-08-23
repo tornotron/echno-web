@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   Plus,
   Loader2,
@@ -32,6 +37,8 @@ export default function IndentsPage() {
     isError,
   } = useIndentsPaginated(0, 200);
 
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [projectFilter, setProjectFilter] = useState('all');
@@ -49,9 +56,17 @@ export default function IndentsPage() {
       const matchesStatus = statusFilter === 'all' || i.status === statusFilter;
       const matchesProject =
         projectFilter === 'all' || i.projectName === projectFilter;
-      return matchesSearch && matchesStatus && matchesProject;
+      const matchesEmployee =
+        employeeId == null ||
+        role == null ||
+        rowMatchesEmployeeFilter(i, employeeId, role, {
+          creator: (row) => row.createdBy?.id,
+        });
+      return (
+        matchesSearch && matchesStatus && matchesProject && matchesEmployee
+      );
     });
-  }, [indents, searchQuery, statusFilter, projectFilter]);
+  }, [indents, searchQuery, statusFilter, projectFilter, employeeId, role]);
 
   const projectOptions = useMemo(() => {
     const names = new Set<string>();
@@ -175,6 +190,14 @@ export default function IndentsPage() {
           </div>
         </div>
       </Card>
+
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
 
       <IndentTable
         paginated={paginated}

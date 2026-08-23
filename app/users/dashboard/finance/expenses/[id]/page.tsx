@@ -33,6 +33,7 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   ExpenseType,
@@ -146,6 +147,7 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
     (e) => e.id === expense.submittedBy
   );
   const approvedByEmployee = employees.find((e) => e.id === expense.approvedBy);
+  const rejectedByEmployee = employees.find((e) => e.id === expense.rejectedBy);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -368,11 +370,11 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
                     By{' '}
                     <Link
-                      href={
-                        routes.workforce.employees.employeeManagement.detail(
-                          expense.submittedBy
-                        ).href
-                      }
+                      href={employeeFilterHref(
+                        routes.finance.expenses.href,
+                        expense.submittedBy,
+                        'submitter'
+                      )}
                       className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       {submittedByEmployee?.name ||
@@ -402,11 +404,11 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={
-                            routes.workforce.employees.employeeManagement.detail(
-                              expense.approvedBy
-                            ).href
-                          }
+                          href={employeeFilterHref(
+                            routes.finance.expenses.href,
+                            expense.approvedBy,
+                            'approver'
+                          )}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
                           {approvedByEmployee?.name ||
@@ -430,14 +432,15 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
                         By{' '}
                         <Link
-                          href={
-                            routes.workforce.employees.employeeManagement.detail(
-                              expense.rejectedBy
-                            ).href
-                          }
+                          href={employeeFilterHref(
+                            routes.finance.expenses.href,
+                            expense.rejectedBy,
+                            'rejecter'
+                          )}
                           className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                         >
-                          Employee #{expense.rejectedBy}
+                          {rejectedByEmployee?.name ||
+                            `Employee #${expense.rejectedBy}`}
                         </Link>
                       </p>
                       {expense.rejectionReason && (

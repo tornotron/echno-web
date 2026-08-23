@@ -3,7 +3,12 @@
 import { useInvoices } from '@/hooks/invoices';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { FileText, DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -16,6 +21,18 @@ export default function InvoicesPage() {
   const { data: invoices = [], isLoading, isError } = useInvoices();
   const { data: projects = [] } = useProjects();
   const { data: vendors = [] } = useVendors();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const filteredInvoices =
+    employeeId != null && role
+      ? invoices.filter((r) =>
+          rowMatchesEmployeeFilter(r, employeeId, role, {
+            submitter: (i) => i.submittedBy,
+            approver: (i) => i.approvedBy,
+            'payment-recorder': (i) => i.paymentRecordedBy,
+          })
+        )
+      : invoices;
 
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter(
@@ -106,8 +123,16 @@ export default function InvoicesPage() {
         </div>
       </Card>
 
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
+
       <InvoicesFeature
-        invoices={invoices}
+        invoices={filteredInvoices}
         projects={projects}
         vendors={vendors}
         isLoading={isLoading}

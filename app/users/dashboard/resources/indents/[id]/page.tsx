@@ -4,6 +4,7 @@ import { use, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Empty,
@@ -265,7 +266,20 @@ export default function IndentDetailPage({
             </p>
             <div className="flex min-w-0 items-center justify-between gap-2">
               <p className="min-w-0 truncate text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {indent.createdBy.name}
+                {indent.createdBy?.id ? (
+                  <Link
+                    href={employeeFilterHref(
+                      routes.resources.indents.href,
+                      indent.createdBy.id,
+                      'creator'
+                    )}
+                    className="hover:underline"
+                  >
+                    {indent.createdBy.name}
+                  </Link>
+                ) : (
+                  indent.createdBy?.name
+                )}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
                 <User className="size-4 text-zinc-600 dark:text-zinc-400" />

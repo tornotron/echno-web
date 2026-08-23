@@ -4,7 +4,12 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   PieChart,
   Wallet,
@@ -18,6 +23,17 @@ import { BudgetsGrid } from '@/features/budgets';
 
 export default function BudgetsPage() {
   const { data: budgets = [], isLoading, isError } = useBudgets();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const filteredBudgets =
+    employeeId != null && role
+      ? budgets.filter((r) =>
+          rowMatchesEmployeeFilter(r, employeeId, role, {
+            preparer: (b) => b.preparedBy,
+            approver: (b) => b.approvedBy,
+          })
+        )
+      : budgets;
 
   const totalBudgetsCount = budgets.length;
   const activeBudgets = budgets.filter(
@@ -110,7 +126,19 @@ export default function BudgetsPage() {
         </div>
       </Card>
 
-      <BudgetsGrid budgets={budgets} isLoading={isLoading} isError={isError} />
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
+
+      <BudgetsGrid
+        budgets={filteredBudgets}
+        isLoading={isLoading}
+        isError={isError}
+      />
     </div>
   );
 }

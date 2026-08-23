@@ -1,7 +1,12 @@
 'use client';
 
 import { useExpenses } from '@/hooks/expenses';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -12,6 +17,18 @@ import { ExpensesTable } from '@/features/expenses';
 
 export default function ExpensesPage() {
   const { data: expenses = [], isLoading, isError } = useExpenses();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const filteredExpenses =
+    employeeId != null && role
+      ? expenses.filter((r) =>
+          rowMatchesEmployeeFilter(r, employeeId, role, {
+            submitter: (e) => e.submittedBy,
+            approver: (e) => e.approvedBy,
+            rejecter: (e) => e.rejectedBy,
+          })
+        )
+      : expenses;
 
   const totalExpenses = expenses.length;
   const paidExpenses = expenses.filter(
@@ -102,8 +119,16 @@ export default function ExpensesPage() {
         </div>
       </Card>
 
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
+
       <ExpensesTable
-        expenses={expenses}
+        expenses={filteredExpenses}
         isLoading={isLoading}
         isError={isError}
       />

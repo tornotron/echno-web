@@ -44,6 +44,8 @@ import {
 } from '@/components/shadcn/empty';
 import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { useStockAdjustment } from '@/hooks/stock-adjustments';
 import { StockAdjustmentStatus } from '@/types/resource';
 
@@ -158,6 +160,13 @@ export default function StockAdjustmentDetailPage({
   const router = useRouter();
   const numericId = Number.parseInt(id);
   const { data: adjustment } = useStockAdjustment(numericId);
+  const { data: employees = [] } = useEmployeeLookup();
+
+  const getEmployeeName = (empId?: number): string => {
+    if (!empId) return '—';
+    const employee = employees.find((e) => e.id === empId);
+    return employee?.name || `EMP-${empId.toString().padStart(3, '0')}`;
+  };
 
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -634,7 +643,16 @@ export default function StockAdjustmentDetailPage({
                     Created By
                   </div>
                   <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                    EMP-{adjustment.submittedBy.toString().padStart(3, '0')}
+                    <Link
+                      href={employeeFilterHref(
+                        routes.resources.stockAdjustments.href,
+                        adjustment.submittedBy,
+                        'submitter'
+                      )}
+                      className="hover:underline"
+                    >
+                      {getEmployeeName(adjustment.submittedBy)}
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -647,7 +665,16 @@ export default function StockAdjustmentDetailPage({
                       Approved By
                     </div>
                     <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      EMP-{adjustment.approvedBy.toString().padStart(3, '0')}
+                      <Link
+                        href={employeeFilterHref(
+                          routes.resources.stockAdjustments.href,
+                          adjustment.approvedBy,
+                          'approver'
+                        )}
+                        className="hover:underline"
+                      >
+                        {getEmployeeName(adjustment.approvedBy)}
+                      </Link>
                     </div>
                   </div>
                 </div>

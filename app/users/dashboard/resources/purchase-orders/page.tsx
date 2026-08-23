@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   Plus,
   Loader2,
@@ -20,6 +25,8 @@ import { PurchaseOrderStatus } from '@tornotron/echno-core/purchase-orders/types
 
 export default function PurchaseOrdersPage() {
   const { data: orders = [], isLoading } = usePurchaseOrders();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -39,9 +46,17 @@ export default function PurchaseOrdersPage() {
         statusFilter === 'all' || po.status === statusFilter;
       const matchesProject =
         projectFilter === 'all' || po.projectName === projectFilter;
-      return matchesSearch && matchesStatus && matchesProject;
+      const matchesEmployee =
+        employeeId == null ||
+        role == null ||
+        rowMatchesEmployeeFilter(po, employeeId, role, {
+          creator: (p) => p.createdBy?.id,
+        });
+      return (
+        matchesSearch && matchesStatus && matchesProject && matchesEmployee
+      );
     });
-  }, [orders, searchQuery, statusFilter, projectFilter]);
+  }, [orders, searchQuery, statusFilter, projectFilter, employeeId, role]);
 
   const projectOptions = useMemo(() => {
     const names = new Set<string>();
@@ -155,6 +170,14 @@ export default function PurchaseOrdersPage() {
           </div>
         </div>
       </Card>
+
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
 
       <PurchaseOrderTable
         paginated={paginated}
