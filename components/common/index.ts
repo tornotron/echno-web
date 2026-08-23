@@ -7,3 +7,4 @@ export * from './data-table';
 export * from './search-and-filter';
 export * from './page-header';
 export * from './org-guard';
+export * from './active-filter-chip';

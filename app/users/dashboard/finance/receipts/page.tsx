@@ -3,7 +3,12 @@
 import { useMemo } from 'react';
 import { useReceipts } from '@/hooks/receipts';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { Receipt as ReceiptIcon, DollarSign, FileText } from 'lucide-react';
@@ -15,6 +20,17 @@ import { ReceiptsTable } from '@/features/receipts';
 export default function ReceiptsPage() {
   const { data: receipts = [], isLoading, isError } = useReceipts();
   const { data: projects = [] } = useProjects();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const filteredReceipts =
+    employeeId != null && role
+      ? receipts.filter((r) =>
+          rowMatchesEmployeeFilter(r, employeeId, role, {
+            issuer: (rec) => rec.issuedBy,
+            creator: (rec) => rec.createdBy,
+          })
+        )
+      : receipts;
 
   const projectById = useMemo(() => {
     const m = new Map<number, { projectName: string }>();
@@ -109,8 +125,16 @@ export default function ReceiptsPage() {
         </div>
       </Card>
 
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
+
       <ReceiptsTable
-        receipts={receipts}
+        receipts={filteredReceipts}
         isLoading={isLoading}
         isError={isError}
         projectById={projectById}

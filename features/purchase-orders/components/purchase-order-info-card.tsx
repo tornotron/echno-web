@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import {
   Card,
   CardContent,
@@ -264,7 +265,22 @@ export function POInfoCard({ po }: POInfoCardProps) {
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">Created By</span>
-                <span className="font-medium">{po.createdBy.name || '—'}</span>
+                <span className="font-medium">
+                  {po.createdBy?.id ? (
+                    <Link
+                      href={employeeFilterHref(
+                        routes.resources.purchaseOrders.href,
+                        po.createdBy.id,
+                        'creator'
+                      )}
+                      className="hover:underline"
+                    >
+                      {po.createdBy.name || '—'}
+                    </Link>
+                  ) : (
+                    po.createdBy?.name || '—'
+                  )}
+                </span>
               </div>
               <div className="flex justify-between border-b pb-2">
                 <span className="text-muted-foreground">Created At</span>

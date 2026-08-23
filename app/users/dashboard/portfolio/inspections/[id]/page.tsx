@@ -31,6 +31,8 @@ import { useInspectionById } from '@/hooks/inspection';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
+import Link from 'next/link';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import {
   InspectionStatus,
   InspectionResult,
@@ -366,7 +368,20 @@ export default function InspectionDetailsPage() {
                       Inspector
                     </div>
                     <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {inspector?.name || 'Unknown Inspector'}
+                      {inspection.inspectorId ? (
+                        <Link
+                          href={employeeFilterHref(
+                            routes.portfolio.inspections.href,
+                            inspection.inspectorId,
+                            'inspector'
+                          )}
+                          className="hover:underline"
+                        >
+                          {inspector?.name || 'Unknown Inspector'}
+                        </Link>
+                      ) : (
+                        (inspector?.name ?? 'Unknown Inspector')
+                      )}
                     </div>
                   </div>
                 </div>

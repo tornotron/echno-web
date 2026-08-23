@@ -42,6 +42,7 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   BudgetStatus,
@@ -648,11 +649,11 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                   <p className="text-xs text-zinc-600 dark:text-zinc-400">
                     By{' '}
                     <Link
-                      href={
-                        routes.workforce.employees.employeeManagement.detail(
-                          budget.preparedBy
-                        ).href
-                      }
+                      href={employeeFilterHref(
+                        routes.finance.budgets.href,
+                        budget.preparedBy,
+                        'preparer'
+                      )}
                       className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                     >
                       {preparedByEmployee?.name ||
@@ -686,11 +687,11 @@ export default function BudgetDetailPage({ params }: BudgetDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={
-                          routes.workforce.employees.employeeManagement.detail(
-                            budget.approvedBy
-                          ).href
-                        }
+                        href={employeeFilterHref(
+                          routes.finance.budgets.href,
+                          budget.approvedBy,
+                          'approver'
+                        )}
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {approvedByEmployee?.name ||

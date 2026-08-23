@@ -36,6 +36,7 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   paymentTypeLabels,
@@ -429,11 +430,11 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={
-                          routes.workforce.employees.employeeManagement.detail(
-                            payment.verifiedBy
-                          ).href
-                        }
+                        href={employeeFilterHref(
+                          routes.finance.payments.href,
+                          payment.verifiedBy,
+                          'verifier'
+                        )}
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
                         {getUserName(payment.verifiedBy)}

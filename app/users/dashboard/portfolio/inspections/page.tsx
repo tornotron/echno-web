@@ -11,7 +11,16 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Pagination, SearchAndFilter } from '@/components/common';
+import {
+  Pagination,
+  SearchAndFilter,
+  ActiveFilterChip,
+} from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   Select,
   SelectContent,
@@ -82,6 +91,7 @@ export default function InspectionsPage() {
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployeeLookup();
   const { data: inspections = [] } = useInspections();
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -118,13 +128,20 @@ export default function InspectionsPage() {
         resultFilter === 'all' || inspection.result === resultFilter;
       const matchesProject =
         projectFilter === 'all' || inspection.projectId === projectFilter;
+      const matchesEmployee =
+        employeeId == null ||
+        role == null ||
+        rowMatchesEmployeeFilter(inspection, employeeId, role, {
+          inspector: (i) => i.inspectorId,
+        });
 
       return (
         matchesSearch &&
         matchesStatus &&
         matchesType &&
         matchesResult &&
-        matchesProject
+        matchesProject &&
+        matchesEmployee
       );
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -136,6 +153,8 @@ export default function InspectionsPage() {
     typeFilter,
     resultFilter,
     projectFilter,
+    employeeId,
+    role,
   ]);
 
   // Pagination
@@ -252,6 +271,14 @@ export default function InspectionsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
 
       {/* Filters */}
       <SearchAndFilter

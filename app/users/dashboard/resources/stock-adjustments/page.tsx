@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   Settings,
   Plus,
@@ -39,6 +44,8 @@ export default function StockAdjustmentsPage() {
     isError,
   } = useStockAdjustments();
 
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adj) => {
       const matchesSearch =
@@ -54,9 +61,30 @@ export default function StockAdjustmentsPage() {
         statusFilter === 'all' || adj.status === statusFilter;
       const matchesReason =
         reasonFilter === 'all' || adj.primaryReason === reasonFilter;
-      return matchesSearch && matchesType && matchesStatus && matchesReason;
+      const matchesEmployee =
+        employeeId == null ||
+        role == null ||
+        rowMatchesEmployeeFilter(adj, employeeId, role, {
+          submitter: (a) => a.submittedBy,
+          approver: (a) => a.approvedBy,
+        });
+      return (
+        matchesSearch &&
+        matchesType &&
+        matchesStatus &&
+        matchesReason &&
+        matchesEmployee
+      );
     });
-  }, [stockAdjustments, searchQuery, typeFilter, statusFilter, reasonFilter]);
+  }, [
+    stockAdjustments,
+    searchQuery,
+    typeFilter,
+    statusFilter,
+    reasonFilter,
+    employeeId,
+    role,
+  ]);
 
   const totalPages = Math.ceil(filteredAdjustments.length / itemsPerPage);
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
@@ -81,9 +109,9 @@ export default function StockAdjustmentsPage() {
 
   const hasActiveFilters = Boolean(
     searchQuery ||
-      typeFilter !== 'all' ||
-      statusFilter !== 'all' ||
-      reasonFilter !== 'all'
+    typeFilter !== 'all' ||
+    statusFilter !== 'all' ||
+    reasonFilter !== 'all'
   );
 
   const clearFilters = () => {
@@ -193,6 +221,14 @@ export default function StockAdjustmentsPage() {
           </div>
         </div>
       </Card>
+
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
 
       <StockAdjustmentList
         paginated={paginated}

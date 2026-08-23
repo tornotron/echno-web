@@ -4,6 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Empty,
@@ -144,7 +145,20 @@ export default function MaterialConsumptionDetailPage({
             </p>
             <div className="flex min-w-0 items-center justify-between gap-2">
               <p className="min-w-0 truncate text-base font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {consumption.createdBy.name}
+                {consumption.createdBy?.id ? (
+                  <Link
+                    href={employeeFilterHref(
+                      routes.resources.materialConsumptions.href,
+                      consumption.createdBy.id,
+                      'creator'
+                    )}
+                    className="hover:underline"
+                  >
+                    {consumption.createdBy.name}
+                  </Link>
+                ) : (
+                  consumption.createdBy?.name
+                )}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
                 <User className="size-4 text-orange-600 dark:text-orange-400" />

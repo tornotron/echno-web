@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   Plus,
   Loader2,
@@ -19,6 +24,8 @@ import { GoodsReceiptTable } from '@/features/grn/components';
 
 export default function GoodsReceiptsPage() {
   const { data: grns = [], isLoading } = useGRNs();
+
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [projectFilter, setProjectFilter] = useState('all');
@@ -34,9 +41,14 @@ export default function GoodsReceiptsPage() {
           grn.vendorName.toLowerCase().includes(q) ||
           grn.purchaseOrderNumber?.toLowerCase().includes(q) ||
           grn.projectName?.toLowerCase().includes(q)) &&
-        (projectFilter === 'all' || grn.projectName === projectFilter)
+        (projectFilter === 'all' || grn.projectName === projectFilter) &&
+        (employeeId == null ||
+          role == null ||
+          rowMatchesEmployeeFilter(grn, employeeId, role, {
+            receiver: (g) => g.receivedBy?.id,
+          }))
     );
-  }, [grns, searchQuery, projectFilter]);
+  }, [grns, searchQuery, projectFilter, employeeId, role]);
 
   const projectOptions = useMemo(() => {
     const names = new Set<string>();
@@ -154,6 +166,14 @@ export default function GoodsReceiptsPage() {
           </div>
         </div>
       </Card>
+
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
 
       <GoodsReceiptTable
         paginated={paginated}

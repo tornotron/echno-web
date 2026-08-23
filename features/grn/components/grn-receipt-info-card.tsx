@@ -8,6 +8,9 @@ import {
 } from '@/components/shadcn/card';
 import { Receipt } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
+import Link from 'next/link';
+import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import type { GoodsReceivedNote } from '@tornotron/echno-core/grn/types';
 
 interface GRNReceiptInfoCardProps {
@@ -39,7 +42,22 @@ export function GRNReceiptInfoCard({ grn }: GRNReceiptInfoCardProps) {
         </div>
         <div className="flex justify-between border-b pb-2">
           <span className="text-muted-foreground">Received By</span>
-          <span className="font-medium">{grn.receivedBy.name}</span>
+          <span className="font-medium">
+            {grn.receivedBy?.id ? (
+              <Link
+                href={employeeFilterHref(
+                  routes.resources.goodsReceipts.href,
+                  grn.receivedBy.id,
+                  'receiver'
+                )}
+                className="hover:underline"
+              >
+                {grn.receivedBy.name}
+              </Link>
+            ) : (
+              grn.receivedBy?.name
+            )}
+          </span>
         </div>
         {grn.deliveryChallanNumber && (
           <div className="flex justify-between border-b pb-2">
