@@ -4,12 +4,15 @@
  * top-level namespace for the object, so it must match the backend enum
  * exactly.
  *
- * NOTE for review: the collection types below use the PLURAL forms specified
- * by the presign/register contract (PR #311). echno-core's older download-flow
- * doc examples reference singular `ISSUE_ATTACHMENT` / `TASK_ATTACHMENT`; those
- * are the legacy GET-by-entityType examples, not the register enum. Confirm
- * these plural values against the backend's register endpoint enum before the
- * old multipart path is retired.
+ * The collection types below use the PLURAL forms specified by the
+ * presign/register contract (PR #311), verified against the backend
+ * controllers' `entityType` defaults: `ISSUE_ATTACHMENTS` (IssueController /
+ * IssueControllerWeb), `TASK_ATTACHMENTS` (TaskControllerWeb) and
+ * `PROJECT_ATTACHMENTS` (ProjectControllerWeb). The single-object types stay
+ * singular: `ORGANIZATION_LOGO`, `USER_PROFILE_PICTURE`, `USER_CV`. echno-core's
+ * older download-flow doc examples reference singular `ISSUE_ATTACHMENT` /
+ * `TASK_ATTACHMENT`; those are the legacy GET-by-entityType examples, not the
+ * register enum.
  */
 export const AttachmentEntityType = {
   ISSUE_ATTACHMENTS: 'ISSUE_ATTACHMENTS',
