@@ -22,6 +22,8 @@ export const ROLE_LABELS: Record<string, string> = {
   receiver: 'Received by',
   sender: 'Sent by',
   inspector: 'Inspector',
+  assignee: 'Assigned to',
+  reporter: 'Reported by',
 };
 
 /** Resolved employee filter read from the current list page's query params. */

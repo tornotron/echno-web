@@ -41,6 +41,7 @@ import {
 } from '@tornotron/echno-core/issue/types';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { usePrefetchIssue } from '@tornotron/echno-core/issue/hooks';
 
 // ---------------------------------------------------------------------------
@@ -322,11 +323,11 @@ export function IssueTable({
               className="!size-8"
             />
             <Link
-              href={
-                routes.workforce.employees.employeeManagement.detail(
-                  issue.creator.id
-                ).href
-              }
+              href={employeeFilterHref(
+                routes.portfolio.projects.allIssues,
+                issue.creator.id,
+                'creator'
+              )}
               className="text-sm font-medium text-zinc-700 hover:text-blue-600 dark:text-zinc-300 dark:hover:text-blue-400"
               onClick={(e) => e.stopPropagation()}
             >

@@ -25,6 +25,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import type { Task } from '@tornotron/echno-core/task/types';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
@@ -365,11 +366,11 @@ export function TaskOverviewTab({
                 {task.assignees.map((assignee, i) => (
                   <Link
                     key={i}
-                    href={
-                      routes.workforce.employees.employeeManagement.detail(
-                        assignee.id
-                      ).href
-                    }
+                    href={employeeFilterHref(
+                      routes.portfolio.projects.allTasks,
+                      assignee.id,
+                      'assignee'
+                    )}
                     className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <EmployeeAvatar employee={assignee} size="sm" />
@@ -400,11 +401,11 @@ export function TaskOverviewTab({
             </CardHeader>
             <CardContent>
               <Link
-                href={
-                  routes.workforce.employees.employeeManagement.detail(
-                    task.creator.id
-                  ).href
-                }
+                href={employeeFilterHref(
+                  routes.portfolio.projects.allTasks,
+                  task.creator.id,
+                  'creator'
+                )}
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <EmployeeAvatar employee={task.creator} size="sm" />
