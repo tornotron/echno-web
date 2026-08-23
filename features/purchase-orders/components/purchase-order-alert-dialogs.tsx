@@ -20,6 +20,17 @@ interface DeletePODialogProps {
   isPending: boolean;
 }
 
+/**
+ * Confirmation dialog for deleting a purchase order. Shows the PO number and
+ * warns that the action cannot be undone; the confirm button is disabled and
+ * shows a spinner while `isPending`.
+ *
+ * @param props.open - Whether the dialog is visible.
+ * @param props.onOpenChange - Called when the dialog requests open/close.
+ * @param props.poNumber - PO number shown in the confirmation copy.
+ * @param props.onConfirm - Runs the delete when the user confirms.
+ * @param props.isPending - True while the delete request is in flight.
+ */
 export function DeletePODialog({
   open,
   onOpenChange,

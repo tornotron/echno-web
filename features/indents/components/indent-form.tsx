@@ -67,6 +67,11 @@ interface IndentFormProps {
   onSubmit: (data: IndentSubmitData) => void;
 }
 
+/**
+ * DOM id shared by the indent form and any submit button rendered outside it
+ * (for example in a page header), wired through the button's `form` attribute
+ * so it can submit the form.
+ */
 export const INDENT_FORM_ID = 'indent-form';
 
 const EMPTY_ITEM: IndentItemRow = {
@@ -80,6 +85,14 @@ const EMPTY_ITEM: IndentItemRow = {
 // Component
 // ---------------------------------------------------------------------------
 
+/**
+ * Indent (material request) creation form: header fields (project, auto-
+ * generated indent number) plus an editable table of requested material rows.
+ * Submitting hands the assembled header and item rows to `onSubmit`; it does
+ * not call the API itself.
+ *
+ * @param props.onSubmit - Receives the collected form state and item rows.
+ */
 export function IndentForm({ onSubmit }: IndentFormProps) {
   const { data: materials = [] } = useMaterials();
   const { data: projects = [] } = useProjects();

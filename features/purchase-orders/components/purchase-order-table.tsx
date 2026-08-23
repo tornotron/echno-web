@@ -57,6 +57,13 @@ interface PurchaseOrderTableProps {
   projectOptions: string[];
 }
 
+/**
+ * Presentational purchase-order table: a search box, status and project
+ * filters, the already-paginated rows, and pagination controls. It holds no
+ * data or filter state of its own; the parent computes the filtered, paginated
+ * slice and passes the current values plus their change handlers as props.
+ * Clicking a row navigates to that PO's detail page.
+ */
 export function PurchaseOrderTable({
   paginated,
   filteredCount,

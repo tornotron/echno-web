@@ -74,6 +74,15 @@ interface POItemsCardProps {
   po: PurchaseOrder;
 }
 
+/**
+ * Card listing a purchase order's material line items. When the PO is in draft
+ * status the rows are editable: items can be added, edited, or removed through
+ * the PO-item mutations, each guarded by a confirmation dialog. For any other
+ * status the list is read-only.
+ *
+ * @param props.po - The purchase order whose items are shown; its status
+ *   decides whether editing is allowed.
+ */
 export function POItemsCard({ po }: POItemsCardProps) {
   const isEditable = po.status === PurchaseOrderStatus.draft;
 

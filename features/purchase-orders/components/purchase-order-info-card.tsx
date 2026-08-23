@@ -47,6 +47,13 @@ interface POInfoCardProps {
   po: PurchaseOrder;
 }
 
+/**
+ * Card showing a purchase order's header details (project, status, dates) with
+ * inline editing. Editing swaps the fields into inputs and saves through the
+ * update-purchase-order mutation, surfacing success or failure as a toast.
+ *
+ * @param props.po - The purchase order to display and edit.
+ */
 export function POInfoCard({ po }: POInfoCardProps) {
   const { mutateAsync: updatePO, isPending } = useUpdatePurchaseOrder();
   const { data: projects = [] } = useProjects();

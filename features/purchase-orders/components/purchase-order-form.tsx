@@ -85,6 +85,11 @@ interface PurchaseOrderFormProps {
   onSubmit: (data: PurchaseOrderSubmitData) => void;
 }
 
+/**
+ * DOM id shared by the purchase-order form and any submit button rendered
+ * outside it (for example in a page header), wired through the button's `form`
+ * attribute so it can submit the form.
+ */
 export const PURCHASE_ORDER_FORM_ID = 'purchase-order-form';
 
 const EMPTY_ITEM: POItemRow = {
@@ -117,6 +122,16 @@ function StockDisplay({ materialId }: { materialId: number }) {
 // Component
 // ---------------------------------------------------------------------------
 
+/**
+ * Purchase-order create/edit form: header fields (vendor, project, linked
+ * indent) plus an editable table of material line items, each showing live
+ * stock for the chosen material. Submitting hands the assembled header and
+ * item rows to `onSubmit`; it does not call the API itself.
+ *
+ * @param props.initialValues - Header values to prefill when editing.
+ * @param props.initialItems - Line item rows to prefill when editing.
+ * @param props.onSubmit - Receives the collected form state and item rows.
+ */
 export function PurchaseOrderForm({
   initialValues,
   initialItems,

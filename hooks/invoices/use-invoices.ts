@@ -6,12 +6,17 @@ import type {
 } from '@tornotron/echno-core/finance/types';
 import { invoiceKeys } from './invoice-keys';
 
+/** Fetches all construction invoices for the current organization. */
 export const useInvoices = () =>
   useQuery({
     queryKey: invoiceKeys.lists(),
     queryFn: () => invoicesService.getAll(),
   });
 
+/**
+ * Fetches a single construction invoice by id. Stays disabled until `id` is a
+ * non-empty string, so it is safe to call before the route param resolves.
+ */
 export const useInvoiceById = (id: string) =>
   useQuery({
     queryKey: invoiceKeys.detail(id),
@@ -19,6 +24,10 @@ export const useInvoiceById = (id: string) =>
     enabled: !!id,
   });
 
+/**
+ * Creates a construction invoice and invalidates the invoice list on success
+ * so the new row appears without a manual refetch.
+ */
 export const useCreateInvoice = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -30,6 +39,10 @@ export const useCreateInvoice = () => {
   });
 };
 
+/**
+ * Updates a construction invoice by id, then invalidates both the list and
+ * that invoice's detail cache so both views reflect the change.
+ */
 export const useUpdateInvoice = () => {
   const queryClient = useQueryClient();
   return useMutation({

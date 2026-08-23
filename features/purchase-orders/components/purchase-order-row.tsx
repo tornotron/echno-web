@@ -12,6 +12,14 @@ interface PurchaseOrderRowProps {
   onClick: () => void;
 }
 
+/**
+ * A single purchase-order table row (PO number, vendor, status badge, project,
+ * date). The whole row acts as a button: click, Enter, or Space calls
+ * `onClick`, typically to open the PO detail page.
+ *
+ * @param props.order - The purchase order to render.
+ * @param props.onClick - Invoked when the row is activated.
+ */
 export function PurchaseOrderRow({ order, onClick }: PurchaseOrderRowProps) {
   return (
     <TableRow

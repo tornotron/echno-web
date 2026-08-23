@@ -12,6 +12,13 @@ interface TransferRowProps {
   onClick: () => void;
 }
 
+/**
+ * A single site-transfer table row. The whole row acts as a button: click,
+ * Enter, or Space calls `onClick`, typically to open the transfer detail page.
+ *
+ * @param props.transfer - The site transfer to render.
+ * @param props.onClick - Invoked when the row is activated.
+ */
 export function TransferRow({ transfer, onClick }: TransferRowProps) {
   return (
     <TableRow

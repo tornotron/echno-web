@@ -13,6 +13,13 @@ interface IndentRowProps {
   onClick: () => void;
 }
 
+/**
+ * A single indent table row. The whole row is keyboard-accessible and calls
+ * `onClick` when activated, typically to open the indent detail page.
+ *
+ * @param props.indent - The indent to render.
+ * @param props.onClick - Invoked when the row is activated.
+ */
 export function IndentRow({ indent, onClick }: IndentRowProps) {
   const convertedCount = indent.items.filter(
     (it) => it.convertedToPurchaseOrder

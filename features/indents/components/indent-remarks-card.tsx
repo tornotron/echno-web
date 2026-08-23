@@ -28,6 +28,13 @@ interface IndentRemarksCardProps {
   indent: Indent;
 }
 
+/**
+ * Card showing an indent's remarks with inline editing. Editing reveals a
+ * textarea and saves the new text through the update-indent mutation, surfacing
+ * success or failure as a toast.
+ *
+ * @param props.indent - The indent whose remarks are shown and edited.
+ */
 export function IndentRemarksCard({ indent }: IndentRemarksCardProps) {
   const { mutateAsync: updateIndent, isPending: isUpdating } =
     useUpdateIndent();

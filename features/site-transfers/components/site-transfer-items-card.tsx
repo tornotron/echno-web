@@ -21,6 +21,13 @@ interface SiteTransferItemsCardProps {
   transfer: SiteTransfer;
 }
 
+/**
+ * Read-only card listing a site transfer's material line items (material, sent
+ * quantity, transfer value, remarks). Shows an empty-state row when the
+ * transfer has no items.
+ *
+ * @param props.transfer - The site transfer whose items are shown.
+ */
 export function SiteTransferItemsCard({
   transfer,
 }: SiteTransferItemsCardProps) {
