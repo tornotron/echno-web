@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   Card,
@@ -469,7 +470,20 @@ export default function AssetDetailPage() {
                       <span>Assigned To</span>
                     </div>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {asset.assignedTo}
+                      {asset.assignedToId ? (
+                        <Link
+                          href={employeeFilterHref(
+                            routes.resources.assets.href,
+                            asset.assignedToId,
+                            'assignee'
+                          )}
+                          className="hover:underline"
+                        >
+                          {asset.assignedTo}
+                        </Link>
+                      ) : (
+                        asset.assignedTo
+                      )}
                     </p>
                   </div>
                 </>

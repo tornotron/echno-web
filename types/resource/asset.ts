@@ -13,6 +13,7 @@ export interface Asset {
   locationId: number;
   location: Location;
   assignedTo?: string;
+  assignedToId?: number;
   assignedProject?: string;
   purchaseDate: Date;
   purchasePrice: number;

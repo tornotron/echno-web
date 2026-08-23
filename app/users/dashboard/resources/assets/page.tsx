@@ -5,7 +5,12 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import {
   Activity,
   AlertCircle,
@@ -46,6 +51,7 @@ export default function AssetsPage() {
 
   const { data: assets = [], isLoading, isError } = useAssets();
   const { data: locations = [] } = useStorageLocations();
+  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
 
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
@@ -64,13 +70,20 @@ export default function AssetsPage() {
         locationFilter === 'all' || asset.locationId === locationFilter;
       const matchesMaintenanceDue =
         !maintenanceDueFilter || isMaintenanceDue(asset);
+      const matchesEmployee =
+        employeeId == null ||
+        role == null ||
+        rowMatchesEmployeeFilter(asset, employeeId, role, {
+          assignee: (a) => a.assignedToId,
+        });
       return (
         matchesSearch &&
         matchesType &&
         matchesStatus &&
         matchesCondition &&
         matchesLocation &&
-        matchesMaintenanceDue
+        matchesMaintenanceDue &&
+        matchesEmployee
       );
     });
   }, [
@@ -81,6 +94,8 @@ export default function AssetsPage() {
     conditionFilter,
     locationFilter,
     maintenanceDueFilter,
+    employeeId,
+    role,
   ]);
 
   const totalPages = Math.ceil(filteredAssets.length / itemsPerPage);
@@ -229,6 +244,14 @@ export default function AssetsPage() {
           </div>
         </div>
       </Card>
+
+      {employeeId != null && name && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={name}
+          onDismiss={clear}
+        />
+      )}
 
       <AssetList
         paginated={paginated}

@@ -18,7 +18,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from '@/components/shadcn/empty';
-import { Pagination } from '@/components/common';
+import { Pagination, ActiveFilterChip } from '@/components/common';
+import {
+  useEmployeeFilterFromParams,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import { Input } from '@/components/shadcn/input';
 import {
   Select,
@@ -61,6 +66,12 @@ export function AllRequestsTab() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { data: requests } = useOrganizationRequests();
+  const {
+    employeeId,
+    role,
+    name: filterName,
+    clear: clearEmployeeFilter,
+  } = useEmployeeFilterFromParams();
 
   const departments = useMemo(
     () =>
@@ -83,9 +94,21 @@ export function AllRequestsTab() {
       const matchYear =
         yearFilter === 'all' ||
         new Date(r.startDate).getFullYear().toString() === yearFilter;
-      return matchSearch && matchStatus && matchDept && matchYear;
+      const matchEmployee =
+        employeeId == null ||
+        role == null ||
+        (role === 'approver'
+          ? r.currentApproverId === employeeId ||
+            (r.approvals?.some((a) => a.approverId === employeeId) ?? false)
+          : rowMatchesEmployeeFilter(r, employeeId, role, {
+              requester: (row) => row.employeeId,
+              handover: (row) => row.handoverToId,
+            }));
+      return (
+        matchSearch && matchStatus && matchDept && matchYear && matchEmployee
+      );
     });
-  }, [requests, search, statusFilter, deptFilter, yearFilter]);
+  }, [requests, search, statusFilter, deptFilter, yearFilter, employeeId, role]);
 
   const totalPages = Math.ceil(filtered.length / perPage);
   const start = (page - 1) * perPage;
@@ -124,6 +147,13 @@ export function AllRequestsTab() {
 
   return (
     <div className="space-y-4">
+      {employeeId != null && filterName && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={filterName}
+          onDismiss={clearEmployeeFilter}
+        />
+      )}
       {filtered.length > 0 ? (
         <>
           {/* Desktop */}

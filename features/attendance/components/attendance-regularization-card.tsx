@@ -36,6 +36,9 @@ import {
 } from '@tornotron/echno-core/attendance/types';
 import type { Attendance } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
+import Link from 'next/link';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { routes } from '@/nav';
 
 interface Props {
   attendance: Attendance;
@@ -49,6 +52,13 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
 
   const requestMutation = useRequestRegularization();
   const processMutation = useProcessRegularization();
+
+  // The employee surrogate id backing the "Requested By" filter link. Not yet
+  // part of the published echno-core regularization DTO, so read defensively;
+  // the link appears once echno-core exposes and parses `requestedById`.
+  const regRequestedById = (
+    attendance.regularization as { requestedById?: number } | undefined
+  )?.requestedById;
 
   // Request dialog state
   const [regDialogOpen, setRegDialogOpen] = useState(false);
@@ -250,7 +260,20 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                   Requested By
                 </p>
                 <p className="text-zinc-900 dark:text-zinc-100">
-                  {attendance.regularization.requestedBy}
+                  {regRequestedById ? (
+                    <Link
+                      href={employeeFilterHref(
+                        routes.attendance.regularizations,
+                        regRequestedById,
+                        'requester'
+                      )}
+                      className="hover:underline"
+                    >
+                      {attendance.regularization.requestedBy}
+                    </Link>
+                  ) : (
+                    attendance.regularization.requestedBy
+                  )}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-500">
                   {format(
