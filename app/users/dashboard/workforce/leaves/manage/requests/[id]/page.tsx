@@ -72,6 +72,8 @@ import { toast } from '@/lib/styles/toast-styles';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
+import Link from 'next/link';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -325,7 +327,22 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                 <User className="text-muted-foreground h-5 w-5" />
                 <div>
                   <p className="text-muted-foreground text-sm">Employee</p>
-                  <p className="font-medium">{request.employeeName || 'N/A'}</p>
+                  <p className="font-medium">
+                    {request.employeeId ? (
+                      <Link
+                        href={employeeFilterHref(
+                          routes.workforce.leaves.manage.requests.href,
+                          request.employeeId,
+                          'requester'
+                        )}
+                        className="hover:underline"
+                      >
+                        {request.employeeName || 'N/A'}
+                      </Link>
+                    ) : (
+                      request.employeeName || 'N/A'
+                    )}
+                  </p>
                 </div>
               </div>
 
@@ -429,7 +446,22 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                       <UserCheck className="text-muted-foreground h-4 w-4" />
                       <p className="text-sm font-medium">Handover To</p>
                     </div>
-                    <p className="mb-2 font-medium">{request.handoverToName}</p>
+                    <p className="mb-2 font-medium">
+                      {request.handoverToId ? (
+                        <Link
+                          href={employeeFilterHref(
+                            routes.workforce.leaves.manage.requests.href,
+                            request.handoverToId,
+                            'handover'
+                          )}
+                          className="hover:underline"
+                        >
+                          {request.handoverToName}
+                        </Link>
+                      ) : (
+                        request.handoverToName
+                      )}
+                    </p>
                     {request.handoverNotes && (
                       <p className="text-muted-foreground text-sm whitespace-pre-wrap">
                         {request.handoverNotes}
@@ -767,7 +799,20 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                       <div className="flex-1 pb-4">
                         <div className="mb-1 flex items-center justify-between">
                           <p className="font-medium">
-                            {approval.approverName || 'Unknown Approver'}
+                            {approval.approverId ? (
+                              <Link
+                                href={employeeFilterHref(
+                                  routes.workforce.leaves.manage.requests.href,
+                                  approval.approverId,
+                                  'approver'
+                                )}
+                                className="hover:underline"
+                              >
+                                {approval.approverName || 'Unknown Approver'}
+                              </Link>
+                            ) : (
+                              approval.approverName || 'Unknown Approver'
+                            )}
                           </p>
                           <Badge
                             variant={

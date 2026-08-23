@@ -59,6 +59,7 @@ export function parseAsset(raw: Raw): Asset {
           isActive: true,
         },
     assignedTo: raw.assignedTo ?? undefined,
+    assignedToId: raw.assignedToId ?? undefined,
     assignedProject: raw.assignedProject ?? undefined,
     purchaseDate: parseDate(raw.purchaseDate),
     purchasePrice: raw.purchasePrice ?? 0,

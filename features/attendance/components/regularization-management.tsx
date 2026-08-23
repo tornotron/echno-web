@@ -2,9 +2,10 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { PageHeader } from '@/components/common';
+import { PageHeader, ActiveFilterChip } from '@/components/common';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import {
   Empty,
@@ -58,6 +59,25 @@ import {
 } from '@tornotron/echno-core/attendance-regularization/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import type { RegularizationDetail } from '@tornotron/echno-core/attendance/types';
+import {
+  useEmployeeFilterFromParams,
+  employeeFilterHref,
+  rowMatchesEmployeeFilter,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
+import { routes } from '@/nav';
+
+/**
+ * Regularization row enriched with the employee surrogate ids the backend now
+ * returns (`requestedById`, `approvedById`). These are not yet part of the
+ * published `@tornotron/echno-core` regularization DTO/parser, so they are
+ * declared web-side; the employee-filter links activate once echno-core exposes
+ * and parses them.
+ */
+type RegularizationRow = RegularizationDetail & {
+  requestedById?: number;
+  approvedById?: number;
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -73,8 +93,16 @@ export function RegularizationManagement({
     currentEmployee?.name ?? currentEmployee?.employeeId ?? 'manager';
 
   // Data
-  const { data: regularizations = [], isLoading } = usePendingRegularizations();
+  const { data: rawRegularizations = [], isLoading } =
+    usePendingRegularizations();
+  const regularizations = rawRegularizations as RegularizationRow[];
   const processMutation = useProcessRegularization();
+  const {
+    employeeId,
+    role,
+    name: filterName,
+    clear: clearEmployeeFilter,
+  } = useEmployeeFilterFromParams();
 
   // Local state
   const [searchQuery, setSearchQuery] = useState('');
@@ -85,6 +113,14 @@ export function RegularizationManagement({
 
   // Filtering
   const filtered = regularizations.filter((r) => {
+    const matchesEmployee =
+      employeeId == null ||
+      role == null ||
+      rowMatchesEmployeeFilter(r, employeeId, role, {
+        requester: (row) => row.requestedById,
+        approver: (row) => row.approvedById,
+      });
+    if (!matchesEmployee) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -223,6 +259,14 @@ export function RegularizationManagement({
         </div>
       </Card>
 
+      {employeeId != null && filterName && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+          name={filterName}
+          onDismiss={clearEmployeeFilter}
+        />
+      )}
+
       {/* Table */}
       <Card>
         <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
@@ -288,7 +332,20 @@ export function RegularizationManagement({
                           </div>
                           <div>
                             <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {reg.employeeName ?? reg.requestedBy}
+                              {reg.requestedById ? (
+                                <Link
+                                  href={employeeFilterHref(
+                                    routes.attendance.regularizations,
+                                    reg.requestedById,
+                                    'requester'
+                                  )}
+                                  className="hover:underline"
+                                >
+                                  {reg.employeeName ?? reg.requestedBy}
+                                </Link>
+                              ) : (
+                                (reg.employeeName ?? reg.requestedBy)
+                              )}
                             </p>
                             <p className="text-xs text-zinc-500 dark:text-zinc-500">
                               {reg.requestedBy}
