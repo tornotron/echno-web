@@ -1,10 +1,10 @@
-# Echno - Web Interface
+# Echno - Web Client
 
 <div align="center">
   <img src="public/echno.png" alt="Echno Logo" width="120" height="120">
   
-  <h3>A Complete Construction Management Solution</h3>
-  <p>An Open Source modern web interface built with Next.js 16</p>
+  <h3>The Primary Web Client for the Echno Construction Platform</h3>
+  <p>An open source construction-management web application built with Next.js 16</p>
 
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
@@ -21,6 +21,7 @@
 ## 📋 Table of Contents
 
 - [About](#about)
+- [Architecture](#architecture)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Prerequisites](#prerequisites)
@@ -37,7 +38,9 @@
 
 ## 🎯 About
 
-The Echno Attendance web interface is built with **Next.js 16**, providing a modern, responsive, and performant web application for attendance management. This web app complements the Flutter mobile application, offering a seamless cross-platform experience for administrators and employees.
+`echno-web` is the primary web client for the Echno construction-management platform. Built with **Next.js 16**, it is the main front-end that site teams and administrators use to run day-to-day operations: employees, projects, tasks, attendance, inventory and materials (GRN), issue tracking, finance (invoices and payments), and PDF reporting. It talks to the Echno backend REST API and is the full-featured entry point to the platform rather than a companion to any other app.
+
+A separate, older Flutter mobile app (`echno`, formerly `echno_attendance`) exists and is attendance-focused. It is legacy and is not required to run or use this web client.
 
 ### Key Highlights
 
@@ -45,10 +48,24 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - 🎨 **shadcn/ui** for polished, accessible component primitives
 - 🔐 **Keycloak OpenID Connect** for centralized authentication
 - 🧠 **Spring Boot REST API** powering business logic
-- � **PostgreSQL** for transactional data persistence
+- 🗄️ **CockroachDB** (Postgres-wire) for transactional data persistence
+- 🧩 **Shared `@tornotron/echno-core` library** for domain types, DTOs, the API client, and RBAC
 - 🌐 **Server-Side Rendering (SSR)** and static prefetch for SEO
-- 📱 **Progressive Web App (PWA)** capabilities
 - 🚀 **Optimized Bundle Size** with automatic code splitting
+
+---
+
+## 🏛 Architecture
+
+The web client never calls the Echno backend directly from the browser. It uses a two-tier backend-for-frontend (BFF) pattern so that credentials stay on the server:
+
+1. The browser calls the app's own Next.js routes under `/api/v1`.
+2. A server-side proxy inside the Next.js app forwards each request to the backend REST API at `backend.echno.xyz/api/v1`, attaching the user's Keycloak session token as a bearer token.
+3. The backend validates the token, applies role-based authorization, and returns the response, which the proxy relays back to the browser.
+
+Because the token is attached server-side, the browser never sees the raw access token and never opens a connection to the backend host. This keeps the session credential out of client-side JavaScript and lets the app add caching, request shaping, and error handling in one place.
+
+Domain logic is shared through the **`@tornotron/echno-core`** library (published to GitHub Packages). It provides the domain types, DTOs, the typed API client, RBAC helpers, and the logger, so the web app and other Echno clients agree on the same contracts instead of redefining them.
 
 ---
 
@@ -68,21 +85,11 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - Employee invitation system with secure codes
 - Department and designation management
 
-### 📅 Attendance Tracking
+### 🏗 Projects & Tasks
 
-- Real-time attendance submissions via Spring Boot REST endpoints
-- GPS-based location verification with backend geofencing rules
-- QR code-based check-in/check-out integrated with the API
-- Attendance history, exports, and anomaly detection
-- Calendar view with aggregated status indicators
-
-### 📊 Analytics & Reporting
-
-- Comprehensive attendance analytics sourced from PostgreSQL views
-- Export reports (PDF, CSV, Excel)
-- Visual dashboards with charts
-- Custom date range reports
-- Employee productivity metrics
+- Create and manage construction projects
+- Task assignment, status tracking, and progress views
+- Project-level dashboards and activity history
 
 ### 🏢 Employee Management
 
@@ -92,6 +99,31 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - Shift timing management
 - Salary information (admin only)
 
+### 📦 Inventory & Materials
+
+- Inventory and materials tracking
+- Goods Received Note (GRN) recording
+- Stock movement history
+
+### 🐞 Issue Tracking
+
+- Log and assign site issues
+- Status workflow and resolution history
+- Filtering and search across issues
+
+### 💰 Finance
+
+- Invoice creation and tracking
+- Payment recording and reconciliation
+- Financial summaries per project
+
+### 📅 Attendance Tracking
+
+- Attendance submissions via the backend REST endpoints
+- Location verification with backend geofencing rules
+- Attendance history and exports
+- Calendar view with aggregated status indicators
+
 ### 📋 Leave Management
 
 - Leave application and approval workflow
@@ -99,12 +131,12 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 - Leave history and calendar
 - Multiple leave types support
 
-### 📦 Additional Modules
+### 📊 Reporting & Analytics
 
-- Project management integration
-- Task assignment and tracking
-- Inventory management
-- Compliance and audit logs
+- Generated PDF reports for projects, attendance, and finance
+- Export data (PDF, CSV, Excel)
+- Visual dashboards with charts
+- Custom date range reports
 
 ---
 
@@ -119,9 +151,9 @@ The Echno Attendance web interface is built with **Next.js 16**, providing a mod
 ### Backend & Database
 
 - **Spring Boot 3.x** - REST API and business services
-- **PostgreSQL 16** - Relational database
-- **Flyway** or **Liquibase** - Database migrations
+- **CockroachDB** (Postgres-wire) - application database
 - **Keycloak** - OpenID Connect identity provider
+- **`@tornotron/echno-core`** - shared domain types, DTOs, API client, and RBAC
 
 ### State Management
 
@@ -208,9 +240,9 @@ cp .env.example .env.local
 Edit `.env.local` with your environment configuration:
 
 ```env
-# Backend REST API
-NEXT_PUBLIC_API_URL=https://api.echno.com
-NEXT_PUBLIC_API_VERSION=v1
+# Backend REST API (used server-side by the BFF proxy, not exposed to the browser)
+BACKEND_API_URL=https://backend.echno.xyz
+BACKEND_API_VERSION=v1
 
 # Keycloak OpenID Connect
 KEYCLOAK_CLIENT_ID=your-client-id
@@ -220,9 +252,8 @@ KEYCLOAK_ISSUER=https://your-keycloak-domain/realms/your-realm
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key
 
-# Feature Flags
+# App environment
 NEXT_PUBLIC_APP_ENV=development
-NEXT_PUBLIC_ENABLE_PWA=true
 
 # Analytics (optional)
 NEXT_PUBLIC_POSTHOG_KEY=
@@ -267,8 +298,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### 5. Start Backend Services
 
-- Launch the Spring Boot API (see [echno-api](https://github.com/tornotron/echno-api))
-- Ensure PostgreSQL is running with the required schemas and credentials
+- Launch the Spring Boot API (see [echno-backend](https://github.com/tornotron/echno-backend))
+- Ensure CockroachDB is running with the required schemas and credentials
 - Start the Keycloak server with the `echno-realm` configuration
 
 ---
@@ -284,15 +315,18 @@ web/
 │   │   └── layout.tsx
 │   ├── (dashboard)/             # Protected dashboard routes
 │   │   ├── organizations/
-│   │   ├── attendance/
+│   │   ├── projects/
+│   │   ├── tasks/
 │   │   ├── employees/
+│   │   ├── inventory/
+│   │   ├── issues/
+│   │   ├── finance/
+│   │   ├── attendance/
 │   │   ├── leaves/
 │   │   ├── reports/
 │   │   └── layout.tsx
-│   ├── api/                     # API routes / server actions
-│   │   ├── auth/
-│   │   ├── organizations/
-│   │   └── attendance/
+│   ├── api/                     # Next.js /api/v1 BFF routes (proxy to backend)
+│   │   └── v1/
 │   ├── layout.tsx               # Root layout
 │   ├── page.tsx                 # Home page
 │   └── globals.css              # Global styles
@@ -361,29 +395,29 @@ export default nextConfig;
 
 ### API Client Configuration
 
-REST calls to the Spring Boot backend are centralized in `lib/api/client.ts`:
+The browser talks only to the app's own `/api/v1` routes. A server-side proxy inside the Next.js app forwards each call to the backend and attaches the user's Keycloak access token, so the token stays on the server:
 
 ```typescript
-import axios from 'axios';
+// Server-side proxy (Next.js route handler under app/api/v1)
+import { getServerSession } from '@/lib/auth/session';
 
-export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: true,
-});
+const BACKEND = `${process.env.BACKEND_API_URL}/api/v1`;
 
-apiClient.interceptors.request.use(async (config) => {
-  // Inject access token from Keycloak session storage
-  const token =
-    typeof window !== 'undefined' ? localStorage.getItem('kc-token') : null;
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+export async function proxy(request: Request, path: string) {
+  const session = await getServerSession();
 
-  return config;
-});
+  return fetch(`${BACKEND}/${path}`, {
+    method: request.method,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.accessToken}`,
+    },
+    body: request.body,
+  });
+}
 ```
 
-Keycloak tokens are managed in `lib/auth/keycloak.ts`, which wraps the official JavaScript adapter and exposes helpers for client-side and server-side session validation.
+The typed client the components call is provided by `@tornotron/echno-core`, which points at the local `/api/v1` base path. Keycloak session handling lives under `lib/auth/`, exposing helpers for server-side session validation and token refresh.
 
 ---
 
@@ -524,20 +558,21 @@ docker run -p 3000:3000 echno-web
 
 ### REST API Endpoints
 
-The web app communicates with backend services:
+Components call the local `/api/v1` routes, and the server-side proxy forwards them to the backend with the session token attached. The typed calls come from `@tornotron/echno-core`, but the shape is a plain fetch against the local base path:
 
 ```typescript
-// lib/api/organizations.ts
+const API = '/api/v1';
+
 export const organizationApi = {
   // Get all organizations for a user
   getOrganizations: async (userId: number) => {
-    const response = await fetch(`${API_URL}/organizations/user/${userId}`);
+    const response = await fetch(`${API}/organizations/user/${userId}`);
     return response.json();
   },
 
   // Create organization
   createOrganization: async (data: CreateOrganizationDto) => {
-    const response = await fetch(`${API_URL}/organizations`, {
+    const response = await fetch(`${API}/organizations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -547,7 +582,7 @@ export const organizationApi = {
 
   // Update organization
   updateOrganization: async (id: number, data: UpdateOrganizationDto) => {
-    const response = await fetch(`${API_URL}/organizations/${id}`, {
+    const response = await fetch(`${API}/organizations/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -557,32 +592,7 @@ export const organizationApi = {
 };
 ```
 
-### Real-time Data Sync
-
-The backend exposes server-sent events for live attendance updates:
-
-```typescript
-export const subscribeToAttendance = (
-  organizationId: number,
-  onMessage: (attendance: AttendanceEvent) => void
-) => {
-  const eventSource = new EventSource(
-    `${process.env.NEXT_PUBLIC_API_URL}/attendance/stream?organizationId=${organizationId}`,
-    { withCredentials: true }
-  );
-
-  eventSource.onmessage = (event) => {
-    const payload = JSON.parse(event.data) as AttendanceEvent;
-    onMessage(payload);
-  };
-
-  eventSource.onerror = () => {
-    eventSource.close();
-  };
-
-  return () => eventSource.close();
-};
-```
+Server state (fetching, caching, and invalidation) is handled with **TanStack Query** on top of these calls.
 
 ---
 
@@ -681,6 +691,6 @@ This project is licensed under the MIT License - see the [LICENSE](../LICENSE) f
 <div align="center">
   <p>Made with ❤️ by the Echno Team</p>
   <p>
-    <a href="#echno-attendance---web-interface">Back to Top ↑</a>
+    <a href="#echno---web-client">Back to Top ↑</a>
   </p>
 </div>
