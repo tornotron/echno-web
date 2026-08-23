@@ -29,6 +29,13 @@ interface PORemarksCardProps {
   po: PurchaseOrder;
 }
 
+/**
+ * Card showing a purchase order's remarks with inline editing. Editing reveals
+ * a textarea and saves the new text through the update-purchase-order mutation,
+ * confirming first and surfacing success or failure as a toast.
+ *
+ * @param props.po - The purchase order whose remarks are shown and edited.
+ */
 export function PORemarksCard({ po }: PORemarksCardProps) {
   const { mutateAsync: updatePO, isPending } = useUpdatePurchaseOrder();
 

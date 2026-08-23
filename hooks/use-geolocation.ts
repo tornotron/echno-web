@@ -18,6 +18,17 @@ interface GeolocationResult {
   getCurrentLocation: (onSuccess?: LocationCallback) => void;
 }
 
+/**
+ * Reads the browser's current position on demand through the Geolocation API.
+ * `getCurrentLocation` requests a single high-accuracy fix (10 second timeout,
+ * no cached position) and updates the returned `latitude`/`longitude` and
+ * `isLoading`/`error` state. Success and failure both surface a toast, and any
+ * error message is mapped to a human-readable string. The optional `onSuccess`
+ * callback receives the coordinates once a fix is obtained.
+ *
+ * @returns The latest coordinates, loading and error state, and the
+ *   `getCurrentLocation` trigger.
+ */
 export function useGeolocation(): GeolocationResult {
   const [state, setState] = useState<GeolocationState>({
     latitude: null,

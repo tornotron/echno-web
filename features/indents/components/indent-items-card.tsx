@@ -80,6 +80,15 @@ interface IndentItemsCardProps {
   items: IndentItem[];
 }
 
+/**
+ * Card listing an indent's requested material line items with inline editing.
+ * Rows can be added, edited, or removed through the indent-item mutations, each
+ * guarded by a confirmation dialog.
+ *
+ * @param props.indentId - Id of the parent indent, used to scope the item
+ *   mutations.
+ * @param props.items - The current line items to display.
+ */
 export function IndentItemsCard({ indentId, items }: IndentItemsCardProps) {
   const { data: materials = [] } = useMaterials();
   const { mutateAsync: createItem, isPending: isCreating } =

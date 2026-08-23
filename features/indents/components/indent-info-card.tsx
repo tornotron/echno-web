@@ -44,6 +44,13 @@ interface IndentInfoCardProps {
   indent: Indent;
 }
 
+/**
+ * Card showing an indent's header details with inline editing. Editing swaps
+ * the fields into inputs and saves through the update-indent mutation,
+ * surfacing success or failure as a toast.
+ *
+ * @param props.indent - The indent to display and edit.
+ */
 export function IndentInfoCard({ indent }: IndentInfoCardProps) {
   const { data: projects = [] } = useProjects();
   const { mutateAsync: updateIndent, isPending: isUpdating } =

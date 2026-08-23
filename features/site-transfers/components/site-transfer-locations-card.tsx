@@ -13,6 +13,13 @@ interface SiteTransferLocationsCardProps {
   transfer: SiteTransfer;
 }
 
+/**
+ * Read-only pair of cards showing a site transfer's sending and receiving
+ * project and storage location side by side, with a fallback message when
+ * either side has no location recorded.
+ *
+ * @param props.transfer - The site transfer whose endpoints are shown.
+ */
 export function SiteTransferLocationsCard({
   transfer,
 }: SiteTransferLocationsCardProps) {

@@ -3,6 +3,7 @@ import { inspectionService } from '@/services/inspection-service';
 import { InspectionType } from '@/types/inspection';
 import { inspectionKeys } from './inspection-keys';
 
+/** Fetches all inspections for the current organization. */
 export const useInspections = () =>
   useQuery({
     queryKey: inspectionKeys.lists(),
@@ -20,6 +21,10 @@ export const useComplianceInspectionsByProject = (projectId?: number) => {
   });
 };
 
+/**
+ * Fetches a single inspection by id. Stays disabled until `id` is a non-empty
+ * string, so it is safe to call before the route param resolves.
+ */
 export const useInspectionById = (id: string) =>
   useQuery({
     queryKey: inspectionKeys.detail(id),

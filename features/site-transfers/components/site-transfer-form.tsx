@@ -68,6 +68,11 @@ interface SiteTransferFormProps {
   onSubmit: (data: SiteTransferSubmitData) => void;
 }
 
+/**
+ * DOM id shared by the site-transfer form and any submit button rendered
+ * outside it (for example in a page header), wired through the button's `form`
+ * attribute so it can submit the form.
+ */
 export const SITE_TRANSFER_FORM_ID = 'site-transfer-form';
 
 const EMPTY_ITEM: SiteTransferItemRow = {
@@ -99,6 +104,16 @@ function StockDisplay({ materialId }: { materialId: number }) {
 // Component
 // ---------------------------------------------------------------------------
 
+/**
+ * Site-transfer creation form: sending and receiving project/storage-location
+ * fields plus an editable table of material rows, each showing the sending
+ * location's live stock so shortages are visible before submit. Submitting
+ * hands the assembled form state and item rows to `onSubmit`; it does not call
+ * the API itself.
+ *
+ * @param props.initialItems - Line item rows to prefill.
+ * @param props.onSubmit - Receives the collected form state and item rows.
+ */
 export function SiteTransferForm({
   initialItems,
   onSubmit,

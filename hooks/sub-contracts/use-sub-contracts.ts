@@ -3,12 +3,17 @@ import { subContractsService } from '@/services/sub-contracts-service';
 import type { SubContractFormValues } from '@/features/sub-contracts/components/sub-contract-form';
 import { subContractKeys } from './sub-contract-keys';
 
+/** Fetches all sub-contracts for the current organization. */
 export const useSubContracts = () =>
   useQuery({
     queryKey: subContractKeys.lists(),
     queryFn: () => subContractsService.getAll(),
   });
 
+/**
+ * Fetches a single sub-contract by id. Stays disabled until `id` is a finite
+ * positive number, so it is safe to call before the route param resolves.
+ */
 export const useSubContract = (id: number) =>
   useQuery({
     queryKey: subContractKeys.detail(id),
@@ -16,6 +21,10 @@ export const useSubContract = (id: number) =>
     enabled: Number.isFinite(id) && id > 0,
   });
 
+/**
+ * Creates a sub-contract and invalidates the sub-contract list on success so
+ * the new row appears without a manual refetch.
+ */
 export const useCreateSubContract = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -27,6 +36,10 @@ export const useCreateSubContract = () => {
   });
 };
 
+/**
+ * Updates a sub-contract by id, then invalidates both the list and that
+ * sub-contract's detail cache so both views reflect the change.
+ */
 export const useUpdateSubContract = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -39,6 +52,10 @@ export const useUpdateSubContract = () => {
   });
 };
 
+/**
+ * Deletes a sub-contract by id and invalidates the sub-contract list so the
+ * removed row disappears without a manual refetch.
+ */
 export const useDeleteSubContract = () => {
   const queryClient = useQueryClient();
   return useMutation({

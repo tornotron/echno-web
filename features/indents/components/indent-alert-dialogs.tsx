@@ -20,6 +20,17 @@ interface DeleteIndentDialogProps {
   isPending?: boolean;
 }
 
+/**
+ * Confirmation dialog for deleting an indent (material request). Shows the
+ * indent number and warns the action cannot be undone; the confirm button
+ * shows a spinner while `isPending`.
+ *
+ * @param props.open - Whether the dialog is visible.
+ * @param props.onOpenChange - Called when the dialog requests open/close.
+ * @param props.indentNumber - Indent number shown in the confirmation copy.
+ * @param props.onConfirm - Runs the delete when the user confirms.
+ * @param props.isPending - True while the delete request is in flight.
+ */
 export function DeleteIndentDialog({
   open,
   onOpenChange,
