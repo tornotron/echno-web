@@ -183,23 +183,52 @@ async function proxyRequest(
 
     clearTimeout(timeoutId);
 
-    const data = await response.text();
+    const responseContentType =
+      response.headers.get('Content-Type') || 'application/json';
 
-    // Log non-2xx responses
+    // Text-shaped payloads (JSON, plain text, XML, HTML) can be read as a
+    // string; binary payloads such as a rendered PDF must be forwarded as raw
+    // bytes, because decoding them through response.text() corrupts the body.
+    const isTextResponse = /json|text|xml|html|javascript/i.test(
+      responseContentType
+    );
+
+    // On error responses, read the body as text so it can be logged and
+    // returned regardless of the advertised content type.
     if (!response.ok) {
+      const data = await response.text();
       logger.warn('Backend returned error', {
         status: response.status,
         targetUrl,
         body: sanitizeResponseBody(data),
       });
+      return new NextResponse(data, {
+        status: response.status,
+        headers: { 'Content-Type': responseContentType },
+      });
     }
 
-    return new NextResponse(data, {
+    if (isTextResponse) {
+      const data = await response.text();
+      return new NextResponse(data, {
+        status: response.status,
+        headers: { 'Content-Type': responseContentType },
+      });
+    }
+
+    // Binary success response: forward the bytes untouched and preserve the
+    // Content-Disposition header so downloads keep their filename.
+    const buffer = await response.arrayBuffer();
+    const passthroughHeaders: Record<string, string> = {
+      'Content-Type': responseContentType,
+    };
+    const contentDisposition = response.headers.get('Content-Disposition');
+    if (contentDisposition) {
+      passthroughHeaders['Content-Disposition'] = contentDisposition;
+    }
+    return new NextResponse(buffer, {
       status: response.status,
-      headers: {
-        'Content-Type':
-          response.headers.get('Content-Type') || 'application/json',
-      },
+      headers: passthroughHeaders,
     });
   } catch (error) {
     clearTimeout(timeoutId);

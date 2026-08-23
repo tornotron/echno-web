@@ -1,6 +1,6 @@
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useInvoiceById } from '@/hooks/invoices';
@@ -56,6 +56,8 @@ import {
   getInvoiceTypeColor,
 } from '@/types/finance/invoice';
 import { InvoiceActions } from '@/features/invoices/components/invoice-actions';
+import { invoicesService } from '@/services/invoices-service';
+import { toast } from '@/lib/styles/toast-styles';
 
 interface InvoiceDetailPageProps {
   params: Promise<{
@@ -88,6 +90,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
 
   const isLoading = isVendorsLoading || isInvoiceLoading;
   const isError = isVendorsError || isInvoiceError;
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const getVendorName = (vendorId: number): string => {
     const vendor = vendors.find((v) => v.id === vendorId);
@@ -141,6 +144,25 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
       </Empty>
     );
 
+  const handleDownloadPdf = async () => {
+    setIsDownloadingPdf(true);
+    try {
+      const blob = await invoicesService.downloadPdf(invoice.id);
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = `${invoice.invoiceNumber || 'invoice'}.pdf`;
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast.error('Failed to download the invoice PDF. Please try again.');
+    } finally {
+      setIsDownloadingPdf(false);
+    }
+  };
+
   const paymentPercentage =
     invoice.totalAmount > 0
       ? (invoice.paidAmount / invoice.totalAmount) * 100
@@ -170,9 +192,17 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               {invoiceTypeLabels[invoice.type]}
             </Badge>
             <InvoiceActions invoice={invoice} variant="buttons" />
-            <Button variant="outline" disabled>
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF
+            <Button
+              variant="outline"
+              onClick={handleDownloadPdf}
+              disabled={isDownloadingPdf}
+            >
+              {isDownloadingPdf ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {isDownloadingPdf ? 'Preparing…' : 'Download PDF'}
             </Button>
             <Button asChild>
               <Link href={routes.finance.invoices.detail(invoice.id).edit}>
