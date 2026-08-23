@@ -1,17 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  useIssuesPage,
-  useIssueStats,
-} from '@tornotron/echno-core/issue/hooks';
+import { useIssueStats } from '@tornotron/echno-core/issue/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Loader2, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { IssueTable, IssueStatsCard } from '@/features/issues/components';
 import { PageHeader } from '@/components/common/page-header';
+import { ActiveFilterChip } from '@/components/common';
 import { useDebounce } from '@/hooks/use-debounce';
+import { useIssuesPage } from '@/hooks/issues/use-issues-page';
+import {
+  useEmployeeFilterFromParams,
+  ROLE_LABELS,
+} from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
 
 export default function AllIssuesPage() {
@@ -33,12 +36,32 @@ export default function AllIssuesPage() {
   const type = typeFilter === 'all' ? undefined : typeFilter;
   const search = debouncedSearch.trim() || undefined;
 
+  // Employee filter carried in the URL from an issue detail's Reported By /
+  // Assigned To name. `assignee` maps to the backend `assigneeId` param;
+  // `creator` / `reporter` map to `creatorId`. Sent to the list query so the
+  // server does the filtering (this list is server-paginated).
+  const {
+    employeeId,
+    role: employeeRole,
+    name: employeeName,
+    clear: clearEmployeeFilter,
+  } = useEmployeeFilterFromParams();
+  const assigneeId =
+    employeeId != null && employeeRole === 'assignee' ? employeeId : undefined;
+  const creatorId =
+    employeeId != null &&
+    (employeeRole === 'creator' || employeeRole === 'reporter')
+      ? employeeId
+      : undefined;
+
   // Filters (minus paging) shared by the page query and the stats query.
   const filters = { projectId, search, type };
 
   const { data: page, isLoading: isPageLoading } = useIssuesPage({
     ...filters,
     status,
+    assigneeId,
+    creatorId,
     page: currentPage - 1,
     size: itemsPerPage,
   });
@@ -86,6 +109,14 @@ export default function AllIssuesPage() {
           ) : undefined
         }
       />
+
+      {employeeId != null && employeeName && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[employeeRole ?? ''] ?? 'Filtered by'}
+          name={employeeName}
+          onDismiss={clearEmployeeFilter}
+        />
+      )}
 
       <IssueStatsCard
         totalIssues={stats?.total ?? 0}

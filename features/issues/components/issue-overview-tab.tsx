@@ -60,6 +60,7 @@ import {
   getSafeDownloadUrl,
 } from '@/lib/utils/attachment-url';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 
 // ---------------------------------------------------------------------------
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -383,11 +384,11 @@ export function IssueOverviewTab({
           <CardContent>
             {issue.creator ? (
               <Link
-                href={
-                  routes.workforce.employees.employeeManagement.detail(
-                    issue.creator.id
-                  ).href
-                }
+                href={employeeFilterHref(
+                  routes.portfolio.projects.allIssues,
+                  issue.creator.id,
+                  'creator'
+                )}
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <EmployeeAvatar employee={issue.creator} size="sm" />
@@ -457,11 +458,11 @@ export function IssueOverviewTab({
           <CardContent>
             {issue.assignee ? (
               <Link
-                href={
-                  routes.workforce.employees.employeeManagement.detail(
-                    issue.assignee.id
-                  ).href
-                }
+                href={employeeFilterHref(
+                  routes.portfolio.projects.allIssues,
+                  issue.assignee.id,
+                  'assignee'
+                )}
                 className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-800"
               >
                 <EmployeeAvatar employee={issue.assignee} size="sm" />
