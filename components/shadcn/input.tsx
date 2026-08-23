@@ -4,6 +4,7 @@ import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@/lib/utils/index';
+import { blockNonNumericKeys } from '@/lib/utils/number-input-utils';
 
 // Extended variants — add new ones here, never edit components/ui/input.tsx
 const inputVariants = cva(
@@ -28,11 +29,22 @@ export interface InputProps
   extends React.ComponentProps<'input'>,
     VariantProps<typeof inputVariants> {}
 
-function Input({ className, type, variant, ...props }: InputProps) {
+function Input({ className, type, variant, onKeyDown, ...props }: InputProps) {
+  // Number inputs accept `e`/`E`/`+`/`-` by default (exponent/sign notation);
+  // guard those keys while still forwarding any caller-supplied handler.
+  const handleKeyDown =
+    type === 'number'
+      ? (event: React.KeyboardEvent<HTMLInputElement>) => {
+          blockNonNumericKeys(event);
+          onKeyDown?.(event);
+        }
+      : onKeyDown;
+
   return (
     <input
       type={type}
       data-slot="input"
+      onKeyDown={handleKeyDown}
       className={cn(inputVariants({ variant }), className)}
       {...props}
     />
