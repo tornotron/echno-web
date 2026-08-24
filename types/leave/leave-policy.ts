@@ -32,6 +32,7 @@ export interface LeavePolicy {
   isPaid: boolean;
   displayOrder: number;
   isActive: boolean;
+  multiLevelApprovalEnabled: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -64,6 +65,7 @@ export function parseLeavePolicy(json: any): LeavePolicy {
     isPaid: json.isPaid ?? true,
     displayOrder: json.displayOrder ?? 0,
     isActive: json.isActive ?? true,
+    multiLevelApprovalEnabled: json.multiLevelApprovalEnabled ?? true,
     createdAt: json.createdAt ? new Date(json.createdAt) : undefined,
     updatedAt: json.updatedAt ? new Date(json.updatedAt) : undefined,
   };

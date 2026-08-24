@@ -17,6 +17,7 @@ export interface CreateLeavePolicyRequest {
   allowHalfDay?: boolean;
   isPaid?: boolean;
   displayOrder?: number;
+  multiLevelApprovalEnabled?: boolean;
 }
 
 export function createLeavePolicyToJson(
@@ -52,5 +53,7 @@ export function createLeavePolicyToJson(
   if (dto.allowHalfDay !== undefined) json.allowHalfDay = dto.allowHalfDay;
   if (dto.isPaid !== undefined) json.isPaid = dto.isPaid;
   if (dto.displayOrder !== undefined) json.displayOrder = dto.displayOrder;
+  if (dto.multiLevelApprovalEnabled !== undefined)
+    json.multiLevelApprovalEnabled = dto.multiLevelApprovalEnabled;
   return json;
 }
