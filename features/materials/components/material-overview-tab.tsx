@@ -184,6 +184,15 @@ export function MaterialOverviewTab({ material }: MaterialOverviewTabProps) {
                   </div>
                 </>
               )}
+              <Separator />
+              <div>
+                <div className="text-sm text-zinc-500">GST Rate</div>
+                <div className="font-medium">
+                  {material.gstRate === undefined
+                    ? '—'
+                    : `${material.gstRate}%`}
+                </div>
+              </div>
               {material.sku && (
                 <>
                   <Separator />

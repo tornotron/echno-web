@@ -38,6 +38,7 @@ type FormState = {
   unit: string;
   description: string;
   hsn: string;
+  gstRate: string;
   openingStock: string;
   unitCost: string;
   storageLocationId: string;
@@ -59,6 +60,7 @@ const EMPTY_FORM: FormState = {
   unit: '',
   description: '',
   hsn: '',
+  gstRate: '',
   openingStock: '',
   unitCost: '',
   storageLocationId: '',
@@ -152,6 +154,7 @@ export function MaterialForm(props: MaterialFormProps) {
       unit: m.unit,
       description: m.description ?? '',
       hsn: m.hsn ?? '',
+      gstRate: m.gstRate === undefined ? '' : String(m.gstRate),
       openingStock: m.openingStock === undefined ? '' : String(m.openingStock),
       unitCost: '',
       storageLocationId: m.storageLocationId ? String(m.storageLocationId) : '',
@@ -253,6 +256,7 @@ export function MaterialForm(props: MaterialFormProps) {
         createdBy: (props as CreateProps).createdBy,
         description: form.description.trim() || undefined,
         hsn: form.hsn.trim() || undefined,
+        gstRate: form.gstRate === '' ? null : Number(form.gstRate),
         openingStock:
           form.openingStock === '' ? null : Number(form.openingStock),
         unitCost:
@@ -281,6 +285,7 @@ export function MaterialForm(props: MaterialFormProps) {
         unit: form.unit.trim(),
         description: form.description.trim() || undefined,
         hsn: form.hsn.trim() || undefined,
+        gstRate: form.gstRate === '' ? null : Number(form.gstRate),
         moq: form.moq === '' ? undefined : Number(form.moq),
         minStock: form.minStock === '' ? undefined : Number(form.minStock),
         maxStock: form.maxStock === '' ? undefined : Number(form.maxStock),
@@ -375,6 +380,19 @@ export function MaterialForm(props: MaterialFormProps) {
                     placeholder="e.g. 09988567"
                     value={form.hsn}
                     onChange={(e) => set('hsn', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="gstRate">GST Rate (%)</Label>
+                  <Input
+                    id="gstRate"
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder="e.g. 18"
+                    value={form.gstRate}
+                    onChange={(e) => set('gstRate', e.target.value)}
                   />
                 </div>
               </div>
