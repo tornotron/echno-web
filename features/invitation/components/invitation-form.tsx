@@ -45,7 +45,12 @@ import type { Invitation } from '@tornotron/echno-core/invitation/types';
 import { useGenerateInviteCode } from '@tornotron/echno-core/invitation/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useManagers } from '@tornotron/echno-core/employee/hooks';
+import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
 import { InvitationQRCode } from './invitation-qr-code';
+
+// Sentinel Select value for "no shift assigned" (shadcn Select forbids an
+// empty-string item value).
+const UNASSIGNED_SHIFT = 'unassigned';
 
 function escapeHtml(value: unknown): string {
   return String(value ?? '')
@@ -60,6 +65,16 @@ export function InvitationForm() {
   const { data: user } = useUser();
   const generateMutation = useGenerateInviteCode();
   const { data: managers = [], isLoading: managersLoading } = useManagers();
+  const { data: shifts = [] } = useShifts();
+
+  // Resolves a shift-timing id to a human label for print/share output.
+  const shiftLabel = (id?: number | null): string | null => {
+    if (id == null) return null;
+    const shift = shifts.find((s) => s.id === id);
+    return shift
+      ? `${shift.shiftName} (${shift.startTime} - ${shift.endTime})`
+      : null;
+  };
 
   const [formData, setFormData] = useState({
     employeeId: '',
@@ -71,7 +86,7 @@ export function InvitationForm() {
     joiningDate: '',
     salary: '',
     managerId: '',
-    shiftTiming: '',
+    shiftTimingId: '',
     validityDays: '30',
   });
 
@@ -121,7 +136,9 @@ export function InvitationForm() {
           managerId: formData.managerId
             ? Number.parseInt(formData.managerId, 10)
             : undefined,
-          shiftTiming: formData.shiftTiming || undefined,
+          shiftTimingId: formData.shiftTimingId
+            ? Number.parseInt(formData.shiftTimingId, 10)
+            : undefined,
           validityDays: Number.parseInt(formData.validityDays),
         },
       },
@@ -172,7 +189,9 @@ export function InvitationForm() {
         managerId: formData.managerId
           ? Number.parseInt(formData.managerId, 10)
           : undefined,
-        shiftTiming: formData.shiftTiming || undefined,
+        shiftTimingId: formData.shiftTimingId
+          ? Number.parseInt(formData.shiftTimingId, 10)
+          : undefined,
         status: 'active',
       },
       organizationId: user?.defaultOrganizationId || 0,
@@ -245,9 +264,10 @@ export function InvitationForm() {
       const designation = e(invitation.employeeDetails.designation);
       const department = e(invitation.employeeDetails.department);
       const employeeId = e(invitation.employeeDetails.employeeId);
-      const shiftTiming = invitation.employeeDetails.shiftTiming
-        ? e(invitation.employeeDetails.shiftTiming)
-        : null;
+      const resolvedShift = shiftLabel(
+        invitation.employeeDetails.shiftTimingId
+      );
+      const shiftTiming = resolvedShift ? e(resolvedShift) : null;
       const _jd = invitation.employeeDetails.joiningDate
         ? new Date(invitation.employeeDetails.joiningDate)
         : null;
@@ -655,9 +675,12 @@ export function InvitationForm() {
                 <div className="space-y-2">
                   <Label htmlFor="shiftTiming">Shift Timing</Label>
                   <Select
-                    value={formData.shiftTiming}
+                    value={formData.shiftTimingId || UNASSIGNED_SHIFT}
                     onValueChange={(value) =>
-                      setFormData({ ...formData, shiftTiming: value })
+                      setFormData({
+                        ...formData,
+                        shiftTimingId: value === UNASSIGNED_SHIFT ? '' : value,
+                      })
                     }
                     disabled={isGenerated}
                   >
@@ -665,19 +688,15 @@ export function InvitationForm() {
                       <SelectValue placeholder="Select shift" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="9:00 AM - 6:00 PM">
-                        9:00 AM - 6:00 PM
+                      <SelectItem value={UNASSIGNED_SHIFT}>
+                        Unassigned
                       </SelectItem>
-                      <SelectItem value="10:00 AM - 7:00 PM">
-                        10:00 AM - 7:00 PM
-                      </SelectItem>
-                      <SelectItem value="6:00 AM - 3:00 PM">
-                        6:00 AM - 3:00 PM
-                      </SelectItem>
-                      <SelectItem value="2:00 PM - 11:00 PM">
-                        2:00 PM - 11:00 PM
-                      </SelectItem>
-                      <SelectItem value="Flexible">Flexible</SelectItem>
+                      {shifts.map((shift) => (
+                        <SelectItem key={shift.id} value={String(shift.id)}>
+                          {shift.shiftName} ({shift.startTime} - {shift.endTime}
+                          )
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

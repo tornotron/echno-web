@@ -227,7 +227,9 @@ export function EmployeeOverviewTab({
                       Shift Timing
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {employee.shiftTiming}
+                      {employee.shiftTiming.shiftName} (
+                      {employee.shiftTiming.startTime} -{' '}
+                      {employee.shiftTiming.endTime})
                     </p>
                   </div>
                 </div>
