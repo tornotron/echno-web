@@ -6,6 +6,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
 import { Pagination } from '@/components/common';
 import {
   Select,
@@ -19,6 +20,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
 } from '@/components/shadcn/dialog';
 import {
   Table,
@@ -47,6 +51,8 @@ import {
   Search,
   BarChart3,
   Layers,
+  SlidersHorizontal,
+  RotateCcw,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
@@ -59,6 +65,17 @@ import {
   inventoryTransactionTypeBadgeColors,
 } from '@tornotron/echno-core/inventory-transactions/types';
 import type { LocationStock } from '@tornotron/echno-core/inventory-transactions/types';
+import {
+  useMaterialLocationThresholds,
+  useUpsertMaterialLocationThreshold,
+  useDeleteMaterialLocationThreshold,
+} from '@tornotron/echno-core/materials/hooks';
+import type {
+  MaterialLocationThreshold,
+  MaterialLocationThresholdUpsert,
+} from '@tornotron/echno-core/materials/types';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -121,10 +138,41 @@ function StockStatusBadge({
 // Props
 // ---------------------------------------------------------------------------
 
+type ThresholdField =
+  | 'minStock'
+  | 'maxStock'
+  | 'safetyStock'
+  | 'reorderLevel'
+  | 'moq';
+
+const THRESHOLD_FIELDS: { key: ThresholdField; label: string }[] = [
+  { key: 'minStock', label: 'Min Stock' },
+  { key: 'maxStock', label: 'Max Stock' },
+  { key: 'safetyStock', label: 'Safety Stock' },
+  { key: 'reorderLevel', label: 'Reorder Level' },
+  { key: 'moq', label: 'MOQ' },
+];
+
+type ThresholdFormState = Record<ThresholdField, string>;
+
+const EMPTY_THRESHOLD_FORM: ThresholdFormState = {
+  minStock: '',
+  maxStock: '',
+  safetyStock: '',
+  reorderLevel: '',
+  moq: '',
+};
+
+/** Material-level threshold defaults a location inherits without an override. */
+export type MaterialGlobalThresholds = {
+  [K in ThresholdField]?: number;
+};
+
 interface MaterialStockByLocationTabProps {
   materialId: number;
   unit: string;
   reorderLevel?: number;
+  globalThresholds: MaterialGlobalThresholds;
 }
 
 // ---------------------------------------------------------------------------
@@ -135,8 +183,107 @@ export function MaterialStockByLocationTab({
   materialId,
   unit,
   reorderLevel,
+  globalThresholds,
 }: MaterialStockByLocationTabProps) {
   const { data: materialStock, isLoading } = useMaterialStock(materialId);
+
+  // Per-location threshold overrides. Degrades gracefully: if the endpoint
+  // is unavailable (e.g. not yet deployed), `data` stays undefined and every
+  // location is treated as inheriting the material-level globals.
+  const { data: locationThresholds = [] } =
+    useMaterialLocationThresholds(materialId);
+  const upsertThreshold = useUpsertMaterialLocationThreshold();
+  const deleteThreshold = useDeleteMaterialLocationThreshold();
+
+  const overridesByLocation = useMemo(() => {
+    const map = new Map<number, MaterialLocationThreshold>();
+    for (const t of locationThresholds) map.set(t.storageLocationId, t);
+    return map;
+  }, [locationThresholds]);
+
+  const [thresholdLocation, setThresholdLocation] =
+    useState<LocationStock | null>(null);
+  const [thresholdForm, setThresholdForm] = useState<ThresholdFormState>(
+    EMPTY_THRESHOLD_FORM
+  );
+
+  const activeOverride = thresholdLocation
+    ? overridesByLocation.get(thresholdLocation.storageLocationId)
+    : undefined;
+
+  function effectiveThreshold(
+    field: ThresholdField,
+    override: MaterialLocationThreshold | undefined
+  ): number | undefined {
+    return override?.[field] ?? globalThresholds[field];
+  }
+
+  function openThresholdEditor(ls: LocationStock) {
+    const override = overridesByLocation.get(ls.storageLocationId);
+    const next: ThresholdFormState = { ...EMPTY_THRESHOLD_FORM };
+    for (const { key } of THRESHOLD_FIELDS) {
+      const value = effectiveThreshold(key, override);
+      next[key] = value === undefined ? '' : String(value);
+    }
+    setThresholdForm(next);
+    setThresholdLocation(ls);
+  }
+
+  function closeThresholdEditor() {
+    setThresholdLocation(null);
+  }
+
+  function handleSaveThreshold() {
+    if (!thresholdLocation) return;
+    const data: MaterialLocationThresholdUpsert = {};
+    for (const { key } of THRESHOLD_FIELDS) {
+      const raw = thresholdForm[key];
+      data[key] = raw === '' ? null : Number(raw);
+    }
+    upsertThreshold.mutate(
+      {
+        materialId,
+        storageLocationId: thresholdLocation.storageLocationId,
+        data,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Thresholds Updated', {
+            description: `Override saved for ${thresholdLocation.storageLocationName}.`,
+          });
+          closeThresholdEditor();
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Save Thresholds'), {
+            description: getErrorMessage(error),
+          });
+        },
+      }
+    );
+  }
+
+  function handleRemoveOverride() {
+    if (!thresholdLocation) return;
+    deleteThreshold.mutate(
+      {
+        materialId,
+        storageLocationId: thresholdLocation.storageLocationId,
+      },
+      {
+        onSuccess: () => {
+          toast.success('Override Removed', {
+            description: `${thresholdLocation.storageLocationName} now inherits the material defaults.`,
+          });
+          closeThresholdEditor();
+        },
+        onError: (error) => {
+          toast.error(getErrorTitle(error, 'Failed to Remove Override'), {
+            description: getErrorMessage(error),
+          });
+        },
+      }
+    );
+  }
 
   const [locSearch, setLocSearch] = useState('');
   const [locPage, setLocPage] = useState(1);
@@ -426,6 +573,7 @@ export function MaterialStockByLocationTab({
                     <TableHead className="text-right">Stock</TableHead>
                     <TableHead className="text-right">Stock Value</TableHead>
                     <TableHead className="text-right">Status</TableHead>
+                    <TableHead className="text-right">Thresholds</TableHead>
                     <TableHead className="pr-6 text-right">History</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -476,6 +624,28 @@ export function MaterialStockByLocationTab({
                             stock={ls.stock}
                             reorderLevel={reorderLevel}
                           />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {overridesByLocation.has(ls.storageLocationId) ? (
+                              <Badge className="bg-blue-100 text-xs text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                                Override
+                              </Badge>
+                            ) : (
+                              <Badge className="bg-zinc-100 text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                                Global
+                              </Badge>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 gap-1.5 text-xs"
+                              onClick={() => openThresholdEditor(ls)}
+                              aria-label={`Edit thresholds for ${ls.storageLocationName}`}
+                            >
+                              <SlidersHorizontal className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
                         </TableCell>
                         <TableCell className="pr-6 text-right">
                           <Button
@@ -859,6 +1029,98 @@ export function MaterialStockByLocationTab({
               )}
             </Card>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Threshold Override Dialog ────────────────────────────────────────── */}
+      <Dialog
+        open={!!thresholdLocation}
+        onOpenChange={(open) => {
+          if (!open) closeThresholdEditor();
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <SlidersHorizontal className="h-5 w-5" />
+              Location Thresholds
+            </DialogTitle>
+            <DialogDescription>
+              {thresholdLocation && activeOverride
+                ? `${thresholdLocation.storageLocationName} overrides the material defaults. Clear a field to fall back to the global value.`
+                : thresholdLocation
+                  ? `${thresholdLocation.storageLocationName} currently inherits the material defaults. Set any value below to create an override.`
+                  : null}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2 sm:grid-cols-2">
+            {THRESHOLD_FIELDS.map(({ key, label }) => {
+              const globalValue = globalThresholds[key];
+              return (
+                <div key={key} className="space-y-2">
+                  <Label htmlFor={`threshold-${key}`}>{label}</Label>
+                  <Input
+                    id={`threshold-${key}`}
+                    type="number"
+                    min="0"
+                    step="any"
+                    placeholder={
+                      globalValue === undefined ? '0' : String(globalValue)
+                    }
+                    value={thresholdForm[key]}
+                    onChange={(e) =>
+                      setThresholdForm((prev) => ({
+                        ...prev,
+                        [key]: e.target.value,
+                      }))
+                    }
+                  />
+                  <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                    Global:{' '}
+                    {globalValue === undefined ? '—' : `${globalValue} ${unit}`}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter className="gap-2 sm:justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleRemoveOverride}
+              disabled={
+                !activeOverride ||
+                deleteThreshold.isPending ||
+                upsertThreshold.isPending
+              }
+            >
+              {deleteThreshold.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RotateCcw className="mr-2 h-4 w-4" />
+              )}
+              Reset to global
+            </Button>
+            <div className="flex gap-2">
+              <DialogClose asChild>
+                <Button type="button" variant="ghost">
+                  Cancel
+                </Button>
+              </DialogClose>
+              <Button
+                type="button"
+                onClick={handleSaveThreshold}
+                disabled={upsertThreshold.isPending || deleteThreshold.isPending}
+              >
+                {upsertThreshold.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Save
+              </Button>
+            </div>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

@@ -222,6 +222,13 @@ export default function MaterialDetailPage({
             materialId={id}
             unit={material.unit}
             reorderLevel={material.reorderLevel}
+            globalThresholds={{
+              minStock: material.minStock,
+              maxStock: material.maxStock,
+              safetyStock: material.safetyStock,
+              reorderLevel: material.reorderLevel,
+              moq: material.moq,
+            }}
           />
         </TabsContent>
 
