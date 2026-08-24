@@ -5,6 +5,8 @@ import {
   FileSpreadsheet,
   TrendingDown,
   PiggyBank,
+  FolderTree,
+  Settings,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
 
@@ -65,4 +67,18 @@ export const financeMetadata = {
   'finance-budgets-new': { label: 'New Budget', sidebarHidden: true },
   'finance-budgets-[id]': { label: 'Budget', sidebarHidden: true },
   'finance-budgets-[id]-edit': { label: 'Edit', sidebarHidden: true },
+
+  // ── chart of accounts ───────────────────────────────────────────────────────
+  'finance-chart-of-accounts': {
+    label: 'Chart of Accounts',
+    icon: FolderTree,
+    order: 6,
+  },
+
+  // ── finance settings ────────────────────────────────────────────────────────
+  'finance-settings': {
+    label: 'Finance Settings',
+    icon: Settings,
+    order: 7,
+  },
 } satisfies MetadataRegistry;
