@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/shadcn/button';
 import { SaveEmployeeDialog } from './employee-alert-dialogs';
 import { useUpdateEmployee } from '@tornotron/echno-core/employee/hooks';
+import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   Card,
@@ -44,6 +45,10 @@ import type { Employee } from '@tornotron/echno-core/employee/types';
 import type { UpdateEmployeeRequest } from '@tornotron/echno-core/employee/types';
 import { PageHeader } from '@/components/common';
 
+// Sentinel Select value for "no shift assigned" (shadcn Select forbids an
+// empty-string item value).
+const UNASSIGNED_SHIFT = 'unassigned';
+
 // Helper to get initial form data from employee
 const getInitialFormData = (emp: Employee | null | undefined) => ({
   // Professional Information
@@ -54,7 +59,7 @@ const getInitialFormData = (emp: Employee | null | undefined) => ({
   joiningDate: emp?.joiningDate || null,
   status: emp?.status || '',
   salary: emp?.salary?.toString() || '',
-  shiftTiming: emp?.shiftTiming || '',
+  shiftTimingId: emp?.shiftTimingId != null ? String(emp.shiftTimingId) : '',
 });
 
 interface EditEmployeeFormProps {
@@ -64,6 +69,7 @@ interface EditEmployeeFormProps {
 export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
   const router = useRouter();
   const updateEmployee = useUpdateEmployee();
+  const { data: shifts = [] } = useShifts();
 
   // Form state - initialized with employee data
   const [formData, setFormData] = useState(() => getInitialFormData(employee));
@@ -93,8 +99,10 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
     } else {
       updateData.salary = null;
     }
-    // Always send shiftTiming so clearing it propagates to the server
-    updateData.shiftTiming = formData.shiftTiming ?? null;
+    // Always send shiftTimingId so clearing it propagates to the server
+    updateData.shiftTimingId = formData.shiftTimingId
+      ? Number(formData.shiftTimingId)
+      : null;
     if (formData.status) {
       updateData.status = formData.status as EmployeeStatus;
     }
@@ -284,28 +292,24 @@ export function EditEmployeeForm({ employee }: EditEmployeeFormProps) {
               <div className="space-y-2">
                 <Label htmlFor="shiftTiming">Shift Timing</Label>
                 <Select
-                  value={formData.shiftTiming}
+                  value={formData.shiftTimingId || UNASSIGNED_SHIFT}
                   onValueChange={(value) =>
-                    setFormData({ ...formData, shiftTiming: value })
+                    setFormData({
+                      ...formData,
+                      shiftTimingId: value === UNASSIGNED_SHIFT ? '' : value,
+                    })
                   }
                 >
                   <SelectTrigger id="shiftTiming">
                     <SelectValue placeholder="Select shift" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="9:00 AM - 6:00 PM">
-                      9:00 AM - 6:00 PM
-                    </SelectItem>
-                    <SelectItem value="10:00 AM - 7:00 PM">
-                      10:00 AM - 7:00 PM
-                    </SelectItem>
-                    <SelectItem value="6:00 AM - 3:00 PM">
-                      6:00 AM - 3:00 PM
-                    </SelectItem>
-                    <SelectItem value="2:00 PM - 11:00 PM">
-                      2:00 PM - 11:00 PM
-                    </SelectItem>
-                    <SelectItem value="Flexible">Flexible</SelectItem>
+                    <SelectItem value={UNASSIGNED_SHIFT}>Unassigned</SelectItem>
+                    {shifts.map((shift) => (
+                      <SelectItem key={shift.id} value={String(shift.id)}>
+                        {shift.shiftName} ({shift.startTime} - {shift.endTime})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

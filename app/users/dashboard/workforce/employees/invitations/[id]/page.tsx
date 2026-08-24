@@ -41,6 +41,7 @@ import { format } from 'date-fns';
 import { useInvitationsByOrganization } from '@tornotron/echno-core/invitation/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useManagerName } from '@tornotron/echno-core/employee/hooks';
+import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
 import { InvitationQRCode, InvitationStatusBadge } from '@/features/invitation';
 import { InvitationErrorState } from '@/features/invitation/components/invitation-error-state';
 
@@ -65,6 +66,17 @@ export default function InvitationPage() {
 
   // Resolve manager name from ID
   const managerName = useManagerName(invitation?.employeeDetails.managerId);
+
+  // Resolve the assigned shift-timing id to a human label
+  const { data: shifts = [] } = useShifts();
+  const shiftTimingId = invitation?.employeeDetails.shiftTimingId;
+  const assignedShift =
+    shiftTimingId != null
+      ? shifts.find((shift) => shift.id === shiftTimingId)
+      : undefined;
+  const shiftTimingLabel = assignedShift
+    ? `${assignedShift.shiftName} (${assignedShift.startTime} - ${assignedShift.endTime})`
+    : null;
 
   // Show loading state
   if (isLoading || !user) {
@@ -283,11 +295,11 @@ export default function InvitationPage() {
                 : ''
             }
             ${
-              invitation.employeeDetails.shiftTiming
+              shiftTimingLabel
                 ? `
             <div class="detail-row">
               <div class="label">Shift Timing:</div>
-              <div class="value">${invitation.employeeDetails.shiftTiming}</div>
+              <div class="value">${shiftTimingLabel}</div>
             </div>`
                 : ''
             }
@@ -487,13 +499,13 @@ export default function InvitationPage() {
                   </div>
                 )}
 
-                {invitation.employeeDetails.shiftTiming && (
+                {shiftTimingLabel && (
                   <div>
                     <p className="mb-1 text-sm text-zinc-600 dark:text-zinc-400">
                       Shift Timing
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {invitation.employeeDetails.shiftTiming}
+                      {shiftTimingLabel}
                     </p>
                   </div>
                 )}
