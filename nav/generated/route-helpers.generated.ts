@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-21
+ * Generated: 2026-08-24
  */
 
 const BASE = '/users/dashboard';
@@ -38,6 +38,7 @@ export const routes = {
         edit: b(`/finance/budgets/${id}/edit`),
       }),
     },
+    chartOfAccounts: b('/finance/chart-of-accounts'),
     expenses: {
       href: b('/finance/expenses'),
       new: b('/finance/expenses/new'),
@@ -70,6 +71,7 @@ export const routes = {
         edit: b(`/finance/receipts/${id}/edit`),
       }),
     },
+    settings: b('/finance/settings'),
   },
 
   learning: b('/learning'),
