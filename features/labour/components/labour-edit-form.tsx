@@ -45,6 +45,8 @@ export interface LabourEditFormProps {
   isEdit: boolean;
 }
 
+export const LABOUR_FORM_ID = 'labour-form';
+
 export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
   const router = useRouter();
   const createLabour = useCreateLabour();
@@ -181,13 +183,39 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
+        sticky
         title={isEdit ? 'Edit Labour' : 'Add New Labour'}
         description={
           isEdit ? 'Update labour information' : 'Enter new labour details'
         }
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => router.push(routes.thirdParty.labour.href)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" form={LABOUR_FORM_ID} disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isEdit ? 'Update Labour' : 'Create Labour'}
+                </>
+              )}
+            </Button>
+          </>
+        }
       />
 
-      <form onSubmit={handleSubmit}>
+      <form id={LABOUR_FORM_ID} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">
@@ -595,27 +623,6 @@ export function LabourEditForm({ initialData, isEdit }: LabourEditFormProps) {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col space-y-2">
-              <Button type="submit" className="w-full" disabled={isPending}>
-                {isPending ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="mr-2 h-4 w-4" />
-                )}
-                {isEdit ? 'Update Labour' : 'Create Labour'}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                disabled={isPending}
-                onClick={() => router.push(routes.thirdParty.labour.href)}
-              >
-                Cancel
-              </Button>
-            </div>
           </div>
         </div>
       </form>

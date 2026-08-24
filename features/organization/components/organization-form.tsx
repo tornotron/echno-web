@@ -19,7 +19,6 @@ import {
 } from '@tornotron/echno-core/organization/types';
 import {
   Building,
-  Loader2,
   Upload,
   Download,
   Trash2,
@@ -50,17 +49,15 @@ interface OrganizationFormData {
 interface OrganizationFormProps {
   organization?: Organization;
   onSubmit: (data: UpdateOrganizationRequest, logoFile?: File) => void;
-  onCancel: () => void;
   onRemoveLogo?: () => Promise<void>;
-  isLoading?: boolean;
 }
+
+export const ORGANIZATION_FORM_ID = 'organization-form';
 
 export function OrganizationForm({
   organization,
   onSubmit,
-  onCancel,
   onRemoveLogo,
-  isLoading = false,
 }: OrganizationFormProps) {
   const [formData, setFormData] = useState<OrganizationFormData>({
     organizationName: organization?.organizationName || '',
@@ -219,7 +216,7 @@ export function OrganizationForm({
 
   return (
     <>
-      <form onSubmit={handleSubmit}>
+      <form id={ORGANIZATION_FORM_ID} onSubmit={handleSubmit}>
         <Card>
           <CardHeader>
             <div className="flex items-center space-x-2">
@@ -424,28 +421,6 @@ export function OrganizationForm({
               <Label htmlFor="isActive" className="cursor-pointer">
                 Active Organization
               </Label>
-            </div>
-
-            {/* Actions */}
-            <div className="flex justify-end space-x-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={isLoading}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>{organization ? 'Update' : 'Create'} Organization</>
-                )}
-              </Button>
             </div>
           </CardContent>
         </Card>

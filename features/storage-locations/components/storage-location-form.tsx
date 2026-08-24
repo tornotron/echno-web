@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { MapPin, Save, X, Loader2 } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 import {
   CreateStorageLocationRequest,
   STORAGE_LOCATION_TYPE_LABELS,
@@ -41,10 +41,9 @@ export interface StorageLocationFormData {
 interface StorageLocationFormProps {
   initialData?: Partial<StorageLocationFormData>;
   onSubmit: (input: CreateStorageLocationRequest) => void;
-  onCancel: () => void;
-  isPending: boolean;
-  submitLabel?: string;
 }
+
+export const STORAGE_LOCATION_FORM_ID = 'storage-location-form';
 
 // ---------------------------------------------------------------------------
 // StorageLocationForm
@@ -53,9 +52,6 @@ interface StorageLocationFormProps {
 export function StorageLocationForm({
   initialData,
   onSubmit,
-  onCancel,
-  isPending,
-  submitLabel = 'Save',
 }: StorageLocationFormProps) {
   const { data: projects = [] } = useProjects();
   const { isLoading: isGettingLocation, getCurrentLocation } = useGeolocation();
@@ -149,7 +145,7 @@ export function StorageLocationForm({
   }
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form id={STORAGE_LOCATION_FORM_ID} onSubmit={handleSubmit}>
       <div className="space-y-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
@@ -323,26 +319,6 @@ export function StorageLocationForm({
               />
             </div>
           </div>
-        </div>
-
-        <div className="flex justify-end gap-3 border-t pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isPending}
-          >
-            <X className="mr-2 h-4 w-4" />
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            {isPending ? 'Saving...' : submitLabel}
-          </Button>
         </div>
       </div>
     </form>

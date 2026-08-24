@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -19,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { Save } from 'lucide-react';
 import {
   InspectionStatus,
   InspectionType,
@@ -63,17 +61,13 @@ export interface InspectionFormSubmitData {
 
 interface CreateProps {
   mode: 'create';
-  isSubmitting: boolean;
   onSubmit: (data: InspectionFormSubmitData) => void;
-  onCancel: () => void;
 }
 
 interface EditProps {
   mode: 'edit';
   inspection: Inspection;
-  isSubmitting: boolean;
   onSubmit: (data: InspectionFormSubmitData) => void;
-  onCancel: () => void;
 }
 
 type InspectionFormProps = CreateProps | EditProps;
@@ -103,7 +97,6 @@ const EMPTY_FORM: InspectionFormState = {
 
 export function InspectionForm(props: InspectionFormProps) {
   const isEdit = props.mode === 'edit';
-  const { isSubmitting, onCancel } = props;
 
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployeeLookup();
@@ -523,28 +516,6 @@ export function InspectionForm(props: InspectionFormProps) {
             </CardContent>
           </Card>
         )}
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            <Save className="mr-2 h-4 w-4" />
-            {isSubmitting
-              ? isEdit
-                ? 'Saving...'
-                : 'Scheduling...'
-              : isEdit
-                ? 'Save Changes'
-                : 'Schedule Inspection'}
-          </Button>
-        </div>
       </div>
     </form>
   );

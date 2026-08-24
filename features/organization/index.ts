@@ -1,6 +1,9 @@
 export { EditOrganizationForm as EditOrganizationForm } from './components/edit-organization-form';
 export { OrganizationCard } from './components/organization-card';
-export { OrganizationForm } from './components/organization-form';
+export {
+  OrganizationForm,
+  ORGANIZATION_FORM_ID,
+} from './components/organization-form';
 export { OrganizationSelector } from './components/organization-selector';
 export {
   RemoveOrgLogoDialog,
