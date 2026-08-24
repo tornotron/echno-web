@@ -30,6 +30,7 @@ import {
   WarehouseIcon,
   Tag,
   AlertTriangle,
+  History,
 } from 'lucide-react';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
@@ -42,6 +43,7 @@ import {
   DeleteMaterialDialog,
   MaterialOverviewTab,
   MaterialStockByLocationTab,
+  MaterialMovementTimelineTab,
 } from '@/features/materials/components';
 
 export default function MaterialDetailPage({
@@ -205,6 +207,10 @@ export default function MaterialDetailPage({
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="movements" className="flex items-center gap-1.5">
+            <History className="h-4 w-4" />
+            Movement History
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-6">
@@ -217,6 +223,10 @@ export default function MaterialDetailPage({
             unit={material.unit}
             reorderLevel={material.reorderLevel}
           />
+        </TabsContent>
+
+        <TabsContent value="movements" className="mt-6 space-y-4">
+          <MaterialMovementTimelineTab materialId={id} unit={material.unit} />
         </TabsContent>
       </Tabs>
     </div>
