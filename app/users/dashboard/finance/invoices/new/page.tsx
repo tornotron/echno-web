@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useCostCategories } from '@tornotron/echno-core/finance/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { useCreateInvoice } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
@@ -44,9 +45,12 @@ import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 
+const NO_COST_CATEGORY = 'none';
+
 export default function NewInvoicePage() {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
+  const { data: costCategories = [] } = useCostCategories(true);
   const { mutate: createInvoice, isPending } = useCreateInvoice();
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -119,6 +123,7 @@ export default function NewInvoicePage() {
           unit: item.unit,
           unitPrice: item.unitPrice,
           taxRate: item.taxRate,
+          costCategoryId: item.costCategoryId ?? null,
         })),
       },
       {
@@ -188,6 +193,15 @@ export default function NewInvoicePage() {
     }));
   };
 
+  const handleLineCategoryChange = (index: number, value: string) => {
+    const newItems = [...lineItems];
+    newItems[index] = {
+      ...newItems[index],
+      costCategoryId: value === NO_COST_CATEGORY ? null : value,
+    };
+    setLineItems(newItems);
+  };
+
   const addLineItem = () => {
     const newItem: InvoiceLineDraft = {
       id: crypto.randomUUID(),
@@ -199,6 +213,7 @@ export default function NewInvoicePage() {
       taxAmount: 0,
       subtotal: 0,
       total: 0,
+      costCategoryId: null,
     };
     setLineItems([...lineItems, newItem]);
   };
@@ -432,6 +447,9 @@ export default function NewInvoicePage() {
                       <TableHead className="min-w-[250px]">
                         Description *
                       </TableHead>
+                      <TableHead className="min-w-[180px]">
+                        Cost Category
+                      </TableHead>
                       <TableHead className="min-w-[100px]">
                         Quantity *
                       </TableHead>
@@ -473,6 +491,31 @@ export default function NewInvoicePage() {
                             required
                             className="min-h-[60px] text-xs"
                           />
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={item.costCategoryId ?? NO_COST_CATEGORY}
+                            onValueChange={(value) =>
+                              handleLineCategoryChange(index, value)
+                            }
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="Untagged" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={NO_COST_CATEGORY}>
+                                Untagged
+                              </SelectItem>
+                              {costCategories.map((category) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={category.id}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell>
                           <Input

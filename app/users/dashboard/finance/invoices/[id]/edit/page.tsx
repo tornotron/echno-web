@@ -31,6 +31,7 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useCostCategories } from '@tornotron/echno-core/finance/hooks';
 import {
   ConstructionInvoice,
   ConstructionInvoiceType,
@@ -120,9 +121,12 @@ interface InvoiceEditFormProps {
   invoiceId: string;
 }
 
+const NO_COST_CATEGORY = 'none';
+
 function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
+  const { data: costCategories = [] } = useCostCategories(true);
   const { mutate: updateInvoice, isPending } = useUpdateInvoice();
   const [lineItems, setLineItems] = useState<InvoiceLineDraft[]>(() =>
     initialData.lines.map((line) => ({
@@ -135,6 +139,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
       taxAmount: line.taxAmount,
       subtotal: line.subtotal,
       total: line.total,
+      costCategoryId: line.costCategoryId ?? null,
     }))
   );
   const [formData, setFormData] = useState<InvoiceFormData>(() => ({
@@ -186,6 +191,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
             unit: item.unit,
             unitPrice: item.unitPrice,
             taxRate: item.taxRate,
+            costCategoryId: item.costCategoryId ?? null,
           })),
         },
       },
@@ -245,6 +251,15 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
     }));
   };
 
+  const handleLineCategoryChange = (index: number, value: string) => {
+    const newItems = [...lineItems];
+    newItems[index] = {
+      ...newItems[index],
+      costCategoryId: value === NO_COST_CATEGORY ? null : value,
+    };
+    setLineItems(newItems);
+  };
+
   const addLineItem = () => {
     const newItem: InvoiceLineDraft = {
       id: crypto.randomUUID(),
@@ -256,6 +271,7 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
       taxAmount: 0,
       subtotal: 0,
       total: 0,
+      costCategoryId: null,
     };
     setLineItems([...lineItems, newItem]);
   };
@@ -516,6 +532,9 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
                       <TableHead className="min-w-[250px]">
                         Description *
                       </TableHead>
+                      <TableHead className="min-w-[180px]">
+                        Cost Category
+                      </TableHead>
                       <TableHead className="min-w-[100px]">
                         Quantity *
                       </TableHead>
@@ -557,6 +576,31 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
                             required
                             className="min-h-[60px] text-xs"
                           />
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={item.costCategoryId ?? NO_COST_CATEGORY}
+                            onValueChange={(value) =>
+                              handleLineCategoryChange(index, value)
+                            }
+                          >
+                            <SelectTrigger className="h-9">
+                              <SelectValue placeholder="Untagged" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={NO_COST_CATEGORY}>
+                                Untagged
+                              </SelectItem>
+                              {costCategories.map((category) => (
+                                <SelectItem
+                                  key={category.id}
+                                  value={category.id}
+                                >
+                                  {category.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </TableCell>
                         <TableCell>
                           <Input

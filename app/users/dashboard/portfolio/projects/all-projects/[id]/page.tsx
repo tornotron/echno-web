@@ -53,6 +53,7 @@ import {
   TrendingUp,
   ShieldAlert,
   ShieldCheck,
+  Wallet,
   Clock,
   CheckCircle,
 } from 'lucide-react';
@@ -76,6 +77,7 @@ import { HealthTab } from '@/features/health/components/health-tab';
 import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
 import { ProjectComplianceTab } from '@/features/compliance/components';
+import { ProjectBudgetTab } from '@/features/project-budget/components';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   AlertDialog,
@@ -350,12 +352,13 @@ export default function ProjectDashboardPage() {
             <ShieldAlert className="h-4 w-4" />
             Risks
           </TabsTrigger>
-          <TabsTrigger
-            value="compliance"
-            className="flex items-center gap-1.5"
-          >
+          <TabsTrigger value="compliance" className="flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4" />
             Compliance
+          </TabsTrigger>
+          <TabsTrigger value="budget" className="flex items-center gap-1.5">
+            <Wallet className="h-4 w-4" />
+            Budget
           </TabsTrigger>
         </TabsList>
 
@@ -952,6 +955,11 @@ export default function ProjectDashboardPage() {
         {/* ── Compliance ───────────────────────────────────────────────────── */}
         <TabsContent value="compliance" className="mt-6">
           <ProjectComplianceTab projectId={project.id} />
+        </TabsContent>
+
+        {/* ── Budget ───────────────────────────────────────────────────────── */}
+        <TabsContent value="budget" className="mt-6">
+          <ProjectBudgetTab projectId={project.id} />
         </TabsContent>
       </Tabs>
 

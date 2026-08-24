@@ -6,6 +6,7 @@ import {
   TrendingDown,
   PiggyBank,
   FolderTree,
+  Tags,
   Settings,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
@@ -75,10 +76,17 @@ export const financeMetadata = {
     order: 6,
   },
 
+  // ── cost categories ─────────────────────────────────────────────────────────
+  'finance-cost-categories': {
+    label: 'Cost Categories',
+    icon: Tags,
+    order: 7,
+  },
+
   // ── finance settings ────────────────────────────────────────────────────────
   'finance-settings': {
     label: 'Finance Settings',
     icon: Settings,
-    order: 7,
+    order: 8,
   },
 } satisfies MetadataRegistry;
