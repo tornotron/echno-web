@@ -88,6 +88,7 @@ export function LeavePoliciesManager({
     allowHalfDay: true,
     isPaid: true,
     displayOrder: 0,
+    multiLevelApprovalEnabled: true,
   });
 
   const resetForm = () => {
@@ -109,6 +110,7 @@ export function LeavePoliciesManager({
       allowHalfDay: true,
       isPaid: true,
       displayOrder: 0,
+      multiLevelApprovalEnabled: true,
     });
   };
 
@@ -186,6 +188,7 @@ export function LeavePoliciesManager({
       allowHalfDay: policy.allowHalfDay,
       isPaid: policy.isPaid,
       displayOrder: policy.displayOrder,
+      multiLevelApprovalEnabled: policy.multiLevelApprovalEnabled,
     });
     setIsEditDialogOpen(true);
   };
@@ -497,6 +500,7 @@ interface PolicyFormProps {
     allowHalfDay: boolean;
     isPaid: boolean;
     displayOrder: number;
+    multiLevelApprovalEnabled: boolean;
   };
   setFormData: (data: PolicyFormProps['formData']) => void;
 }
@@ -693,6 +697,27 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
           Options
         </h4>
         <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="multiLevelApprovalEnabled">
+                Multi-level approval
+              </Label>
+              <p className="text-muted-foreground text-xs">
+                Route requests through every approval level. When off, a single
+                approval decides the request.
+              </p>
+            </div>
+            <Switch
+              id="multiLevelApprovalEnabled"
+              checked={formData.multiLevelApprovalEnabled}
+              onCheckedChange={(checked) =>
+                setFormData({
+                  ...formData,
+                  multiLevelApprovalEnabled: checked,
+                })
+              }
+            />
+          </div>
           <div className="flex items-center justify-between">
             <Label htmlFor="allowHalfDay">Allow Half-Day Leave</Label>
             <Switch

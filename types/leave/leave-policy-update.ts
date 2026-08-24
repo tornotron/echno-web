@@ -16,6 +16,7 @@ export interface UpdateLeavePolicyRequest {
   isPaid?: boolean;
   displayOrder?: number;
   isActive?: boolean;
+  multiLevelApprovalEnabled?: boolean;
 }
 
 export function updateLeavePolicyToJson(
@@ -49,5 +50,7 @@ export function updateLeavePolicyToJson(
   if (dto.isPaid !== undefined) json.isPaid = dto.isPaid;
   if (dto.displayOrder !== undefined) json.displayOrder = dto.displayOrder;
   if (dto.isActive !== undefined) json.isActive = dto.isActive;
+  if (dto.multiLevelApprovalEnabled !== undefined)
+    json.multiLevelApprovalEnabled = dto.multiLevelApprovalEnabled;
   return json;
 }
