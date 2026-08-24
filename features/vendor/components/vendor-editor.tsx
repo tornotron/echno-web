@@ -22,7 +22,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { toast } from '@/lib/styles/toast-styles';
-import { Building2, Save, X } from 'lucide-react';
+import { Building2, Save, Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common';
 import { useUpdateVendor } from '@tornotron/echno-core/vendor/hooks';
 import {
@@ -38,6 +38,8 @@ interface VendorEditorProps {
   vendor: Vendor;
   vendorId: number;
 }
+
+const VENDOR_FORM_ID = 'vendor-form';
 
 export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
   const router = useRouter();
@@ -100,11 +102,39 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
+        sticky
         title="Edit Vendor"
         description={`Update vendor information${form.name ? ` for ${form.name}` : ''}`}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={isPending}
+              onClick={() =>
+                router.push(routes.thirdParty.vendors.detail(vendorId).href)
+              }
+            >
+              Cancel
+            </Button>
+            <Button type="submit" form={VENDOR_FORM_ID} disabled={isPending}>
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Update Vendor
+                </>
+              )}
+            </Button>
+          </>
+        }
       />
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form id={VENDOR_FORM_ID} onSubmit={handleSubmit} className="space-y-6">
         {/* Company Information */}
         <Card>
           <CardHeader>
@@ -277,23 +307,6 @@ export function VendorEditor({ vendor, vendorId }: VendorEditorProps) {
             </div>
           </CardContent>
         </Card>
-
-        {/* Actions */}
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() =>
-              router.push(routes.thirdParty.vendors.detail(vendorId).href)
-            }
-          >
-            <X className="mr-2 h-4 w-4" /> Cancel
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            <Save className="mr-2 h-4 w-4" />
-            {isPending ? 'Saving...' : 'Update Vendor'}
-          </Button>
-        </div>
       </form>
     </div>
   );

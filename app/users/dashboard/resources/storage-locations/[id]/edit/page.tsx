@@ -13,7 +13,7 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
-import { MapPin, ArrowLeft, Trash2 } from 'lucide-react';
+import { MapPin, ArrowLeft, Trash2, Loader2, Save } from 'lucide-react';
 import {
   Empty,
   EmptyMedia,
@@ -29,7 +29,10 @@ import {
   useUpdateStorageLocation,
 } from '@tornotron/echno-core/storage-locations/hooks';
 import { toast } from '@/lib/styles/toast-styles';
-import { StorageLocationForm } from '@/features/storage-locations/components/storage-location-form';
+import {
+  StorageLocationForm,
+  STORAGE_LOCATION_FORM_ID,
+} from '@/features/storage-locations/components/storage-location-form';
 import { DeleteStorageLocationDialog } from '@/features/storage-locations/components/storage-location-alert-dialogs';
 
 export default function EditLocationPage() {
@@ -124,14 +127,40 @@ export default function EditLocationPage() {
           description="Update the location information"
           avatar={<MapPin className="h-6 w-6" />}
           actions={
-            <Button
-              variant="destructive"
-              disabled={isPending}
-              onClick={() => setShowDeleteDialog(true)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
+            <>
+              <Button
+                variant="destructive"
+                disabled={isPending}
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.back()}
+                disabled={isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                form={STORAGE_LOCATION_FORM_ID}
+                disabled={isPending}
+              >
+                {updateLocation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </>
           }
         />
 
@@ -155,9 +184,6 @@ export default function EditLocationPage() {
                 active: location.active,
               }}
               onSubmit={handleSubmit}
-              onCancel={() => router.back()}
-              isPending={isPending}
-              submitLabel="Save Changes"
             />
           </CardContent>
         </Card>

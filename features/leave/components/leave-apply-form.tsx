@@ -54,6 +54,7 @@ import {
   LeaveRequest,
   LeaveBalanceSummary,
 } from '@/types/leave';
+import { PageHeader } from '@/components/common';
 import { BalanceCard } from '@/features/leave/components/balance-card';
 import { FormSkeleton } from '@/features/leave/components/skeletons';
 import { toast } from '@/lib/styles/toast-styles';
@@ -68,6 +69,8 @@ interface LeaveApplyFormProps {
   isEditMode: boolean;
   editRequestId: string | null;
 }
+
+const LEAVE_FORM_ID = 'leave-apply-form';
 
 const defaultFormData = {
   leavePolicyId: '',
@@ -432,18 +435,72 @@ export function LeaveApplyForm({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          {isEditMode ? 'Edit Leave Request' : 'Apply for Leave'}
-        </h1>
-        <p className="text-muted-foreground">
-          {isEditMode
+      <PageHeader
+        sticky
+        title={isEditMode ? 'Edit Leave Request' : 'Apply for Leave'}
+        description={
+          isEditMode
             ? 'Update your leave request details'
-            : 'Submit a new leave request'}
-        </p>
-      </div>
+            : 'Submit a new leave request'
+        }
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isMutating}
+            >
+              Back
+            </Button>
+            {isEditMode && existingRequest && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowCancelDialog(true)}
+                disabled={isMutating}
+              >
+                <XCircle className="mr-2 h-4 w-4" />
+                Cancel Request
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleSaveDraft}
+              disabled={isMutating}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Save as Draft
+            </Button>
+            <Button
+              type="submit"
+              form={LEAVE_FORM_ID}
+              disabled={
+                isMutating ||
+                hasConflict ||
+                (selectedBalance
+                  ? calculatedDays > selectedBalance.bookableBalance
+                  : false)
+              }
+            >
+              {isMutating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" />
+                  Submit Request
+                </>
+              )}
+            </Button>
+          </>
+        }
+      />
 
-      <form onSubmit={handleSubmit}>
+      <form id={LEAVE_FORM_ID} onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <Card>
@@ -623,55 +680,6 @@ export function LeaveApplyForm({
                 </div>
               </CardContent>
             </Card>
-
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => router.back()}
-                disabled={isMutating}
-              >
-                Back
-              </Button>
-              {isEditMode && existingRequest && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => setShowCancelDialog(true)}
-                  disabled={isMutating}
-                >
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Cancel Request
-                </Button>
-              )}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleSaveDraft}
-                disabled={isMutating}
-              >
-                <Save className="mr-2 h-4 w-4" />
-                Save as Draft
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  isMutating ||
-                  hasConflict ||
-                  (selectedBalance
-                    ? calculatedDays > selectedBalance.bookableBalance
-                    : false)
-                }
-                className="ml-auto"
-              >
-                {isMutating ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Send className="mr-2 h-4 w-4" />
-                )}
-                {isMutating ? 'Submitting...' : 'Submit Request'}
-              </Button>
-            </div>
           </div>
 
           <div className="space-y-6">

@@ -11,9 +11,12 @@ import {
 } from '@tornotron/echno-core/organization/hooks';
 import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { organizationKeys } from '@tornotron/echno-core/organization/hooks/keys';
+import { Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
+import { PageHeader } from '@/components/common';
+import { Button } from '@/components/shadcn/button';
 import { SaveOrganizationDialog } from './organization-alert-dialogs';
-import { OrganizationForm } from './organization-form';
+import { OrganizationForm, ORGANIZATION_FORM_ID } from './organization-form';
 import { routes } from '@/nav';
 
 interface EditOrganizationFormProps {
@@ -105,13 +108,44 @@ export function EditOrganizationForm({ id }: EditOrganizationFormProps) {
 
   return (
     <div className="container mx-auto max-w-3xl space-y-4 sm:space-y-6">
+      <PageHeader
+        sticky
+        title="Edit Organization"
+        description="Update organization information"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form={ORGANIZATION_FORM_ID}
+              disabled={isUpdating}
+            >
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Update Organization
+                </>
+              )}
+            </Button>
+          </>
+        }
+      />
       {organization && (
         <OrganizationForm
           organization={organization}
           onSubmit={handleSubmit}
-          onCancel={handleCancel}
           onRemoveLogo={handleRemoveLogo}
-          isLoading={isUpdating}
         />
       )}
 

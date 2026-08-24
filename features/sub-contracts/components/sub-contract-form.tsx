@@ -27,7 +27,7 @@ import {
   User,
   FileText,
   Save,
-  X,
+  Loader2,
   Plus,
   Trash2,
   TrendingUp,
@@ -82,6 +82,8 @@ export interface SubContractFormProps {
   /** Disables the submit button while a mutation is in flight. */
   isSubmitting?: boolean;
 }
+
+export const SUB_CONTRACT_FORM_ID = 'sub-contract-form';
 
 function normalizeDate(date?: Date | string, fallbackToday = false): string {
   if (!date) return fallbackToday ? new Date().toISOString().split('T')[0] : '';
@@ -221,15 +223,45 @@ export function SubContractForm({
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
+        sticky
         title={isEditMode ? 'Edit Sub-Contract' : 'Add New Sub-Contract'}
         description={
           isEditMode
             ? `Update sub-contract information for ${formData.contractorName}`
             : 'Fill in the details to add a new sub-contract'
         }
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form={SUB_CONTRACT_FORM_ID}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isEditMode ? 'Update Sub-Contract' : 'Create Sub-Contract'}
+                </>
+              )}
+            </Button>
+          </>
+        }
       />
 
-      <form onSubmit={handleSubmit}>
+      <form id={SUB_CONTRACT_FORM_ID} onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">
@@ -754,25 +786,6 @@ export function SubContractForm({
                   placeholder="Add any additional notes or comments..."
                   rows={6}
                 />
-              </CardContent>
-            </Card>
-
-            {/* Action Buttons */}
-            <Card>
-              <CardContent className="space-y-2 pt-6">
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  <Save className="mr-2 h-4 w-4" />
-                  {isEditMode ? 'Update Sub-Contract' : 'Create Sub-Contract'}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleCancel}
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Cancel
-                </Button>
               </CardContent>
             </Card>
           </div>

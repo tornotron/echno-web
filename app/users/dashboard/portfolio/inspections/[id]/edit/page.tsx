@@ -1,12 +1,9 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save } from 'lucide-react';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import {
-  useInspectionById,
-  useUpdateInspection,
-} from '@/hooks/inspection';
+import { useInspectionById, useUpdateInspection } from '@/hooks/inspection';
 import type {
   UpdateInspectionRequest,
   InspectionType,
@@ -14,10 +11,12 @@ import type {
   InspectionResult,
 } from '@/types/inspection';
 import { PageHeader } from '@/components/common';
+import { Button } from '@/components/shadcn/button';
 import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   InspectionForm,
+  INSPECTION_FORM_ID,
   type InspectionFormSubmitData,
 } from '@/features/inspections/components';
 
@@ -112,15 +111,42 @@ export default function EditInspectionPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
+        sticky
         title="Edit Inspection"
         description="Update inspection details and results"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => router.back()}
+              disabled={isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form={INSPECTION_FORM_ID}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
+            </Button>
+          </>
+        }
       />
       <InspectionForm
         mode="edit"
         inspection={inspectionData}
-        isSubmitting={isPending}
         onSubmit={handleSubmit}
-        onCancel={() => router.back()}
       />
     </div>
   );
