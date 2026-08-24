@@ -39,6 +39,7 @@ export const routes = {
       }),
     },
     chartOfAccounts: b('/finance/chart-of-accounts'),
+    costCategories: b('/finance/cost-categories'),
     expenses: {
       href: b('/finance/expenses'),
       new: b('/finance/expenses/new'),

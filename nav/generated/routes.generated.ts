@@ -136,6 +136,14 @@ export const ROUTE_TREE: RouteNode = {
         children: [],
       },
       {
+        id: 'finance-cost-categories',
+        segment: 'cost-categories',
+        path: '/users/dashboard/finance/cost-categories',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
         id: 'finance-expenses',
         segment: 'expenses',
         path: '/users/dashboard/finance/expenses',

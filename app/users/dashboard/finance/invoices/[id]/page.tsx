@@ -451,6 +451,9 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                       <TableHead className="min-w-[250px]">
                         Description
                       </TableHead>
+                      <TableHead className="min-w-[140px]">
+                        Cost Category
+                      </TableHead>
                       <TableHead className="min-w-[100px]">Quantity</TableHead>
                       <TableHead className="min-w-[100px]">Unit</TableHead>
                       <TableHead className="min-w-[120px]">
@@ -468,6 +471,9 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                         </TableCell>
                         <TableCell className="font-medium">
                           {item.description}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground text-sm">
+                          {item.costCategoryName ?? '—'}
                         </TableCell>
                         <TableCell className="text-right">
                           {item.quantity}

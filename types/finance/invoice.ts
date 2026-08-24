@@ -34,6 +34,8 @@ export interface InvoiceLineDraft {
   taxAmount: number;
   subtotal: number;
   total: number;
+  /** Optional cost category (budget head) tagged on the line. */
+  costCategoryId?: string | null;
 }
 
 export interface InvoiceFormData {
