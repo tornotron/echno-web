@@ -1,9 +1,22 @@
 'use client';
 
-import { use } from 'react';
-import { useExpenseById } from '@/hooks/expenses';
+import { use, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useExpenseById, useDeleteExpense } from '@/hooks/expenses';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import { Button } from '@/components/shadcn/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/shadcn/alert-dialog';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
@@ -22,6 +35,7 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 import {
   Empty,
@@ -99,8 +113,24 @@ interface ExpenseDetailPageProps {
 export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
+  const router = useRouter();
   const { data: expense, isLoading, isError } = useExpenseById(id);
   const { data: employees = [] } = useEmployeeLookup();
+  const deleteExpense = useDeleteExpense();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
+  async function handleDelete() {
+    try {
+      await deleteExpense.mutateAsync(id);
+      toast.success('Expense deleted');
+      setConfirmDeleteOpen(false);
+      router.push(routes.finance.expenses.href);
+    } catch (error) {
+      toast.error('Failed to delete expense', {
+        description: getErrorMessage(error),
+      });
+    }
+  }
 
   if (isLoading)
     return (
@@ -172,9 +202,47 @@ export default function ExpenseDetailPage({ params }: ExpenseDetailPageProps) {
                 Edit
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => setConfirmDeleteOpen(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
           </>
         }
       />
+
+      <AlertDialog
+        open={confirmDeleteOpen}
+        onOpenChange={setConfirmDeleteOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this expense?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes {expense.expenseNumber}. This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteExpense.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleteExpense.isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {deleteExpense.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">

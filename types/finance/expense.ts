@@ -46,10 +46,12 @@ export interface Expense {
   projectId?: number; // Foreign key to Project (for direct expenses)
   organizationId?: number; // Foreign key to Organization
   vendorId?: number; // Foreign key to Vendor
-  employeeId?: number; // Foreign key to Employee (who incurred expense)  assetId?: number;          // Foreign key to Asset (if expense is for specific asset)
+  employeeId?: number; // Foreign key to Employee (who incurred expense)
+  assetId?: number; // Foreign key to Asset (if expense is for specific asset)
   inventoryItemId?: number; // Foreign key to InventoryItem (if direct material purchase)
   labourId?: number; // Foreign key to Labour (labour-related expense)
-  subContractId?: number; // Foreign key to SubContract (contractor payment expense)  invoiceId?: number;        // Foreign key to Invoice
+  subContractId?: number; // Foreign key to SubContract (contractor payment expense)
+  invoiceId?: number; // Foreign key to Invoice
   paymentId?: number; // Foreign key to Payment
   budgetId?: number; // Foreign key to Budget
 

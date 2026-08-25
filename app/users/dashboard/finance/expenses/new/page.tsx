@@ -1,7 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { routes } from '@/nav';
+import { useCreateExpense } from '@/hooks/expenses';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -50,9 +53,10 @@ const getDateString = (date: Date) => {
 };
 
 export default function NewExpensePage() {
+  const router = useRouter();
+  const createExpense = useCreateExpense();
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<Partial<Expense>>({
-    expenseNumber: '',
     type: ExpenseType.direct,
     category: ExpenseCategory.materials,
     status: ExpenseStatus.draft,
@@ -115,11 +119,9 @@ export default function NewExpensePage() {
     setFormData(newData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
-    if (!formData.expenseNumber?.trim())
-      newErrors.expenseNumber = 'Expense number is required';
     if (!formData.description?.trim())
       newErrors.description = 'Description is required';
     if (!formData.amount || formData.amount <= 0)
@@ -129,7 +131,15 @@ export default function NewExpensePage() {
       toast.error('Please fix the errors in the form');
       return;
     }
-    toast.success('Expense created successfully!');
+    try {
+      await createExpense.mutateAsync(formData);
+      toast.success('Expense created successfully');
+      router.push(routes.finance.expenses.href);
+    } catch (error) {
+      toast.error('Failed to create expense', {
+        description: getErrorMessage(error),
+      });
+    }
   };
 
   return (
@@ -147,22 +157,6 @@ export default function NewExpensePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="expenseNumber">Expense Number</Label>
-                <Input
-                  id="expenseNumber"
-                  placeholder="e.g., EXP-2024-001"
-                  value={formData.expenseNumber || ''}
-                  onChange={(e) =>
-                    handleInputChange('expenseNumber', e.target.value as never)
-                  }
-                  className={errors.expenseNumber ? 'border-red-500' : ''}
-                />
-                {errors.expenseNumber && (
-                  <p className="text-sm text-red-500">{errors.expenseNumber}</p>
-                )}
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="expenseDate">Expense Date</Label>
                 <Input
@@ -395,9 +389,13 @@ export default function NewExpensePage() {
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Button type="submit" className="gap-2">
+          <Button
+            type="submit"
+            className="gap-2"
+            disabled={createExpense.isPending}
+          >
             <Save className="h-4 w-4" />
-            Create Expense
+            {createExpense.isPending ? 'Creating...' : 'Create Expense'}
           </Button>
           <Button variant="outline" asChild>
             <Link href={routes.finance.expenses.href}>
