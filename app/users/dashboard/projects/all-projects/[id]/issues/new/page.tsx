@@ -75,7 +75,7 @@ export default function NewIssuePage({ params }: PageProps) {
             description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. You can re-add them from the issue.`,
           });
           router.push(
-            routes.portfolio.projects.allProjects.detail(projectId).issues.href
+            routes.projects.allProjects.detail(projectId).issues.href
           );
           return;
         }
@@ -85,7 +85,7 @@ export default function NewIssuePage({ params }: PageProps) {
         description: 'The issue has been created successfully',
       });
       router.push(
-        routes.portfolio.projects.allProjects.detail(projectId).issues.href
+        routes.projects.allProjects.detail(projectId).issues.href
       );
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Create Issue');

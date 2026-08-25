@@ -71,7 +71,7 @@ export default function NewTaskPage() {
                 description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. You can re-add them from the task.`,
               });
               router.push(
-                routes.portfolio.projects.allProjects.detail(projectId).tasks
+                routes.projects.allProjects.detail(projectId).tasks
                   .href
               );
               return;
@@ -86,7 +86,7 @@ export default function NewTaskPage() {
             });
           }
           router.push(
-            routes.portfolio.projects.allProjects.detail(projectId).tasks.href
+            routes.projects.allProjects.detail(projectId).tasks.href
           );
         },
         onError: (error) => {

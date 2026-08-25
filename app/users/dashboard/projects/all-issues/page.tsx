@@ -98,7 +98,7 @@ export default function AllIssuesPage() {
             <Button asChild>
               <Link
                 href={
-                  routes.portfolio.projects.allProjects.detail(projectId).issues
+                  routes.projects.allProjects.detail(projectId).issues
                     .new
                 }
               >

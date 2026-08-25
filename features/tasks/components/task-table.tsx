@@ -170,7 +170,7 @@ export function TaskTable({
         key={task.id}
         onClick={() =>
           router.push(
-            routes.portfolio.projects.allProjects
+            routes.projects.allProjects
               .detail(projectId)
               .tasks.detail(task.id).href
           )
@@ -406,7 +406,7 @@ export function TaskTable({
                 <Button asChild>
                   <Link
                     href={
-                      routes.portfolio.projects.allProjects.detail(projectId)
+                      routes.projects.allProjects.detail(projectId)
                         .tasks.new
                     }
                   >
@@ -449,7 +449,7 @@ export function TaskTable({
                     className="cursor-pointer transition-shadow hover:shadow-md active:opacity-80"
                     onClick={() =>
                       router.push(
-                        routes.portfolio.projects.allProjects
+                        routes.projects.allProjects
                           .detail(projectId)
                           .tasks.detail(task.id).href
                       )
@@ -574,7 +574,7 @@ export function TaskTable({
               <Button asChild>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(projectId)
+                    routes.projects.allProjects.detail(projectId)
                       .tasks.new
                   }
                 >

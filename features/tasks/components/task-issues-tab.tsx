@@ -72,7 +72,7 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
   const router = useRouter();
   const relatedIssues = task.issues || [];
 
-  const reportIssueHref = `${routes.portfolio.projects.allProjects.detail(task.projectId).issues.new}?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
+  const reportIssueHref = `${routes.projects.allProjects.detail(task.projectId).issues.new}?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
 
   return (
     <Card>
@@ -114,7 +114,7 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
                   className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
                   onClick={() =>
                     router.push(
-                      `${routes.portfolio.projects.allProjects.detail(task.projectId).issues.detail(issue.id).href}?from=task&taskId=${task.id}`
+                      `${routes.projects.allProjects.detail(task.projectId).issues.detail(issue.id).href}?from=task&taskId=${task.id}`
                     )
                   }
                 >

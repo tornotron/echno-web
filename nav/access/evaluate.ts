@@ -81,6 +81,44 @@ export function filterNavByAccess(
 }
 
 // ---------------------------------------------------------------------------
+// Sidebar access resolution (annotate, don't filter)
+// ---------------------------------------------------------------------------
+
+/** A nav item annotated with whether the current context may use it. */
+export type ResolvedNavItem = Omit<ComposedNavItem, 'children'> & {
+  /** True when the context fails this item's AccessConfig. */
+  locked: boolean;
+  children: ResolvedNavItem[];
+};
+
+/**
+ * Recursively annotate a nav tree with a `locked` flag instead of removing
+ * inaccessible items, so the sidebar can render them greyed out with a lock.
+ *
+ * Items marked `hideWhenLocked` are still dropped outright when locked, as are
+ * the locked children of an accessible parent — a parent the user *can* open
+ * should not advertise sub-pages they cannot reach. Children of a locked parent
+ * are kept so the disabled group still reads as a coherent module.
+ */
+export function resolveSidebarAccess(
+  items: ComposedNavItem[],
+  ctx: AccessContext
+): ResolvedNavItem[] {
+  return items
+    .map((item) => {
+      const locked = !canAccess(item.access, ctx);
+      const children = resolveSidebarAccess(item.children, ctx);
+
+      return {
+        ...item,
+        locked,
+        children: locked ? children : children.filter((c) => !c.locked),
+      };
+    })
+    .filter((item) => !(item.locked && item.hideWhenLocked));
+}
+
+// ---------------------------------------------------------------------------
 // Role helpers
 // ---------------------------------------------------------------------------
 

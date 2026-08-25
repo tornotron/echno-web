@@ -73,9 +73,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
           .map((project) => ({
             id: String(project.id),
             name: project.projectName,
-            href: routes.portfolio.projects.allProjects.detail(
-              String(project.id)
-            ).href,
+            href: routes.projects.allProjects.detail(String(project.id)).href,
           }))}
         tasks={tasks
           .filter((task) => Boolean(task.id) && Boolean(task.projectId))
@@ -83,7 +81,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
           .map((task) => ({
             id: String(task.id),
             name: task.title,
-            href: routes.portfolio.projects.allProjects
+            href: routes.projects.allProjects
               .detail(String(task.projectId))
               .tasks.detail(String(task.id)).href,
           }))}
@@ -93,7 +91,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
           .map((issue) => ({
             id: String(issue.id),
             name: issue.title,
-            href: routes.portfolio.projects.allIssues,
+            href: routes.projects.allIssues,
           }))}
       />
       <AppSidebar />

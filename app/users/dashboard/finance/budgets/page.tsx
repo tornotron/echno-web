@@ -222,7 +222,7 @@ export default function BudgetsPage() {
                         <div className="flex items-center gap-2">
                           <Link
                             href={
-                              routes.portfolio.projects.allProjects.detail(
+                              routes.projects.allProjects.detail(
                                 row.projectId
                               ).href
                             }

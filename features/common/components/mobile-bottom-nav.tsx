@@ -17,8 +17,8 @@ const PRIMARY_TABS = [
   { label: 'Attendance', href: routes.attendance.href, icon: UserCheck },
   { label: 'Chat', href: routes.chat.href, icon: MessagesSquare },
   {
-    label: 'Portfolio',
-    href: routes.portfolio.projects.href,
+    label: 'Projects',
+    href: routes.projects.href,
     icon: FolderKanban,
   },
 ] as const;

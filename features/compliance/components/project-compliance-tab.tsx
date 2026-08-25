@@ -217,7 +217,7 @@ function PhaseSection({
           {items.map((item) => (
             <Link
               key={item.id}
-              href={routes.portfolio.inspections.detail(item.id).href}
+              href={routes.inspections.detail(item.id).href}
               className="flex flex-col gap-2 rounded-lg border p-4 transition-colors hover:bg-zinc-50 sm:flex-row sm:items-center sm:justify-between dark:hover:bg-zinc-900"
             >
               <div className="min-w-0 flex-1">

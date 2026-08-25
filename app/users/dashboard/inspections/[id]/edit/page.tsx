@@ -81,7 +81,7 @@ export default function EditInspectionPage() {
       {
         onSuccess: () => {
           toast.success('Inspection updated successfully!');
-          router.push(routes.portfolio.inspections.detail(inspectionId).href);
+          router.push(routes.inspections.detail(inspectionId).href);
         },
         onError: (err) => {
           toast.error(getErrorTitle(err, 'Failed to update inspection'), {

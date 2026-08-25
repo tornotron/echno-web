@@ -51,17 +51,17 @@ const QUICK_ACTIONS = [
   {
     icon: FolderKanban,
     label: 'All Projects',
-    href: routes.portfolio.projects.allProjects.href,
+    href: routes.projects.allProjects.href,
   },
   {
     icon: ListTodo,
     label: 'All Tasks',
-    href: routes.portfolio.projects.allTasks,
+    href: routes.projects.allTasks,
   },
   {
     icon: AlertCircle,
     label: 'All Issues',
-    href: routes.portfolio.projects.allIssues,
+    href: routes.projects.allIssues,
   },
 ];
 
@@ -216,7 +216,7 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
                   <Link
                     key={project.id}
                     href={
-                      routes.portfolio.projects.allProjects.detail(project.id)
+                      routes.projects.allProjects.detail(project.id)
                         .href
                     }
                     className="flex items-center gap-2.5 transition-opacity hover:opacity-80"

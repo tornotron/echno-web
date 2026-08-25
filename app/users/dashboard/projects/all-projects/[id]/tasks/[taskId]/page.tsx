@@ -103,7 +103,7 @@ export default function TaskDetailPage({ params }: PageProps) {
         <Button asChild>
           <Link
             href={
-              routes.portfolio.projects.allProjects.detail(projectId).tasks.href
+              routes.projects.allProjects.detail(projectId).tasks.href
             }
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -129,7 +129,7 @@ export default function TaskDetailPage({ params }: PageProps) {
           project ? (
             <Link
               href={
-                routes.portfolio.projects.allProjects.detail(project.id).href
+                routes.projects.allProjects.detail(project.id).href
               }
               className="inline-flex items-center gap-1.5 hover:opacity-80"
             >
@@ -142,7 +142,7 @@ export default function TaskDetailPage({ params }: PageProps) {
           <Button variant="outline" size="sm" asChild>
             <Link
               href={
-                routes.portfolio.projects.allProjects
+                routes.projects.allProjects
                   .detail(projectId)
                   .tasks.detail(task.id).edit
               }
