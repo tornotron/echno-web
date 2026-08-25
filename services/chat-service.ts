@@ -1,22 +1,27 @@
 // services/chat-service.ts
 //
-// Thin wrapper around the backend chat REST endpoints.
-// Currently backed by mock data — replace Promise.resolve() calls with
-// api.get() / api.post() etc. once the backend is ready.
+// Thin wrapper around the backend chat room REST endpoints (web-direct variants).
 
+import { api } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { ChatRoom, ChatRoomType, ChatParticipantRole } from '@/types/chat';
-import { mockChatRooms } from '@/components/shared/data/chat';
+import { ChatRoom, parseChatRoom } from '@/types/chat';
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Raw = any;
+
+const BASE = '/chat/rooms/web';
 
 export const chatService = {
   /**
-   * Fetch all chat rooms for the current user within an organization.
+   * Fetch all chat rooms for the current user. The backend scopes rooms to the
+   * caller's tenant from the session, so no organization filter is sent.
    */
   async getRooms(organizationId?: number): Promise<ChatRoom[]> {
     try {
-      // TODO: replace with api.get<ChatRoom[]>(`/chat/rooms?orgId=${organizationId}`)
       void organizationId;
-      return [...mockChatRooms];
+      const data = await api.get<Raw>(BASE);
+      const rows: Raw[] = Array.isArray(data) ? data : (data?.content ?? []);
+      return rows.map((row) => parseChatRoom(row));
     } catch (error) {
       logger.error('Failed to fetch chat rooms:', error);
       throw error;
@@ -28,10 +33,8 @@ export const chatService = {
    */
   async getRoomById(id: number): Promise<ChatRoom> {
     try {
-      // TODO: replace with api.get<ChatRoom>(`/chat/rooms/${id}`)
-      const room = mockChatRooms.find((r) => r.id === id);
-      if (!room) throw new Error(`Chat room ${id} not found`);
-      return { ...room };
+      const raw = await api.get<Raw>(`${BASE}/${id}`);
+      return parseChatRoom(raw);
     } catch (error) {
       logger.error(`Failed to fetch chat room ${id}:`, error);
       throw error;
@@ -40,34 +43,12 @@ export const chatService = {
 
   /**
    * Create or get an existing direct message room with a given employee.
+   * The backend endpoint is idempotent (find-or-create).
    */
   async createDirectRoom(employeeId: number): Promise<ChatRoom> {
     try {
-      // TODO: replace with api.post<ChatRoom>('/chat/rooms/direct', { employeeId })
-      const existing = mockChatRooms.find(
-        (r) =>
-          r.type === ChatRoomType.direct &&
-          r.participants.some((p) => p.employeeId === employeeId)
-      );
-      if (existing) return { ...existing };
-
-      const newRoom: ChatRoom = {
-        id: Date.now(),
-        type: ChatRoomType.direct,
-        participants: [
-          {
-            employeeId,
-            role: ChatParticipantRole.member,
-            joinedAt: new Date(),
-          },
-        ],
-        unreadCount: 0,
-        isArchived: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      mockChatRooms.push(newRoom);
-      return newRoom;
+      const raw = await api.post<Raw>(`${BASE}/direct`, { employeeId });
+      return parseChatRoom(raw);
     } catch (error) {
       logger.error('Failed to create direct room:', error);
       throw error;
@@ -79,12 +60,7 @@ export const chatService = {
    */
   async markAsRead(roomId: number): Promise<void> {
     try {
-      // TODO: replace with api.post<void>(`/chat/rooms/${roomId}/read`)
-      const room = mockChatRooms.find((r) => r.id === roomId);
-      if (room) {
-        room.unreadCount = 0;
-        room.updatedAt = new Date();
-      }
+      await api.post<void>(`${BASE}/${roomId}/read`);
     } catch (error) {
       logger.error(`Failed to mark room ${roomId} as read:`, error);
       throw error;

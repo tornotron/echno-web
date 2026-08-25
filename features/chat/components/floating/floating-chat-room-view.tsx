@@ -13,8 +13,6 @@ import { useChatMessages } from '@/hooks/chat/use-chat-messages';
 import {
   useSendMessage,
   useEditMessage,
-  useDeleteMessage,
-  useToggleReaction,
   useMarkRoomAsRead,
 } from '@/hooks/chat/use-chat-mutations';
 import { useUser } from '@tornotron/echno-core/user/hooks';
@@ -50,8 +48,6 @@ export function FloatingChatRoomView({
 
   const sendMessage = useSendMessage();
   const editMessage = useEditMessage();
-  const deleteMessage = useDeleteMessage();
-  const toggleReaction = useToggleReaction();
   const markAsRead = useMarkRoomAsRead();
 
   const currentEmployee = userEmployees.find(
@@ -77,14 +73,6 @@ export function FloatingChatRoomView({
   const handleEdit = (message: ChatMessage) => {
     setEditingMessage(message);
     setReplyTo(null);
-  };
-
-  const handleDelete = (message: ChatMessage) => {
-    deleteMessage.mutate({ id: message.id, roomId });
-  };
-
-  const handleReact = (messageId: number, emoji: string) => {
-    toggleReaction.mutate({ messageId, emoji, roomId });
   };
 
   if (roomLoading) {
@@ -197,8 +185,6 @@ export function FloatingChatRoomView({
             currentEmployeeId={currentEmployeeId}
             onReply={setReplyTo}
             onEdit={handleEdit}
-            onDelete={handleDelete}
-            onReact={handleReact}
             isLoading={messagesLoading}
           />
 
