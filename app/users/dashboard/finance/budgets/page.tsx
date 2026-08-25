@@ -10,13 +10,7 @@ import {
   rowMatchesEmployeeFilter,
   ROLE_LABELS,
 } from '@/hooks/use-employee-filter';
-import {
-  PieChart,
-  Wallet,
-  AlertTriangle,
-  CheckCircle,
-  Plus,
-} from 'lucide-react';
+import { PieChart, Wallet, AlertTriangle, CheckCircle } from 'lucide-react';
 import { useBudgets } from '@/hooks/budgets';
 import { BudgetStatus } from '@/types/finance/budget';
 import { BudgetsGrid } from '@/features/budgets';
@@ -46,16 +40,13 @@ export default function BudgetsPage() {
   const totalAllocated = budgets.reduce((sum, b) => sum + b.totalAllocated, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <PageHeader
         title="Budgets"
         description="Manage and track project and organization budgets"
         actions={
           <Button asChild>
-            <Link href={routes.finance.budgets.new}>
-              <Plus className="mr-2 h-4 w-4" />
-              Create Budget
-            </Link>
+            <Link href={routes.finance.budgets.new}>New Budget</Link>
           </Button>
         }
       />
