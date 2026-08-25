@@ -35,6 +35,3 @@ export * from './receipt';
 
 // Export expense types
 export * from './expense';
-
-// Export budget types
-export * from './budget';

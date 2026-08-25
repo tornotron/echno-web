@@ -67,12 +67,9 @@ export const financeMetadata = {
   'finance-budgets': {
     label: 'Budgets',
     icon: PiggyBank,
-    description: 'Plan project budgets and monitor spend against them.',
+    description: 'Per-project budget allocation and spend across the organization.',
     order: 5,
   },
-  'finance-budgets-new': { label: 'New Budget', sidebarHidden: true },
-  'finance-budgets-[id]': { label: 'Budget', sidebarHidden: true },
-  'finance-budgets-[id]-edit': { label: 'Edit', sidebarHidden: true },
 
   // ── chart of accounts ───────────────────────────────────────────────────────
   'finance-chart-of-accounts': {
