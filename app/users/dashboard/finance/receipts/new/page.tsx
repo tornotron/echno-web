@@ -2,8 +2,15 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { routes } from '@/nav';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useCreateReceipt } from '@/hooks/receipts';
+import {
+  Receipt,
+  ReceiptType,
+  ReceiptStatus,
+} from '@/types/finance/receipt';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -26,22 +33,28 @@ import { PageHeader } from '@/components/common';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
 
+const getDateString = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function NewReceiptPage() {
   const router = useRouter();
+  const createReceipt = useCreateReceipt();
   const {
     data: projects,
     isLoading: projectsLoading,
     error: projectsError,
   } = useProjects();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [formData, setFormData] = useState({
-    receiptNumber: '',
-    type: 'payment',
-    status: 'draft',
-    projectId: undefined as number | undefined,
-    receiptDate: new Date(),
+  const [formData, setFormData] = useState<Partial<Receipt>>({
+    type: ReceiptType.payment,
+    status: ReceiptStatus.draft,
+    projectId: undefined,
+    receiptDate: getDateString(new Date()),
     receivedFrom: '',
     amount: 0,
     currency: 'INR',
@@ -61,7 +74,7 @@ export default function NewReceiptPage() {
   };
 
   const handleInputChange = (field: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }) as Partial<Receipt>);
     setErrors((prev) => {
       if (!prev[field as string]) return prev;
       const next = { ...prev };
@@ -70,21 +83,22 @@ export default function NewReceiptPage() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.projectId) {
       setErrors({ projectId: 'Please select a project' });
       toast.error('Please fix the errors in the form');
       return;
     }
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await createReceipt.mutateAsync(formData);
       toast.success('Receipt created successfully');
-      setIsSubmitting(false);
       router.push(routes.finance.receipts.href);
-    }, 800);
+    } catch (error) {
+      toast.error('Failed to create receipt', {
+        description: getErrorMessage(error),
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -110,18 +124,6 @@ export default function NewReceiptPage() {
               </div>
 
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="receiptNumber">Receipt Number</Label>
-                  <Input
-                    id="receiptNumber"
-                    value={formData.receiptNumber}
-                    onChange={(e) =>
-                      handleInputChange('receiptNumber', e.target.value)
-                    }
-                    placeholder="e.g., RCP-2025-001"
-                  />
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="type">Type</Label>
                   <Select
@@ -277,9 +279,9 @@ export default function NewReceiptPage() {
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={createReceipt.isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Saving...' : 'Save Receipt'}
+              {createReceipt.isPending ? 'Saving...' : 'Save Receipt'}
             </Button>
           </div>
         </form>

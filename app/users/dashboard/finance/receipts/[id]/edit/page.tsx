@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -28,7 +29,7 @@ import {
   receiptTypeLabels,
   receiptStatusLabels,
 } from '@/types/finance/receipt';
-import { useReceiptById } from '@/hooks/receipts';
+import { useReceiptById, useUpdateReceipt } from '@/hooks/receipts';
 import {
   Save,
   X,
@@ -113,8 +114,8 @@ interface ReceiptEditFormProps {
 
 function ReceiptEditForm({ initialData, receiptId }: ReceiptEditFormProps) {
   const router = useRouter();
+  const updateReceipt = useUpdateReceipt();
   const { data: projects = [] } = useProjects();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<Partial<Receipt>>(() => ({
     receiptNumber: initialData.receiptNumber,
     type: initialData.type,
@@ -132,16 +133,17 @@ function ReceiptEditForm({ initialData, receiptId }: ReceiptEditFormProps) {
     notes: initialData.notes ?? '',
   }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await updateReceipt.mutateAsync({ id: receiptId, data: formData });
       toast.success('Receipt updated successfully');
-      setIsSubmitting(false);
       router.push(routes.finance.receipts.detail(receiptId).href);
-    }, 1000);
+    } catch (error) {
+      toast.error('Failed to update receipt', {
+        description: getErrorMessage(error),
+      });
+    }
   };
 
   const handleCancel = () => {
@@ -492,14 +494,14 @@ function ReceiptEditForm({ initialData, receiptId }: ReceiptEditFormProps) {
               type="button"
               variant="outline"
               onClick={handleCancel}
-              disabled={isSubmitting}
+              disabled={updateReceipt.isPending}
             >
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={updateReceipt.isPending}>
               <Save className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {updateReceipt.isPending ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </form>

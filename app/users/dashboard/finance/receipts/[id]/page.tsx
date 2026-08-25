@@ -1,9 +1,22 @@
 'use client';
 
 import { routes } from '@/nav';
-import { use } from 'react';
-import { useReceiptById } from '@/hooks/receipts';
+import { use, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useReceiptById, useDeleteReceipt } from '@/hooks/receipts';
+import { getErrorMessage } from '@tornotron/echno-core';
+import { toast } from '@/lib/styles/toast-styles';
 import { Button } from '@/components/shadcn/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/shadcn/alert-dialog';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Card,
@@ -28,6 +41,7 @@ import {
   CheckCircle,
   Paperclip,
   Loader2,
+  Trash2,
 } from 'lucide-react';
 import {
   Empty,
@@ -94,8 +108,24 @@ const getTypeColor = (type: ReceiptType) => {
 export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
   const resolvedParams = use(params);
   const id = Number.parseInt(resolvedParams.id);
+  const router = useRouter();
   const { data: receipt, isLoading, isError } = useReceiptById(id);
   const { data: employees = [] } = useEmployeeLookup();
+  const deleteReceipt = useDeleteReceipt();
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
+  async function handleDelete() {
+    try {
+      await deleteReceipt.mutateAsync(id);
+      toast.success('Receipt deleted');
+      setConfirmDeleteOpen(false);
+      router.push(routes.finance.receipts.href);
+    } catch (error) {
+      toast.error('Failed to delete receipt', {
+        description: getErrorMessage(error),
+      });
+    }
+  }
 
   const getEmployeeName = (employeeId?: number): string => {
     if (!employeeId) return '—';
@@ -167,9 +197,44 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
                 Edit
               </Link>
             </Button>
+            <Button
+              variant="outline"
+              className="text-red-600 hover:text-red-700"
+              onClick={() => setConfirmDeleteOpen(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
           </>
         }
       />
+
+      <AlertDialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this receipt?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This permanently removes {receipt.receiptNumber}. This action
+              cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteReceipt.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                handleDelete();
+              }}
+              disabled={deleteReceipt.isPending}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              {deleteReceipt.isPending ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
