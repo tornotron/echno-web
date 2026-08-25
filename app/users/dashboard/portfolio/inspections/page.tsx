@@ -105,8 +105,12 @@ export default function InspectionsPage() {
   );
   const [projectFilter, setProjectFilter] = useState<number | 'all'>('all');
 
-  const inspectorName = (inspectorId: number): string | undefined =>
-    employees.find((emp) => emp.id === inspectorId)?.name;
+  const inspectorName = (
+    inspectorId: number | null | undefined,
+  ): string | undefined =>
+    inspectorId == null
+      ? undefined
+      : employees.find((emp) => emp.id === inspectorId)?.name;
 
   // Filter inspections
   const filteredInspections = useMemo(() => {

@@ -114,7 +114,7 @@ export function InspectionForm(props: InspectionFormProps) {
       areaInspected: inspection.areaInspected || '',
       scheduledDate: inspection.scheduledDate || '',
       scheduledTime: inspection.scheduledTime || '',
-      inspectorId: inspection.inspectorId.toString(),
+      inspectorId: inspection.inspectorId?.toString() ?? '',
       clientRepresentative: inspection.clientRepresentative || '',
       drawingReference: inspection.drawingReference || '',
       weatherConditions: inspection.weatherConditions || '',
