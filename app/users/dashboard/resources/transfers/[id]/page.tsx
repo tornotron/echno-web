@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
-import { Card, CardContent } from '@/components/shadcn/card';
+import { Card } from '@/components/shadcn/card';
 import {
   Empty,
   EmptyMedia,

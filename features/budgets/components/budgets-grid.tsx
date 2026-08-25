@@ -26,8 +26,6 @@ import {
 import Link from 'next/link';
 import {
   Budget,
-  BudgetStatus,
-  BudgetType,
   budgetStatusLabels,
   budgetTypeLabels,
 } from '@/types/finance/budget';
@@ -73,13 +71,6 @@ export function BudgetsGrid({ budgets, isLoading, isError }: BudgetsGridProps) {
 
   const hasActiveFilters =
     searchQuery !== '' || statusFilter !== 'all' || typeFilter !== 'all';
-
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setTypeFilter('all');
-    setCurrentPage(1);
-  };
 
   return (
     <Card>

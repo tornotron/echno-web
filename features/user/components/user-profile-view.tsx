@@ -26,7 +26,6 @@ import {
   Briefcase,
   GraduationCap,
   Award,
-  Building2,
   Clock,
   FileText,
   AlertCircle,

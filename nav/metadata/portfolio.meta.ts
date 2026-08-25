@@ -1,10 +1,4 @@
-import {
-  Layers,
-  FolderKanban,
-  ClipboardCheck,
-  ListTodo,
-  AlertCircle,
-} from 'lucide-react';
+import { Layers, FolderKanban, ClipboardCheck } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
 
 export const portfolioMetadata = {

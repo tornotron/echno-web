@@ -21,13 +21,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
 import {
   Settings,
   ArrowLeft,
-  Shield,
   CheckCircle,
   XCircle,
   Calendar,
   Users,
   AlertCircle,
-  Download,
 } from 'lucide-react';
 import { LeavePoliciesManager } from '@/features/leave/components/leave-policies-manager';
 import { TableSkeleton } from '@/features/leave/components/skeletons';
@@ -41,7 +39,7 @@ export default function LeavePoliciesPage() {
   const router = useRouter();
   const { isAdmin, isLoading: roleLoading } = useLeaveRole();
   const { data: user } = useUser();
-  const { data: policies, isLoading: policiesLoading } = useAllLeavePolicies();
+  const { data: policies } = useAllLeavePolicies();
 
   // Calculate statistics
   const totalPolicies = policies?.length || 0;

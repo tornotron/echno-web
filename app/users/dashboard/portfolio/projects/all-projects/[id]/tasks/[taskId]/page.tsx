@@ -5,7 +5,6 @@ import { useProject } from '@tornotron/echno-core/project/hooks';
 import { useTask } from '@tornotron/echno-core/task/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Card } from '@/components/shadcn/card';
 import {
   Tabs,
   TabsContent,

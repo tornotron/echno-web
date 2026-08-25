@@ -47,8 +47,6 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip';
 import {
-  Calendar,
-  Download,
   UserCheck,
   UserX,
   Clock,
@@ -146,14 +144,6 @@ function AttendancePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  const hasActiveFilters =
-    statusFilter !== 'all' || projectFilter !== 'all' || searchQuery !== '';
-
-  const clearFilters = () => {
-    setStatusFilter('all');
-    setProjectFilter('all');
-    setSearchQuery('');
-  };
   const [selectedAttendance, setSelectedAttendance] = useState<number[]>([]);
 
   // Movement tracking dialog state

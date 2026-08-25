@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -12,7 +12,6 @@ import {
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common/page-header';
 import {
-  ArrowLeft,
   Mail,
   MessageSquare,
   Printer,
@@ -20,8 +19,6 @@ import {
   Check,
   Clock,
   CheckCircle,
-  AlertCircle,
-  Calendar,
   User,
   Building2,
   Briefcase,
@@ -47,7 +44,6 @@ import { InvitationErrorState } from '@/features/invitation/components/invitatio
 
 export default function InvitationPage() {
   const params = useParams();
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
 
   // Get user and their organization
