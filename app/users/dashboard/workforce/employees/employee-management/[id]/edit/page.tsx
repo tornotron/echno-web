@@ -1,7 +1,6 @@
 'use client';
 
 import { use } from 'react';
-import { useRouter } from 'next/navigation';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { Loader2 } from 'lucide-react';
 import { EditEmployeeForm } from '@/features/employee/components/edit-employee-form';
@@ -16,7 +15,6 @@ interface EditEmployeePageProps {
 }
 
 export default function EditEmployeePage({ params }: EditEmployeePageProps) {
-  const router = useRouter();
   const resolvedParams = use(params);
   const employeeId = Number.parseInt(resolvedParams.id);
   const { data: employees, isLoading, error } = useEmployees();

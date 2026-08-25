@@ -13,7 +13,7 @@ import {
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
-import { MapPin, ArrowLeft, Trash2, Loader2, Save } from 'lucide-react';
+import { MapPin, Trash2, Loader2, Save } from 'lucide-react';
 import {
   Empty,
   EmptyMedia,

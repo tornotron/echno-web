@@ -112,13 +112,6 @@ export function ReceiptsTable({
     searchQuery || statusFilter !== 'all' || typeFilter !== 'all'
   );
 
-  const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setTypeFilter('all');
-    setCurrentPage(1);
-  };
-
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">

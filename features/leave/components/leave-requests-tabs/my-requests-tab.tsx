@@ -32,7 +32,7 @@ import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge
 import { useEmployeeRequests } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
 import { Checkbox } from '@/components/shadcn/checkbox';
-import { FileText, AlertCircle, Calendar, Clock, Search } from 'lucide-react';
+import { FileText, Calendar, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { routes } from '@/nav';
 
@@ -53,7 +53,7 @@ export function MyRequestsTab({ employeeId }: MyRequestsTabProps) {
   const [perPage, setPerPage] = useState(10);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  const { data: requests, isLoading, error } = useEmployeeRequests(employeeId);
+  const { data: requests } = useEmployeeRequests(employeeId);
 
   const filtered = useMemo(() => {
     return (requests || []).filter((r) => {
@@ -92,17 +92,6 @@ export function MyRequestsTab({ employeeId }: MyRequestsTabProps) {
       checked ? [...prev, id] : prev.filter((x) => x !== id)
     );
   };
-
-  const total = requests?.length || 0;
-  const draftCount =
-    requests?.filter((r) => r.status === LeaveStatus.DRAFT).length || 0;
-  const pendingCount =
-    requests?.filter((r) => r.status === LeaveStatus.PENDING_APPROVAL).length ||
-    0;
-  const approvedCount =
-    requests?.filter((r) => r.status === LeaveStatus.APPROVED).length || 0;
-  const rejectedCount =
-    requests?.filter((r) => r.status === LeaveStatus.REJECTED).length || 0;
 
   const goToDetail = (id: number) =>
     router.push(`${BASE}/requests/${id}?from=my-requests`);

@@ -28,7 +28,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 import { useApproverRequests } from '@/hooks/leave/use-leave';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
@@ -41,15 +40,7 @@ import {
   Department,
   getDepartmentLabel,
 } from '@tornotron/echno-core/employee/types';
-import {
-  AlertCircle,
-  Calendar,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Users,
-  Search,
-} from 'lucide-react';
+import { Calendar, Users, Search } from 'lucide-react';
 import { format } from 'date-fns';
 import { routes } from '@/nav';
 
@@ -118,15 +109,6 @@ export function ApprovalsTab({ employeeId }: ApprovalsTabProps) {
       checked ? [...prev, id] : prev.filter((x) => x !== id)
     );
   };
-
-  const total = allRequests?.length || 0;
-  const pendingCount =
-    allRequests?.filter((r) => r.status === LeaveStatus.PENDING_APPROVAL)
-      .length || 0;
-  const approvedCount =
-    allRequests?.filter((r) => r.status === LeaveStatus.APPROVED).length || 0;
-  const rejectedCount =
-    allRequests?.filter((r) => r.status === LeaveStatus.REJECTED).length || 0;
 
   const goToDetail = (id: number) =>
     router.push(`${BASE}/requests/${id}?from=approvals`);

@@ -223,8 +223,6 @@ export function DataTable<T>({
     searchQuery || filters.some((filter) => filterValueFor(filter.id) !== 'all')
   );
 
-  const columnCount = columns.length + (enableSelection ? 1 : 0);
-
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">

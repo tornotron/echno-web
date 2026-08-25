@@ -147,21 +147,6 @@ function safeParseLeaveRequests(data: ApiResponse[]): LeaveRequest[] {
 }
 
 /**
- * Safely parse leave approval with error handling.
- */
-function safeParseLeaveApproval(data: ApiResponse): LeaveApproval {
-  try {
-    return parseLeaveApproval(data);
-  } catch (error) {
-    logger.error('Failed to parse leave approval data:', error);
-    throw new ApiError(
-      'Failed to process leave approval data. Please try again.',
-      422
-    );
-  }
-}
-
-/**
  * Safely parse leave approval array with error handling.
  */
 function safeParseLeaveApprovals(data: ApiResponse[]): LeaveApproval[] {

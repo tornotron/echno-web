@@ -133,15 +133,6 @@ export function AllRequestsTab() {
     );
   };
 
-  const total = requests?.length || 0;
-  const pendingCount =
-    requests?.filter((r) => r.status === LeaveStatus.PENDING_APPROVAL).length ||
-    0;
-  const approvedCount =
-    requests?.filter((r) => r.status === LeaveStatus.APPROVED).length || 0;
-  const rejectedCount =
-    requests?.filter((r) => r.status === LeaveStatus.REJECTED).length || 0;
-
   const goToDetail = (id: number) =>
     router.push(`${BASE}/requests/${id}?from=org-requests`);
 

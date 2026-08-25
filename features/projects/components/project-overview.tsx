@@ -6,7 +6,6 @@ import {
   FolderKanban,
   ListTodo,
   AlertCircle,
-  ClipboardCheck,
   ChevronRight,
 } from 'lucide-react';
 import { Label, Pie, PieChart } from 'recharts';

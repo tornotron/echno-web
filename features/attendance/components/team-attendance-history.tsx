@@ -649,7 +649,6 @@ export function TeamHistoryStatsCard() {
   const { data: currentUserEmployee } = useCurrentUserEmployee();
   const meId = currentUserEmployee?.id;
 
-  const { data: allProjects = [] } = useProjects();
   const { data: myProjects = [] } = useProjectsByEmployee(
     isAdmin ? undefined : meId
   );

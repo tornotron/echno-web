@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useUser } from '@tornotron/echno-core/user/hooks';
@@ -47,7 +47,7 @@ export default function SettingsPage() {
   const router = useRouter();
   const { data: user, isLoading: isUserLoading } = useUser();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(globalThis.window !== undefined);
+  const [mounted] = useState(globalThis.window !== undefined);
 
   // Notification settings - initialize from localStorage
   const [notifications, setNotifications] = useState<NotificationSettings>(

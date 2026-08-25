@@ -9,7 +9,6 @@ import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
-import { Card } from '@/components/shadcn/card';
 import {
   Tabs,
   TabsContent,

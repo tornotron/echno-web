@@ -39,7 +39,7 @@ import {
 } from '@/types/finance/payment';
 import { usePaymentById, useUpdatePayment } from '@/hooks/payments';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import { getPayeesByType, getPayeeInfo } from '@/lib/utils/payment-utils';
+import { getPayeesByType } from '@/lib/utils/payment-utils';
 import {
   Save,
   X,

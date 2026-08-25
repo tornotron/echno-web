@@ -31,7 +31,6 @@ import {
   Save,
   X,
 } from 'lucide-react';
-import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
 import {
   Department,
@@ -43,7 +42,6 @@ import {
 } from '@tornotron/echno-core/employee/types';
 import type { Employee } from '@tornotron/echno-core/employee/types';
 import type { UpdateEmployeeRequest } from '@tornotron/echno-core/employee/types';
-import { PageHeader } from '@/components/common';
 
 // Sentinel Select value for "no shift assigned" (shadcn Select forbids an
 // empty-string item value).
