@@ -42,7 +42,6 @@ import {
   applyBreadcrumbOverrides,
   type FallbackNameResolver,
 } from '@/lib/utils/breadcrumb-utils';
-import { Budget } from '@/types/finance/budget';
 import { Vendor } from '@tornotron/echno-core/vendor/types';
 import { Material } from '@tornotron/echno-core/materials/types';
 import { Indent } from '@tornotron/echno-core/indents/types';
@@ -52,7 +51,6 @@ import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 import {
   mockAssets,
-  mockBudgets,
   mockStockAdjustments,
   mockGoodsReceipts,
   mockReceipts,
@@ -67,9 +65,6 @@ const mockFallbackResolver: FallbackNameResolver = (
   switch (parentSegment) {
     case 'assets': {
       return mockAssets.find((a) => a.id === numericId)?.name;
-    }
-    case 'budgets': {
-      return mockBudgets.find((b: Budget) => b.id === numericId)?.budgetNumber;
     }
     case 'stock-adjustments': {
       return mockStockAdjustments.find((s) => s.id === numericId)
