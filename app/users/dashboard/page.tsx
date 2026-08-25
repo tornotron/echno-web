@@ -296,7 +296,7 @@ export default function DashboardPage() {
           {
             label: 'Projects',
             icon: FolderKanban,
-            href: routes.portfolio.projects.href,
+            href: routes.projects.href,
             color: 'text-indigo-600',
             bg: 'bg-indigo-50 dark:bg-indigo-500/10',
           },
@@ -876,7 +876,7 @@ export default function DashboardPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => router.push(routes.portfolio.projects.href)}
+                    onClick={() => router.push(routes.projects.href)}
                     className="text-xs sm:text-sm"
                   >
                     View All
@@ -2425,7 +2425,7 @@ export default function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => router.push(routes.portfolio.projects.href)}
+                  onClick={() => router.push(routes.projects.href)}
                   className="text-xs sm:text-sm"
                 >
                   View All

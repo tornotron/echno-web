@@ -163,7 +163,7 @@ export default function InspectionDetailsPage() {
             variant="outline"
             onClick={() =>
               router.push(
-                routes.portfolio.inspections.detail(inspection.id).edit
+                routes.inspections.detail(inspection.id).edit
               )
             }
           >
@@ -371,7 +371,7 @@ export default function InspectionDetailsPage() {
                       {inspection.inspectorId ? (
                         <Link
                           href={employeeFilterHref(
-                            routes.portfolio.inspections.href,
+                            routes.inspections.href,
                             inspection.inspectorId,
                             'inspector'
                           )}

@@ -257,7 +257,7 @@ export function TasksList({ tasks, projects }: TasksListProps) {
             <Button asChild size="sm">
               <Link
                 href={
-                  routes.portfolio.projects.allProjects.detail(
+                  routes.projects.allProjects.detail(
                     selectedProjectId
                   ).tasks.new
                 }
@@ -306,7 +306,7 @@ export function TasksList({ tasks, projects }: TasksListProps) {
                         key={task.id}
                         onClick={() =>
                           router.push(
-                            routes.portfolio.projects.allProjects
+                            routes.projects.allProjects
                               .detail(task.projectId)
                               .tasks.detail(task.id).href
                           )
@@ -564,7 +564,7 @@ export function TasksList({ tasks, projects }: TasksListProps) {
                     className="cursor-pointer transition-shadow hover:shadow-md active:opacity-80"
                     onClick={() =>
                       router.push(
-                        routes.portfolio.projects.allProjects
+                        routes.projects.allProjects
                           .detail(task.projectId)
                           .tasks.detail(task.id).href
                       )

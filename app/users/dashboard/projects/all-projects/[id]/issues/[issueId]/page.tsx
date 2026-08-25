@@ -96,7 +96,7 @@ export default function IssueDetailPage({ params }: PageProps) {
   const fromParam = searchParams.get('from');
   const taskIdParam = searchParams.get('taskId');
   const editHref = (() => {
-    const base = routes.portfolio.projects.allProjects
+    const base = routes.projects.allProjects
       .detail(projectId)
       .issues.detail(issueIdParam).edit;
     if (fromParam && taskIdParam)
@@ -134,7 +134,7 @@ export default function IssueDetailPage({ params }: PageProps) {
         <Button asChild>
           <Link
             href={
-              routes.portfolio.projects.allProjects.detail(projectId).issues
+              routes.projects.allProjects.detail(projectId).issues
                 .href
             }
           >

@@ -91,7 +91,7 @@ export default function ProjectTasksPage() {
           </EmptyDescription>
         </EmptyHeader>
         <Button asChild>
-          <Link href={routes.portfolio.projects.allProjects.href}>
+          <Link href={routes.projects.allProjects.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Projects
           </Link>
@@ -137,7 +137,7 @@ export default function ProjectTasksPage() {
           </EmptyDescription>
         </EmptyHeader>
         <Button asChild>
-          <Link href={routes.portfolio.projects.href}>
+          <Link href={routes.projects.href}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Projects
           </Link>
@@ -155,7 +155,7 @@ export default function ProjectTasksPage() {
           <Button asChild>
             <Link
               href={
-                routes.portfolio.projects.allProjects.detail(projectId).tasks
+                routes.projects.allProjects.detail(projectId).tasks
                   .new
               }
             >

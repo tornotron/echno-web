@@ -208,7 +208,7 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
                 <Link
                   key={project.id}
                   href={
-                    routes.portfolio.projects.allProjects.detail(project.id)
+                    routes.projects.allProjects.detail(project.id)
                       .href
                   }
                   onMouseEnter={() => prefetchProject(project.id)}
@@ -319,7 +319,7 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
             </EmptyHeader>
             {!filters.search && filters.status === 'all' && (
               <Button asChild>
-                <Link href={routes.portfolio.projects.allProjects.new}>
+                <Link href={routes.projects.allProjects.new}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Project
                 </Link>

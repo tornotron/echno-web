@@ -367,7 +367,7 @@ export function TaskOverviewTab({
                   <Link
                     key={i}
                     href={employeeFilterHref(
-                      routes.portfolio.projects.allTasks,
+                      routes.projects.allTasks,
                       assignee.id,
                       'assignee'
                     )}
@@ -402,7 +402,7 @@ export function TaskOverviewTab({
             <CardContent>
               <Link
                 href={employeeFilterHref(
-                  routes.portfolio.projects.allTasks,
+                  routes.projects.allTasks,
                   task.creator.id,
                   'creator'
                 )}

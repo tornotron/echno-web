@@ -49,6 +49,7 @@ function composeNode(
     icon: meta.icon,
     breadcrumb: meta.breadcrumb,
     description: meta.description,
+    section: meta.section,
     sidebarHidden: meta.sidebarHidden ?? false,
     breadcrumbHidden: meta.breadcrumbHidden ?? false,
     nonInteractive: meta.nonInteractive ?? false,

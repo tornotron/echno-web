@@ -210,7 +210,7 @@ export default function ProjectDashboardPage() {
         </EmptyHeader>
         <Button
           onClick={() =>
-            router.push(routes.portfolio.projects.allProjects.href)
+            router.push(routes.projects.allProjects.href)
           }
         >
           Back to Projects
@@ -233,7 +233,7 @@ export default function ProjectDashboardPage() {
         </EmptyHeader>
         <Button
           onClick={() =>
-            router.push(routes.portfolio.projects.allProjects.href)
+            router.push(routes.projects.allProjects.href)
           }
         >
           Back to Projects
@@ -257,7 +257,7 @@ export default function ProjectDashboardPage() {
         </EmptyHeader>
         <Button
           onClick={() =>
-            router.push(routes.portfolio.projects.allProjects.href)
+            router.push(routes.projects.allProjects.href)
           }
         >
           Back to Projects
@@ -315,7 +315,7 @@ export default function ProjectDashboardPage() {
           <Button variant="outline" size="sm" asChild>
             <Link
               href={
-                routes.portfolio.projects.allProjects.detail(project.id).edit
+                routes.projects.allProjects.detail(project.id).edit
               }
             >
               <Edit className="mr-2 h-4 w-4" />
@@ -458,7 +458,7 @@ export default function ProjectDashboardPage() {
                 </p>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(project.id)
+                    routes.projects.allProjects.detail(project.id)
                       .tasks.href
                   }
                   className="text-primary text-xs hover:underline"
@@ -563,7 +563,7 @@ export default function ProjectDashboardPage() {
                 </p>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(project.id)
+                    routes.projects.allProjects.detail(project.id)
                       .issues.href
                   }
                   className="text-primary text-xs hover:underline"
@@ -836,7 +836,7 @@ export default function ProjectDashboardPage() {
                   >
                     <Link
                       href={
-                        routes.portfolio.projects.allProjects.detail(project.id)
+                        routes.projects.allProjects.detail(project.id)
                           .tasks.new
                       }
                     >
@@ -849,7 +849,7 @@ export default function ProjectDashboardPage() {
                     className="w-full justify-start"
                     asChild
                   >
-                    <Link href={routes.portfolio.inspections.new}>
+                    <Link href={routes.inspections.new}>
                       <ClipboardCheck className="mr-2 h-4 w-4" />
                       Schedule Inspection
                     </Link>
@@ -861,7 +861,7 @@ export default function ProjectDashboardPage() {
                   >
                     <Link
                       href={
-                        routes.portfolio.projects.allProjects.detail(project.id)
+                        routes.projects.allProjects.detail(project.id)
                           .issues.new
                       }
                     >

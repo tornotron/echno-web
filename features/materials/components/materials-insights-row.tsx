@@ -264,7 +264,7 @@ export function TopProjectsConsuming({
           </div>
         )}
         <Link
-          href={routes.portfolio.projects.href}
+          href={routes.projects.href}
           className="mt-4 flex items-center gap-0.5 text-xs text-blue-600 hover:underline dark:text-blue-400"
         >
           View all projects

@@ -347,7 +347,7 @@ export function IssueOverviewTab({
                 </label>
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects
+                    routes.projects.allProjects
                       .detail(projectId)
                       .tasks.detail(relatedTask.id).href
                   }
@@ -385,7 +385,7 @@ export function IssueOverviewTab({
             {issue.creator ? (
               <Link
                 href={employeeFilterHref(
-                  routes.portfolio.projects.allIssues,
+                  routes.projects.allIssues,
                   issue.creator.id,
                   'creator'
                 )}
@@ -459,7 +459,7 @@ export function IssueOverviewTab({
             {issue.assignee ? (
               <Link
                 href={employeeFilterHref(
-                  routes.portfolio.projects.allIssues,
+                  routes.projects.allIssues,
                   issue.assignee.id,
                   'assignee'
                 )}

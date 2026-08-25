@@ -94,7 +94,7 @@ export default function EditIssuePage({ params }: PageProps) {
         description: 'The issue has been updated successfully',
       });
       router.push(
-        routes.portfolio.projects.allProjects
+        routes.projects.allProjects
           .detail(projectId)
           .issues.detail(issueId).href
       );
@@ -121,7 +121,7 @@ export default function EditIssuePage({ params }: PageProps) {
         description: 'The issue has been deleted successfully',
       });
       router.push(
-        routes.portfolio.projects.allProjects.detail(projectId).issues.href
+        routes.projects.allProjects.detail(projectId).issues.href
       );
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Delete Issue');
@@ -154,7 +154,7 @@ export default function EditIssuePage({ params }: PageProps) {
         <Button
           onClick={() =>
             router.push(
-              routes.portfolio.projects.allProjects.detail(projectId).issues
+              routes.projects.allProjects.detail(projectId).issues
                 .href
             )
           }

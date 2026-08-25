@@ -354,7 +354,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
               {payment.projectId && (
                 <Link
                   href={
-                    routes.portfolio.projects.allProjects.detail(
+                    routes.projects.allProjects.detail(
                       payment.projectId
                     ).href
                   }

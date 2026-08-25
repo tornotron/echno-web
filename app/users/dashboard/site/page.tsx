@@ -372,7 +372,7 @@ export default function SiteOperationsDashboard() {
               <CardDescription>Projects assigned to your sites</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href={routes.portfolio.projects.href}>
+              <Link href={routes.projects.href}>
                 View All <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -425,7 +425,7 @@ export default function SiteOperationsDashboard() {
               <CardDescription>Pending work items for today</CardDescription>
             </div>
             <Button variant="outline" size="sm" asChild>
-              <Link href={routes.portfolio.projects.href}>
+              <Link href={routes.projects.href}>
                 Manage Tasks <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
@@ -534,7 +534,7 @@ export default function SiteOperationsDashboard() {
               className="h-auto flex-col gap-2 py-4"
               asChild
             >
-              <Link href={routes.portfolio.inspections.new}>
+              <Link href={routes.inspections.new}>
                 <ClipboardCheck className="h-5 w-5" />
                 <span>New Inspection</span>
               </Link>

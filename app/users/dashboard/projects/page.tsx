@@ -47,7 +47,7 @@ export default function ProjectsOverviewPage() {
               </EmptyDescription>
             </EmptyHeader>
             <Button asChild>
-              <Link href={routes.portfolio.projects.allProjects.new}>
+              <Link href={routes.projects.allProjects.new}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Project
               </Link>

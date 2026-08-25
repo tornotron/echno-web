@@ -44,7 +44,7 @@ export default function NewInspectionPage() {
     createInspection(req, {
       onSuccess: (inspection) => {
         toast.success('Inspection scheduled successfully!');
-        router.push(routes.portfolio.inspections.detail(inspection.id).href);
+        router.push(routes.inspections.detail(inspection.id).href);
       },
       onError: (err) => {
         toast.error(getErrorTitle(err, 'Failed to create inspection'), {

@@ -103,7 +103,7 @@ export default function EditProjectPage() {
               description: 'The project has been updated successfully',
             });
             router.push(
-              routes.portfolio.projects.allProjects.detail(project.id).href
+              routes.projects.allProjects.detail(project.id).href
             );
           },
           onError: (error) => {
@@ -140,7 +140,7 @@ export default function EditProjectPage() {
               : "The project you're looking for doesn't exist."}
           </p>
           <Button className="mt-4" asChild>
-            <Link href={routes.portfolio.projects.href}>Back to Projects</Link>
+            <Link href={routes.projects.href}>Back to Projects</Link>
           </Button>
         </div>
       </div>
@@ -158,7 +158,7 @@ export default function EditProjectPage() {
             <Button variant="outline" disabled={isSubmitting} asChild>
               <Link
                 href={
-                  routes.portfolio.projects.allProjects.detail(project.id).href
+                  routes.projects.allProjects.detail(project.id).href
                 }
               >
                 Cancel
