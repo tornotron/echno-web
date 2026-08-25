@@ -56,6 +56,20 @@ export const chatService = {
   },
 
   /**
+   * Archive or unarchive a room for the whole conversation. Any participant may
+   * toggle it; the backend returns the updated room.
+   */
+  async setArchived(roomId: number, archived: boolean): Promise<ChatRoom> {
+    try {
+      const raw = await api.post<Raw>(`${BASE}/${roomId}/archive`, { archived });
+      return parseChatRoom(raw);
+    } catch (error) {
+      logger.error(`Failed to set archived state on room ${roomId}:`, error);
+      throw error;
+    }
+  },
+
+  /**
    * Mark all messages in a room as read.
    */
   async markAsRead(roomId: number): Promise<void> {

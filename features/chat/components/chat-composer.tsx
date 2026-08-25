@@ -7,6 +7,7 @@ import { Textarea } from '@/components/shadcn/textarea';
 import { ChatMessage, ChatParticipant } from '@/types/chat';
 import { Task } from '@tornotron/echno-core/task/types';
 import { Issue } from '@tornotron/echno-core/issue/types';
+import { formatFileSize } from '@tornotron/echno-core/attachment/types';
 import {
   parseMentions,
   stripMentions,
@@ -15,7 +16,12 @@ import { useMention } from '@/hooks/chat/use-mention';
 import { ChatMentionPopup } from './chat-mention-popup';
 
 interface ChatComposerProps {
-  onSend: (content: string, replyToId?: number, mentions?: number[]) => void;
+  onSend: (
+    content: string,
+    replyToId?: number,
+    mentions?: number[],
+    attachments?: File[]
+  ) => void;
   replyTo?: ChatMessage | null;
   onCancelReply?: () => void;
   disabled?: boolean;
@@ -44,6 +50,7 @@ export function ChatComposer({
 }: ChatComposerProps) {
   const [value, setValue] = useState(editContent ?? '');
   const [prevEditContent, setPrevEditContent] = useState(editContent);
+  const [files, setFiles] = useState<File[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -89,10 +96,25 @@ export function ChatComposer({
       .filter((s) => s.type === 'mention')
       .map((s) => (s as { type: 'mention'; employeeId: number }).employeeId);
 
-    onSend(trimmed, replyTo?.id, mentions);
+    const attachments = isEditing || files.length === 0 ? undefined : files;
+    onSend(trimmed, replyTo?.id, mentions, attachments);
     setValue('');
+    setFiles([]);
     onCancelReply?.();
     textareaRef.current?.focus();
+  };
+
+  const handleFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const picked = e.target.files ? [...e.target.files] : [];
+    if (picked.length > 0) {
+      setFiles((prev) => [...prev, ...picked]);
+    }
+    // Reset so re-selecting the same file fires another change event
+    e.target.value = '';
+  };
+
+  const removeFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -176,6 +198,33 @@ export function ChatComposer({
         </div>
       )}
 
+      {/* Selected attachments */}
+      {files.length > 0 && (
+        <div className="mb-2 flex flex-wrap gap-1.5">
+          {files.map((file, i) => (
+            <div
+              key={`${file.name}-${i}`}
+              className="bg-muted flex max-w-[220px] items-center gap-1.5 rounded-md border py-1 pr-1 pl-2 text-xs"
+            >
+              <Paperclip className="text-muted-foreground h-3 w-3 shrink-0" />
+              <span className="truncate font-medium">{file.name}</span>
+              <span className="text-muted-foreground shrink-0 tabular-nums">
+                {formatFileSize(file.size)}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-4 w-4 shrink-0"
+                onClick={() => removeFile(i)}
+                aria-label={`Remove ${file.name}`}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Input row */}
       <div className="relative flex items-end gap-1.5 sm:gap-2">
         <Button
@@ -183,7 +232,7 @@ export function ChatComposer({
           size="icon"
           className="text-muted-foreground h-10 w-10 shrink-0 sm:h-9 sm:w-9"
           onClick={() => fileInputRef.current?.click()}
-          disabled={disabled}
+          disabled={disabled || isEditing}
           aria-label="Attach file"
         >
           <Paperclip className="h-4 w-4" />
@@ -194,6 +243,7 @@ export function ChatComposer({
           multiple
           className="hidden"
           aria-hidden="true"
+          onChange={handleFilesSelected}
         />
 
         {/* Mention popup (positioned above the textarea) */}

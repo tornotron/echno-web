@@ -12,6 +12,9 @@ import {
   Crown,
   UserCheck,
   ArrowLeft,
+  MoreVertical,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -21,7 +24,14 @@ import {
   AvatarImage,
 } from '@/components/shadcn/avatar';
 import { Button } from '@/components/shadcn/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/shadcn/dropdown-menu';
 import { Input } from '@/components/shadcn/input';
+import { useArchiveRoom } from '@/hooks/chat/use-chat-mutations';
 import {
   Sheet,
   SheetContent,
@@ -45,6 +55,7 @@ const MAX_VISIBLE_AVATARS = 4;
 
 export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
   const [memberSearch, setMemberSearch] = useState('');
+  const archiveRoom = useArchiveRoom();
   const participants = room.participants ?? [];
   const visibleParticipants = participants.slice(0, MAX_VISIBLE_AVATARS);
   const overflowCount = Math.max(0, participants.length - MAX_VISIBLE_AVATARS);
@@ -90,8 +101,9 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
         </div>
       </div>
 
-      {/* Right: participant avatars + members sheet */}
+      {/* Right: participant avatars + members sheet + room actions */}
       {room.type !== ChatRoomType.ai && (
+        <div className="flex items-center gap-1">
         <Sheet>
           <SheetTrigger asChild>
             <Button
@@ -273,6 +285,43 @@ export function ChatRoomHeader({ room }: ChatRoomHeaderProps) {
             </div>
           </SheetContent>
         </Sheet>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground h-8 w-8 shrink-0"
+                aria-label="Room actions"
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                disabled={archiveRoom.isPending}
+                onClick={() =>
+                  archiveRoom.mutate({
+                    roomId: room.id,
+                    archived: !room.isArchived,
+                  })
+                }
+              >
+                {room.isArchived ? (
+                  <>
+                    <ArchiveRestore className="h-4 w-4" />
+                    Unarchive conversation
+                  </>
+                ) : (
+                  <>
+                    <Archive className="h-4 w-4" />
+                    Archive conversation
+                  </>
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       )}
 
       {room.type === ChatRoomType.ai && (
