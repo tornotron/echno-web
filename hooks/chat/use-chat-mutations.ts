@@ -62,58 +62,6 @@ export function useEditMessage() {
 }
 
 /**
- * Delete a message.
- */
-export function useDeleteMessage() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, roomId }: { id: number; roomId: number }) =>
-      chatMessageService.deleteMessage(id).then(() => ({ roomId })),
-    onSuccess: ({ roomId }) => {
-      queryClient.invalidateQueries({ queryKey: ['chat-messages', roomId] });
-      toast.success('Message Deleted', {
-        description: 'The message has been removed.',
-      });
-    },
-    onError: (error) => {
-      const title = getErrorTitle(error, 'Failed to Delete Message');
-      const description = getErrorMessage(error);
-      toast.error(title, { description });
-      logger.error('Failed to delete message:', error);
-    },
-  });
-}
-
-/**
- * Toggle an emoji reaction on a message.
- */
-export function useToggleReaction() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({
-      messageId,
-      emoji,
-      roomId,
-    }: {
-      messageId: number;
-      emoji: string;
-      roomId: number;
-    }) =>
-      chatMessageService
-        .toggleReaction(messageId, emoji)
-        .then(() => ({ roomId })),
-    onSuccess: ({ roomId }) => {
-      queryClient.invalidateQueries({ queryKey: ['chat-messages', roomId] });
-    },
-    onError: (error) => {
-      logger.error('Failed to toggle reaction:', error);
-    },
-  });
-}
-
-/**
  * Mark a room as read (clears unread count).
  */
 export function useMarkRoomAsRead() {
