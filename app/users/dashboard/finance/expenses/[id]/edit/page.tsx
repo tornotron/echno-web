@@ -1,8 +1,10 @@
 'use client';
 
 import { use, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { routes } from '@/nav';
-import { useExpenseById } from '@/hooks/expenses';
+import { useExpenseById, useUpdateExpense } from '@/hooks/expenses';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -121,6 +123,8 @@ interface ExpenseEditFormProps {
 }
 
 function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
+  const router = useRouter();
+  const updateExpense = useUpdateExpense();
   const [formData, setFormData] = useState<Partial<Expense>>(() => ({
     ...initialData,
   }));
@@ -165,7 +169,7 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
     setFormData(newData);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
     if (!formData.description?.trim())
@@ -177,7 +181,15 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
       toast.error('Please fix the errors in the form');
       return;
     }
-    toast.success('Expense updated successfully!');
+    try {
+      await updateExpense.mutateAsync({ id: expenseId, data: formData });
+      toast.success('Expense updated successfully');
+      router.push(routes.finance.expenses.detail(expenseId).href);
+    } catch (error) {
+      toast.error('Failed to update expense', {
+        description: getErrorMessage(error),
+      });
+    }
   };
 
   return (
@@ -505,9 +517,13 @@ function ExpenseEditForm({ initialData, expenseId }: ExpenseEditFormProps) {
 
         {/* Action Buttons */}
         <div className="flex gap-3">
-          <Button type="submit" className="gap-2">
+          <Button
+            type="submit"
+            className="gap-2"
+            disabled={updateExpense.isPending}
+          >
             <Save className="h-4 w-4" />
-            Update Expense
+            {updateExpense.isPending ? 'Saving...' : 'Update Expense'}
           </Button>
           <Button variant="outline" asChild>
             <Link href={routes.finance.expenses.detail(expenseId).href}>
