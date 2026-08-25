@@ -41,19 +41,23 @@ export const chatMessageService = {
   },
 
   /**
-   * Send a new message to a room. The backend accepts text plus an optional
-   * reply target only; mentions, entity mentions and attachments are not yet
-   * persisted server-side, so they are not sent.
+   * Send a new message to a room. When files are attached the request goes out
+   * as multipart: a JSON `data` part carrying `content` and `replyToId`, plus
+   * each file under an `attachments` part. With no files it stays on the plain
+   * JSON path. The reply target is carried through in both shapes.
    */
   async sendMessage(
     roomId: number,
     data: SendMessageData
   ): Promise<ChatMessage> {
     try {
-      const raw = await api.post<Raw>(`${ROOMS}/${roomId}/messages`, {
-        content: data.content,
-        replyToId: data.replyToId,
-      });
+      const payload = { content: data.content, replyToId: data.replyToId };
+      const raw =
+        data.attachments && data.attachments.length > 0
+          ? await api.postMultipart<Raw>(`${ROOMS}/${roomId}/messages`, payload, {
+              attachments: data.attachments,
+            })
+          : await api.post<Raw>(`${ROOMS}/${roomId}/messages`, payload);
       return parseChatMessage(raw);
     } catch (error) {
       logger.error(`Failed to send message to room ${roomId}:`, error);
@@ -70,6 +74,34 @@ export const chatMessageService = {
       return parseChatMessage(raw);
     } catch (error) {
       logger.error(`Failed to edit message ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Toggle the caller's emoji reaction on a message. Adds it if absent, removes
+   * it if already present, and returns the message with its refreshed grouped
+   * reaction list.
+   */
+  async toggleReaction(id: number, emoji: string): Promise<ChatMessage> {
+    try {
+      const raw = await api.post<Raw>(`${MESSAGES}/${id}/reactions`, { emoji });
+      return parseChatMessage(raw);
+    } catch (error) {
+      logger.error(`Failed to toggle reaction on message ${id}:`, error);
+      throw error;
+    }
+  },
+
+  /**
+   * Soft-delete a message. The backend keeps the row (returns 204) so the web
+   * renders a tombstone; only the sender or a room admin may delete it.
+   */
+  async deleteMessage(id: number): Promise<void> {
+    try {
+      await api.delete<void>(`${MESSAGES}/${id}`);
+    } catch (error) {
+      logger.error(`Failed to delete message ${id}:`, error);
       throw error;
     }
   },

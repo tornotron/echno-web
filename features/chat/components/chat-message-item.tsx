@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { format } from 'date-fns';
-import { CornerUpLeft, Pencil, Trash2, Smile } from 'lucide-react';
+import { CornerUpLeft, Pencil, Trash2, Smile, Paperclip } from 'lucide-react';
 
 import { Button } from '@/components/shadcn/button';
 import {
@@ -13,6 +13,11 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip';
 import { ChatMessage } from '@/types/chat';
+import {
+  Attachment,
+  AttachmentType,
+  formatFileSize,
+} from '@tornotron/echno-core/attachment/types';
 import {
   parseMentions,
   stripMentions,
@@ -63,6 +68,48 @@ function MessageContent({ content }: { content: string }) {
         return null;
       })}
     </>
+  );
+}
+
+function MessageAttachments({ attachments }: { attachments: Attachment[] }) {
+  if (attachments.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {attachments.map((att) =>
+        att.fileType === AttachmentType.image ? (
+          <a
+            key={att.id}
+            href={att.file}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block overflow-hidden rounded-md border"
+          >
+            <Image
+              src={att.file}
+              alt={att.fileName}
+              width={220}
+              height={160}
+              unoptimized
+              className="max-h-40 w-auto object-cover"
+            />
+          </a>
+        ) : (
+          <a
+            key={att.id}
+            href={att.file}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-background hover:bg-muted flex max-w-[260px] items-center gap-2 rounded-md border px-2.5 py-1.5 text-xs transition-colors"
+          >
+            <Paperclip className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            <span className="truncate font-medium">{att.fileName}</span>
+            <span className="text-muted-foreground shrink-0 tabular-nums">
+              {formatFileSize(att.fileSize)}
+            </span>
+          </a>
+        )
+      )}
+    </div>
   );
 }
 
@@ -178,6 +225,11 @@ export function ChatMessageItem({
                 </Tooltip>
               )}
             </p>
+
+            {/* Attachments */}
+            {message.attachments && (
+              <MessageAttachments attachments={message.attachments} />
+            )}
 
             {/* Reactions */}
             {message.reactions.length > 0 && (
@@ -301,6 +353,11 @@ export function ChatMessageItem({
               </Tooltip>
             )}
           </p>
+
+          {/* Attachments */}
+          {message.attachments && (
+            <MessageAttachments attachments={message.attachments} />
+          )}
 
           {/* Reactions */}
           {message.reactions.length > 0 && (
