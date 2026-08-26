@@ -154,11 +154,18 @@ async function proxyRequest(
     headers['X-Organization-Id'] = tokens.defaultOrganizationId;
   }
 
-  // Use longer timeout for file uploads
+  // A server-sent event stream is meant to stay open, so it must not be raced against a
+  // request timeout the way a normal call is. The abort controller is still created and still
+  // passed, so a stream is torn down if the caller goes away; it is simply never armed.
+  const isEventStream = request.headers
+    .get('accept')
+    ?.includes('text/event-stream');
   const isMultipart = contentType?.includes('multipart/form-data');
   const timeoutMs = isMultipart ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS;
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  const timeoutId = isEventStream
+    ? undefined
+    : setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     logger.debug('Proxying request', {
@@ -185,6 +192,29 @@ async function proxyRequest(
 
     const responseContentType =
       response.headers.get('Content-Type') || 'application/json';
+
+    // Server-sent events on a successful response: hand the body through as a stream.
+    // Reading it with response.text(), which is what every other branch below does, would
+    // wait for an end that never comes, so the browser would see nothing at all. A failed
+    // handshake is left to the error path below and read like any other failure.
+    // X-Accel-Buffering rides along because nginx sets proxy_buffering on for every site at
+    // the edge, and both nginx and ingress-nginx honour the header to release one response
+    // from that buffer.
+    if (
+      response.ok &&
+      responseContentType.includes('text/event-stream') &&
+      response.body
+    ) {
+      return new NextResponse(response.body, {
+        status: response.status,
+        headers: {
+          'Content-Type': responseContentType,
+          'Cache-Control': 'no-cache, no-transform',
+          Connection: 'keep-alive',
+          'X-Accel-Buffering': 'no',
+        },
+      });
+    }
 
     // Text-shaped payloads (JSON, plain text, XML, HTML) can be read as a
     // string; binary payloads such as a rendered PDF must be forwarded as raw

@@ -8,6 +8,18 @@ import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
 import { ChatMessage } from '@/types/chat';
 import { Employee } from '@tornotron/echno-core/employee/types';
 import { shouldRetry } from '@/lib/query/retry';
+import { useChatStreamStatus } from '@/features/chat/components/chat-stream-provider';
+
+/**
+ * How often to poll while the live stream is connected, and while it is not.
+ *
+ * Polling is kept rather than removed once the stream works. Redis pub/sub delivers at most
+ * once and keeps nothing for a subscriber that was briefly absent, so a dropped frame is
+ * possible; the slow poll is what repairs it. The fast cadence is the original behaviour, and
+ * is what a client whose stream cannot be established at all falls back to.
+ */
+const POLL_WHILE_STREAMING_MS = 60 * 1000;
+const POLL_WITHOUT_STREAM_MS = 15 * 1000;
 
 function resolveMessageEmployees(
   messages: ChatMessage[],
@@ -29,6 +41,8 @@ function resolveMessageEmployees(
  * Hook to fetch messages for a chat room with resolved sender Employee objects.
  */
 export function useChatMessages(roomId?: number) {
+  const { connected } = useChatStreamStatus();
+
   const messagesQuery = useQuery({
     queryKey: ['chat-messages', roomId],
     queryFn: () => {
@@ -36,8 +50,10 @@ export function useChatMessages(roomId?: number) {
       return chatMessageService.getMessages(roomId);
     },
     enabled: !!roomId,
-    staleTime: 15 * 1000, // 15 seconds — frequent polling cadence placeholder
-    refetchInterval: 15 * 1000, // poll every 15s until WebSocket is wired
+    staleTime: connected ? POLL_WHILE_STREAMING_MS : POLL_WITHOUT_STREAM_MS,
+    refetchInterval: connected
+      ? POLL_WHILE_STREAMING_MS
+      : POLL_WITHOUT_STREAM_MS,
     retry: shouldRetry,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
