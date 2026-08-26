@@ -17,14 +17,16 @@ import { Settings, Building } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/theme-toggle';
 import { CommandPalette } from '@/features/common/components/command-palette';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useUser } from '@tornotron/echno-core/user/hooks';
+import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { Suspense, useEffect } from 'react';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useTasks } from '@tornotron/echno-core/task/hooks';
 import { useIssues } from '@tornotron/echno-core/issue/hooks';
 import { routes } from '@/nav';
+import { ONBOARDING_PATH } from '@/lib/routes';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -32,8 +34,6 @@ interface AppLayoutProps {
   /** Slot for a floating chat widget — injected from the app layer to keep this component feature-agnostic. */
   floatingChat?: React.ReactNode;
 }
-
-const ORGANIZATIONS_PATH = routes.organizations.href;
 
 function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   const { isMobile, setOpen } = useSidebar();
@@ -43,9 +43,10 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
     if (!isMobile) setOpen(true);
   }, [isMobile, setOpen]);
 
-  const pathname = usePathname();
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
+  const { data: organizations, isLoading: organizationsLoading } =
+    useOrganizations();
   const { data: projects = [] } = useProjects();
   const { data: tasks = [] } = useTasks();
   const { data: issues = [] } = useIssues();
@@ -53,16 +54,18 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   // Fetch data for breadcrumbs using custom hook
   const breadcrumbData = useBreadcrumbData();
 
-  // Redirect to organizations page if user has no default organization
+  // Route a user with zero organization memberships to first-run onboarding.
+  // The check is strictly membership-based: a user who belongs to at least one
+  // organization is unaffected (the OrganizationProvider selects and persists
+  // their default org). We wait for both queries to settle before redirecting
+  // so the dashboard never flashes for a genuine no-org user, and only act on a
+  // confirmed empty list so a load error does not bounce anyone.
   useEffect(() => {
-    if (userLoading || !user) return;
-    if (
-      !user.defaultOrganizationId &&
-      !pathname.startsWith(ORGANIZATIONS_PATH)
-    ) {
-      router.replace(ORGANIZATIONS_PATH);
+    if (userLoading || !user || organizationsLoading) return;
+    if (organizations && organizations.length === 0) {
+      router.replace(ONBOARDING_PATH);
     }
-  }, [user, userLoading, pathname, router]);
+  }, [user, userLoading, organizations, organizationsLoading, router]);
 
   return (
     <>
