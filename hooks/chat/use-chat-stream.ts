@@ -65,6 +65,9 @@ export function useChatStream() {
   useEffect(() => {
     const source = new EventSource(STREAM_URL);
 
+    // EventSource's own open event, which fires on every successful connection including a
+    // reconnect. The server's opening frame is named "ready" precisely so it cannot be
+    // confused with this one.
     source.addEventListener('open', () => {
       setConnected(true);
       if (hasConnectedBefore.current) {
