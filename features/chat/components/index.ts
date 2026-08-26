@@ -6,3 +6,4 @@ export * from './chat-message-item';
 export * from './chat-message-list';
 export * from './chat-composer';
 export * from './chat-room-view';
+export * from './chat-stream-provider';

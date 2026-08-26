@@ -8,3 +8,4 @@ export * from './chat-message';
 export * from './chat-room';
 export * from './chat-message-send';
 export * from './chat-mention';
+export * from './chat-stream-event';
