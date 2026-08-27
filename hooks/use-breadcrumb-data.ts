@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
-import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useEmployee } from '@tornotron/echno-core/employee/hooks';
+import { useProject } from '@tornotron/echno-core/project/hooks';
 import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 import { useLeaveRequest } from '@/hooks/leave/use-leave';
 import { useTask } from '@tornotron/echno-core/task/hooks';
@@ -30,8 +30,8 @@ import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
 import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 
 interface BreadcrumbData {
-  employees?: Employee[];
-  projects?: Project[];
+  employee?: Employee;
+  project?: Project;
   organizations?: Organization[];
   leaveRequest?: LeaveRequest;
   task?: Task;
@@ -56,8 +56,13 @@ interface BreadcrumbData {
  * This hook:
  * - Uses regex to parse leave request and task IDs from the pathname
  * - Conditionally fetches leave request and task details only when IDs exist
- * - Fetches employees, projects, and organizations for name lookups
+ * - Resolves the one employee and the one project the path names, by id
  * - Memoizes pathname parsing to avoid redundant computations
+ *
+ * Every entity here is fetched by id. The employee and project names used to come from whole-
+ * collection reads that ran on every route, including the routes whose breadcrumbs name neither,
+ * which meant the application shell downloaded the tenant's entire employee directory to render at
+ * most one name from it.
  *
  * @returns {BreadcrumbData} Object containing data needed for breadcrumbs
  */
@@ -72,6 +77,8 @@ export function useBreadcrumbData(): BreadcrumbData {
 
   // Parse pathname and query params for entity IDs
   const {
+    employeeId,
+    projectId,
     leaveRequestId,
     taskId,
     issueId,
@@ -102,6 +109,17 @@ export function useBreadcrumbData(): BreadcrumbData {
         ? parsedTaskIdFromQuery
         : undefined);
 
+    // The parent segments here are the ones breadcrumb-utils resolves against an
+    // employee or a project, so a path that names neither fetches neither.
+    const employeeId = parseIdFromPath(
+      pathname,
+      /\/(?:employees|employee-management|attendance)\/(\d+)/
+    );
+    const projectId = parseIdFromPath(
+      pathname,
+      /\/(?:projects|all-projects)\/(\d+)/
+    );
+
     const issueId = parseIdFromPath(pathname, /\/issues\/(\d+)/);
     const chatRoomId = parseIdFromPath(pathname, /\/chat\/(\d+)/);
     const vendorId = parseIdFromPath(pathname, /\/vendors\/(\d+)/);
@@ -119,6 +137,8 @@ export function useBreadcrumbData(): BreadcrumbData {
     const siteTransferId = parseIdFromPath(pathname, /\/transfers\/(\d+)/);
 
     return {
+      employeeId,
+      projectId,
       leaveRequestId,
       taskId,
       issueId,
@@ -133,11 +153,13 @@ export function useBreadcrumbData(): BreadcrumbData {
     };
   }, [pathname, searchParams]);
 
-  // Fetch data for breadcrumbs
-  // Note: These full lists are needed for name lookups in breadcrumbs
-  // Could be optimized further with server-side name resolution if needed
-  const { data: employees } = useEmployees();
-  const { data: projects } = useProjects();
+  // Resolve the single employee and single project the path names. Both hooks stay
+  // disabled while their id is undefined, so a route that names neither is free.
+  const { data: employee } = useEmployee(employeeId ?? 0);
+  const { data: project } = useProject(projectId);
+
+  // The organization list is small, and the shell already holds it for the
+  // organization switcher, so this reads the same cache rather than a second request.
   const { data: organizations } = useOrganizations();
 
   // Conditionally fetch leave request details only when ID exists
@@ -177,8 +199,8 @@ export function useBreadcrumbData(): BreadcrumbData {
   const { data: siteTransfer } = useSiteTransfer(siteTransferId ?? 0);
 
   return {
-    employees,
-    projects,
+    employee,
+    project,
     organizations,
     leaveRequest,
     task,

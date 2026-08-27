@@ -22,9 +22,6 @@ import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { Suspense, useEffect } from 'react';
-import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useTasks } from '@tornotron/echno-core/task/hooks';
-import { useIssues } from '@tornotron/echno-core/issue/hooks';
 import { routes } from '@/nav';
 import { ONBOARDING_PATH } from '@/lib/routes';
 
@@ -47,9 +44,6 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   const { data: user, isLoading: userLoading } = useUser();
   const { data: organizations, isLoading: organizationsLoading } =
     useOrganizations();
-  const { data: projects = [] } = useProjects();
-  const { data: tasks = [] } = useTasks();
-  const { data: issues = [] } = useIssues();
 
   // Fetch data for breadcrumbs using custom hook
   const breadcrumbData = useBreadcrumbData();
@@ -69,34 +63,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
 
   return (
     <>
-      <CommandPalette
-        projects={projects
-          .filter((project) => Boolean(project.id))
-          .slice(0, 30)
-          .map((project) => ({
-            id: String(project.id),
-            name: project.projectName,
-            href: routes.projects.allProjects.detail(String(project.id)).href,
-          }))}
-        tasks={tasks
-          .filter((task) => Boolean(task.id) && Boolean(task.projectId))
-          .slice(0, 40)
-          .map((task) => ({
-            id: String(task.id),
-            name: task.title,
-            href: routes.projects.allProjects
-              .detail(String(task.projectId))
-              .tasks.detail(String(task.id)).href,
-          }))}
-        issues={issues
-          .filter((issue) => Boolean(issue.id))
-          .slice(0, 40)
-          .map((issue) => ({
-            id: String(issue.id),
-            name: issue.title,
-            href: routes.projects.allIssues,
-          }))}
-      />
+      <CommandPalette />
       <AppSidebar />
 
       <SidebarInset className="min-w-0">
@@ -107,8 +74,8 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
 
           <div className="flex flex-1 items-center justify-between">
             <Breadcrumbs
-              employees={breadcrumbData.employees}
-              projects={breadcrumbData.projects}
+              employee={breadcrumbData.employee}
+              project={breadcrumbData.project}
               organizations={breadcrumbData.organizations}
               leaveRequest={breadcrumbData.leaveRequest}
               task={breadcrumbData.task}
