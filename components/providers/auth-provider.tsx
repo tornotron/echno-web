@@ -5,21 +5,22 @@ import { QueryProvider } from './query-provider';
 import { OrgCacheGuard } from './org-cache-guard';
 import { UserPrefetcher } from './user-prefetcher';
 import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
-import { SESSION_WARNINGS } from '@/lib/auth/constants';
+import { SESSION_ACTIVITY } from '@/lib/auth/constants';
+import { isWithinRefreshBuffer } from '@/lib/auth/token-refresh-schedule';
 import {
-  msUntilAccessTokenRefresh,
-  withRefreshJitter,
-} from '@/lib/auth/token-refresh-schedule';
+  clearLastActivity,
+  minutesUntilIdleSignOut,
+  readLastActivity,
+  sessionIdleState,
+  writeLastActivity,
+} from '@/lib/auth/session-activity';
 import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
 
-// Warning thresholds (in minutes before expiration)
-const { INITIAL_WARNING_MINUTES, FINAL_WARNING_MINUTES } = SESSION_WARNINGS;
-
-// Activity detection configuration
+/** Events that count as the user being at the machine. */
 const ACTIVITY_EVENTS = [
   'mousedown',
   'mousemove',
@@ -30,156 +31,232 @@ const ACTIVITY_EVENTS = [
   'wheel',
 ] as const;
 
-// Refresh session if user is active within this time before expiration (5 minutes)
-const ACTIVITY_REFRESH_THRESHOLD_MS = 5 * 60 * 1000;
-// Debounce activity detection to avoid excessive updates (30 seconds)
-const ACTIVITY_DEBOUNCE_MS = 30 * 1000;
+/** Identity of the idle warning, so it can be replaced and dismissed. */
+const IDLE_WARNING_TOAST_ID = 'session-idle-warning';
 
 /**
- * Monitors session for token refresh errors and forces logout
- * Also tracks user activity to extend session when active
+ * Keeps the session alive while the user is working and ends it when they stop.
+ *
+ * The design in one line: the session follows activity, not the clock.
+ *
+ * Three things went wrong on the way here and each one shapes the code below.
+ *
+ * The access token was refreshed by a `setTimeout` armed for the moment just
+ * before expiry. That works only while the tab is in front. Backgrounded, the
+ * browser throttles or suspends the timer, the moment passes unattended, and
+ * the token is already dead by the time anyone looks. A repeating interval
+ * cannot miss a deadline in the same way: it re-asks the question, and a tab
+ * coming back simply gets the answer late rather than never.
+ *
+ * The refresh was then started from several places at once. NextAuth refetches
+ * the session on its own when a tab becomes visible, which is exactly the
+ * instant a queued request also discovers its token has lapsed. Both ran, both
+ * posted the same single-use refresh token, and Keycloak revoked the chain as a
+ * replay. Every refresh here goes through one coordinator, and NextAuth's own
+ * refetch is turned off in `Providers` below and replaced by the visibility
+ * handler in this component, so there is one way in.
+ *
+ * And when a session did end, it ended in silence: no toast, no redirect, just
+ * a page where everything failed. Anything that ends a session here says so.
+ *
+ * Exported for its tests; the app mounts it through {@link Providers}.
  */
-function SessionMonitor({ children }: { children: React.ReactNode }) {
+export function SessionMonitor({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
-  const isLoggingOut = useRef(false);
-  const [hasShownWarning, setHasShownWarning] = useState(false);
-  const [hasShownFinalWarning, setHasShownFinalWarning] = useState(false);
-  const lastActivityRef = useRef<number>(Date.now());
-  const lastActivityUpdateRef = useRef<number>(0);
-  const isRefreshingRef = useRef(false);
 
-  // Track user activity with debouncing
-  const handleUserActivity = useCallback(() => {
-    const now = Date.now();
-    // Only update if enough time has passed since last update (debounce)
-    if (now - lastActivityUpdateRef.current > ACTIVITY_DEBOUNCE_MS) {
-      lastActivityRef.current = now;
-      lastActivityUpdateRef.current = now;
+  /** Set while this component is deliberately ending the session. */
+  const isSigningOut = useRef(false);
+  /** Whether this tab has ever held an authenticated session. */
+  const wasAuthenticated = useRef(false);
+  /**
+   * Last activity known to this tab, before consulting the shared value.
+   *
+   * Seeded from the shared timestamp rather than from the clock, so a tab
+   * opening into a session that has already been idle for a while inherits that
+   * idle clock instead of quietly resetting it. Only real input counts as
+   * activity here, which is the same rule the visibility handler follows.
+   */
+  const lastActivityRef = useRef<number>(0);
+  /** When the shared timestamp was last written, to keep writes cheap. */
+  const lastActivityWriteRef = useRef<number>(0);
+  /** Whether the idle warning is currently on screen. */
+  const isWarningShown = useRef(false);
+
+  /**
+   * The most recent activity across every tab on this profile.
+   *
+   * A tab sitting in the background is not evidence that its owner is idle:
+   * they may be working in the tab next to it, on the same session.
+   */
+  const resolveLastActivity = useCallback((now: number) => {
+    const shared = readLastActivity(lastActivityRef.current);
+    if (shared > 0) return shared;
+
+    // Nothing recorded anywhere yet, so this tab has only just opened. Start
+    // its clock now rather than reading the absence as half an hour of idleness.
+    lastActivityRef.current = now;
+    return now;
+  }, []);
+
+  /** Records that the user is here, and drops any warning that says otherwise. */
+  const recordActivity = useCallback((at: number = Date.now()) => {
+    lastActivityRef.current = at;
+
+    if (at - lastActivityWriteRef.current > SESSION_ACTIVITY.ACTIVITY_DEBOUNCE_MS) {
+      lastActivityWriteRef.current = at;
+      writeLastActivity(at);
+    }
+
+    if (isWarningShown.current) {
+      isWarningShown.current = false;
+      toast.dismiss(IDLE_WARNING_TOAST_ID);
     }
   }, []);
 
-  // Set up activity event listeners
+  /** Ends the session and tells the user why. */
+  const endSession = useCallback(
+    (message: string, description: string) => {
+      if (isSigningOut.current) return;
+      isSigningOut.current = true;
+
+      toast.dismiss(IDLE_WARNING_TOAST_ID);
+      isWarningShown.current = false;
+      clearLastActivity();
+      toast.error(message, { description });
+      signOut({ callbackUrl: '/' });
+    },
+    []
+  );
+
+  // Track activity. The listeners are passive and the shared write is
+  // debounced, so a mousemove costs a timestamp comparison.
   useEffect(() => {
     if (status !== 'authenticated') return;
 
-    // Add event listeners for activity detection
+    const handleActivity = () => recordActivity();
     for (const event of ACTIVITY_EVENTS) {
-      globalThis.addEventListener(event, handleUserActivity, { passive: true });
+      globalThis.addEventListener(event, handleActivity, { passive: true });
     }
 
     return () => {
       for (const event of ACTIVITY_EVENTS) {
-        globalThis.removeEventListener(event, handleUserActivity);
+        globalThis.removeEventListener(event, handleActivity);
       }
     };
-  }, [status, handleUserActivity]);
+  }, [status, recordActivity]);
 
-  // Refresh session when user is active and session is about to expire
-  useEffect(() => {
-    if (status !== 'authenticated' || !session) return;
-    if (session.provider !== 'keycloak') return;
-
-    const sessionExpiresAt = session.sessionExpiresAt;
-    if (!sessionExpiresAt) return;
-
-    const checkAndRefreshSession = async () => {
-      const now = Date.now();
-      const timeUntilExpiry = sessionExpiresAt - now;
-      const timeSinceLastActivity = now - lastActivityRef.current;
-
-      // If session is expiring soon and user was recently active, refresh
-      if (
-        timeUntilExpiry <= ACTIVITY_REFRESH_THRESHOLD_MS &&
-        timeUntilExpiry > 0 &&
-        timeSinceLastActivity < ACTIVITY_REFRESH_THRESHOLD_MS &&
-        !isRefreshingRef.current
-      ) {
-        isRefreshingRef.current = true;
-        logger.debug('Session: User is active, refreshing session...', {
-          timeUntilExpiry: `${Math.floor(timeUntilExpiry / 60_000)} minutes`,
-          timeSinceLastActivity: `${Math.floor(timeSinceLastActivity / 1000)} seconds`,
-        });
-
-        try {
-          // Trigger session update which will refresh the token. It goes
-          // through the same origin-wide lock as the scheduled refresh below:
-          // isRefreshingRef only covers this provider, and two active tabs near
-          // session expiry would otherwise exchange the same refresh token.
-          await sessionRefresh.refreshExclusive(() => update());
-          // Reset warning flags since session was extended
-          setHasShownWarning(false);
-          setHasShownFinalWarning(false);
-          logger.info('Session: Session refreshed due to user activity');
-        } catch (error) {
-          logger.error('Session: Failed to refresh session', error);
-        } finally {
-          isRefreshingRef.current = false;
-        }
-      }
-    };
-
-    // Check every 30 seconds
-    const interval = setInterval(checkAndRefreshSession, 30_000);
-    checkAndRefreshSession(); // Check immediately
-
-    return () => clearInterval(interval);
-  }, [session, status, update]);
-
-  // Refresh the access token before it expires
+  // Re-evaluate the session: on a timer, and whenever the tab comes back.
   //
-  // Every XHR goes through the BFF proxy, which reads the access token straight
-  // out of the session cookie and never runs the NextAuth `jwt()` callback,
-  // the one place a refresh happens. A user sitting on a single page therefore
-  // kept forwarding a token that had lapsed minutes ago, and every request 401d
-  // until the page was reloaded. Arming a timer off the access token's own
-  // expiry puts the refresh back on the right clock: `update()` calls
-  // /api/auth/session, which runs `jwt()`, which refreshes and rewrites the
-  // cookie. Re-arms on every session change, so exactly one timer is pending.
+  // Deliberately keyed on `session.expiresAt` rather than on the session
+  // object, so the interval survives the identity change every refresh
+  // produces and is rebuilt only when the token actually rotates.
+  const expiresAt = session?.expiresAt;
+  const provider = session?.provider;
   useEffect(() => {
-    if (status !== 'authenticated' || !session) return;
-    if (session.provider !== 'keycloak') return;
+    if (status !== 'authenticated') return;
+    if (provider !== 'keycloak') return;
 
-    const scheduled = msUntilAccessTokenRefresh(session.expiresAt, Date.now());
-    if (scheduled === null) return;
+    let disposed = false;
 
-    // Every tab holds the same cookie and so computes the same deadline. The
-    // lock below is what makes that safe; the jitter only keeps them from all
-    // waking into it in the same instant.
-    const delay = withRefreshJitter(scheduled);
-
-    const refreshAccessToken = async () => {
-      // Refresh tokens are single-use on our realms (revokeRefreshToken with
-      // refreshTokenMaxReuse 0), so two refreshes in flight with the same token
-      // revoke the whole chain and log the user out. This shares the guard with
-      // the activity-driven refresh above so only one can ever run.
-      if (isRefreshingRef.current) return;
-      isRefreshingRef.current = true;
+    const keepAlive = async () => {
+      if (disposed) return;
 
       try {
-        // isRefreshingRef only coordinates this provider, so the refresh runs
-        // under the origin-wide lock as well, or every open tab would post the
-        // same refresh token at the same moment. A tab that takes the lock
-        // second finds an expiresAt its peer already advanced, so `jwt()`
-        // returns the token untouched instead of exchanging it again.
+        // One coordinator for every refresh in the app. The refresh token is
+        // single-use, so a second exchange started alongside this one is read
+        // as a replay and costs the user the whole session.
         await sessionRefresh.refreshExclusive(() => update());
-        // The refresh extends the Keycloak session too, so let the expiry
-        // warnings fire again against the new deadline.
-        setHasShownWarning(false);
-        setHasShownFinalWarning(false);
-        logger.debug('Session: Access token refreshed ahead of expiry');
+        logger.debug('Session: access token refreshed');
       } catch (error) {
-        logger.error('Session: Failed to refresh access token', error);
-      } finally {
-        isRefreshingRef.current = false;
+        // Left for the next tick. The server keeps the session intact when an
+        // exchange does not complete, so trying again shortly is the right
+        // answer and giving up is not.
+        logger.warn('Session: refresh attempt did not complete', {
+          reason: error instanceof Error ? error.message : 'unknown',
+        });
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      void refreshAccessToken();
-    }, delay);
+    const evaluate = async () => {
+      if (disposed || isSigningOut.current) return;
 
-    return () => clearTimeout(timeoutId);
-  }, [session, status, update]);
+      const now = Date.now();
+      const lastActivity = resolveLastActivity(now);
+      const idleState = sessionIdleState(lastActivity, now);
+
+      if (idleState === 'expired') {
+        endSession(
+          'Signed out after 30 minutes of inactivity',
+          'Sign in again to pick up where you left off.'
+        );
+        return;
+      }
+
+      if (idleState === 'warning' && !isWarningShown.current) {
+        isWarningShown.current = true;
+        const minutes = minutesUntilIdleSignOut(lastActivity, now);
+        toast.warning(
+          `You will be signed out in ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`,
+          {
+            id: IDLE_WARNING_TOAST_ID,
+            duration: Number.POSITIVE_INFINITY,
+            description:
+              'You have been inactive. Move the mouse or press a key to stay signed in.',
+            action: {
+              label: 'Stay signed in',
+              onClick: () => {
+                recordActivity();
+                void keepAlive();
+              },
+            },
+          }
+        );
+      }
+
+      // The user is still within the window, so keep the access token usable.
+      // Refreshing an abandoned tab is what would defeat the idle timeout, so
+      // this only runs on the near side of the deadline.
+      if (isWithinRefreshBuffer(expiresAt, now)) {
+        await keepAlive();
+      }
+    };
+
+    const interval = setInterval(() => {
+      void evaluate();
+    }, SESSION_ACTIVITY.EVALUATION_INTERVAL_MS);
+
+    // A tab that was hidden has had its timers throttled, so the first thing to
+    // do on the way back is ask where the session stands. This replaces
+    // NextAuth's own refetch-on-focus, which ran outside the coordinator and
+    // was one half of the race that ended sessions.
+    const handleVisible = () => {
+      // Becoming visible is deliberately not treated as activity. Someone
+      // returning after an hour would otherwise reset the idle clock and be
+      // handed a session Keycloak had already discarded, which is the failure
+      // this whole file exists to avoid. Real activity follows within moments
+      // if they are actually there.
+      if (document.visibilityState === 'visible') void evaluate();
+    };
+
+    document.addEventListener('visibilitychange', handleVisible);
+    globalThis.addEventListener('focus', handleVisible);
+    void evaluate();
+
+    return () => {
+      disposed = true;
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisible);
+      globalThis.removeEventListener('focus', handleVisible);
+    };
+  }, [
+    status,
+    provider,
+    expiresAt,
+    update,
+    endSession,
+    recordActivity,
+    resolveLastActivity,
+  ]);
 
   // Sync organization ID header with every session change
   useEffect(() => {
@@ -191,89 +268,48 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
     }
   }, [status, session?.user?.defaultOrganizationId]);
 
-  // Reset logout flag when session becomes authenticated again
+  // Remember that this tab was signed in, and let a recovered session clear the
+  // guard so a later failure can be reported again.
   useEffect(() => {
-    if (status === 'authenticated' && !session?.error) {
-      isLoggingOut.current = false;
+    if (status !== 'authenticated') return;
+    wasAuthenticated.current = true;
+    if (!session?.error) isSigningOut.current = false;
+  }, [status, session?.error]);
+
+  // A session the server has marked as finished.
+  useEffect(() => {
+    if (status !== 'authenticated' || !session?.error) return;
+
+    if (session.error === 'SessionRevoked') {
+      endSession(
+        'Your session was ended',
+        'This account was signed out somewhere else. Please sign in again.'
+      );
+      return;
     }
-  }, [status, session]);
 
-  // Handle token refresh errors and session revocation
+    endSession(
+      'Your session has ended',
+      'We could not renew your sign-in. Please sign in again to continue.'
+    );
+  }, [status, session?.error, endSession]);
+
+  // The session went away without this component ending it.
+  //
+  // This is the case that cost a user their work: the session vanished, the app
+  // showed nothing, and every request failed silently behind a page that still
+  // looked signed in. Whatever the cause, the user is told.
   useEffect(() => {
-    if (status === 'authenticated' && session?.error && !isLoggingOut.current) {
-      isLoggingOut.current = true;
+    if (status !== 'unauthenticated') return;
+    if (!wasAuthenticated.current || isSigningOut.current) return;
 
-      if (session.error === 'RefreshAccessTokenError') {
-        logger.warn('Session: Token refresh failed, forcing logout');
-        toast.error('Session expired. Please login again.');
-      } else if (session.error === 'SessionRevoked') {
-        logger.warn('Session: Session revoked, forcing logout');
-        toast.error('Your session was terminated. Please login again.');
-      }
-
-      // Force logout and redirect to home page
-      signOut({ callbackUrl: '/' });
-    }
-  }, [session, status]);
-
-  // Monitor session expiration and show warnings
-  useEffect(() => {
-    if (status !== 'authenticated' || !session) return;
-
-    // Only for Keycloak sessions (credentials sessions are long-lived)
-    if (session.provider !== 'keycloak') return;
-
-    // Use sessionExpiresAt (Keycloak session timeout) instead of expiresAt (access token expiration)
-    // sessionExpiresAt tracks when the refresh token expires (~30 minutes)
-    // expiresAt tracks when the access token expires (~5 minutes); that one is
-    // kept alive by the access token refresh effect above, not by this check
-    const sessionExpiresAt = session.sessionExpiresAt;
-    if (!sessionExpiresAt) return; // No session expiration time available
-
-    const checkExpiration = () => {
-      const now = Date.now();
-      const timeUntilExpiry = sessionExpiresAt - now;
-      const minutesRemaining = Math.floor(timeUntilExpiry / 60_000);
-
-      // Session already expired - force logout
-      if (timeUntilExpiry <= 0 && !isLoggingOut.current) {
-        isLoggingOut.current = true;
-        logger.warn('Session: Session expired, forcing logout');
-        toast.error('Session expired. Please login again.');
-        signOut({ callbackUrl: '/' });
-        return;
-      }
-
-      // Final warning at configured threshold
-      if (minutesRemaining <= FINAL_WARNING_MINUTES && !hasShownFinalWarning) {
-        setHasShownFinalWarning(true);
-        toast.warning(
-          `Your session will expire in ${minutesRemaining} ${minutesRemaining === 1 ? 'minute' : 'minutes'}`,
-          {
-            description:
-              'Keep using the app to stay logged in, or your session will expire.',
-          }
-        );
-      }
-      // Initial warning at configured threshold
-      else if (
-        minutesRemaining <= INITIAL_WARNING_MINUTES &&
-        !hasShownWarning
-      ) {
-        setHasShownWarning(true);
-        toast.info(`Your session will expire in ${minutesRemaining} minutes`, {
-          description:
-            'Your session will automatically extend while you are active.',
-        });
-      }
-    };
-
-    // Check every minute
-    const interval = setInterval(checkExpiration, 60_000);
-    checkExpiration(); // Check immediately
-
-    return () => clearInterval(interval);
-  }, [session, status, hasShownWarning, hasShownFinalWarning]);
+    wasAuthenticated.current = false;
+    logger.warn('Session: session ended unexpectedly, signing out');
+    endSession(
+      'Your session has ended',
+      'Please sign in again to continue where you left off.'
+    );
+  }, [status, endSession]);
 
   return <>{children}</>;
 }
@@ -289,7 +325,13 @@ function FeaturePrefetcher({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    // NextAuth refetches the session whenever a tab becomes visible, which
+    // reaches the `jwt()` callback and can exchange the refresh token. That
+    // path is invisible to the coordinator every other refresh goes through,
+    // and it raced one, which is what revoked a user's session mid-form.
+    // SessionMonitor owns the visibility handling instead, so the refreshes all
+    // queue behind each other.
+    <SessionProvider refetchOnWindowFocus={false}>
       <SessionMonitor>
         <QueryProvider>
           <OrgCacheGuard>
