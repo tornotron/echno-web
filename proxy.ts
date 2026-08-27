@@ -33,14 +33,40 @@ const MARKETING_PATHS = new Set([
  * list (DO Spaces for echno.xyz, MinIO for echno.in). Falls back to an empty
  * list when unset, so the CSP degrades to `'self'` + Cloudflare only rather
  * than breaking the build.
+ *
+ * That fallback is a broken deployment, not a safe default: with no storage
+ * origin the browser blocks the presigned `PUT` before it is sent, and the
+ * user is told the file failed to upload with nothing recorded anywhere. It
+ * has shipped that way once already, so a production build without the
+ * variable now says so in the log.
  */
 function storageOrigins(): string[] {
   const raw = process.env.NEXT_PUBLIC_STORAGE_ORIGIN;
-  if (!raw) return [];
+  if (!raw) {
+    warnOnceAboutMissingStorageOrigin();
+    return [];
+  }
   return raw
     .split(',')
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0);
+}
+
+let storageOriginWarned = false;
+
+/**
+ * Reports the missing storage origin the first time a CSP is built, rather
+ * than on every request. Silent in development, where attachment uploads are
+ * not expected to reach a real object store.
+ */
+function warnOnceAboutMissingStorageOrigin(): void {
+  if (isDev || storageOriginWarned) return;
+  storageOriginWarned = true;
+  logger.error(
+    'NEXT_PUBLIC_STORAGE_ORIGIN is not set; the CSP will block direct-to-storage attachment uploads',
+    undefined,
+    { expected: 'the origin the backend signs upload URLs against' }
+  );
 }
 
 function buildCsp() {
