@@ -105,6 +105,8 @@ export function useSessionLifecycle({
   const lastActivityWriteRef = useRef<number>(0);
   /** Whether the idle warning is currently on screen. */
   const isWarningShown = useRef(false);
+  /** Which session the refs above are describing. */
+  const clockSessionRef = useRef<string | undefined>(undefined);
 
   /**
    * Which session the activity clock belongs to.
@@ -176,6 +178,28 @@ export function useSessionLifecycle({
     },
     [notify, signOut]
   );
+
+  // Start a new session with a clean clock.
+  //
+  // The shared timestamp is scoped to a session id, but the refs above are not,
+  // and this hook stays mounted while `useSession()` swaps one session for the
+  // next. Left alone, the new session inherits the old one's idleness as the
+  // fallback `resolveLastActivity` reads, and can land straight in a warning or
+  // a sign-out seconds after the user signed back in. Declared ahead of every
+  // effect that reads these refs so the reset lands first on the commit that
+  // changes the id.
+  useEffect(() => {
+    if (clockSessionRef.current === sessionId) return;
+
+    clockSessionRef.current = sessionId;
+    lastActivityRef.current = 0;
+    lastActivityWriteRef.current = 0;
+
+    if (isWarningShown.current) {
+      isWarningShown.current = false;
+      notify.dismiss(IDLE_WARNING_TOAST_ID);
+    }
+  }, [sessionId, notify]);
 
   // Track activity. The listeners are passive and the shared write is
   // debounced, so a mousemove costs a timestamp comparison.
