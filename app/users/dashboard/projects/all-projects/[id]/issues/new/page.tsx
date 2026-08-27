@@ -8,7 +8,6 @@ import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateIssue } from '@tornotron/echno-core/issue/hooks';
 import { useUser, useUserEmployees } from '@tornotron/echno-core/user/hooks';
-import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
@@ -51,7 +50,7 @@ export default function NewIssuePage({ params }: PageProps) {
       title: data.fields.title,
       description: data.fields.description,
       issueType: data.fields.issueType,
-      status: data.isDraft ? IssueStatus.open : data.fields.status,
+      status: data.fields.status,
       projectId: Number.parseInt(projectId),
       taskId: data.fields.taskId ? Number(data.fields.taskId) : undefined,
       creatorId: currentEmployee.id,
