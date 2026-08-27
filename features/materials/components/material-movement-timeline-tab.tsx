@@ -353,6 +353,14 @@ function TimelineRow({
             </span>
           )}
         </div>
+
+        <div className="mt-1 text-xs text-zinc-400 tabular-nums dark:text-zinc-500">
+          Balance: {entry.openingStock.toLocaleString('en-IN')} →{' '}
+          <span className="font-medium text-zinc-600 dark:text-zinc-300">
+            {entry.closingStock.toLocaleString('en-IN')} {unit}
+          </span>
+          {entry.createdByName ? <> · by {entry.createdByName}</> : null}
+        </div>
       </div>
     </li>
   );
