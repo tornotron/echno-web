@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/shadcn/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
 import {
   Card,
   CardContent,
@@ -29,7 +30,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
-import { UserCheck, UserX, Users } from 'lucide-react';
+import { AlertTriangle, UserCheck, UserX, Users } from 'lucide-react';
 import {
   Empty,
   EmptyDescription,
@@ -54,6 +55,19 @@ import {
 } from '@tornotron/echno-core/attendance/hooks';
 import { ClockEventType } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
+import { getErrorMessage } from '@/lib/utils/error-helpers';
+import {
+  buildEventTimestamp,
+  canClockIn,
+  canClockOut,
+  describeCaptureBlock,
+  isSelectableState,
+  resolveTeamMemberState,
+  summarizeBulkOutcome,
+  teamMemberStateLabel,
+  type BulkAttempt,
+  type TeamMemberState,
+} from '../lib/team-marking';
 
 export function MarkAttendanceForm() {
   const [selectedProject, setSelectedProject] = useState<string>('');
@@ -115,16 +129,41 @@ export function MarkAttendanceForm() {
     clockEventMutation.isPending;
 
   // Map attendance records by employeeId for status lookup.
-  const attendanceByEmployee = new Map(
-    (pagedResult?.content ?? []).map((a) => [a.employeeId, a])
+  const attendanceByEmployee = useMemo(
+    () => new Map((pagedResult?.content ?? []).map((a) => [a.employeeId, a])),
+    [pagedResult]
   );
 
+  const stateOf = (employeeId: number): TeamMemberState =>
+    resolveTeamMemberState(attendanceByEmployee.get(employeeId));
+
+  const nameOf = (employeeId: number): string =>
+    members.find((m) => m.id === employeeId)?.name ?? `#${employeeId}`;
+
+  // Rows a supervisor can still act on. A completed day and a leave day are
+  // terminal, so they are shown but locked.
+  const selectableMembers = members.filter((m) => isSelectableState(stateOf(m.id)));
+
+  // Split the ticked rows by the action each one is actually eligible for, so
+  // each button counts what it will really submit rather than the raw tick
+  // count.
+  const clockInTargets = [...selectedEmployees].filter((id) =>
+    canClockIn(stateOf(id))
+  );
+  const clockOutTargets = [...selectedEmployees].filter((id) =>
+    canClockOut(stateOf(id))
+  );
+
+  // The team screen marks attendance on other people's behalf from a desk, so
+  // it can supply neither a selfie nor coordinates. When the project demands
+  // either, every request would 400; say so before anything is submitted.
+  const effectiveSettings = projectSettings ?? orgSettings;
+  const captureBlock = describeCaptureBlock(effectiveSettings);
+
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedEmployees(new Set(members.map((m) => m.id)));
-    } else {
-      setSelectedEmployees(new Set());
-    }
+    setSelectedEmployees(
+      checked ? new Set(selectableMembers.map((m) => m.id)) : new Set()
+    );
   };
 
   const handleSelectEmployee = (employeeId: number, checked: boolean) => {
@@ -137,9 +176,57 @@ export function MarkAttendanceForm() {
     setSelectedEmployees(newSelected);
   };
 
+  /**
+   * Runs one attempt per employee and reports what actually happened.
+   *
+   * Every attempt is settled independently so one rejection does not hide the
+   * rest, and the outcome distinguishes a clean run from a partial one and from
+   * a run in which nothing succeeded.
+   */
+  const runBulkAction = async (
+    action: string,
+    targets: number[],
+    attempt: (employeeId: number) => Promise<unknown>
+  ) => {
+    const results = await Promise.allSettled(
+      targets.map((employeeId) => attempt(employeeId))
+    );
+    const attempts: BulkAttempt[] = results.map((result, index) => ({
+      employeeId: targets[index],
+      name: nameOf(targets[index]),
+      ok: result.status === 'fulfilled',
+      reason:
+        result.status === 'rejected'
+          ? getErrorMessage(result.reason)
+          : undefined,
+    }));
+
+    const outcome = summarizeBulkOutcome(action, attempts);
+    if (outcome.level === 'success') {
+      toast.success(outcome.title);
+    } else if (outcome.level === 'partial') {
+      toast.warning(outcome.title, { description: outcome.description });
+    } else {
+      toast.error(outcome.title, { description: outcome.description });
+    }
+
+    // Keep whoever failed ticked so the operator can retry them once the
+    // blocking condition is dealt with.
+    setSelectedEmployees(
+      new Set(attempts.filter((a) => !a.ok).map((a) => a.employeeId))
+    );
+    if (outcome.level === 'success') setRemarks('');
+  };
+
   const handleMarkClockIn = async () => {
-    if (selectedEmployees.size === 0) {
-      toast.error('Please select at least one employee');
+    if (clockInTargets.length === 0) {
+      toast.error('Select at least one employee who has not clocked in yet');
+      return;
+    }
+    if (captureBlock) {
+      toast.error('Bulk marking is not allowed for this project', {
+        description: captureBlock,
+      });
       return;
     }
     if (!resolvedShiftTimingId) {
@@ -149,15 +236,17 @@ export function MarkAttendanceForm() {
       return;
     }
 
-    const [hours, minutes] = clockInTime.split(':').map(Number);
-    const eventTimestamp = new Date(`${selectedDate}T${clockInTime}:00`);
-    eventTimestamp.setHours(hours, minutes, 0, 0);
+    const eventTimestamp = buildEventTimestamp(selectedDate, clockInTime);
+    if (!eventTimestamp) {
+      toast.error('Enter a valid clock-in date and time');
+      return;
+    }
 
-    const promises = [...selectedEmployees].map((empId) => {
+    await runBulkAction('Clock-in', clockInTargets, (empId) => {
       const existing = attendanceByEmployee.get(empId);
-      if (existing?.morningClockIn) return Promise.resolve(); // already clocked in
       if (existing) {
-        // Attendance record exists but no clock-in yet — add the event
+        // A record exists for the day but carries no clock-in yet, so the event
+        // is appended to it rather than creating a second record.
         return clockEventMutation.mutateAsync({
           attendanceId: existing.id,
           eventType: ClockEventType.morningClockIn,
@@ -165,7 +254,6 @@ export function MarkAttendanceForm() {
           remarks,
         });
       }
-      // No record yet — use check-in endpoint
       return checkInMutation.mutateAsync({
         employeeId: empId,
         projectId: Number(selectedProject),
@@ -174,64 +262,65 @@ export function MarkAttendanceForm() {
         remarks,
       });
     });
-
-    Promise.allSettled(promises).then((results) => {
-      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
-      toast.success(`Clock-in marked for ${succeeded} employee(s)`);
-      setSelectedEmployees(new Set());
-      setRemarks('');
-    });
   };
 
   const handleMarkClockOut = async () => {
-    if (selectedEmployees.size === 0) {
-      toast.error('Please select at least one employee');
-      return;
-    }
-
-    const eventTimestamp = new Date(`${selectedDate}T${clockOutTime}:00`);
-
-    const promises = [...selectedEmployees]
-      .map((empId) => {
-        const existing = attendanceByEmployee.get(empId);
-        if (!existing || existing.eveningClockOut) return null; // no record or already clocked out
-        return clockEventMutation.mutateAsync({
-          attendanceId: existing.id,
-          eventType: ClockEventType.eveningClockOut,
-          eventTimestamp,
-          remarks,
-        });
-      })
-      .filter(Boolean);
-
-    if (promises.length === 0) {
+    if (clockOutTargets.length === 0) {
       toast.error(
-        'No eligible employees to clock out (must be clocked in first)'
+        'Select at least one employee who is clocked in and not yet clocked out'
       );
       return;
     }
+    if (captureBlock) {
+      toast.error('Bulk marking is not allowed for this project', {
+        description: captureBlock,
+      });
+      return;
+    }
 
-    Promise.allSettled(promises).then((results) => {
-      const succeeded = results.filter((r) => r.status === 'fulfilled').length;
-      toast.success(`Clock-out marked for ${succeeded} employee(s)`);
-      setSelectedEmployees(new Set());
-      setRemarks('');
+    const eventTimestamp = buildEventTimestamp(selectedDate, clockOutTime);
+    if (!eventTimestamp) {
+      toast.error('Enter a valid clock-out date and time');
+      return;
+    }
+
+    // A clock-out before the recorded clock-in would produce a negative work
+    // duration, so it is refused here rather than written and corrected later.
+    const tooEarly = clockOutTargets.filter((empId) => {
+      const clockIn = attendanceByEmployee.get(empId)?.morningClockIn?.timestamp;
+      return clockIn !== undefined && eventTimestamp <= clockIn;
     });
+    if (tooEarly.length > 0) {
+      toast.error('Clock-out time is not after the recorded clock-in', {
+        description: `Affects ${tooEarly.map((id) => nameOf(id)).join(', ')}.`,
+      });
+      return;
+    }
+
+    await runBulkAction('Clock-out', clockOutTargets, (empId) =>
+      clockEventMutation.mutateAsync({
+        attendanceId: attendanceByEmployee.get(empId)!.id,
+        eventType: ClockEventType.eveningClockOut,
+        eventTimestamp,
+        remarks,
+      })
+    );
   };
 
-  const getStatusBadge = (status?: string) => {
-    switch (status) {
-      case 'present': {
-        return <Badge className="bg-green-500">Clocked Out</Badge>;
+  const getStatusBadge = (state: TeamMemberState) => {
+    const label = teamMemberStateLabel(state);
+    switch (state) {
+      case 'clockedOut': {
+        return <Badge className="bg-green-500">{label}</Badge>;
       }
-      case 'clocked-in': {
-        return <Badge className="bg-blue-500">Clocked In</Badge>;
+      case 'clockedIn': {
+        return <Badge className="bg-blue-500">{label}</Badge>;
       }
-      case 'absent': {
-        return <Badge variant="destructive">Absent</Badge>;
+      case 'onLeave': {
+        return <Badge className="bg-amber-500">{label}</Badge>;
       }
       default: {
-        return <Badge variant="secondary">Not Marked</Badge>;
+        return <Badge variant="secondary">{label}</Badge>;
       }
     }
   };
@@ -300,11 +389,14 @@ export function MarkAttendanceForm() {
                     <TableHead className="w-12">
                       <Checkbox
                         checked={
-                          members.length > 0 &&
-                          selectedEmployees.size === members.length
+                          selectableMembers.length > 0 &&
+                          selectableMembers.every((m) =>
+                            selectedEmployees.has(m.id)
+                          )
                         }
                         onCheckedChange={handleSelectAll}
-                        disabled={loading || members.length === 0}
+                        disabled={loading || selectableMembers.length === 0}
+                        aria-label="Select all employees who can still be marked"
                       />
                     </TableHead>
                     <TableHead>Employee ID</TableHead>
@@ -345,25 +437,23 @@ export function MarkAttendanceForm() {
                   ) : (
                     members.map((member) => {
                       const record = attendanceByEmployee.get(member.id);
-                      const clockedIn = !!record?.morningClockIn;
-                      const clockedOut = !!record?.eveningClockOut;
-                      const currentStatus = clockedOut
-                        ? 'present'
-                        : clockedIn
-                          ? 'clocked-in'
-                          : 'not-marked';
+                      const state = resolveTeamMemberState(record);
+                      const selectable = isSelectableState(state);
                       return (
                         <TableRow key={member.id}>
                           <TableCell>
                             <Checkbox
-                              checked={selectedEmployees.has(member.id)}
+                              checked={
+                                selectable && selectedEmployees.has(member.id)
+                              }
                               onCheckedChange={(checked) =>
                                 handleSelectEmployee(
                                   member.id,
                                   checked as boolean
                                 )
                               }
-                              disabled={loading}
+                              disabled={loading || !selectable}
+                              aria-label={`Select ${member.name}`}
                             />
                           </TableCell>
                           <TableCell className="font-medium">
@@ -375,7 +465,7 @@ export function MarkAttendanceForm() {
                               {member.designation || '—'}
                             </span>
                           </TableCell>
-                          <TableCell>{getStatusBadge(currentStatus)}</TableCell>
+                          <TableCell>{getStatusBadge(state)}</TableCell>
                           <TableCell>
                             {record?.morningClockIn
                               ? format(record.morningClockIn.timestamp, 'HH:mm')
@@ -411,6 +501,14 @@ export function MarkAttendanceForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {captureBlock && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Bulk marking is blocked for this project</AlertTitle>
+                <AlertDescription>{captureBlock}</AlertDescription>
+              </Alert>
+            )}
+
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="clockInTime">Clock-In Time</Label>
@@ -450,23 +548,36 @@ export function MarkAttendanceForm() {
             <div className="flex flex-wrap gap-3">
               <Button
                 onClick={handleMarkClockIn}
-                disabled={loading || selectedEmployees.size === 0}
+                disabled={
+                  loading || !!captureBlock || clockInTargets.length === 0
+                }
                 className="flex items-center gap-2"
               >
                 <UserCheck className="h-4 w-4" />
-                Mark Clock-In ({selectedEmployees.size} selected)
+                Mark Clock-In ({clockInTargets.length} selected)
               </Button>
 
               <Button
                 onClick={handleMarkClockOut}
-                disabled={loading || selectedEmployees.size === 0}
+                disabled={
+                  loading || !!captureBlock || clockOutTargets.length === 0
+                }
                 variant="secondary"
                 className="flex items-center gap-2"
               >
                 <UserX className="h-4 w-4" />
-                Mark Clock-Out ({selectedEmployees.size} selected)
+                Mark Clock-Out ({clockOutTargets.length} selected)
               </Button>
             </div>
+
+            {selectedEmployees.size > 0 &&
+              clockInTargets.length + clockOutTargets.length <
+                selectedEmployees.size && (
+                <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                  Some selected employees have already completed the day and
+                  will be skipped.
+                </p>
+              )}
           </CardContent>
         </Card>
       )}
