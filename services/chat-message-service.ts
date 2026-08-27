@@ -33,7 +33,7 @@ export const chatMessageService = {
       const rows: Raw[] = Array.isArray(data) ? data : (data?.content ?? []);
       const parsed = rows.map((row) => parseChatMessage(row));
       // Page is newest-first; reverse to chronological (oldest-first) for display.
-      return parsed.reverse();
+      return parsed.toReversed();
     } catch (error) {
       logger.error(`Failed to fetch messages for room ${roomId}:`, error);
       throw error;

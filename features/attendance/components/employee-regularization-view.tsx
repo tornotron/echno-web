@@ -52,8 +52,7 @@ import type { RegularizationDetail } from '@tornotron/echno-core/attendance/type
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = ['all', 'pending', 'approved', 'rejected'] as const;
-type FilterStatus = (typeof STATUS_OPTIONS)[number];
+type FilterStatus = 'all' | 'pending' | 'approved' | 'rejected';
 
 function statusVariant(
   status: string

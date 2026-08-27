@@ -53,7 +53,6 @@ export default function NewInvoicePage() {
   const { data: costCategories = [] } = useCostCategories(true);
   const { mutate: createInvoice, isPending } = useCreateInvoice();
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [lineItems, setLineItems] = useState<InvoiceLineDraft[]>([
     {
       id: crypto.randomUUID(),
@@ -99,7 +98,6 @@ export default function NewInvoicePage() {
     const newErrors: Record<string, string> = {};
     if (!formData.projectId) newErrors.projectId = 'Project is required';
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
       toast.error('Please fix the errors in the form');
       return;
     }
@@ -149,12 +147,6 @@ export default function NewInvoicePage() {
     value: string | number
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => {
-      if (!prev[field]) return prev;
-      const next = { ...prev };
-      delete next[field];
-      return next;
-    });
   };
 
   const handleLineItemChange = (

@@ -57,6 +57,12 @@ export default function BudgetsPage() {
   const costControlLoading = costControlQueries.some((q) => q.isLoading);
   const isLoading = projectsLoading || (projects.length > 0 && costControlLoading);
 
+  // costControlQueries is a fresh array each render, so the memo below depends on
+  // the projects and on this snapshot of when each query last settled instead.
+  const costControlSettledAt = costControlQueries
+    .map((q) => q.dataUpdatedAt)
+    .join(',');
+
   const rows: ProjectBudgetRow[] = useMemo(() => {
     return projects.map((project, index) => {
       const query = costControlQueries[index];
@@ -78,22 +84,18 @@ export default function BudgetsPage() {
         isError: query?.isError ?? false,
       };
     });
-    // costControlQueries is a fresh array each render; depend on the projects
-    // and the settled data snapshot instead.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projects, costControlQueries.map((q) => q.dataUpdatedAt).join(',')]);
+  }, [projects, costControlSettledAt]);
 
   const orgTotals = useMemo(() => {
-    return rows.reduce(
-      (acc, row) => {
-        acc.allocated += row.allocated;
-        acc.committed += row.committed;
-        acc.spent += row.spent;
-        acc.remaining += row.remaining;
-        return acc;
-      },
-      { allocated: 0, committed: 0, spent: 0, remaining: 0 }
-    );
+    const totals = { allocated: 0, committed: 0, spent: 0, remaining: 0 };
+    for (const row of rows) {
+      totals.allocated += row.allocated;
+      totals.committed += row.committed;
+      totals.spent += row.spent;
+      totals.remaining += row.remaining;
+    }
+    return totals;
   }, [rows]);
 
   const overBudgetCount = rows.filter((row) => row.overBudget).length;
