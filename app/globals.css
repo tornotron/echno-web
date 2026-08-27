@@ -153,8 +153,17 @@
  * Base element defaults and app-wide typography scaling.
  */
 @layer base {
+  /**
+   * Root font size for the whole app. Every Tailwind size utility is
+   * rem-based, so this one percentage scales type, spacing and control
+   * heights together and keeps the relative typography untouched.
+   *
+   * A percentage (rather than a px value) keeps the browser's own default
+   * font size in play, so a reader who has raised it still gets a larger UI.
+   * 93.75% of a default 16px browser root is 15px.
+   */
   html {
-    font-size: 85%;
+    font-size: 93.75%;
   }
   * {
     @apply border-border outline-ring/50;
