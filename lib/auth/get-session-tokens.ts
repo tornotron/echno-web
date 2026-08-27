@@ -48,6 +48,10 @@ export async function getSessionTokens() {
     sessionId: token.sessionId as string | undefined,
     expiresAt: token.expiresAt as number | undefined,
     error: token.error as string | undefined,
+    // When the server last saw the client assert that a user was present. The
+    // idle deadline is measured from this rather than from browser storage,
+    // because a caller that is not our client never advances it.
+    lastActivityAt: token.lastActivityAt as number | undefined,
     defaultOrganizationId: token.defaultOrganizationId as string | undefined,
 
     // Token material — server-side only; never returned to the browser.

@@ -5,6 +5,7 @@ import {
   clearLastActivity,
   writeLastActivity,
 } from '@/lib/auth/session-activity';
+import { SESSION_ACTIVITY_UPDATE } from '@/lib/auth/session-idle';
 import {
   useSessionLifecycle,
   type LifecycleSession,
@@ -26,6 +27,8 @@ const SESSION_ID = 'a97de708-bfbd-4414-bb04-c92896c7a178';
 interface Recorder {
   signOuts: unknown[];
   updates: number;
+  /** What each session round trip carried, so an assertion can be told apart. */
+  updatePayloads: unknown[];
   errors: { message: string; description: string }[];
   warnings: { message: string; description: string; action: () => void }[];
   dismissals: string[];
@@ -35,6 +38,7 @@ function recorder(): Recorder {
   return {
     signOuts: [],
     updates: 0,
+    updatePayloads: [],
     errors: [],
     warnings: [],
     dismissals: [],
@@ -69,8 +73,9 @@ function options(
   return {
     session,
     status,
-    update: async () => {
+    update: async (data?: unknown) => {
       log.updates++;
+      log.updatePayloads.push(data);
     },
     signOut: (arguments_) => log.signOuts.push(arguments_),
     notify: {
@@ -276,5 +281,52 @@ describe('a new session arriving in a tab that never unmounted', () => {
     // while the previous session's "already warned" flag was still set.
     await waitFor(() => expect(log.warnings).toHaveLength(2));
     expect(log.signOuts).toHaveLength(0);
+  });
+});
+
+describe('the idle deadline the server keeps', () => {
+  test('the first evaluation tells the server somebody is here', async () => {
+    // Without this the token's clock never starts, and the server would be
+    // deciding the deadline from a field nothing ever wrote.
+    const log = recorder();
+    renderHook(() => useSessionLifecycle(options(log, liveSession())));
+
+    await waitFor(() => expect(log.updatePayloads).toHaveLength(1));
+    expect(log.updatePayloads[0]).toEqual(SESSION_ACTIVITY_UPDATE);
+  });
+
+  test('a keep-alive with nothing new to report does not renew it', async () => {
+    // The distinction the whole mechanism rests on. The keep-alive runs on a
+    // timer, so if it renewed the deadline an abandoned tab would hold its own
+    // session open for as long as the browser stayed open.
+    const log = recorder();
+    const { rerender } = renderHook(
+      (props: SessionLifecycleOptions) => useSessionLifecycle(props),
+      { initialProps: options(log, liveSession()) }
+    );
+
+    await waitFor(() => expect(log.updatePayloads).toHaveLength(1));
+
+    // The access token rotated into its refresh window with nobody touching
+    // anything in between.
+    rerender(
+      options(log, liveSession({ expiresAt: Date.now() + 10 * 1000 }))
+    );
+
+    await waitFor(() => expect(log.updatePayloads).toHaveLength(2));
+    expect(log.updatePayloads[1]).toBeUndefined();
+  });
+
+  test('staying signed in from the warning renews it', async () => {
+    const log = recorder();
+    writeLastActivity(SESSION_ID, idleIntoWarning());
+    renderHook(() => useSessionLifecycle(options(log, liveSession())));
+
+    await waitFor(() => expect(log.warnings).toHaveLength(1));
+    log.updatePayloads.length = 0;
+    log.warnings[0].action();
+
+    await waitFor(() => expect(log.updatePayloads).toHaveLength(1));
+    expect(log.updatePayloads[0]).toEqual(SESSION_ACTIVITY_UPDATE);
   });
 });

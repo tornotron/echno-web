@@ -32,6 +32,12 @@ declare module 'next-auth/jwt' {
     expiresAt?: number;
     sessionExpiresAt?: number;
     lastRefresh?: number;
+    /**
+     * When the server last saw the client assert that a user was present.
+     * The idle deadline is measured from here rather than from browser
+     * storage, which is why it lives on the encrypted token.
+     */
+    lastActivityAt?: number;
     error?: string;
     sessionId?: string;
   }

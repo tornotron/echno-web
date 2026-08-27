@@ -75,6 +75,39 @@ export const SESSION_ACTIVITY = {
   ACTIVITY_DEBOUNCE_MS: 10 * 1000,
 
   /**
+   * How often an active client pushes its activity clock to the session token.
+   *
+   * The browser's own timestamp is not something the server can verify, so the
+   * deadline is kept on the encrypted JWT and advanced by a session update. The
+   * cadence is owned here rather than inherited from the access token lifetime,
+   * which is realm configuration and can change without anyone touching this
+   * repo. Every number below that depends on how stale the token's copy can be
+   * is derived from this one.
+   *
+   * Five minutes costs one extra round trip per active user per five minutes,
+   * and most of those coincide with a token refresh that was happening anyway.
+   */
+  SERVER_SYNC_INTERVAL_MS: 5 * 60 * 1000,
+
+  /**
+   * Extra idle time the BFF proxy allows on top of {@link IDLE_SIGN_OUT_MS}.
+   *
+   * The proxy never runs the `jwt()` callback, so it reads whatever the last
+   * session update wrote and nothing newer. For someone working right now that
+   * is one {@link SERVER_SYNC_INTERVAL_MS} stale by construction, and staler if
+   * a sync failed and was retried a tick or two later. Two intervals covers
+   * both: one for the staleness that is there by design, one for a push that
+   * did not land the first time.
+   *
+   * Erring generous here is deliberate. Refusing a request from someone at the
+   * keyboard is a worse failure than an idle window that runs ten minutes long,
+   * and the proxy is not what enforces the deadline anyway: see
+   * `isIdlePastProxyGrace` in `session-idle.ts` for why this is a backstop and
+   * never the binding constraint.
+   */
+  PROXY_IDLE_GRACE_MS: 10 * 60 * 1000,
+
+  /**
    * Where the last activity timestamp is shared.
    *
    * Every tab on the profile shares one session, so activity in any of them
