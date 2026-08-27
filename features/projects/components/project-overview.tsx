@@ -145,57 +145,25 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
   return (
     <Card className="gap-0 p-6">
       <div className="divide-border grid grid-cols-1 divide-y sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-        {/* Donut chart — status distribution */}
-        <div className="flex items-center justify-center gap-4 py-6 sm:py-0 sm:pr-8">
-          <ChartContainer
-            config={STATUS_CHART_CONFIG}
-            className="h-[120px] w-[120px] shrink-0"
-          >
-            <PieChart>
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel nameKey="key" />}
-              />
-              <Pie
-                data={statusChartData}
-                dataKey="value"
-                nameKey="key"
-                innerRadius={34}
-                outerRadius={46}
-                strokeWidth={5}
+        {/* Quick Actions */}
+        <div className="py-6 sm:py-0 sm:pr-8">
+          <p className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            Quick Actions
+          </p>
+          <div className="space-y-1">
+            {QUICK_ACTIONS.map((action) => (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="group hover:bg-muted/60 flex items-center gap-2.5 rounded-md px-3 py-2.5 transition-colors"
               >
-                <Label
-                  content={({ viewBox }) => {
-                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                      return (
-                        <text
-                          x={viewBox.cx}
-                          y={viewBox.cy}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                        >
-                          <tspan
-                            x={viewBox.cx}
-                            y={viewBox.cy}
-                            className="fill-foreground text-[13px] font-bold"
-                          >
-                            {pct}%
-                          </tspan>
-                        </text>
-                      );
-                    }
-                  }}
-                />
-              </Pie>
-            </PieChart>
-          </ChartContainer>
-          <div>
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-              {openCount} of {total}
-            </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Projects Active
-            </p>
+                <action.icon className="size-4 shrink-0 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100" />
+                <span className="flex-1 text-sm text-zinc-700 dark:text-zinc-300">
+                  {action.label}
+                </span>
+                <ChevronRight className="size-3.5 text-zinc-400" />
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -245,25 +213,57 @@ export function ProjectOverview({ projects }: ProjectOverviewProps) {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="py-6 sm:py-0 sm:pl-8">
-          <p className="mb-4 text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-            Quick Actions
-          </p>
-          <div className="space-y-1">
-            {QUICK_ACTIONS.map((action) => (
-              <Link
-                key={action.label}
-                href={action.href}
-                className="group hover:bg-muted/60 flex items-center gap-2.5 rounded-md px-3 py-2.5 transition-colors"
+        {/* Donut chart — status distribution */}
+        <div className="flex items-center justify-center gap-4 py-6 sm:py-0 sm:pl-8">
+          <ChartContainer
+            config={STATUS_CHART_CONFIG}
+            className="h-[120px] w-[120px] shrink-0"
+          >
+            <PieChart>
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent hideLabel nameKey="key" />}
+              />
+              <Pie
+                data={statusChartData}
+                dataKey="value"
+                nameKey="key"
+                innerRadius={34}
+                outerRadius={46}
+                strokeWidth={5}
               >
-                <action.icon className="size-4 shrink-0 text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100" />
-                <span className="flex-1 text-sm text-zinc-700 dark:text-zinc-300">
-                  {action.label}
-                </span>
-                <ChevronRight className="size-3.5 text-zinc-400" />
-              </Link>
-            ))}
+                <Label
+                  content={({ viewBox }) => {
+                    if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                      return (
+                        <text
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                        >
+                          <tspan
+                            x={viewBox.cx}
+                            y={viewBox.cy}
+                            className="fill-foreground text-[13px] font-bold"
+                          >
+                            {pct}%
+                          </tspan>
+                        </text>
+                      );
+                    }
+                  }}
+                />
+              </Pie>
+            </PieChart>
+          </ChartContainer>
+          <div>
+            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+              {openCount} of {total}
+            </p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Projects Active
+            </p>
           </div>
         </div>
       </div>
