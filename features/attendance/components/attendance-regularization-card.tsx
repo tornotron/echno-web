@@ -53,12 +53,9 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
   const requestMutation = useRequestRegularization();
   const processMutation = useProcessRegularization();
 
-  // The employee surrogate id backing the "Requested By" filter link. Not yet
-  // part of the published echno-core regularization DTO, so read defensively;
-  // the link appears once echno-core exposes and parses `requestedById`.
-  const regRequestedById = (
-    attendance.regularization as { requestedById?: number } | undefined
-  )?.requestedById;
+  // The employee surrogate id backing the "Requested By" filter link. The link
+  // appears when the backend returns it (echno-core parses it into the DTO).
+  const regRequestedById = attendance.regularization?.requestedById;
 
   // Request dialog state
   const [regDialogOpen, setRegDialogOpen] = useState(false);
@@ -307,6 +304,20 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                     {attendance.regularization.rejectionReason}
                   </p>
                 )}
+                {attendance.regularization.status !== 'pending' &&
+                  attendance.regularization.approvedBy && (
+                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-500">
+                      {attendance.regularization.status === 'approved'
+                        ? 'Approved'
+                        : 'Rejected'}{' '}
+                      by {attendance.regularization.approvedBy}
+                      {attendance.regularization.approvedAt &&
+                        ` · ${format(
+                          attendance.regularization.approvedAt,
+                          'MMM d, yyyy h:mm a'
+                        )}`}
+                    </p>
+                  )}
               </div>
             </div>
 
@@ -317,7 +328,7 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
               <div className="flex flex-wrap gap-2">
                 {attendance.regularization.missingEvents.map((event, index) => (
                   <Badge key={index} variant="outline">
-                    {event}
+                    {event.replaceAll('_', ' ')}
                   </Badge>
                 ))}
               </div>

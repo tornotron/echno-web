@@ -67,18 +67,6 @@ import {
 } from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
 
-/**
- * Regularization row enriched with the employee surrogate ids the backend now
- * returns (`requestedById`, `approvedById`). These are not yet part of the
- * published `@tornotron/echno-core` regularization DTO/parser, so they are
- * declared web-side; the employee-filter links activate once echno-core exposes
- * and parses them.
- */
-type RegularizationRow = RegularizationDetail & {
-  requestedById?: number;
-  approvedById?: number;
-};
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RegularizationManagement({
@@ -93,9 +81,8 @@ export function RegularizationManagement({
     currentEmployee?.name ?? currentEmployee?.employeeId ?? 'manager';
 
   // Data
-  const { data: rawRegularizations = [], isLoading } =
+  const { data: regularizations = [], isLoading } =
     usePendingRegularizations();
-  const regularizations = rawRegularizations as RegularizationRow[];
   const processMutation = useProcessRegularization();
   const {
     employeeId,
