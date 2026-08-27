@@ -6,6 +6,7 @@ import {
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
 import { isAccessTokenExpired } from '@/lib/auth/token-refresh-schedule';
+import { isIdlePastProxyGrace } from '@/lib/auth/session-idle';
 import { logger } from '@/lib/logger';
 
 // Server-side only env var (not exposed to client)
@@ -130,6 +131,27 @@ async function proxyRequest(
   // never exposed to the browser — `getSessionTokens` decrypts the cookie that
   // rode in with this request and gives us the access token to forward upstream.
   const tokens = await getSessionTokens();
+
+  // The idle deadline, as far as this path can see it. Nothing else here would
+  // stop a cookie being replayed indefinitely: the proxy never runs `jwt()`, so
+  // no client-side inactivity rule reaches it, and Keycloak's own idle timer
+  // resets on every refresh rather than on every use.
+  //
+  // The deadline it reads was written by the last session update, so it is
+  // always somewhat behind a user who is working right now, and the allowance
+  // for that is generous on purpose. See `isIdlePastProxyGrace` for the size of
+  // the gap and why paying for it costs nothing real.
+  if (isIdlePastProxyGrace(tokens?.lastActivityAt, Date.now())) {
+    logger.warn('BFF: rejecting request for a session idle past its deadline', {
+      sessionId: tokens?.sessionId
+        ? tokens.sessionId.slice(0, 10) + '...'
+        : undefined,
+    });
+    return NextResponse.json(
+      { error: SESSION_TOKEN_EXPIRED_ERROR },
+      { status: 401 }
+    );
+  }
 
   // getSessionTokens skips the NextAuth `jwt()` callback (which is where
   // revocation is normally checked) — so we must check explicitly here.

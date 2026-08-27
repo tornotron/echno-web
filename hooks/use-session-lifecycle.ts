@@ -12,6 +12,10 @@ import {
   writeLastActivity,
 } from '@/lib/auth/session-activity';
 import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
+import {
+  SESSION_ACTIVITY_UPDATE,
+  isActivitySyncDue,
+} from '@/lib/auth/session-idle';
 
 /** Events that count as the user being at the machine. */
 const ACTIVITY_EVENTS = [
@@ -53,8 +57,14 @@ export interface SessionNotifier {
 export interface SessionLifecycleOptions {
   session: LifecycleSession | null | undefined;
   status: 'loading' | 'authenticated' | 'unauthenticated';
-  /** Runs the session round trip that refreshes the cookie. */
-  update: () => Promise<unknown>;
+  /**
+   * Runs the session round trip that refreshes the cookie.
+   *
+   * Called with {@link SESSION_ACTIVITY_UPDATE} when the round trip should also
+   * advance the idle deadline the server keeps, and with nothing when it is
+   * only renewing the access token.
+   */
+  update: (data?: unknown) => Promise<unknown>;
   /** Ends the session. */
   signOut: (options: { callbackUrl: string }) => unknown;
   notify: SessionNotifier;
@@ -105,6 +115,10 @@ export function useSessionLifecycle({
   const lastActivityWriteRef = useRef<number>(0);
   /** Whether the idle warning is currently on screen. */
   const isWarningShown = useRef(false);
+  /** The activity value the server has already been told about. */
+  const syncedActivityRef = useRef<number>(0);
+  /** When that was last pushed, so the round trips stay to a cadence. */
+  const syncedActivityAtRef = useRef<number>(0);
   /** Which session the refs above are describing. */
   const clockSessionRef = useRef<string | undefined>(undefined);
 
@@ -194,6 +208,8 @@ export function useSessionLifecycle({
     clockSessionRef.current = sessionId;
     lastActivityRef.current = 0;
     lastActivityWriteRef.current = 0;
+    syncedActivityRef.current = 0;
+    syncedActivityAtRef.current = 0;
 
     if (isWarningShown.current) {
       isWarningShown.current = false;
@@ -229,14 +245,37 @@ export function useSessionLifecycle({
 
     let disposed = false;
 
-    const keepAlive = async () => {
+    /**
+     * Runs the session round trip, optionally carrying the activity assertion.
+     *
+     * The assertion is what advances the idle deadline the server keeps on the
+     * token. The `localStorage` clock stays the fast local signal that drives
+     * the warning and the cross-tab coordination; it is simply no longer the
+     * thing anything on the server trusts.
+     *
+     * @param activityAt - The activity the server is being told about, or null
+     *   when this is only renewing the access token.
+     */
+    const keepAlive = async (activityAt: number | null) => {
       if (disposed) return;
+
+      const sentAt = Date.now();
 
       try {
         // One coordinator for every refresh in the app. The refresh token is
         // single-use, so a second exchange started alongside this one is read
         // as a replay and costs the user the whole session.
-        await sessionRefresh.refreshExclusive(() => update());
+        await sessionRefresh.refreshExclusive(() =>
+          update(activityAt === null ? undefined : SESSION_ACTIVITY_UPDATE)
+        );
+
+        if (activityAt !== null) {
+          // Recorded only on success. A push that did not land must be retried,
+          // or the server's clock would fall behind a user who is still here.
+          syncedActivityRef.current = activityAt;
+          syncedActivityAtRef.current = sentAt;
+        }
+
         logger.debug('Session: access token refreshed');
       } catch (error) {
         // Left for the next tick. The server keeps the session intact when an
@@ -276,19 +315,37 @@ export function useSessionLifecycle({
             action: {
               label: 'Stay signed in',
               onClick: () => {
-                recordActivity();
-                void keepAlive();
+                const at = Date.now();
+                recordActivity(at);
+                void keepAlive(at);
               },
             },
           }
         );
       }
 
-      // The user is still within the window, so keep the access token usable.
-      // Refreshing an abandoned tab is what would defeat the idle timeout, so
-      // this only runs on the near side of the deadline.
-      if (isWithinRefreshBuffer(expiresAt, now)) {
-        await keepAlive();
+      // Tell the server the user is here. Two conditions, and both matter:
+      // there has to be activity it has not been told about, or an abandoned
+      // tab would renew its own deadline on a timer; and enough time has to
+      // have passed since the last push, or a moving mouse would send a round
+      // trip every tick.
+      const syncDue = isActivitySyncDue(
+        lastActivity,
+        syncedActivityRef.current,
+        syncedActivityAtRef.current,
+        now
+      );
+
+      // The access token is renewed on the near side of the deadline only.
+      // Refreshing an abandoned tab is what would defeat the idle timeout.
+      const refreshDue = isWithinRefreshBuffer(expiresAt, now);
+
+      if (syncDue || refreshDue) {
+        // A refresh that is happening anyway carries the assertion for free
+        // whenever there is new activity to report, which is what keeps the
+        // server's copy of the clock close to this one's.
+        const hasNewActivity = lastActivity > syncedActivityRef.current;
+        await keepAlive(hasNewActivity ? lastActivity : null);
       }
     };
 
@@ -346,6 +403,18 @@ export function useSessionLifecycle({
       endSession(
         'Your session was ended',
         'This account was signed out somewhere else. Please sign in again.'
+      );
+      return;
+    }
+
+    // The server reached the idle deadline before this tab did, which is what
+    // happens when the tab was suspended long enough to miss its own ticks.
+    // Same ending, same words, so the user is not told two different stories
+    // about the same thing.
+    if (sessionError === 'SessionIdleTimeout') {
+      endSession(
+        'Signed out after 30 minutes of inactivity',
+        'Sign in again to pick up where you left off.'
       );
       return;
     }
