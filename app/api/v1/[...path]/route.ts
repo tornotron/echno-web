@@ -118,11 +118,19 @@ async function proxyRequest(
   // revocation is normally checked) — so we must check explicitly here.
   // Revoked sessions can still hold a valid-looking cookie until it expires;
   // this enforces logout-effective-immediately on the BFF surface.
+  //
+  // It answers with the same code as every other ended session below. A
+  // revocation is a distinct thing and the log line says so, but the client has
+  // one recovery path and it keys on one string, so a body only this branch
+  // produced would be a body nothing reads.
   if (tokens?.sessionId && isSessionRevoked(tokens.sessionId)) {
     logger.warn('BFF: rejecting request for revoked session', {
       sessionId: tokens.sessionId.slice(0, 10) + '...',
     });
-    return NextResponse.json({ error: 'Session revoked' }, { status: 401 });
+    return NextResponse.json(
+      { error: SESSION_TOKEN_EXPIRED_ERROR },
+      { status: 401 }
+    );
   }
 
   // Same reason the revocation check lives here: without the `jwt()` callback

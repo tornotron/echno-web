@@ -78,15 +78,23 @@ const SESSION_COOKIE_NAMES = [
   '__Secure-authjs.session-token',
 ] as const;
 
+/** The suffix NextAuth gives each piece of a session cookie it had to split. */
+const CHUNK_SUFFIX = /^\d+$/;
+
 /**
  * Whether a cookie name is one NextAuth keeps the session in.
  *
  * @param name - Cookie name as it arrived on the request.
  */
 export function isSessionCookieName(name: string): boolean {
-  return SESSION_COOKIE_NAMES.some(
-    (base) => name === base || name.startsWith(`${base}.`)
-  );
+  return SESSION_COOKIE_NAMES.some((base) => {
+    if (name === base) return true;
+    if (!name.startsWith(`${base}.`)) return false;
+    // Only the numbered chunks count. Anything else sharing the prefix was put
+    // there by something that is not NextAuth, and reading it as a session
+    // would turn an anonymous request into an ended one.
+    return CHUNK_SUFFIX.test(name.slice(base.length + 1));
+  });
 }
 
 /**
