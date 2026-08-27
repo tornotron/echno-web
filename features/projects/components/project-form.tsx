@@ -36,6 +36,7 @@ import {
 } from '@tornotron/echno-core/project/types';
 import type { Project } from '@tornotron/echno-core/project/types';
 import { useGeolocation } from '@/hooks/use-geolocation';
+import { INDIAN_STATES } from '../constants/indian-states';
 import { format } from 'date-fns';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
@@ -84,9 +85,21 @@ const projectTypeLabels: Record<ProjectType, string> = {
 
 const PROJECT_TYPE_NONE = 'none';
 
+// shadcn's Select cannot carry an empty-string item value, so "not stated" needs
+// a sentinel of its own, the same way the project-type field already does it.
+const PROJECT_STATE_NONE = 'none';
+
+/** Matches the backend's cap on the address line. */
+export const ADDRESS_MAX_LENGTH = 255;
+/** Matches the backend's cap on the postal code column. */
+export const POSTAL_CODE_MAX_LENGTH = 16;
+
 export interface ProjectFormState {
   projectName: string;
   projectAddress: string;
+  projectCity: string;
+  projectState: string;
+  projectPostalCode: string;
   status: ProjectStatus;
   projectType: ProjectType | '';
   projectLatitude: string;
@@ -148,9 +161,32 @@ const getNewFileStatusIcon = (status?: FileUploadState['status']) => {
   return <FileText className="h-4 w-4 shrink-0 text-zinc-500" />;
 };
 
+/**
+ * Checks a coordinate box. Blank is valid: coordinates are optional, and a
+ * project can be described by its address alone. A value that is present has to
+ * be a number in range, which is the same rule the API applies, caught here so
+ * it does not cost a round trip.
+ */
+export function coordinateError(
+  value: string,
+  label: string,
+  limit: number
+): string | null {
+  if (value.trim() === '') return null;
+  const parsed = Number.parseFloat(value);
+  if (Number.isNaN(parsed)) return `${label} must be a number`;
+  if (parsed < -limit || parsed > limit) {
+    return `${label} must be between -${limit} and ${limit}`;
+  }
+  return null;
+}
+
 const EMPTY_FORM: ProjectFormState = {
   projectName: '',
   projectAddress: '',
+  projectCity: '',
+  projectState: '',
+  projectPostalCode: '',
   status: ProjectStatus.upcoming,
   projectType: '',
   projectLatitude: '',
@@ -173,6 +209,10 @@ export function ProjectForm(props: ProjectFormProps) {
     return {
       projectName: project.projectName,
       projectAddress: project.projectAddress,
+      // Absent on every project created before these fields existed.
+      projectCity: project.projectCity ?? '',
+      projectState: project.projectState ?? '',
+      projectPostalCode: project.projectPostalCode ?? '',
       status: project.status,
       projectType: project.projectType ?? '',
       projectLatitude: project.projectLatitude.toString(),
@@ -304,8 +344,23 @@ export function ProjectForm(props: ProjectFormProps) {
     const newErrors: Record<string, string> = {};
     const nameError = required('Project name')(form.projectName);
     if (nameError) newErrors.projectName = nameError;
+
     const addressError = required('Project address')(form.projectAddress);
-    if (addressError) newErrors.projectAddress = addressError;
+    if (addressError) {
+      newErrors.projectAddress = addressError;
+    } else if (form.projectAddress.length > ADDRESS_MAX_LENGTH) {
+      newErrors.projectAddress = `Project address must be at most ${ADDRESS_MAX_LENGTH} characters`;
+    }
+
+    if (form.projectPostalCode.length > POSTAL_CODE_MAX_LENGTH) {
+      newErrors.projectPostalCode = `PIN code must be at most ${POSTAL_CODE_MAX_LENGTH} characters`;
+    }
+
+    const latError = coordinateError(form.projectLatitude, 'Latitude', 90);
+    if (latError) newErrors.projectLatitude = latError;
+    const lngError = coordinateError(form.projectLongitude, 'Longitude', 180);
+    if (lngError) newErrors.projectLongitude = lngError;
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
@@ -377,13 +432,87 @@ export function ProjectForm(props: ProjectFormProps) {
               id="projectAddress"
               value={form.projectAddress}
               onChange={(e) => setField('projectAddress', e.target.value)}
-              placeholder="Enter the complete project address"
+              placeholder="Street address of the site"
               rows={3}
+              maxLength={ADDRESS_MAX_LENGTH}
               className={`resize-none ${errors.projectAddress ? 'border-red-500' : ''}`}
             />
             {errors.projectAddress && (
               <p className="text-sm text-red-500">{errors.projectAddress}</p>
             )}
+          </div>
+
+          {/* City / State / PIN code */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="projectCity">
+                City{' '}
+                <span className="text-muted-foreground text-xs">
+                  (optional)
+                </span>
+              </Label>
+              <Input
+                id="projectCity"
+                value={form.projectCity}
+                onChange={(e) => setField('projectCity', e.target.value)}
+                placeholder="e.g., Chennai"
+                maxLength={100}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="projectState">
+                State{' '}
+                <span className="text-muted-foreground text-xs">
+                  (optional)
+                </span>
+              </Label>
+              <Select
+                value={form.projectState || PROJECT_STATE_NONE}
+                onValueChange={(v) =>
+                  setField('projectState', v === PROJECT_STATE_NONE ? '' : v)
+                }
+              >
+                <SelectTrigger id="projectState" className="w-full">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={PROJECT_STATE_NONE}>
+                    Not specified
+                  </SelectItem>
+                  {INDIAN_STATES.map((state) => (
+                    <SelectItem key={state} value={state}>
+                      {state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Decides which statutory compliances apply to this project.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="projectPostalCode">
+                PIN Code{' '}
+                <span className="text-muted-foreground text-xs">
+                  (optional)
+                </span>
+              </Label>
+              <Input
+                id="projectPostalCode"
+                value={form.projectPostalCode}
+                onChange={(e) => setField('projectPostalCode', e.target.value)}
+                placeholder="e.g., 600004"
+                maxLength={POSTAL_CODE_MAX_LENGTH}
+                className={errors.projectPostalCode ? 'border-red-500' : ''}
+              />
+              {errors.projectPostalCode && (
+                <p className="text-sm text-red-500">
+                  {errors.projectPostalCode}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Status */}
@@ -499,6 +628,10 @@ export function ProjectForm(props: ProjectFormProps) {
                 )}
               </Button>
             </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Only needed to place the site on a map and to check attendance
+              against it. The address above is what drives compliance.
+            </p>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="projectLatitude">Latitude</Label>
@@ -509,7 +642,13 @@ export function ProjectForm(props: ProjectFormProps) {
                   value={form.projectLatitude}
                   onChange={(e) => setField('projectLatitude', e.target.value)}
                   placeholder="e.g., 19.0760"
+                  className={errors.projectLatitude ? 'border-red-500' : ''}
                 />
+                {errors.projectLatitude && (
+                  <p className="text-sm text-red-500">
+                    {errors.projectLatitude}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="projectLongitude">Longitude</Label>
@@ -520,7 +659,13 @@ export function ProjectForm(props: ProjectFormProps) {
                   value={form.projectLongitude}
                   onChange={(e) => setField('projectLongitude', e.target.value)}
                   placeholder="e.g., 72.8777"
+                  className={errors.projectLongitude ? 'border-red-500' : ''}
                 />
+                {errors.projectLongitude && (
+                  <p className="text-sm text-red-500">
+                    {errors.projectLongitude}
+                  </p>
+                )}
               </div>
             </div>
           </div>

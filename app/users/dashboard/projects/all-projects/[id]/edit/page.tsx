@@ -9,7 +9,6 @@ import {
   useUpdateProjectWithFiles,
 } from '@tornotron/echno-core/project/hooks';
 import type {
-  ProjectType,
   UpdateProjectRequest,
 } from '@tornotron/echno-core/project/types';
 import { projectKeys } from '@tornotron/echno-core/project/hooks/keys';
@@ -47,12 +46,15 @@ export default function EditProjectPage() {
 
   function handleSubmit(data: ProjectFormSubmitData) {
     if (!project) return;
-    // `projectType` is included so the chosen category flows through once the
-    // core project serializer forwards it (core 1.4.0 types the field on
-    // Project but does not yet emit it on create/update).
-    const updateData: UpdateProjectRequest & { projectType?: ProjectType } = {
+    // Blank optional fields are sent as undefined rather than '', because the
+    // core serializer emits only the keys that are set and the backend reads a
+    // missing key as "leave unchanged".
+    const updateData: UpdateProjectRequest = {
       projectName: data.fields.projectName,
       projectAddress: data.fields.projectAddress,
+      projectCity: data.fields.projectCity || undefined,
+      projectState: data.fields.projectState || undefined,
+      projectPostalCode: data.fields.projectPostalCode || undefined,
       status: data.fields.status,
       projectType: data.fields.projectType || undefined,
       description: data.fields.description ?? undefined,
