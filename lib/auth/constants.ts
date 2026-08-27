@@ -51,6 +51,16 @@ export const TOKEN_REFRESH = {
 } as const;
 
 /**
+ * Error code the BFF proxy returns when the session cookie still holds an
+ * access token that has expired.
+ *
+ * It is deliberately machine-readable: the API client keys its one-shot session
+ * refresh off this exact value, so the string is part of the contract between
+ * `app/api/v1/[...path]/route.ts` and `lib/api/api-client.ts`.
+ */
+export const SESSION_TOKEN_EXPIRED_ERROR = 'SessionTokenExpired';
+
+/**
  * NextAuth Secret Validation
  */
 export const NEXTAUTH = {

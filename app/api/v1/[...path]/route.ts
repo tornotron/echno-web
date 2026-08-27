@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSessionTokens } from '@/lib/auth/get-session-tokens';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
+import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
+import { isAccessTokenExpired } from '@/lib/auth/token-refresh-schedule';
 import { logger } from '@/lib/logger';
 
 // Server-side only env var (not exposed to client)
@@ -118,6 +120,23 @@ async function proxyRequest(
       sessionId: tokens.sessionId.slice(0, 10) + '...',
     });
     return NextResponse.json({ error: 'Session revoked' }, { status: 401 });
+  }
+
+  // Same reason the revocation check lives here: without the `jwt()` callback
+  // nothing refreshes the cookie, so an access token that lapsed while the user
+  // sat on one page is still sitting in it. Forwarding it upstream buys a
+  // confusing generic failure once Keycloak refuses the RPT exchange, so fail
+  // fast instead and hand the client something it can act on.
+  if (isAccessTokenExpired(tokens?.expiresAt, Date.now())) {
+    logger.warn('BFF: rejecting request with an expired access token', {
+      sessionId: tokens?.sessionId
+        ? tokens.sessionId.slice(0, 10) + '...'
+        : undefined,
+    });
+    return NextResponse.json(
+      { error: SESSION_TOKEN_EXPIRED_ERROR },
+      { status: 401 }
+    );
   }
 
   const targetPath = path.join('/');
