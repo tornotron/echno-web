@@ -18,23 +18,49 @@ export type SessionIdleState =
   /** Idle past the deadline. The session ends. */
   | 'expired';
 
+/** What the shared entry holds: whose session it describes, and when. */
+interface StoredActivity {
+  sessionId: string;
+  at: number;
+}
+
 /**
- * Reads the shared activity timestamp.
+ * Reads the shared activity timestamp for a session.
+ *
+ * Scoped to the session id, because localStorage outlives the session that
+ * wrote it. An entry left behind by a previous sign-in would otherwise be read
+ * as half an hour of idleness by the next one, and sign a user out moments
+ * after they signed in. An entry belonging to another session is ignored; one
+ * belonging to this session came from a sibling tab and counts.
  *
  * Storage is unavailable in a few contexts (private windows, blocked site data)
  * and throws rather than returning nothing, so every access is guarded. A tab
  * that cannot read the shared value falls back to its own, which is the
  * behaviour of a single open tab and never less safe.
  *
- * @param fallback - Used when nothing readable is stored.
+ * @param sessionId - The session asking. Without one there is nothing to scope
+ *   to, so only this tab's own view is used.
+ * @param fallback - Used when nothing belonging to this session is stored.
  */
-export function readLastActivity(fallback: number): number {
-  try {
-    const stored = globalThis.localStorage?.getItem(SESSION_ACTIVITY.STORAGE_KEY);
-    if (!stored) return fallback;
+export function readLastActivity(
+  sessionId: string | undefined,
+  fallback: number
+): number {
+  if (!sessionId) return fallback;
 
-    const parsed = Number.parseInt(stored, 10);
-    return Number.isFinite(parsed) ? Math.max(parsed, fallback) : fallback;
+  try {
+    const raw = globalThis.localStorage?.getItem(SESSION_ACTIVITY.STORAGE_KEY);
+    if (!raw) return fallback;
+
+    const stored = JSON.parse(raw) as Partial<StoredActivity>;
+    if (stored.sessionId !== sessionId) return fallback;
+    if (typeof stored.at !== 'number' || !Number.isFinite(stored.at)) {
+      return fallback;
+    }
+
+    // The larger of the two: this tab's own activity may not have been flushed
+    // yet, and under-reporting it would sign a working user out.
+    return Math.max(stored.at, fallback);
   } catch {
     return fallback;
   }
@@ -43,11 +69,20 @@ export function readLastActivity(fallback: number): number {
 /**
  * Publishes the activity timestamp to every tab on this profile.
  *
+ * @param sessionId - The session the activity belongs to.
  * @param at - Epoch milliseconds of the activity.
  */
-export function writeLastActivity(at: number): void {
+export function writeLastActivity(
+  sessionId: string | undefined,
+  at: number
+): void {
+  if (!sessionId) return;
+
   try {
-    globalThis.localStorage?.setItem(SESSION_ACTIVITY.STORAGE_KEY, String(at));
+    globalThis.localStorage?.setItem(
+      SESSION_ACTIVITY.STORAGE_KEY,
+      JSON.stringify({ sessionId, at } satisfies StoredActivity)
+    );
   } catch {
     // A tab that cannot write still tracks its own activity in memory, so it
     // holds its own session open. Only the sharing across tabs is lost.

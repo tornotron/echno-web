@@ -3,7 +3,13 @@ import { render, waitFor } from '@testing-library/react';
 import * as realAuth from 'next-auth/react';
 import * as realApiClient from '@/lib/api/api-client';
 import { SESSION_ACTIVITY } from '@/lib/auth/constants';
-import { clearLastActivity, writeLastActivity } from '@/lib/auth/session-activity';
+import {
+  clearLastActivity,
+  writeLastActivity,
+} from '@/lib/auth/session-activity';
+
+/** The session every test in this file runs as. */
+const SESSION_ID = 'a97de708-bfbd-4414-bb04-c92896c7a178';
 
 /** Session the mocked `useSession` hands to the component under test. */
 let sessionState: {
@@ -57,6 +63,7 @@ const { SessionMonitor } = await import('./auth-provider');
 function liveSession(overrides: Record<string, unknown> = {}) {
   return {
     provider: 'keycloak',
+    sessionId: SESSION_ID,
     expiresAt: Date.now() + 5 * 60 * 1000,
     user: {},
     ...overrides,
@@ -130,7 +137,7 @@ describe('a session the server has marked as finished', () => {
 describe('the idle lifecycle', () => {
   test('a user who stepped away briefly is left alone', async () => {
     // Five minutes away, which is the complaint that started all this.
-    writeLastActivity(Date.now() - 5 * 60 * 1000);
+    writeLastActivity(SESSION_ID, Date.now() - 5 * 60 * 1000);
     sessionState = { status: 'authenticated', data: liveSession() };
     renderMonitor();
 
@@ -141,6 +148,7 @@ describe('the idle lifecycle', () => {
 
   test('a warning arrives before the sign-out, with a way to stay', async () => {
     writeLastActivity(
+      SESSION_ID,
       Date.now() -
         (SESSION_ACTIVITY.IDLE_SIGN_OUT_MS -
           SESSION_ACTIVITY.IDLE_WARNING_LEAD_MS)
@@ -155,7 +163,10 @@ describe('the idle lifecycle', () => {
   });
 
   test('the session ends once the idle deadline passes, and says why', async () => {
-    writeLastActivity(Date.now() - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS - 1000);
+    writeLastActivity(
+      SESSION_ID,
+      Date.now() - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS - 1000
+    );
     sessionState = { status: 'authenticated', data: liveSession() };
     renderMonitor();
 
@@ -163,8 +174,24 @@ describe('the idle lifecycle', () => {
     expect(errorToasts[0].message).toContain('inactivity');
   });
 
+  test('a leftover clock from an earlier session does not follow the user in', async () => {
+    // localStorage outlives the session that wrote it, so an entry from a
+    // previous sign-in would otherwise be read as half an hour of idleness and
+    // sign the user out moments after they signed back in.
+    writeLastActivity(
+      'a-session-that-ended',
+      Date.now() - 2 * SESSION_ACTIVITY.IDLE_SIGN_OUT_MS
+    );
+    sessionState = { status: 'authenticated', data: liveSession() };
+    renderMonitor();
+
+    await waitFor(() => expect(errorToasts).toHaveLength(0));
+    expect(signOutCalls).toHaveLength(0);
+    expect(warningToasts).toHaveLength(0);
+  });
+
   test('an expiring token is renewed while the user is present', async () => {
-    writeLastActivity(Date.now());
+    writeLastActivity(SESSION_ID, Date.now());
     sessionState = {
       status: 'authenticated',
       // Inside the refresh buffer, so it is due for renewal right now.
@@ -179,7 +206,10 @@ describe('the idle lifecycle', () => {
   test('an abandoned tab stops renewing, so the session can lapse on its own', async () => {
     // Refreshing forever would keep an abandoned session alive indefinitely,
     // which is exactly what the idle timeout exists to prevent.
-    writeLastActivity(Date.now() - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS - 1000);
+    writeLastActivity(
+      SESSION_ID,
+      Date.now() - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS - 1000
+    );
     sessionState = {
       status: 'authenticated',
       data: liveSession({ expiresAt: Date.now() + 10 * 1000 }),
