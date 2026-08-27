@@ -111,7 +111,7 @@ const EMPTY_FORM: InspectionFormState = {
 export function InspectionForm(props: InspectionFormProps) {
   const isEdit = props.mode === 'edit';
 
-  const { data: projects = [] } = useProjects();
+  const { data: projects = [], isPending: isLoadingProjects } = useProjects();
   const { data: employees = [] } = useEmployeeLookup();
 
   const [form, setForm] = useState<InspectionFormState>(() => {
@@ -147,6 +147,13 @@ export function InspectionForm(props: InspectionFormProps) {
   const [checkItemErrors, setCheckItemErrors] = useState<
     Record<string, string>
   >({});
+
+  // Name of the project the record is already against, for the read-only edit
+  // view. Undefined while the project list loads, and if the project has since
+  // been removed from the tenant.
+  const selectedProjectName = projects.find(
+    (project) => project.id.toString() === form.projectId
+  )?.projectName;
 
   // ---------------------------------------------------------------------------
   // Error helpers
@@ -371,30 +378,59 @@ export function InspectionForm(props: InspectionFormProps) {
               )}
             </div>
 
+            {/*
+              The project is chosen once, when the inspection is created, and is
+              read-only from then on. A statutory approval has to keep a
+              permanent, traceable relationship with the project it was obtained
+              for, so the record is shown rather than offered as a dropdown. The
+              backend refuses a reassignment as well.
+            */}
             <div className="space-y-2">
               <Label htmlFor="project">
-                Project <span className="text-red-600">*</span>
+                Project {!isEdit && <span className="text-red-600">*</span>}
               </Label>
-              <Select
-                value={form.projectId}
-                onValueChange={(v) => setField('projectId', v)}
-              >
-                <SelectTrigger
-                  id="project"
-                  className={errors.projectId ? 'border-red-500' : ''}
-                >
-                  <SelectValue placeholder="Select project" />
-                </SelectTrigger>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id.toString()}>
-                      {project.projectName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.projectId && (
-                <p className="text-sm text-red-500">{errors.projectId}</p>
+              {isEdit ? (
+                <>
+                  <div
+                    id="project"
+                    className="bg-muted/50 text-muted-foreground flex h-9 items-center rounded-md border px-3 text-sm"
+                  >
+                    {isLoadingProjects
+                      ? 'Loading…'
+                      : (selectedProjectName ?? 'Project no longer available')}
+                  </div>
+                  <p className="text-muted-foreground text-xs">
+                    Set when the inspection was created and fixed for the life of
+                    the record.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Select
+                    value={form.projectId}
+                    onValueChange={(v) => setField('projectId', v)}
+                  >
+                    <SelectTrigger
+                      id="project"
+                      className={errors.projectId ? 'border-red-500' : ''}
+                    >
+                      <SelectValue placeholder="Select project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {projects.map((project) => (
+                        <SelectItem
+                          key={project.id}
+                          value={project.id.toString()}
+                        >
+                          {project.projectName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.projectId && (
+                    <p className="text-sm text-red-500">{errors.projectId}</p>
+                  )}
+                </>
               )}
             </div>
           </CardContent>
