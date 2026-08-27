@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  ListChecks,
   Thermometer,
   Cloud,
   Users,
@@ -471,8 +472,34 @@ export default function InspectionDetailsPage() {
             </Card>
           )}
 
-          {/* Check Items */}
-          {inspection.checkItems.length > 0 && (
+          {/* Check Items. Rendered even when there are none, because an
+              inspection with no checkpoints is exactly the case where the user
+              needs to be told they can add some. */}
+          {inspection.checkItems.length === 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Inspection Checklist</CardTitle>
+                <CardDescription>
+                  The individual checks this inspection covers
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border border-dashed py-8 text-center">
+                  <ListChecks className="mx-auto mb-3 h-8 w-8 text-zinc-400" />
+                  <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                    No checkpoints have been added to this inspection yet.
+                  </p>
+                  <Button asChild variant="outline" size="sm">
+                    <Link
+                      href={routes.inspections.detail(inspection.id).edit}
+                    >
+                      Add checkpoints
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
             <Card>
               <CardHeader>
                 <CardTitle>Inspection Checklist</CardTitle>

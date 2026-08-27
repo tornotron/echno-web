@@ -23,11 +23,12 @@ export default function NewInspectionPage() {
   const { mutate: createInspection, isPending } = useCreateInspection();
 
   function handleSubmit(data: InspectionFormSubmitData) {
-    const { fields } = data;
+    const { fields, checkItems } = data;
 
-    // The backend assigns the inspection number and forces the initial status;
-    // the summary counts are derived from the check items and defects. None of
-    // those are sent from the schedule form.
+    // The backend assigns the inspection number and forces the initial status,
+    // and derives the summary counts from the checkpoints and defects, so none
+    // of those are sent. The checkpoints themselves are, so an inspection can
+    // be scheduled with its checklist already written out.
     const req: CreateInspectionRequest = {
       title: fields.title,
       type: fields.type as InspectionType,
@@ -39,6 +40,7 @@ export default function NewInspectionPage() {
       drawingReference: fields.drawingReference.trim() || undefined,
       scheduledTime: fields.scheduledTime.trim() || undefined,
       clientRepresentative: fields.clientRepresentative.trim() || undefined,
+      checkItems,
     };
 
     createInspection(req, {
