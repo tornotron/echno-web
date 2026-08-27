@@ -49,9 +49,15 @@ const nextConfig: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'DENY' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Attendance check-in reads the device camera and GPS from our own
+          // pages, so both features are granted to this origin and to nothing
+          // else. An empty allowlist here blocks the feature for every origin
+          // including self, which made the browser refuse the permission
+          // prompt outright and left the Mark Attendance dialog stuck on
+          // "Location unavailable". The microphone is genuinely unused.
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(self), microphone=(), geolocation=(self)',
           },
           {
             key: 'Strict-Transport-Security',

@@ -15,6 +15,7 @@ import { Label } from '@/components/shadcn/label';
 import { Separator } from '@/components/shadcn/separator';
 import {
   MapPin,
+  MapPinOff,
   CheckCircle,
   AlertTriangle,
   Loader2,
@@ -52,11 +53,26 @@ import { format } from 'date-fns';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+/**
+ * Why the browser would not give us a position. Attendance is verified against
+ * the site the employee is standing on, so a bare "location unavailable" leaves
+ * them with nothing to act on. Each kind carries its own explanation and its own
+ * next step.
+ */
+type LocationErrorKind =
+  | 'unsupported'
+  | 'insecure'
+  | 'permission-required'
+  | 'permission-denied'
+  | 'position-unavailable'
+  | 'timeout'
+  | 'failed';
+
 type LocationState =
   | { status: 'idle' }
   | { status: 'detecting' }
   | { status: 'detected'; location: GeoLocation }
-  | { status: 'error'; message: string };
+  | { status: 'error'; kind: LocationErrorKind };
 
 type CameraState =
   | { status: 'idle' }
@@ -113,6 +129,126 @@ const ACTION_CONFIG: Partial<
     badgeClass: 'bg-slate-600 hover:bg-slate-700',
   },
 };
+
+// ─── Location copy ────────────────────────────────────────────────────────────
+
+/**
+ * What the dialog says for each failure, and what it offers the employee next.
+ * `allow` renders the button that triggers the browser's permission prompt;
+ * `retry` re-reads the permission and asks for a position again; `none` is for
+ * the cases the employee cannot fix from this screen.
+ */
+const LOCATION_ERROR_COPY: Record<
+  LocationErrorKind,
+  { title: string; body: string; action: 'allow' | 'retry' | 'none' }
+> = {
+  unsupported: {
+    title: 'Location is not available on this device',
+    body: 'This browser cannot report a location, so attendance cannot be verified here. Open Echno in a current version of Chrome, Safari, Edge or Firefox.',
+    action: 'none',
+  },
+  insecure: {
+    title: 'Location needs a secure connection',
+    body: 'Browsers only share a location over HTTPS. Open Echno on its https:// address, then select Retry.',
+    action: 'retry',
+  },
+  'permission-required': {
+    title: 'Location access required',
+    body: 'Your location is needed to verify that you are checking in from the permitted work location. It is read once, when you mark attendance.',
+    action: 'allow',
+  },
+  'permission-denied': {
+    title: 'Location permission is blocked',
+    body: 'Echno was refused access to your location. Enable Location for this site in your browser or device settings, then return here and select Retry.',
+    action: 'retry',
+  },
+  'position-unavailable': {
+    title: 'Your location could not be determined',
+    body: 'Your device could not get a fix. Check that location services are switched on, move somewhere with a clearer view of the sky, then select Retry.',
+    action: 'retry',
+  },
+  timeout: {
+    title: 'Location request timed out',
+    body: 'Your device took too long to report a position. Stay on this screen and select Retry.',
+    action: 'retry',
+  },
+  failed: {
+    title: 'Location could not be read',
+    body: 'Something went wrong while reading your location. Select Retry to try again.',
+    action: 'retry',
+  },
+};
+
+/**
+ * Decides what the dialog does next, given what it already knows about the
+ * environment and the browser's standing permission. Split out from the
+ * component so the rule can be read and tested on its own.
+ *
+ * A blocker beats everything, because no permission can rescue a browser with
+ * no Geolocation API or a page on plain HTTP. A denied permission is reported
+ * rather than re-requested: browsers do not re-prompt, so calling
+ * `getCurrentPosition` again would only reproduce the same failure. An
+ * unresolved permission stops at an explanation on the automatic pass and goes
+ * through to the prompt once the employee asks for it, so the prompt never
+ * appears without a reason beside it. A granted permission, and a browser with
+ * no Permissions API to ask, go straight to the position request.
+ *
+ * @param blocker - Environment failure found without asking the browser, or null.
+ * @param permission - The browser's standing decision, or null when unreadable.
+ * @param userInitiated - Whether this pass came from the employee's own click.
+ */
+export function nextLocationStep(
+  blocker: LocationErrorKind | null,
+  permission: PermissionState | null,
+  userInitiated: boolean
+): { status: 'detecting' } | { status: 'error'; kind: LocationErrorKind } {
+  if (blocker) return { status: 'error', kind: blocker };
+  if (permission === 'denied') {
+    return { status: 'error', kind: 'permission-denied' };
+  }
+  if (permission === 'prompt' && !userInitiated) {
+    return { status: 'error', kind: 'permission-required' };
+  }
+  return { status: 'detecting' };
+}
+
+/**
+ * The failure the page can determine on its own, before the browser is asked
+ * for anything: no Geolocation API at all, or a page served over plain HTTP,
+ * where every browser refuses geolocation regardless of the permission.
+ */
+function detectLocationBlocker(): LocationErrorKind | null {
+  if (typeof navigator === 'undefined' || !navigator.geolocation) {
+    return 'unsupported';
+  }
+  // Undefined on the server, where there is nothing to decide; only an explicit
+  // false means the page really is on an origin the browser calls insecure.
+  if (globalThis.isSecureContext === false) {
+    return 'insecure';
+  }
+  return null;
+}
+
+/**
+ * Reads the browser's standing decision for geolocation without asking for a
+ * position, which is what lets the dialog tell "never asked" apart from
+ * "blocked". Returns null where the Permissions API is missing or refuses the
+ * query (older Safari, some in-app webviews); the caller then falls back to
+ * asking for a position and reading the error code that comes back.
+ */
+async function readGeolocationPermission(): Promise<PermissionState | null> {
+  if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
+    return null;
+  }
+  try {
+    const status = await navigator.permissions.query({
+      name: 'geolocation' as PermissionName,
+    });
+    return status.state;
+  } catch {
+    return null;
+  }
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -399,21 +535,18 @@ interface Props {
 
 function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   // The parent mounts this dialog only while open, so the initial state is the
-  // dialog's "just opened" state. `detecting` and `idle` render the same
-  // spinner UI, so starting at `detecting` removes the synchronous setState we
-  // would otherwise need in the auto-detect effect.
-  const [locationState, setLocationState] = useState<LocationState>(() =>
-    navigator?.geolocation
-      ? { status: 'detecting' }
-      : {
-          status: 'error',
-          message: 'Geolocation is not supported by your browser.',
-        }
-  );
+  // dialog's "just opened" state. `idle` and `detecting` render the same
+  // spinner, and the effect below moves off `idle` once the permission has been
+  // read, so nothing in the effect body has to setState synchronously.
+  const [locationState, setLocationState] = useState<LocationState>(() => {
+    const blocker = detectLocationBlocker();
+    return blocker ? { status: 'error', kind: blocker } : { status: 'idle' };
+  });
   const [projectMatch, setProjectMatch] = useState<ProjectMatch | null>(null);
   const [remarks, setRemarks] = useState('');
 
-  const { data: projects = [] } = useProjectsByEmployee(employeeId);
+  const { data: projects = [], isPending: isLoadingProjects } =
+    useProjectsByEmployee(employeeId);
   const { data: orgSettings } = useOrgSettings();
   const { data: projectSettings } = useProjectSettings(
     projectMatch?.project.id
@@ -509,47 +642,76 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
         setProjectMatch(nearest);
       },
       (err) => {
-        const messages: Record<number, string> = {
-          1: 'Location access denied. Please allow location access and try again.',
-          2: 'Unable to determine your location. Please try again.',
-          3: 'Location request timed out. Please try again.',
-        };
-        setLocationState({
-          status: 'error',
-          message: messages[err.code] ?? 'Failed to get location.',
-        });
+        let kind: LocationErrorKind = 'failed';
+        switch (err.code) {
+          case err.PERMISSION_DENIED: {
+            kind = 'permission-denied';
+            break;
+          }
+          case err.POSITION_UNAVAILABLE: {
+            kind = 'position-unavailable';
+            break;
+          }
+          case err.TIMEOUT: {
+            kind = 'timeout';
+            break;
+          }
+        }
+        setLocationState({ status: 'error', kind });
       },
       { enableHighAccuracy: true, timeout: 15_000, maximumAge: 30_000 }
     );
   }, [projects]);
 
-  // Retry button entrypoint — handles the unavailable-geolocation case
-  // (surfacing the error toast-style message in state) then resets to the
-  // detecting state and re-runs the shared flow. Called from an event
-  // handler, so the synchronous setState calls here are fine.
-  const detectLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationState({
-        status: 'error',
-        message: 'Geolocation is not supported by your browser.',
-      });
+  // The single entrypoint for mount, "Allow Location Access" and "Retry". It
+  // reads the browser's standing decision first, so Retry re-checks the real
+  // permission instead of blindly repeating a request the browser has already
+  // settled, and so a first-time employee is told why we need their location
+  // before the prompt appears rather than after.
+  //
+  // `userInitiated` is what separates those two: the mount pass stops at an
+  // explanation, while a click carries the user gesture that should raise the
+  // prompt. Every setState here happens after an await, keeping the effect
+  // below free of a synchronous update.
+  const applyLocationStep = useCallback(
+    (step: ReturnType<typeof nextLocationStep>) => {
       setProjectMatch(null);
-      return;
-    }
-    setLocationState({ status: 'detecting' });
-    setProjectMatch(null);
-    performLocationDetection();
-  }, [performLocationDetection]);
+      setLocationState(step);
+      if (step.status === 'detecting') {
+        performLocationDetection();
+      }
+    },
+    [performLocationDetection]
+  );
 
-  // Auto-detect on mount once projects load. Initial state is already
-  // `detecting`, so the effect body itself doesn't setState — only the
-  // geolocation API's async callbacks do, which the lint rule allows for
-  // "subscribing to an external system".
+  const resolveLocation = useCallback(
+    (userInitiated: boolean) =>
+      readGeolocationPermission().then((permission) => {
+        applyLocationStep(
+          nextLocationStep(detectLocationBlocker(), permission, userInitiated)
+        );
+      }),
+    [applyLocationStep]
+  );
+
+  const handleAllowLocation = useCallback(() => {
+    void resolveLocation(true);
+  }, [resolveLocation]);
+
+  const handleRetryLocation = useCallback(() => {
+    void resolveLocation(true);
+  }, [resolveLocation]);
+
+  // Auto-resolve on mount, once the assigned projects have loaded. Waiting on
+  // the query rather than on a non-empty list matters: an employee with no
+  // assigned project used to leave this stuck on the spinner for ever, because
+  // the old guard could not tell "still loading" from "none". The state update
+  // happens in the Permissions API's callback, not in this body.
   useEffect(() => {
-    if (locationState.status !== 'detecting') return;
-    if (projects.length === 0) return;
-    performLocationDetection();
-  }, [locationState.status, projects.length, performLocationDetection]);
+    if (locationState.status !== 'idle') return;
+    if (isLoadingProjects) return;
+    void resolveLocation(false);
+  }, [locationState.status, isLoadingProjects, resolveLocation]);
 
   // Auto-start camera once the profile says a photo is required and we have a
   // next action. startCamera's setState runs in the API's async resolve, not
@@ -679,7 +841,11 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
 
             {/* Location + project grouped */}
             <div className="space-y-2">
-              <LocationStatus state={locationState} onRetry={detectLocation} />
+              <LocationStatus
+                state={locationState}
+                onAllow={handleAllowLocation}
+                onRetry={handleRetryLocation}
+              />
               {locationState.status === 'detected' && (
                 <ProjectMatchCard
                   match={projectMatch}
@@ -767,7 +933,15 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             {nextAction && !isGeoBlocked && (
               <Button
                 onClick={handleSubmit}
-                disabled={isPending || !projectMatch || photoMissing}
+                // A verified location is a precondition, not a side effect of
+                // the project match happening to be set. Stated here so it
+                // survives any later change to how the match is derived.
+                disabled={
+                  isPending ||
+                  locationState.status !== 'detected' ||
+                  !projectMatch ||
+                  photoMissing
+                }
                 className="min-w-[140px]"
               >
                 {isPending ? (
@@ -936,9 +1110,11 @@ function CameraCapture({
 
 function LocationStatus({
   state,
+  onAllow,
   onRetry,
 }: {
   state: LocationState;
+  onAllow: () => void;
   onRetry: () => void;
 }) {
   if (state.status === 'idle' || state.status === 'detecting') {
@@ -955,22 +1131,46 @@ function LocationStatus({
     );
   }
   if (state.status === 'error') {
+    const copy = LOCATION_ERROR_COPY[state.kind];
+    // 'permission-required' is a step in the flow rather than a fault, so it
+    // reads as an amber prompt; everything else has actually failed.
+    const isPrompt = state.kind === 'permission-required';
     return (
-      <div className="bg-muted/60 flex items-start gap-3 rounded-lg px-3 py-2.5">
-        <XCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-        <div className="flex-1 space-y-0.5">
-          <p className="text-sm font-medium">Location unavailable</p>
-          <p className="text-muted-foreground text-xs">{state.message}</p>
+      <div
+        className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 ${
+          isPrompt
+            ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20'
+            : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
+        }`}
+      >
+        {isPrompt ? (
+          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+        ) : (
+          <MapPinOff className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
+        )}
+        <div className="flex-1 space-y-2">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium">{copy.title}</p>
+            <p className="text-muted-foreground text-xs">{copy.body}</p>
+          </div>
+          {copy.action === 'allow' && (
+            <Button size="sm" onClick={onAllow} className="h-7 text-xs">
+              <MapPin className="mr-1 h-3 w-3" />
+              Allow Location Access
+            </Button>
+          )}
+          {copy.action === 'retry' && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onRetry}
+              className="h-7 text-xs"
+            >
+              <RefreshCw className="mr-1 h-3 w-3" />
+              Retry
+            </Button>
+          )}
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onRetry}
-          className="h-7 shrink-0 text-xs"
-        >
-          <RefreshCw className="mr-1 h-3 w-3" />
-          Retry
-        </Button>
       </div>
     );
   }
