@@ -127,7 +127,11 @@ interface IssueTableProps {
   startIndex: number;
   itemsPerPage: number;
   onItemsPerPageChange: (n: number) => void;
-  /** projectId to use for navigation links; pass 'all' to disable row clicks */
+  /**
+   * Project segment for the issue and task detail links. The unfiltered
+   * all-projects list passes `'all'`; the detail pages load the issue by its
+   * own id, so that segment resolves the same record either way.
+   */
   projectId: string;
   currentPage: number;
   totalPages: number;
@@ -169,7 +173,9 @@ export function IssueTable({
   const router = useRouter();
   const prefetchIssue = usePrefetchIssue();
   const endIndex = Math.min(startIndex + itemsPerPage, filteredIssuesCount);
-  const canNavigate = projectId !== 'all';
+
+  const issueHref = (issueId: number) =>
+    routes.projects.allProjects.detail(projectId).issues.detail(issueId).href;
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
@@ -237,23 +243,10 @@ export function IssueTable({
   const issueRows = paginatedIssues.map((issue) => (
     <TableRow
       key={issue.id}
-      className={
-        canNavigate
-          ? 'cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
-          : undefined
-      }
-      onClick={
-        canNavigate
-          ? () =>
-              router.push(
-                routes.projects.allProjects
-                  .detail(projectId)
-                  .issues.detail(issue.id).href
-              )
-          : undefined
-      }
-      onMouseEnter={canNavigate ? () => prefetchIssue(issue.id) : undefined}
-      onFocus={canNavigate ? () => prefetchIssue(issue.id) : undefined}
+      className="cursor-pointer hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+      onClick={() => router.push(issueHref(issue.id))}
+      onMouseEnter={() => prefetchIssue(issue.id)}
+      onFocus={() => prefetchIssue(issue.id)}
     >
       <TableCell className="pl-5" onClick={(e) => e.stopPropagation()}>
         <Checkbox
@@ -267,9 +260,15 @@ export function IssueTable({
       {/* Title + description */}
       <TableCell>
         <div>
-          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          {/* A real anchor as well as the row click, so the title can be
+              opened in a new tab and reached from the keyboard. */}
+          <Link
+            href={issueHref(issue.id)}
+            onClick={(e) => e.stopPropagation()}
+            className="text-sm font-medium text-zinc-900 hover:underline dark:text-zinc-100"
+          >
             {issue.title}
-          </p>
+          </Link>
           {issue.description && (
             <p className="max-w-[300px] truncate text-sm text-zinc-600 dark:text-zinc-400">
               {issue.description}
@@ -525,27 +524,10 @@ export function IssueTable({
               {paginatedIssues.map((issue) => (
                 <Card
                   key={issue.id}
-                  className={
-                    canNavigate
-                      ? 'cursor-pointer transition-shadow hover:shadow-md active:opacity-80'
-                      : undefined
-                  }
-                  onClick={
-                    canNavigate
-                      ? () =>
-                          router.push(
-                            routes.projects.allProjects
-                              .detail(projectId)
-                              .issues.detail(issue.id).href
-                          )
-                      : undefined
-                  }
-                  onMouseEnter={
-                    canNavigate ? () => prefetchIssue(issue.id) : undefined
-                  }
-                  onFocus={
-                    canNavigate ? () => prefetchIssue(issue.id) : undefined
-                  }
+                  className="cursor-pointer transition-shadow hover:shadow-md active:opacity-80"
+                  onClick={() => router.push(issueHref(issue.id))}
+                  onMouseEnter={() => prefetchIssue(issue.id)}
+                  onFocus={() => prefetchIssue(issue.id)}
                 >
                   <CardContent className="p-4">
                     <div className="mb-1 flex items-start justify-between gap-2">
