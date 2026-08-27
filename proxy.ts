@@ -129,11 +129,15 @@ export default auth((req) => {
     return withCsp(NextResponse.next({ request: { headers: requestHeaders } }));
   };
 
-  // 1. Session errors (expired refresh, revoked session) → home with error.
-  //    Home itself is allowed through so it can render the error toast.
+  // 1. Session errors (expired refresh, revoked session, idle past the
+  //    deadline) → home with error. Home itself is allowed through so it can
+  //    render the error toast. The idle case reuses the SessionExpired param
+  //    rather than adding a third: it is the same ending to the user, and the
+  //    distinction only matters in the logs.
   if (
     sessionError === 'RefreshAccessTokenError' ||
-    sessionError === 'SessionRevoked'
+    sessionError === 'SessionRevoked' ||
+    sessionError === 'SessionIdleTimeout'
   ) {
     if (pathname === '/') {
       return passThrough();

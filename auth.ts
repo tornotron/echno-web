@@ -9,6 +9,11 @@ import {
   RefreshRejectedError,
   createAccessTokenRefresher,
 } from '@/lib/auth/refresh-access-token';
+import {
+  isActivityAssertion,
+  isIdlePastDeadline,
+  recordSessionActivity,
+} from '@/lib/auth/session-idle';
 
 /**
  * Lightweight base64 decode helper to extract session ID from JWT
@@ -114,7 +119,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
 
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       logger.debug('JWT Callback Executed', {
         hasAccount: !!account,
         hasUser: !!user,
@@ -123,6 +128,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       });
 
       // ========== CREDENTIALS LOGIN ==========
+      // No activity clock is started here. The session lifecycle hook runs only
+      // for Keycloak sessions, so nothing would ever advance a clock on this
+      // one, and a deadline nothing can renew is just a timer that signs the
+      // developer out mid-keystroke. The field stays absent and the checks
+      // below leave it alone.
       if (account?.provider === 'credentials') {
         token.provider = 'credentials';
       }
@@ -141,6 +151,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.lastRefresh = Date.now();
         token.keycloakIssuer = process.env.KEYCLOAK_ISSUER;
         token.error = undefined;
+        // Signing in is the most unambiguous activity there is, so the idle
+        // clock starts here rather than waiting for the first update.
+        recordSessionActivity(token, Date.now());
 
         // Extract session ID for frontchannel logout (lightweight, no jwtDecode)
         if (account.access_token) {
@@ -200,6 +213,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
       }
 
+      // ========== ACTIVITY ==========
+      // A session update carrying the activity assertion is the client saying
+      // somebody is at the keyboard. The timestamp is taken here, from this
+      // process's clock, and never read off the payload: a time supplied by the
+      // caller would be exactly as unverifiable as the browser storage this
+      // replaces. A plain `update()` refreshes the access token and is
+      // deliberately not treated as activity, or a tab left running would hold
+      // its own session open forever.
+      if (trigger === 'update' && isActivityAssertion(session)) {
+        recordSessionActivity(token, Date.now());
+      }
+
       // ========== USER INFO ==========
       if (user) {
         token.userId = user.id;
@@ -227,6 +252,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // STOP refresh if already failed (check BEFORE expiration)
       if (token.error === 'RefreshAccessTokenError') {
         return token;
+      }
+
+      // Idle past the deadline. This is the enforcement that matters, because
+      // `jwt()` is the only path that mints a fresh access token: once it stops
+      // refreshing, the bearer in the cookie dies within its own few minutes
+      // and Keycloak stops having its idle timer reset, so the session ends on
+      // every clock rather than only on the one the browser keeps.
+      //
+      // No tolerance is needed here. The update carrying the activity assertion
+      // was handled a few lines above by this same call, so an active client
+      // can never be refused by its own round trip.
+      if (isIdlePastDeadline(token.lastActivityAt, Date.now())) {
+        logger.warn('Session idle past its deadline, ending session', {
+          hasSessionId: !!token.sessionId,
+        });
+        return { ...token, error: 'SessionIdleTimeout' };
       }
 
       // There is deliberately no separate check on `sessionExpiresAt` here.
