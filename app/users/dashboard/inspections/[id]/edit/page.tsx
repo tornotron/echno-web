@@ -30,11 +30,13 @@ export default function EditInspectionPage() {
 
   function handleSubmit(data: InspectionFormSubmitData) {
     if (!inspectionData) return;
-    const { fields } = data;
+    const { fields, checkItems } = data;
 
-    // PUT is a full replacement; the check items and defects are not edited on
-    // this form, so the existing rows are threaded through unchanged. The
-    // summary counts are recomputed server-side from them.
+    // PUT is a full replacement. The checkpoints come from the form, which was
+    // seeded with the existing ones, so an untouched form saves them back
+    // unchanged and an edited one replaces them. Defects are not edited here,
+    // so those existing rows are threaded through as they are. The summary
+    // counts are recomputed server-side from both.
     const req: UpdateInspectionRequest = {
       title: fields.title,
       type: fields.type as InspectionType,
@@ -50,18 +52,7 @@ export default function EditInspectionPage() {
       clientRepresentative: fields.clientRepresentative.trim() || undefined,
       weatherConditions: fields.weatherConditions.trim() || undefined,
       temperature: fields.temperature.trim() || undefined,
-      checkItems: inspectionData.checkItems.map((item) => ({
-        category: item.category,
-        checkPoint: item.checkPoint,
-        specification: item.specification,
-        status: item.status,
-        remarks: item.remarks,
-        photosRequired: item.photosRequired,
-        photos: item.photos,
-        measurement: item.measurement,
-        expectedValue: item.expectedValue,
-        priority: item.priority,
-      })),
+      checkItems,
       defects: inspectionData.defects.map((defect) => ({
         category: defect.category,
         description: defect.description,

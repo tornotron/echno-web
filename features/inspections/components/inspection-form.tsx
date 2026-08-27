@@ -25,10 +25,18 @@ import {
   inspectionStatusLabels,
   inspectionResultLabels,
 } from '@/types/inspection';
-import type { Inspection } from '@/types/inspection';
+import type {
+  Inspection,
+  InspectionCheckItemRequest,
+} from '@/types/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
+import {
+  InspectionCheckItemsField,
+  toCheckItemDrafts,
+  type CheckItemDraft,
+} from './inspection-check-items-field';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -56,6 +64,12 @@ export interface InspectionFormState {
 
 export interface InspectionFormSubmitData {
   fields: InspectionFormState;
+  /**
+   * The checkpoints as the API wants them. Kept beside the string-valued
+   * `fields` rather than inside it, because a checkpoint is a record of its
+   * own rather than a single input.
+   */
+  checkItems: InspectionCheckItemRequest[];
 }
 
 interface CreateProps {
@@ -122,6 +136,18 @@ export function InspectionForm(props: InspectionFormProps) {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Checkpoints are edited as drafts and converted on submit. In edit mode they
+  // are seeded from what the inspection already has, because the API replaces
+  // the whole list on save: anything not sent back is deleted.
+  const [checkItems, setCheckItems] = useState<CheckItemDraft[]>(() =>
+    props.mode === 'edit'
+      ? toCheckItemDrafts((props as EditProps).inspection.checkItems)
+      : []
+  );
+  const [checkItemErrors, setCheckItemErrors] = useState<
+    Record<string, string>
+  >({});
+
   // ---------------------------------------------------------------------------
   // Error helpers
   // ---------------------------------------------------------------------------
@@ -163,12 +189,51 @@ export function InspectionForm(props: InspectionFormProps) {
 
     setErrors(newErrors);
 
+    // A checkpoint needs both a category and the check itself; the backend
+    // rejects either being blank, so catch it here where the row can be
+    // pointed at rather than letting the whole save fail.
+    const newCheckItemErrors: Record<string, string> = {};
+    for (const item of checkItems) {
+      if (!item.category.trim() && !item.checkPoint.trim()) {
+        newCheckItemErrors[item.key] =
+          'Give this checkpoint a category and a check point, or remove it';
+      } else if (!item.category.trim()) {
+        newCheckItemErrors[item.key] = 'Category is required';
+      } else if (!item.checkPoint.trim()) {
+        newCheckItemErrors[item.key] = 'Check point is required';
+      }
+    }
+    setCheckItemErrors(newCheckItemErrors);
+
+    const hasCheckItemErrors = Object.keys(newCheckItemErrors).length > 0;
+
     if (Object.keys(newErrors).length > 0) {
       toast.error('Please fill in all required fields');
       return false;
     }
 
+    if (hasCheckItemErrors) {
+      toast.error('Please complete or remove the incomplete checkpoints');
+      return false;
+    }
+
     return true;
+  }
+
+  /** The drafts as the API wants them, with the blank optionals dropped. */
+  function toCheckItemRequests(): InspectionCheckItemRequest[] {
+    return checkItems.map((item) => ({
+      category: item.category.trim(),
+      checkPoint: item.checkPoint.trim(),
+      specification: item.specification.trim() || undefined,
+      status: item.status,
+      remarks: item.remarks.trim() || undefined,
+      photosRequired: item.photosRequired,
+      photos: item.photos,
+      measurement: item.measurement.trim() || undefined,
+      expectedValue: item.expectedValue.trim() || undefined,
+      priority: item.priority.trim() || undefined,
+    }));
   }
 
   // ---------------------------------------------------------------------------
@@ -178,7 +243,7 @@ export function InspectionForm(props: InspectionFormProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validateForm()) return;
-    props.onSubmit({ fields: form });
+    props.onSubmit({ fields: form, checkItems: toCheckItemRequests() });
   }
 
   // ---------------------------------------------------------------------------
@@ -515,6 +580,15 @@ export function InspectionForm(props: InspectionFormProps) {
             </CardContent>
           </Card>
         )}
+
+        <InspectionCheckItemsField
+          value={checkItems}
+          onChange={(next) => {
+            setCheckItems(next);
+            setCheckItemErrors({});
+          }}
+          errors={checkItemErrors}
+        />
       </div>
     </form>
   );
