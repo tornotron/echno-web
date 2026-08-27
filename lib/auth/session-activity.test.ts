@@ -42,9 +42,9 @@ describe('session idle state', () => {
   });
 
   test('the session ends once the idle deadline passes', () => {
-    expect(
-      sessionIdleState(NOW - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS, NOW)
-    ).toBe('expired');
+    expect(sessionIdleState(NOW - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS, NOW)).toBe(
+      'expired'
+    );
     expect(
       shouldKeepSessionAlive(NOW - SESSION_ACTIVITY.IDLE_SIGN_OUT_MS, NOW)
     ).toBe(false);
@@ -83,33 +83,48 @@ describe('minutes until the idle sign-out', () => {
   });
 });
 
+const SESSION = 'a97de708-bfbd-4414-bb04-c92896c7a178';
+
 describe('activity shared across tabs', () => {
-  test('a tab reads activity another tab recorded', () => {
+  test('a tab reads activity a sibling tab recorded', () => {
     // A background tab is not evidence that its owner is idle: they may be
     // working in the tab beside it, on the same session.
-    writeLastActivity(NOW);
-    expect(readLastActivity(NOW - 20 * MINUTE)).toBe(NOW);
+    writeLastActivity(SESSION, NOW);
+    expect(readLastActivity(SESSION, NOW - 20 * MINUTE)).toBe(NOW);
   });
 
   test('a tab keeps its own activity when it is the more recent', () => {
-    writeLastActivity(NOW - 20 * MINUTE);
-    expect(readLastActivity(NOW)).toBe(NOW);
+    // Its own activity may not have been flushed to the shared entry yet, and
+    // under-reporting it would sign a working user out.
+    writeLastActivity(SESSION, NOW - 20 * MINUTE);
+    expect(readLastActivity(SESSION, NOW)).toBe(NOW);
+  });
+
+  test('an entry from a previous session is ignored', () => {
+    // The failure this scoping exists to prevent: storage outlives a session,
+    // so an old entry would otherwise be read as half an hour of idleness and
+    // sign a user out moments after they signed in.
+    writeLastActivity('a-session-that-ended', NOW - 40 * MINUTE);
+    expect(readLastActivity(SESSION, NOW)).toBe(NOW);
   });
 
   test('an empty store falls back to what the tab knows', () => {
-    expect(readLastActivity(NOW)).toBe(NOW);
+    expect(readLastActivity(SESSION, NOW)).toBe(NOW);
   });
 
   test('unreadable stored data falls back rather than throwing', () => {
-    globalThis.localStorage.setItem(SESSION_ACTIVITY.STORAGE_KEY, 'not a time');
-    expect(readLastActivity(NOW)).toBe(NOW);
+    globalThis.localStorage.setItem(SESSION_ACTIVITY.STORAGE_KEY, 'not json');
+    expect(readLastActivity(SESSION, NOW)).toBe(NOW);
+  });
+
+  test('a session with no id keeps to its own view', () => {
+    writeLastActivity(SESSION, NOW);
+    expect(readLastActivity(undefined, NOW - MINUTE)).toBe(NOW - MINUTE);
   });
 
   test('signing out clears the shared timestamp', () => {
-    // Left behind, it would hand the next sign-in an idle window that had
-    // already half elapsed.
-    writeLastActivity(NOW);
+    writeLastActivity(SESSION, NOW);
     clearLastActivity();
-    expect(readLastActivity(NOW - MINUTE)).toBe(NOW - MINUTE);
+    expect(readLastActivity(SESSION, NOW - MINUTE)).toBe(NOW - MINUTE);
   });
 });

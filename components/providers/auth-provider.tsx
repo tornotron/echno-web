@@ -83,50 +83,69 @@ export function SessionMonitor({ children }: { children: React.ReactNode }) {
   const isWarningShown = useRef(false);
 
   /**
+   * Which session the activity clock belongs to.
+   *
+   * localStorage outlives a session, so a timestamp has to say whose it is or
+   * the next sign-in inherits the previous one's idleness.
+   */
+  const sessionId = session?.sessionId;
+
+  /**
    * The most recent activity across every tab on this profile.
    *
    * A tab sitting in the background is not evidence that its owner is idle:
    * they may be working in the tab next to it, on the same session.
    */
-  const resolveLastActivity = useCallback((now: number) => {
-    const shared = readLastActivity(lastActivityRef.current);
-    if (shared > 0) return shared;
+  const resolveLastActivity = useCallback(
+    (now: number) => {
+      if (lastActivityRef.current === 0) {
+        // Nothing recorded yet in this tab. A sibling tab on the same session
+        // may already have a clock running, and this tab inherits it rather
+        // than restarting it. Seeded against zero, not against the current
+        // time, or the clock it is meant to inherit would always lose.
+        const shared = readLastActivity(sessionId, 0);
+        // No sibling either: this tab has just opened, so its clock starts now
+        // rather than reading the absence as half an hour of idleness.
+        lastActivityRef.current = shared > 0 ? shared : now;
+      }
 
-    // Nothing recorded anywhere yet, so this tab has only just opened. Start
-    // its clock now rather than reading the absence as half an hour of idleness.
-    lastActivityRef.current = now;
-    return now;
-  }, []);
+      return readLastActivity(sessionId, lastActivityRef.current);
+    },
+    [sessionId]
+  );
 
   /** Records that the user is here, and drops any warning that says otherwise. */
-  const recordActivity = useCallback((at: number = Date.now()) => {
-    lastActivityRef.current = at;
+  const recordActivity = useCallback(
+    (at: number = Date.now()) => {
+      lastActivityRef.current = at;
 
-    if (at - lastActivityWriteRef.current > SESSION_ACTIVITY.ACTIVITY_DEBOUNCE_MS) {
-      lastActivityWriteRef.current = at;
-      writeLastActivity(at);
-    }
+      if (
+        at - lastActivityWriteRef.current >
+        SESSION_ACTIVITY.ACTIVITY_DEBOUNCE_MS
+      ) {
+        lastActivityWriteRef.current = at;
+        writeLastActivity(sessionId, at);
+      }
 
-    if (isWarningShown.current) {
-      isWarningShown.current = false;
-      toast.dismiss(IDLE_WARNING_TOAST_ID);
-    }
-  }, []);
+      if (isWarningShown.current) {
+        isWarningShown.current = false;
+        toast.dismiss(IDLE_WARNING_TOAST_ID);
+      }
+    },
+    [sessionId]
+  );
 
   /** Ends the session and tells the user why. */
-  const endSession = useCallback(
-    (message: string, description: string) => {
-      if (isSigningOut.current) return;
-      isSigningOut.current = true;
+  const endSession = useCallback((message: string, description: string) => {
+    if (isSigningOut.current) return;
+    isSigningOut.current = true;
 
-      toast.dismiss(IDLE_WARNING_TOAST_ID);
-      isWarningShown.current = false;
-      clearLastActivity();
-      toast.error(message, { description });
-      signOut({ callbackUrl: '/' });
-    },
-    []
-  );
+    toast.dismiss(IDLE_WARNING_TOAST_ID);
+    isWarningShown.current = false;
+    clearLastActivity();
+    toast.error(message, { description });
+    signOut({ callbackUrl: '/' });
+  }, []);
 
   // Track activity. The listeners are passive and the shared write is
   // debounced, so a mousemove costs a timestamp comparison.
