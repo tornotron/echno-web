@@ -101,8 +101,11 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
         });
 
         try {
-          // Trigger session update which will refresh the token
-          await update();
+          // Trigger session update which will refresh the token. It goes
+          // through the same origin-wide lock as the scheduled refresh below:
+          // isRefreshingRef only covers this provider, and two active tabs near
+          // session expiry would otherwise exchange the same refresh token.
+          await sessionRefresh.refreshExclusive(() => update());
           // Reset warning flags since session was extended
           setHasShownWarning(false);
           setHasShownFinalWarning(false);
