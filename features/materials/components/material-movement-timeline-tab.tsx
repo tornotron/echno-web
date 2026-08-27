@@ -99,7 +99,9 @@ export function MaterialMovementTimelineTab({
   const { data, isLoading, isFetching, isError, error } =
     useMaterialMovementHistory(materialId, 0, loaded);
 
-  const movements = data?.content ?? [];
+  // Memoised so the empty-page fallback does not hand the filter below a fresh
+  // array identity on every render.
+  const movements = useMemo(() => data?.content ?? [], [data]);
   const totalMovements = data?.totalElements ?? 0;
 
   const filtered = useMemo(() => {
