@@ -112,6 +112,36 @@ async function isSessionTokenExpiredResponse(
   }
 }
 
+/** The session refresh currently in flight, if any. */
+let sessionRefreshInFlight: Promise<unknown> | null = null;
+
+/**
+ * Refreshes the session, at most one refresh at a time across the whole app.
+ *
+ * The dashboard fires many queries in parallel, so when the access token lapses
+ * every one of them gets the expiry signal in the same instant. Letting each
+ * call `getSession()` on its own would put N runs of the `jwt()` callback on
+ * the same cookie, all posting the same refresh token to Keycloak. Our realms
+ * set revokeRefreshToken with refreshTokenMaxReuse 0, so the first refresh
+ * wins and every other one is a reuse that revokes the chain and throws the
+ * user out. Late callers therefore await the refresh already running instead of
+ * starting their own, and each still replays its own request once afterwards.
+ *
+ * The promise is cleared in a `finally`, so a later expiry refreshes again.
+ */
+async function refreshSessionOnce(): Promise<void> {
+  sessionRefreshInFlight ??= getSession().finally(() => {
+    sessionRefreshInFlight = null;
+  });
+
+  try {
+    await sessionRefreshInFlight;
+  } catch {
+    // A failed refresh leaves the replay to fail on its own 401, which the
+    // caller surfaces exactly as it would have without this recovery step.
+  }
+}
+
 /**
  * ApiClient
  *
@@ -239,10 +269,11 @@ class ApiClient {
    * backoff, and recovers once from an expired access token.
    *
    * Every request method funnels through here, which makes it the one place to
-   * answer the BFF's expiry signal: `getSession()` forces the session round trip
-   * that refreshes the cookie, then the original request is replayed. The
-   * replay is deliberately capped at one, so a session that cannot be refreshed
-   * surfaces its 401 to the caller instead of looping.
+   * answer the BFF's expiry signal: {@link refreshSessionOnce} forces the
+   * session round trip that refreshes the cookie, then the original request is
+   * replayed. The replay is capped at one per request, so a session that cannot
+   * be refreshed surfaces its 401 to the caller instead of looping, and the
+   * refresh itself is shared across every request that hit the signal together.
    */
   private async fetchWithRetry(
     url: string,
@@ -264,7 +295,7 @@ class ApiClient {
           (await isSessionTokenExpiredResponse(response))
         ) {
           hasRefreshedSession = true;
-          await getSession();
+          await refreshSessionOnce();
           return await this.fetchWithTimeout(url, options, timeout);
         }
 
