@@ -61,6 +61,20 @@ const customRulesConfig = {
   },
 
   rules: {
+    // A leading underscore is how this codebase marks a binding that exists to
+    // satisfy a signature and is deliberately not read: the `(..._args)` spies in
+    // the service tests, discarded destructured fields, ignored catch bindings.
+    // Without these patterns the rule cannot tell that apart from an oversight.
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+        destructuredArrayIgnorePattern: "^_",
+      },
+    ],
+
     // Enforce One-Way Dependency Structure using eslint-plugin-boundaries
     "boundaries/element-types": [
       "error",
@@ -141,6 +155,24 @@ const unicornRules = {
 
     "unicorn/prevent-abbreviations": "off",
     "unicorn/no-null": "off", // 'null' is often needed in Next.js
+
+    // Off because it cannot be satisfied here. The rule is happy once a nested
+    // ternary is parenthesised, and that is all its autofix does, but lint-staged
+    // runs `eslint --fix` and then `prettier --write`, and prettier strips those
+    // parentheses straight back out. Running the pair returns every file to its
+    // original bytes, so the rule reports the same findings on the next run
+    // forever. The only other way to clear it is to hand-rewrite the ternaries
+    // as if/else or helper functions, which is a refactor of rendering code
+    // rather than a lint fix.
+    "unicorn/no-nested-ternary": "off",
+
+    // Argument checking off. The rule strips a trailing `undefined` argument
+    // without consulting the signature, so `parse(undefined)` on a function whose
+    // parameter is a required `unknown` becomes `parse()`, which no longer matches
+    // the signature. tsc does not catch it either, since tsconfig excludes test
+    // files and that is exactly where feeding a parser `undefined` on purpose is
+    // the assertion. Declarations are still checked.
+    "unicorn/no-useless-undefined": ["error", { checkArguments: false }],
   }
 };
 
