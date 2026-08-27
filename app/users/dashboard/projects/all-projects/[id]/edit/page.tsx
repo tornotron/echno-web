@@ -27,6 +27,7 @@ import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
+import { optionalOnUpdate } from '@/features/projects/lib/location-fields';
 
 export default function EditProjectPage() {
   const params = useParams();
@@ -46,15 +47,15 @@ export default function EditProjectPage() {
 
   function handleSubmit(data: ProjectFormSubmitData) {
     if (!project) return;
-    // Blank optional fields are sent as undefined rather than '', because the
-    // core serializer emits only the keys that are set and the backend reads a
-    // missing key as "leave unchanged".
+    // A cleared location box is sent as an empty string, not omitted: a patch
+    // reads a missing key as "leave unchanged", so omitting it would make a
+    // saved city, state or PIN code impossible to remove. See optionalOnUpdate.
     const updateData: UpdateProjectRequest = {
       projectName: data.fields.projectName,
       projectAddress: data.fields.projectAddress,
-      projectCity: data.fields.projectCity || undefined,
-      projectState: data.fields.projectState || undefined,
-      projectPostalCode: data.fields.projectPostalCode || undefined,
+      projectCity: optionalOnUpdate(data.fields.projectCity),
+      projectState: optionalOnUpdate(data.fields.projectState),
+      projectPostalCode: optionalOnUpdate(data.fields.projectPostalCode),
       status: data.fields.status,
       projectType: data.fields.projectType || undefined,
       description: data.fields.description ?? undefined,

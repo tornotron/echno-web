@@ -6,6 +6,7 @@ import {
   coordinateError,
 } from './project-form';
 import { INDIAN_STATES } from '../constants/indian-states';
+import { optionalOnCreate, optionalOnUpdate } from '../lib/location-fields';
 
 describe('coordinateError', () => {
   test('accepts a blank box, because coordinates are optional', () => {
@@ -68,5 +69,28 @@ describe('INDIAN_STATES', () => {
     expect(INDIAN_STATES.every((s) => s.trim() === s && s.length > 0)).toBe(
       true
     );
+  });
+});
+
+describe('optional location fields on the wire', () => {
+  test('create leaves a blank field out entirely', () => {
+    // A missing key already means "not recorded" on create.
+    expect(optionalOnCreate('')).toBeUndefined();
+    expect(optionalOnCreate('   ')).toBeUndefined();
+  });
+
+  test('edit sends a cleared field as an empty string, never undefined', () => {
+    // This is the whole point. The core update serializer emits a key only
+    // when the value is not undefined, and the API reads a missing key on a
+    // patch as "leave unchanged". Returning undefined here would make a saved
+    // city, state or PIN code impossible to remove.
+    expect(optionalOnUpdate('')).toBe('');
+    expect(optionalOnUpdate('   ')).toBe('');
+    expect(optionalOnUpdate('')).not.toBeUndefined();
+  });
+
+  test('both trim a value that is present', () => {
+    expect(optionalOnCreate('  Chennai  ')).toBe('Chennai');
+    expect(optionalOnUpdate('  600004  ')).toBe('600004');
   });
 });
