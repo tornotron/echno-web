@@ -7,11 +7,21 @@
  * token single-use: the first exchange wins and every other one is a reuse of a
  * spent token, so Keycloak revokes the chain and signs the user out everywhere.
  *
- * The Web Locks API is a same-origin mutex shared by every tab, which is exactly
- * the primitive needed. Serialising is enough on its own: the `jwt()` callback
- * in `auth.ts` only exchanges when the token is inside its refresh buffer, so
- * the tab that acquires the lock second reads an `expiresAt` its peer has
- * already advanced and returns without exchanging anything.
+ * The Web Locks API is a same-origin mutex shared by every tab, which is the
+ * right primitive for the tabs it can see: the `jwt()` callback in `auth.ts`
+ * only exchanges when the token is inside its refresh buffer, so the tab that
+ * acquires the lock second reads an `expiresAt` its peer has already advanced
+ * and returns without exchanging anything.
+ *
+ * What it cannot see is the point worth remembering. A lock in the browser only
+ * binds callers that ask for it, and several refreshes never do: the one
+ * NextAuth starts on its own when a tab becomes visible, the one the middleware
+ * triggers on a document request, and anything on another device. One of those
+ * raced a caller that did hold the lock, and the session paid for it. The
+ * exchange is therefore also de-duplicated server-side, in
+ * `refresh-single-flight.ts`, which is what actually makes it safe. This lock
+ * remains as the cheaper first line: it keeps the common case from ever
+ * reaching the server as a collision at all.
  *
  * `navigator.locks` needs a secure context and is missing from a few older
  * browsers. There it degrades to a per-tab queue, which is the behaviour we had
@@ -47,7 +57,7 @@ function getLockManager(): LockManager | null {
  *
  * Two entry points refresh the session and both must contend for the same lock,
  * otherwise they can still collide across tabs even though each is serialised on
- * its own: the scheduled timer in `SessionMonitor` and the recovery path in
+ * its own: the periodic check in `useSessionLifecycle` and the recovery path in
  * `ApiClient.fetchWithRetry`.
  */
 export interface SessionRefreshCoordinator {
