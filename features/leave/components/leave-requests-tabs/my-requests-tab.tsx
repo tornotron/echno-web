@@ -29,6 +29,11 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
+import {
+  describeDuration,
+  formatLeaveDays,
+} from '@/features/leave/lib/leave-duration';
+import { isSameDay } from 'date-fns';
 import { useEmployeeRequests } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
 import { Checkbox } from '@/components/shadcn/checkbox';
@@ -251,8 +256,16 @@ export function MyRequestsTab({ employeeId }: MyRequestsTabProps) {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="font-semibold">
-                        {r.totalDays}d
+                      <TableCell>
+                        <div className="text-sm font-semibold">
+                          {formatLeaveDays(r.totalDays)}
+                        </div>
+                        <div className="text-muted-foreground text-xs">
+                          {describeDuration(
+                            r,
+                            isSameDay(r.startDate, r.endDate)
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <p className="text-muted-foreground max-w-[200px] truncate text-sm">
@@ -308,7 +321,7 @@ export function MyRequestsTab({ employeeId }: MyRequestsTabProps) {
                       {r.leaveTypeName}
                     </span>
                     <span className="text-foreground ml-auto text-sm font-semibold">
-                      {r.totalDays}d
+                      {formatLeaveDays(r.totalDays)}
                     </span>
                   </div>
                   <p className="text-muted-foreground text-sm">

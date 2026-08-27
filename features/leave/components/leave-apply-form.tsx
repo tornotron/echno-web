@@ -59,6 +59,16 @@ import { BalanceCard } from '@/features/leave/components/balance-card';
 import { FormSkeleton } from '@/features/leave/components/skeletons';
 import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
+import {
+  RANGE_END_OPTIONS,
+  RANGE_START_OPTIONS,
+  SINGLE_DAY_OPTIONS,
+  checkDurationAgainstPolicy,
+  describeDuration,
+  formatLeaveDays,
+  isSingleDayRange,
+  reconcileHalfDaySelection,
+} from '@/features/leave/lib/leave-duration';
 import { routes } from '@/nav';
 
 interface LeaveApplyFormProps {
@@ -143,8 +153,66 @@ export function LeaveApplyForm({
     (b) => b.leavePolicyId.toString() === formData.leavePolicyId
   );
 
-  const isSingleDay =
-    formData.startDate && formData.startDate === formData.endDate;
+  const isSingleDay = isSingleDayRange(formData.startDate, formData.endDate);
+
+  const halfDaySelection = {
+    startHalfDayType: formData.startHalfDayType,
+    endHalfDayType: formData.endHalfDayType,
+  };
+
+  // A half-day choice can be invalidated by what the user does next: extending
+  // the range, collapsing it back to one day, or switching to a leave type that
+  // forbids halves. Rather than send a value the backend would reject or
+  // silently ignore, the selection is reconciled whenever the dates or the
+  // policy move.
+  const updateDates = (startDate: string, endDate: string) => {
+    setFormData((current) => ({
+      ...current,
+      startDate,
+      endDate,
+      ...reconcileHalfDaySelection(
+        current,
+        startDate,
+        endDate,
+        selectedPolicy?.allowHalfDay ?? true
+      ),
+    }));
+  };
+
+  const updatePolicy = (leavePolicyId: string) => {
+    const policy = policies.find((p) => p.id.toString() === leavePolicyId);
+    setFormData((current) => ({
+      ...current,
+      leavePolicyId,
+      ...reconcileHalfDaySelection(
+        current,
+        current.startDate,
+        current.endDate,
+        policy?.allowHalfDay ?? true
+      ),
+    }));
+  };
+
+  const updateHalfDay = (
+    field: 'startHalfDayType' | 'endHalfDayType',
+    value: HalfDayType
+  ) => {
+    setFormData((current) => ({
+      ...current,
+      ...reconcileHalfDaySelection(
+        { ...current, [field]: value },
+        current.startDate,
+        current.endDate,
+        selectedPolicy?.allowHalfDay ?? true
+      ),
+    }));
+  };
+
+  const durationIssue = checkDurationAgainstPolicy(
+    calculatedDays,
+    halfDaySelection,
+    selectedPolicy
+  );
 
   useEffect(() => {
     if (formData.startDate && formData.endDate && employeeId) {
@@ -221,6 +289,10 @@ export function LeaveApplyForm({
       toast.error('Validation Error', {
         description: 'Reason must be at least 10 characters',
       });
+      return false;
+    }
+    if (durationIssue) {
+      toast.error('Duration Not Permitted', { description: durationIssue });
       return false;
     }
     if (selectedBalance && calculatedDays > selectedBalance.bookableBalance) {
@@ -479,6 +551,7 @@ export function LeaveApplyForm({
               disabled={
                 isMutating ||
                 hasConflict ||
+                !!durationIssue ||
                 (selectedBalance
                   ? calculatedDays > selectedBalance.bookableBalance
                   : false)
@@ -521,9 +594,7 @@ export function LeaveApplyForm({
                   <Select
                     key={`leave-type-${formData.leavePolicyId || 'empty'}`}
                     value={formData.leavePolicyId}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, leavePolicyId: value })
-                    }
+                    onValueChange={updatePolicy}
                     disabled={isEditMode}
                   >
                     <SelectTrigger>
@@ -558,7 +629,7 @@ export function LeaveApplyForm({
                       type="date"
                       value={formData.startDate}
                       onChange={(e) =>
-                        setFormData({ ...formData, startDate: e.target.value })
+                        updateDates(e.target.value, formData.endDate)
                       }
                       min={format(new Date(), 'yyyy-MM-dd')}
                     />
@@ -572,7 +643,7 @@ export function LeaveApplyForm({
                       type="date"
                       value={formData.endDate}
                       onChange={(e) =>
-                        setFormData({ ...formData, endDate: e.target.value })
+                        updateDates(formData.startDate, e.target.value)
                       }
                       min={
                         formData.startDate || format(new Date(), 'yyyy-MM-dd')
@@ -581,38 +652,97 @@ export function LeaveApplyForm({
                   </div>
                 </div>
 
-                {isSingleDay && selectedPolicy?.allowHalfDay && (
+                {selectedPolicy?.allowHalfDay && formData.startDate && (
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label>Start Day Type</Label>
-                      <Select
-                        value={
-                          formData.startHalfDayType || HalfDayType.FULL_DAY
-                        }
-                        onValueChange={(value) =>
-                          setFormData({
-                            ...formData,
-                            startHalfDayType: value as HalfDayType,
-                            endHalfDayType: value as HalfDayType,
-                          })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={HalfDayType.FULL_DAY}>
-                            Full Day
-                          </SelectItem>
-                          <SelectItem value={HalfDayType.FIRST_HALF}>
-                            First Half
-                          </SelectItem>
-                          <SelectItem value={HalfDayType.SECOND_HALF}>
-                            Second Half
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    {isSingleDay ? (
+                      <div className="space-y-2">
+                        <Label>Duration</Label>
+                        <Select
+                          value={
+                            formData.startHalfDayType || HalfDayType.FULL_DAY
+                          }
+                          onValueChange={(value) =>
+                            updateHalfDay(
+                              'startHalfDayType',
+                              value as HalfDayType
+                            )
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SINGLE_DAY_OPTIONS.map((option) => (
+                              <SelectItem
+                                key={option.value}
+                                value={option.value}
+                              >
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="space-y-2">
+                          <Label>First Day</Label>
+                          <Select
+                            value={
+                              formData.startHalfDayType || HalfDayType.FULL_DAY
+                            }
+                            onValueChange={(value) =>
+                              updateHalfDay(
+                                'startHalfDayType',
+                                value as HalfDayType
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {RANGE_START_OPTIONS.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Last Day</Label>
+                          <Select
+                            value={
+                              formData.endHalfDayType || HalfDayType.FULL_DAY
+                            }
+                            onValueChange={(value) =>
+                              updateHalfDay(
+                                'endHalfDayType',
+                                value as HalfDayType
+                              )
+                            }
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {RANGE_END_OPTIONS.map((option) => (
+                                <SelectItem
+                                  key={option.value}
+                                  value={option.value}
+                                >
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </>
+                    )}
                   </div>
                 )}
 
@@ -625,11 +755,20 @@ export function LeaveApplyForm({
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       <div className="flex items-center justify-between">
-                        <span>Total Leave Days:</span>
+                        <span>Total Leave:</span>
                         <span className="text-2xl font-bold">
-                          {calculatedDays}
+                          {formatLeaveDays(calculatedDays)}
                         </span>
                       </div>
+                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                        Duration:{' '}
+                        {describeDuration(halfDaySelection, isSingleDay)}
+                      </p>
+                      {durationIssue && (
+                        <p className="text-destructive mt-2 text-sm">
+                          {durationIssue}
+                        </p>
+                      )}
                       {hasConflict && (
                         <p className="text-destructive mt-2 text-sm">
                           {conflictMessage}

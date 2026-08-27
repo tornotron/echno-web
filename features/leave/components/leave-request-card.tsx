@@ -20,7 +20,11 @@ import {
   FileText,
   AlertCircle,
 } from 'lucide-react';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, isSameDay } from 'date-fns';
+import {
+  describeDuration,
+  formatLeaveDays,
+} from '@/features/leave/lib/leave-duration';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { cn } from '@/lib/utils';
@@ -141,8 +145,13 @@ export function LeaveRequestCard({
                 <div className="flex items-center gap-2 text-sm">
                   <Clock className="text-muted-foreground h-4 w-4" />
                   <span className="text-primary font-semibold">
-                    {request.totalDays}{' '}
-                    {request.totalDays === 1 ? 'day' : 'days'}
+                    {formatLeaveDays(request.totalDays)}
+                  </span>
+                  <span className="text-muted-foreground">
+                    {describeDuration(
+                      request,
+                      isSameDay(request.startDate, request.endDate)
+                    )}
                   </span>
                 </div>
               </div>
