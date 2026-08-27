@@ -10,6 +10,9 @@
  * The `api` exported object provides bound convenience functions for
  * the most common HTTP verbs used across the codebase.
  */
+import { getSession } from 'next-auth/react';
+import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
+
 export interface ApiResponse<T = unknown> {
   /** The payload returned by the backend */
   data: T;
@@ -82,6 +85,32 @@ const RETRY_DELAY_MS = 1000;
 
 // Errors that should trigger a retry
 const RETRYABLE_ERRORS = new Set(['TypeError', 'AbortError']);
+
+/**
+ * Detects the BFF proxy's "the access token in your cookie has expired" signal.
+ *
+ * The response is cloned before the body is read, because a body can only be
+ * consumed once and the caller still needs an intact response when the signal
+ * turns out to be absent.
+ *
+ * @param response - Response returned by the BFF proxy.
+ * @returns True only for a 401 whose JSON body carries the expiry error code.
+ */
+async function isSessionTokenExpiredResponse(
+  response: Response
+): Promise<boolean> {
+  if (response.status !== 401) {
+    return false;
+  }
+
+  try {
+    const body = (await response.clone().json()) as { error?: string } | null;
+    return body?.error === SESSION_TOKEN_EXPIRED_ERROR;
+  } catch {
+    // Not JSON, so not our signal.
+    return false;
+  }
+}
 
 /**
  * ApiClient
@@ -206,7 +235,14 @@ class ApiClient {
   }
 
   /**
-   * Fetch wrapper that retries on transient network errors using exponential backoff.
+   * Fetch wrapper that retries on transient network errors using exponential
+   * backoff, and recovers once from an expired access token.
+   *
+   * Every request method funnels through here, which makes it the one place to
+   * answer the BFF's expiry signal: `getSession()` forces the session round trip
+   * that refreshes the cookie, then the original request is replayed. The
+   * replay is deliberately capped at one, so a session that cannot be refreshed
+   * surfaces its 401 to the caller instead of looping.
    */
   private async fetchWithRetry(
     url: string,
@@ -217,10 +253,22 @@ class ApiClient {
     }: RequestOptions = {}
   ): Promise<Response> {
     let lastError: Error | null = null;
+    let hasRefreshedSession = false;
 
     for (let attempt = 0; attempt <= retries; attempt++) {
       try {
-        return await this.fetchWithTimeout(url, options, timeout);
+        const response = await this.fetchWithTimeout(url, options, timeout);
+
+        if (
+          !hasRefreshedSession &&
+          (await isSessionTokenExpiredResponse(response))
+        ) {
+          hasRefreshedSession = true;
+          await getSession();
+          return await this.fetchWithTimeout(url, options, timeout);
+        }
+
+        return response;
       } catch (error) {
         // Handle timeout (AbortError)
         if (error instanceof Error && error.name === 'AbortError') {

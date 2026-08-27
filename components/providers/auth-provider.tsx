@@ -10,6 +10,7 @@ import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { SESSION_WARNINGS } from '@/lib/auth/constants';
+import { msUntilAccessTokenRefresh } from '@/lib/auth/token-refresh-schedule';
 
 // Warning thresholds (in minutes before expiration)
 const { INITIAL_WARNING_MINUTES, FINAL_WARNING_MINUTES } = SESSION_WARNINGS;
@@ -117,6 +118,52 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
     return () => clearInterval(interval);
   }, [session, status, update]);
 
+  // Refresh the access token before it expires
+  //
+  // Every XHR goes through the BFF proxy, which reads the access token straight
+  // out of the session cookie and never runs the NextAuth `jwt()` callback,
+  // the one place a refresh happens. A user sitting on a single page therefore
+  // kept forwarding a token that had lapsed minutes ago, and every request 401d
+  // until the page was reloaded. Arming a timer off the access token's own
+  // expiry puts the refresh back on the right clock: `update()` calls
+  // /api/auth/session, which runs `jwt()`, which refreshes and rewrites the
+  // cookie. Re-arms on every session change, so exactly one timer is pending.
+  useEffect(() => {
+    if (status !== 'authenticated' || !session) return;
+    if (session.provider !== 'keycloak') return;
+
+    const delay = msUntilAccessTokenRefresh(session.expiresAt, Date.now());
+    if (delay === null) return;
+
+    const refreshAccessToken = async () => {
+      // Refresh tokens are single-use on our realms (revokeRefreshToken with
+      // refreshTokenMaxReuse 0), so two refreshes in flight with the same token
+      // revoke the whole chain and log the user out. This shares the guard with
+      // the activity-driven refresh above so only one can ever run.
+      if (isRefreshingRef.current) return;
+      isRefreshingRef.current = true;
+
+      try {
+        await update();
+        // The refresh extends the Keycloak session too, so let the expiry
+        // warnings fire again against the new deadline.
+        setHasShownWarning(false);
+        setHasShownFinalWarning(false);
+        logger.debug('Session: Access token refreshed ahead of expiry');
+      } catch (error) {
+        logger.error('Session: Failed to refresh access token', error);
+      } finally {
+        isRefreshingRef.current = false;
+      }
+    };
+
+    const timeoutId = setTimeout(() => {
+      void refreshAccessToken();
+    }, delay);
+
+    return () => clearTimeout(timeoutId);
+  }, [session, status, update]);
+
   // Sync organization ID header with every session change
   useEffect(() => {
     if (status === 'authenticated' && session?.user?.defaultOrganizationId) {
@@ -161,7 +208,8 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
 
     // Use sessionExpiresAt (Keycloak session timeout) instead of expiresAt (access token expiration)
     // sessionExpiresAt tracks when the refresh token expires (~30 minutes)
-    // expiresAt tracks when the access token expires (~5 minutes, auto-refreshed)
+    // expiresAt tracks when the access token expires (~5 minutes); that one is
+    // kept alive by the access token refresh effect above, not by this check
     const sessionExpiresAt = session.sessionExpiresAt;
     if (!sessionExpiresAt) return; // No session expiration time available
 
