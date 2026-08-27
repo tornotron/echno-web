@@ -1,28 +1,24 @@
 import { TOKEN_REFRESH } from './constants';
 
 /**
- * Access token scheduling helpers.
+ * Access token expiry helpers.
  *
  * Keycloak issues the access token with a short lifetime (5 minutes on our
- * realms) while the SSO session itself lives for half an hour or more. The two
- * clocks are tracked separately on the session: `expiresAt` is the access
- * token, `sessionExpiresAt` is the SSO session. Anything that reasons about
- * "is the bearer we are about to send still good" must use the first one.
+ * realms) while the session itself lasts as long as the user keeps working.
+ * The two clocks are tracked separately on the session: `expiresAt` is the
+ * access token, and it is the only one that answers "is the bearer we are
+ * about to send still good".
  *
- * Both helpers here are pure and take `now` explicitly so they can be reasoned
- * about (and tested) without touching the clock.
- */
-
-/**
- * Floor for a scheduled refresh, in milliseconds.
+ * These are questions asked about the present, not schedules for the future.
+ * An earlier version armed a one-shot timer for the exact moment a refresh was
+ * due, which a backgrounded tab never reaches: its timers are throttled or
+ * suspended and the moment passes unattended. The session monitor now asks
+ * these questions on a repeating interval and whenever a tab comes back, so a
+ * missed tick is caught up rather than lost.
  *
- * A token that is already inside its refresh buffer would otherwise schedule a
- * refresh in the past, and a session that keeps coming back with the same
- * expiry would then re-arm the timer as fast as React can re-render. Five
- * seconds is short enough to recover a stale token promptly and long enough
- * that a pathological session cannot turn the timer into a spin loop.
+ * Both helpers are pure and take `now` explicitly so they can be reasoned about
+ * (and tested) without touching the clock.
  */
-export const MIN_REFRESH_DELAY_MS = 5 * 1000;
 
 /**
  * Allowance for clock drift between this browser and Keycloak, in milliseconds.
@@ -32,68 +28,6 @@ export const MIN_REFRESH_DELAY_MS = 5 * 1000;
  * far cheaper than an app-wide 401.
  */
 const CLOCK_SKEW_ALLOWANCE_MS = 5 * 1000;
-
-/**
- * Milliseconds to wait before proactively refreshing the access token.
- *
- * The refresh is scheduled one {@link TOKEN_REFRESH.REFRESH_BUFFER_MS} ahead of
- * expiry, so the new token is in the cookie before the old one lapses, and is
- * floored at {@link MIN_REFRESH_DELAY_MS}.
- *
- * @param expiresAt - Access token expiry as an epoch timestamp in milliseconds,
- *   or undefined when the session carries no expiry.
- * @param now - Current time in milliseconds since the epoch.
- * @returns The delay to arm a timer with, or `null` when there is no expiry to
- *   schedule from.
- */
-export function msUntilAccessTokenRefresh(
-  expiresAt: number | undefined | null,
-  now: number
-): number | null {
-  if (expiresAt === undefined || expiresAt === null) {
-    return null;
-  }
-
-  const delay = expiresAt - TOKEN_REFRESH.REFRESH_BUFFER_MS - now;
-  return Math.max(delay, MIN_REFRESH_DELAY_MS);
-}
-
-/**
- * Widest jitter added to a scheduled refresh, in milliseconds.
- *
- * Small next to the 60 second refresh buffer, so a jittered timer still fires
- * comfortably before the token lapses.
- */
-export const MAX_REFRESH_JITTER_MS = 5 * 1000;
-
-/**
- * Spreads scheduled refreshes out by up to {@link MAX_REFRESH_JITTER_MS}.
- *
- * Every tab on the origin shares one session cookie and therefore one refresh
- * deadline, so without jitter they all wake in the same instant and pile onto
- * the cross-tab lock together. This is defence in depth and not the fix: the
- * lock in `session-refresh-lock.ts` is what makes concurrent tabs safe, and
- * jitter only thins the crowd arriving at it.
- *
- * A delay already at {@link MIN_REFRESH_DELAY_MS} is left alone, since that
- * floor means the token is at or past expiry and recovery should not be
- * postponed any further.
- *
- * @param delay - Scheduled delay in milliseconds.
- * @param random - Source of randomness in the range [0, 1). Injectable so the
- *   spread can be tested without depending on `Math.random`.
- * @returns The delay, with jitter added when there is room for it.
- */
-export function withRefreshJitter(
-  delay: number,
-  random: () => number = Math.random
-): number {
-  if (delay <= MIN_REFRESH_DELAY_MS) {
-    return delay;
-  }
-
-  return delay + Math.floor(random() * MAX_REFRESH_JITTER_MS);
-}
 
 /**
  * Whether the access token is expired, or close enough to expiry that it should
@@ -115,4 +49,31 @@ export function isAccessTokenExpired(
   }
 
   return expiresAt - now <= CLOCK_SKEW_ALLOWANCE_MS;
+}
+
+/**
+ * Whether the access token is close enough to expiry to be worth renewing.
+ *
+ * The buffer is the same one the `jwt()` callback applies server-side, so a
+ * client that decides to refresh and the callback that performs it agree about
+ * whether there is anything to do. A caller inside the buffer gets a new token;
+ * one that arrives just after somebody else refreshed finds a token that is
+ * comfortably valid and does nothing, which is what makes a duplicate refresh
+ * harmless rather than a replayed one.
+ *
+ * @param expiresAt - Access token expiry as an epoch timestamp in milliseconds,
+ *   or undefined when the session carries no expiry.
+ * @param now - Current time in milliseconds since the epoch.
+ * @returns True when a refresh is due. False when there is no recorded expiry,
+ *   since there is then nothing to schedule from.
+ */
+export function isWithinRefreshBuffer(
+  expiresAt: number | undefined | null,
+  now: number
+): boolean {
+  if (expiresAt === undefined || expiresAt === null) {
+    return false;
+  }
+
+  return expiresAt - now <= TOKEN_REFRESH.REFRESH_BUFFER_MS;
 }

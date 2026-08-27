@@ -1,85 +1,58 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import {
-  MAX_REFRESH_JITTER_MS,
-  MIN_REFRESH_DELAY_MS,
   isAccessTokenExpired,
-  msUntilAccessTokenRefresh,
-  withRefreshJitter,
+  isWithinRefreshBuffer,
 } from './token-refresh-schedule';
 import { TOKEN_REFRESH } from './constants';
 
 const NOW = 1_700_000_000_000;
-const MINUTE = 60_000;
-
-describe('msUntilAccessTokenRefresh', () => {
-  it('schedules the refresh one buffer ahead of expiry', () => {
-    const expiresAt = NOW + 5 * MINUTE;
-
-    expect(msUntilAccessTokenRefresh(expiresAt, NOW)).toBe(
-      5 * MINUTE - TOKEN_REFRESH.REFRESH_BUFFER_MS
-    );
-  });
-
-  it('never schedules sooner than the minimum delay, so a short-lived token cannot spin', () => {
-    const expiresAt = NOW + 30_000;
-
-    expect(msUntilAccessTokenRefresh(expiresAt, NOW)).toBe(
-      MIN_REFRESH_DELAY_MS
-    );
-  });
-
-  it('falls back to the minimum delay when the token has already expired', () => {
-    const expiresAt = NOW - MINUTE;
-
-    expect(msUntilAccessTokenRefresh(expiresAt, NOW)).toBe(
-      MIN_REFRESH_DELAY_MS
-    );
-  });
-
-  it('returns null when there is no expiry to schedule from', () => {
-    expect(msUntilAccessTokenRefresh(undefined, NOW)).toBeNull();
-  });
-});
+const MINUTE = 60 * 1000;
 
 describe('isAccessTokenExpired', () => {
-  it('is false while the token is still inside its lifetime', () => {
+  test('a token with time left is not expired', () => {
     expect(isAccessTokenExpired(NOW + MINUTE, NOW)).toBe(false);
   });
 
-  it('is true once expiry has passed', () => {
+  test('a token past its expiry is expired', () => {
     expect(isAccessTokenExpired(NOW - 1, NOW)).toBe(true);
   });
 
-  it('treats a token expiring within the clock-skew allowance as expired', () => {
+  test('a token inside the clock skew allowance is treated as expired', () => {
     expect(isAccessTokenExpired(NOW + 1000, NOW)).toBe(true);
   });
 
-  it('is false when there is no expiry recorded, leaving the backend to judge', () => {
+  test('a session with no recorded expiry is left to the backend', () => {
     expect(isAccessTokenExpired(undefined, NOW)).toBe(false);
   });
 });
 
-describe('withRefreshJitter', () => {
-  it('spreads a scheduled refresh out by up to the jitter window', () => {
-    const delay = 4 * MINUTE;
-
-    expect(withRefreshJitter(delay, () => 0)).toBe(delay);
-    expect(withRefreshJitter(delay, () => 0.5)).toBe(
-      delay + MAX_REFRESH_JITTER_MS / 2
-    );
-    // random() never returns 1, so the added jitter stays inside the window.
-    expect(withRefreshJitter(delay, () => 0.999)).toBeLessThan(
-      delay + MAX_REFRESH_JITTER_MS
-    );
+describe('isWithinRefreshBuffer', () => {
+  test('a token well inside its lifetime is left alone', () => {
+    expect(
+      isWithinRefreshBuffer(NOW + 4 * MINUTE, NOW)
+    ).toBe(false);
   });
 
-  it('stays well inside the refresh buffer, so a jittered timer still beats expiry', () => {
-    expect(MAX_REFRESH_JITTER_MS).toBeLessThan(TOKEN_REFRESH.REFRESH_BUFFER_MS);
+  test('a token inside the buffer is due for renewal', () => {
+    expect(
+      isWithinRefreshBuffer(NOW + TOKEN_REFRESH.REFRESH_BUFFER_MS - 1, NOW)
+    ).toBe(true);
   });
 
-  it('leaves a delay already at the floor alone, so recovery is not postponed', () => {
-    expect(withRefreshJitter(MIN_REFRESH_DELAY_MS, () => 0.9)).toBe(
-      MIN_REFRESH_DELAY_MS
-    );
+  test('an expired token is due for renewal', () => {
+    expect(isWithinRefreshBuffer(NOW - MINUTE, NOW)).toBe(true);
+  });
+
+  test('a session with no recorded expiry has nothing to renew', () => {
+    expect(isWithinRefreshBuffer(undefined, NOW)).toBe(false);
+  });
+
+  test('the buffer is wider than the expiry allowance, so renewal comes first', () => {
+    // A token must become "worth refreshing" before it becomes "too old to
+    // send", or the proxy would start rejecting requests the client had no
+    // reason to have renewed yet.
+    const expiresAt = NOW + TOKEN_REFRESH.REFRESH_BUFFER_MS / 2;
+    expect(isWithinRefreshBuffer(expiresAt, NOW)).toBe(true);
+    expect(isAccessTokenExpired(expiresAt, NOW)).toBe(false);
   });
 });
