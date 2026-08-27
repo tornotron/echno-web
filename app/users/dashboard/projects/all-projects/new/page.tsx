@@ -7,7 +7,6 @@ import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useCreateProjectWithFiles } from '@tornotron/echno-core/project/hooks';
 import type {
-  ProjectType,
   CreateProjectRequest,
 } from '@tornotron/echno-core/project/types';
 import { projectKeys } from '@tornotron/echno-core/project/hooks/keys';
@@ -62,12 +61,15 @@ export default function NewProjectPage() {
       toast.error('User not found', { description: 'Please log in again' });
       return;
     }
-    // `projectType` is included so the chosen category flows through once the
-    // core project serializer forwards it (core 1.4.0 types the field on
-    // Project but does not yet emit it on create/update).
-    const createData: CreateProjectRequest & { projectType?: ProjectType } = {
+    // Blank optional fields are sent as undefined rather than '', because the
+    // core serializer emits only the keys that are set and the backend reads a
+    // missing key as "not recorded".
+    const createData: CreateProjectRequest = {
       projectName: data.fields.projectName,
       projectAddress: data.fields.projectAddress,
+      projectCity: data.fields.projectCity || undefined,
+      projectState: data.fields.projectState || undefined,
+      projectPostalCode: data.fields.projectPostalCode || undefined,
       status: data.fields.status,
       projectType: data.fields.projectType || undefined,
       description: data.fields.description,
