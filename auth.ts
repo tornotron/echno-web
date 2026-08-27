@@ -5,7 +5,10 @@ import Credentials from 'next-auth/providers/credentials';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { logger } from '@/lib/logger';
 import { TOKEN_REFRESH } from '@/lib/auth/constants';
-import type { KeycloakToken } from '@/types/keycloak';
+import {
+  RefreshRejectedError,
+  createAccessTokenRefresher,
+} from '@/lib/auth/refresh-access-token';
 
 /**
  * Lightweight base64 decode helper to extract session ID from JWT
@@ -27,48 +30,23 @@ function extractSessionIdFromJwt(
 }
 
 /**
- * Refresh Keycloak access token using refresh token
+ * Refreshes the access token, once per refresh token, retrying only what is
+ * worth retrying. See `lib/auth/refresh-access-token.ts` for why those two
+ * properties matter more than they look.
+ *
+ * Built lazily: the environment is read at call time, not at module load, so
+ * importing `auth.ts` never depends on the Keycloak variables being present.
  */
-async function refreshAccessToken(
-  token: KeycloakToken
-): Promise<KeycloakToken> {
-  try {
-    const issuer = process.env.KEYCLOAK_ISSUER!;
+let refreshAccessToken: ReturnType<typeof createAccessTokenRefresher> | null =
+  null;
 
-    const response = await fetch(`${issuer}/protocol/openid-connect/token`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: process.env.KEYCLOAK_ID!,
-        grant_type: 'refresh_token',
-        refresh_token: token.refreshToken || '',
-      }),
-    });
-
-    const refreshed = await response.json();
-
-    if (!response.ok) {
-      throw refreshed;
-    }
-
-    return {
-      ...token,
-      accessToken: refreshed.access_token,
-      idToken: refreshed.id_token,
-      refreshToken: refreshed.refresh_token ?? token.refreshToken,
-      expiresAt: refreshed.expires_at
-        ? refreshed.expires_at * 1000
-        : Date.now() + refreshed.expires_in * 1000,
-      sessionExpiresAt: refreshed.refresh_expires_in
-        ? Date.now() + refreshed.refresh_expires_in * 1000
-        : token.sessionExpiresAt,
-      lastRefresh: Date.now(),
-      error: undefined,
-    };
-  } catch (error) {
-    logger.error('Token refresh failed', error);
-    return { ...token, error: 'RefreshAccessTokenError' };
-  }
+function getAccessTokenRefresher() {
+  refreshAccessToken ??= createAccessTokenRefresher({
+    fetch: (...args) => globalThis.fetch(...args),
+    issuer: process.env.KEYCLOAK_ISSUER!,
+    clientId: process.env.KEYCLOAK_ID!,
+  });
+  return refreshAccessToken;
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
@@ -251,16 +229,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         return token;
       }
 
-      // Check if Keycloak session has expired (refresh token expiry)
-      if (
-        token.sessionExpiresAt &&
-        Date.now() > (token.sessionExpiresAt as number)
-      ) {
-        logger.warn('Keycloak session expired, invalidating session', {
-          sessionExpiresAt: new Date(token.sessionExpiresAt as number),
-        });
-        return null; // Invalidate session immediately
-      }
+      // There is deliberately no separate check on `sessionExpiresAt` here.
+      // The session now ends on inactivity, which the client tracks and acts
+      // on, and a refresh token that really has expired is refused by the
+      // exchange below and reported the same way as any other dead session.
+      // One path to "the session is over" is easier to reason about than two,
+      // and the old check invalidated the token outright, which left the
+      // browser holding a session that had silently ceased to exist.
 
       // Token still valid (with buffer to prevent race conditions)
       if (
@@ -278,25 +253,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // ========== REFRESH TOKEN ==========
+      //
+      // Nothing below returns null, and that is the point. Returning null drops
+      // the session cookie, so the browser arrives at `status: 'unauthenticated'`
+      // carrying no error at all: no toast, no redirect, nothing for the app to
+      // react to. The user is left on a working-looking page where every request
+      // quietly fails. Marking the token instead keeps the session addressable
+      // long enough to say what happened, which the middleware and the session
+      // monitor both already know how to do.
       logger.debug('Token expiring soon, attempting refresh...');
       if (token.provider === 'keycloak' && token.refreshToken) {
-        const refreshed = await refreshAccessToken(token);
+        try {
+          return (await getAccessTokenRefresher()(token)) as JWT;
+        } catch (error) {
+          if (error instanceof RefreshRejectedError) {
+            logger.error('Refresh token rejected, ending session', {
+              reason: error.reason,
+            });
+            return { ...token, error: 'RefreshAccessTokenError' };
+          }
 
-        // If refresh failed, invalidate session immediately
-        if (refreshed.error) {
-          logger.error('Token refresh failed, invalidating session', {
-            error: refreshed.error,
+          // The exchange never completed. The token is untouched and still the
+          // one Keycloak expects, so the next attempt can simply try again.
+          // Requests in the meantime fail on their own expiry, which the client
+          // answers by refreshing rather than by giving up.
+          logger.warn('Token refresh unavailable, leaving session intact', {
+            reason: error instanceof Error ? error.message : 'unknown',
           });
-          return null;
+          return token;
         }
-
-        return refreshed as JWT;
       }
 
-      // No refresh token available, invalidate session
       if (token.provider === 'keycloak') {
-        logger.warn('No refresh token available, invalidating session');
-        return null;
+        logger.warn('No refresh token available, ending session');
+        return { ...token, error: 'RefreshAccessTokenError' };
       }
 
       return token;
