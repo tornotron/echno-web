@@ -23,31 +23,45 @@ const toastStyles = {
   },
 } as const
 
+/**
+ * Options forwarded to sonner.
+ *
+ * `id` and `duration` exist for toasts the app has to manage rather than fire
+ * and forget: an idle warning has to stay up until it is acted on, and has to
+ * be dismissable the moment the user proves they are still there.
+ */
+export interface ToastOptions {
+  description?: string
+  action?: { label: string; onClick: () => void }
+  duration?: number
+  id?: string | number
+}
+
 // Custom toast wrapper functions
 export const toast = {
-  success: (message: string, options?: { description?: string }) => {
+  success: (message: string, options?: ToastOptions) => {
     return sonnerToast.success(message, {
       ...options,
       style: toastStyles.success,
     })
   },
-  error: (message: string, options?: { description?: string }) => {
+  error: (message: string, options?: ToastOptions) => {
     return sonnerToast.error(message, {
       ...options,
       style: toastStyles.error,
     })
   },
-  warning: (message: string, options?: { description?: string }) => {
+  warning: (message: string, options?: ToastOptions) => {
     return sonnerToast.warning(message, {
       ...options,
       style: toastStyles.warning,
     })
   },
-  info: (message: string, options?: { description?: string }) => {
+  info: (message: string, options?: ToastOptions) => {
     return sonnerToast.info(message, {
       ...options,
       style: toastStyles.info,
     })
   },
+  dismiss: (id?: string | number) => sonnerToast.dismiss(id),
 }
-
