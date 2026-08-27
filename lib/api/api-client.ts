@@ -12,6 +12,7 @@
  */
 import { getSession } from 'next-auth/react';
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
+import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
 
 export interface ApiResponse<T = unknown> {
   /** The payload returned by the backend */
@@ -112,11 +113,8 @@ async function isSessionTokenExpiredResponse(
   }
 }
 
-/** The session refresh currently in flight, if any. */
-let sessionRefreshInFlight: Promise<unknown> | null = null;
-
 /**
- * Refreshes the session, at most one refresh at a time across the whole app.
+ * Refreshes the session, at most one refresh at a time.
  *
  * The dashboard fires many queries in parallel, so when the access token lapses
  * every one of them gets the expiry signal in the same instant. Letting each
@@ -124,18 +122,12 @@ let sessionRefreshInFlight: Promise<unknown> | null = null;
  * the same cookie, all posting the same refresh token to Keycloak. Our realms
  * set revokeRefreshToken with refreshTokenMaxReuse 0, so the first refresh
  * wins and every other one is a reuse that revokes the chain and throws the
- * user out. Late callers therefore await the refresh already running instead of
- * starting their own, and each still replays its own request once afterwards.
- *
- * The promise is cleared in a `finally`, so a later expiry refreshes again.
+ * user out. The coordinator collapses the callers in this tab into one refresh
+ * and holds the cross-tab lock while it runs, so the other tabs wait too.
  */
 async function refreshSessionOnce(): Promise<void> {
-  sessionRefreshInFlight ??= getSession().finally(() => {
-    sessionRefreshInFlight = null;
-  });
-
   try {
-    await sessionRefreshInFlight;
+    await sessionRefresh.refreshOnce(getSession);
   } catch {
     // A failed refresh leaves the replay to fail on its own 401, which the
     // caller surfaces exactly as it would have without this recovery step.

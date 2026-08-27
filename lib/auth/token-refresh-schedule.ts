@@ -59,6 +59,43 @@ export function msUntilAccessTokenRefresh(
 }
 
 /**
+ * Widest jitter added to a scheduled refresh, in milliseconds.
+ *
+ * Small next to the 60 second refresh buffer, so a jittered timer still fires
+ * comfortably before the token lapses.
+ */
+export const MAX_REFRESH_JITTER_MS = 5 * 1000;
+
+/**
+ * Spreads scheduled refreshes out by up to {@link MAX_REFRESH_JITTER_MS}.
+ *
+ * Every tab on the origin shares one session cookie and therefore one refresh
+ * deadline, so without jitter they all wake in the same instant and pile onto
+ * the cross-tab lock together. This is defence in depth and not the fix: the
+ * lock in `session-refresh-lock.ts` is what makes concurrent tabs safe, and
+ * jitter only thins the crowd arriving at it.
+ *
+ * A delay already at {@link MIN_REFRESH_DELAY_MS} is left alone, since that
+ * floor means the token is at or past expiry and recovery should not be
+ * postponed any further.
+ *
+ * @param delay - Scheduled delay in milliseconds.
+ * @param random - Source of randomness in the range [0, 1). Injectable so the
+ *   spread can be tested without depending on `Math.random`.
+ * @returns The delay, with jitter added when there is room for it.
+ */
+export function withRefreshJitter(
+  delay: number,
+  random: () => number = Math.random
+): number {
+  if (delay <= MIN_REFRESH_DELAY_MS) {
+    return delay;
+  }
+
+  return delay + Math.floor(random() * MAX_REFRESH_JITTER_MS);
+}
+
+/**
  * Whether the access token is expired, or close enough to expiry that it should
  * be treated as expired.
  *

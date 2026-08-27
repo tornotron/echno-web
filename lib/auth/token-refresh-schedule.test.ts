@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import {
+  MAX_REFRESH_JITTER_MS,
   MIN_REFRESH_DELAY_MS,
   isAccessTokenExpired,
   msUntilAccessTokenRefresh,
+  withRefreshJitter,
 } from './token-refresh-schedule';
 import { TOKEN_REFRESH } from './constants';
 
@@ -54,5 +56,30 @@ describe('isAccessTokenExpired', () => {
 
   it('is false when there is no expiry recorded, leaving the backend to judge', () => {
     expect(isAccessTokenExpired(undefined, NOW)).toBe(false);
+  });
+});
+
+describe('withRefreshJitter', () => {
+  it('spreads a scheduled refresh out by up to the jitter window', () => {
+    const delay = 4 * MINUTE;
+
+    expect(withRefreshJitter(delay, () => 0)).toBe(delay);
+    expect(withRefreshJitter(delay, () => 0.5)).toBe(
+      delay + MAX_REFRESH_JITTER_MS / 2
+    );
+    // random() never returns 1, so the added jitter stays inside the window.
+    expect(withRefreshJitter(delay, () => 0.999)).toBeLessThan(
+      delay + MAX_REFRESH_JITTER_MS
+    );
+  });
+
+  it('stays well inside the refresh buffer, so a jittered timer still beats expiry', () => {
+    expect(MAX_REFRESH_JITTER_MS).toBeLessThan(TOKEN_REFRESH.REFRESH_BUFFER_MS);
+  });
+
+  it('leaves a delay already at the floor alone, so recovery is not postponed', () => {
+    expect(withRefreshJitter(MIN_REFRESH_DELAY_MS, () => 0.9)).toBe(
+      MIN_REFRESH_DELAY_MS
+    );
   });
 });
