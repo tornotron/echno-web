@@ -7,28 +7,10 @@ import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
 import { isAccessTokenExpired } from '@/lib/auth/token-refresh-schedule';
 import { logger } from '@/lib/logger';
+import { proxyTimeoutMs } from '@/lib/api/proxy-timeouts';
 
 // Server-side only env var (not exposed to client)
 const BACKEND_URL = process.env.BACKEND_API_URL;
-const REQUEST_TIMEOUT_MS = 30_000; // 30 seconds
-const UPLOAD_TIMEOUT_MS = 120_000; // 2 minutes for file uploads
-
-// A few endpoints do work that cannot finish inside the default budget, and
-// they are named here rather than given a blanket raise, so that a genuinely
-// stuck request on any other endpoint still fails fast.
-//
-// Compliance generation waits on an external AI model and takes tens of
-// seconds. Its budget sits deliberately above the browser's own budget for the
-// same call, so that on an overrun the browser is the side that gives up
-// first: it can then say what happened, whereas this proxy giving up first
-// would leave the browser reading a bare gateway error. It also sits below the
-// 60 seconds the reverse proxy in front of the site allows an upstream
-// response to take.
-// A Map rather than an object literal, so a request path that happens to name
-// an inherited object property cannot be mistaken for a configured timeout.
-const SLOW_ENDPOINT_TIMEOUTS_MS = new Map<string, number>([
-  ['inspections/web/compliance/regenerate', 55_000],
-]);
 
 // Headers to forward from client request
 const FORWARDED_HEADERS = [
@@ -227,9 +209,7 @@ async function proxyRequest(
     .get('accept')
     ?.includes('text/event-stream');
   const isMultipart = contentType?.includes('multipart/form-data');
-  const timeoutMs = isMultipart
-    ? UPLOAD_TIMEOUT_MS
-    : (SLOW_ENDPOINT_TIMEOUTS_MS.get(targetPath) ?? REQUEST_TIMEOUT_MS);
+  const timeoutMs = proxyTimeoutMs(targetPath, Boolean(isMultipart));
   const controller = new AbortController();
   const timeoutId = isEventStream
     ? undefined
