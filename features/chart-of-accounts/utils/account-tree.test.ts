@@ -83,7 +83,7 @@ describe('findParentId', () => {
 describe('collectSubtreeIds', () => {
   test('includes the target and all descendants', () => {
     const ids = collectSubtreeIds(tree[0]);
-    expect([...ids].sort()).toEqual(['1', '1-1', '1-2', '1-2-1']);
+    expect([...ids].toSorted()).toEqual(['1', '1-1', '1-2', '1-2-1']);
   });
 
   test('a leaf yields just itself', () => {

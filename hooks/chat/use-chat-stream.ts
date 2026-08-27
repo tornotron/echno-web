@@ -93,12 +93,12 @@ export function useChatStream() {
       }
     });
 
-    source.onerror = () => {
+    source.addEventListener('error', () => {
       // EventSource reconnects on its own, using the retry interval the server sent on the
       // opening frame. Reporting disconnection is what puts the polling fallback back on its
       // faster cadence in the meantime.
       setConnected(false);
-    };
+    });
 
     return () => {
       source.close();

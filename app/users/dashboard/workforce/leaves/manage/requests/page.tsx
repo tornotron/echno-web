@@ -42,12 +42,15 @@ export default function RequestsPage() {
   const { data: orgRequests } = useOrganizationRequests();
   const { data: myRequests } = useEmployeeRequests(employeeId);
 
-  const statsRequests = canViewAllRequests
-    ? (orgRequests ?? [])
-    : (myRequests ?? []);
-
-  const stats = useMemo(
-    () => ({
+  // The `?? []` fallbacks build a new array on every render while either query
+  // is still loading, so the choice has to happen inside the memo. Depending on
+  // the chosen array directly gave the memo a dependency that never compared
+  // equal, and it recomputed every render.
+  const stats = useMemo(() => {
+    const statsRequests = canViewAllRequests
+      ? (orgRequests ?? [])
+      : (myRequests ?? []);
+    return {
       total: statsRequests.length,
       pending: statsRequests.filter(
         (r) => r.status === LeaveStatus.PENDING_APPROVAL
@@ -56,9 +59,8 @@ export default function RequestsPage() {
         .length,
       rejected: statsRequests.filter((r) => r.status === LeaveStatus.REJECTED)
         .length,
-    }),
-    [statsRequests]
-  );
+    };
+  }, [canViewAllRequests, orgRequests, myRequests]);
 
   const tab = searchParams.get('tab') ?? 'my';
 

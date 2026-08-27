@@ -81,10 +81,21 @@ function useDraggable(initial: Position) {
     }));
   }, []);
 
+  /**
+   * Whether the gesture that just ended was a drag rather than a click, clearing
+   * the flag as it reads it. Callers get the answer without reaching into the
+   * hook's ref, which they are not allowed to write to.
+   */
+  const consumeDrag = useCallback(() => {
+    const dragged = wasDrag.current;
+    wasDrag.current = false;
+    return dragged;
+  }, []);
+
   return {
     pos,
     setPos,
-    wasDrag,
+    consumeDrag,
     elementRef,
     handleProps: {
       onPointerDown,
@@ -108,10 +119,20 @@ export function FloatingChat() {
   const [activeRoomId, setActiveRoomId] = useState<number | null>(null);
 
   // FAB position (right, bottom offsets)
-  const fab = useDraggable({ x: MARGIN, y: MARGIN });
+  const {
+    pos: fabPos,
+    consumeDrag: fabConsumeDrag,
+    elementRef: fabElementRef,
+    handleProps: fabHandleProps,
+  } = useDraggable({ x: MARGIN, y: MARGIN });
 
   // Panel position — anchored above the FAB initially
-  const panel = useDraggable({
+  const {
+    pos: panelPos,
+    setPos: setPanelPos,
+    elementRef: panelElementRef,
+    handleProps: panelHandleProps,
+  } = useDraggable({
     x: MARGIN,
     y: MARGIN + FAB_SIZE + 8,
   });
@@ -119,11 +140,11 @@ export function FloatingChat() {
   // When panel opens, position it above the current FAB location
   useEffect(() => {
     if (isOpen) {
-      const panelBottom = fab.pos.y + FAB_SIZE + 8;
+      const panelBottom = fabPos.y + FAB_SIZE + 8;
       // Clamp so panel doesn't go off-screen top
       const maxBottom = window.innerHeight - PANEL_H - 8;
-      panel.setPos({
-        x: Math.max(0, fab.pos.x + FAB_SIZE / 2 - PANEL_W / 2),
+      setPanelPos({
+        x: Math.max(0, fabPos.x + FAB_SIZE / 2 - PANEL_W / 2),
         y: Math.min(panelBottom, Math.max(maxBottom, 0)),
       });
     }
@@ -144,19 +165,19 @@ export function FloatingChat() {
       {/* ── Floating Panel ─────────────────────────────────────── */}
       {isOpen && (
         <div
-          ref={panel.elementRef}
+          ref={panelElementRef}
           className="border-border/80 bg-background animate-in fade-in-0 slide-in-from-bottom-4 fixed z-50 flex flex-col overflow-hidden rounded-xl border text-[10px] shadow-[0_8px_40px_rgba(0,0,0,0.25)] ring-1 ring-black/10 duration-200 dark:ring-white/10"
           style={{
             width: PANEL_W,
             height: PANEL_H,
-            right: panel.pos.x,
-            bottom: panel.pos.y,
+            right: panelPos.x,
+            bottom: panelPos.y,
           }}
         >
           {/* Draggable header */}
           <div
             className="border-border flex h-9 shrink-0 cursor-grab items-center justify-between border-b bg-zinc-900 px-2 active:cursor-grabbing dark:bg-zinc-800"
-            {...panel.handleProps}
+            {...panelHandleProps}
           >
             <div className="pointer-events-none flex items-center gap-1 select-none">
               <GripVertical className="h-3 w-3 text-zinc-500" />
@@ -220,26 +241,23 @@ export function FloatingChat() {
 
       {/* ── FAB Bubble (draggable) ─────────────────────────────── */}
       <div
-        ref={fab.elementRef}
+        ref={fabElementRef}
         className="fixed z-50"
         style={{
-          right: fab.pos.x,
-          bottom: fab.pos.y,
+          right: fabPos.x,
+          bottom: fabPos.y,
           width: FAB_SIZE,
           height: FAB_SIZE,
           touchAction: 'none',
         }}
-        {...fab.handleProps}
+        {...fabHandleProps}
       >
         <Tooltip>
           <TooltipTrigger asChild>
             <button
               onClick={() => {
                 // Suppress click if the user was dragging
-                if (fab.wasDrag.current) {
-                  fab.wasDrag.current = false;
-                  return;
-                }
+                if (fabConsumeDrag()) return;
                 setIsOpen((prev) => !prev);
               }}
               className="bg-primary text-primary-foreground flex h-full w-full cursor-grab items-center justify-center rounded-full shadow-lg transition-shadow hover:shadow-xl active:cursor-grabbing"
