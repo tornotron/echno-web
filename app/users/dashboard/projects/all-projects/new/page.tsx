@@ -27,6 +27,7 @@ import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
+import { optionalOnCreate } from '@/features/projects/lib/location-fields';
 
 export default function NewProjectPage() {
   const router = useRouter();
@@ -61,15 +62,15 @@ export default function NewProjectPage() {
       toast.error('User not found', { description: 'Please log in again' });
       return;
     }
-    // Blank optional fields are sent as undefined rather than '', because the
-    // core serializer emits only the keys that are set and the backend reads a
-    // missing key as "not recorded".
+    // Blank optional location fields leave their key out: on create, a missing
+    // key already means "not recorded". See optionalOnCreate for why the edit
+    // page does the opposite.
     const createData: CreateProjectRequest = {
       projectName: data.fields.projectName,
       projectAddress: data.fields.projectAddress,
-      projectCity: data.fields.projectCity || undefined,
-      projectState: data.fields.projectState || undefined,
-      projectPostalCode: data.fields.projectPostalCode || undefined,
+      projectCity: optionalOnCreate(data.fields.projectCity),
+      projectState: optionalOnCreate(data.fields.projectState),
+      projectPostalCode: optionalOnCreate(data.fields.projectPostalCode),
       status: data.fields.status,
       projectType: data.fields.projectType || undefined,
       description: data.fields.description,
