@@ -84,13 +84,9 @@ export default function NewTaskPage() {
             }
           }
 
-          if (data.isDraft) {
-            toast.success('Draft saved');
-          } else {
-            toast.success('Task Created', {
-              description: 'The task has been created successfully',
-            });
-          }
+          toast.success('Task Created', {
+            description: 'The task has been created successfully',
+          });
           router.push(routes.projects.allProjects.detail(projectId).tasks.href);
         },
         onError: (error) => {

@@ -73,7 +73,6 @@ export interface TaskFormState {
 export interface TaskFormSubmitData {
   fields: TaskFormState;
   attachments: File[];
-  isDraft?: boolean;
 }
 
 interface CreateProps {
@@ -393,16 +392,6 @@ export function TaskForm(props: TaskFormProps) {
     e.preventDefault();
     if (!validateForm()) return;
     props.onSubmit({ fields: form, attachments });
-  }
-
-  function handleSaveDraft() {
-    if (!form.title.trim()) {
-      toast.error('Validation Error', {
-        description: 'Please fill in task title before saving draft',
-      });
-      return;
-    }
-    props.onSubmit({ fields: form, attachments, isDraft: true });
   }
 
   // ---------------------------------------------------------------------------
@@ -853,15 +842,6 @@ export function TaskForm(props: TaskFormProps) {
               disabled={busy}
             >
               Cancel
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleSaveDraft}
-              disabled={busy}
-            >
-              <Save className="mr-2 h-4 w-4" />
-              Save as Draft
             </Button>
             <Button type="submit" disabled={busy} className="ml-auto">
               <Send className="mr-2 h-4 w-4" />

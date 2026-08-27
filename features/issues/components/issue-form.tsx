@@ -80,7 +80,6 @@ export interface IssueFormState {
 export interface IssueFormSubmitData {
   fields: IssueFormState;
   attachments: File[];
-  isDraft?: boolean;
 }
 
 interface CreateProps {
@@ -342,22 +341,6 @@ export function IssueForm(props: IssueFormProps) {
     e.preventDefault();
     if (!validateForm()) return;
     props.onSubmit({ fields: form, attachments });
-  }
-
-  function handleSaveDraft() {
-    if (!currentEmployee?.id) {
-      toast.error('Validation Error', {
-        description: 'Unable to identify current user. Please try again.',
-      });
-      return;
-    }
-    if (!form.title.trim()) {
-      toast.error('Validation Error', {
-        description: 'Please fill in the title before saving draft',
-      });
-      return;
-    }
-    props.onSubmit({ fields: form, attachments, isDraft: true });
   }
 
   // ---------------------------------------------------------------------------
@@ -866,15 +849,6 @@ export function IssueForm(props: IssueFormProps) {
             disabled={busy}
           >
             Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleSaveDraft}
-            disabled={busy || !currentEmployee?.id}
-          >
-            <Save className="mr-2 h-4 w-4" />
-            Save as Draft
           </Button>
           <Button
             type="submit"
