@@ -65,3 +65,44 @@ export async function getAccessToken(): Promise<string | null> {
   const tokens = await getSessionTokens();
   return tokens?.accessToken ?? null;
 }
+
+/**
+ * Names NextAuth stores the session cookie under.
+ *
+ * Which of the two is in play depends on whether the deployment issues secure
+ * cookies, and a large session is split across numbered chunks (`.0`, `.1`, …),
+ * so both bases are matched with and without a chunk suffix.
+ */
+const SESSION_COOKIE_NAMES = [
+  'authjs.session-token',
+  '__Secure-authjs.session-token',
+] as const;
+
+/**
+ * Whether a cookie name is one NextAuth keeps the session in.
+ *
+ * @param name - Cookie name as it arrived on the request.
+ */
+export function isSessionCookieName(name: string): boolean {
+  return SESSION_COOKIE_NAMES.some(
+    (base) => name === base || name.startsWith(`${base}.`)
+  );
+}
+
+/**
+ * Whether the request arrived carrying a session cookie at all.
+ *
+ * This is the question {@link getSessionTokens} cannot answer. It returns null
+ * for two situations that mean opposite things: nobody is signed in, and
+ * somebody is holding a cookie that no longer decrypts. The first is an
+ * ordinary anonymous request and belongs upstream, where the endpoint decides
+ * whether it allows one. The second is a session that has ended, and forwarding
+ * it buys a generic rejection from the backend that the browser cannot act on.
+ *
+ * Only the presence of the cookie is read here, never its contents: whether it
+ * still decodes is exactly what {@link getSessionTokens} already established.
+ */
+export async function hasSessionCookie(): Promise<boolean> {
+  const cookieStore = await cookies();
+  return cookieStore.getAll().some(({ name }) => isSessionCookieName(name));
+}
