@@ -44,6 +44,14 @@ export class RefreshUnavailableError extends Error {
 /** Wait before the single retry of an exchange that did not complete. */
 export const REFRESH_RETRY_DELAY_MS = 500;
 
+/**
+ * Statuses below 500 that still mean "not now" rather than "no".
+ *
+ * 408 is a request timeout and 429 is a rate limit. Both are the server's
+ * moment passing, so both are worth one more attempt.
+ */
+const RETRYABLE_STATUSES = new Set([408, 429]);
+
 /** Injectable seam, so the tests do not have to stand up a Keycloak. */
 export interface RefreshDependencies {
   fetch: typeof globalThis.fetch;
@@ -88,9 +96,13 @@ export async function exchangeRefreshToken(
   }
 
   if (!response.ok) {
-    // 5xx is Keycloak having a bad time, which may well pass. A 4xx is its
-    // verdict on the token, and that will read the same on every attempt.
-    if (response.status >= 500) {
+    // A 5xx is Keycloak having a bad time, which may well pass. So are 408 and
+    // 429: a timeout and a rate limit say something about the server's moment,
+    // not about the token, and both clear on their own. Treating either as a
+    // refusal would skip the retry and end the session, which is the failure
+    // this file exists to prevent. Everything else in the 4xx range is
+    // Keycloak's verdict on the token, and that reads the same every time.
+    if (response.status >= 500 || RETRYABLE_STATUSES.has(response.status)) {
       throw new RefreshUnavailableError(
         `token endpoint returned ${response.status}`
       );

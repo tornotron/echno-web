@@ -129,6 +129,35 @@ describe('access token refresh', () => {
     expect(calls.count).toBe(2);
   });
 
+  test('a rate limit is a bad moment, not a refusal', async () => {
+    // 429 means Keycloak is busy. Reading it as a verdict on the token would
+    // skip the retry and sign a working user out over someone else's traffic.
+    const { refresh, calls } = refresherOver(
+      () => new Response('slow down', { status: 429 })
+    );
+
+    await expect(refresh(token)).rejects.toBeInstanceOf(RefreshUnavailableError);
+    expect(calls.count).toBe(2);
+  });
+
+  test('a request timeout is a bad moment, not a refusal', async () => {
+    const { refresh, calls } = refresherOver(
+      () => new Response('timed out', { status: 408 })
+    );
+
+    await expect(refresh(token)).rejects.toBeInstanceOf(RefreshUnavailableError);
+    expect(calls.count).toBe(2);
+  });
+
+  test('a rate limit that clears is recovered by the retry', async () => {
+    const { refresh } = refresherOver((attempt) =>
+      attempt === 1 ? new Response('slow down', { status: 429 }) : tokenResponse(2)
+    );
+
+    const refreshed = await refresh(token);
+    expect(refreshed.accessToken).toBe('access-2');
+  });
+
   test('a transient failure does not poison the next attempt', async () => {
     const { refresh } = refresherOver((attempt) => {
       if (attempt <= 2) throw new Error('ECONNRESET');
