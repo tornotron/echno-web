@@ -19,6 +19,11 @@ const COOKIE_NAME = 'authjs.session-token';
 
 process.env.NEXTAUTH_SECRET = SECRET;
 process.env.BACKEND_API_URL = 'http://backend.test/api/v1';
+// The cookie name, and with it the salt the JWE is derived under, follows this.
+// Pinned rather than inherited so a developer with an https value exported in
+// their shell does not get a suite that silently reads a different cookie than
+// the one it wrote.
+process.env.NEXTAUTH_URL = 'http://localhost:3000';
 
 /** The Cookie header the mocked request carries, set per test. */
 let cookieHeader = '';
@@ -130,6 +135,17 @@ describe('a dead session', () => {
     expect(backendCalls).toHaveLength(0);
   });
 
+  test('is refused when its cookie was split into chunks that no longer decode', async () => {
+    // NextAuth splits a session too large for one cookie across numbered
+    // pieces, and none of them decodes alone.
+    cookieHeader = `${COOKIE_NAME}.0=half-a-jwe; ${COOKIE_NAME}.1=the-other-half`;
+
+    const response = await callProxy();
+
+    expect(response.status).toBe(401);
+    expect(backendCalls).toHaveLength(0);
+  });
+
   test('is refused the same way when its cookie no longer decodes', async () => {
     cookieHeader = `${COOKIE_NAME}=not-a-jwe`;
 
@@ -169,12 +185,48 @@ describe('a request that is not carrying a session', () => {
     expect(backendCalls[0].authorization).toBeNull();
   });
 
+  test('is not mistaken for one by a cookie that merely shares the prefix', async () => {
+    // Only the numbered chunks are NextAuth's. Reading anything else under the
+    // prefix as a session would let a cookie somebody else planted turn an
+    // anonymous request into an ended one.
+    cookieHeader = `${COOKIE_NAME}.backup=whatever`;
+
+    await callProxy();
+
+    expect(backendCalls).toHaveLength(1);
+  });
+
   test('is forwarded even when other cookies ride along', async () => {
     cookieHeader = 'theme=dark; sidebar=collapsed';
 
     await callProxy();
 
     expect(backendCalls).toHaveLength(1);
+  });
+});
+
+describe('a revoked session', () => {
+  test('is refused with the same code, so the client can act on it', async () => {
+    const { revokeSession, clearAllRevocations } = await import(
+      '@/lib/auth/session-revocation'
+    );
+    clearAllRevocations();
+    revokeSession('revoked-session');
+
+    cookieHeader = await sessionCookie({
+      sessionId: 'revoked-session',
+      accessToken: 'still-valid-access-token',
+      expiresAt: Date.now() + 5 * 60 * 1000,
+    });
+
+    const response = await callProxy();
+    clearAllRevocations();
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      error: SESSION_TOKEN_EXPIRED_ERROR,
+    });
+    expect(backendCalls).toHaveLength(0);
   });
 });
 
