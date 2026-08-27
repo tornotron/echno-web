@@ -49,14 +49,16 @@ export function useChatStream() {
     (event: ChatStreamEvent) => {
       switch (event.type) {
         case ChatStreamEventType.messageCreated:
-        case ChatStreamEventType.messageUpdated:
+        case ChatStreamEventType.messageUpdated: {
           invalidateRoom(event.roomId);
           break;
-        case ChatStreamEventType.roomUpdated:
+        }
+        case ChatStreamEventType.roomUpdated: {
           // No message query to touch, but the room's ordering, last message and unread
           // count all live in the room queries.
           queryClient.invalidateQueries({ queryKey: ['chat-rooms'] });
           break;
+        }
       }
     },
     [invalidateRoom, queryClient]

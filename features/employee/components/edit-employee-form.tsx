@@ -57,7 +57,7 @@ const getInitialFormData = (emp: Employee | null | undefined) => ({
   joiningDate: emp?.joiningDate || null,
   status: emp?.status || '',
   salary: emp?.salary?.toString() || '',
-  shiftTimingId: emp?.shiftTimingId != null ? String(emp.shiftTimingId) : '',
+  shiftTimingId: emp?.shiftTimingId == null ? '' : String(emp.shiftTimingId),
 });
 
 interface EditEmployeeFormProps {

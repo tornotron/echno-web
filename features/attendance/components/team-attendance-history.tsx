@@ -495,8 +495,7 @@ export function TeamAttendanceHistory({
                     </Empty>
                   </TableCell>
                 </TableRow>
-              ) : // eslint-disable-next-line unicorn/no-nested-ternary
-              paginated.length === 0 ? (
+              ) : paginated.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8}>
                     <Empty variant="inline">

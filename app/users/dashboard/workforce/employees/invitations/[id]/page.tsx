@@ -67,9 +67,9 @@ export default function InvitationPage() {
   const { data: shifts = [] } = useShifts();
   const shiftTimingId = invitation?.employeeDetails.shiftTimingId;
   const assignedShift =
-    shiftTimingId != null
-      ? shifts.find((shift) => shift.id === shiftTimingId)
-      : undefined;
+    shiftTimingId == null
+      ? undefined
+      : shifts.find((shift) => shift.id === shiftTimingId);
   const shiftTimingLabel = assignedShift
     ? `${assignedShift.shiftName} (${assignedShift.startTime} - ${assignedShift.endTime})`
     : null;
