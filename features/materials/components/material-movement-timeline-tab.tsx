@@ -31,13 +31,14 @@ import {
   Hash,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useInventoryTransactionsByMaterial } from '@tornotron/echno-core/inventory-transactions/hooks';
+import { useMaterialMovementHistory } from '@tornotron/echno-core/inventory-transactions/hooks';
 import {
   InventoryTransactionType,
+  StockDirection,
   inventoryTransactionTypeLabels,
   inventoryTransactionTypeBadgeColors,
 } from '@tornotron/echno-core/inventory-transactions/types';
-import type { InventoryTransaction } from '@tornotron/echno-core/inventory-transactions/types';
+import type { MaterialMovementHistoryEntry } from '@tornotron/echno-core/inventory-transactions/types';
 import { ApiError } from '@/lib/api/api-client';
 
 // ---------------------------------------------------------------------------
@@ -52,13 +53,21 @@ const TX_TYPE_OPTIONS = [
   })),
 ];
 
-const INITIAL_VISIBLE = 20;
+/** How many movements the first request asks for, and each "Show more" adds. */
+const PAGE_STEP = 20;
 
 type Direction = 'in' | 'out' | 'flat';
 
-function directionOf(quantityChanged: number): Direction {
-  if (quantityChanged > 0) return 'in';
-  if (quantityChanged < 0) return 'out';
+/**
+ * Resolves the arrow and colour for a movement. The server states the
+ * direction the movement type moves stock in; only EITHER (adjustments) leaves
+ * it to the signed quantity.
+ */
+function directionOf(entry: MaterialMovementHistoryEntry): Direction {
+  if (entry.direction === StockDirection.increase) return 'in';
+  if (entry.direction === StockDirection.decrease) return 'out';
+  if (entry.quantityChanged > 0) return 'in';
+  if (entry.quantityChanged < 0) return 'out';
   return 'flat';
 }
 
@@ -79,38 +88,36 @@ export function MaterialMovementTimelineTab({
   materialId,
   unit,
 }: MaterialMovementTimelineTabProps) {
-  const {
-    data: transactions = [],
-    isLoading,
-    isError,
-    error,
-  } = useInventoryTransactionsByMaterial(materialId);
-
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
-  const [visible, setVisible] = useState(INITIAL_VISIBLE);
+  const [loaded, setLoaded] = useState(PAGE_STEP);
 
-  const ordered = useMemo(() => {
+  // The backend serves the history already ordered, oldest movement first, so
+  // the timeline runs forward in time and "Show more" walks towards the
+  // present. Growing the page size keeps the movements already on screen in
+  // place while the longer page loads.
+  const { data, isLoading, isFetching, isError, error } =
+    useMaterialMovementHistory(materialId, 0, loaded);
+
+  const movements = data?.content ?? [];
+  const totalMovements = data?.totalElements ?? 0;
+
+  const filtered = useMemo(() => {
     const q = search.toLowerCase();
-    return [...transactions]
-      .toSorted(
-        (a, b) =>
-          new Date(b.transactionDate).getTime() -
-          new Date(a.transactionDate).getTime()
-      )
-      .filter((tx) => {
-        const matchesSearch =
-          !search ||
-          (tx.referenceNumber ?? '').toLowerCase().includes(q) ||
-          tx.storageLocationName.toLowerCase().includes(q) ||
-          tx.projectName.toLowerCase().includes(q);
-        const matchesType =
-          typeFilter === 'all' || tx.transactionType === typeFilter;
-        return matchesSearch && matchesType;
-      });
-  }, [transactions, search, typeFilter]);
+    return movements.filter((entry) => {
+      const matchesSearch =
+        !search ||
+        (entry.referenceNumber ?? '').toLowerCase().includes(q) ||
+        entry.storageLocationName.toLowerCase().includes(q) ||
+        entry.projectName.toLowerCase().includes(q);
+      const matchesType =
+        typeFilter === 'all' || entry.transactionType === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [movements, search, typeFilter]);
 
   const hasActiveFilters = Boolean(search || typeFilter !== 'all');
+  const remaining = totalMovements - movements.length;
 
   // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
@@ -153,7 +160,7 @@ export function MaterialMovementTimelineTab({
   }
 
   // ── Empty ────────────────────────────────────────────────────────────────────
-  if (transactions.length === 0) {
+  if (movements.length === 0) {
     return (
       <Card>
         <CardContent>
@@ -174,8 +181,6 @@ export function MaterialMovementTimelineTab({
     );
   }
 
-  const shown = ordered.slice(0, visible);
-
   return (
     <Card>
       <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-3">
@@ -187,21 +192,12 @@ export function MaterialMovementTimelineTab({
           <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
           <Input
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setVisible(INITIAL_VISIBLE);
-            }}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by reference, location or project…"
             className="h-8 pl-8 text-sm"
           />
         </div>
-        <Select
-          value={typeFilter}
-          onValueChange={(v) => {
-            setTypeFilter(v);
-            setVisible(INITIAL_VISIBLE);
-          }}
-        >
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="h-8 w-40 text-xs">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
@@ -221,19 +217,20 @@ export function MaterialMovementTimelineTab({
             onClick={() => {
               setSearch('');
               setTypeFilter('all');
-              setVisible(INITIAL_VISIBLE);
             }}
           >
             Clear
           </Button>
         )}
         <span className="ml-auto text-xs text-zinc-500">
-          {ordered.length} movement{ordered.length === 1 ? '' : 's'}
+          {hasActiveFilters
+            ? `${filtered.length} of ${movements.length} loaded`
+            : `${movements.length} of ${totalMovements} movement${totalMovements === 1 ? '' : 's'}`}
         </span>
       </CardHeader>
 
       <CardContent className="p-0">
-        {ordered.length === 0 ? (
+        {filtered.length === 0 ? (
           <Empty variant="default">
             <EmptyMedia variant="icon">
               <History className="size-6" />
@@ -246,32 +243,32 @@ export function MaterialMovementTimelineTab({
             </EmptyHeader>
           </Empty>
         ) : (
-          <>
-            <ol className="relative px-4 py-4 sm:px-6">
-              {/* Vertical rail */}
-              <span
-                aria-hidden
-                className="absolute top-6 bottom-6 left-[1.35rem] w-px bg-zinc-200 sm:left-[2.1rem] dark:bg-zinc-800"
-              />
-              {shown.map((tx) => (
-                <TimelineRow key={tx.id} tx={tx} unit={unit} />
-              ))}
-            </ol>
+          <ol className="relative px-4 py-4 sm:px-6">
+            {/* Vertical rail */}
+            <span
+              aria-hidden
+              className="absolute top-6 bottom-6 left-[1.35rem] w-px bg-zinc-200 sm:left-[2.1rem] dark:bg-zinc-800"
+            />
+            {filtered.map((entry) => (
+              <TimelineRow key={entry.id} entry={entry} unit={unit} />
+            ))}
+          </ol>
+        )}
 
-            {visible < ordered.length && (
-              <div className="flex justify-center border-t px-4 py-3">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    setVisible((v) => v + INITIAL_VISIBLE)
-                  }
-                >
-                  Show more ({ordered.length - visible} remaining)
-                </Button>
-              </div>
-            )}
-          </>
+        {/* Stays visible under an empty filter result: the next page may hold
+            the movements the filter is looking for. */}
+        {remaining > 0 && (
+          <div className="flex justify-center border-t px-4 py-3">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isFetching}
+              onClick={() => setLoaded((n) => n + PAGE_STEP)}
+            >
+              {isFetching && <Loader2 className="mr-2 size-3.5 animate-spin" />}
+              Show more ({remaining} remaining)
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -283,14 +280,14 @@ export function MaterialMovementTimelineTab({
 // ---------------------------------------------------------------------------
 
 function TimelineRow({
-  tx,
+  entry,
   unit,
 }: {
-  tx: InventoryTransaction;
+  entry: MaterialMovementHistoryEntry;
   unit: string;
 }) {
-  const direction = directionOf(tx.quantityChanged);
-  const abs = Math.abs(tx.quantityChanged);
+  const direction = directionOf(entry);
+  const abs = Math.abs(entry.quantityChanged);
 
   let dotClass =
     'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400';
@@ -323,44 +320,38 @@ function TimelineRow({
       <div className="min-w-0 flex-1 pt-0.5">
         <div className="flex flex-wrap items-center gap-2">
           <Badge
-            className={inventoryTransactionTypeBadgeColors[tx.transactionType]}
+            className={
+              inventoryTransactionTypeBadgeColors[entry.transactionType]
+            }
           >
-            {inventoryTransactionTypeLabels[tx.transactionType]}
+            {inventoryTransactionTypeLabels[entry.transactionType]}
           </Badge>
           <span className={`text-sm font-semibold tabular-nums ${qtyClass}`}>
             {sign}
             {abs.toLocaleString('en-IN')} {unit}
           </span>
           <span className="ml-auto text-xs whitespace-nowrap text-zinc-400 dark:text-zinc-500">
-            {format(new Date(tx.transactionDate), 'MMM dd, yyyy · HH:mm')}
+            {format(new Date(entry.transactionDate), 'MMM dd, yyyy · HH:mm')}
           </span>
         </div>
 
         <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400">
           <span className="flex items-center gap-1">
             <MapPin className="size-3.5 shrink-0" />
-            {tx.storageLocationName}
+            {entry.storageLocationName}
           </span>
-          {tx.projectName && (
+          {entry.projectName && (
             <span className="flex items-center gap-1">
               <FolderOpen className="size-3.5 shrink-0" />
-              {tx.projectName}
+              {entry.projectName}
             </span>
           )}
-          {tx.referenceNumber && (
+          {entry.referenceNumber && (
             <span className="flex items-center gap-1">
               <Hash className="size-3.5 shrink-0" />
-              {tx.referenceNumber}
+              {entry.referenceNumber}
             </span>
           )}
-        </div>
-
-        <div className="mt-1 text-xs text-zinc-400 tabular-nums dark:text-zinc-500">
-          Balance: {tx.openingStock.toLocaleString('en-IN')} →{' '}
-          <span className="font-medium text-zinc-600 dark:text-zinc-300">
-            {tx.closingStock.toLocaleString('en-IN')} {unit}
-          </span>
-          {tx.createdBy?.name ? <> · by {tx.createdBy.name}</> : null}
         </div>
       </div>
     </li>
