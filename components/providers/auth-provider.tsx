@@ -10,7 +10,11 @@ import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { SESSION_WARNINGS } from '@/lib/auth/constants';
-import { msUntilAccessTokenRefresh } from '@/lib/auth/token-refresh-schedule';
+import {
+  msUntilAccessTokenRefresh,
+  withRefreshJitter,
+} from '@/lib/auth/token-refresh-schedule';
+import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
 
 // Warning thresholds (in minutes before expiration)
 const { INITIAL_WARNING_MINUTES, FINAL_WARNING_MINUTES } = SESSION_WARNINGS;
@@ -132,8 +136,13 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
     if (status !== 'authenticated' || !session) return;
     if (session.provider !== 'keycloak') return;
 
-    const delay = msUntilAccessTokenRefresh(session.expiresAt, Date.now());
-    if (delay === null) return;
+    const scheduled = msUntilAccessTokenRefresh(session.expiresAt, Date.now());
+    if (scheduled === null) return;
+
+    // Every tab holds the same cookie and so computes the same deadline. The
+    // lock below is what makes that safe; the jitter only keeps them from all
+    // waking into it in the same instant.
+    const delay = withRefreshJitter(scheduled);
 
     const refreshAccessToken = async () => {
       // Refresh tokens are single-use on our realms (revokeRefreshToken with
@@ -144,7 +153,12 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
       isRefreshingRef.current = true;
 
       try {
-        await update();
+        // isRefreshingRef only coordinates this provider, so the refresh runs
+        // under the origin-wide lock as well, or every open tab would post the
+        // same refresh token at the same moment. A tab that takes the lock
+        // second finds an expiresAt its peer already advanced, so `jwt()`
+        // returns the token untouched instead of exchanging it again.
+        await sessionRefresh.refreshExclusive(() => update());
         // The refresh extends the Keycloak session too, so let the expiry
         // warnings fire again against the new deadline.
         setHasShownWarning(false);
