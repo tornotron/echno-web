@@ -53,6 +53,14 @@ function liveSession(
   };
 }
 
+/** How long ago a user has to have acted to be inside the warning window. */
+function idleIntoWarning(): number {
+  return (
+    Date.now() -
+    (SESSION_ACTIVITY.IDLE_SIGN_OUT_MS - SESSION_ACTIVITY.IDLE_WARNING_LEAD_MS)
+  );
+}
+
 function options(
   log: Recorder,
   session: LifecycleSession | null,
@@ -154,12 +162,7 @@ describe('the idle lifecycle', () => {
 
   test('a warning arrives before the sign-out, with a way to stay', async () => {
     const log = recorder();
-    writeLastActivity(
-      SESSION_ID,
-      Date.now() -
-        (SESSION_ACTIVITY.IDLE_SIGN_OUT_MS -
-          SESSION_ACTIVITY.IDLE_WARNING_LEAD_MS)
-    );
+    writeLastActivity(SESSION_ID, idleIntoWarning());
     renderHook(() => useSessionLifecycle(options(log, liveSession())));
 
     await waitFor(() => expect(log.warnings).toHaveLength(1));
@@ -170,12 +173,7 @@ describe('the idle lifecycle', () => {
 
   test('the "Stay signed in" button renews the session and clears the warning', async () => {
     const log = recorder();
-    writeLastActivity(
-      SESSION_ID,
-      Date.now() -
-        (SESSION_ACTIVITY.IDLE_SIGN_OUT_MS -
-          SESSION_ACTIVITY.IDLE_WARNING_LEAD_MS)
-    );
+    writeLastActivity(SESSION_ID, idleIntoWarning());
     renderHook(() => useSessionLifecycle(options(log, liveSession())));
 
     await waitFor(() => expect(log.warnings).toHaveLength(1));
@@ -244,5 +242,39 @@ describe('the idle lifecycle', () => {
 
     await waitFor(() => expect(log.signOuts).toHaveLength(1));
     expect(log.updates).toBe(0);
+  });
+});
+
+describe('a new session arriving in a tab that never unmounted', () => {
+  test("does not inherit the previous session's idleness", async () => {
+    // The shared timestamp is scoped to a session id, but the tab-local refs
+    // were not, and this hook stays mounted while useSession() swaps one
+    // session for the next. Inheriting the old clock puts the new session
+    // straight into a warning, or a sign-out, seconds after signing back in.
+    const NEXT_SESSION_ID = 'b7f10c22-51aa-4c6f-9a01-2b9d4e77c318';
+    const log = recorder();
+
+    writeLastActivity(SESSION_ID, idleIntoWarning());
+    const { rerender } = renderHook(
+      (props: SessionLifecycleOptions) => useSessionLifecycle(props),
+      { initialProps: options(log, liveSession()) }
+    );
+
+    await waitFor(() => expect(log.warnings).toHaveLength(1));
+    expect(log.dismissals).toHaveLength(0);
+
+    // The same tab, a different session, with an idle clock of its own.
+    writeLastActivity(NEXT_SESSION_ID, idleIntoWarning());
+    rerender(options(log, liveSession({ sessionId: NEXT_SESSION_ID })));
+
+    // The stale warning goes, because it describes a session that has gone.
+    await waitFor(() =>
+      expect(log.dismissals).toContain('session-idle-warning')
+    );
+
+    // And the new session warns on its own account, which it could not do
+    // while the previous session's "already warned" flag was still set.
+    await waitFor(() => expect(log.warnings).toHaveLength(2));
+    expect(log.signOuts).toHaveLength(0);
   });
 });
