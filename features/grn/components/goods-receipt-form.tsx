@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -75,6 +75,9 @@ interface GoodsReceiptFormProps {
   onSubmit: (data: GoodsReceiptSubmitData) => void;
 }
 
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 export const GOODS_RECEIPT_FORM_ID = 'goods-receipt-form';
 
 const EMPTY_ITEM: GRNItemRow = {
@@ -126,6 +129,28 @@ export function GoodsReceiptForm({
     initialItems ?? [EMPTY_ITEM]
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Received and rejected quantities, row by row, against a delivery that is
+  // usually being read off paper. The GRN number is generated rather than typed
+  // and is not part of the form state, so nothing here can restore a stale one.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo(() => ({ fields: form, items }), [form, items]);
+  const applyDraft = useCallback(
+    (values: { fields: GoodsReceiptFormState; items: GRNItemRow[] }) => {
+      setForm(values.fields);
+      setItems(values.items);
+    },
+    []
+  );
+  const { draft, restoreDraft, discardDraft } = useFormDraft<{
+    fields: GoodsReceiptFormState;
+    items: GRNItemRow[];
+  }>({
+    formId: FORM_DRAFT_IDS.GOODS_RECEIPT,
+    scope: draftScope,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
   const [rowErrors, setRowErrors] = useState<
     Record<number, Record<string, string>>
   >({});
@@ -266,6 +291,12 @@ export function GoodsReceiptForm({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      <FormDraftBanner
+        draft={draft}
+        onRestore={restoreDraft}
+        onDiscard={discardDraft}
+        label="goods receipt"
+      />
       {/* GRN Details */}
       <Card>
         <CardHeader>

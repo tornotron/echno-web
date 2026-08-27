@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -72,6 +72,9 @@ interface IndentFormProps {
  * (for example in a page header), wired through the button's `form` attribute
  * so it can submit the form.
  */
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 export const INDENT_FORM_ID = 'indent-form';
 
 const EMPTY_ITEM: IndentItemRow = {
@@ -113,6 +116,26 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
 
   const [items, setItems] = useState<IndentItemRow[]>([{ ...EMPTY_ITEM }]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Header plus requested line items, all typed by hand.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo(() => ({ fields: form, items }), [form, items]);
+  const applyDraft = useCallback(
+    (values: { fields: IndentFormState; items: IndentItemRow[] }) => {
+      setForm(values.fields);
+      setItems(values.items);
+    },
+    []
+  );
+  const { draft, restoreDraft, discardDraft } = useFormDraft<{
+    fields: IndentFormState;
+    items: IndentItemRow[];
+  }>({
+    formId: FORM_DRAFT_IDS.INDENT,
+    scope: draftScope,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
   const [rowErrors, setRowErrors] = useState<
     Record<number, Record<string, string>>
   >({});
@@ -242,6 +265,12 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
 
   return (
     <form id={INDENT_FORM_ID} onSubmit={handleSubmit} className="space-y-6">
+      <FormDraftBanner
+        draft={draft}
+        onRestore={restoreDraft}
+        onDiscard={discardDraft}
+        label="indent"
+      />
       {/* Indent Details */}
       <Card>
         <CardHeader>

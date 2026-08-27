@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -56,6 +56,9 @@ import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import { AttachmentsSection } from '@/components/common';
 import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -191,6 +194,27 @@ export function IssueForm(props: IssueFormProps) {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const deleteAttachment = useDeleteAttachment();
+
+  // An issue write-up is mostly free text, which is the kind of typing there is
+  // no way to recover once a session ends underneath it. Keyed on the project as
+  // well as the issue: a half raised issue under one project must not turn up on
+  // the new-issue form of the next.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo(() => ({ fields: form }), [form]);
+  const applyDraft = useCallback(
+    (values: { fields: IssueFormState }) => setForm(values.fields),
+    []
+  );
+  const { draft, restoreDraft, discardDraft } = useFormDraft<{
+    fields: IssueFormState;
+  }>({
+    formId: FORM_DRAFT_IDS.ISSUE,
+    scope: draftScope,
+    recordId: props.mode === 'edit' ? props.issue.id : undefined,
+    contextId: projectId,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
 
   const isTaskLocked = isEdit ? true : !!(props as CreateProps).initialTaskId;
 
@@ -348,6 +372,12 @@ export function IssueForm(props: IssueFormProps) {
 
   return (
     <form id={ISSUE_FORM_ID} onSubmit={handleSubmit} className="space-y-6">
+      <FormDraftBanner
+        draft={draft}
+        onRestore={restoreDraft}
+        onDiscard={discardDraft}
+        label="issue"
+      />
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Form */}
         <div className="space-y-6 lg:col-span-2">

@@ -24,6 +24,8 @@ import {
   PROJECT_FORM_ID,
   type ProjectFormSubmitData,
 } from '@/features/projects/components';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
@@ -38,6 +40,7 @@ export default function EditProjectPage() {
   const updateProjectWithFiles = useUpdateProjectWithFiles();
   const directUpload = useDirectAttachmentUpload();
   const queryClient = useQueryClient();
+  const clearFormDraft = useClearFormDraft();
 
   const isSubmitting =
     updateProjectWithFiles.isPending || directUpload.isUploading;
@@ -79,6 +82,8 @@ export default function EditProjectPage() {
         },
         {
           onSuccess: async () => {
+            clearFormDraft(FORM_DRAFT_IDS.PROJECT, project.id);
+
             if (data.attachments.length > 0) {
               const result = await directUpload.upload(
                 project.id,
@@ -102,9 +107,7 @@ export default function EditProjectPage() {
             toast.success('Project Updated', {
               description: 'The project has been updated successfully',
             });
-            router.push(
-              routes.projects.allProjects.detail(project.id).href
-            );
+            router.push(routes.projects.allProjects.detail(project.id).href);
           },
           onError: (error) => {
             const title = getErrorTitle(error, 'Failed to Update Project');
@@ -156,11 +159,7 @@ export default function EditProjectPage() {
         actions={
           <>
             <Button variant="outline" disabled={isSubmitting} asChild>
-              <Link
-                href={
-                  routes.projects.allProjects.detail(project.id).href
-                }
-              >
+              <Link href={routes.projects.allProjects.detail(project.id).href}>
                 Cancel
               </Link>
             </Button>

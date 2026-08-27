@@ -14,6 +14,8 @@ import { useIndent, indentsKeys } from '@tornotron/echno-core/indents/hooks';
 import { materialsKeys } from '@tornotron/echno-core/materials/hooks/keys';
 import type { Indent } from '@tornotron/echno-core/indents/types';
 import type { Material } from '@tornotron/echno-core/materials/types';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreatePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import type { InlinePurchaseOrderItemInput } from '@tornotron/echno-core/purchase-orders/types';
@@ -36,6 +38,7 @@ export default function NewPurchaseOrderPage() {
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { data: sourceIndent } = useIndent(fromIndentId ?? 0);
   const { mutateAsync: createPO, isPending } = useCreatePurchaseOrder();
+  const clearFormDraft = useClearFormDraft();
 
   // Read cache synchronously so navigation pre-fill works without waiting for an effect
   const cachedIndent = fromIndentId
@@ -104,6 +107,10 @@ export default function NewPurchaseOrderPage() {
           })
         ),
       });
+      // The record exists now, so the local draft describes work already done.
+      // Left behind it would be offered on the next visit to this form.
+      clearFormDraft(FORM_DRAFT_IDS.PURCHASE_ORDER);
+
       toast.success('Purchase Order Created', {
         description: 'The purchase order has been created successfully.',
       });

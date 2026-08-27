@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -73,6 +73,9 @@ interface SiteTransferFormProps {
  * outside it (for example in a page header), wired through the button's `form`
  * attribute so it can submit the form.
  */
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 export const SITE_TRANSFER_FORM_ID = 'site-transfer-form';
 
 const EMPTY_ITEM: SiteTransferItemRow = {
@@ -141,6 +144,37 @@ export function SiteTransferForm({
   >({});
 
   // Update transfer number once existing transfers load
+  // Source, destination and the items moving between them. The transfer number
+  // is generated from the transfers that already exist, so it stays out of the
+  // draft rather than being restored as a duplicate.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo(
+    () => ({ fields: { ...form, transferNumber: '' }, items }),
+    [form, items]
+  );
+  const applyDraft = useCallback(
+    (values: {
+      fields: SiteTransferFormState;
+      items: SiteTransferItemRow[];
+    }) => {
+      setForm((prev) => ({
+        ...values.fields,
+        transferNumber: prev.transferNumber,
+      }));
+      setItems(values.items);
+    },
+    []
+  );
+  const { draft, restoreDraft, discardDraft } = useFormDraft<{
+    fields: SiteTransferFormState;
+    items: SiteTransferItemRow[];
+  }>({
+    formId: FORM_DRAFT_IDS.SITE_TRANSFER,
+    scope: draftScope,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
+
   const [transfersSeeded, setTransfersSeeded] = useState(false);
   if (!transfersSeeded && existingTransfers.length > 0) {
     setTransfersSeeded(true);
@@ -289,6 +323,12 @@ export function SiteTransferForm({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      <FormDraftBanner
+        draft={draft}
+        onRestore={restoreDraft}
+        onDiscard={discardDraft}
+        label="transfer"
+      />
       {/* Transfer Details */}
       <Card>
         <CardHeader>

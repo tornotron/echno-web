@@ -18,6 +18,8 @@ import {
   useIssue,
   useUpdateIssue,
 } from '@tornotron/echno-core/issue/hooks';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { issueKeys } from '@tornotron/echno-core/issue/hooks/keys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useProject } from '@tornotron/echno-core/project/hooks';
@@ -42,6 +44,7 @@ export default function EditIssuePage({ params }: PageProps) {
   const { data: issue, isLoading } = useIssue(Number.parseInt(issueId));
   const { data: project } = useProject(Number.parseInt(projectId));
   const updateMutation = useUpdateIssue();
+  const clearFormDraft = useClearFormDraft();
   const deleteMutation = useDeleteIssue();
   const directUpload = useDirectAttachmentUpload();
   const queryClient = useQueryClient();
@@ -69,6 +72,10 @@ export default function EditIssuePage({ params }: PageProps) {
         },
       });
 
+      // The record exists now, so the local draft describes work already done.
+      // Left behind it would be offered on the next visit to this form.
+      clearFormDraft(FORM_DRAFT_IDS.ISSUE, issue.id, projectId);
+
       if (data.attachments.length > 0) {
         const result = await directUpload.upload(
           issue.id,
@@ -94,9 +101,8 @@ export default function EditIssuePage({ params }: PageProps) {
         description: 'The issue has been updated successfully',
       });
       router.push(
-        routes.projects.allProjects
-          .detail(projectId)
-          .issues.detail(issueId).href
+        routes.projects.allProjects.detail(projectId).issues.detail(issueId)
+          .href
       );
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Update Issue');
@@ -120,9 +126,7 @@ export default function EditIssuePage({ params }: PageProps) {
       toast.success('Issue Deleted', {
         description: 'The issue has been deleted successfully',
       });
-      router.push(
-        routes.projects.allProjects.detail(projectId).issues.href
-      );
+      router.push(routes.projects.allProjects.detail(projectId).issues.href);
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Delete Issue');
       const description = getErrorMessage(error);
@@ -154,8 +158,7 @@ export default function EditIssuePage({ params }: PageProps) {
         <Button
           onClick={() =>
             router.push(
-              routes.projects.allProjects.detail(projectId).issues
-                .href
+              routes.projects.allProjects.detail(projectId).issues.href
             )
           }
         >

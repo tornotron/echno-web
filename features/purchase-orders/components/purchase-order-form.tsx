@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -90,6 +90,9 @@ interface PurchaseOrderFormProps {
  * outside it (for example in a page header), wired through the button's `form`
  * attribute so it can submit the form.
  */
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 export const PURCHASE_ORDER_FORM_ID = 'purchase-order-form';
 
 const EMPTY_ITEM: POItemRow = {
@@ -172,6 +175,32 @@ export function PurchaseOrderForm({
         generatePoNumber(existingOrders.map((po) => po.poNumber)),
     }));
   }
+
+  // A purchase order is a header plus priced line items, which is as much
+  // typing as anything in the app. The PO number is left out of the draft: it
+  // is generated from the orders that already exist, and restoring yesterday's
+  // number over today's would put a duplicate in front of a vendor.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo(
+    () => ({ fields: { ...form, poNumber: '' }, items }),
+    [form, items]
+  );
+  const applyDraft = useCallback(
+    (values: { fields: PurchaseOrderFormState; items: POItemRow[] }) => {
+      setForm((prev) => ({ ...values.fields, poNumber: prev.poNumber }));
+      setItems(values.items);
+    },
+    []
+  );
+  const { draft, restoreDraft, discardDraft } = useFormDraft<{
+    fields: PurchaseOrderFormState;
+    items: POItemRow[];
+  }>({
+    formId: FORM_DRAFT_IDS.PURCHASE_ORDER,
+    scope: draftScope,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
 
   const totalAmount = items.reduce(
     (sum, item) => sum + item.orderedQuantity * item.unitPrice,
@@ -304,6 +333,12 @@ export function PurchaseOrderForm({
       onSubmit={handleSubmit}
       className="space-y-6"
     >
+      <FormDraftBanner
+        draft={draft}
+        onRestore={restoreDraft}
+        onDiscard={discardDraft}
+        label="purchase order"
+      />
       {/* PO Details */}
       <Card>
         <CardHeader>

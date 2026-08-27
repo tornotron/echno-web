@@ -4,6 +4,8 @@ import { use } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateIssue } from '@tornotron/echno-core/issue/hooks';
 import { useUser, useUserEmployees } from '@tornotron/echno-core/user/hooks';
 import { IssueStatus } from '@tornotron/echno-core/issue/types';
@@ -32,6 +34,7 @@ export default function NewIssuePage({ params }: PageProps) {
 
   const { data: project } = useProject(Number.parseInt(projectId));
   const createMutation = useCreateIssue();
+  const clearFormDraft = useClearFormDraft();
   const directUpload = useDirectAttachmentUpload();
   const { data: user } = useUser();
   const { data: employees = [] } = useUserEmployees();
@@ -64,6 +67,10 @@ export default function NewIssuePage({ params }: PageProps) {
       // the fallback until this flow is verified across entity types.
       const created = await createMutation.mutateAsync({ data: issueData });
 
+      // The record exists now, so the local draft describes work already done.
+      // Left behind it would be offered on the next visit to this form.
+      clearFormDraft(FORM_DRAFT_IDS.ISSUE, undefined, projectId);
+
       if (data.attachments.length > 0) {
         const result = await directUpload.upload(
           created.id,
@@ -84,9 +91,7 @@ export default function NewIssuePage({ params }: PageProps) {
       toast.success('Issue Created', {
         description: 'The issue has been created successfully',
       });
-      router.push(
-        routes.projects.allProjects.detail(projectId).issues.href
-      );
+      router.push(routes.projects.allProjects.detail(projectId).issues.href);
     } catch (error) {
       const title = getErrorTitle(error, 'Failed to Create Issue');
       const description = getErrorMessage(error);
