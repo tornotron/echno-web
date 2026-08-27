@@ -26,6 +26,8 @@ import { EmployeeOverviewTab } from '@/features/employee/components/employee-ove
 import { EmployeeErrorState } from '@/features/employee/components/employee-error-state';
 import { EmployeeDetailsHeader } from '@/features/employee/components/employee-details-header';
 import { toast } from '@/lib/styles/toast-styles';
+import { assignableOrgRoles } from '@/lib/rbac/assignable-org-roles';
+import { logger } from '@/lib/logger';
 
 interface EmployeeDetailPageProps {
   params: Promise<{
@@ -51,8 +53,11 @@ export default function EmployeeDetailPage({
   const { data: employeeProjects, isLoading: projectsLoading } =
     useProjectsByEmployee(employeeId);
 
-  // Role management
+  // Role management. `availableRoles` is every job-family role the employee
+  // does not already hold; only a few of those are Keycloak organisation roles
+  // the assign endpoint can act on, so the dialog is offered the narrowed set.
   const { currentRoles, availableRoles } = useRoleManagement(employeeId);
+  const assignableRoles = assignableOrgRoles(availableRoles);
   const assignRole = useAssignRole();
   const unassignRole = useUnassignRole();
   const [showAssignRoleDialog, setShowAssignRoleDialog] = useState(false);
@@ -111,7 +116,7 @@ export default function EmployeeDetailPage({
           employeeProjects={employeeProjects}
           projectsLoading={projectsLoading}
           currentRoles={currentRoles}
-          availableRoles={availableRoles}
+          availableRoles={assignableRoles}
           isAdmin={isAdmin}
           isRoleRemovePending={unassignRole.isPending}
           onAssignManager={() => setShowAssignManagerDialog(true)}
@@ -159,7 +164,7 @@ export default function EmployeeDetailPage({
       <AssignRoleDialog
         open={showAssignRoleDialog}
         onOpenChange={setShowAssignRoleDialog}
-        availableRoles={availableRoles}
+        availableRoles={assignableRoles}
         isPending={assignRole.isPending}
         onConfirm={(role) => {
           if (!employee.id) return;
@@ -167,15 +172,24 @@ export default function EmployeeDetailPage({
             { employeeId: employee.id, orgRole: role },
             {
               onSuccess: () => {
-                toast.success('Role Assigned', {
-                  description: `${getOrgRoleLabel(role)} has been assigned successfully.`,
+                toast.success('Role assigned successfully', {
+                  description: `${getOrgRoleLabel(role)} has been assigned.`,
                 });
                 setShowAssignRoleDialog(false);
               },
-              onError: (error) =>
-                toast.error('Failed to assign role', {
-                  description: error.message,
-                }),
+              // The server's message can name internal enums and their
+              // members, so it goes to the log and the user gets copy that
+              // tells them what to do instead.
+              onError: (error) => {
+                logger.error('Assign org role failed', error, {
+                  employeeId: employee.id,
+                  orgRole: role,
+                });
+                toast.error('Unable to assign role', {
+                  description:
+                    'The selected role could not be assigned. Please try again or contact your administrator.',
+                });
+              },
             }
           );
         }}
