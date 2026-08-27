@@ -731,8 +731,7 @@ function AttendancePage() {
                     Loading attendance…
                   </TableCell>
                 </TableRow>
-              ) : // eslint-disable-next-line unicorn/no-nested-ternary
-              paginatedAttendance.length === 0 ? (
+              ) : paginatedAttendance.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9}>
                     <Empty variant="inline">

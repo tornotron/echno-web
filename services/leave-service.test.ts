@@ -23,13 +23,13 @@ const { leaveService } = await import('./leave-service');
 /** Query params passed to the most recent api.get call. */
 function lastGetParams(): unknown {
   const calls = api.get.mock.calls;
-  return calls[calls.length - 1][1];
+  return calls.at(-1)![1];
 }
 
 /** Endpoint passed to the most recent api.get call. */
 function lastGetEndpoint(): unknown {
   const calls = api.get.mock.calls;
-  return calls[calls.length - 1][0];
+  return calls.at(-1)![0];
 }
 
 afterEach(() => {

@@ -124,7 +124,6 @@ export function OrganizationProvider({
     [user, updateOrganizationMutation]
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const setOrganizations = useCallback((_orgs: Organization[]) => {
     // No-op: provider now fetches organizations internally via useOrganizations().
     // Kept in context for backward compatibility with any existing callers.

@@ -52,15 +52,15 @@ export function useEmployeeFilterFromParams(): EmployeeFilterState {
   const { data: employees = [] } = useEmployeeLookup();
 
   const rawId = searchParams.get('employeeId');
-  const parsedId = rawId != null ? Number(rawId) : NaN;
+  const parsedId = rawId == null ? Number.NaN : Number(rawId);
   const employeeId = Number.isFinite(parsedId) ? parsedId : null;
   const role = searchParams.get('role');
 
   const name =
-    employeeId != null
-      ? (employees.find((e) => e.id === employeeId)?.name ??
-        `User #${employeeId}`)
-      : null;
+    employeeId == null
+      ? null
+      : (employees.find((e) => e.id === employeeId)?.name ??
+        `User #${employeeId}`);
 
   const clear = useCallback(() => {
     router.replace(pathname);
