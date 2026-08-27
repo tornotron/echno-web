@@ -9,13 +9,8 @@ import {
   type BreadcrumbItemData,
 } from './breadcrumb-utils';
 
-const employees = [
-  { id: 3, name: 'Anjali' },
-  { id: 4, name: 'Ravi' },
-] as unknown as Employee[];
-const projects = [
-  { id: 2, projectName: 'Tower A' },
-] as unknown as Project[];
+const employee = { id: 3, name: 'Anjali' } as unknown as Employee;
+const project = { id: 2, projectName: 'Tower A' } as unknown as Project;
 
 describe('truncateText', () => {
   test('returns the text unchanged when within the limit', () => {
@@ -49,18 +44,23 @@ describe('getNameForId', () => {
     expect(getNameForId('9', ['vendors'])).toBe('Vendor 9');
   });
 
-  test('a project is found in the list, else a Project fallback', () => {
+  test('the resolved project names its own segment, else a Project fallback', () => {
     expect(
-      getNameForId('2', ['projects'], undefined, undefined, undefined, projects)
+      getNameForId('2', ['projects'], undefined, undefined, undefined, project)
     ).toBe('Tower A');
+    // A stale project from a previous route must not name a segment it is not.
     expect(
-      getNameForId('99', ['projects'], undefined, undefined, undefined, projects)
+      getNameForId('99', ['projects'], undefined, undefined, undefined, project)
     ).toBe('Project 99');
+    expect(
+      getNameForId('2', ['projects'], undefined, undefined, undefined, undefined)
+    ).toBe('Project 2');
   });
 
-  test('an employee is found by id, else the literal Employee', () => {
-    expect(getNameForId('3', ['employees'], employees)).toBe('Anjali');
-    expect(getNameForId('99', ['employees'], employees)).toBe('Employee');
+  test('the resolved employee names its own segment, else the literal Employee', () => {
+    expect(getNameForId('3', ['employees'], employee)).toBe('Anjali');
+    expect(getNameForId('99', ['employees'], employee)).toBe('Employee');
+    expect(getNameForId('3', ['employees'], undefined)).toBe('Employee');
   });
 
   test('delegates to the fallback resolver for unmapped segments', () => {

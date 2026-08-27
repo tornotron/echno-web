@@ -55,10 +55,10 @@ export interface BreadcrumbItemData {
  *
  * @param id       – The raw ID segment from the URL.
  * @param context  – All path segments *before* the ID (used to determine the parent resource).
- * @param employees     – Optional list of employees for lookup.
+ * @param employee      – The employee named by the path, when the path names one.
  * @param leaveRequests – Optional list of leave requests for lookup.
  * @param organizations – Optional list of organizations for lookup.
- * @param projects      – Optional list of projects for lookup.
+ * @param project       – The project named by the path, when the path names one.
  * @param task              – Optional single task for lookup.
  * @param issue             – Optional single issue for lookup.
  * @param chatRoomName
@@ -74,10 +74,10 @@ export interface BreadcrumbItemData {
 export function getNameForId(
   id: string,
   context: string[],
-  employees?: Employee[],
+  employee?: Employee,
   leaveRequests?: LeaveRequest[],
   organizations?: Organization[],
-  projects?: Project[],
+  project?: Project,
   task?: Task,
   issue?: Issue,
   chatRoomName?: string,
@@ -127,7 +127,8 @@ export function getNameForId(
 
   if (parentSegment === 'projects' || parentSegment === 'all-projects') {
     return (
-      projects?.find((p) => p.id === numericId)?.projectName ?? `Project ${id}`
+      (project?.id === numericId ? project.projectName : undefined) ??
+      `Project ${id}`
     );
   }
   if (parentSegment === 'tasks') {
@@ -141,10 +142,12 @@ export function getNameForId(
     parentSegment === 'employee-management' ||
     parentSegment === 'attendance'
   ) {
-    // Use real employee data if available, filtering out undefined IDs
+    // The path names one employee, so the breadcrumb resolves that one rather
+    // than searching a copy of the whole directory.
     return (
-      employees?.find((e) => e.id !== undefined && e.id === numericId)?.name ??
-      'Employee'
+      (employee?.id !== undefined && employee.id === numericId
+        ? employee.name
+        : undefined) ?? 'Employee'
     );
   }
   if (parentSegment === 'requests' && context.includes('leaves')) {

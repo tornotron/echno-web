@@ -3,7 +3,11 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Bug, FolderKanban, ListTodo, SearchIcon } from 'lucide-react';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useTasks } from '@tornotron/echno-core/task/hooks';
+import { useIssues } from '@tornotron/echno-core/issue/hooks';
 import { navigation, publicRoutes, type NavItem } from '@/config/nav.config';
+import { routes } from '@/nav';
 import {
   CommandDialog,
   CommandEmpty,
@@ -69,19 +73,7 @@ function getStaticRouteEntries(): RouteEntry[] {
   return out;
 }
 
-export type CommandPaletteProject = {
-  id: string;
-  name: string;
-  href: string;
-};
-
-export type CommandPaletteTask = {
-  id: string;
-  name: string;
-  href: string;
-};
-
-export type CommandPaletteIssue = {
+type PaletteEntry = {
   id: string;
   name: string;
   href: string;
@@ -96,26 +88,110 @@ type SearchEntry = {
   section?: string;
 };
 
-interface CommandPaletteProps {
-  projects?: CommandPaletteProject[];
-  tasks?: CommandPaletteTask[];
-  issues?: CommandPaletteIssue[];
+/**
+ * Alt+Space quick navigation over pages, projects, tasks and issues.
+ *
+ * The palette owns its own data rather than taking it as props from the application shell. The
+ * shell renders on every route and the palette is open on almost none of them, so fetching there
+ * meant three whole collections crossed the wire on every navigation to feed a dialog nobody had
+ * opened. Everything that fetches lives in {@link CommandPaletteBody}, which is mounted only while
+ * the dialog is open, so a session that never presses Alt+Space never issues the requests at all.
+ */
+export function CommandPalette() {
+  const [open, setOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const down = (event: KeyboardEvent) => {
+      if (event.code !== 'Space') return;
+      if (!event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const isTypingContext =
+        target?.tagName === 'INPUT' ||
+        target?.tagName === 'TEXTAREA' ||
+        target?.isContentEditable;
+
+      if (isTypingContext) return;
+
+      event.preventDefault();
+      setOpen((prev) => !prev);
+    };
+
+    document.addEventListener('keydown', down);
+    return () => document.removeEventListener('keydown', down);
+  }, []);
+
+  return (
+    <CommandDialog
+      description="Search pages, projects, tasks and issues"
+      onOpenChange={setOpen}
+      open={open}
+      showCloseButton={false}
+      title="Quick Navigation"
+    >
+      {open && <CommandPaletteBody onClose={() => setOpen(false)} />}
+    </CommandDialog>
+  );
 }
 
-export function CommandPalette({
-  projects = [],
-  tasks = [],
-  issues = [],
-}: CommandPaletteProps) {
+/**
+ * The palette's contents, including every query it runs.
+ *
+ * Kept a separate component so that mounting it is what starts the fetching. React Query holds the
+ * results, so reopening the palette within the cache window costs nothing.
+ */
+function CommandPaletteBody({ onClose }: { onClose: () => void }) {
   const router = useRouter();
-  const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState('');
+
+  const { data: projectRows = [] } = useProjects();
+  const { data: taskRows = [] } = useTasks();
+  const { data: issueRows = [] } = useIssues();
+
+  const projects = React.useMemo<PaletteEntry[]>(
+    () =>
+      projectRows
+        .filter((project) => Boolean(project.id))
+        .map((project) => ({
+          id: String(project.id),
+          name: project.projectName,
+          href: routes.projects.allProjects.detail(String(project.id)).href,
+        })),
+    [projectRows]
+  );
+
+  const tasks = React.useMemo<PaletteEntry[]>(
+    () =>
+      taskRows
+        .filter((task) => Boolean(task.id) && Boolean(task.projectId))
+        .map((task) => ({
+          id: String(task.id),
+          name: task.title,
+          href: routes.projects.allProjects
+            .detail(String(task.projectId))
+            .tasks.detail(String(task.id)).href,
+        })),
+    [taskRows]
+  );
+
+  const issues = React.useMemo<PaletteEntry[]>(
+    () =>
+      issueRows
+        .filter((issue) => Boolean(issue.id))
+        .map((issue) => ({
+          id: String(issue.id),
+          name: issue.title,
+          href: routes.projects.allIssues,
+        })),
+    [issueRows]
+  );
+
   const routeEntries = React.useMemo(() => getStaticRouteEntries(), []);
   const isSearching = query.trim().length > 0;
   const visibleProjects = isSearching ? projects : projects.slice(0, 3);
   const visibleTasks = isSearching ? tasks : tasks.slice(0, 3);
   const visibleIssues = isSearching ? issues : issues.slice(0, 3);
   const visibleRoutes = isSearching ? routeEntries : routeEntries.slice(0, 3);
+
   const searchEntries = React.useMemo<SearchEntry[]>(() => {
     const entries: SearchEntry[] = [];
     for (const project of projects) {
@@ -157,6 +233,7 @@ export function CommandPalette({
     }
     return entries;
   }, [projects, tasks, issues, routeEntries]);
+
   const topMatches = React.useMemo(() => {
     if (!isSearching) return [];
     const q = query.trim().toLowerCase();
@@ -176,40 +253,14 @@ export function CommandPalette({
     return filtered.slice(0, 50);
   }, [isSearching, query, searchEntries]);
 
-  React.useEffect(() => {
-    const down = (event: KeyboardEvent) => {
-      if (event.code !== 'Space') return;
-      if (!event.altKey) return;
-      const target = event.target as HTMLElement | null;
-      const isTypingContext =
-        target?.tagName === 'INPUT' ||
-        target?.tagName === 'TEXTAREA' ||
-        target?.isContentEditable;
-
-      if (isTypingContext) return;
-
-      event.preventDefault();
-      setOpen((prev) => !prev);
-    };
-
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, []);
-
   const onSelect = (href: string) => {
-    setOpen(false);
+    onClose();
     setQuery('');
     router.push(href);
   };
 
   return (
-    <CommandDialog
-      description="Search pages, projects, tasks and issues"
-      onOpenChange={setOpen}
-      open={open}
-      showCloseButton={false}
-      title="Quick Navigation"
-    >
+    <>
       <CommandInput
         onValueChange={setQuery}
         placeholder="Search pages, projects, tasks, issues..."
@@ -338,6 +389,6 @@ export function CommandPalette({
           </>
         )}
       </CommandList>
-    </CommandDialog>
+    </>
   );
 }

@@ -86,8 +86,8 @@ const mockFallbackResolver: FallbackNameResolver = (
 };
 
 interface BreadcrumbsProps {
-  employees?: Employee[];
-  projects?: Project[];
+  employee?: Employee;
+  project?: Project;
   organizations?: Organization[];
   leaveRequest?: LeaveRequest;
   task?: Task;
@@ -116,8 +116,8 @@ function getChatRoomName(room: ChatRoom): string {
 }
 
 export function Breadcrumbs({
-  employees,
-  projects,
+  employee,
+  project,
   organizations,
   leaveRequest,
   task,
@@ -176,10 +176,10 @@ export function Breadcrumbs({
         ? getNameForId(
             segment,
             context,
-            employees,
+            employee,
             leaveRequests,
             organizations,
-            projects,
+            project,
             task,
             issue,
             chatRoomName,
