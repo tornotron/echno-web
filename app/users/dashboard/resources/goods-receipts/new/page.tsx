@@ -14,6 +14,8 @@ import {
   poKeys,
 } from '@tornotron/echno-core/purchase-orders/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateGRN } from '@tornotron/echno-core/grn/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import type { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
@@ -34,6 +36,7 @@ export default function NewGRNPage() {
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { data: sourcePO } = usePurchaseOrder(fromPOId);
   const { mutate: createGRN, isPending } = useCreateGRN();
+  const clearFormDraft = useClearFormDraft();
 
   // Read cache synchronously so navigation pre-fill works without waiting for an effect
   const cachedPO = fromPOId
@@ -98,6 +101,10 @@ export default function NewGRNPage() {
       },
       {
         onSuccess: (grn) => {
+          // The record exists now, so the local draft describes work already done.
+          // Left behind it would be offered on the next visit to this form.
+          clearFormDraft(FORM_DRAFT_IDS.GOODS_RECEIPT);
+
           toast.success('GRN Recorded', {
             description:
               'Goods received note recorded successfully. Stock has been updated.',

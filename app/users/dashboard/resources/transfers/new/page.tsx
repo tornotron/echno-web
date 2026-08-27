@@ -14,6 +14,8 @@ import type { Indent } from '@tornotron/echno-core/indents/types';
 import type { Material } from '@tornotron/echno-core/materials/types';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { ApiError } from '@/lib/api/api-client';
@@ -36,6 +38,7 @@ export default function NewSiteTransferPage() {
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { data: sourceIndent } = useIndent(fromIndentId ?? 0);
   const { mutate: createTransfer, isPending } = useCreateSiteTransfer();
+  const clearFormDraft = useClearFormDraft();
 
   // Read cache synchronously so navigation pre-fill works without waiting for an effect
   const cachedIndent = fromIndentId
@@ -91,6 +94,10 @@ export default function NewSiteTransferPage() {
       },
       {
         onSuccess: (transfer) => {
+          // The record exists now, so the local draft describes work already done.
+          // Left behind it would be offered on the next visit to this form.
+          clearFormDraft(FORM_DRAFT_IDS.SITE_TRANSFER);
+
           toast.success('Transfer Created', {
             description:
               'Site transfer created successfully. Stock has been updated.',

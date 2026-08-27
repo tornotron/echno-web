@@ -2,6 +2,7 @@
 
 import { signOut as nextAuthSignOut } from 'next-auth/react';
 import { logger } from '@/lib/logger';
+import { clearAllFormDrafts } from '@/lib/forms/form-draft-storage';
 
 /**
  * Simple sign out (NextAuth + Keycloak)
@@ -16,6 +17,11 @@ export async function handleSignOut() {
       localStorage.removeItem('loginToastShown');
       localStorage.removeItem('defaultOrganization');
     }
+
+    // Half-filled forms are kept on this device and hold employee names, wages,
+    // vendor terms and site detail. None of that may still be readable by the
+    // next person to use a shared site machine.
+    clearAllFormDrafts();
 
     // Sign out from NextAuth
     // The events.signOut callback in auth.ts will handle Keycloak logout
@@ -39,6 +45,7 @@ export async function silentLogout() {
       localStorage.removeItem('loginToastShown');
       localStorage.removeItem('defaultOrganization');
     }
+    clearAllFormDrafts();
     await nextAuthSignOut({ redirect: false });
   } catch (error) {
     logger.error('Logout: Silent logout failed', error);

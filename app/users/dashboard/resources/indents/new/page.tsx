@@ -7,6 +7,8 @@ import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { Loader2, Send } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateIndent } from '@tornotron/echno-core/indents/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
@@ -19,6 +21,7 @@ export default function NewIndentPage() {
   const router = useRouter();
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { mutateAsync: createIndent, isPending } = useCreateIndent();
+  const clearFormDraft = useClearFormDraft();
 
   async function handleSubmit(data: IndentSubmitData) {
     if (!currentEmployee?.id) {
@@ -45,6 +48,10 @@ export default function NewIndentPage() {
           remarks: item.remarks.trim() || undefined,
         })),
       });
+      // The record exists now, so the local draft describes work already done.
+      // Left behind it would be offered on the next visit to this form.
+      clearFormDraft(FORM_DRAFT_IDS.INDENT);
+
       toast.success('Indent created successfully.');
       router.push(routes.resources.indents.detail(indent.id).href);
     } catch (error) {

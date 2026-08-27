@@ -5,9 +5,10 @@ import { QueryProvider } from './query-provider';
 import { OrgCacheGuard } from './org-cache-guard';
 import { UserPrefetcher } from './user-prefetcher';
 import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
+import { clearAllFormDrafts } from '@/lib/forms/form-draft-storage';
 import {
   useSessionLifecycle,
   type SessionNotifier,
@@ -31,11 +32,24 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
     []
   );
 
+  // Every sign-out this hook performs is one the user did not ask for: idle,
+  // revoked, or a session that simply stopped working. Form drafts are swept on
+  // the way out because they hold employee names, wages and vendor terms, and a
+  // site machine is usually a shared one. The deliberate sign-out is swept in
+  // `lib/auth/auth-utils.ts`, which is the path the menu takes.
+  const signOutClearingDrafts = useCallback(
+    (options: { callbackUrl: string }) => {
+      clearAllFormDrafts();
+      return signOut(options);
+    },
+    []
+  );
+
   useSessionLifecycle({
     session,
     status,
     update,
-    signOut,
+    signOut: signOutClearingDrafts,
     notify,
   });
 

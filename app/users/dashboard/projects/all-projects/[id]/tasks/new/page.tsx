@@ -4,6 +4,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { logger } from '@/lib/logger';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useProject } from '@tornotron/echno-core/project/hooks';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateTask } from '@tornotron/echno-core/task/hooks';
 import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
@@ -24,6 +26,7 @@ export default function NewTaskPage() {
   const { data: workCategories = [] } = useWorkCategories();
   const { data: currentEmployee } = useCurrentUserEmployee();
   const createTask = useCreateTask();
+  const clearFormDraft = useClearFormDraft();
   const directUpload = useDirectAttachmentUpload();
 
   const isSubmitting = createTask.isPending || directUpload.isUploading;
@@ -60,6 +63,10 @@ export default function NewTaskPage() {
       { data: buildRequest(data) },
       {
         onSuccess: async (created) => {
+          // The record exists now, so the local draft describes work already
+          // done. Left behind it would be offered on the next visit here.
+          clearFormDraft(FORM_DRAFT_IDS.TASK, undefined, projectId);
+
           if (data.attachments.length > 0) {
             const result = await directUpload.upload(
               created.id,
@@ -71,8 +78,7 @@ export default function NewTaskPage() {
                 description: `${result.errors.length} of ${data.attachments.length} attachment(s) did not upload. You can re-add them from the task.`,
               });
               router.push(
-                routes.projects.allProjects.detail(projectId).tasks
-                  .href
+                routes.projects.allProjects.detail(projectId).tasks.href
               );
               return;
             }
@@ -85,9 +91,7 @@ export default function NewTaskPage() {
               description: 'The task has been created successfully',
             });
           }
-          router.push(
-            routes.projects.allProjects.detail(projectId).tasks.href
-          );
+          router.push(routes.projects.allProjects.detail(projectId).tasks.href);
         },
         onError: (error) => {
           const title = getErrorTitle(error, 'Failed to Create Task');

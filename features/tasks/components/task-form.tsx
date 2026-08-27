@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -47,6 +47,9 @@ import { abbreviatedName } from '@tornotron/echno-core/work-category/types';
 import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
 import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 import { CreateCategoryDialog } from './task-alert-dialogs';
@@ -153,6 +156,26 @@ export function TaskForm(props: TaskFormProps) {
   const [attachments, setAttachments] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const deleteAttachment = useDeleteAttachment();
+
+  // Description, tags, dates and assignees add up to a long sitting, and the
+  // draft is keyed on the project so one project's half typed task is never
+  // offered while creating a task on another.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo(() => ({ fields: form }), [form]);
+  const applyDraft = useCallback(
+    (values: { fields: TaskFormState }) => setForm(values.fields),
+    []
+  );
+  const { draft, restoreDraft, discardDraft } = useFormDraft<{
+    fields: TaskFormState;
+  }>({
+    formId: FORM_DRAFT_IDS.TASK,
+    scope: draftScope,
+    recordId: props.mode === 'edit' ? props.task.id : undefined,
+    contextId: projectId,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
 
   function handleUploadFiles(files: File[]) {
     const valid: File[] = [];
@@ -395,6 +418,12 @@ export function TaskForm(props: TaskFormProps) {
   return (
     <>
       <form id={TASK_FORM_ID} onSubmit={handleSubmit} className="space-y-6">
+        <FormDraftBanner
+          draft={draft}
+          onRestore={restoreDraft}
+          onDiscard={discardDraft}
+          label="task"
+        />
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Main Form */}
           <div className="space-y-6 lg:col-span-2">

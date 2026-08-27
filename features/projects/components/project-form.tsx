@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -43,6 +43,9 @@ import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
 import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
 import { Progress } from '@/components/shadcn/progress';
+import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
+import { FormDraftBanner } from '@/components/common';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -118,6 +121,17 @@ type ProjectFormProps = CreateProps | EditProps;
 
 export const PROJECT_FORM_ID = 'project-form';
 
+/**
+ * What a locally kept draft of this form holds.
+ *
+ * Attachments are absent by design: a `File` cannot be stored and half an
+ * upload is not a draft. Everything the user typed is here.
+ */
+interface ProjectFormDraft {
+  fields: ProjectFormState;
+  createLocationForProject: boolean;
+}
+
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const getNewFileStatusIcon = (status?: FileUploadState['status']) => {
@@ -175,6 +189,25 @@ export function ProjectForm(props: ProjectFormProps) {
     useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const deleteAttachment = useDeleteAttachment();
+
+  // This is the form that lost a co-founder twenty minutes of entry when his
+  // session ended mid-typing, so it is the first one to keep a local draft.
+  const draftScope = useFormDraftScope();
+  const draftValues = useMemo<ProjectFormDraft>(
+    () => ({ fields: form, createLocationForProject }),
+    [form, createLocationForProject]
+  );
+  const applyDraft = useCallback((values: ProjectFormDraft) => {
+    setForm(values.fields);
+    setCreateLocationForProject(values.createLocationForProject === true);
+  }, []);
+  const { draft, restoreDraft, discardDraft } = useFormDraft<ProjectFormDraft>({
+    formId: FORM_DRAFT_IDS.PROJECT,
+    scope: draftScope,
+    recordId: props.mode === 'edit' ? props.project.id : undefined,
+    values: draftValues,
+    onRestore: applyDraft,
+  });
 
   const { isLoading: isGettingLocation, getCurrentLocation } = useGeolocation();
 
@@ -302,6 +335,12 @@ export function ProjectForm(props: ProjectFormProps) {
 
   return (
     <form id={PROJECT_FORM_ID} onSubmit={handleSubmit} className="space-y-6">
+      <FormDraftBanner
+        draft={draft}
+        onRestore={restoreDraft}
+        onDiscard={discardDraft}
+        label="project details"
+      />
       <Card>
         <CardHeader>
           <CardTitle>Project Information</CardTitle>
@@ -580,7 +619,10 @@ export function ProjectForm(props: ProjectFormProps) {
                               )}
                             </div>
                             {state?.status === 'uploading' && (
-                              <Progress value={state.percent} className="h-1.5" />
+                              <Progress
+                                value={state.percent}
+                                className="h-1.5"
+                              />
                             )}
                             {state?.status === 'error' && (
                               <p className="text-xs text-red-600 dark:text-red-400">

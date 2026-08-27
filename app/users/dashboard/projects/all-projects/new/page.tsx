@@ -24,6 +24,8 @@ import {
   PROJECT_FORM_ID,
   type ProjectFormSubmitData,
 } from '@/features/projects/components';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
 
@@ -34,6 +36,7 @@ export default function NewProjectPage() {
   const createStorageLocation = useCreateStorageLocation();
   const directUpload = useDirectAttachmentUpload();
   const queryClient = useQueryClient();
+  const clearFormDraft = useClearFormDraft();
 
   const isSubmitting =
     createProjectWithFiles.isPending || directUpload.isUploading;
@@ -93,6 +96,11 @@ export default function NewProjectPage() {
         },
         {
           onSuccess: async (createdProject) => {
+            // The record exists now, so the local draft describes work that is
+            // already done. Left behind, it would be offered the next time this
+            // form is opened and restored over a project that was saved.
+            clearFormDraft(FORM_DRAFT_IDS.PROJECT);
+
             if (data.attachments.length > 0) {
               const result = await directUpload.upload(
                 createdProject.id,
@@ -150,8 +158,7 @@ export default function NewProjectPage() {
               description: 'The project has been created successfully',
             });
             router.push(
-              routes.projects.allProjects.detail(createdProject.id)
-                .href
+              routes.projects.allProjects.detail(createdProject.id).href
             );
           },
           onError: (error) => {
@@ -176,9 +183,7 @@ export default function NewProjectPage() {
         actions={
           <>
             <Button variant="outline" disabled={isSubmitting} asChild>
-              <Link href={routes.projects.allProjects.href}>
-                Cancel
-              </Link>
+              <Link href={routes.projects.allProjects.href}>Cancel</Link>
             </Button>
             <Button
               type="submit"

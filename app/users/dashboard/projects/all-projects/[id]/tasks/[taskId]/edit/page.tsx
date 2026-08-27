@@ -20,6 +20,8 @@ import {
   useTask,
   useUpdateTask,
 } from '@tornotron/echno-core/task/hooks';
+import { useClearFormDraft } from '@/hooks/use-form-draft';
+import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { taskKeys } from '@tornotron/echno-core/task/hooks/keys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
@@ -51,6 +53,7 @@ export default function EditTaskPage({ params }: PageProps) {
   const { data: workCategories = [] } = useWorkCategories();
   const { data: currentEmployee } = useCurrentUserEmployee();
   const updateTask = useUpdateTask();
+  const clearFormDraft = useClearFormDraft();
   const deleteTask = useDeleteTask();
   const directUpload = useDirectAttachmentUpload();
   const queryClient = useQueryClient();
@@ -108,6 +111,10 @@ export default function EditTaskPage({ params }: PageProps) {
       { id, data },
       {
         onSuccess: async () => {
+          // The record exists now, so the local draft describes work already
+          // done. Left behind it would be offered on the next visit here.
+          clearFormDraft(FORM_DRAFT_IDS.TASK, id, projectIdNum);
+
           if (attachments.length > 0) {
             const result = await directUpload.upload(
               id,
@@ -130,9 +137,8 @@ export default function EditTaskPage({ params }: PageProps) {
             description: 'The task has been updated successfully',
           });
           router.push(
-            routes.projects.allProjects
-              .detail(projectId)
-              .tasks.detail(taskId).href
+            routes.projects.allProjects.detail(projectId).tasks.detail(taskId)
+              .href
           );
         },
         onError: (error) => {
@@ -155,9 +161,7 @@ export default function EditTaskPage({ params }: PageProps) {
         toast.success('Task Deleted', {
           description: 'The task has been deleted successfully',
         });
-        router.push(
-          routes.projects.allProjects.detail(projectId).tasks.href
-        );
+        router.push(routes.projects.allProjects.detail(projectId).tasks.href);
       },
       onError: (error) => {
         const title = getErrorTitle(error, 'Failed to Delete Task');
