@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSessionTokens } from '@/lib/auth/get-session-tokens';
+import {
+  getSessionTokens,
+  hasSessionCookie,
+} from '@/lib/auth/get-session-tokens';
 import { isSessionRevoked } from '@/lib/auth/session-revocation';
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
 import { isAccessTokenExpired } from '@/lib/auth/token-refresh-schedule';
@@ -123,15 +126,34 @@ async function proxyRequest(
   }
 
   // Same reason the revocation check lives here: without the `jwt()` callback
-  // nothing refreshes the cookie, so an access token that lapsed while the user
-  // sat on one page is still sitting in it. Forwarding it upstream buys a
-  // confusing generic failure once Keycloak refuses the RPT exchange, so fail
-  // fast instead and hand the client something it can act on.
-  if (isAccessTokenExpired(tokens?.expiresAt, Date.now())) {
-    logger.warn('BFF: rejecting request with an expired access token', {
+  // nothing repairs the cookie, so whatever state the session was left in is
+  // still sitting in it. Three shapes arrive that way and they all mean the
+  // same thing to the caller, so they get the same answer:
+  //
+  //   - the access token lapsed while the user sat on one page
+  //   - the cookie decoded but the server had already marked the session
+  //     finished, which the `error` field records
+  //   - the cookie is present and no longer decodes at all, so there are no
+  //     tokens to read
+  //
+  // Forwarding any of them buys a generic rejection from the backend with an
+  // empty body, which is indistinguishable from that endpoint refusing this
+  // particular call. Answering with the machine-readable code instead is what
+  // lets `lib/api/api-client.ts` recognise a finished session and recover.
+  //
+  // A request carrying no session cookie at all is deliberately not in that
+  // list. It is an ordinary anonymous call, and which endpoints accept one is
+  // the backend's judgement to make, not this proxy's.
+  const isSessionUnusable = tokens
+    ? Boolean(tokens.error) || isAccessTokenExpired(tokens.expiresAt, Date.now())
+    : await hasSessionCookie();
+
+  if (isSessionUnusable) {
+    logger.warn('BFF: rejecting request for a session that has ended', {
       sessionId: tokens?.sessionId
         ? tokens.sessionId.slice(0, 10) + '...'
         : undefined,
+      reason: tokens?.error ?? (tokens ? 'access token expired' : 'undecodable'),
     });
     return NextResponse.json(
       { error: SESSION_TOKEN_EXPIRED_ERROR },
