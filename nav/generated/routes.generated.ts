@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-25
+ * Generated: 2026-08-27
  */
 
 import type { RouteNode } from '../types';
@@ -1068,6 +1068,14 @@ export const ROUTE_TREE: RouteNode = {
                   ],
             },
           ],
+      },
+      {
+        id: 'workforce-my-leaves',
+        segment: 'my-leaves',
+        path: '/users/dashboard/workforce/my-leaves',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
       },
     ],
   },

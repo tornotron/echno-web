@@ -1,12 +1,14 @@
 import {
   Users,
   Calendar,
+  CalendarCheck,
   LayoutDashboard,
   FileText,
   TrendingUp,
   Settings,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
+import { MANAGER_AND_ABOVE } from '../access/roles';
 
 export const workforceMetadata = {
   workforce: {
@@ -49,12 +51,29 @@ export const workforceMetadata = {
     sidebarHidden: true,
   },
 
+  // ── my leaves ─────────────────────────────────────────────────────────────
+  // The employee's own leave, on its own link. Everything below
+  // `workforce-leaves` is organisational, and the sidebar only renders two
+  // levels, so without this entry an employee cannot navigate to their own
+  // balance or requests at all.
+  'workforce-my-leaves': {
+    label: 'My Leaves',
+    icon: CalendarCheck,
+    breadcrumb: 'My Leaves',
+    order: 2,
+  },
+
   // ── leaves ────────────────────────────────────────────────────────────────
+  // Organisation-wide leave: analytics, the approvals queue, quotas and
+  // policies. Hidden from employees, who have My Leaves instead. The gate is a
+  // navigation concern only; the pages below remain reachable by direct link so
+  // that an employee following "Apply for Leave" still lands correctly.
   'workforce-leaves': {
     label: 'Employee Leave',
     icon: Calendar,
     breadcrumb: 'Leaves',
-    order: 2,
+    order: 3,
+    access: MANAGER_AND_ABOVE,
   },
   'workforce-leaves-manage': {
     label: 'Leave Dashboard',

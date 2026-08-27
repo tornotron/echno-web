@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-25
+ * Generated: 2026-08-27
  */
 
 const BASE = '/users/dashboard';
@@ -252,6 +252,7 @@ export const routes = {
         },
       },
     },
+    myLeaves: b('/workforce/my-leaves'),
   },
 } as const;
 
