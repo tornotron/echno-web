@@ -328,6 +328,9 @@ export function MyRequestsTab({ employeeId }: MyRequestsTabProps) {
                     {format(new Date(r.startDate), 'MMM dd')} –{' '}
                     {format(new Date(r.endDate), 'MMM dd, yyyy')}
                   </p>
+                  <p className="text-muted-foreground text-xs">
+                    {describeDuration(r, isSameDay(r.startDate, r.endDate))}
+                  </p>
                 </CardContent>
               </Card>
             ))}
