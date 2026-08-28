@@ -5,3 +5,4 @@ export * from './use-regenerate-compliance';
 export * from './ncr-keys';
 export * from './use-ncrs';
 export * from './use-checklist-templates';
+export * from './use-responsible-name';

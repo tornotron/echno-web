@@ -25,21 +25,8 @@ import { BalancesTabContent } from '@/features/leave/components/balances-tab-con
 import { TransactionsTabContent } from '@/features/leave/components/transactions-tab-content';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { format } from 'date-fns';
+import { downloadCsv } from '@/lib/utils/csv-utils';
 
-function downloadCsv(filename: string, rows: string[][]) {
-  const csv = rows
-    .map((r) =>
-      r.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')
-    )
-    .join('\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
 
 export default function BalanceDetailsPage() {
   const { data: employee, isLoading: employeeLoading } =

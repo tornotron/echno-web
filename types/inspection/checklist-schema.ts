@@ -1,5 +1,5 @@
 /**
- * The JSON checklist schema — single source of truth for the builder, the
+ * The JSON checklist schema: single source of truth for the builder, the
  * preview, the runtime renderer, templates, versions and submissions.
  *
  * Nothing in this file knows about React. The element *registry* maps these
@@ -221,7 +221,7 @@ export function findElement(
  * Clone a schema with fresh element ids.
  *
  * Used when instantiating a template so the new checklist never shares ids
- * with the template it came from — responses key off element id, and reused
+ * with the template it came from. Responses key off element id, and reused
  * ids would silently collide across inspections.
  */
 export function withNewElementIds(schema: ChecklistSchema): ChecklistSchema {

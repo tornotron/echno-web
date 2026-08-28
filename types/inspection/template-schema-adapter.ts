@@ -49,7 +49,7 @@ import {
  * video, file, signature, divider, description) have no column to land in and
  * are kept out of the builder palette until the backend grows one.
  */
-export const REPRESENTABLE_ELEMENT_TYPES: ElementType[] = [
+export const REPRESENTABLE_ELEMENT_TYPES = [
   'section',
   'heading',
   'passFail',
@@ -61,7 +61,11 @@ export const REPRESENTABLE_ELEMENT_TYPES: ElementType[] = [
   'select',
   'radio',
   'photo',
-];
+] as const satisfies readonly ElementType[];
+
+/** An element type a stored template can hold. */
+export type RepresentableElementType =
+  (typeof REPRESENTABLE_ELEMENT_TYPES)[number];
 
 const REPRESENTABLE = new Set<string>(REPRESENTABLE_ELEMENT_TYPES);
 
@@ -78,19 +82,25 @@ function acceptanceCriterionFor(element: ChecklistElement): string | undefined {
     .filter(Boolean);
 
   switch (element.type) {
-    case 'passFail':
+    case 'passFail': {
       return 'Pass or fail';
-    case 'yesNoNa':
+    }
+    case 'yesNoNa': {
       return 'Yes, no, or not applicable';
-    case 'photo':
+    }
+    case 'photo': {
       return 'Photo evidence required';
+    }
     case 'select':
-    case 'radio':
+    case 'radio': {
       return options?.length ? `One of: ${options.join(', ')}` : undefined;
-    case 'number':
+    }
+    case 'number': {
       return 'Recorded value within tolerance';
-    default:
+    }
+    default: {
       return undefined;
+    }
   }
 }
 
@@ -162,7 +172,7 @@ function elementTypeFor(item: ChecklistTemplateItem): ElementType {
 
 function optionsFor(item: ChecklistTemplateItem) {
   const criterion = item.acceptanceCriterion ?? '';
-  if (!criterion.toLowerCase().startsWith('one of:')) return undefined;
+  if (!criterion.toLowerCase().startsWith('one of:')) return;
   return criterion
     .slice(criterion.indexOf(':') + 1)
     .split(',')

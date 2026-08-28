@@ -61,7 +61,7 @@ function toQuery(
   return Object.keys(query).length > 0 ? query : undefined;
 }
 
-/** NCR Service — non-conformance reports and their sign-off workflow. */
+/** NCR Service: non-conformance reports and their sign-off workflow. */
 export const ncrService = {
   /** `GET /ncrs/web` -> `Page<NcrDto>`, unwrapped to a plain array. */
   async getAll(params?: NcrListParams): Promise<Ncr[]> {

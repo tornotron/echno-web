@@ -13,6 +13,7 @@
 // and should move there once it grows an `ncr` module.
 
 import { parseUuid } from '@tornotron/echno-core';
+import type { BadgeVariant } from './inspection-enums';
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -91,8 +92,6 @@ export const defectStatusLabels: Record<DefectStatus, string> = {
   [DefectStatus.RESOLVED]: 'Resolved',
   [DefectStatus.VERIFIED]: 'Verified',
 };
-
-export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
 
 export const ncrStatusVariants: Record<NcrStatus, BadgeVariant> = {
   [NcrStatus.OPEN]: 'destructive',
@@ -285,20 +284,26 @@ export type NcrAction =
 
 export function availableNcrActions(status: NcrStatus): NcrAction[] {
   switch (status) {
-    case NcrStatus.OPEN:
+    case NcrStatus.OPEN: {
       return ['assign'];
+    }
     case NcrStatus.ASSIGNED:
     case NcrStatus.REOPENED:
-    case NcrStatus.REJECTED:
+    case NcrStatus.REJECTED: {
       return ['corrective-action-complete', 'assign'];
-    case NcrStatus.CORRECTIVE_ACTION_COMPLETE:
+    }
+    case NcrStatus.CORRECTIVE_ACTION_COMPLETE: {
       return ['verify', 'reject'];
-    case NcrStatus.VERIFIED:
+    }
+    case NcrStatus.VERIFIED: {
       return ['close', 'reopen'];
-    case NcrStatus.CLOSED:
+    }
+    case NcrStatus.CLOSED: {
       return ['reopen'];
-    default:
+    }
+    default: {
       return [];
+    }
   }
 }
 

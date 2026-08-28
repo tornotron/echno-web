@@ -2,17 +2,18 @@
 
 import { useCallback } from 'react';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
-import type { NcrDefect } from '@/types/inspection';
 
 /**
- * Resolves the display name of an NCR's responsible party.
+ * Resolves an employee id to a display name against the employee directory.
  *
- * The backend denormalises `responsibleName` onto the defect, but a defect
- * reassigned in this session carries only the new `responsibleId` until it is
- * refetched — and the stored name belongs to the previous holder. Preferring
- * the employee directory keeps every surface showing who is actually on the
- * hook, and the stored name remains the fallback for defects assigned to
- * someone outside the directory (a subcontractor, say).
+ * The NCR carries only `siteEngineerId`, with no denormalised name alongside
+ * it, so every surface that shows who is accountable has to look the name up.
+ * Doing it from the directory rather than from the row also means a
+ * reassignment shows the new holder straight away, without waiting for a
+ * refetch.
+ *
+ * Returns `undefined` for an id the directory does not hold, which is the
+ * signal to fall back to showing nothing rather than a bare number.
  *
  * @returns A resolver, stable for as long as the employee list is.
  */
@@ -20,9 +21,10 @@ export function useResponsibleName() {
   const { data: employees = [] } = useEmployees();
 
   return useCallback(
-    (defect: NcrDefect): string | undefined =>
-      employees.find((employee) => employee.id === defect.responsibleId)
-        ?.name ?? defect.responsibleName,
+    (employeeId?: number | null): string | undefined =>
+      employeeId == null
+        ? undefined
+        : employees.find((employee) => employee.id === employeeId)?.name,
     [employees]
   );
 }

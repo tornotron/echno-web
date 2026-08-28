@@ -184,7 +184,7 @@ function parseItems(raw: unknown): ChecklistTemplateItem[] {
   return Array.isArray(raw)
     ? (raw as Raw[])
         .map((item, index) => parseChecklistTemplateItem(item, index))
-        .sort((a, b) => a.lineOrder - b.lineOrder)
+        .toSorted((a, b) => a.lineOrder - b.lineOrder)
     : [];
 }
 
