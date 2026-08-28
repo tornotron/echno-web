@@ -105,8 +105,9 @@ export function formatDateHyphen(
  * Format: "15/01/2024" (DD/MM/YYYY)
  *
  * Note: Uses local-time getters intentionally — this is a display-oriented
- * format shown to the user in their local timezone. For backend/API
- * serialization use {@link formatDateForBackend} which uses UTC getters.
+ * format shown to the user in their local timezone. To serialize a calendar
+ * date for the backend use `formatDateForBackend` from `@tornotron/echno-core`,
+ * which reads local components too.
  *
  * @param date - Date to format
  * @param fallback - Fallback string if date is invalid
@@ -146,8 +147,9 @@ export function formatDateTimeHyphen(
  * Format: "15/01/2024 14:30"
  *
  * Note: Uses local-time getters intentionally — this is a display-oriented
- * format shown to the user in their local timezone. For backend/API
- * serialization use {@link formatDateForBackend} which uses UTC getters.
+ * format shown to the user in their local timezone. To serialize a calendar
+ * date for the backend use `formatDateForBackend` from `@tornotron/echno-core`,
+ * which reads local components too.
  *
  * @param date - Date to format
  * @param fallback - Fallback string if date is invalid
@@ -180,25 +182,6 @@ export function formatDateForInput(date: Date | string | undefined): string {
   return d.toISOString().split('T')[0];
 }
 
-/**
- * Formats a date for backend API calls using **UTC** getters.
- * Format: "2024-01-15T00:00:00"
- *
- * Uses UTC getters to prevent midnight-local → previous-day shifts
- * when serializing dates for the Java backend (LocalDateTime without timezone).
- *
- * @param date - Date to format
- * @returns Backend-compatible date string
- */
-export function formatDateForBackend(date: Date | string | undefined): string {
-  const d = safeDate(date);
-  if (!d) return '';
-
-  const year = d.getUTCFullYear();
-  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(d.getUTCDate()).padStart(2, '0');
-  return `${year}-${month}-${day}T00:00:00`;
-}
 
 /**
  * Formats a date relative to now
