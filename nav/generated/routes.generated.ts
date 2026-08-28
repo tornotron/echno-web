@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-27
+ * Generated: 2026-08-28
  */
 
 import type { RouteNode } from '../types';
@@ -274,9 +274,69 @@ export const ROUTE_TREE: RouteNode = {
     isCatchAll: false,
     children: [
       {
+        id: 'inspections-checklists',
+        segment: 'checklists',
+        path: '/users/dashboard/inspections/checklists',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [
+            {
+              id: 'inspections-checklists-[id]',
+              segment: '[id]',
+              path: '/users/dashboard/inspections/checklists/[id]',
+              isDynamic: true,
+              isCatchAll: false,
+              paramName: 'id',
+              children: [],
+            },
+          ],
+      },
+      {
+        id: 'inspections-ncr',
+        segment: 'ncr',
+        path: '/users/dashboard/inspections/ncr',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [
+            {
+              id: 'inspections-ncr-[id]',
+              segment: '[id]',
+              path: '/users/dashboard/inspections/ncr/[id]',
+              isDynamic: true,
+              isCatchAll: false,
+              paramName: 'id',
+              children: [],
+            },
+          ],
+      },
+      {
         id: 'inspections-new',
         segment: 'new',
         path: '/users/dashboard/inspections/new',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
+        id: 'inspections-qa-qc',
+        segment: 'qa-qc',
+        path: '/users/dashboard/inspections/qa-qc',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
+        id: 'inspections-reports',
+        segment: 'reports',
+        path: '/users/dashboard/inspections/reports',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
+        id: 'inspections-safety',
+        segment: 'safety',
+        path: '/users/dashboard/inspections/safety',
         isDynamic: false,
         isCatchAll: false,
         children: [],
@@ -293,6 +353,14 @@ export const ROUTE_TREE: RouteNode = {
               id: 'inspections-[id]-edit',
               segment: 'edit',
               path: '/users/dashboard/inspections/[id]/edit',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [],
+            },
+            {
+              id: 'inspections-[id]-run',
+              segment: 'run',
+              path: '/users/dashboard/inspections/[id]/run',
               isDynamic: false,
               isCatchAll: false,
               children: [],
