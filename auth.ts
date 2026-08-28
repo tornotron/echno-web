@@ -1,4 +1,5 @@
 import NextAuth from 'next-auth';
+import type { NextAuthConfig } from 'next-auth';
 import type { JWT } from 'next-auth/jwt';
 import KeycloakProvider from 'next-auth/providers/keycloak';
 import Credentials from 'next-auth/providers/credentials';
@@ -54,7 +55,16 @@ function getAccessTokenRefresher() {
   return refreshAccessToken;
 }
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+/**
+ * The NextAuth configuration, named so the callbacks can be driven directly.
+ *
+ * Split out from the {@link NextAuth} call below purely so a test can reach
+ * {@code callbacks.jwt}. The idle deadline lives inside that callback and is an
+ * ordering rule, so the only test that can hold it is one that calls the real
+ * function; a test that reimplemented the sequence would agree with itself
+ * whatever the callback did. Nothing else about the configuration changes.
+ */
+export const authConfig = {
   trustHost: true,
   debug: process.env.NODE_ENV === 'development',
 
@@ -214,6 +224,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
 
       // ========== ACTIVITY ==========
+      // The verdict is taken first, on the timestamp the token arrived with,
+      // and everything below reads this rather than asking again.
+      //
+      // The order matters and it is the whole point. Recording activity before
+      // asking the question overwrites the only evidence the question is about,
+      // so the deadline could never be reached on the one path that renews a
+      // session. Whoever holds the cookie would decide when the session ends,
+      // which is exactly the arrangement moving the deadline onto the signed
+      // token was meant to end.
+      const now = Date.now();
+      const idlePastDeadline = isIdlePastDeadline(token.lastActivityAt, now);
+
       // A session update carrying the activity assertion is the client saying
       // somebody is at the keyboard. The timestamp is taken here, from this
       // process's clock, and never read off the payload: a time supplied by the
@@ -221,8 +243,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // replaces. A plain `update()` refreshes the access token and is
       // deliberately not treated as activity, or a tab left running would hold
       // its own session open forever.
-      if (trigger === 'update' && isActivityAssertion(session)) {
-        recordSessionActivity(token, Date.now());
+      //
+      // A session already past its deadline is not renewed by an assertion.
+      // Nothing is recorded onto a token that is about to be marked ended, so
+      // the timestamp the session died on stays readable.
+      if (
+        !idlePastDeadline &&
+        trigger === 'update' &&
+        isActivityAssertion(session)
+      ) {
+        recordSessionActivity(token, now);
       }
 
       // ========== USER INFO ==========
@@ -260,10 +290,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // and Keycloak stops having its idle timer reset, so the session ends on
       // every clock rather than only on the one the browser keeps.
       //
-      // No tolerance is needed here. The update carrying the activity assertion
-      // was handled a few lines above by this same call, so an active client
-      // can never be refused by its own round trip.
-      if (isIdlePastDeadline(token.lastActivityAt, Date.now())) {
+      // The verdict was taken above, before the activity assertion could touch
+      // the timestamp. It deliberately carries no tolerance, and the case that
+      // once argued for one is covered elsewhere: a client whose push fails
+      // retries on the next evaluation tick, because `isActivitySyncDue` reads
+      // a `lastSyncedAt` that only advances on success. Reaching the deadline
+      // therefore takes roughly fifty consecutive failures, by which point the
+      // same round trip has stopped refreshing the access token and the session
+      // is ending on expiry regardless. Refusing an update is not what ends a
+      // working session; a broken update path is.
+      if (idlePastDeadline) {
         logger.warn('Session idle past its deadline, ending session', {
           hasSessionId: !!token.sessionId,
         });
@@ -431,4 +467,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     },
   },
-});
+} satisfies NextAuthConfig;
+
+export const { handlers, signIn, signOut, auth } = NextAuth(authConfig);
