@@ -201,8 +201,13 @@ export function IssueForm(props: IssueFormProps) {
   const draftScope = useFormDraftScope();
   const draftValues = useMemo(() => ({ fields: form }), [form]);
   const applyDraft = useCallback(
-    (values: { fields: IssueFormState }) => setForm(values.fields),
-    []
+    (values: { fields: IssueFormState }) =>
+      // A draft kept from before the create form fixed the status still carries
+      // whatever was picked then, and the create form has no way to show it.
+      setForm(
+        isEdit ? values.fields : { ...values.fields, status: IssueStatus.open }
+      ),
+    [isEdit]
   );
   const { draft, restoreDraft, discardDraft } = useFormDraft<{
     fields: IssueFormState;
