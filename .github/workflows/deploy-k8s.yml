@@ -82,6 +82,11 @@ jobs:
           build-args: |
             NODE_ENV=production
             NEXT_PUBLIC_API_URL=/api/v1
+            # Frozen into the build by next/image's remotePatterns. This flavour
+            # has no public object-store endpoint yet (echno-deployment #19), so
+            # there is no sensible fallback and it stays empty until the
+            # repository variable is set.
+            NEXT_PUBLIC_STORAGE_ORIGIN=${{ vars.NEXT_PUBLIC_STORAGE_ORIGIN }}
           # Mounted rather than passed as a build arg, so the token to read
           # @tornotron/echno-core from GitHub Packages never lands in a layer.
           secrets: |
