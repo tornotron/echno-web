@@ -30,7 +30,7 @@ import {
   SheetTrigger,
 } from '@/components/shadcn/sheet';
 import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useCreateDirectRoom } from '@/hooks/chat/use-chat-mutations';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
@@ -172,7 +172,7 @@ export function ChatSidebar({ onRoomSelect }: ChatSidebarProps) {
     (o) => o.id === user?.defaultOrganizationId
   );
   const { data: rooms = [], isLoading } = useChatRooms(currentOrg?.id);
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const createDm = useCreateDirectRoom();
 
   // Determine current employee ID for DM avatar resolution
@@ -417,17 +417,7 @@ export function ChatSidebar({ onRoomSelect }: ChatSidebarProps) {
                           <div
                             className={`flex h-9 w-9 flex-none items-center justify-center overflow-hidden rounded-full text-sm font-semibold ${getAvatarColor(emp.name)}`}
                           >
-                            {emp.profilePicture?.file ? (
-                              <Image
-                                src={emp.profilePicture.file}
-                                alt={emp.name}
-                                width={36}
-                                height={36}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : (
-                              initials
-                            )}
+                            {initials}
                           </div>
 
                           <div className="min-w-0 flex-1">
@@ -437,11 +427,6 @@ export function ChatSidebar({ onRoomSelect }: ChatSidebarProps) {
                             {emp.designation && (
                               <p className="text-muted-foreground truncate text-xs">
                                 {emp.designation}
-                              </p>
-                            )}
-                            {emp.email && (
-                              <p className="text-muted-foreground/60 truncate text-[11px]">
-                                {emp.email}
                               </p>
                             )}
                           </div>

@@ -1,5 +1,6 @@
 export * from './chat-room-type';
 export * from './chat-participant-role';
+export * from './chat-person';
 export * from './chat-entity-type';
 export * from './chat-participant';
 export * from './chat-reaction';

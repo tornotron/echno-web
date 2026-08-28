@@ -3,17 +3,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { chatService } from '@/services/chat-service';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { ChatRoom, ChatRoomType } from '@/types/chat';
-import { Employee } from '@tornotron/echno-core/employee/types';
+import { ChatPerson, ChatRoom, ChatRoomType } from '@/types/chat';
 import { Project } from '@tornotron/echno-core/project/types';
 import { shouldRetry } from '@/lib/query/retry';
 
 function resolveRoomData(
   rooms: ChatRoom[],
-  employees: Employee[],
+  employees: ChatPerson[],
   projects: Project[]
 ): ChatRoom[] {
   return rooms.map((room) => ({
@@ -64,12 +63,12 @@ export function useChatRooms(organizationId?: number) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 
-  const { data: allEmployees = [] } = useEmployees();
+  const { data: allEmployees = [] } = useEmployeeLookup();
   const { data: userEmployees = [] } = useUserEmployees();
   const { data: projects = [] } = useProjects();
 
   const employees = useMemo(() => {
-    const map = new Map<number, Employee>();
+    const map = new Map<number, ChatPerson>();
     for (const e of [...allEmployees, ...userEmployees]) {
       if (e.id !== undefined) map.set(e.id, e);
     }
@@ -101,12 +100,12 @@ export function useChatRoom(roomId?: number) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 
-  const { data: allEmployees = [] } = useEmployees();
+  const { data: allEmployees = [] } = useEmployeeLookup();
   const { data: userEmployees = [] } = useUserEmployees();
   const { data: projects = [] } = useProjects();
 
   const employees = useMemo(() => {
-    const map = new Map<number, Employee>();
+    const map = new Map<number, ChatPerson>();
     for (const e of [...allEmployees, ...userEmployees]) {
       if (e.id !== undefined) map.set(e.id, e);
     }

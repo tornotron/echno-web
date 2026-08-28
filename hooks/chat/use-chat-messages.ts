@@ -3,10 +3,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { chatMessageService } from '@/services/chat-message-service';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
-import { ChatMessage } from '@/types/chat';
-import { Employee } from '@tornotron/echno-core/employee/types';
+import { ChatMessage, ChatPerson } from '@/types/chat';
 import { shouldRetry } from '@/lib/query/retry';
 import { useChatStreamStatus } from '@/features/chat/components/chat-stream-provider';
 
@@ -23,7 +22,7 @@ const POLL_WITHOUT_STREAM_MS = 15 * 1000;
 
 function resolveMessageEmployees(
   messages: ChatMessage[],
-  employees: Employee[]
+  employees: ChatPerson[]
 ): ChatMessage[] {
   return messages.map((msg) => ({
     ...msg,
@@ -38,7 +37,7 @@ function resolveMessageEmployees(
 }
 
 /**
- * Hook to fetch messages for a chat room with resolved sender Employee objects.
+ * Hook to fetch messages for a chat room with each sender resolved to a person.
  */
 export function useChatMessages(roomId?: number) {
   const { connected } = useChatStreamStatus();
@@ -58,11 +57,11 @@ export function useChatMessages(roomId?: number) {
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
   });
 
-  const { data: allEmployees = [] } = useEmployees();
+  const { data: allEmployees = [] } = useEmployeeLookup();
   const { data: userEmployees = [] } = useUserEmployees();
 
   const employees = useMemo(() => {
-    const map = new Map<number, Employee>();
+    const map = new Map<number, ChatPerson>();
     for (const e of [...allEmployees, ...userEmployees]) {
       if (e.id !== undefined) map.set(e.id, e);
     }

@@ -1,6 +1,6 @@
 // types/chat/chat-participant.ts
 
-import { Employee } from '@tornotron/echno-core/employee/types';
+import { ChatPerson } from './chat-person';
 import {
   ChatParticipantRole,
   chatParticipantRoleFromString,
@@ -8,7 +8,7 @@ import {
 
 export interface ChatParticipant {
   employeeId: number;
-  employee?: Employee; // resolved at hook level
+  employee?: ChatPerson; // resolved at hook level
   role: ChatParticipantRole;
   joinedAt: Date;
   lastReadAt?: Date;
