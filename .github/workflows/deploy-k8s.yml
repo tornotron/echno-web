@@ -36,6 +36,14 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Scopes vars to the flavour being built. NEXT_PUBLIC_STORAGE_ORIGIN differs
+    # per environment and is frozen into the image, so one repository-wide value
+    # cannot serve compose, k3s and DOKS at once: whichever value it held would
+    # be wrong for two of the three. Setting it on the environment lets each one
+    # carry its own. The environment is created on first run and has no
+    # protection rules, so this adds no gate; leaving it unset is fine, since the
+    # step below already resolves the right default for each flavour.
+    environment: k8s-${{ github.event.inputs.flavor }}
     steps:
       # The dispatch input is read through the environment (never interpolated
       # into the shell source) and validated before anything downstream uses it.
@@ -43,16 +51,29 @@ jobs:
         id: f
         env:
           FLAVOR: ${{ github.event.inputs.flavor }}
+          STORAGE_ORIGIN_OVERRIDE: ${{ vars.NEXT_PUBLIC_STORAGE_ORIGIN }}
         run: |
           case "$FLAVOR" in
-            self-managed) values=values-iitm.yaml ;;
-            doks)         values=values-doks.yaml ;;
+            self-managed) values=values-iitm.yaml; storage=https://storage-k8s.echno.in ;;
+            doks)         values=values-doks.yaml; storage=https://echno-object-store.blr1.cdn.digitaloceanspaces.com ;;
             *) echo "unknown flavor: $FLAVOR" >&2; exit 1 ;;
           esac
+          # An environment-scoped variable wins where it is set; otherwise the
+          # flavour's own object store is used. self-managed matches
+          # domain.storage in echno-deployment's values-iitm.yaml, so the build
+          # and the running pod agree by construction. doks names the
+          # DigitalOcean Spaces CDN host that flavour serves attachments from,
+          # which is a different host from the one it presigns writes against.
+          # An `if` and not a `&&` one-liner: run steps are bash -e, so a test
+          # that is simply false would fail the whole step.
+          if [ -n "$STORAGE_ORIGIN_OVERRIDE" ]; then
+            storage="$STORAGE_ORIGIN_OVERRIDE"
+          fi
           {
             echo "values=$values"
             echo "tag=staging-${FLAVOR}-${GITHUB_SHA}"
             echo "flavor=$FLAVOR"
+            echo "storage_origin=$storage"
           } >> "$GITHUB_OUTPUT"
 
       - name: Check out the app
@@ -82,11 +103,11 @@ jobs:
           build-args: |
             NODE_ENV=production
             NEXT_PUBLIC_API_URL=/api/v1
-            # Frozen into the build by next/image's remotePatterns. This flavour
-            # has no public object-store endpoint yet (echno-deployment #19), so
-            # there is no sensible fallback and it stays empty until the
-            # repository variable is set.
-            NEXT_PUBLIC_STORAGE_ORIGIN=${{ vars.NEXT_PUBLIC_STORAGE_ORIGIN }}
+            # Frozen into the build by next/image's remotePatterns, so it has
+            # to be right at build time and cannot be corrected by restarting the
+            # container. Resolved per flavour above; the running pod is given the
+            # same value by the chart, which is what the CSP is built from.
+            NEXT_PUBLIC_STORAGE_ORIGIN=${{ steps.f.outputs.storage_origin }}
           # Mounted rather than passed as a build arg, so the token to read
           # @tornotron/echno-core from GitHub Packages never lands in a layer.
           secrets: |
