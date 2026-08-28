@@ -1,84 +1,178 @@
-export enum InspectionStatus {
-  scheduled = 'scheduled',
-  inProgress = 'in-progress',
-  completed = 'completed',
-  failed = 'failed',
-  passed = 'passed',
-  passedWithRemarks = 'passed-with-remarks',
-  cancelled = 'cancelled',
-}
+/**
+ * Inspection domain enums.
+ *
+ * Values are SCREAMING_SNAKE_CASE and travel over the wire verbatim — the
+ * backend persists them with `@Enumerated(EnumType.STRING)`, so no case
+ * translation happens in the service layer.
+ */
+
+// ---------------------------------------------------------------------------
+// Inspection
+// ---------------------------------------------------------------------------
 
 export enum InspectionType {
-  safety = 'safety',
-  quality = 'quality',
-  progress = 'progress',
-  final = 'final',
-  structural = 'structural',
-  electrical = 'electrical',
-  plumbing = 'plumbing',
-  finishing = 'finishing',
-  compliance = 'compliance',
+  qaQc = 'QA_QC',
+  safety = 'SAFETY',
+  ncrDefect = 'NCR_DEFECT',
+}
+
+export enum InspectionStatus {
+  draft = 'DRAFT',
+  scheduled = 'SCHEDULED',
+  inProgress = 'IN_PROGRESS',
+  completed = 'COMPLETED',
+  cancelled = 'CANCELLED',
 }
 
 export enum InspectionResult {
-  passed = 'passed',
-  failed = 'failed',
-  passedWithRemarks = 'passed-with-remarks',
-  pending = 'pending',
+  pending = 'PENDING',
+  passed = 'PASSED',
+  passedWithRemarks = 'PASSED_WITH_REMARKS',
+  failed = 'FAILED',
 }
-
-export enum CheckItemStatus {
-  passed = 'passed',
-  failed = 'failed',
-  notApplicable = 'not-applicable',
-  pending = 'pending',
-}
-
-export const inspectionStatusLabels: Record<InspectionStatus, string> = {
-  scheduled: 'Scheduled',
-  'in-progress': 'In Progress',
-  completed: 'Completed',
-  failed: 'Failed',
-  passed: 'Passed',
-  'passed-with-remarks': 'Passed with Remarks',
-  cancelled: 'Cancelled',
-};
 
 export const inspectionTypeLabels: Record<InspectionType, string> = {
-  safety: 'Safety Inspection',
-  quality: 'Quality Inspection',
-  progress: 'Progress Inspection',
-  final: 'Final Inspection',
-  structural: 'Structural Inspection',
-  electrical: 'Electrical Inspection',
-  plumbing: 'Plumbing Inspection',
-  finishing: 'Finishing Inspection',
-  compliance: 'Compliance Inspection',
+  [InspectionType.qaQc]: 'QA/QC',
+  [InspectionType.safety]: 'Safety',
+  [InspectionType.ncrDefect]: 'NCR / Defect',
+};
+
+export const inspectionStatusLabels: Record<InspectionStatus, string> = {
+  [InspectionStatus.draft]: 'Draft',
+  [InspectionStatus.scheduled]: 'Scheduled',
+  [InspectionStatus.inProgress]: 'In Progress',
+  [InspectionStatus.completed]: 'Completed',
+  [InspectionStatus.cancelled]: 'Cancelled',
 };
 
 export const inspectionResultLabels: Record<InspectionResult, string> = {
-  passed: 'Passed',
-  failed: 'Failed',
-  'passed-with-remarks': 'Passed with Remarks',
-  pending: 'Pending',
+  [InspectionResult.pending]: 'Pending',
+  [InspectionResult.passed]: 'Passed',
+  [InspectionResult.passedWithRemarks]: 'Passed with Remarks',
+  [InspectionResult.failed]: 'Failed',
 };
 
-export const checkItemStatusLabels: Record<CheckItemStatus, string> = {
-  passed: 'Passed',
-  failed: 'Failed',
-  'not-applicable': 'N/A',
-  pending: 'Pending',
-};
+// ---------------------------------------------------------------------------
+// NCR / Defect
+// ---------------------------------------------------------------------------
 
-export function calculateCompliance(
-  totalCheckPoints: number,
-  passedCheckPoints: number
-): number {
-  if (totalCheckPoints === 0) return 0;
-  return Math.round((passedCheckPoints / totalCheckPoints) * 100);
+/** NCR lifecycle. Ordered — index doubles as progress through the workflow. */
+export enum NcrStatus {
+  open = 'OPEN',
+  assigned = 'ASSIGNED',
+  underCorrection = 'UNDER_CORRECTION',
+  submittedForVerification = 'SUBMITTED_FOR_VERIFICATION',
+  verified = 'VERIFIED',
+  closed = 'CLOSED',
 }
 
-export function determineInspectionResult(
+export const NCR_STATUS_FLOW: NcrStatus[] = [
+  NcrStatus.open,
+  NcrStatus.assigned,
+  NcrStatus.underCorrection,
+  NcrStatus.submittedForVerification,
+  NcrStatus.verified,
+  NcrStatus.closed,
+];
+
+export const ncrStatusLabels: Record<NcrStatus, string> = {
+  [NcrStatus.open]: 'Open',
+  [NcrStatus.assigned]: 'Assigned',
+  [NcrStatus.underCorrection]: 'Under Correction',
+  [NcrStatus.submittedForVerification]: 'Submitted for Verification',
+  [NcrStatus.verified]: 'Verified',
+  [NcrStatus.closed]: 'Closed',
+};
+
+/** The status an NCR may legally move to next. Empty once closed. */
+export function nextNcrStatuses(current: NcrStatus): NcrStatus[] {
+  const index = NCR_STATUS_FLOW.indexOf(current);
+  if (index === -1 || index === NCR_STATUS_FLOW.length - 1) return [];
+  return [NCR_STATUS_FLOW[index + 1]];
+}
+
+export enum NcrSeverity {
+  low = 'LOW',
+  medium = 'MEDIUM',
+  high = 'HIGH',
+  critical = 'CRITICAL',
+}
+
+export const ncrSeverityLabels: Record<NcrSeverity, string> = {
+  [NcrSeverity.low]: 'Low',
+  [NcrSeverity.medium]: 'Medium',
+  [NcrSeverity.high]: 'High',
+  [NcrSeverity.critical]: 'Critical',
+};
+
+// ---------------------------------------------------------------------------
+// Templates
+// ---------------------------------------------------------------------------
+
+export enum TemplateCategory {
+  qaQc = 'QA_QC',
+  safety = 'SAFETY',
+  ncrDefect = 'NCR_DEFECT',
+  general = 'GENERAL',
+}
+
+export const templateCategoryLabels: Record<TemplateCategory, string> = {
+  [TemplateCategory.qaQc]: 'QA/QC',
+  [TemplateCategory.safety]: 'Safety',
+  [TemplateCategory.ncrDefect]: 'NCR / Defects',
+  [TemplateCategory.general]: 'General',
+};
+
+export enum SubmissionStatus {
+  draft = 'DRAFT',
+  submitted = 'SUBMITTED',
+}
+
+// ---------------------------------------------------------------------------
+// Badge variant mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * Maps domain status to the app's existing Badge variants so inspection
+ * chips read the same as every other module's.
+ */
+export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
+export const inspectionStatusVariants: Record<InspectionStatus, BadgeVariant> =
+  {
+    [InspectionStatus.draft]: 'outline',
+    [InspectionStatus.scheduled]: 'secondary',
+    [InspectionStatus.inProgress]: 'default',
+    [InspectionStatus.completed]: 'secondary',
+    [InspectionStatus.cancelled]: 'outline',
+  };
+
+export const inspectionResultVariants: Record<InspectionResult, BadgeVariant> =
+  {
+    [InspectionResult.pending]: 'outline',
+    [InspectionResult.passed]: 'secondary',
+    [InspectionResult.passedWithRemarks]: 'secondary',
+    [InspectionResult.failed]: 'destructive',
+  };
+
+export const ncrStatusVariants: Record<NcrStatus, BadgeVariant> = {
+  [NcrStatus.open]: 'destructive',
+  [NcrStatus.assigned]: 'default',
+  [NcrStatus.underCorrection]: 'default',
+  [NcrStatus.submittedForVerification]: 'secondary',
+  [NcrStatus.verified]: 'secondary',
+  [NcrStatus.closed]: 'outline',
+};
+
+export const ncrSeverityVariants: Record<NcrSeverity, BadgeVariant> = {
+  [NcrSeverity.low]: 'outline',
+  [NcrSeverity.medium]: 'secondary',
+  [NcrSeverity.high]: 'default',
+  [NcrSeverity.critical]: 'destructive',
+};
+
+/** Compliance thresholds shared by the runtime scorer and the reports. */
+export function resultFromCompliance(
   compliancePercentage: number,
   criticalDefects: number
 ): InspectionResult {

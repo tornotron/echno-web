@@ -1,47 +1,28 @@
-import { InspectionType } from './inspection-enums';
+import type { InspectionStatus, InspectionType } from './inspection-enums';
 
 export interface CreateInspectionRequest {
   title: string;
+  description?: string;
   type: InspectionType;
-  projectId?: number;
-  location: string;
-  areaInspected: string;
-  drawingReference?: string;
-  scheduledDate: string;
-  scheduledTime?: string;
-  inspectorId: number;
-  contractorId?: number;
-  clientRepresentative?: string;
-  weatherConditions?: string;
-  temperature?: string;
-  observationsAndComments?: string;
-  recommendations?: string;
+  projectId: number;
+  location?: string;
+  /** ISO date (yyyy-MM-dd). */
+  inspectionDate: string;
+  inspectorId?: number;
+  /**
+   * Template to instantiate. The backend pins the template's current published
+   * version onto the inspection; omitting it creates an inspection with no
+   * checklist, which the runtime renders as an empty state.
+   */
+  templateId?: number;
 }
 
-export function createInspectionToJson(
-  dto: CreateInspectionRequest
-): Record<string, unknown> {
-  const json: Record<string, unknown> = {
-    title: dto.title,
-    type: dto.type,
-    location: dto.location,
-    areaInspected: dto.areaInspected,
-    scheduledDate: dto.scheduledDate,
-    inspectorId: dto.inspectorId,
-  };
-  if (dto.projectId !== undefined) json.projectId = dto.projectId;
-  if (dto.drawingReference !== undefined)
-    json.drawingReference = dto.drawingReference;
-  if (dto.scheduledTime !== undefined) json.scheduledTime = dto.scheduledTime;
-  if (dto.contractorId !== undefined) json.contractorId = dto.contractorId;
-  if (dto.clientRepresentative !== undefined)
-    json.clientRepresentative = dto.clientRepresentative;
-  if (dto.weatherConditions !== undefined)
-    json.weatherConditions = dto.weatherConditions;
-  if (dto.temperature !== undefined) json.temperature = dto.temperature;
-  if (dto.observationsAndComments !== undefined)
-    json.observationsAndComments = dto.observationsAndComments;
-  if (dto.recommendations !== undefined)
-    json.recommendations = dto.recommendations;
-  return json;
+export interface UpdateInspectionRequest {
+  title?: string;
+  description?: string;
+  status?: InspectionStatus;
+  location?: string;
+  inspectionDate?: string;
+  inspectorId?: number;
+  templateId?: number;
 }
