@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { toast } from '@/lib/styles/toast-styles';
+import { todayForDateInput } from '@/lib/utils/date-utils';
 import {
   User,
   FileText,
@@ -86,7 +87,7 @@ export interface SubContractFormProps {
 export const SUB_CONTRACT_FORM_ID = 'sub-contract-form';
 
 function normalizeDate(date?: Date | string, fallbackToday = false): string {
-  if (!date) return fallbackToday ? new Date().toISOString().split('T')[0] : '';
+  if (!date) return fallbackToday ? todayForDateInput() : '';
   return date instanceof Date ? date.toISOString().split('T')[0] : String(date);
 }
 

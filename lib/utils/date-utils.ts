@@ -289,3 +289,37 @@ export function isToday(date: Date | string | undefined): boolean {
     d.getFullYear() === today.getFullYear()
   );
 }
+
+/** Left-pads a month or day to the two digits a date input expects. */
+function padTwo(value: number): string {
+  return String(value).padStart(2, '0');
+}
+
+/**
+ * Formats a date as `YYYY-MM-DD` from its **local** components, the value shape a
+ * native `<input type="date">` expects.
+ *
+ * Deliberately not `toISOString().split('T')[0]`. That reads the UTC calendar
+ * date, so for any client at a positive offset it returns the previous day once
+ * the local clock passes the offset: in IST, after 18:30, "today" comes back as
+ * yesterday. A date field that silently pre-fills yesterday for the whole evening
+ * is the kind of bug that never reproduces during a morning test.
+ *
+ * Use this for a date the user is picking or reading off their own calendar. It is
+ * not for serializing to the backend.
+ *
+ * @param date - The date to format. Defaults to now.
+ * @returns The local calendar date, e.g. `'2026-08-27'`.
+ */
+export function toLocalDateInputValue(date: Date = new Date()): string {
+  return `${date.getFullYear()}-${padTwo(date.getMonth() + 1)}-${padTwo(date.getDate())}`;
+}
+
+/**
+ * The current local calendar date as `YYYY-MM-DD`, for pre-filling a date input.
+ *
+ * @returns Today in the client's timezone, e.g. `'2026-08-27'`.
+ */
+export function todayForDateInput(): string {
+  return toLocalDateInputValue();
+}

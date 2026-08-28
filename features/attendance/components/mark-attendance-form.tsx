@@ -31,6 +31,7 @@ import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import { AlertTriangle, UserCheck, UserX, Users } from 'lucide-react';
+import { todayForDateInput } from '@/lib/utils/date-utils';
 import {
   Empty,
   EmptyDescription,
@@ -72,7 +73,7 @@ import {
 export function MarkAttendanceForm() {
   const [selectedProject, setSelectedProject] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
+    todayForDateInput()
   );
   const [selectedEmployees, setSelectedEmployees] = useState<Set<number>>(
     new Set()
