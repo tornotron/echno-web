@@ -52,7 +52,8 @@ import { FormDraftBanner } from '@/components/common';
 // Types
 // ---------------------------------------------------------------------------
 
-const PROJECT_STATUSES = [
+/** Every status a project can hold, which is what the edit form offers. */
+export const PROJECT_STATUSES = [
   ProjectStatus.upcoming,
   ProjectStatus.approved,
   ProjectStatus.open,
@@ -62,6 +63,19 @@ const PROJECT_STATUSES = [
   ProjectStatus.cancelled,
   ProjectStatus.dropped,
 ];
+
+/**
+ * The statuses a project can be created in.
+ *
+ * `approved` is left out deliberately. Approval checks that the project's state
+ * is known and publishes the event that draws up its compliance inspections, so
+ * it runs through the approval action on the project rather than through the
+ * create payload. The API refuses `approved` on create for the same reason, and
+ * defaults to `upcoming` when the payload names no status at all.
+ */
+export const CREATE_PROJECT_STATUSES = PROJECT_STATUSES.filter(
+  (status) => status !== ProjectStatus.approved
+);
 
 const PROJECT_TYPES = [
   ProjectType.RESIDENTIAL,
@@ -526,11 +540,13 @@ export function ProjectForm(props: ProjectFormProps) {
                 <SelectValue placeholder="Select project status" />
               </SelectTrigger>
               <SelectContent>
-                {PROJECT_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {getProjectStatusLabel(s)}
-                  </SelectItem>
-                ))}
+                {(isEdit ? PROJECT_STATUSES : CREATE_PROJECT_STATUSES).map(
+                  (s) => (
+                    <SelectItem key={s} value={s}>
+                      {getProjectStatusLabel(s)}
+                    </SelectItem>
+                  )
+                )}
               </SelectContent>
             </Select>
           </div>

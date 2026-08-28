@@ -6,6 +6,7 @@ import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
 import * as realVendorHooks from '@tornotron/echno-core/vendor/hooks';
 import * as realIndentHooks from '@tornotron/echno-core/indents/hooks';
 import * as realPurchaseOrderHooks from '@tornotron/echno-core/purchase-orders/hooks';
+import { PurchaseOrderStatus } from '@tornotron/echno-core/purchase-orders/types';
 
 /**
  * The order list the mocked `usePurchaseOrders` hands back. It starts empty
@@ -99,5 +100,78 @@ describe('PurchaseOrderForm PO number', () => {
     rerender(createElement(PurchaseOrderForm, { onSubmit: () => {} }));
 
     expect(poNumberField(container).value).toBe('PO-LEGACY-0042');
+  });
+});
+
+/**
+ * Opens the status dropdown, if there is one, and returns the labels it offers.
+ *
+ * Radix keeps the list out of the DOM until the trigger is pressed, so the
+ * options have to be read after opening it. The labels come back as strings so
+ * a failure prints a list rather than a DOM node.
+ */
+function statusOptions(container: HTMLElement): string[] {
+  const trigger = container.querySelector('#status') as HTMLElement;
+  fireEvent.pointerDown(trigger, {
+    button: 0,
+    ctrlKey: false,
+    pointerType: 'mouse',
+  });
+  return [...document.querySelectorAll('[role="option"]')].map(
+    (option) => option.textContent?.trim() ?? ''
+  );
+}
+
+// This form only ever creates. Approval and every later state change go through
+// the status action on the order, and the API takes only DRAFT on create, so
+// offering the rest was a 400 waiting to happen.
+describe('PurchaseOrderForm status', () => {
+  afterEach(() => {
+    cleanup();
+    orders = [];
+  });
+
+  test('is shown, not offered', () => {
+    const { container } = render(
+      createElement(PurchaseOrderForm, { onSubmit: () => {} })
+    );
+
+    const status = container.querySelector('#status');
+
+    expect(status?.getAttribute('role')).toBe(null);
+    expect(status?.textContent?.trim()).toBe('Draft');
+    expect(statusOptions(container)).toEqual([]);
+  });
+
+  test('the order is submitted as a draft', () => {
+    const onSubmit = mock((..._args: unknown[]) => {});
+    const { container } = render(
+      createElement(PurchaseOrderForm, {
+        initialValues: {
+          vendorId: 4,
+          projectId: 3,
+          status: PurchaseOrderStatus.approved,
+        },
+        initialItems: [
+          {
+            materialId: 9,
+            materialName: 'OPC 53 cement',
+            orderedQuantity: 10,
+            unitPrice: 400,
+            remarks: '',
+          },
+        ],
+        onSubmit,
+      })
+    );
+
+    fireEvent.submit(
+      container.querySelector('#purchase-order-form') as HTMLFormElement
+    );
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      form: { status: string };
+    };
+    expect(data.form.status).toBe(PurchaseOrderStatus.draft);
   });
 });
