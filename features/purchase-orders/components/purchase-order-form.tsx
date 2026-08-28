@@ -160,7 +160,9 @@ export function PurchaseOrderForm({
     vendorId: initialValues?.vendorId ?? 0,
     projectId: initialValues?.projectId ?? 0,
     indentId: initialValues?.indentId ?? 0,
-    status: initialValues?.status ?? PurchaseOrderStatus.draft,
+    // Not taken from `initialValues`, and not restorable from a draft: an order
+    // is raised as a draft, and the API refuses anything else on create.
+    status: PurchaseOrderStatus.draft,
     expectedDeliveryDate: initialValues?.expectedDeliveryDate ?? '',
     remarks: initialValues?.remarks ?? '',
   }));
@@ -195,7 +197,11 @@ export function PurchaseOrderForm({
   );
   const applyDraft = useCallback(
     (values: { fields: PurchaseOrderFormState; items: POItemRow[] }) => {
-      setForm((prev) => ({ ...values.fields, poNumber: prev.poNumber }));
+      setForm((prev) => ({
+        ...values.fields,
+        poNumber: prev.poNumber,
+        status: PurchaseOrderStatus.draft,
+      }));
       setItems(values.items);
     },
     []
@@ -432,25 +438,25 @@ export function PurchaseOrderForm({
               )}
             </div>
 
+            {/*
+              An order is raised as a draft and nothing else. Approval and every
+              later state change go through the status action on the order,
+              which is what makes approving one a deliberate act rather than a
+              field on this form. The API takes only DRAFT on create, so the
+              value is shown rather than offered.
+            */}
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select
-                value={form.status}
-                onValueChange={(v) =>
-                  setField('status', v as PurchaseOrderStatus)
-                }
+              <div
+                id="status"
+                className="bg-muted/50 text-muted-foreground flex h-9 items-center rounded-md border px-3 text-sm"
               >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.values(PurchaseOrderStatus).map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {purchaseOrderStatusLabels[s]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                {purchaseOrderStatusLabels[PurchaseOrderStatus.draft]}
+              </div>
+              <p className="text-muted-foreground text-xs">
+                A new order starts as a draft. Approving it happens from the
+                order itself.
+              </p>
             </div>
 
             <div className="space-y-2">

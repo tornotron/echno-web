@@ -340,7 +340,11 @@ export function IssueForm(props: IssueFormProps) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validateForm()) return;
-    props.onSubmit({ fields: form, attachments });
+    // Create takes only `open`. The field is not offered on the create form,
+    // but a local draft saved before it was fixed can still carry something
+    // else, and that would come back as a 400.
+    const fields = isEdit ? form : { ...form, status: IssueStatus.open };
+    props.onSubmit({ fields, attachments });
   }
 
   // ---------------------------------------------------------------------------
@@ -544,25 +548,50 @@ export function IssueForm(props: IssueFormProps) {
                     </SelectContent>
                   </Select>
                 </div>
+                {/*
+                  A new issue is always raised open. Raising one is open to
+                  every member of the tenant while moving it on wants a system
+                  admin or a project manager, so creating it straight as
+                  resolved or closed would be the one move the update endpoint
+                  exists to withhold. The API takes only `open` on create, so
+                  the value is shown rather than offered.
+                */}
                 <div className="space-y-2">
                   <Label htmlFor="status">
-                    Status <span className="text-red-500">*</span>
+                    Status {isEdit && <span className="text-red-500">*</span>}
                   </Label>
-                  <Select
-                    value={form.status}
-                    onValueChange={(v) => handleStatusChange(v as IssueStatus)}
-                  >
-                    <SelectTrigger id="status">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(IssueStatus).map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {getIssueStatusLabel(s)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isEdit ? (
+                    <Select
+                      value={form.status}
+                      onValueChange={(v) =>
+                        handleStatusChange(v as IssueStatus)
+                      }
+                    >
+                      <SelectTrigger id="status">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(IssueStatus).map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {getIssueStatusLabel(s)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <>
+                      <div
+                        id="status"
+                        className="bg-muted/50 text-muted-foreground flex h-9 items-center rounded-md border px-3 text-sm"
+                      >
+                        {getIssueStatusLabel(IssueStatus.open)}
+                      </div>
+                      <p className="text-muted-foreground text-xs">
+                        A new issue starts open. Moving it on happens from the
+                        issue itself.
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="priority">

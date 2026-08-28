@@ -5,6 +5,11 @@ import * as realAttachmentHooks from '@tornotron/echno-core/attachment/hooks';
 import * as realTaskHooks from '@tornotron/echno-core/task/hooks';
 import * as realUserHooks from '@tornotron/echno-core/user/hooks';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
+import {
+  IssueStatus,
+  IssueType,
+  type Issue,
+} from '@tornotron/echno-core/issue/types';
 
 mock.module('@tornotron/echno-core/attachment/hooks', () => ({
   ...realAttachmentHooks,
@@ -41,7 +46,38 @@ mock.module('@/hooks/use-form-draft', () => ({
   }),
 }));
 
-const { IssueForm } = await import('./issue-form');
+const { IssueForm, ISSUE_FORM_ID } = await import('./issue-form');
+
+/** A saved issue, enough of one for the edit form to seed itself from. */
+function issue(): Issue {
+  return {
+    id: 7,
+    taskId: 11,
+    title: 'Honeycombing on the raft',
+    description: 'Voids along the north face of the raft pour.',
+    type: IssueType.technical,
+    status: IssueStatus.inProgress,
+  } as unknown as Issue;
+}
+
+/**
+ * Opens the status dropdown, if there is one, and returns the labels it offers.
+ *
+ * Radix keeps the list out of the DOM until the trigger is pressed, so the
+ * options have to be read after opening it. The labels come back as strings so
+ * a failure prints a list rather than a DOM node.
+ */
+function statusOptions(container: HTMLElement): string[] {
+  const trigger = container.querySelector('#status') as HTMLElement;
+  fireEvent.pointerDown(trigger, {
+    button: 0,
+    ctrlKey: false,
+    pointerType: 'mouse',
+  });
+  return [...document.querySelectorAll('[role="option"]')].map(
+    (option) => option.textContent?.trim() ?? ''
+  );
+}
 
 /**
  * Every control on the create form that can submit it.
@@ -50,12 +86,13 @@ const { IssueForm } = await import('./issue-form');
  * `validateForm`, so asking for the submit button by name would have missed it
  * entirely. The test presses everything and asserts on what came out.
  */
-function renderCreateForm() {
+function renderCreateForm(initialTaskId?: string) {
   const onSubmit = mock((..._args: unknown[]) => {});
   const view = render(
     createElement(IssueForm, {
       mode: 'create',
       projectId: '3',
+      initialTaskId,
       isSubmitting: false,
       onSubmit,
       onCancel: () => {},
@@ -91,6 +128,38 @@ describe('IssueForm create mode', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
+  // Raising an issue is open to every member of the tenant while moving one on
+  // wants a system admin or a project manager, so a member creating one
+  // straight as resolved or closed was making the move the update endpoint
+  // exists to withhold. The API takes only `open` on create.
+  test('the status is shown, not offered', () => {
+    const { container } = renderCreateForm();
+
+    const status = container.querySelector('#status');
+
+    expect(status?.getAttribute('role')).toBe(null);
+    expect(status?.textContent?.trim()).toBe('Open');
+    expect(statusOptions(container)).toEqual([]);
+  });
+
+  test('an issue is created open', () => {
+    const { container, onSubmit } = renderCreateForm('11');
+
+    fireEvent.change(container.querySelector('#title') as HTMLInputElement, {
+      target: { value: 'Honeycombing on the raft' },
+    });
+    fireEvent.change(
+      container.querySelector('#description') as HTMLTextAreaElement,
+      { target: { value: 'Voids along the north face of the raft pour.' } }
+    );
+    fireEvent.submit(container.querySelector(`#${ISSUE_FORM_ID}`)!);
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      fields: { status: string };
+    };
+    expect(data.fields.status).toBe(IssueStatus.open);
+  });
+
   test('offers no Save as Draft control', () => {
     // The button called an issue a draft and created an ordinary one: status
     // forced to open, "Issue Created" toasted, listed alongside every other
@@ -102,5 +171,34 @@ describe('IssueForm create mode', () => {
     );
 
     expect(labels.some((l) => l.includes('Save as Draft'))).toBe(false);
+  });
+});
+
+describe('IssueForm edit mode', () => {
+  afterEach(() => {
+    cleanup();
+    toast.error.mockClear();
+  });
+
+  // Only the create payload is restricted. Moving an issue on is what the
+  // update endpoint is for, so the edit form keeps the whole list.
+  test('the status is still offered, with the whole list', () => {
+    const { container } = render(
+      createElement(IssueForm, {
+        mode: 'edit',
+        projectId: '3',
+        issue: issue(),
+        isSubmitting: false,
+        isDeleting: false,
+        onSubmit: () => {},
+        onDelete: () => {},
+        onCancel: () => {},
+      } as never)
+    );
+
+    const options = statusOptions(container);
+    expect(options).toContain('Resolved');
+    expect(options).toContain('Closed');
+    expect(options.length).toBe(8);
   });
 });
