@@ -14,8 +14,16 @@ import { Textarea } from '@/components/shadcn/textarea';
 import { Label } from '@/components/shadcn/label';
 import { Separator } from '@/components/shadcn/separator';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcn/select';
+import {
   MapPin,
   MapPinOff,
+  Building2,
   CheckCircle,
   AlertTriangle,
   Loader2,
@@ -210,6 +218,47 @@ export function nextLocationStep(
     return { status: 'error', kind: 'permission-required' };
   }
   return { status: 'detecting' };
+}
+
+/**
+ * Whether the dialog has everything it needs from the browser to record an
+ * event.
+ *
+ * A profile with `geolocationRequired` set has to have a position, because the
+ * event is verified against the site the employee is standing on and there is
+ * nothing to verify without coordinates. A profile without it only waits while
+ * the attempt is still in flight, and goes ahead once the attempt has settled
+ * one way or the other, so a refused or unavailable position stops being fatal
+ * on the profiles that never asked for one. `idle` and `detecting` are both
+ * still in flight.
+ *
+ * @param status - Where the location attempt has got to.
+ * @param geolocationRequired - The effective profile's flag.
+ */
+export function isLocationSettled(
+  status: LocationState['status'],
+  geolocationRequired: boolean
+): boolean {
+  if (status === 'detected') return true;
+  if (geolocationRequired) return false;
+  return status === 'error';
+}
+
+/**
+ * Metres between a position and a project's site, or null when the project
+ * carries no coordinates and there is therefore nothing to measure against.
+ */
+function distanceToProject(
+  location: GeoLocation,
+  project: Project
+): number | null {
+  if (project.projectLatitude == null || project.projectLongitude == null) {
+    return null;
+  }
+  return calculateDistance(location, {
+    latitude: project.projectLatitude,
+    longitude: project.projectLongitude,
+  });
 }
 
 /**
@@ -543,14 +592,24 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
     return blocker ? { status: 'error', kind: blocker } : { status: 'idle' };
   });
   const [projectMatch, setProjectMatch] = useState<ProjectMatch | null>(null);
+  // The employee's own choice of project, which only exists on profiles that
+  // do not require geolocation. Null means "whatever the position matched".
+  const [pickedProjectId, setPickedProjectId] = useState<number | null>(null);
   const [remarks, setRemarks] = useState('');
 
   const { data: projects = [], isPending: isLoadingProjects } =
     useProjectsByEmployee(employeeId);
   const { data: orgSettings } = useOrgSettings();
-  const { data: projectSettings } = useProjectSettings(
-    projectMatch?.project.id
-  );
+
+  const pickedProject =
+    pickedProjectId == null
+      ? null
+      : (projects.find((p) => p.id === pickedProjectId) ?? null);
+  // A manual choice wins over the nearest match, so the profile that governs
+  // this check-in is the one attached to the project actually being recorded.
+  const selectedProject = pickedProject ?? projectMatch?.project ?? null;
+
+  const { data: projectSettings } = useProjectSettings(selectedProject?.id);
   const { data: shifts = [] } = useShifts();
 
   const checkInMutation = useCheckIn();
@@ -580,11 +639,28 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   const nextActionEventType = nextAction?.eventType ?? null;
 
   const geolocationRequired = effectiveProfile.geolocationRequired;
-  const isWithinGeofence = projectMatch
-    ? projectMatch.distance <= effectiveProfile.geofenceRadiusMeters
-    : false;
+  // Measured against the project actually selected, so an override is checked
+  // against the site it names rather than against the nearest one. Null when
+  // there is no position, or the project carries no coordinates; either way
+  // there is nothing to compare and the geofence does not apply.
+  const selectedDistance =
+    locationState.status === 'detected' && selectedProject
+      ? distanceToProject(locationState.location, selectedProject)
+      : null;
+  const isWithinGeofence =
+    selectedDistance !== null &&
+    selectedDistance <= effectiveProfile.geofenceRadiusMeters;
   const isGeoBlocked =
-    geolocationRequired && projectMatch !== null && !isWithinGeofence;
+    geolocationRequired && selectedDistance !== null && !isWithinGeofence;
+  const locationSettled = isLocationSettled(
+    locationState.status,
+    geolocationRequired
+  );
+  // Offered when the profile does not require geolocation, since then nothing
+  // derives the project from a position and the employee has to say which site
+  // they are on. It stays on once used, so a choice whose own profile turns out
+  // to require geolocation can still be changed back.
+  const showProjectPicker = !geolocationRequired || pickedProjectId !== null;
   // Show camera only when the attendance profile requires a photo for this action
   const photoRequired = isPhotoRequired(effectiveProfile, nextAction);
   const photoMissing = photoRequired && cameraState.status !== 'captured';
@@ -617,17 +693,8 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
         let nearest: ProjectMatch | null = null;
         let minDist = Infinity;
         for (const project of projects) {
-          if (
-            project.projectLatitude == null ||
-            project.projectLongitude == null
-          ) {
-            continue;
-          }
-          const projLoc: GeoLocation = {
-            latitude: project.projectLatitude,
-            longitude: project.projectLongitude,
-          };
-          const distance = calculateDistance(location, projLoc);
+          const distance = distanceToProject(location, project);
+          if (distance === null) continue;
           if (distance < minDist) {
             minDist = distance;
             nearest = { project, distance };
@@ -744,7 +811,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   // ── Submit ───────────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
-    if (!projectMatch || !nextAction) return;
+    if (!selectedProject || !nextAction) return;
 
     const now = new Date();
     const location =
@@ -757,7 +824,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
       nextAction.eventType === ClockEventType.morningClockIn
         ? checkInMutation.mutateAsync({
             employeeId,
-            projectId: projectMatch.project.id,
+            projectId: selectedProject.id,
             shiftTimingId: resolvedShiftId,
             eventTimestamp: now,
             location,
@@ -774,7 +841,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
           }));
 
       toast.success(`${nextAction.label} recorded`, {
-        description: `${projectMatch.project.projectName} · ${format(now, 'HH:mm')}`,
+        description: `${selectedProject.projectName} · ${format(now, 'HH:mm')}`,
       });
       onClose();
     } catch {
@@ -846,9 +913,25 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
                 onAllow={handleAllowLocation}
                 onRetry={handleRetryLocation}
               />
-              {locationState.status === 'detected' && (
+              {showProjectPicker && (
+                <ProjectPicker
+                  projects={projects}
+                  isLoading={isLoadingProjects}
+                  selectedId={selectedProject?.id ?? null}
+                  onSelect={setPickedProjectId}
+                  disabled={isPending}
+                />
+              )}
+              {/* Beside the picker the card is a detail panel for whatever is
+                  selected, and the picker states its own empty cases. Without
+                  the picker it keeps its old job of reporting what the position
+                  matched, including having matched nothing. */}
+              {(showProjectPicker
+                ? selectedProject !== null
+                : locationState.status === 'detected') && (
                 <ProjectMatchCard
-                  match={projectMatch}
+                  project={selectedProject}
+                  distance={selectedDistance}
                   isWithinGeofence={isWithinGeofence}
                   profile={liveProfile}
                   cycles={effectiveProfile.checkInOutCycles}
@@ -857,7 +940,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             </div>
 
             {/* All done state */}
-            {nextAction === null && projectMatch && (
+            {nextAction === null && selectedProject && (
               <div className="flex items-center gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20">
                 <CheckCircle className="h-5 w-5 shrink-0 text-green-600" />
                 <p className="text-sm font-medium text-green-700 dark:text-green-400">
@@ -933,13 +1016,15 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             {nextAction && !isGeoBlocked && (
               <Button
                 onClick={handleSubmit}
-                // A verified location is a precondition, not a side effect of
-                // the project match happening to be set. Stated here so it
-                // survives any later change to how the match is derived.
+                // A location is a precondition only for the profiles that ask
+                // for one; everything else waits for the attempt to settle and
+                // then goes ahead. A project is always a precondition, because
+                // the event is recorded against one, but on a profile without
+                // geolocation it comes from the picker rather than a position.
                 disabled={
                   isPending ||
-                  locationState.status !== 'detected' ||
-                  !projectMatch ||
+                  !locationSettled ||
+                  !selectedProject ||
                   photoMissing
                 }
                 className="min-w-[140px]"
@@ -1198,17 +1283,19 @@ function LocationStatus({
 // ─── Project match card ───────────────────────────────────────────────────────
 
 function ProjectMatchCard({
-  match,
+  project,
+  distance,
   isWithinGeofence,
   profile,
   cycles,
 }: {
-  match: ProjectMatch | null;
+  project: Project | null;
+  distance: number | null;
   isWithinGeofence: boolean;
   profile: AttendanceProfile | null | undefined;
   cycles: number;
 }) {
-  if (!match) {
+  if (!project) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-dashed px-3 py-2.5">
         <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
@@ -1227,35 +1314,116 @@ function ProjectMatchCard({
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">
-            {match.project.projectName}
+            {project.projectName}
           </p>
-          {match.project.projectAddress && (
+          {project.projectAddress && (
             <p className="text-muted-foreground mt-0.5 truncate text-xs">
-              {match.project.projectAddress}
+              {project.projectAddress}
             </p>
           )}
         </div>
-        {isWithinGeofence ? (
-          <Badge className="shrink-0 bg-green-500 text-xs hover:bg-green-600">
-            <CheckCircle className="mr-1 h-3 w-3" />
-            In Range
-          </Badge>
-        ) : (
-          <Badge variant="secondary" className="shrink-0 text-xs">
-            <AlertTriangle className="mr-1 h-3 w-3" />
-            {formatDistance(match.distance)} away
-          </Badge>
-        )}
+        {/* No distance means no position, or a project with no coordinates.
+            There is nothing to place the employee against, so the card reports
+            neither "in range" nor a distance rather than implying one. */}
+        {distance !== null &&
+          (isWithinGeofence ? (
+            <Badge className="shrink-0 bg-green-500 text-xs hover:bg-green-600">
+              <CheckCircle className="mr-1 h-3 w-3" />
+              In Range
+            </Badge>
+          ) : (
+            <Badge variant="secondary" className="shrink-0 text-xs">
+              <AlertTriangle className="mr-1 h-3 w-3" />
+              {formatDistance(distance)} away
+            </Badge>
+          ))}
       </div>
       <div className="text-muted-foreground mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
-        <span>{formatDistance(match.distance)} from site</span>
-        <span>·</span>
+        {distance !== null && (
+          <>
+            <span>{formatDistance(distance)} from site</span>
+            <span>·</span>
+          </>
+        )}
         <span>{cycles}-cycle day</span>
         <span>·</span>
         <span className={profile ? 'text-blue-600 dark:text-blue-400' : ''}>
           {profile ? profile.settingName : 'Default settings'}
         </span>
       </div>
+    </div>
+  );
+}
+
+// ─── Project picker ───────────────────────────────────────────────────────────
+
+/**
+ * Lets the employee name the site they are at, for the profiles where nothing
+ * else can. When a position did arrive the nearest project is already
+ * selected here, so this reads as an override rather than a blank form.
+ */
+function ProjectPicker({
+  projects,
+  isLoading,
+  selectedId,
+  onSelect,
+  disabled,
+}: {
+  projects: Project[];
+  isLoading: boolean;
+  selectedId: number | null;
+  onSelect: (id: number) => void;
+  disabled: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <div className="bg-muted/60 flex items-center gap-3 rounded-lg px-3 py-2.5">
+        <Loader2 className="text-muted-foreground h-4 w-4 shrink-0 animate-spin" />
+        <p className="text-sm font-medium">Loading your projects…</p>
+      </div>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 dark:border-amber-800 dark:bg-amber-900/20">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+        <div>
+          <p className="text-sm font-medium">No projects assigned</p>
+          <p className="text-muted-foreground text-xs">
+            Attendance is recorded against a project. Ask your supervisor to
+            assign you to one.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-1.5">
+      <Label
+        htmlFor="att-project"
+        className="flex items-center gap-1.5 text-sm"
+      >
+        <Building2 className="h-4 w-4" />
+        Project
+      </Label>
+      <Select
+        value={selectedId == null ? undefined : String(selectedId)}
+        onValueChange={(v) => onSelect(Number(v))}
+        disabled={disabled}
+      >
+        <SelectTrigger id="att-project" className="w-full">
+          <SelectValue placeholder="Select your project site" />
+        </SelectTrigger>
+        <SelectContent>
+          {projects.map((project) => (
+            <SelectItem key={project.id} value={String(project.id)}>
+              {project.projectName}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

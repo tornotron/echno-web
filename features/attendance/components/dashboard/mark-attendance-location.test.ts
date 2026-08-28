@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { nextLocationStep } from './mark-attendance-dialog';
+import { isLocationSettled, nextLocationStep } from './mark-attendance-dialog';
 
 describe('nextLocationStep', () => {
   test('reports an environment blocker whatever the permission says', () => {
@@ -57,5 +57,27 @@ describe('nextLocationStep', () => {
     expect(nextLocationStep(null, null, false)).toEqual({
       status: 'detecting',
     });
+  });
+});
+
+describe('isLocationSettled', () => {
+  test('waits while the attempt is still in flight, either way', () => {
+    for (const required of [true, false]) {
+      expect(isLocationSettled('idle', required)).toBe(false);
+      expect(isLocationSettled('detecting', required)).toBe(false);
+    }
+  });
+
+  test('a detected position settles both kinds of profile', () => {
+    expect(isLocationSettled('detected', true)).toBe(true);
+    expect(isLocationSettled('detected', false)).toBe(true);
+  });
+
+  test('a failure is fatal only where the profile asked for a location', () => {
+    // The regression this pins: an employee on a profile with
+    // geolocationRequired off could not clock in when the browser refused a
+    // position, because the dialog waited for coordinates nothing needed.
+    expect(isLocationSettled('error', false)).toBe(true);
+    expect(isLocationSettled('error', true)).toBe(false);
   });
 });
