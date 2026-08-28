@@ -1,6 +1,7 @@
 import { auth } from '@/auth';
 import { NextResponse } from 'next/server';
 import { logger } from '@/lib/logger';
+import { storageOrigins } from '@/lib/storage-origins';
 
 const isDev = process.env.NODE_ENV !== 'production';
 
@@ -28,28 +29,21 @@ const MARKETING_PATHS = new Set([
  */
 /**
  * Object-storage origins the browser is allowed to `PUT` to for direct-to-
- * storage attachment uploads (presigned flow). Sourced from
- * `NEXT_PUBLIC_STORAGE_ORIGIN`, which may hold one origin or a comma-separated
- * list (DO Spaces for echno.xyz, MinIO for echno.in). Falls back to an empty
- * list when unset, so the CSP degrades to `'self'` + Cloudflare only rather
- * than breaking the build.
+ * storage attachment uploads (presigned flow), and to read those attachments
+ * back from. Defined once in `lib/storage-origins.ts`, which `next.config.ts`
+ * reads too so the CSP and `next/image`'s remote patterns cannot name
+ * different stores.
  *
- * That fallback is a broken deployment, not a safe default: with no storage
+ * An empty list is a broken deployment, not a safe default: with no storage
  * origin the browser blocks the presigned `PUT` before it is sent, and the
  * user is told the file failed to upload with nothing recorded anywhere. It
  * has shipped that way once already, so a production build without the
  * variable now says so in the log.
  */
-function storageOrigins(): string[] {
-  const raw = process.env.NEXT_PUBLIC_STORAGE_ORIGIN;
-  if (!raw) {
-    warnOnceAboutMissingStorageOrigin();
-    return [];
-  }
-  return raw
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0);
+function configuredStorageOrigins(): string[] {
+  const origins = storageOrigins();
+  if (origins.length === 0) warnOnceAboutMissingStorageOrigin();
+  return origins;
 }
 
 let storageOriginWarned = false;
@@ -76,12 +70,28 @@ function buildCsp() {
   // The direct PUT to object storage is a cross-origin request from the
   // browser, so each storage origin must be allow-listed in connect-src (the
   // signed url carries its own auth; CORS on the bucket is the other half).
-  const connectSrc = ["'self'", 'https://cloudflareinsights.com', ...storageOrigins()].join(' ');
+  const storage = configuredStorageOrigins();
+  const connectSrc = [
+    "'self'",
+    'https://cloudflareinsights.com',
+    ...storage,
+  ].join(' ');
+  // The same origins again: an attachment is uploaded through connect-src and
+  // then rendered through img-src, so a store listed for one and not the other
+  // stores files that can never be displayed. They are built from one list for
+  // that reason.
+  const imgSrc = [
+    "'self'",
+    'data:',
+    'blob:',
+    ...storage,
+    'https://images.unsplash.com',
+  ].join(' ');
   const policy = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://static.cloudflareinsights.com`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https://echno-object-store.blr1.digitaloceanspaces.com https://images.unsplash.com",
+    `img-src ${imgSrc}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,
     "frame-ancestors 'none'",

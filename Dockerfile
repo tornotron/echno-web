@@ -16,10 +16,16 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ARG NEXT_PUBLIC_API_URL
+# next.config.ts turns this into next/image's remotePatterns, and
+# `output: 'standalone'` freezes that config into the build, so the value has
+# to be present here and not only on the running container. Left unset, the
+# image optimizer refuses every attachment the object store serves.
+ARG NEXT_PUBLIC_STORAGE_ORIGIN
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_STORAGE_ORIGIN=${NEXT_PUBLIC_STORAGE_ORIGIN}
 
 RUN bun run build
 

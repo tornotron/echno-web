@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { storageRemotePatterns } from './lib/storage-origins';
 
 /**
  * next.config
@@ -10,17 +11,23 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Disable typed routes to fix /dev/lrt path corruption bug
   typedRoutes: false,
+  // next/image refuses a remote host that is not listed here, on top of
+  // whatever the CSP says, so the object store has to appear in both. The
+  // store's entry comes from the same list the CSP is built from rather than
+  // being written out a second time, because the two had drifted: this list
+  // still named a DigitalOcean Spaces bucket belonging to a retired box, so an
+  // attachment uploaded to the live store was accepted and then never
+  // rendered.
+  //
+  // Read while building, not while running: `output: 'standalone'` freezes
+  // this config into the build, so `NEXT_PUBLIC_STORAGE_ORIGIN` is a Docker
+  // build argument as well as a runtime variable.
   images: {
     remotePatterns: [
+      ...storageRemotePatterns(),
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'echno-object-store.blr1.digitaloceanspaces.com',
         port: '',
         pathname: '/**',
       },
