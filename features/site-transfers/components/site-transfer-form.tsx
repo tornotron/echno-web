@@ -126,8 +126,19 @@ export function SiteTransferForm({
   const { data: storageLocations = [] } = useStorageLocations();
   const { data: existingTransfers = [] } = useSiteTransfers();
 
+  // Derived from the transfers the server already has, so it follows the list
+  // as it loads and as it is refetched. Recomputing is cheap and the list is
+  // the only input, which is why this is not held in form state and seeded
+  // once: a value seeded before the query resolved would stay at the first
+  // number of the year forever.
+  const nextTransferNumber = useMemo(
+    () =>
+      generateTransferNumber(existingTransfers.map((t) => t.transferNumber)),
+    [existingTransfers]
+  );
+
   const [form, setForm] = useState<SiteTransferFormState>(() => ({
-    transferNumber: generateTransferNumber([]),
+    transferNumber: '',
     issueDate: new Date().toISOString().slice(0, 10),
     sendingProjectId: 0,
     sendingStorageLocationId: 0,
@@ -143,7 +154,6 @@ export function SiteTransferForm({
     Record<number, Record<string, string>>
   >({});
 
-  // Update transfer number once existing transfers load
   // Source, destination and the items moving between them. The transfer number
   // is generated from the transfers that already exist, so it stays out of the
   // draft rather than being restored as a duplicate.
@@ -175,15 +185,14 @@ export function SiteTransferForm({
     onRestore: applyDraft,
   });
 
-  const [transfersSeeded, setTransfersSeeded] = useState(false);
-  if (!transfersSeeded && existingTransfers.length > 0) {
-    setTransfersSeeded(true);
-    setForm((prev) => ({
-      ...prev,
-      transferNumber:
-        prev.transferNumber ||
-        generateTransferNumber(existingTransfers.map((t) => t.transferNumber)),
-    }));
+  // The field is read-only, so there is no user entry to preserve and the state
+  // copy only exists to travel with the rest of the form to `onSubmit`. Keeping
+  // it level with the derived value on every change of the list is what stops
+  // the number sticking at whatever it was when the form first rendered.
+  const [seededNumber, setSeededNumber] = useState<string | undefined>();
+  if (seededNumber !== nextTransferNumber) {
+    setSeededNumber(nextTransferNumber);
+    setForm((prev) => ({ ...prev, transferNumber: nextTransferNumber }));
   }
 
   // ---------------------------------------------------------------------------

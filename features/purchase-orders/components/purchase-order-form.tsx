@@ -146,10 +146,17 @@ export function PurchaseOrderForm({
   const { data: materials = [] } = useMaterials();
   const { data: existingOrders = [] } = usePurchaseOrders();
 
+  // Derived from the orders the server already has, so it follows the list as
+  // it loads and as it is refetched. On the first render that list is still
+  // empty, which is why a value computed once and kept in state sits at the
+  // first number of the year however many orders turn up afterwards.
+  const nextPoNumber = useMemo(
+    () => generatePoNumber(existingOrders.map((po) => po.poNumber)),
+    [existingOrders]
+  );
+
   const [form, setForm] = useState<PurchaseOrderFormState>(() => ({
-    poNumber:
-      initialValues?.poNumber ??
-      generatePoNumber(existingOrders.map((po) => po.poNumber)),
+    poNumber: initialValues?.poNumber ?? '',
     vendorId: initialValues?.vendorId ?? 0,
     projectId: initialValues?.projectId ?? 0,
     indentId: initialValues?.indentId ?? 0,
@@ -164,16 +171,17 @@ export function PurchaseOrderForm({
     Record<number, Record<string, string>>
   >({});
 
-  // Update PO number once existing orders load (only if still at default)
-  const [ordersSeeded, setOrdersSeeded] = useState(false);
-  if (!ordersSeeded && existingOrders.length > 0) {
-    setOrdersSeeded(true);
-    setForm((prev) => ({
-      ...prev,
-      poNumber:
-        prev.poNumber ||
-        generatePoNumber(existingOrders.map((po) => po.poNumber)),
-    }));
+  // Unlike the transfer number this field is editable, so the derived value is
+  // only pushed into state while the user has left it alone. Once they type a
+  // number of their own, or one arrives with `initialValues`, the list stops
+  // driving it.
+  const [poNumberEdited, setPoNumberEdited] = useState(
+    initialValues?.poNumber !== undefined
+  );
+  const [seededNumber, setSeededNumber] = useState<string | undefined>();
+  if (!poNumberEdited && seededNumber !== nextPoNumber) {
+    setSeededNumber(nextPoNumber);
+    setForm((prev) => ({ ...prev, poNumber: nextPoNumber }));
   }
 
   // A purchase order is a header plus priced line items, which is as much
@@ -359,7 +367,10 @@ export function PurchaseOrderForm({
               <Input
                 id="poNumber"
                 value={form.poNumber}
-                onChange={(e) => setField('poNumber', e.target.value)}
+                onChange={(e) => {
+                  setPoNumberEdited(true);
+                  setField('poNumber', e.target.value);
+                }}
                 className={errors.poNumber ? 'border-red-500' : ''}
               />
               {errors.poNumber && (
