@@ -21,7 +21,7 @@ import {
   AvatarImage,
 } from '@/components/shadcn/avatar';
 import { useChatRooms } from '@/hooks/chat/use-chat-rooms';
-import { useEmployees } from '@tornotron/echno-core/employee/hooks';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useCreateDirectRoom } from '@/hooks/chat/use-chat-mutations';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
@@ -147,7 +147,7 @@ export function FloatingChatRoomList({
     (o) => o.id === user?.defaultOrganizationId
   );
   const { data: rooms = [], isLoading } = useChatRooms(currentOrg?.id);
-  const { data: employees = [] } = useEmployees();
+  const { data: employees = [] } = useEmployeeLookup();
   const createDm = useCreateDirectRoom();
 
   const currentEmployee = userEmployees.find(
@@ -237,10 +237,6 @@ export function FloatingChatRoomList({
                   className="hover:bg-muted flex w-full items-center gap-1.5 px-3 py-2 text-left transition-colors disabled:opacity-60"
                 >
                   <Avatar className="size-6 shrink-0">
-                    <AvatarImage
-                      src={emp.profilePicture?.file}
-                      alt={emp.name}
-                    />
                     <AvatarFallback className="text-[8px] font-medium">
                       {getInitials(emp.name)}
                     </AvatarFallback>

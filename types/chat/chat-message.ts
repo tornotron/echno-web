@@ -1,6 +1,6 @@
 // types/chat/chat-message.ts
 
-import { Employee } from '@tornotron/echno-core/employee/types';
+import { ChatPerson } from './chat-person';
 import { parsePositiveInt } from '@/types/parse-id';
 import {
   Attachment,
@@ -16,7 +16,7 @@ export interface ChatMessage {
   id: number;
   roomId: number;
   senderId: number;
-  sender?: Employee; // resolved at hook level
+  sender?: ChatPerson; // resolved at hook level
   content: string; // @[Name](id) for mentions, #[label](type:id) for entity mentions
   replyToId?: number;
   replyTo?: Pick<ChatMessage, 'id' | 'senderId' | 'content' | 'sender'>; // resolved preview
