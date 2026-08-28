@@ -47,6 +47,7 @@ import {
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import { Separator } from '@/components/shadcn/separator';
+import { todayForDateInput } from '@/lib/utils/date-utils';
 import {
   Risk,
   RiskCategory,
@@ -101,7 +102,7 @@ type RiskFormData = Omit<
 >;
 
 function blankForm(): RiskFormData {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayForDateInput();
   return {
     title: '',
     description: '',
