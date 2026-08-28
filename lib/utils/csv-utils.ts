@@ -26,7 +26,7 @@ function toCsv(rows: CsvRows): string {
  * Triggers a download of `rows` as a CSV file.
  *
  * Prefixed with a UTF-8 BOM so Excel reads accented names and the `£`/`€`
- * signs correctly instead of mojibake — without it, Excel assumes the legacy
+ * signs correctly instead of mojibake. Without it, Excel assumes the legacy
  * system codepage.
  *
  * @param filename - Name offered to the browser, including the `.csv` suffix.

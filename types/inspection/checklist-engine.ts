@@ -143,7 +143,7 @@ function validateElement(
   return undefined;
 }
 
-/** Validates only the elements currently visible — hidden fields never block. */
+/** Validates only the elements currently visible; hidden fields never block. */
 export function validateChecklist(
   schema: ChecklistSchema,
   responses: ChecklistResponses
@@ -161,7 +161,7 @@ export function validateChecklist(
 /**
  * How many elements beneath `element` currently carry a validation error.
  *
- * Lets a collapsed section advertise — and react to — trouble hidden inside
+ * Lets a collapsed section advertise, and react to, trouble hidden inside
  * it. Only visible elements are ever validated, so a plain walk of the
  * subtree cannot pick up errors on fields the inspector can't reach.
  */

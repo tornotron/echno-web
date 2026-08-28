@@ -51,7 +51,7 @@ function toQuery(
   return Object.keys(query).length > 0 ? query : undefined;
 }
 
-/** Checklist Template Service — reusable per-trade checklist definitions. */
+/** Checklist Template Service: reusable per-trade checklist definitions. */
 export const checklistTemplateService = {
   /** `GET /checklist-templates/web` -> `Page<ChecklistTemplateDto>`. */
   async getAll(
