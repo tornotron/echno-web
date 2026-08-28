@@ -104,3 +104,66 @@ export const checkItemStatusLabels: Record<CheckItemStatus, string> = {
   [CheckItemStatus.NOT_APPLICABLE]: 'N/A',
   [CheckItemStatus.PENDING]: 'Pending',
 };
+
+// Badge variants, so inspection chips read the same as every other module's.
+// The label maps above say what a value is called; these say how it looks.
+export type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline';
+
+export const inspectionStatusVariants: Record<InspectionStatus, BadgeVariant> =
+  {
+    [InspectionStatus.SCHEDULED]: 'secondary',
+    [InspectionStatus.IN_PROGRESS]: 'default',
+    [InspectionStatus.COMPLETED]: 'secondary',
+    [InspectionStatus.FAILED]: 'destructive',
+    [InspectionStatus.PASSED]: 'secondary',
+    [InspectionStatus.PASSED_WITH_REMARKS]: 'secondary',
+    [InspectionStatus.CANCELLED]: 'outline',
+    [InspectionStatus.SUGGESTED]: 'outline',
+  };
+
+export const inspectionResultVariants: Record<InspectionResult, BadgeVariant> =
+  {
+    [InspectionResult.PASSED]: 'secondary',
+    [InspectionResult.FAILED]: 'destructive',
+    [InspectionResult.PASSED_WITH_REMARKS]: 'secondary',
+    [InspectionResult.PENDING]: 'outline',
+  };
+
+export const checkItemStatusVariants: Record<CheckItemStatus, BadgeVariant> = {
+  [CheckItemStatus.PASSED]: 'secondary',
+  [CheckItemStatus.FAILED]: 'destructive',
+  [CheckItemStatus.NOT_APPLICABLE]: 'outline',
+  [CheckItemStatus.PENDING]: 'outline',
+};
+
+/**
+ * Compliance thresholds shared by the inspection runtime and the reports, so
+ * a percentage means the same thing wherever it is shown. A critical defect
+ * fails the inspection outright regardless of the score.
+ */
+export function resultFromCompliance(
+  compliancePercentage: number,
+  criticalDefects: number
+): InspectionResult {
+  if (criticalDefects > 0) return InspectionResult.FAILED;
+  if (compliancePercentage >= 95) return InspectionResult.PASSED;
+  if (compliancePercentage >= 80) return InspectionResult.PASSED_WITH_REMARKS;
+  return InspectionResult.FAILED;
+}
+
+/**
+ * Share of check points that passed, ignoring those marked not applicable.
+ *
+ * Counting an N/A item as a failure would punish an inspector for a check
+ * that never applied to the work in front of them.
+ */
+export function compliancePercentage(inspection: {
+  totalCheckPoints: number;
+  passedCheckPoints: number;
+  failedCheckPoints: number;
+}): number {
+  const assessed =
+    inspection.passedCheckPoints + inspection.failedCheckPoints;
+  if (assessed <= 0) return 0;
+  return Math.round((inspection.passedCheckPoints / assessed) * 100);
+}
