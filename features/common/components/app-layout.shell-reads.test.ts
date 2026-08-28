@@ -17,6 +17,9 @@ import path from 'node:path';
 const shellFiles = {
   'app-layout.tsx': path.join(import.meta.dir, 'app-layout.tsx'),
   'use-breadcrumb-data.ts': path.join(import.meta.dir, '../../../hooks/use-breadcrumb-data.ts'),
+  // The palette is mounted by the shell and was the reason three of these were read at all. It
+  // finds records by asking the server now, so it must not reach for a collection either.
+  'command-palette.tsx': path.join(import.meta.dir, 'command-palette.tsx'),
 };
 
 /** Hooks that read an entire collection. None of them belongs on a per-route render path. */
@@ -41,5 +44,10 @@ describe('the application shell reads nothing collection-sized', () => {
     const source = readFileSync(shellFiles['use-breadcrumb-data.ts'], 'utf8');
     expect(source).toInclude('useEmployee(');
     expect(source).toInclude('useProject(');
+  });
+
+  test('the command palette finds records by asking the server', () => {
+    const source = readFileSync(shellFiles['command-palette.tsx'], 'utf8');
+    expect(source).toInclude('useSearch(');
   });
 });

@@ -3,10 +3,13 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { Bug, FolderKanban, ListTodo, SearchIcon } from 'lucide-react';
-import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useTasks } from '@tornotron/echno-core/task/hooks';
-import { useIssues } from '@tornotron/echno-core/issue/hooks';
+import { useSearch } from '@tornotron/echno-core/search/hooks';
+import {
+  SEARCH_MIN_TERM_LENGTH,
+  type SearchHit,
+} from '@tornotron/echno-core/search/services';
 import { navigation, publicRoutes, type NavItem } from '@/config/nav.config';
+import { useDebounce } from '@/hooks/use-debounce';
 import { routes } from '@/nav';
 import {
   CommandDialog,
@@ -16,7 +19,6 @@ import {
   CommandItem,
   CommandList,
   CommandShortcut,
-  CommandSeparator,
 } from '@/components/shadcn/command';
 
 type RouteEntry = {
@@ -73,12 +75,6 @@ function getStaticRouteEntries(): RouteEntry[] {
   return out;
 }
 
-type PaletteEntry = {
-  id: string;
-  name: string;
-  href: string;
-};
-
 type SearchEntry = {
   id: string;
   label: string;
@@ -89,13 +85,61 @@ type SearchEntry = {
 };
 
 /**
+ * Turns a server hit into a palette row, or null when it cannot be linked to.
+ *
+ * A task's route is nested under its project, so a task hit with no project has nowhere to point
+ * and is dropped rather than rendered as a dead row. Issues live on one list page, so their own id
+ * is not needed in the href.
+ */
+function toSearchEntry(hit: SearchHit): SearchEntry | null {
+  const keywords = hit.title.toLowerCase();
+  switch (hit.type) {
+    case 'PROJECT': {
+      return {
+        id: `project-${hit.id}`,
+        label: hit.title,
+        href: routes.projects.allProjects.detail(String(hit.id)).href,
+        kind: 'project',
+        keywords,
+      };
+    }
+    case 'TASK': {
+      if (hit.projectId === null) return null;
+      return {
+        id: `task-${hit.id}`,
+        label: hit.title,
+        href: routes.projects.allProjects
+          .detail(String(hit.projectId))
+          .tasks.detail(String(hit.id)).href,
+        kind: 'task',
+        keywords,
+      };
+    }
+    case 'ISSUE': {
+      return {
+        id: `issue-${hit.id}`,
+        label: hit.title,
+        href: routes.projects.allIssues,
+        kind: 'issue',
+        keywords,
+      };
+    }
+    default: {
+      return null;
+    }
+  }
+}
+
+/**
  * Alt+Space quick navigation over pages, projects, tasks and issues.
  *
- * The palette owns its own data rather than taking it as props from the application shell. The
- * shell renders on every route and the palette is open on almost none of them, so fetching there
- * meant three whole collections crossed the wire on every navigation to feed a dialog nobody had
- * opened. Everything that fetches lives in {@link CommandPaletteBody}, which is mounted only while
- * the dialog is open, so a session that never presses Alt+Space never issues the requests at all.
+ * Records are found by asking the server, not by downloading them. The palette used to be seeded
+ * with whole collections of projects, tasks and issues, which it then filtered in the browser, so
+ * it could only find what had already been transferred and it transferred the lot on every route.
+ * It now sends the typed term to one search endpoint and renders what comes back.
+ *
+ * Everything that fetches lives in {@link CommandPaletteBody}, which is mounted only while the
+ * dialog is open, so a session that never presses Alt+Space never issues a request at all.
  */
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
@@ -125,6 +169,11 @@ export function CommandPalette() {
       description="Search pages, projects, tasks and issues"
       onOpenChange={setOpen}
       open={open}
+      // The rows on screen are already the answer: records were matched by the server and pages
+      // here, then ranked together. cmdk's own filter would run a second, different match over
+      // that result, against the live input rather than the debounced term, and hide server hits
+      // that are in the list precisely because they matched.
+      shouldFilter={false}
       showCloseButton={false}
       title="Quick Navigation"
     >
@@ -136,122 +185,71 @@ export function CommandPalette() {
 /**
  * The palette's contents, including every query it runs.
  *
- * Kept a separate component so that mounting it is what starts the fetching. React Query holds the
- * results, so reopening the palette within the cache window costs nothing.
+ * Kept a separate component so that mounting it is what starts the fetching, and so that a closed
+ * palette costs nothing.
+ *
+ * Records come from the server and pages are matched here. That split is deliberate: the nav
+ * routes are a fixed list the bundle already holds, so matching them locally is instant and free,
+ * while records are unbounded and belong in a query. Both feed one ranked list, because the user
+ * typed one thing and wants one answer.
  */
 function CommandPaletteBody({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const [query, setQuery] = React.useState('');
 
-  const { data: projectRows = [] } = useProjects();
-  const { data: taskRows = [] } = useTasks();
-  const { data: issueRows = [] } = useIssues();
-
-  const projects = React.useMemo<PaletteEntry[]>(
-    () =>
-      projectRows
-        .filter((project) => Boolean(project.id))
-        .map((project) => ({
-          id: String(project.id),
-          name: project.projectName,
-          href: routes.projects.allProjects.detail(String(project.id)).href,
-        })),
-    [projectRows]
-  );
-
-  const tasks = React.useMemo<PaletteEntry[]>(
-    () =>
-      taskRows
-        .filter((task) => Boolean(task.id) && Boolean(task.projectId))
-        .map((task) => ({
-          id: String(task.id),
-          name: task.title,
-          href: routes.projects.allProjects
-            .detail(String(task.projectId))
-            .tasks.detail(String(task.id)).href,
-        })),
-    [taskRows]
-  );
-
-  const issues = React.useMemo<PaletteEntry[]>(
-    () =>
-      issueRows
-        .filter((issue) => Boolean(issue.id))
-        .map((issue) => ({
-          id: String(issue.id),
-          name: issue.title,
-          href: routes.projects.allIssues,
-        })),
-    [issueRows]
-  );
+  // The input updates on every keystroke so typing stays responsive; only the term that reaches
+  // the server waits for a pause. Core's useSearch expects an already-debounced term and stays
+  // disabled below the minimum length, so a one-character box issues nothing.
+  const debouncedQuery = useDebounce(query, 250);
+  const { data: hits = [], isFetching } = useSearch(debouncedQuery);
 
   const routeEntries = React.useMemo(() => getStaticRouteEntries(), []);
-  const isSearching = query.trim().length > 0;
-  const visibleProjects = isSearching ? projects : projects.slice(0, 3);
-  const visibleTasks = isSearching ? tasks : tasks.slice(0, 3);
-  const visibleIssues = isSearching ? issues : issues.slice(0, 3);
-  const visibleRoutes = isSearching ? routeEntries : routeEntries.slice(0, 3);
 
-  const searchEntries = React.useMemo<SearchEntry[]>(() => {
+  const trimmed = query.trim();
+  const isSearching = trimmed.length > 0;
+  const isBelowSearchLength =
+    isSearching && trimmed.length < SEARCH_MIN_TERM_LENGTH;
+
+  const recordEntries = React.useMemo<SearchEntry[]>(() => {
     const entries: SearchEntry[] = [];
-    for (const project of projects) {
-      entries.push({
-        id: `project-${project.id}`,
-        label: project.name,
-        href: project.href,
-        kind: 'project',
-        keywords: `${project.name} ${project.href}`.toLowerCase(),
-      });
+    for (const hit of hits) {
+      const entry = toSearchEntry(hit);
+      if (entry) entries.push(entry);
     }
-    for (const task of tasks) {
-      entries.push({
-        id: `task-${task.id}`,
-        label: task.name,
-        href: task.href,
-        kind: 'task',
-        keywords: `${task.name} ${task.href}`.toLowerCase(),
-      });
-    }
-    for (const issue of issues) {
-      entries.push({
-        id: `issue-${issue.id}`,
-        label: issue.name,
-        href: issue.href,
-        kind: 'issue',
-        keywords: `${issue.name} ${issue.href}`.toLowerCase(),
-      });
-    }
-    for (const page of routeEntries) {
-      entries.push({
+    return entries;
+  }, [hits]);
+
+  const topMatches = React.useMemo(() => {
+    if (!isSearching) return [];
+    const q = trimmed.toLowerCase();
+    const rank = (entry: SearchEntry) => {
+      if (entry.label.toLowerCase().startsWith(q)) return 0;
+      if (entry.keywords.includes(q)) return 1;
+      return 2;
+    };
+
+    // Pages are filtered here. Records are not: the server already decided they match, and while
+    // the debounced term trails the input they can legitimately fail a substring test against what
+    // has been typed since. Filtering them again would blink results out mid-keystroke.
+    const pages = routeEntries
+      .filter((page) => page.keywords.includes(q))
+      .map<SearchEntry>((page) => ({
         id: `page-${page.id}`,
         label: page.label,
         href: page.href,
         kind: 'page',
         keywords: page.keywords,
         section: page.section,
-      });
-    }
-    return entries;
-  }, [projects, tasks, issues, routeEntries]);
+      }));
 
-  const topMatches = React.useMemo(() => {
-    if (!isSearching) return [];
-    const q = query.trim().toLowerCase();
-    const rank = (entry: SearchEntry) => {
-      if (entry.label.toLowerCase().startsWith(q)) return 0;
-      if (entry.keywords.includes(q)) return 1;
-      return 2;
-    };
-    const filtered = searchEntries.filter((entry) =>
-      entry.keywords.includes(q)
-    );
-    filtered.sort((a, b) => {
+    const merged = [...recordEntries, ...pages];
+    merged.sort((a, b) => {
       const rankDiff = rank(a) - rank(b);
       if (rankDiff !== 0) return rankDiff;
       return a.label.localeCompare(b.label);
     });
-    return filtered.slice(0, 50);
-  }, [isSearching, query, searchEntries]);
+    return merged.slice(0, 50);
+  }, [isSearching, trimmed, recordEntries, routeEntries]);
 
   const onSelect = (href: string) => {
     onClose();
@@ -267,7 +265,13 @@ function CommandPaletteBody({ onClose }: { onClose: () => void }) {
         value={query}
       />
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandEmpty>
+          {isBelowSearchLength
+            ? `Type at least ${SEARCH_MIN_TERM_LENGTH} characters to search.`
+            : isFetching
+              ? 'Searching...'
+              : 'No results found.'}
+        </CommandEmpty>
 
         {isSearching ? (
           <CommandGroup heading="Top Matches">
@@ -300,93 +304,25 @@ function CommandPaletteBody({ onClose }: { onClose: () => void }) {
             ))}
           </CommandGroup>
         ) : (
-          <>
-            {visibleProjects.length > 0 && (
-              <>
-                <CommandGroup heading="Projects">
-                  {visibleProjects.map((project) => (
-                    <CommandItem
-                      key={project.id}
-                      keywords={[
-                        project.name.toLowerCase(),
-                        project.href.toLowerCase(),
-                      ]}
-                      onSelect={() => onSelect(project.href)}
-                      value={`project-${project.name}-${project.href}`}
-                    >
-                      <FolderKanban />
-                      <span className="truncate">{project.name}</span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                <CommandSeparator />
-              </>
-            )}
-
-            {visibleTasks.length > 0 && (
-              <>
-                <CommandGroup heading="Tasks">
-                  {visibleTasks.map((task) => (
-                    <CommandItem
-                      key={task.id}
-                      keywords={[
-                        task.name.toLowerCase(),
-                        task.href.toLowerCase(),
-                      ]}
-                      onSelect={() => onSelect(task.href)}
-                      value={`task-${task.name}-${task.href}`}
-                    >
-                      <ListTodo />
-                      <span className="truncate">{task.name}</span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                <CommandSeparator />
-              </>
-            )}
-
-            {visibleIssues.length > 0 && (
-              <>
-                <CommandGroup heading="Issues">
-                  {visibleIssues.map((issue) => (
-                    <CommandItem
-                      key={issue.id}
-                      keywords={[
-                        issue.name.toLowerCase(),
-                        issue.href.toLowerCase(),
-                      ]}
-                      onSelect={() => onSelect(issue.href)}
-                      value={`issue-${issue.name}-${issue.href}`}
-                    >
-                      <Bug />
-                      <span className="truncate">{issue.name}</span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-                <CommandSeparator />
-              </>
-            )}
-
-            <CommandGroup heading="Pages">
-              {visibleRoutes.map((entry) => (
-                <CommandItem
-                  key={entry.id}
-                  keywords={[entry.keywords]}
-                  onSelect={() => onSelect(entry.href)}
-                  value={entry.id}
-                >
-                  <SearchIcon />
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="truncate">{entry.label}</span>
-                    <span className="text-muted-foreground hidden truncate text-xs md:inline">
-                      {entry.section}
-                    </span>
-                  </div>
-                  <CommandShortcut>Alt + Space</CommandShortcut>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </>
+          <CommandGroup heading="Pages">
+            {routeEntries.slice(0, 3).map((entry) => (
+              <CommandItem
+                key={entry.id}
+                keywords={[entry.keywords]}
+                onSelect={() => onSelect(entry.href)}
+                value={entry.id}
+              >
+                <SearchIcon />
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <span className="truncate">{entry.label}</span>
+                  <span className="text-muted-foreground hidden truncate text-xs md:inline">
+                    {entry.section}
+                  </span>
+                </div>
+                <CommandShortcut>Alt + Space</CommandShortcut>
+              </CommandItem>
+            ))}
+          </CommandGroup>
         )}
       </CommandList>
     </>
