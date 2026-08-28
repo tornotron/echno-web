@@ -1,8 +1,7 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import {
@@ -23,14 +22,10 @@ import {
   CalendarDays,
   IndianRupee,
   AlertCircle,
-  Trash2,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useGRN, useDeleteGRN } from '@tornotron/echno-core/grn/hooks';
-import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import { toast } from '@/lib/styles/toast-styles';
+import { useGRN } from '@tornotron/echno-core/grn/hooks';
 import {
-  DeleteGRNDialog,
   GRNItemsCard,
   GRNReceiptInfoCard,
   GRNVendorPOCard,
@@ -43,12 +38,7 @@ export default function GRNDetailPage({
 }) {
   const { id: rawId } = use(params);
   const id = Number(rawId);
-  const router = useRouter();
-
   const { data: grn, isLoading } = useGRN(id);
-  const { mutate: deleteGRN, isPending: isDeleting } = useDeleteGRN();
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -82,22 +72,6 @@ export default function GRNDetailPage({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <DeleteGRNDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        grnNumber={grn.grnNumber}
-        onConfirm={() =>
-          deleteGRN(id, {
-            onSuccess: () => router.push(routes.resources.goodsReceipts.href),
-            onError: (err) =>
-              toast.error(getErrorTitle(err, 'Delete Not Supported'), {
-                description: getErrorMessage(err),
-              }),
-          })
-        }
-        isPending={isDeleting}
-      />
-
       {/* Header */}
       <PageHeader
         title={grn.grnNumber}
@@ -115,16 +89,6 @@ export default function GRNDetailPage({
               Received {format(new Date(grn.receivedOn), 'MMM dd, yyyy')}
             </span>
           </div>
-        }
-        actions={
-          <Button
-            variant="destructive"
-            size="sm"
-            aria-label="Delete goods receipt"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
         }
       />
 
