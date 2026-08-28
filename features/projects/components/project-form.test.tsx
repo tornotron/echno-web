@@ -6,6 +6,7 @@ import {
   ProjectStatus,
   type Project,
 } from '@tornotron/echno-core/project/types';
+import type { ProjectFormState } from './project-form';
 
 mock.module('@tornotron/echno-core/attachment/hooks', () => ({
   ...realAttachmentHooks,
@@ -21,16 +22,25 @@ mock.module('@/lib/styles/toast-styles', () => ({
   },
 }));
 
+/**
+ * The draft the mocked hook offers, or null for no banner. Set it to drive the
+ * restore path; pressing Restore hands it to the form's `onRestore`.
+ */
+let offeredDraft: {
+  fields: ProjectFormState;
+  createLocationForProject: boolean;
+} | null = null;
+
 mock.module('@/hooks/use-form-draft', () => ({
   useFormDraftScope: () => ({ userId: 'u1', orgId: 1 }),
-  useFormDraft: () => ({
-    draft: null,
-    restoreDraft: () => {},
+  useFormDraft: (options: { onRestore: (values: unknown) => void }) => ({
+    draft: offeredDraft ? { savedAt: Date.now() } : null,
+    restoreDraft: () => options.onRestore(offeredDraft),
     discardDraft: () => {},
   }),
 }));
 
-const { ProjectForm } = await import('./project-form');
+const { ProjectForm, PROJECT_FORM_ID } = await import('./project-form');
 
 /** A saved project, enough of one for the edit form to seed itself from. */
 function project(): Project {
@@ -67,6 +77,7 @@ function statusOptions(container: HTMLElement): string[] {
 describe('ProjectForm status options', () => {
   afterEach(() => {
     cleanup();
+    offeredDraft = null;
   });
 
   // Approval checks that the project's state is known and draws up its
@@ -116,5 +127,49 @@ describe('ProjectForm status options', () => {
     );
 
     expect(statusOptions(container)).toContain('Approved');
+  });
+});
+
+describe('ProjectForm restored draft', () => {
+  afterEach(() => {
+    cleanup();
+    offeredDraft = null;
+  });
+
+  // Drafts are kept on the device, so one saved while the create form still
+  // offered Approved outlives the change. Restoring it put the refused value
+  // back into a form that no longer shows it, and the create then failed.
+  test('a legacy Approved draft comes back as Upcoming', () => {
+    offeredDraft = {
+      fields: {
+        projectName: 'Sunrise Tower',
+        projectAddress: '12 Beach Road',
+        projectCity: '',
+        projectState: '',
+        projectPostalCode: '',
+        status: ProjectStatus.approved,
+        projectType: '',
+        projectLatitude: '',
+        projectLongitude: '',
+        startDate: '',
+        endDate: '',
+        description: '',
+      },
+      createLocationForProject: false,
+    };
+    const onSubmit = mock((..._args: unknown[]) => {});
+    const { container, getByText } = render(
+      createElement(ProjectForm, { mode: 'create', onSubmit } as never)
+    );
+
+    fireEvent.click(getByText('Restore'));
+    fireEvent.submit(container.querySelector(`#${PROJECT_FORM_ID}`)!);
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      fields: { projectName: string; status: string };
+    };
+    // The rest of the draft is still restored; only the status is corrected.
+    expect(data.fields.projectName).toBe('Sunrise Tower');
+    expect(data.fields.status).toBe(ProjectStatus.upcoming);
   });
 });

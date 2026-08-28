@@ -73,7 +73,7 @@ export const PROJECT_STATUSES = [
  * create payload. The API refuses `approved` on create for the same reason, and
  * defaults to `upcoming` when the payload names no status at all.
  */
-export const CREATE_PROJECT_STATUSES = PROJECT_STATUSES.filter(
+export const CREATE_PROJECT_STATUSES: ProjectStatus[] = PROJECT_STATUSES.filter(
   (status) => status !== ProjectStatus.approved
 );
 
@@ -251,10 +251,20 @@ export function ProjectForm(props: ProjectFormProps) {
     () => ({ fields: form, createLocationForProject }),
     [form, createLocationForProject]
   );
-  const applyDraft = useCallback((values: ProjectFormDraft) => {
-    setForm(values.fields);
-    setCreateLocationForProject(values.createLocationForProject === true);
-  }, []);
+  const applyDraft = useCallback(
+    (values: ProjectFormDraft) => {
+      // A draft kept from before `approved` left the create form still carries
+      // it, and restoring it would put back the value the API refuses.
+      const restorable =
+        isEdit || CREATE_PROJECT_STATUSES.includes(values.fields.status);
+      setForm({
+        ...values.fields,
+        status: restorable ? values.fields.status : ProjectStatus.upcoming,
+      });
+      setCreateLocationForProject(values.createLocationForProject === true);
+    },
+    [isEdit]
+  );
   const { draft, restoreDraft, discardDraft } = useFormDraft<ProjectFormDraft>({
     formId: FORM_DRAFT_IDS.PROJECT,
     scope: draftScope,

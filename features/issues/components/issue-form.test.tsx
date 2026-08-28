@@ -5,6 +5,7 @@ import * as realAttachmentHooks from '@tornotron/echno-core/attachment/hooks';
 import * as realTaskHooks from '@tornotron/echno-core/task/hooks';
 import * as realUserHooks from '@tornotron/echno-core/user/hooks';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
+import type { IssueFormState } from './issue-form';
 import {
   IssueStatus,
   IssueType,
@@ -37,11 +38,17 @@ const toast = {
 };
 mock.module('@/lib/styles/toast-styles', () => ({ toast }));
 
+/**
+ * The draft the mocked hook offers, or null for no banner. Set it to drive the
+ * restore path; pressing Restore hands it to the form's `onRestore`.
+ */
+let offeredDraft: { fields: IssueFormState } | null = null;
+
 mock.module('@/hooks/use-form-draft', () => ({
   useFormDraftScope: () => ({ userId: 'u1', orgId: 1 }),
-  useFormDraft: () => ({
-    draft: null,
-    restoreDraft: () => {},
+  useFormDraft: (options: { onRestore: (values: unknown) => void }) => ({
+    draft: offeredDraft ? { savedAt: Date.now() } : null,
+    restoreDraft: () => options.onRestore(offeredDraft),
     discardDraft: () => {},
   }),
 }));
@@ -105,6 +112,7 @@ describe('IssueForm create mode', () => {
   afterEach(() => {
     cleanup();
     toast.error.mockClear();
+    offeredDraft = null;
   });
 
   test('no control submits an issue with a blank description', () => {
@@ -178,6 +186,7 @@ describe('IssueForm edit mode', () => {
   afterEach(() => {
     cleanup();
     toast.error.mockClear();
+    offeredDraft = null;
   });
 
   // Only the create payload is restricted. Moving an issue on is what the
@@ -200,5 +209,44 @@ describe('IssueForm edit mode', () => {
     expect(options).toContain('Resolved');
     expect(options).toContain('Closed');
     expect(options.length).toBe(8);
+  });
+});
+
+describe('IssueForm restored draft', () => {
+  afterEach(() => {
+    cleanup();
+    toast.error.mockClear();
+    offeredDraft = null;
+  });
+
+  // Drafts are kept on the device, so one saved while the create form still
+  // offered the whole list outlives the change. The create form has nowhere to
+  // show a status other than open, so restoring one left the summary card
+  // claiming something the form could not have produced.
+  test('a legacy Resolved draft comes back open', () => {
+    offeredDraft = {
+      fields: {
+        initialized: true,
+        taskId: '11',
+        title: 'Honeycombing on the raft',
+        description: 'Voids along the north face of the raft pour.',
+        issueType: IssueType.technical,
+        status: IssueStatus.resolved,
+        priority: 'medium',
+        assigneeId: '',
+      },
+    };
+    const { container, getByText } = renderCreateForm();
+
+    fireEvent.click(getByText('Restore'));
+
+    // The rest of the draft is still restored; only the status is corrected.
+    expect((container.querySelector('#title') as HTMLInputElement).value).toBe(
+      'Honeycombing on the raft'
+    );
+    const badges = [...container.querySelectorAll('span')].map(
+      (node) => node.textContent?.trim() ?? ''
+    );
+    expect(badges).not.toContain('Resolved');
   });
 });
