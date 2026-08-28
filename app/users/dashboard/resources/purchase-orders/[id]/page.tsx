@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
@@ -28,24 +28,17 @@ import {
   Building2,
   IndianRupee,
   FolderOpen,
-  Trash2,
   ChevronDown,
   ClipboardList,
   ShoppingCart,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import { toast } from '@/lib/styles/toast-styles';
-import {
-  usePurchaseOrder,
-  useDeletePurchaseOrder,
-} from '@tornotron/echno-core/purchase-orders/hooks';
+import { usePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
 import {
   purchaseOrderStatusLabels,
   purchaseOrderStatusBadgeColors,
 } from '@tornotron/echno-core/purchase-orders/types';
 import {
-  DeletePODialog,
   POItemsCard,
   POInfoCard,
   PORemarksCard,
@@ -61,9 +54,6 @@ export default function PurchaseOrderDetailPage({
   const router = useRouter();
 
   const { data: po, isLoading } = usePurchaseOrder(id);
-  const { mutate: deletePO, isPending: isDeleting } = useDeletePurchaseOrder();
-
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -101,22 +91,6 @@ export default function PurchaseOrderDetailPage({
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <DeletePODialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        poNumber={po.poNumber}
-        onConfirm={() =>
-          deletePO(id, {
-            onSuccess: () => router.push(routes.resources.purchaseOrders.href),
-            onError: (err) =>
-              toast.error(getErrorTitle(err, 'Delete Not Supported'), {
-                description: getErrorMessage(err),
-              }),
-          })
-        }
-        isPending={isDeleting}
-      />
-
       {/* Header */}
       <PageHeader
         title={po.poNumber}
@@ -137,36 +111,26 @@ export default function PurchaseOrderDetailPage({
           </div>
         }
         actions={
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Actions <ChevronDown className="ml-1.5 h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  className="gap-2"
-                  onClick={() =>
-                    router.push(
-                      `${routes.resources.goodsReceipts.new}?fromPO=${id}`
-                    )
-                  }
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  Create GRN
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button
-              variant="destructive"
-              size="sm"
-              aria-label="Delete purchase order"
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Actions <ChevronDown className="ml-1.5 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                className="gap-2"
+                onClick={() =>
+                  router.push(
+                    `${routes.resources.goodsReceipts.new}?fromPO=${id}`
+                  )
+                }
+              >
+                <ClipboardList className="h-4 w-4" />
+                Create GRN
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         }
       />
 

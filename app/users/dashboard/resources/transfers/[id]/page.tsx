@@ -2,7 +2,6 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { Card } from '@/components/shadcn/card';
@@ -22,13 +21,11 @@ import {
   Package,
   CalendarDays,
   User,
-  Trash2,
   AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   useSiteTransfer,
-  useDeleteSiteTransfer,
   useUpdateSiteTransferStatus,
 } from '@tornotron/echno-core/site-transfers/hooks';
 import {
@@ -64,11 +61,8 @@ export default function SiteTransferDetailPage({
 }) {
   const { id: rawId } = use(params);
   const id = Number(rawId);
-  const router = useRouter();
 
   const { data: transfer, isLoading } = useSiteTransfer(id);
-  const { mutate: deleteTransfer, isPending: isDeleting } =
-    useDeleteSiteTransfer();
   const { mutate: updateStatus, isPending: isUpdating } =
     useUpdateSiteTransferStatus();
 
@@ -135,7 +129,7 @@ export default function SiteTransferDetailPage({
           setConfirm((s) => ({ ...s, open: false }));
           confirm.onConfirm();
         }}
-        isPending={isDeleting || isUpdating}
+        isPending={isUpdating}
       />
 
       {/* Header */}
@@ -187,31 +181,6 @@ export default function SiteTransferDetailPage({
                 Mark as {siteTransferStatusLabels[next]}
               </Button>
             )}
-            <Button
-              variant="destructive"
-              size="sm"
-              aria-label={`Delete transfer ${transfer.transferNumber}`}
-              disabled={isDeleting}
-              onClick={() =>
-                requestConfirm(
-                  'Delete Transfer',
-                  `Are you sure you want to delete ${transfer.transferNumber}? Stock that was decremented will need to be adjusted manually. This action cannot be undone.`,
-                  () =>
-                    deleteTransfer(id, {
-                      onSuccess: () =>
-                        router.push(routes.resources.transfers.href),
-                      onError: (err) =>
-                        toast.error(
-                          getErrorTitle(err, 'Delete Not Supported'),
-                          { description: getErrorMessage(err) }
-                        ),
-                    }),
-                  'destructive'
-                )
-              }
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </>
         }
       />
