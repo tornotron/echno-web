@@ -10,9 +10,8 @@
  * The `api` exported object provides bound convenience functions for
  * the most common HTTP verbs used across the codebase.
  */
-import { getSession } from 'next-auth/react';
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
-import { sessionRefresh } from '@/lib/auth/session-refresh-lock';
+import { refreshSessionOnce } from '@/lib/auth/refresh-session-once';
 
 export interface ApiResponse<T = unknown> {
   /** The payload returned by the backend */
@@ -110,27 +109,6 @@ async function isSessionTokenExpiredResponse(
   } catch {
     // Not JSON, so not our signal.
     return false;
-  }
-}
-
-/**
- * Refreshes the session, at most one refresh at a time.
- *
- * The dashboard fires many queries in parallel, so when the access token lapses
- * every one of them gets the expiry signal in the same instant. Letting each
- * call `getSession()` on its own would put N runs of the `jwt()` callback on
- * the same cookie, all posting the same refresh token to Keycloak. Our realms
- * set revokeRefreshToken with refreshTokenMaxReuse 0, so the first refresh
- * wins and every other one is a reuse that revokes the chain and throws the
- * user out. The coordinator collapses the callers in this tab into one refresh
- * and holds the cross-tab lock while it runs, so the other tabs wait too.
- */
-async function refreshSessionOnce(): Promise<void> {
-  try {
-    await sessionRefresh.refreshOnce(getSession);
-  } catch {
-    // A failed refresh leaves the replay to fail on its own 401, which the
-    // caller surfaces exactly as it would have without this recovery step.
   }
 }
 
