@@ -40,6 +40,9 @@ jobs:
     # workflow_dispatch carries no pull request, so let it through explicitly.
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    # Scopes vars to this environment (see NEXT_PUBLIC_STORAGE_ORIGIN below).
+    # Created on first run with no protection rules, so it gates nothing.
+    environment: staging-iitm-compose
     outputs:
       digest: ${{ steps.build.outputs.digest }}
     steps:
@@ -81,6 +84,10 @@ jobs:
             # the fallback is this environment's own MinIO endpoint, so a build
             # is never shipped with attachments that cannot be rendered.
             NEXT_PUBLIC_STORAGE_ORIGIN=${{ vars.NEXT_PUBLIC_STORAGE_ORIGIN || 'https://storage.echno.in' }}
+            # The variable is read from the `staging-iitm-compose` environment
+            # declared on this job, not from a repository variable: the value is
+            # frozen into the image and differs per environment, so one
+            # repository-wide value would be wrong for every environment but one.
           # Mounted rather than passed as a build arg, so the token to read
           # @tornotron/echno-core from GitHub Packages never lands in a layer.
           secrets: |

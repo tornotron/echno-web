@@ -30,6 +30,9 @@ jobs:
   build:
     if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    # Scopes vars to this environment (see NEXT_PUBLIC_STORAGE_ORIGIN below).
+    # Created on first run with no protection rules, so it gates nothing.
+    environment: staging-do
     outputs:
       digest: ${{ steps.build.outputs.digest }}
     steps:
@@ -66,10 +69,15 @@ jobs:
           build-args: |
             NODE_ENV=production
             NEXT_PUBLIC_API_URL=/api/v1
-            # Frozen into the build by next/image's remotePatterns. The DO box
-            # is currently destroyed, so this comes from the repository variable
-            # rather than naming a bucket that may not exist when it is rebuilt.
-            NEXT_PUBLIC_STORAGE_ORIGIN=${{ vars.NEXT_PUBLIC_STORAGE_ORIGIN }}
+            # Frozen into the build by next/image's remotePatterns. Read from
+            # the `staging-do` environment declared on this job rather than from
+            # a repository variable, since the value differs per environment and
+            # one repository-wide value would be wrong everywhere but one. The
+            # fallback is the DigitalOcean Spaces CDN host this environment's
+            # backend already serves attachments from (object_store_cdn_endpoint
+            # in echno-deployment); the bucket outlived the box, so naming it is
+            # safe even while the droplet is destroyed.
+            NEXT_PUBLIC_STORAGE_ORIGIN=${{ vars.NEXT_PUBLIC_STORAGE_ORIGIN || 'https://echno-object-store.blr1.cdn.digitaloceanspaces.com' }}
           # Mounted rather than passed as a build arg, so the token to read
           # @tornotron/echno-core from GitHub Packages never lands in a layer.
           secrets: |
