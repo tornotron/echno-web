@@ -116,6 +116,46 @@ describe('the three outcomes never read the same', () => {
     expect(many.description).toContain('4 compliances');
   });
 
+  // Since backend #542 the worker re-checks the preconditions before it calls
+  // the model, because the row outlives the configuration it was accepted
+  // under. The sharpest case is the AI key going missing in a restart: that used
+  // to be recorded as nothing-to-report, and is now a failure. So a failure can
+  // arrive having assessed nothing and having never reached the model, and the
+  // copy must not describe that as a run that broke off part way through.
+  test('a failure that never assessed a rule does not claim it stopped part way', () => {
+    const early = complianceJobOutcome(
+      job({
+        status: 'failed',
+        rulesAssessed: 0,
+        batchesDone: 0,
+        attempt: 1,
+        finishedAt: '2026-08-29T10:00:03',
+        errorMessage:
+          'The compliance AI service is not configured, so suggestions cannot be generated. Set the compliance AI key and try again.',
+      })
+    );
+    expect(early.tone).toBe('failure');
+    expect(early.description).toMatch(/nothing was saved/i);
+    expect(early.description).not.toMatch(/stopped after 0/i);
+    // Nothing was assessed, so there is no half-done run to describe.
+    expect(early.description).not.toMatch(/did not reach/i);
+    expect(early.description).toContain('Set the compliance AI key and try again.');
+  });
+
+  test('a run that broke part way still says where it got to', () => {
+    const midRun = complianceJobOutcome(
+      job({ status: 'failed', rulesAssessed: 11, errorMessage: 'The AI response was cut short.' })
+    );
+    expect(midRun.description).toContain('11');
+    expect(midRun.description).toContain('24');
+  });
+
+  test('the two kinds of failure do not read identically', () => {
+    const early = complianceJobOutcome(job({ status: 'failed', rulesAssessed: 0 }));
+    const midRun = complianceJobOutcome(job({ status: 'failed', rulesAssessed: 11 }));
+    expect(early.description).not.toBe(midRun.description);
+  });
+
   test('the backend explanation for a failure is carried through', () => {
     const failed = complianceJobOutcome(
       job({
@@ -159,6 +199,27 @@ describe('progress while the run is in flight', () => {
     expect(
       complianceJobPercent(job({ rulesTotal: 0, batchesTotal: 0 }))
     ).toBe(0);
+  });
+
+  // The backend increments the attempt counter when a worker claims the row, so
+  // a queued job carries the number of attempts already spent and a running one
+  // carries the attempt it is making. Backend #542's per-claim fencing token
+  // changed how that counter is guarded, not what it counts.
+  test('a running job counts the attempt it is making', () => {
+    expect(
+      complianceJobProgressLabel(
+        job({ status: 'running', attempt: 2, maxAttempts: 3, rulesAssessed: 4 })
+      )
+    ).toMatch(/attempt 2 of 3/i);
+  });
+
+  test('a first attempt is not worth naming', () => {
+    expect(
+      complianceJobProgressLabel(job({ status: 'running', attempt: 1, maxAttempts: 3 }))
+    ).not.toMatch(/attempt/i);
+    expect(
+      complianceJobProgressLabel(job({ status: 'queued', attempt: 0, maxAttempts: 3 }))
+    ).not.toMatch(/attempt/i);
   });
 
   test('a retried attempt is named, so a stalled bar is explained', () => {

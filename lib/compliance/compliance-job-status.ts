@@ -142,10 +142,28 @@ export function complianceJobOutcome(
 
     case 'failed': {
       const reason = job.errorMessage ? ` ${job.errorMessage}` : '';
+      // Two shapes of failure, and describing one as the other misleads.
+      //
+      // A run can break part way through the model calls, which is what the
+      // truncation checks catch. It can also fail before assessing anything at
+      // all: the worker re-checks the preconditions before calling the model,
+      // because the row outlives the configuration it was accepted under, and
+      // an AI key that went missing in a restart fails the job there. That case
+      // used to be recorded as a run that found nothing, which is the whole
+      // reason it is a failure now, so the wording must not hand it back a
+      // half-finished run it never had.
+      const nothingAssessed = job.rulesAssessed === 0;
+      const whatHappened = nothingAssessed
+        ? `The run did not get as far as assessing any of the ${job.rulesTotal} ${plural(
+            job.rulesTotal,
+            'rule',
+            'rules'
+          )} for this project, so nothing was saved for it. This is not the same as finding no compliances: none were recorded.`
+        : `The run stopped after ${job.rulesAssessed} of ${job.rulesTotal} rules, so nothing was saved for it. This is not the same as finding no compliances: none were recorded, and the rules it did not reach have not been assessed.`;
       return {
         tone: 'failure',
         title: 'Compliance analysis could not be completed',
-        description: `The run stopped after ${job.rulesAssessed} of ${job.rulesTotal} rules, so nothing was saved for it. This is not the same as finding no compliances: none were recorded, and the rules it did not reach have not been assessed.${reason}`,
+        description: `${whatHappened}${reason}`,
       };
     }
   }
