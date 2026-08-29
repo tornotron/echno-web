@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-28
+ * Generated: 2026-08-29
  */
 
 import type { RouteNode } from '../types';
@@ -185,6 +185,14 @@ export const ROUTE_TREE: RouteNode = {
                   ],
             },
           ],
+      },
+      {
+        id: 'finance-journal-entries',
+        segment: 'journal-entries',
+        path: '/users/dashboard/finance/journal-entries',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
       },
       {
         id: 'finance-payments',
