@@ -287,10 +287,14 @@ export function availableNcrActions(status: NcrStatus): NcrAction[] {
     case NcrStatus.OPEN: {
       return ['assign'];
     }
-    case NcrStatus.ASSIGNED:
+    case NcrStatus.ASSIGNED: {
+      return ['corrective-action-complete', 'assign'];
+    }
+    // Rejected and reopened NCRs must be reassigned before corrective work
+    // can be reported again; the backend refuses any other move from here.
     case NcrStatus.REOPENED:
     case NcrStatus.REJECTED: {
-      return ['corrective-action-complete', 'assign'];
+      return ['assign'];
     }
     case NcrStatus.CORRECTIVE_ACTION_COMPLETE: {
       return ['verify', 'reject'];
