@@ -516,9 +516,11 @@ function StarterTemplatesDialog({
                 }
                 onClick={() => starter.trade && handleAdopt(starter.trade)}
               >
-                {starter.trade && taken.has(starter.trade)
-                  ? 'Already added'
-                  : 'Adopt'}
+                {!starter.trade
+                  ? 'Unavailable'
+                  : taken.has(starter.trade)
+                    ? 'Already added'
+                    : 'Adopt'}
               </Button>
             </div>
           ))}
