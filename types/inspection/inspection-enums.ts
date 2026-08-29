@@ -13,6 +13,8 @@ import {
   InspectionOrigin,
   ComplianceRiskLevel,
   CompliancePhase,
+  NcrStatus,
+  DefectSeverity,
 } from '@tornotron/echno-core/inspection/types';
 
 export {
@@ -23,6 +25,26 @@ export {
   InspectionOrigin,
   ComplianceRiskLevel,
   CompliancePhase,
+  // The category/trade axis and the NCR and defect enums, all owned by core
+  // since v2.1.0. Their plain label maps live there too, alongside
+  // `siteTransferStatusLabels` and the rest, so only the badge variants below
+  // are still web's business.
+  InspectionCategory,
+  InspectionTrade,
+  NcrType,
+  NcrStatus,
+  DefectSeverity,
+  DefectStatus,
+  inspectionCategoryLabels,
+  inspectionTradeLabels,
+  inspectionTradeOrder,
+  ncrTypeLabels,
+  ncrStatusLabels,
+  defectSeverityLabels,
+  defectStatusLabels,
+  defaultInspectionCategoryFor,
+  parseInspectionCategory,
+  parseInspectionTrade,
 } from '@tornotron/echno-core/inspection/types';
 
 export const inspectionStatusLabels: Record<InspectionStatus, string> = {
@@ -134,6 +156,24 @@ export const checkItemStatusVariants: Record<CheckItemStatus, BadgeVariant> = {
   [CheckItemStatus.FAILED]: 'destructive',
   [CheckItemStatus.NOT_APPLICABLE]: 'outline',
   [CheckItemStatus.PENDING]: 'outline',
+};
+
+// An NCR is a problem until it is signed off, so the open end of the lifecycle
+// reads as destructive and the settled end fades to outline.
+export const ncrStatusVariants: Record<NcrStatus, BadgeVariant> = {
+  [NcrStatus.OPEN]: 'destructive',
+  [NcrStatus.ASSIGNED]: 'default',
+  [NcrStatus.CORRECTIVE_ACTION_COMPLETE]: 'secondary',
+  [NcrStatus.VERIFIED]: 'secondary',
+  [NcrStatus.CLOSED]: 'outline',
+  [NcrStatus.REJECTED]: 'destructive',
+  [NcrStatus.REOPENED]: 'destructive',
+};
+
+export const defectSeverityVariants: Record<DefectSeverity, BadgeVariant> = {
+  [DefectSeverity.CRITICAL]: 'destructive',
+  [DefectSeverity.MAJOR]: 'default',
+  [DefectSeverity.MINOR]: 'outline',
 };
 
 /**

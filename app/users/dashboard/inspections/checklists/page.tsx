@@ -179,6 +179,15 @@ function TemplateCard({ template }: { template: ChecklistTemplate }) {
   // There is no delete endpoint. A checklist that has stopped being used is
   // deactivated instead, which is an ordinary update with `active` flipped.
   const toggleActive = () => {
+    // The update carries the trade back unchanged and the field is required,
+    // so a trade this build cannot name leaves nothing safe to send.
+    if (!template.trade) {
+      toast.error('This checklist uses a trade this version does not know', {
+        description: 'Update the app before changing it.',
+      });
+      return;
+    }
+
     updateTemplate.mutate(
       {
         id: template.id,
@@ -239,7 +248,9 @@ function TemplateCard({ template }: { template: ChecklistTemplate }) {
 
       <div className="flex flex-wrap items-center gap-1.5">
         <Badge variant="outline">
-          {inspectionTradeLabels[template.trade] ?? template.trade}
+          {template.trade
+            ? (inspectionTradeLabels[template.trade] ?? template.trade)
+            : 'Unknown trade'}
         </Badge>
         <Badge variant="secondary">v{template.version}</Badge>
         {!template.active && <Badge variant="outline">Inactive</Badge>}
@@ -484,8 +495,10 @@ function StarterTemplatesDialog({
               <div className="min-w-0 space-y-1">
                 <p className="truncate text-sm font-medium">{starter.name}</p>
                 <p className="text-muted-foreground text-xs">
-                  {inspectionTradeLabels[starter.trade] ?? starter.trade} ·{' '}
-                  {starter.items.length} check points
+                  {starter.trade
+                    ? (inspectionTradeLabels[starter.trade] ?? starter.trade)
+                    : 'Unknown trade'}{' '}
+                  · {starter.items.length} check points
                 </p>
                 {starter.description && (
                   <p className="text-muted-foreground line-clamp-2 text-xs">
@@ -496,10 +509,16 @@ function StarterTemplatesDialog({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={taken.has(starter.trade) || adopt.isPending}
-                onClick={() => handleAdopt(starter.trade)}
+                disabled={
+                  !starter.trade ||
+                  taken.has(starter.trade) ||
+                  adopt.isPending
+                }
+                onClick={() => starter.trade && handleAdopt(starter.trade)}
               >
-                {taken.has(starter.trade) ? 'Already added' : 'Adopt'}
+                {starter.trade && taken.has(starter.trade)
+                  ? 'Already added'
+                  : 'Adopt'}
               </Button>
             </div>
           ))}

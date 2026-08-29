@@ -1,10 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ncrService, type NcrListParams } from '@/services/ncr-service';
+import {
+  ncrService,
+  type NcrListParams,
+} from '@tornotron/echno-core/ncr/services';
 import type {
   AssignNcrRequest,
   CreateNcrRequest,
   NcrRemarksRequest,
-} from '@/types/inspection/ncr';
+} from '@tornotron/echno-core/inspection/types';
 import { ncrKeys } from './ncr-keys';
 
 /** Fetches NCRs for the current organization, optionally filtered. */

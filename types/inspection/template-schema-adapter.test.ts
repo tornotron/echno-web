@@ -7,7 +7,7 @@ import {
   schemaToTemplateItems,
   templateItemsToSchema,
 } from './template-schema-adapter';
-import type { ChecklistTemplateItem } from './checklist-template';
+import type { ChecklistTemplateItem } from '@tornotron/echno-core/inspection/types';
 
 function schemaWith(elements: ChecklistElement[]): ChecklistSchema {
   return {

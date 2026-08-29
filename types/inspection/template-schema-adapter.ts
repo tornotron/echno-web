@@ -39,7 +39,7 @@ import {
 import {
   type ChecklistTemplateItem,
   type ChecklistTemplateItemRequest,
-} from './checklist-template';
+} from '@tornotron/echno-core/inspection/types';
 
 /**
  * Element types a stored template can represent.

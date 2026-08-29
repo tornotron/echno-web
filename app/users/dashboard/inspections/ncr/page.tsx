@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useInspections, useNcrs } from '@/hooks/inspection';
-import type { NcrListParams } from '@/services/ncr-service';
+import type { NcrListParams } from '@tornotron/echno-core/ncr/services';
 import {
   DefectSeverity,
   NcrStatus,
