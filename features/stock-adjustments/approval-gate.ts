@@ -1,4 +1,5 @@
 import type { StockAdjustment } from '@/types/resource';
+import { isDecided } from './decision-gates';
 
 /**
  * Whether the approve action is offered on a stock adjustment, and if not, why.
@@ -66,9 +67,11 @@ export function stockAdjustmentApprovalGate({
   canApprove,
   isSystemAdmin,
 }: ApprovalGateInput): ApprovalGate {
-  // A posted document is frozen. There is nothing left to approve, so the
-  // action is gone rather than disabled.
-  if (adjustment.processedAt || adjustment.status === 'processed') {
+  // A decided document is frozen. A posted one has nothing left to approve; a
+  // rejected one is refused for good, and `requireNotRejected` on the backend
+  // turns an approval after a rejection into a 400. Either way the action is
+  // gone rather than disabled.
+  if (isDecided(adjustment)) {
     return HIDDEN;
   }
 

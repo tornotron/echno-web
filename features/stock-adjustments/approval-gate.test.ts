@@ -56,6 +56,24 @@ describe('stockAdjustmentApprovalGate', () => {
     expect(gate.visible).toBe(false);
   });
 
+  test('a rejected document cannot then be approved', () => {
+    // requireNotRejected sits on approve as well, so an approval after a
+    // rejection is a 400. The action goes rather than 400ing when pressed.
+    const gate = stockAdjustmentApprovalGate({
+      adjustment: draft({ status: 'rejected', rejectedAt: new Date() }),
+      ...APPROVER,
+    });
+    expect(gate.visible).toBe(false);
+  });
+
+  test('the rejected status alone is enough to withdraw the action', () => {
+    const gate = stockAdjustmentApprovalGate({
+      adjustment: draft({ status: 'rejected' }),
+      ...APPROVER,
+    });
+    expect(gate.visible).toBe(false);
+  });
+
   test('the raiser is refused with the reason, not offered the button', () => {
     const gate = stockAdjustmentApprovalGate({
       adjustment: draft({ submittedBy: 9 }),

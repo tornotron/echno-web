@@ -220,12 +220,41 @@ export const stockAdjustmentsService = {
    * screens the ones the client can see before the request goes out; the server
    * stays the authority on the rest.
    *
-   * There is deliberately no `reject` here. The document carries `rejectedBy`,
-   * `rejectedAt` and `rejectionReason` and the detail screen shows them, but no
-   * backend endpoint writes them, so there is nothing for a client to call.
+   * The other way off a draft is `reject`, which posts nothing.
    */
   async approve(id: number): Promise<StockAdjustment> {
     const raw = await api.post<Raw>(`${BASE}/${id}/approve`);
+    return safeParseStockAdjustment(raw);
+  },
+
+  /**
+   * Rejects the adjustment, recording who refused it, when and why.
+   *
+   * `POST /stock-adjustments/web/{id}/reject` takes `{ reason }` and nothing
+   * else: the rejecter is read from the session, never the request. The reason
+   * is `@NotBlank @Size(max = 500)`, so a blank or over-long one is a 400
+   * before the service is reached; `rejectionReasonError` applies both rules in
+   * the form so the user is not told by a failed request.
+   *
+   * Nothing reaches the stock ledger. That is why the rules differ from
+   * `approve` in one way worth naming: **self-rejection is allowed**. The
+   * segregation-of-duties rule is a second pair of eyes on the entry an
+   * approval posts, and a rejection posts no entry, so the raiser may refuse
+   * their own document. They can already delete it, which keeps no record at
+   * all.
+   *
+   * The rejection is terminal: the document carries one `rejectedBy`, one
+   * `rejectedAt` and one `rejectionReason`, so anything that reopened it would
+   * overwrite the refusal that is the reason to reject rather than delete.
+   * `requireNotRejected` sits on `update`, `delete`, `approve` and `reject`
+   * itself, and `stockAdjustmentAmendmentGate` mirrors it on the screen.
+   * Resubmission is a fresh draft.
+   *
+   * @param id - The adjustment to refuse.
+   * @param reason - Why it is being refused. Sent as given, so trim it first.
+   */
+  async reject(id: number, reason: string): Promise<StockAdjustment> {
+    const raw = await api.post<Raw>(`${BASE}/${id}/reject`, { reason });
     return safeParseStockAdjustment(raw);
   },
 };
