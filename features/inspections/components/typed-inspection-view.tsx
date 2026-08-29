@@ -3,8 +3,15 @@
 /**
  * The list view behind the QA/QC and Safety pages.
  *
- * Both pages differ only in the inspection type they pin, so they share one
- * implementation rather than two near-identical copies.
+ * Both pages differ only in the inspection category they pin, so they share
+ * one implementation rather than two near-identical copies.
+ *
+ * The axis is the **category**, not the type. `InspectionCategory` is what the
+ * backend groups on, and its `defaultFor` maps seven types (quality,
+ * structural, electrical, plumbing, finishing, progress and final) onto
+ * QA_QC. Filtering on `InspectionType.QUALITY` instead, as this did, hid six
+ * of those seven from the page the whole team looks at. Safety only appeared
+ * to work because it maps one to one.
  */
 
 import { useMemo, useState } from 'react';
@@ -14,9 +21,11 @@ import { PageHeader } from '@/components/common';
 import { Card } from '@/components/ui/card';
 import { useInspections } from '@/hooks/inspection';
 import {
-  type InspectionType,
+  type InspectionCategory,
   InspectionStatus,
+  InspectionType,
   compliancePercentage,
+  defaultInspectionCategoryFor,
 } from '@/types/inspection';
 import { CreateInspectionDialog } from './create-inspection-dialog';
 import {
@@ -42,28 +51,53 @@ const CONCLUDED_STATUSES = new Set<InspectionStatus>([
 ]);
 
 interface TypedInspectionViewProps {
-  type: InspectionType;
+  /** The axis the page is pinned to, and the filter the server applies. */
+  category: InspectionCategory;
+  /**
+   * Type the create dialog pins. A category spans several types, so this is
+   * the one the page creates by default, not the one it lists.
+   */
+  createType: InspectionType;
   title: string;
   description: string;
+  /**
+   * Offers the trade filter. Trade is populated only for QA/QC inspections,
+   * so it is noise on the safety page.
+   */
+  showTradeFilter?: boolean;
 }
 
 export function TypedInspectionView({
-  type,
+  category,
+  createType,
   title,
   description,
+  showTradeFilter = false,
 }: TypedInspectionViewProps) {
-  const { data: allInspections = [], isLoading } = useInspections();
+  // Filtered by the server, not in the browser: the endpoint takes `category`,
+  // and narrowing here would only ever look at the page already loaded.
+  const { data: inspections = [], isLoading } = useInspections({ category });
   const { data: projects = [] } = useProjects();
   const [filters, setFilters] = useState<InspectionFilterState>(EMPTY_FILTERS);
-
-  const inspections = useMemo(
-    () => allInspections.filter((item) => item.type === type),
-    [allInspections, type]
-  );
 
   const filtered = useMemo(
     () => inspections.filter((item) => matchesFilters(item, filters)),
     [inspections, filters]
+  );
+
+  /**
+   * Whether this category covers more than one type, read off core's mapping
+   * rather than listed here. QA/QC covers seven types and safety covers one,
+   * so the type column earns its place on the first and is noise on the
+   * second. Deriving it keeps the page correct if the backend moves a type
+   * between categories; a list copied into web would quietly drift.
+   */
+  const spansSeveralTypes = useMemo(
+    () =>
+      Object.values(InspectionType).filter(
+        (type) => defaultInspectionCategoryFor(type) === category
+      ).length > 1,
+    [category]
   );
 
   const stats = useMemo(() => {
@@ -97,7 +131,7 @@ export function TypedInspectionView({
       <PageHeader
         title={title}
         description={description}
-        actions={<CreateInspectionDialog type={type} />}
+        actions={<CreateInspectionDialog type={createType} />}
       />
 
       <InspectionStats
@@ -144,6 +178,7 @@ export function TypedInspectionView({
           filters={filters}
           onChange={setFilters}
           showTypeFilter={false}
+          showTradeFilter={showTradeFilter}
           projects={projects.map((project) => ({
             id: project.id,
             name: project.projectName,
@@ -154,7 +189,7 @@ export function TypedInspectionView({
       <InspectionTable
         inspections={filtered}
         isLoading={isLoading}
-        showType={false}
+        showType={spansSeveralTypes}
         emptyMessage={`No ${title.toLowerCase()} inspections yet. Create one to get started.`}
       />
     </div>

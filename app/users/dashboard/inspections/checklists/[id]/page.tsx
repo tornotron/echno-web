@@ -68,6 +68,18 @@ export default function ChecklistBuilderPage({
       throw new Error('Checklist has no check points');
     }
 
+    // The trade is required on an update and must go back unchanged, so a
+    // template whose trade this build does not recognize cannot be saved
+    // without inventing one. That happens only if the backend adds a trade
+    // ahead of the client, and refusing is better than sending a guess that
+    // would silently re-file the checklist under the wrong trade.
+    if (!template.trade) {
+      toast.error('This checklist uses a trade this version does not know', {
+        description: 'Update the app before editing it.',
+      });
+      throw new Error('Checklist template has an unrecognized trade');
+    }
+
     try {
       await updateTemplate.mutateAsync({
         id: template.id,

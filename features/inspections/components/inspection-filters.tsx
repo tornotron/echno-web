@@ -28,9 +28,12 @@ import {
 import {
   type InspectionResult,
   type InspectionStatus,
+  type InspectionTrade,
   type InspectionType,
   inspectionResultLabels,
   inspectionStatusLabels,
+  inspectionTradeLabels,
+  inspectionTradeOrder,
   inspectionTypeLabels,
   InspectionResult as ResultEnum,
   InspectionStatus as StatusEnum,
@@ -45,6 +48,8 @@ export interface InspectionFilterState {
   type: string;
   status: string;
   result: string;
+  /** Trade, the axis a QA/QC user actually slices by. Only they carry one. */
+  trade: string;
   /** `YYYY-MM-DD`, inclusive. Empty means unbounded. */
   fromDate: string;
   /** `YYYY-MM-DD`, inclusive. Empty means unbounded. */
@@ -56,6 +61,7 @@ export const EMPTY_FILTERS: InspectionFilterState = {
   type: ALL,
   status: ALL,
   result: ALL,
+  trade: ALL,
   fromDate: '',
   toDate: '',
 };
@@ -66,6 +72,7 @@ export function hasActiveFilters(filters: InspectionFilterState): boolean {
     filters.type !== ALL ||
     filters.status !== ALL ||
     filters.result !== ALL ||
+    filters.trade !== ALL ||
     filters.fromDate !== '' ||
     filters.toDate !== ''
   );
@@ -80,8 +87,13 @@ interface InspectionFiltersProps {
   filters: InspectionFilterState;
   onChange: (filters: InspectionFilterState) => void;
   projects: ProjectFilterOption[];
-  /** Hidden on the type-specific pages, which pin the type themselves. */
+  /** Hidden on the category pages, which pin their own axis. */
   showTypeFilter?: boolean;
+  /**
+   * Shows the trade filter. Off by default: only QA/QC inspections carry a
+   * trade, so it would be a dropdown of dead options anywhere else.
+   */
+  showTradeFilter?: boolean;
   /**
    * Shows the scheduled-date range. Off by default, because it narrows only
    * the rows already loaded; turn it on where the whole set is in hand.
@@ -94,6 +106,7 @@ export function InspectionFilters({
   onChange,
   projects,
   showTypeFilter = true,
+  showTradeFilter = false,
   showDateRange = false,
 }: InspectionFiltersProps) {
   const patch = (next: Partial<InspectionFilterState>) =>
@@ -179,6 +192,27 @@ export function InspectionFilters({
         </Select>
       </Field>
 
+      {showTradeFilter && (
+        <Field label="Trade" htmlFor="filter-trade">
+          <Select
+            value={filters.trade}
+            onValueChange={(value) => patch({ trade: value })}
+          >
+            <SelectTrigger id="filter-trade" className="w-full sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={ALL}>All trades</SelectItem>
+              {inspectionTradeOrder.map((trade) => (
+                <SelectItem key={trade} value={trade}>
+                  {inspectionTradeLabels[trade]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      )}
+
       {showDateRange && (
         <>
           <Field label="From" htmlFor="filter-from">
@@ -245,6 +279,7 @@ interface FilterableInspection {
   type: InspectionType;
   status: InspectionStatus;
   result?: InspectionResult;
+  trade?: InspectionTrade;
   scheduledDate?: string;
 }
 
@@ -258,6 +293,8 @@ export function matchesFilters(
   if (filters.type !== ALL && item.type !== filters.type) return false;
   if (filters.status !== ALL && item.status !== filters.status) return false;
   if (filters.result !== ALL && item.result !== filters.result) return false;
+  // An inspection with no trade cannot match a trade the user asked for.
+  if (filters.trade !== ALL && item.trade !== filters.trade) return false;
 
   // Both sides are `YYYY-MM-DD`, which sorts correctly as text, so comparing
   // the strings keeps the window free of any timezone shift a Date would add.

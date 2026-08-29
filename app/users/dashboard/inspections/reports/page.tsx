@@ -49,6 +49,7 @@ import {
 import { downloadCsv } from '@/lib/utils/csv-utils';
 import {
   DefectSeverity,
+  InspectionCategory,
   InspectionStatus,
   InspectionType,
   SETTLED_NCR_STATUSES,
@@ -145,8 +146,15 @@ export default function InspectionReportsPage() {
       CONCLUDED_STATUSES.has(item.status)
     );
 
-    const complianceFor = (type: InspectionType) => {
-      const relevant = concluded.filter((item) => item.type === type);
+    /**
+     * Averaged over a category, not a type. `InspectionCategory` is the axis
+     * the backend groups on: QA/QC covers quality, structural, electrical,
+     * plumbing, finishing, progress and final. Reading the QA/QC figure off
+     * `InspectionType.QUALITY` alone drew it from one type out of seven, so
+     * the number reported was simply wrong.
+     */
+    const complianceFor = (category: InspectionCategory) => {
+      const relevant = concluded.filter((item) => item.category === category);
       if (relevant.length === 0) return 0;
       return Math.round(
         relevant.reduce((sum, item) => sum + compliancePercentage(item), 0) /
@@ -166,8 +174,8 @@ export default function InspectionReportsPage() {
           item.status === InspectionStatus.SCHEDULED ||
           item.status === InspectionStatus.IN_PROGRESS
       ).length,
-      qualityCompliance: complianceFor(InspectionType.QUALITY),
-      safetyCompliance: complianceFor(InspectionType.SAFETY),
+      qualityCompliance: complianceFor(InspectionCategory.QA_QC),
+      safetyCompliance: complianceFor(InspectionCategory.SAFETY),
       openNcrs: unsettled.length,
       criticalNcrs: unsettled.filter(
         (ncr) => ncr.severity === DefectSeverity.CRITICAL
@@ -450,7 +458,7 @@ export default function InspectionReportsPage() {
           <h2 className="text-sm font-semibold">Compliance</h2>
           <div className="space-y-4">
             <ComplianceBar
-              label="Quality Compliance"
+              label="QA/QC Compliance"
               value={summary.qualityCompliance}
             />
             <ComplianceBar

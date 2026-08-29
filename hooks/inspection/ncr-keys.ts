@@ -1,4 +1,4 @@
-import type { NcrListParams } from '@/services/ncr-service';
+import type { NcrListParams } from '@tornotron/echno-core/ncr/services';
 
 export const ncrKeys = {
   all: ['ncrs'] as const,

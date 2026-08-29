@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   checklistTemplateService,
   type ChecklistTemplateListParams,
-} from '@/services/checklist-template-service';
+} from '@tornotron/echno-core/checklist-template/services';
 import type {
   ChecklistTemplateRequest,
   InspectionTrade,
-} from '@/types/inspection/checklist-template';
+} from '@tornotron/echno-core/inspection/types';
 
 export const checklistTemplateKeys = {
   all: ['checklist-templates'] as const,
