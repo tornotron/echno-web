@@ -35,7 +35,7 @@ import { AccountFormDialog } from './account-form-dialog';
 import { DeactivateAccountDialog } from './deactivate-account-dialog';
 import { ImportSummaryDialog } from './import-summary-dialog';
 import { useSeedDefaultChart } from '../hooks/use-seed-default-chart';
-import { findParentId } from '../utils/account-tree';
+import { findParentId } from '@/lib/finance/account-tree';
 
 export function ChartOfAccountsView() {
   const { isSystemAdmin } = useAuthorization();

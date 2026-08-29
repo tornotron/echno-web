@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -36,7 +36,7 @@ import {
   collectSubtreeIds,
   flattenAccountTree,
   type FlatAccountNode,
-} from '../utils/account-tree';
+} from '@/lib/finance/account-tree';
 
 const NO_PARENT = 'none';
 
@@ -80,25 +80,32 @@ export function AccountFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Re-seed the form whenever the dialog is (re)opened for a given target.
-  useEffect(() => {
-    if (!open) return;
+  //
+  // Done while rendering rather than in an effect: an effect would paint the
+  // previous target's values first and only then replace them, which is a
+  // cascading render and, on a dialog, a visible flicker of the last account
+  // edited. React re-runs the render before committing, so the first paint is
+  // already the seeded one.
+  //
+  // The key names the target, so it changes when the dialog is opened for a
+  // different account or a different default parent. Clearing it on close is
+  // what lets the same target be re-seeded when the dialog is opened again.
+  const seedKey = `${account?.id ?? 'new'}:${defaultParentId ?? NO_PARENT}`;
+  const [seededFor, setSeededFor] = useState<string | null>(null);
+
+  if (!open && seededFor !== null) {
+    setSeededFor(null);
+  }
+  if (open && seededFor !== seedKey) {
+    setSeededFor(seedKey);
     setErrors({});
-    if (account) {
-      setCode(account.code);
-      setName(account.name);
-      setType(account.type);
-      setParentId(defaultParentId ?? NO_PARENT);
-      setDescription(account.description ?? '');
-      setActive(account.active);
-    } else {
-      setCode('');
-      setName('');
-      setType(AccountType.ASSET);
-      setParentId(defaultParentId ?? NO_PARENT);
-      setDescription('');
-      setActive(true);
-    }
-  }, [open, account, defaultParentId]);
+    setCode(account?.code ?? '');
+    setName(account?.name ?? '');
+    setType(account?.type ?? AccountType.ASSET);
+    setParentId(defaultParentId ?? NO_PARENT);
+    setDescription(account?.description ?? '');
+    setActive(account?.active ?? true);
+  }
 
   // Parent options exclude the account itself and its descendants so an account
   // can never be reparented beneath its own subtree.

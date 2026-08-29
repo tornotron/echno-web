@@ -24,13 +24,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_PACKAGES_TOKEN }}
         run: bun install --frozen-lockfile
 
-      # Reported, not blocking. The codebase currently has 93 lint errors that
-      # predate this pipeline, so gating on them would stop all work rather
-      # than improve anything. Flip continue-on-error off once the backlog is
-      # cleared, and it becomes a real gate.
+      # A real gate. The 93 errors that predated this pipeline are cleared, so
+      # a failing lint now fails the check rather than being reported and
+      # scrolled past. Fix what it reports; do not restore continue-on-error.
       - name: Lint
         run: bun run lint
-        continue-on-error: true
 
       - name: Build
         run: bun run build
