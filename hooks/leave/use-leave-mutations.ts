@@ -460,16 +460,30 @@ export const useWithdrawLeaveRequest = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (requestId: number) => leaveService.withdrawRequest(requestId),
-    onSuccess: (_, requestId) => {
-      // POST /leave-requests/web/employeeId/{employeeId}/withdraw → LeaveRequestDto per spec,
-      // but leaveService.withdrawRequest returns Promise<void>.
-      // FIXME: capture the response and patch instead of invalidating; would
-      // also need to add employeeId to the mutation input for scoped balance
-      // invalidation.
-      queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
-      queryClient.invalidateQueries({ predicate: isLeaveRequestListCache });
-      queryClient.invalidateQueries({ queryKey: leaveKeys.balances() });
+    mutationFn: ({
+      requestId,
+      employeeId,
+    }: {
+      requestId: number;
+      employeeId: number;
+    }) => leaveService.withdrawRequest(requestId, employeeId),
+    onSuccess: (data, { employeeId }) => {
+      // The backend responds with the withdrawn LeaveRequestDto, so patch the
+      // detail and the lists rather than invalidating them, the way
+      // useUpdateLeaveRequest does.
+      queryClient.setQueryData(leaveKeys.request(data.id), data);
+      queryClient.setQueriesData<LeaveRequest[]>(
+        { predicate: isLeaveRequestListCache },
+        (old) => old?.map((r) => (r.id === data.id ? data : r))
+      );
+      // Withdrawing a pending request releases the days it had reserved, and
+      // the recomputation is server side, so the balance has to be refetched.
+      queryClient.invalidateQueries({
+        queryKey: [...leaveKeys.balances(), 'employee', employeeId],
+      });
+      // Keep: the request leaves the approver's queue and the approver set is
+      // not known from this context.
+      queryClient.invalidateQueries({ queryKey: leaveKeys.requests() });
       toast.success('Leave Request Withdrawn', {
         description: 'The leave request has been withdrawn.',
       });
