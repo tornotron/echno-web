@@ -21,8 +21,10 @@ import {
   Download,
   Printer,
   CheckCircle2,
+  XCircle,
   AlertCircle,
   Loader2,
+  CopyPlus,
   Package,
   Calendar,
   User,
@@ -52,6 +54,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/shadcn/alert-dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/shadcn/dialog';
+import { Textarea } from '@/components/shadcn/textarea';
 import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
@@ -61,10 +72,17 @@ import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import {
   useStockAdjustment,
   useApproveStockAdjustment,
+  useRejectStockAdjustment,
   useDeleteStockAdjustment,
 } from '@/hooks/stock-adjustments';
 import { useAuthorization } from '@/hooks/use-authorization';
 import { stockAdjustmentApprovalGate } from '@/features/stock-adjustments/approval-gate';
+import {
+  REJECTION_REASON_MAX_LENGTH,
+  canRejectStockAdjustment,
+  rejectionReasonError,
+  stockAdjustmentAmendmentGate,
+} from '@/features/stock-adjustments/decision-gates';
 
 
 const handleDownloadPDF = () => {
@@ -182,9 +200,15 @@ export default function StockAdjustmentDetailPage({
   const { data: currentUser } = useUser();
   const { isSystemAdmin, isManagerOrAbove } = useAuthorization();
   const approveAdjustment = useApproveStockAdjustment();
+  const rejectAdjustment = useRejectStockAdjustment();
   const deleteAdjustment = useDeleteStockAdjustment();
   const [confirmingApproval, setConfirmingApproval] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  // The reason's error is only shown once the field has been touched or a
+  // submit has been attempted, so an untouched form does not open scolding.
+  const [rejectionTouched, setRejectionTouched] = useState(false);
 
   const getEmployeeName = (empId?: number): string => {
     if (!empId) return '—';
@@ -244,16 +268,58 @@ export default function StockAdjustmentDetailPage({
     }
   }
 
-  // The document carries rejectedBy, rejectedAt and rejectionReason and they
-  // are shown below, but no backend endpoint writes them: there is no reject
-  // action to offer here until one exists. Tracked in echno-backend.
+  const reasonError = rejectionReasonError(rejectionReason);
+  const showReasonError = rejectionTouched && reasonError !== undefined;
+
+  function openRejection() {
+    setRejectionReason('');
+    setRejectionTouched(false);
+    setRejecting(true);
+  }
+
+  async function handleReject() {
+    setRejectionTouched(true);
+    if (reasonError) return;
+
+    try {
+      await rejectAdjustment.mutateAsync({
+        id: numericId,
+        reason: rejectionReason.trim(),
+      });
+      setRejecting(false);
+      toast.success('Stock adjustment rejected', {
+        description:
+          'The refusal and its reason are on the record. No stock has moved.',
+      });
+    } catch (error) {
+      toast.error('Failed to reject stock adjustment', {
+        description: getErrorMessage(error),
+      });
+    }
+  }
+
+  const canDecide = isSystemAdmin || isManagerOrAbove;
 
   const approval = stockAdjustmentApprovalGate({
     adjustment,
     currentUserId: currentUser?.id,
-    canApprove: isSystemAdmin || isManagerOrAbove,
+    canApprove: canDecide,
     isSystemAdmin,
   });
+
+  // Deliberately not gated on who raised the document: self-rejection is
+  // allowed, and reusing the approval gate's raiser check here would refuse
+  // something the backend permits.
+  const canReject = canRejectStockAdjustment({
+    adjustment,
+    canReject: canDecide,
+  });
+
+  // A posted or rejected document refuses update and delete as well, so the
+  // Edit and Delete affordances come off it rather than 400ing when pressed.
+  const amendment = stockAdjustmentAmendmentGate(adjustment);
+
+  const duplicateHref = `${routes.resources.stockAdjustments.new}?from=${adjustment.id}`;
 
   const totalImpact = adjustment.lineItems.reduce(
     (sum, item) => sum + item.totalAdjustmentValue,
@@ -301,21 +367,32 @@ export default function StockAdjustmentDetailPage({
         title={adjustment.adjustmentNumber}
         description={`Created ${format(adjustment.submittedAt, 'PPP')}`}
         actions={
-          <>
-            <Button variant="outline" onClick={handleEdit}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setConfirmingDelete(true)}
-              disabled={deleteAdjustment.isPending}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {deleteAdjustment.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
-          </>
+          amendment.allowed ? (
+            <>
+              <Button variant="outline" onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setConfirmingDelete(true)}
+                disabled={deleteAdjustment.isPending}
+                className="text-red-600 hover:text-red-700"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                {deleteAdjustment.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </>
+          ) : (
+            amendment.rejected && (
+              <Button variant="outline" asChild>
+                <Link href={duplicateHref}>
+                  <CopyPlus className="mr-2 h-4 w-4" />
+                  Raise a fresh adjustment
+                </Link>
+              </Button>
+            )
+          )
         }
       />
 
@@ -327,20 +404,78 @@ export default function StockAdjustmentDetailPage({
         <Badge variant="outline">{adjustment.type}</Badge>
       </div>
 
+      {/* The refusal, which is the whole point of rejecting rather than deleting. */}
+      {amendment.rejected && (
+        <Card className="border-red-200 dark:border-red-900/50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base text-red-700 dark:text-red-400">
+              <XCircle className="h-5 w-5" />
+              Rejected
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="text-zinc-900 dark:text-zinc-100">
+              {adjustment.rejectionReason || 'No reason was recorded.'}
+            </div>
+            <div className="text-zinc-500 dark:text-zinc-400">
+              {adjustment.rejectedBy
+                ? `Rejected by ${getEmployeeName(adjustment.rejectedBy)}`
+                : 'Rejected'}
+              {adjustment.rejectedAt &&
+                ` on ${format(adjustment.rejectedAt, 'PPP')}`}
+              . No stock moved.
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Why Edit and Delete are not on a decided document. */}
+      {!amendment.allowed && amendment.reason && (
+        <p className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          {amendment.reason}
+        </p>
+      )}
+
       {/* Approval. Posts the lines to the stock ledger and moves the balances. */}
-      {approval.visible && (
+      {(approval.visible || canReject) && (
         <div className="mb-6 space-y-2">
-          <Button
-            onClick={() => setConfirmingApproval(true)}
-            disabled={!approval.enabled || approveAdjustment.isPending}
-          >
-            {approveAdjustment.isPending ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <CheckCircle2 className="mr-2 h-4 w-4" />
+          <div className="flex flex-wrap gap-2">
+            {approval.visible && (
+              <Button
+                onClick={() => setConfirmingApproval(true)}
+                disabled={!approval.enabled || approveAdjustment.isPending}
+              >
+                {approveAdjustment.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="mr-2 h-4 w-4" />
+                )}
+                Approve Adjustment
+              </Button>
             )}
-            Approve Adjustment
-          </Button>
+            {/*
+              Enabled even where approval is not. The reasons approval is
+              refused (the caller raised it, no project, no lines, a line with
+              no material) are all reasons a document deserves refusing, and a
+              rejection posts nothing that any of them would make invalid.
+            */}
+            {canReject && (
+              <Button
+                variant="outline"
+                onClick={openRejection}
+                disabled={rejectAdjustment.isPending}
+                className="text-red-600 hover:text-red-700"
+              >
+                {rejectAdjustment.isPending ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <XCircle className="mr-2 h-4 w-4" />
+                )}
+                Reject Adjustment
+              </Button>
+            )}
+          </div>
           {approval.reason && (
             <p className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -389,6 +524,85 @@ export default function StockAdjustmentDetailPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={rejecting} onOpenChange={setRejecting}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              Reject stock adjustment
+            </DialogTitle>
+            <DialogDescription>
+              Refuse <strong>{adjustment.adjustmentNumber}</strong>. Nothing is
+              posted to the stock ledger and no balance moves. The refusal is
+              final: a rejected adjustment cannot be edited, deleted or
+              approved afterwards, and a corrected count is raised as a fresh
+              adjustment.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="rejection-reason"
+              className="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+            >
+              Reason
+            </label>
+            <Textarea
+              id="rejection-reason"
+              rows={4}
+              maxLength={REJECTION_REASON_MAX_LENGTH}
+              value={rejectionReason}
+              placeholder="Say what the count sheet does not support, so the next person reading the balance knows why this was turned down."
+              onChange={(event) => setRejectionReason(event.target.value)}
+              onBlur={() => setRejectionTouched(true)}
+              aria-invalid={showReasonError}
+              aria-describedby="rejection-reason-help"
+            />
+            <div
+              id="rejection-reason-help"
+              className="flex items-start justify-between gap-3 text-sm"
+            >
+              <span
+                className={
+                  showReasonError
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-zinc-500 dark:text-zinc-400'
+                }
+              >
+                {showReasonError
+                  ? reasonError
+                  : 'Required. It is what a rejection records that a deletion does not.'}
+              </span>
+              <span className="shrink-0 tabular-nums text-zinc-500 dark:text-zinc-400">
+                {rejectionReason.length}/{REJECTION_REASON_MAX_LENGTH}
+              </span>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRejecting(false)}
+              disabled={rejectAdjustment.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleReject}
+              disabled={reasonError !== undefined || rejectAdjustment.isPending}
+            >
+              {rejectAdjustment.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <XCircle className="mr-2 h-4 w-4" />
+              )}
+              Reject adjustment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
         <AlertDialogContent>

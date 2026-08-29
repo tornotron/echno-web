@@ -78,7 +78,11 @@ export interface StockAdjustmentSubmitData {
 }
 
 interface StockAdjustmentFormProps {
-  /** An existing document to edit. Omitted when raising a new one. */
+  /**
+   * An existing document to edit, or one to copy when raising a new one from
+   * a rejected adjustment. A copy arrives with `adjustmentNumber` blank,
+   * because the number has to be unique and the copy needs its own.
+   */
   initial?: StockAdjustment;
   onSubmit: (data: StockAdjustmentSubmitData) => void;
 }
@@ -131,8 +135,10 @@ export function StockAdjustmentForm({
   const { data: storageLocations = [] } = useStorageLocations();
 
   const [form, setForm] = useState<StockAdjustmentFormState>(() => ({
+    // `||` rather than `??`: a copy comes in with the number blanked, and a
+    // blank number needs generating just as an absent one does.
     adjustmentNumber:
-      initial?.adjustmentNumber ??
+      initial?.adjustmentNumber ||
       `SA-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000)
         .toString()
         .padStart(4, '0')}`,

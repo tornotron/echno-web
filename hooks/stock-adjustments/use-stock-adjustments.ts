@@ -105,3 +105,28 @@ export const useApproveStockAdjustment = () => {
     },
   });
 };
+
+/**
+ * Rejects a stock adjustment, recording the refusal and its reason.
+ *
+ * The rejected document comes back on the response and is seeded into the
+ * detail cache, so the screen shows the refusal without a refetch. Only the
+ * list is invalidated beyond that. Unlike an approval, a rejection writes no
+ * inventory transactions and moves no balance, so the material, material-stock
+ * and inventory-transaction caches are untouched by it and invalidating them
+ * would refetch three namespaces to arrive back at what they already hold.
+ */
+export const useRejectStockAdjustment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, reason }: { id: number; reason: string }) =>
+      stockAdjustmentsService.reject(id, reason),
+    onSuccess: (rejected) => {
+      queryClient.setQueryData(
+        stockAdjustmentKeys.detail(rejected.id),
+        rejected
+      );
+      queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
+    },
+  });
+};
