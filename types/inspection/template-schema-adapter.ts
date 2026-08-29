@@ -23,6 +23,13 @@
 // placeholder and default values for anything but a plain expected value,
 // checklist-level settings, and nesting deeper than section -> element.
 //
+// Reopening a saved template loses a little more, because the element type has
+// to be inferred from the worded acceptance criterion. Text, textarea and
+// comment state no pass rule, so they write no criterion and come back as
+// passFail; radio and select share one wording and both come back as select.
+// Those are consequences of the backend's pass/fail check-point model, not
+// defects to patch here.
+//
 // Rather than smuggle those through a free-text column, where they would
 // corrupt fields inspectors actually read, the builder palette is limited to
 // the element types listed in REPRESENTABLE_ELEMENT_TYPES. Lifting that limit
@@ -33,6 +40,7 @@ import {
   type ChecklistElement,
   type ChecklistSchema,
   type ElementType,
+  type ElementValidation,
   CURRENT_SCHEMA_VERSION,
   isInputElement,
 } from './checklist-schema';
@@ -167,7 +175,39 @@ function elementTypeFor(item: ChecklistTemplateItem): ElementType {
   if (criterion.startsWith('photo evidence')) return 'photo';
   if (criterion.startsWith('one of:')) return 'select';
   if (criterion.startsWith('recorded value')) return 'number';
+  // A check point written outside the builder can require photos without
+  // carrying a criterion to say so. The flag is the same fact, so read it
+  // rather than fall through to a pass/fail element that asks for nothing.
+  if (item.photosRequired) return 'photo';
   return 'passFail';
+}
+
+/**
+ * Reads the permitted range back out of the wording {@link toleranceFor} wrote.
+ *
+ * The backend column is free text (`tolerance?: string` on
+ * `ChecklistTemplateItem`), so the bounds have no structured home to travel in
+ * and the phrase is the only carrier available. Only the three forms the
+ * builder writes are recognized; a tolerance typed elsewhere, such as
+ * `"+/- 5 mm"`, has no numeric reading and is left off the element rather than
+ * guessed at.
+ */
+function validationFor(
+  item: ChecklistTemplateItem
+): ElementValidation | undefined {
+  const tolerance = item.tolerance?.trim();
+  if (!tolerance) return undefined;
+
+  const range = /^(-?\d+(?:\.\d+)?)\s+to\s+(-?\d+(?:\.\d+)?)$/i.exec(tolerance);
+  if (range) return { min: Number(range[1]), max: Number(range[2]) };
+
+  const lower = /^minimum\s+(-?\d+(?:\.\d+)?)$/i.exec(tolerance);
+  if (lower) return { min: Number(lower[1]) };
+
+  const upper = /^maximum\s+(-?\d+(?:\.\d+)?)$/i.exec(tolerance);
+  if (upper) return { max: Number(upper[1]) };
+
+  return undefined;
 }
 
 function optionsFor(item: ChecklistTemplateItem) {
@@ -215,6 +255,7 @@ export function templateItemsToSchema(
       required: item.priority === 'high',
       defaultValue: item.expectedValue,
       options: optionsFor(item),
+      validation: validationFor(item),
     });
   }
 
