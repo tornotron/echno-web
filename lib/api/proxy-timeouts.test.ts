@@ -5,7 +5,7 @@ import {
   proxyTimeoutMs,
 } from './proxy-timeouts';
 
-const COMPLIANCE_PATH = 'inspections/web/compliance/regenerate';
+const COMPLIANCE_JOBS_PATH = 'inspections/web/compliance/jobs';
 
 describe('proxyTimeoutMs', () => {
   test('an ordinary request gets the default budget', () => {
@@ -16,23 +16,23 @@ describe('proxyTimeoutMs', () => {
     expect(proxyTimeoutMs('attachments/web', true)).toBe(UPLOAD_TIMEOUT_MS);
   });
 
-  // The bug this guards: compliance generation waits on an external AI model,
-  // measured at 34-47 seconds on staging, and the default 30 was aborting work
-  // that had in fact succeeded.
-  test('compliance generation gets more than the default', () => {
-    expect(proxyTimeoutMs(COMPLIANCE_PATH, false)).toBeGreaterThan(
-      REQUEST_TIMEOUT_MS
-    );
+  // Compliance generation used to be the one endpoint here, on a 55-second
+  // budget, because it ran an external AI model inside the request. It is a
+  // queued job now: starting one is an insert and polling one is a single-row
+  // read, so neither needs more than the default, and an endpoint quietly
+  // getting a raised budget again would mean something slow had crept back
+  // onto the request thread.
+  test('the compliance job endpoints need no more than the default', () => {
+    expect(proxyTimeoutMs(COMPLIANCE_JOBS_PATH, false)).toBe(REQUEST_TIMEOUT_MS);
+    expect(
+      proxyTimeoutMs(`${COMPLIANCE_JOBS_PATH}/ac9c2f6e-0f9a-4a0e-9c2b-1a1d7e0b4c11`, false)
+    ).toBe(REQUEST_TIMEOUT_MS);
   });
 
-  // Two ceilings. The browser allows this call 50 s and has to be the side that
-  // gives up first, so it can explain itself rather than leaving a raw gateway
-  // error on screen. The reverse proxy in front of the site abandons an
-  // upstream response after 60 s.
-  test('and stays between the browser budget and the proxy ceiling', () => {
-    const timeout = proxyTimeoutMs(COMPLIANCE_PATH, false);
-    expect(timeout).toBeGreaterThan(50_000);
-    expect(timeout).toBeLessThan(60_000);
+  test('and the synchronous endpoint it replaced no longer has a budget of its own', () => {
+    expect(
+      proxyTimeoutMs('inspections/web/compliance/regenerate', false)
+    ).toBe(REQUEST_TIMEOUT_MS);
   });
 
   // The lookup must not be fooled by a path that names an inherited property,
