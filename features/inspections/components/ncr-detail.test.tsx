@@ -1,0 +1,253 @@
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { createElement } from 'react';
+import { cleanup, fireEvent, render } from '@testing-library/react';
+import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
+import * as realInspectionHooks from '@/hooks/inspection';
+import {
+  DefectSeverity,
+  NcrStatus,
+  NcrType,
+  availableNcrActions,
+  ncrActionLabels,
+  type Ncr,
+  type NcrAction,
+} from '@/types/inspection';
+
+// ---------------------------------------------------------------------------
+// Doubles
+//
+// The screen is the thing under test, so every hook it reaches through is a
+// stub. What matters is which buttons it offers for a given status and which
+// mutation each one fires: the reviewer of #316 found the action map offering
+// transitions the backend refuses, and that is a screen-level fault.
+// ---------------------------------------------------------------------------
+
+function mutation() {
+  return { mutate: mock((..._args: unknown[]) => {}), isPending: false };
+}
+
+const assign = mutation();
+const complete = mutation();
+const verify = mutation();
+const reject = mutation();
+const reopen = mutation();
+const close = mutation();
+
+const mutations = { assign, complete, verify, reject, reopen, close };
+
+let currentNcr: Ncr | undefined;
+
+mock.module('@tornotron/echno-core/employee/hooks', () => ({
+  ...realEmployeeHooks,
+  useEmployeeLookup: () => ({ data: [{ id: 8, name: 'Ravi Kumar' }] }),
+}));
+
+mock.module('@/hooks/inspection', () => ({
+  ...realInspectionHooks,
+  useNcrById: () => ({ data: currentNcr, isLoading: false }),
+  useInspectionById: () => ({ data: undefined, isLoading: false }),
+  useAssignNcr: () => assign,
+  useCompleteCorrectiveAction: () => complete,
+  useVerifyNcr: () => verify,
+  useRejectNcr: () => reject,
+  useReopenNcr: () => reopen,
+  useCloseNcr: () => close,
+}));
+
+mock.module('next/link', () => ({
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => createElement('a', { href }, children),
+}));
+
+const { NcrDetail } = await import('./ncr-detail');
+
+const NCR_ID = '33333333-3333-4333-8333-333333333333';
+
+function ncrWith(status: NcrStatus): Ncr {
+  return {
+    id: NCR_ID,
+    ncrNumber: 'NCR-2026-0007',
+    type: NcrType.QUALITY,
+    inspectionId: '22222222-2222-4222-8222-222222222222',
+    title: 'Cover to reinforcement short of specification',
+    description: 'Measured 20mm against a specified 40mm.',
+    severity: DefectSeverity.MAJOR,
+    status,
+    siteEngineerId: 8,
+    raisedById: 8,
+    targetDate: '2026-09-10',
+    createdAt: '2026-08-20T09:00:00Z',
+  };
+}
+
+const ACTION_LABELS = Object.values(ncrActionLabels);
+
+/** The lifecycle buttons the screen is offering, in the order shown. */
+function offeredActions(status: NcrStatus): string[] {
+  currentNcr = ncrWith(status);
+  const { container } = render(createElement(NcrDetail, { ncrId: NCR_ID }));
+
+  return [...container.querySelectorAll('button')]
+    .map((button) => button.textContent?.trim() ?? '')
+    .filter((label) => ACTION_LABELS.includes(label));
+}
+
+/** Clicks a lifecycle button on a screen showing an NCR in `status`. */
+function clickAction(status: NcrStatus, action: NcrAction) {
+  currentNcr = ncrWith(status);
+  const { container } = render(createElement(NcrDetail, { ncrId: NCR_ID }));
+
+  const button = [...container.querySelectorAll('button')].find(
+    (candidate) => candidate.textContent?.trim() === ncrActionLabels[action]
+  );
+  if (!button) throw new Error(`No "${ncrActionLabels[action]}" button on screen`);
+
+  fireEvent.click(button);
+}
+
+/** Names of the mutations that were fired, so a wrong endpoint shows up. */
+function firedMutations(): string[] {
+  return Object.entries(mutations)
+    .filter(([, spy]) => spy.mutate.mock.calls.length > 0)
+    .map(([name]) => name);
+}
+
+beforeEach(() => {
+  for (const spy of Object.values(mutations)) spy.mutate.mockReset();
+});
+
+afterEach(() => {
+  cleanup();
+  currentNcr = undefined;
+});
+
+// Radix dialogs and selects go through the DOM shim, which is slow enough to
+// overrun the default per-test budget.
+const RENDER_TIMEOUT_MS = 20_000;
+
+// ---------------------------------------------------------------------------
+// What the screen offers
+// ---------------------------------------------------------------------------
+
+describe('NcrDetail — the actions offered for each status', () => {
+  // Written out rather than derived, so this is an independent statement of
+  // the backend's transitions and not a restatement of the map. A rejected or
+  // reopened NCR offering "Mark Corrected" is the bug this pins: the endpoint
+  // answers 400 from those two states.
+  const expected: Array<[NcrStatus, string[]]> = [
+    [NcrStatus.OPEN, ['Assign']],
+    [NcrStatus.ASSIGNED, ['Mark Corrected', 'Assign']],
+    [NcrStatus.REJECTED, ['Assign']],
+    [NcrStatus.REOPENED, ['Assign']],
+    [NcrStatus.CORRECTIVE_ACTION_COMPLETE, ['Verify', 'Reject']],
+    [NcrStatus.VERIFIED, ['Close', 'Reopen']],
+    [NcrStatus.CLOSED, ['Reopen']],
+  ];
+
+  for (const [status, labels] of expected) {
+    test(`a ${status} NCR offers ${labels.join(' + ')}`, () => {
+      expect(offeredActions(status)).toEqual(labels);
+    }, RENDER_TIMEOUT_MS);
+  }
+
+  test('the screen never offers a transition the lifecycle map refuses', () => {
+    for (const status of Object.values(NcrStatus)) {
+      const shown = offeredActions(status);
+      const allowed = availableNcrActions(status).map(
+        (action) => ncrActionLabels[action]
+      );
+
+      expect(shown).toEqual(allowed);
+      cleanup();
+    }
+  }, RENDER_TIMEOUT_MS);
+});
+
+// ---------------------------------------------------------------------------
+// What the buttons do
+// ---------------------------------------------------------------------------
+
+describe('NcrDetail — each action fires its own endpoint', () => {
+  test('Close settles the NCR straight away, with no remarks step', () => {
+    clickAction(NcrStatus.VERIFIED, 'close');
+
+    expect(firedMutations()).toEqual(['close']);
+    expect(close.mutate.mock.calls[0][0]).toBe(NCR_ID);
+  }, RENDER_TIMEOUT_MS);
+
+  test('Assign opens the assignment form rather than assigning blind', () => {
+    clickAction(NcrStatus.OPEN, 'assign');
+
+    // Assignment needs an engineer and a date, so nothing is sent on the click
+    // itself.
+    expect(firedMutations()).toEqual([]);
+    expect(document.querySelectorAll('[role="dialog"]').length).toBe(1);
+  }, RENDER_TIMEOUT_MS);
+
+  test('Mark Corrected asks for remarks, then reports the correction', () => {
+    clickAction(NcrStatus.ASSIGNED, 'corrective-action-complete');
+    expect(firedMutations()).toEqual([]);
+
+    const remarks = document.querySelector('#ncr-remarks')!;
+    fireEvent.change(remarks, {
+      target: { value: '  Cover re-cast to 40mm and re-measured.  ' },
+    });
+    submitDialog('Mark Corrected');
+
+    expect(firedMutations()).toEqual(['complete']);
+    expect(complete.mutate.mock.calls[0][0]).toEqual({
+      id: NCR_ID,
+      req: { remarks: 'Cover re-cast to 40mm and re-measured.' },
+    });
+  }, RENDER_TIMEOUT_MS);
+
+  test('remarks left blank are omitted rather than sent as an empty string', () => {
+    clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'verify');
+    submitDialog('Verify');
+
+    expect(firedMutations()).toEqual(['verify']);
+    expect(verify.mutate.mock.calls[0][0]).toEqual({
+      id: NCR_ID,
+      req: undefined,
+    });
+  }, RENDER_TIMEOUT_MS);
+
+  test('Reject sends the rework back and touches nothing else', () => {
+    clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'reject');
+    fireEvent.change(document.querySelector('#ncr-remarks')!, {
+      target: { value: 'Cover still short on the east face.' },
+    });
+    submitDialog('Reject');
+
+    expect(firedMutations()).toEqual(['reject']);
+    expect(reject.mutate.mock.calls[0][0]).toEqual({
+      id: NCR_ID,
+      req: { remarks: 'Cover still short on the east face.' },
+    });
+  }, RENDER_TIMEOUT_MS);
+
+  test('Reopen from closed goes to the reopen endpoint', () => {
+    clickAction(NcrStatus.CLOSED, 'reopen');
+    submitDialog('Reopen');
+
+    expect(firedMutations()).toEqual(['reopen']);
+  }, RENDER_TIMEOUT_MS);
+});
+
+/** Clicks the confirm button inside the open remarks dialog. */
+function submitDialog(label: string) {
+  const dialog = document.querySelector('[role="dialog"]');
+  if (!dialog) throw new Error('No dialog open');
+
+  const button = [...dialog.querySelectorAll('button')].findLast(
+    (candidate) => candidate.textContent?.trim() === label
+  );
+  if (!button) throw new Error(`No "${label}" button in the dialog`);
+
+  fireEvent.click(button);
+}
