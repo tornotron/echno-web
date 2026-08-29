@@ -71,7 +71,7 @@ describe('approve', () => {
       );
     });
 
-    expect(stockAdjustmentsService.approve(14)).rejects.toThrow(
+    await expect(stockAdjustmentsService.approve(14)).rejects.toThrow(
       'names no project'
     );
   });
@@ -128,8 +128,8 @@ describe('reject', () => {
       );
     });
 
-    expect(
-      stockAdjustmentsService.reject(14, 'again')
-    ).rejects.toThrow('already been rejected');
+    await expect(stockAdjustmentsService.reject(14, 'again')).rejects.toThrow(
+      'already been rejected'
+    );
   });
 });
