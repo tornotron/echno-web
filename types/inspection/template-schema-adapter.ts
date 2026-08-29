@@ -149,7 +149,7 @@ export function schemaToTemplateItems(
         expectedValue: expectedValueFor(element),
         acceptanceCriterion: acceptanceCriterionFor(element),
         tolerance: toleranceFor(element),
-        photosRequired: element.type === 'photo' || element.required === true,
+        photosRequired: element.type === 'photo',
         priority: element.required ? 'high' : undefined,
       });
     }
