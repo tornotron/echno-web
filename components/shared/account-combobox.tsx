@@ -27,6 +27,18 @@ interface AccountComboboxProps {
   placeholder?: string;
 }
 
+/**
+ * Searchable picker over a flat list of ledger accounts, showing each account's
+ * code and name. Both the posting-account mapping in finance settings and the
+ * expense-account field on a cost category need it, which is why it sits in
+ * `components/shared` rather than inside either feature.
+ *
+ * @param props.accounts - Accounts to offer, already narrowed by the caller.
+ * @param props.value - Id of the selected account.
+ * @param props.onSelect - Receives the id of the account chosen.
+ * @param props.disabled - Disables the trigger.
+ * @param props.placeholder - Shown when nothing is selected.
+ */
 export function AccountCombobox({
   accounts,
   value,

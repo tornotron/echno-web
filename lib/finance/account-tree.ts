@@ -1,5 +1,16 @@
 import type { AccountTreeNode } from '@tornotron/echno-core/finance/types';
 
+/*
+ * Reading and reshaping the ledger account tree.
+ *
+ * This lives in `lib` rather than under `features/chart-of-accounts` because
+ * three separate features speak the same account vocabulary: the chart of
+ * accounts renders the tree, finance settings maps posting roles onto postable
+ * accounts, and cost categories binds a category to an expense account. They
+ * are not one feature, and a feature may not import across into a sibling, so
+ * the shared vocabulary belongs in a layer all three may depend on.
+ */
+
 /**
  * A flattened account row carrying its depth in the tree, used to render the
  * chart of accounts as an indented table and to build account pickers.

@@ -19,11 +19,41 @@ type StarLayerProps = HTMLMotionProps<'div'> & {
   starColor: string;
 };
 
+/**
+ * Deterministic 32-bit PRNG (mulberry32). The star field wants scattered
+ * positions, not unpredictable ones, and `Math.random()` cannot give the
+ * server and the client the same answer.
+ */
+function seededRandom(seed: number) {
+  let state = seed >>> 0;
+  return () => {
+    state = (state + 0x6D_2B_79_F5) >>> 0;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4_294_967_296;
+  };
+}
+
+/**
+ * Builds the `box-shadow` list that draws one layer of stars.
+ *
+ * The positions were drawn from `Math.random()` and generated in an effect,
+ * because random markup rendered on the server never matches what the client
+ * draws. Seeding on the layer's own inputs instead makes both sides produce the
+ * same string, so the layer renders with its stars already in place rather than
+ * appearing blank until the first effect runs.
+ *
+ * @param count - Stars in this layer, and the seed too, so the three
+ *   layers scatter differently.
+ * @param starColor - CSS colour applied to every star in the layer.
+ */
 function generateStars(count: number, starColor: string) {
+  const random = seededRandom(count * 2_654_435_761);
   const shadows: string[] = [];
   for (let i = 0; i < count; i++) {
-    const x = Math.floor(Math.random() * 4000) - 2000;
-    const y = Math.floor(Math.random() * 4000) - 2000;
+    const x = Math.floor(random() * 4000) - 2000;
+    const y = Math.floor(random() * 4000) - 2000;
     shadows.push(`${x}px ${y}px ${starColor}`);
   }
   return shadows.join(', ');
@@ -37,11 +67,10 @@ function StarLayer({
   className,
   ...props
 }: StarLayerProps) {
-  const [boxShadow, setBoxShadow] = React.useState<string>('');
-
-  React.useEffect(() => {
-    setBoxShadow(generateStars(count, starColor));
-  }, [count, starColor]);
+  const boxShadow = React.useMemo(
+    () => generateStars(count, starColor),
+    [count, starColor]
+  );
 
   return (
     <motion.div

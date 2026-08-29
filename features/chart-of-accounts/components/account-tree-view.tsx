@@ -12,7 +12,7 @@ import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import { Pencil, Plus, Ban } from 'lucide-react';
 import type { AccountTreeNode } from '@tornotron/echno-core/finance/types';
-import { flattenAccountTree } from '../utils/account-tree';
+import { flattenAccountTree } from '@/lib/finance/account-tree';
 
 const TYPE_LABELS: Record<string, string> = {
   ASSET: 'Asset',

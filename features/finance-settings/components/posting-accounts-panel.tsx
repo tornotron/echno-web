@@ -27,8 +27,8 @@ import {
 } from '@tornotron/echno-core/finance/types';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { toast } from '@/lib/styles/toast-styles';
-import { collectPostableAccounts } from '@/features/chart-of-accounts/utils/account-tree';
-import { AccountCombobox } from './account-combobox';
+import { collectPostableAccounts } from '@/lib/finance/account-tree';
+import { AccountCombobox } from '@/components/shared/account-combobox';
 
 export function PostingAccountsPanel() {
   const {

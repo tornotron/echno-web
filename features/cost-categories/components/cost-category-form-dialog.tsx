@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,8 +32,8 @@ import {
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { toast } from '@/lib/styles/toast-styles';
 import { required } from '@/lib/validators';
-import { collectPostableAccounts } from '@/features/chart-of-accounts';
-import { AccountCombobox } from '@/features/finance-settings/components/account-combobox';
+import { collectPostableAccounts } from '@/lib/finance/account-tree';
+import { AccountCombobox } from '@/components/shared/account-combobox';
 
 interface CostCategoryFormDialogProps {
   open: boolean;
@@ -70,21 +70,26 @@ export function CostCategoryFormDialog({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Re-seed the form whenever the dialog is (re)opened for a given target.
-  useEffect(() => {
-    if (!open) return;
+  //
+  // Done while rendering rather than in an effect: an effect would paint the
+  // previous category's values first and only then replace them, which is a
+  // cascading render and, on a dialog, a visible flicker of the last category
+  // edited. Clearing the key on close is what lets the same category be
+  // re-seeded when the dialog is opened again.
+  const seedKey = category?.id ?? 'new';
+  const [seededFor, setSeededFor] = useState<string | null>(null);
+
+  if (!open && seededFor !== null) {
+    setSeededFor(null);
+  }
+  if (open && seededFor !== seedKey) {
+    setSeededFor(seedKey);
     setErrors({});
-    if (category) {
-      setName(category.name);
-      setCode(category.code ?? '');
-      setExpenseAccountId(category.expenseAccountId ?? null);
-      setActive(category.active);
-    } else {
-      setName('');
-      setCode('');
-      setExpenseAccountId(null);
-      setActive(true);
-    }
-  }, [open, category]);
+    setName(category?.name ?? '');
+    setCode(category?.code ?? '');
+    setExpenseAccountId(category?.expenseAccountId ?? null);
+    setActive(category?.active ?? true);
+  }
 
   function validate(): boolean {
     const next: Record<string, string> = {};

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
@@ -21,15 +21,22 @@ export function ApprovalThresholdPanel() {
   const [value, setValue] = useState('');
 
   // Sync the input from the loaded settings; blank when the threshold is unset.
-  useEffect(() => {
-    if (settings) {
-      setValue(
-        settings.approvalThreshold === null
-          ? ''
-          : String(settings.approvalThreshold)
-      );
-    }
-  }, [settings]);
+  //
+  // Done while rendering rather than in an effect, so the input carries the
+  // saved threshold on the first paint after the query resolves instead of
+  // showing an empty box for a frame. The saved figure is remembered so a
+  // refetch that changed nothing leaves whatever the user has typed alone.
+  const savedValue = settings
+    ? settings.approvalThreshold === null
+      ? ''
+      : String(settings.approvalThreshold)
+    : undefined;
+  const [syncedFrom, setSyncedFrom] = useState<string | undefined>();
+
+  if (savedValue !== undefined && savedValue !== syncedFrom) {
+    setSyncedFrom(savedValue);
+    setValue(savedValue);
+  }
 
   function handleSave() {
     const trimmed = value.trim();
