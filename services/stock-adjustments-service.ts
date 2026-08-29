@@ -26,6 +26,8 @@ function parseMaybeDate(val: unknown): Date | undefined {
 export function parseLineItem(raw: Raw): StockAdjustmentLineItem {
   return {
     id: raw.id ?? 0,
+    materialId: raw.materialId ?? undefined,
+    materialName: raw.materialName ?? undefined,
     inventoryItemId: raw.inventoryItemId ?? undefined,
     assetId: raw.assetId ?? undefined,
     description: raw.description ?? '',
@@ -53,7 +55,9 @@ export function parseStockAdjustment(raw: Raw): StockAdjustment {
     type: (raw.type ?? 'correction') as StockAdjustmentType,
     status: (raw.status ?? 'draft') as StockAdjustmentStatus,
     locationId: raw.locationId ?? undefined,
+    locationName: raw.locationName ?? undefined,
     projectId: raw.projectId ?? undefined,
+    projectName: raw.projectName ?? undefined,
     organizationId: raw.organizationId ?? undefined,
     adjustmentDate: parseDate(raw.adjustmentDate),
     effectiveDate: parseDate(raw.effectiveDate ?? raw.adjustmentDate),
@@ -116,16 +120,25 @@ const BASE = '/stock-adjustments/web';
 
 /**
  * Maps the adjustment form (header + line items) to the backend
- * `StockAdjustmentCreationDto`. The form collects display strings for
- * type/reason/location and per-line current/counted quantities; the line
+ * `StockAdjustmentCreationDto`. The form collects the type and reason as
+ * display strings and per-line current/counted quantities; the line
  * adjustment is `counted - current`. `justification` is required by the
  * backend, so it falls back to the notes or a placeholder.
+ *
+ * The project, the storage location and each line's material are sent as ids,
+ * because approval resolves the balance row from exactly those three. A
+ * payload that omits the project produces a document that can be raised and
+ * then never posted, which is how `SA-2026-4021` came to sit on staging with a
+ * null `project_id`. The same applies on update: the backend replaces the
+ * header wholesale, so a payload without `projectId` would clear the project
+ * off a document that had one.
  */
 export function toPayload(data: StockAdjustmentSubmitData): Record<string, unknown> {
   const { form, items } = data;
   const lineItems = items.map((item) => {
     const adjustmentQuantity = item.countedStock - item.currentStock;
     return {
+      materialId: item.materialId || undefined,
       description: item.description || undefined,
       systemQuantity: item.currentStock,
       physicalQuantity: item.countedStock,
@@ -148,6 +161,8 @@ export function toPayload(data: StockAdjustmentSubmitData): Record<string, unkno
     adjustmentNumber: form.adjustmentNumber || undefined,
     type: form.adjustmentType || undefined,
     status: 'draft',
+    projectId: form.projectId || undefined,
+    locationId: form.storageLocationId || undefined,
     adjustmentDate: form.adjustmentDate || undefined,
     effectiveDate: form.adjustmentDate || undefined,
     primaryReason: form.adjustmentReason || undefined,
@@ -187,5 +202,30 @@ export const stockAdjustmentsService = {
 
   async remove(id: number): Promise<void> {
     await api.delete(`${BASE}/${id}`);
+  },
+
+  /**
+   * Approves the adjustment and posts its lines to the stock ledger.
+   *
+   * `POST /stock-adjustments/web/{id}/approve` takes no body: the approver is
+   * read from the session, which is also what the backend compares against the
+   * raiser to refuse a self-approval. It is the only path that moves a stock
+   * balance from the product, and it runs once, so an approved document is
+   * frozen afterwards and a mistake is corrected by raising another adjustment.
+   *
+   * The refusals it can return are 400s carrying the reason: the document is
+   * already posted, the approver raised it and does not hold `system-admin`,
+   * it names no project, it has no lines, or a line has no material, no reason
+   * or a quantity that would take a balance below zero. `stockAdjustmentApprovalGate`
+   * screens the ones the client can see before the request goes out; the server
+   * stays the authority on the rest.
+   *
+   * There is deliberately no `reject` here. The document carries `rejectedBy`,
+   * `rejectedAt` and `rejectionReason` and the detail screen shows them, but no
+   * backend endpoint writes them, so there is nothing for a client to call.
+   */
+  async approve(id: number): Promise<StockAdjustment> {
+    const raw = await api.post<Raw>(`${BASE}/${id}/approve`);
+    return safeParseStockAdjustment(raw);
   },
 };

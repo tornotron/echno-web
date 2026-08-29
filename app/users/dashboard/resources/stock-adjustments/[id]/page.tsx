@@ -21,8 +21,8 @@ import {
   Download,
   Printer,
   CheckCircle2,
-  XCircle,
   AlertCircle,
+  Loader2,
   Package,
   Calendar,
   User,
@@ -42,12 +42,30 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/shadcn/alert-dialog';
 import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { useUser } from '@tornotron/echno-core/user/hooks';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
-import { useStockAdjustment } from '@/hooks/stock-adjustments';
-import { StockAdjustmentStatus } from '@/types/resource';
+import {
+  useStockAdjustment,
+  useApproveStockAdjustment,
+  useDeleteStockAdjustment,
+} from '@/hooks/stock-adjustments';
+import { useAuthorization } from '@/hooks/use-authorization';
+import { stockAdjustmentApprovalGate } from '@/features/stock-adjustments/approval-gate';
+
 
 const handleDownloadPDF = () => {
   toast.success('Downloading stock adjustment report...');
@@ -161,14 +179,18 @@ export default function StockAdjustmentDetailPage({
   const numericId = Number.parseInt(id);
   const { data: adjustment } = useStockAdjustment(numericId);
   const { data: employees = [] } = useEmployeeLookup();
+  const { data: currentUser } = useUser();
+  const { isSystemAdmin, isManagerOrAbove } = useAuthorization();
+  const approveAdjustment = useApproveStockAdjustment();
+  const deleteAdjustment = useDeleteStockAdjustment();
+  const [confirmingApproval, setConfirmingApproval] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const getEmployeeName = (empId?: number): string => {
     if (!empId) return '—';
     const employee = employees.find((e) => e.id === empId);
     return employee?.name || `EMP-${empId.toString().padStart(3, '0')}`;
   };
-
-  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!adjustment) {
     return (
@@ -195,24 +217,43 @@ export default function StockAdjustmentDetailPage({
     router.push(routes.resources.stockAdjustments.detail(id).edit);
   };
 
-  const handleDelete = () => {
-    setIsDeleting(true);
-    // Simulate API call
-    setTimeout(() => {
-      toast.success('Stock Adjustment deleted successfully');
+  async function handleDelete() {
+    try {
+      await deleteAdjustment.mutateAsync(numericId);
+      toast.success('Stock adjustment deleted');
       router.push(routes.resources.stockAdjustments.href);
-    }, 1000);
-  };
+    } catch (error) {
+      toast.error('Failed to delete stock adjustment', {
+        description: getErrorMessage(error),
+      });
+    }
+  }
 
-  const handleApprove = () => {
-    toast.success('Stock Adjustment approved successfully');
-    router.refresh();
-  };
+  async function handleApprove() {
+    try {
+      await approveAdjustment.mutateAsync(numericId);
+      setConfirmingApproval(false);
+      toast.success('Stock adjustment approved', {
+        description: 'Its lines are posted and the stock balances have moved.',
+      });
+    } catch (error) {
+      setConfirmingApproval(false);
+      toast.error('Failed to approve stock adjustment', {
+        description: getErrorMessage(error),
+      });
+    }
+  }
 
-  const handleReject = () => {
-    toast.error('Stock Adjustment rejected');
-    router.refresh();
-  };
+  // The document carries rejectedBy, rejectedAt and rejectionReason and they
+  // are shown below, but no backend endpoint writes them: there is no reject
+  // action to offer here until one exists. Tracked in echno-backend.
+
+  const approval = stockAdjustmentApprovalGate({
+    adjustment,
+    currentUserId: currentUser?.id,
+    canApprove: isSystemAdmin || isManagerOrAbove,
+    isSystemAdmin,
+  });
 
   const totalImpact = adjustment.lineItems.reduce(
     (sum, item) => sum + item.totalAdjustmentValue,
@@ -267,12 +308,12 @@ export default function StockAdjustmentDetailPage({
             </Button>
             <Button
               variant="outline"
-              onClick={handleDelete}
-              disabled={isDeleting}
+              onClick={() => setConfirmingDelete(true)}
+              disabled={deleteAdjustment.isPending}
               className="text-red-600 hover:text-red-700"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {deleteAdjustment.isPending ? 'Deleting...' : 'Delete'}
             </Button>
           </>
         }
@@ -286,19 +327,95 @@ export default function StockAdjustmentDetailPage({
         <Badge variant="outline">{adjustment.type}</Badge>
       </div>
 
-      {/* Action Buttons for Pending Status */}
-      {adjustment.status === StockAdjustmentStatus.pending && (
-        <div className="mb-6 flex gap-2">
-          <Button onClick={handleApprove}>
-            <CheckCircle2 className="mr-2 h-4 w-4" />
+      {/* Approval. Posts the lines to the stock ledger and moves the balances. */}
+      {approval.visible && (
+        <div className="mb-6 space-y-2">
+          <Button
+            onClick={() => setConfirmingApproval(true)}
+            disabled={!approval.enabled || approveAdjustment.isPending}
+          >
+            {approveAdjustment.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+            )}
             Approve Adjustment
           </Button>
-          <Button variant="outline" onClick={handleReject}>
-            <XCircle className="mr-2 h-4 w-4" />
-            Reject Adjustment
-          </Button>
+          {approval.reason && (
+            <p className="flex items-start gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              {approval.reason}
+            </p>
+          )}
+          {approval.enabled && approval.selfApproval && (
+            <p className="flex items-start gap-2 text-sm text-amber-600 dark:text-amber-400">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              You raised this adjustment. Approving it yourself is allowed under
+              the system administrator role and is recorded as a self-approval
+              on the ledger entries.
+            </p>
+          )}
         </div>
       )}
+
+      <AlertDialog
+        open={confirmingApproval}
+        onOpenChange={setConfirmingApproval}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Approve stock adjustment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Approve <strong>{adjustment.adjustmentNumber}</strong>? Each line
+              is posted to the stock ledger and the balance for its material
+              moves to the counted figure. This runs once: the document is
+              frozen afterwards, and a mistake is corrected by raising another
+              adjustment.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={approveAdjustment.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleApprove}
+              disabled={approveAdjustment.isPending}
+            >
+              {approveAdjustment.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Approve and post
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmingDelete} onOpenChange={setConfirmingDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete stock adjustment</AlertDialogTitle>
+            <AlertDialogDescription>
+              Delete <strong>{adjustment.adjustmentNumber}</strong>? This cannot
+              be undone. A document already posted to the ledger cannot be
+              deleted.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteAdjustment.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={deleteAdjustment.isPending}
+            >
+              {deleteAdjustment.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Main Content */}
@@ -321,10 +438,23 @@ export default function StockAdjustmentDetailPage({
 
                 <div>
                   <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                    Location ID
+                    Project
                   </div>
                   <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {adjustment.locationId || 'N/A'}
+                    {adjustment.projectName ||
+                      adjustment.projectId ||
+                      'Not set'}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-sm text-zinc-500 dark:text-zinc-400">
+                    Storage Location
+                  </div>
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                    {adjustment.locationName ||
+                      adjustment.locationId ||
+                      'Not set'}
                   </div>
                 </div>
 

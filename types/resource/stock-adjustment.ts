@@ -36,6 +36,8 @@ export enum StockAdjustmentStatus {
 
 export interface StockAdjustmentLineItem {
   id: number;
+  materialId?: number; // Foreign key to Material, required before the line can be posted
+  materialName?: string; // Denormalised material name, read-only
   inventoryItemId?: number; // Foreign key to InventoryItem
   assetId?: number; // Foreign key to Asset
   description: string;
@@ -68,8 +70,12 @@ export interface StockAdjustment {
   status: StockAdjustmentStatus;
 
   // Relationships
-  locationId?: number; // Foreign key to Location (if applicable)
-  projectId?: number; // Foreign key to Project (if applicable)
+  locationId?: number; // Foreign key to StorageLocation (if applicable)
+  locationName?: string; // Denormalised storage location name, read-only
+  projectId?: number; // Foreign key to Project. Required before approval: the
+  // balance an adjustment corrects is held per project, so a document naming
+  // none has nothing to post against.
+  projectName?: string; // Denormalised project name, read-only
   organizationId?: number; // Foreign key to Organization
 
   // Adjustment Details
