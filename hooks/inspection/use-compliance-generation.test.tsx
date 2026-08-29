@@ -197,6 +197,38 @@ describe('joining a run that was already in flight', () => {
     expect(lastTitle(toast.info)).toMatch(/already running/i);
   });
 
+  // The likeliest second click: the same tab, on a run it queued moments ago
+  // that no worker has picked up yet. The row comes back queued with nothing
+  // else set, so the only thing that tells them apart is that this hook has
+  // already seen the id.
+  test('a second click on a run still waiting to be picked up is a join', async () => {
+    const { result } = setup();
+
+    result.current.start();
+    await waitFor(() => expect(result.current.job?.id).toBe(JOB_ID));
+    expect(result.current.joinedExistingRun).toBe(false);
+
+    result.current.start();
+
+    await waitFor(() => expect(result.current.joinedExistingRun).toBe(true));
+    await waitFor(() => expect(toast.info).toHaveBeenCalledTimes(1));
+    expect(toast.error).not.toHaveBeenCalled();
+    expect(start).toHaveBeenCalledTimes(2);
+  });
+
+  // A run this tab was already watching after a reload, then clicked on.
+  test('a click on a run the page was already watching is a join', async () => {
+    getLatestForProject.mockImplementation(async () => queued());
+    const { result } = setup();
+
+    await waitFor(() => expect(result.current.job?.id).toBe(JOB_ID));
+
+    result.current.start();
+
+    await waitFor(() => expect(result.current.joinedExistingRun).toBe(true));
+    expect(toast.error).not.toHaveBeenCalled();
+  });
+
   test('work this click actually queued is not announced as a join', async () => {
     const { result } = setup();
 
@@ -351,6 +383,42 @@ describe('how each outcome is reported', () => {
     result.current.refetch();
     await waitFor(() => expect(getById.mock.calls.length).toBeGreaterThan(1));
     expect(toast.success).toHaveBeenCalledTimes(1);
+  });
+});
+
+// The hook takes the project as an argument, so it can be handed a different one
+// without unmounting. A job id left over from the last project would then be
+// polled against the new one, and the screen would show a run belonging to a
+// project the user has navigated away from.
+describe('when the screen moves to another project', () => {
+  test('the run from the previous project is not carried into the new one', async () => {
+    const queryClient = new QueryClient({
+      defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) =>
+      createElement(QueryClientProvider, { client: queryClient }, children);
+
+    start.mockImplementation(async () => running());
+    getById.mockImplementation(async () => running());
+
+    const { result, rerender } = renderHook(
+      ({ projectId }: { projectId: number }) =>
+        useComplianceGeneration(projectId),
+      { wrapper, initialProps: { projectId: 7 } }
+    );
+
+    result.current.start();
+    await waitFor(() => expect(result.current.job?.status).toBe('running'));
+
+    getLatestForProject.mockImplementation(async () => null);
+    rerender({ projectId: 9 });
+
+    await waitFor(() =>
+      expect(getLatestForProject.mock.calls.at(-1)?.[0]).toBe(9)
+    );
+    await waitFor(() => expect(result.current.job).toBeNull());
+    expect(result.current.isActive).toBe(false);
+    expect(result.current.joinedExistingRun).toBe(false);
   });
 });
 

@@ -39,13 +39,22 @@ export const complianceJobKeys = {
 };
 
 /**
- * True when the job handed back by a start request was not started by it.
+ * True when the job handed back by a start request had visibly been going
+ * before it.
  *
  * The backend answers 200 with the run already in flight instead of 202 with a
- * new one, but the shared API client hands back a parsed body and no status
- * code, so the join is recognised from the job itself. A run that a worker has
- * already claimed, already made progress on, or already retried cannot be the
- * one this click just queued.
+ * new one, but neither API client in this app exposes the status code of a
+ * successful response, so the join is recognised from the job itself. A run that
+ * a worker has already claimed, already made progress on, or already retried
+ * cannot be the one this click just queued.
+ *
+ * One case this cannot see: a run queued by another tab within the last poll
+ * interval and not yet claimed, which comes back `queued` with nothing set. The
+ * other half of the check, against the ids already read for this project, covers
+ * a second click from this tab; that pair leaves only the cross-tab race, and
+ * only for as long as the dispatcher takes to claim the row. Nothing but the
+ * wording of a notice rides on it either way: the returned run is the one
+ * watched, no second run is started, and no error is shown.
  */
 function wasAlreadyUnderway(job: ComplianceGenerationJob): boolean {
   return (
@@ -54,6 +63,13 @@ function wasAlreadyUnderway(job: ComplianceGenerationJob): boolean {
     job.attempt > 0 ||
     job.batchesDone > 0
   );
+}
+
+/** The run this hook is following, and the project it was started for. */
+interface FollowedRun {
+  projectId: number;
+  jobId: string;
+  joined: boolean;
 }
 
 export interface ComplianceGenerationState {
@@ -103,14 +119,26 @@ export function useComplianceGeneration(
   projectId: number
 ): ComplianceGenerationState {
   const queryClient = useQueryClient();
-  const [watchedJobId, setWatchedJobId] = useState<string | null>(null);
-  const [joinedExistingRun, setJoinedExistingRun] = useState(false);
+
+  // The run being followed, tagged with the project it belongs to. Tagged rather
+  // than plain, because this hook outlives a change of project: a job id left
+  // over from the last one would otherwise be polled against the new one, and a
+  // screen would show a project the run has nothing to do with.
+  const [followed, setFollowed] = useState<FollowedRun | null>(null);
+  const forThisProject = followed?.projectId === projectId ? followed : null;
+  const watchedJobId = forThisProject?.jobId ?? null;
+  const joinedExistingRun = forThisProject?.joined ?? false;
 
   // Runs this session is responsible for: ones it started or joined, and ones it
   // found still going. A finished run read off the server on page load is shown
   // but never announced, because its toast would be news from an hour ago.
   const watchedRef = useRef<Set<string>>(new Set());
   const announcedRef = useRef<string | null>(null);
+
+  // Every job id this hook has read for the project. A start that comes back
+  // with one of them is a join by definition, whatever state the row is in:
+  // this hook cannot have queued a job it had already seen.
+  const knownJobIdsRef = useRef<Set<string>>(new Set());
 
   const query = useQuery({
     queryKey: complianceJobKeys.watched(projectId, watchedJobId),
@@ -134,10 +162,10 @@ export function useComplianceGeneration(
   const startMutation = useMutation({
     mutationFn: () => complianceJobService.start(projectId),
     onSuccess: (accepted) => {
-      const joined = wasAlreadyUnderway(accepted);
-      setJoinedExistingRun(joined);
+      const joined =
+        knownJobIdsRef.current.has(accepted.id) || wasAlreadyUnderway(accepted);
       watchedRef.current.add(accepted.id);
-      setWatchedJobId(accepted.id);
+      setFollowed({ projectId, jobId: accepted.id, joined });
       // Seeded so the progress panel appears on the click rather than one poll
       // later; the next poll overwrites it with the server's own view.
       queryClient.setQueryData(
@@ -165,7 +193,9 @@ export function useComplianceGeneration(
   // A run found still going on page load is this session's to report on, even
   // though this session did not start it.
   useEffect(() => {
-    if (job && isComplianceJobActive(job.status)) {
+    if (!job) return;
+    knownJobIdsRef.current.add(job.id);
+    if (isComplianceJobActive(job.status)) {
       watchedRef.current.add(job.id);
     }
   }, [job]);
@@ -201,14 +231,18 @@ export function useComplianceGeneration(
     });
   }, [job, queryClient]);
 
+  // Both taken off the objects rather than closing over them, so the callbacks
+  // handed to the screen keep their identity between renders.
+  const { refetch: refetchQuery } = query;
+  const { mutate: startRun } = startMutation;
+
   const refetch = useCallback(() => {
-    void query.refetch();
-  }, [query]);
+    void refetchQuery();
+  }, [refetchQuery]);
 
   const start = useCallback(() => {
-    setJoinedExistingRun(false);
-    startMutation.mutate();
-  }, [startMutation]);
+    startRun();
+  }, [startRun]);
 
   return {
     start,
