@@ -50,9 +50,14 @@ import {
   AlertCircle,
   XCircle,
   Forward,
+  Undo2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
+import {
+  canCancelLeaveRequest,
+  leaveWithdrawalGate,
+} from '@/features/leave/lib/withdrawal-gate';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
 import {
   useLeaveRequest,
@@ -63,6 +68,7 @@ import {
   useApproveLeaveRequest,
   useRejectLeaveRequest,
   useCancelLeaveRequest,
+  useWithdrawLeaveRequest,
   useDelegateApproval,
 } from '@/hooks/leave/use-leave-mutations';
 import { useManagers } from '@tornotron/echno-core/employee/hooks';
@@ -136,10 +142,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const [showDelegateForm, setShowDelegateForm] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   const approveMutation = useApproveLeaveRequest();
   const rejectMutation = useRejectLeaveRequest();
   const cancelMutation = useCancelLeaveRequest();
+  const withdrawMutation = useWithdrawLeaveRequest();
   const delegateMutation = useDelegateApproval();
 
   const { data: managers = [], isLoading: managersLoading } = useManagers();
@@ -252,6 +260,29 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
     }
   };
 
+  const handleWithdrawRequest = async () => {
+    if (!request || !employeeId) return;
+
+    try {
+      await withdrawMutation.mutateAsync({
+        requestId: request.id,
+        employeeId,
+      });
+
+      setShowWithdrawDialog(false);
+
+      if (backUrl) {
+        router.push(backUrl);
+      } else {
+        router.push(routes.workforce.leaves.manage.requests.href);
+      }
+    } catch (error) {
+      // useWithdrawLeaveRequest already surfaces the backend's message; this
+      // only keeps the dialog open so the reason stays on screen.
+      console.error('Withdraw error:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -280,10 +311,17 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const isPending = request.status === LeaveStatus.PENDING_APPROVAL;
   const isDraft = request.status === LeaveStatus.DRAFT;
   const canEdit = isDraft && request.employeeId === employeeId;
-  const canCancel =
-    request.employeeId === employeeId &&
-    (request.status === LeaveStatus.PENDING_APPROVAL ||
-      request.status === LeaveStatus.APPROVED);
+  // Cancel now covers only approved leave; a request still waiting on an
+  // approver is retracted with Withdraw, which is the status the leave history
+  // should carry for it. Both rules live in features/leave/lib/withdrawal-gate.
+  const canCancel = canCancelLeaveRequest({
+    request,
+    currentEmployeeId: employeeId || undefined,
+  });
+  const withdrawal = leaveWithdrawalGate({
+    request,
+    currentEmployeeId: employeeId || undefined,
+  });
 
   return (
     <div className="space-y-6">
@@ -884,6 +922,33 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   Edit Request
                 </Button>
               )}
+              {withdrawal.visible && (
+                <div className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => setShowWithdrawDialog(true)}
+                    disabled={!withdrawal.enabled || withdrawMutation.isPending}
+                  >
+                    {withdrawMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Withdrawing...
+                      </>
+                    ) : (
+                      <>
+                        <Undo2 className="mr-2 h-4 w-4" />
+                        Withdraw Request
+                      </>
+                    )}
+                  </Button>
+                  {withdrawal.reason && (
+                    <p className="text-muted-foreground text-xs">
+                      {withdrawal.reason}
+                    </p>
+                  )}
+                </div>
+              )}
               {canCancel && (
                 <Button
                   variant="destructive"
@@ -956,6 +1021,47 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                 <>
                   <XCircle className="mr-2 h-4 w-4" />
                   Cancel Request
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withdraw Request Dialog */}
+      <Dialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Withdraw Leave Request</DialogTitle>
+            <DialogDescription>
+              Withdraw request #{request.requestNumber}? It leaves your
+              approver&apos;s queue and the days it was holding go back to your
+              balance. The request stays on your leave history as withdrawn,
+              which is not the same as a rejection. It cannot be put back: to
+              take the same leave you would apply again.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowWithdrawDialog(false)}
+              disabled={withdrawMutation.isPending}
+            >
+              Keep Request
+            </Button>
+            <Button
+              onClick={handleWithdrawRequest}
+              disabled={withdrawMutation.isPending}
+            >
+              {withdrawMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Withdrawing...
+                </>
+              ) : (
+                <>
+                  <Undo2 className="mr-2 h-4 w-4" />
+                  Withdraw Request
                 </>
               )}
             </Button>

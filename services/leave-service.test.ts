@@ -249,3 +249,70 @@ describe('parse failures are surfaced as 422 ApiErrors', () => {
     expect(error.status).toBe(422);
   });
 });
+
+describe('withdrawRequest', () => {
+  test('posts to the mapping that exists, with employeeId in the path', async () => {
+    // LeaveRequestControllerWeb maps it as
+    // POST /leave-requests/web/employeeId/{employeeId}/withdraw?requestId=,
+    // the same shape as submit, because @PreAuthorize reads #employeeId off
+    // the path. A call without that segment reaches no mapping at all.
+    api.post.mockImplementation(async () => ({
+      id: 31,
+      employeeId: 7,
+      leavePolicyId: 2,
+      status: 'WITHDRAWN',
+    }));
+
+    await leaveService.withdrawRequest(31, 7);
+
+    expect(api.post.mock.calls).toHaveLength(1);
+    expect(api.post.mock.calls[0][0]).toBe(
+      '/leave-requests/web/employeeId/7/withdraw'
+    );
+    expect(api.post.mock.calls[0][2]).toEqual({ requestId: 31 });
+  });
+
+  test('sends an empty body: the endpoint takes no reason', async () => {
+    api.post.mockImplementation(async () => ({
+      id: 31,
+      employeeId: 7,
+      leavePolicyId: 2,
+      status: 'WITHDRAWN',
+    }));
+
+    await leaveService.withdrawRequest(31, 7);
+
+    expect(api.post.mock.calls[0][1]).toEqual({});
+  });
+
+  test('returns the withdrawn request so the caller can patch its caches', async () => {
+    api.post.mockImplementation(async () => ({
+      id: 31,
+      requestNumber: 'LR-2026-0031',
+      employeeId: 7,
+      leavePolicyId: 2,
+      status: 'WITHDRAWN',
+    }));
+
+    const withdrawn = await leaveService.withdrawRequest(31, 7);
+
+    expect(withdrawn.id).toBe(31);
+    expect(withdrawn.status).toBe('WITHDRAWN');
+  });
+
+  test('a refusal from the backend is not swallowed', async () => {
+    api.post.mockImplementation(async () => {
+      throw new realApiClient.ApiError(
+        'Leave request 31 cannot be withdrawn (current status: APPROVED)',
+        409
+      );
+    });
+
+    const error = (await leaveService
+      .withdrawRequest(31, 7)
+      .catch((error_) => error_)) as realApiClient.ApiError;
+
+    expect(error).toBeInstanceOf(realApiClient.ApiError);
+    expect(error.status).toBe(409);
+  });
+});

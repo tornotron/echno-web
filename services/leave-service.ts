@@ -529,10 +529,28 @@ export const leaveService = {
   },
 
   /**
-   * Withdraw pending request.
+   * Withdraws a request the employee has not had acted on yet.
+   *
+   * The mapping is `POST /leave-requests/web/employeeId/{employeeId}/withdraw`
+   * with `requestId` as a query param, the same shape as `submitRequest`, and
+   * `employeeId` is a path variable rather than a query param because
+   * `@PreAuthorize("@orgSecurity.isSelfInCurrentTenant(#employeeId)")` reads it
+   * from the path. It cannot be omitted: without it the request does not reach
+   * the mapping at all.
+   *
+   * Returns the withdrawn request, which the backend responds with, so callers
+   * can patch their caches rather than invalidate blind.
    */
-  async withdrawRequest(requestId: number): Promise<void> {
-    await api.post(`/leave-requests/web/withdraw`, {}, { requestId });
+  async withdrawRequest(
+    requestId: number,
+    employeeId: number
+  ): Promise<LeaveRequest> {
+    const data = await api.post<ApiResponse>(
+      `/leave-requests/web/employeeId/${employeeId}/withdraw`,
+      {},
+      { requestId }
+    );
+    return safeParseLeaveRequest(data);
   },
 
   /**
