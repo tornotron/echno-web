@@ -28,7 +28,7 @@ import {
   consumptionTypeLabels,
 } from '@tornotron/echno-core/materials/types';
 import { useMaterialStock } from '@/hooks/materials';
-import { storageLocationsForProject } from '@/features/material-consumptions/storage-location-scope';
+import { storageLocationsForProject } from '@/lib/inventory/storage-location-scope';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 
