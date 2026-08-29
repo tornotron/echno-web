@@ -8,6 +8,7 @@ import {
   FolderTree,
   Tags,
   Settings,
+  BookOpen,
 } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
 
@@ -81,12 +82,21 @@ export const financeMetadata = {
     order: 6,
   },
 
+  // ── journal entries ─────────────────────────────────────────────────────────
+  'finance-journal-entries': {
+    label: 'Journal Entries',
+    icon: BookOpen,
+    description:
+      'Review ledger postings and reverse an entry that was posted in error.',
+    order: 7,
+  },
+
   // ── cost categories ─────────────────────────────────────────────────────────
   'finance-cost-categories': {
     label: 'Cost Categories',
     icon: Tags,
     description: 'Define the budget heads used to allocate and tag costs.',
-    order: 7,
+    order: 8,
   },
 
   // ── finance settings ────────────────────────────────────────────────────────
@@ -95,6 +105,6 @@ export const financeMetadata = {
     icon: Settings,
     description:
       'Configure ledger posting accounts and the invoice approval threshold.',
-    order: 8,
+    order: 9,
   },
 } satisfies MetadataRegistry;
