@@ -16,6 +16,36 @@ function submitData(over: {
   } as unknown as StockAdjustmentSubmitData;
 }
 
+describe('toPayload carries what approval needs', () => {
+  test('the project and the storage location are sent as ids', () => {
+    const payload = toPayload(
+      submitData({ form: { projectId: 4, storageLocationId: 7 } })
+    );
+    expect(payload.projectId).toBe(4);
+    expect(payload.locationId).toBe(7);
+  });
+
+  test('an unset project and location collapse to undefined rather than 0', () => {
+    const payload = toPayload(
+      submitData({ form: { projectId: 0, storageLocationId: 0 } })
+    );
+    expect(payload.projectId).toBeUndefined();
+    expect(payload.locationId).toBeUndefined();
+  });
+
+  test('each line names the material it adjusts', () => {
+    const payload = toPayload(
+      submitData({
+        items: [
+          { materialId: 21, currentStock: 10, countedStock: 8, unitCost: 5 },
+        ],
+      })
+    );
+    const line = (payload.lineItems as Array<Record<string, unknown>>)[0];
+    expect(line.materialId).toBe(21);
+  });
+});
+
 describe('toPayload (INVENTORY / MONEY variance)', () => {
   test('adjustmentQuantity is counted - current and value is qty * unit cost', () => {
     const payload = toPayload(

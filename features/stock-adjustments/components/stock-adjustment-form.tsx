@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import {
   Card,
@@ -28,8 +28,13 @@ import {
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
+import { storageLocationsForProject } from '@/lib/inventory/storage-location-scope';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
+import type { StockAdjustment } from '@/types/resource';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -37,6 +42,12 @@ import { toast } from '@/lib/styles/toast-styles';
 
 export interface StockAdjustmentItem {
   id: number;
+  /**
+   * The material this line adjusts. Approval posts one ledger entry per line
+   * against this material's balance, so a line without it can be saved as a
+   * draft and never posted.
+   */
+  materialId: number;
   description: string;
   currentStock: number;
   countedStock: number;
@@ -49,7 +60,14 @@ export interface StockAdjustmentFormState {
   adjustmentNumber: string;
   adjustmentDate: string;
   adjustmentType: string;
-  location: string;
+  /**
+   * The project whose balance the document corrects. Required: a stock balance
+   * is held per material, project and location, so an adjustment naming no
+   * project has nothing to post against and the backend refuses to approve it.
+   */
+  projectId: number;
+  /** The storage location counted, within the chosen project. */
+  storageLocationId: number;
   adjustmentReason: string;
   notes: string;
 }
@@ -60,6 +78,8 @@ export interface StockAdjustmentSubmitData {
 }
 
 interface StockAdjustmentFormProps {
+  /** An existing document to edit. Omitted when raising a new one. */
+  initial?: StockAdjustment;
   onSubmit: (data: StockAdjustmentSubmitData) => void;
 }
 
@@ -72,13 +92,6 @@ const ADJUSTMENT_TYPES = [
   'Correction',
   'Return',
   'Write-off',
-];
-
-const LOCATIONS = [
-  'Warehouse A',
-  'Warehouse B',
-  'Site A - Building Project',
-  'Site B - Bridge Construction',
 ];
 
 const UNITS = [
@@ -95,31 +108,56 @@ const UNITS = [
 // Component
 // ---------------------------------------------------------------------------
 
-export function StockAdjustmentForm({ onSubmit }: StockAdjustmentFormProps) {
+/** A blank line, used for a new document and by "Add Item". */
+function blankItem(id: number): StockAdjustmentItem {
+  return {
+    id,
+    materialId: 0,
+    description: '',
+    currentStock: 0,
+    countedStock: 0,
+    unit: 'pcs',
+    unitCost: 0,
+    reason: '',
+  };
+}
+
+export function StockAdjustmentForm({
+  initial,
+  onSubmit,
+}: StockAdjustmentFormProps) {
+  const { data: materials = [] } = useMaterials();
+  const { data: projects = [] } = useProjects();
+  const { data: storageLocations = [] } = useStorageLocations();
+
   const [form, setForm] = useState<StockAdjustmentFormState>(() => ({
-    adjustmentNumber: `SA-${new Date().getFullYear()}-${Math.floor(
-      Math.random() * 10_000
-    )
-      .toString()
-      .padStart(4, '0')}`,
-    adjustmentDate: format(new Date(), 'yyyy-MM-dd'),
-    adjustmentType: 'Physical Count',
-    location: '',
-    adjustmentReason: '',
-    notes: '',
+    adjustmentNumber:
+      initial?.adjustmentNumber ??
+      `SA-${new Date().getFullYear()}-${Math.floor(Math.random() * 10_000)
+        .toString()
+        .padStart(4, '0')}`,
+    adjustmentDate: format(initial?.adjustmentDate ?? new Date(), 'yyyy-MM-dd'),
+    adjustmentType: initial?.type ?? 'Physical Count',
+    projectId: initial?.projectId ?? 0,
+    storageLocationId: initial?.locationId ?? 0,
+    adjustmentReason: initial?.justification ?? initial?.primaryReason ?? '',
+    notes: initial?.notes ?? '',
   }));
 
-  const [items, setItems] = useState<StockAdjustmentItem[]>([
-    {
-      id: 1,
-      description: '',
-      currentStock: 0,
-      countedStock: 0,
-      unit: 'pcs',
-      unitCost: 0,
-      reason: '',
-    },
-  ]);
+  const [items, setItems] = useState<StockAdjustmentItem[]>(() =>
+    initial && initial.lineItems.length > 0
+      ? initial.lineItems.map((line, index) => ({
+          id: line.id || index + 1,
+          materialId: line.materialId ?? 0,
+          description: line.description,
+          currentStock: line.systemQuantity,
+          countedStock: line.physicalQuantity,
+          unit: line.unit || 'pcs',
+          unitCost: line.unitValue,
+          reason: line.reason || line.reasonDetails || '',
+        }))
+      : [blankItem(1)]
+  );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [itemErrors, setItemErrors] = useState<
@@ -163,18 +201,7 @@ export function StockAdjustmentForm({ onSubmit }: StockAdjustmentFormProps) {
 
   function addItem() {
     const nextId = Math.max(0, ...items.map((i) => i.id)) + 1;
-    setItems((prev) => [
-      ...prev,
-      {
-        id: nextId,
-        description: '',
-        currentStock: 0,
-        countedStock: 0,
-        unit: 'pcs',
-        unitCost: 0,
-        reason: '',
-      },
-    ]);
+    setItems((prev) => [...prev, blankItem(nextId)]);
   }
 
   function removeItem(id: number) {
@@ -215,6 +242,47 @@ export function StockAdjustmentForm({ onSubmit }: StockAdjustmentFormProps) {
   const shortageItems = items.filter((item) => itemDifference(item) < 0).length;
 
   // ---------------------------------------------------------------------------
+  // Storage locations available to the chosen project
+  // ---------------------------------------------------------------------------
+
+  // A balance row sits at one (material, project, location) triple, so offering
+  // a location that belongs to another project only ever produces a document
+  // that cannot be posted.
+  const availableLocations = useMemo(
+    () => storageLocationsForProject(storageLocations, form.projectId),
+    [storageLocations, form.projectId]
+  );
+
+  if (
+    form.storageLocationId &&
+    !availableLocations.some((l) => l.id === form.storageLocationId)
+  ) {
+    setForm((prev) => ({ ...prev, storageLocationId: 0 }));
+  }
+
+  /**
+   * Picking the material fills the unit and, where the line is still blank, the
+   * description. The unit is the material's own, so the quantities on the line
+   * and the balance they post against are counted in the same thing.
+   */
+  function selectMaterial(itemId: number, materialId: number) {
+    const material = materials.find((m) => m.id === materialId);
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              materialId,
+              unit: material?.unit || item.unit,
+              description: item.description || material?.materialName || '',
+            }
+          : item
+      )
+    );
+    clearItemError(itemId, 'materialId');
+  }
+
+  // ---------------------------------------------------------------------------
   // Validation
   // ---------------------------------------------------------------------------
 
@@ -222,14 +290,18 @@ export function StockAdjustmentForm({ onSubmit }: StockAdjustmentFormProps) {
     const newErrors: Record<string, string> = {};
     const newItemErrors: Record<number, Record<string, string>> = {};
 
-    const locationError = required('Location')(form.location);
-    if (locationError) newErrors.location = locationError;
+    // The project is what makes the document approvable at all, so it is
+    // required here rather than left for the approval to refuse.
+    if (!form.projectId) newErrors.projectId = 'Project is required';
+    if (!form.storageLocationId)
+      newErrors.storageLocationId = 'Storage location is required';
 
     const reasonError = required('Reason')(form.adjustmentReason);
     if (reasonError) newErrors.adjustmentReason = reasonError;
 
     for (const item of items) {
       const rowErr: Record<string, string> = {};
+      if (!item.materialId) rowErr.materialId = 'Material is required';
       const descError = required('Description')(item.description);
       if (descError) rowErr.description = descError;
       const itemReasonError = required('Reason')(item.reason);
@@ -326,29 +398,71 @@ export function StockAdjustmentForm({ onSubmit }: StockAdjustmentFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="location">
-                    Location <span className="text-red-500">*</span>
+                  <Label htmlFor="projectId">
+                    Project <span className="text-red-500">*</span>
                   </Label>
                   <Select
-                    value={form.location}
-                    onValueChange={(v) => setField('location', v)}
+                    value={form.projectId ? String(form.projectId) : ''}
+                    onValueChange={(v) => setField('projectId', Number(v))}
                   >
                     <SelectTrigger
-                      id="location"
-                      className={errors.location ? 'border-red-500' : ''}
+                      id="projectId"
+                      className={errors.projectId ? 'border-red-500' : ''}
                     >
-                      <SelectValue placeholder="Select location" />
+                      <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {LOCATIONS.map((l) => (
-                        <SelectItem key={l} value={l}>
-                          {l}
+                      {projects.map((project) => (
+                        <SelectItem key={project.id} value={String(project.id)}>
+                          {project.projectName}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.location && (
-                    <p className="text-sm text-red-500">{errors.location}</p>
+                  <p className="text-muted-foreground text-xs">
+                    The balance this adjustment corrects is held per project. An
+                    adjustment without one cannot be approved.
+                  </p>
+                  {errors.projectId && (
+                    <p className="text-sm text-red-500">{errors.projectId}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="storageLocationId">
+                    Storage Location <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={
+                      form.storageLocationId
+                        ? String(form.storageLocationId)
+                        : ''
+                    }
+                    onValueChange={(v) =>
+                      setField('storageLocationId', Number(v))
+                    }
+                  >
+                    <SelectTrigger
+                      id="storageLocationId"
+                      className={errors.storageLocationId ? 'border-red-500' : ''}
+                    >
+                      <SelectValue placeholder="Select storage location" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableLocations.map((location) => (
+                        <SelectItem
+                          key={location.id}
+                          value={String(location.id)}
+                        >
+                          {location.locationName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.storageLocationId && (
+                    <p className="text-sm text-red-500">
+                      {errors.storageLocationId}
+                    </p>
                   )}
                 </div>
               </div>
@@ -433,6 +547,41 @@ export function StockAdjustmentForm({ onSubmit }: StockAdjustmentFormProps) {
                     </div>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <div className="space-y-2 sm:col-span-2">
+                        <Label>
+                          Material <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          value={
+                            item.materialId ? String(item.materialId) : ''
+                          }
+                          onValueChange={(v) =>
+                            selectMaterial(item.id, Number(v))
+                          }
+                        >
+                          <SelectTrigger
+                            className={iErr.materialId ? 'border-red-500' : ''}
+                          >
+                            <SelectValue placeholder="Select material" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materials.map((material) => (
+                              <SelectItem
+                                key={material.id}
+                                value={String(material.id)}
+                              >
+                                {material.materialName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {iErr.materialId && (
+                          <p className="text-sm text-red-500">
+                            {iErr.materialId}
+                          </p>
+                        )}
+                      </div>
+
                       <div className="space-y-2 sm:col-span-2">
                         <Label>
                           Item Description{' '}
