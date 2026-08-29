@@ -17,20 +17,19 @@ export const UPLOAD_TIMEOUT_MS = 120_000;
  * rather than given a blanket raise, so that a genuinely stuck request on any
  * other endpoint still fails fast.
  *
- * Compliance generation waits on an external AI model and takes tens of
- * seconds. Its budget sits deliberately above the browser's own budget for the
- * same call, so that on an overrun the browser is the side that gives up
- * first: it can then say what happened, whereas this proxy giving up first
- * would leave the browser reading a bare gateway error. It also sits below the
- * 60 seconds the reverse proxy in front of the site allows an upstream
- * response to take.
+ * Empty, and that is the point. The one entry was compliance generation, which
+ * waited on an external AI model inside the request and needed 55 seconds. No
+ * budget could have kept working: the run outgrows the 60 seconds the reverse
+ * proxy in front of the site allows an upstream response to take, once a
+ * jurisdiction has about forty rules. Generation is a queued job now, so
+ * starting one costs an insert and polling one costs a single-row read, and
+ * both fit the default with room to spare. The mechanism stays for whatever
+ * needs it next; raising a budget is not what it needed.
  *
  * A Map rather than an object literal, so a request path that happens to name
  * an inherited object property cannot be mistaken for a configured timeout.
  */
-const SLOW_ENDPOINT_TIMEOUTS_MS = new Map<string, number>([
-  ['inspections/web/compliance/regenerate', 55_000],
-]);
+const SLOW_ENDPOINT_TIMEOUTS_MS = new Map<string, number>();
 
 /**
  * The waiting budget for one proxied request.

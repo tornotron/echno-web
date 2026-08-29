@@ -1,66 +1,56 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
-import * as realCore from '@tornotron/echno-core';
+import { describe, expect, test } from 'bun:test';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
+import path from 'node:path';
+import { inspectionService } from './inspection-service';
 
-// Spy on the shared client's POST. Compliance generation is the one inspection
-// call issued through it directly, so this records exactly that request.
-const api = {
-  post: mock(async (..._args: unknown[]) => [] as unknown),
-};
+/**
+ * The retired path as a call site would have to spell it: inside a string
+ * literal. Prose that names the endpoint, here or in the doc comment that
+ * explains why it went, is not a caller.
+ */
+const SYNCHRONOUS_ENDPOINT =
+  /['"`][^'"`]*inspections\/web\/compliance\/regenerate/;
 
-mock.module('@tornotron/echno-core', () => ({
-  ...realCore,
-  api,
-}));
+const SOURCE_ROOTS = [
+  'app',
+  'components',
+  'features',
+  'hooks',
+  'lib',
+  'services',
+  'types',
+];
 
-const { inspectionService } = await import('./inspection-service');
-
-/** The RequestOptions argument of the most recent api.post call. */
-function lastPostOptions(): { timeout?: number; retries?: number } {
-  const calls = api.post.mock.calls;
-  return (calls.at(-1)![3] ?? {}) as { timeout?: number; retries?: number };
+function sourceFiles(dir: string): string[] {
+  const found: string[] = [];
+  for (const entry of readdirSync(dir)) {
+    const entryPath = path.join(dir, entry);
+    if (statSync(entryPath).isDirectory()) {
+      found.push(...sourceFiles(entryPath));
+    } else if (/\.tsx?$/.test(entry)) {
+      found.push(entryPath);
+    }
+  }
+  return found;
 }
 
-beforeEach(() => {
-  // An empty result is the "generation ran, nothing new applied" answer, and
-  // is the right default for the tests that only inspect the request.
-  api.post.mockReset();
-  api.post.mockImplementation(async () => []);
-});
-
-describe('inspectionService.regenerateCompliance', () => {
-  test('asks for the regenerate endpoint with the project id', async () => {
-    await inspectionService.regenerateCompliance(7);
-
-    const [endpoint, body, params] = api.post.mock.calls.at(-1)!;
-    expect(endpoint).toBe('/inspections/web/compliance/regenerate');
-    expect(body).toEqual({});
-    expect(params).toEqual({ projectId: 7 });
+// The synchronous compliance endpoint is gone from this client. It still exists
+// on the backend, deprecated, only so that nothing broke while this moved, and
+// it is deleted once this lands. A caller re-added here would bring back the
+// timeouts it was retired for, so the retirement is asserted rather than
+// assumed.
+describe('the synchronous compliance call is retired', () => {
+  test('the inspection service no longer offers it', () => {
+    expect('regenerateCompliance' in inspectionService).toBe(false);
   });
 
-  // The bug this guards: generation waits on an external AI model and was
-  // measured at 34-47 seconds on staging, so the client's 30-second default
-  // aborted it every time and reported a timeout for work that had in fact
-  // succeeded. The budget has to clear that default, and has to stay under the
-  // 60 seconds the reverse proxy allows an upstream response to take, or the
-  // user gets a raw gateway error instead of one the app can explain.
-  test('allows more than the default budget, and less than the proxy ceiling', async () => {
-    await inspectionService.regenerateCompliance(7);
+  test('nothing in the app calls the regenerate endpoint any more', () => {
+    const offenders = SOURCE_ROOTS.flatMap((root) => sourceFiles(root)).filter(
+      (file) =>
+        !/\.test\.tsx?$/.test(file) &&
+        SYNCHRONOUS_ENDPOINT.test(readFileSync(file, 'utf8'))
+    );
 
-    const { timeout } = lastPostOptions();
-    expect(timeout).toBeGreaterThan(30_000);
-    expect(timeout).toBeLessThan(60_000);
-  });
-
-  // Retrying would start a second analysis behind the first for no benefit.
-  test('does not retry', async () => {
-    await inspectionService.regenerateCompliance(7);
-
-    expect(lastPostOptions().retries).toBe(0);
-  });
-
-  test('returns [] when the backend answers with an unexpected shape', async () => {
-    api.post.mockImplementation(async () => ({ unexpected: true }));
-
-    expect(await inspectionService.regenerateCompliance(7)).toEqual([]);
+    expect(offenders).toEqual([]);
   });
 });

@@ -23,9 +23,10 @@ import {
 } from '@/types/inspection';
 import {
   useComplianceInspectionsByProject,
-  useRegenerateCompliance,
+  useComplianceGeneration,
 } from '@/hooks/inspection';
 import { routes } from '@/nav';
+import { ComplianceGenerationPanel } from './compliance-generation-panel';
 
 interface ProjectComplianceTabProps {
   projectId: number;
@@ -37,7 +38,7 @@ export function ProjectComplianceTab({ projectId }: ProjectComplianceTabProps) {
     isLoading,
     isError,
   } = useComplianceInspectionsByProject(projectId);
-  const regenerate = useRegenerateCompliance();
+  const generation = useComplianceGeneration(projectId);
 
   // Group compliances by their lifecycle phase; anything without a phase falls
   // into an "Unphased" bucket rendered after the ordered sections.
@@ -57,7 +58,10 @@ export function ProjectComplianceTab({ projectId }: ProjectComplianceTabProps) {
   }, [compliances]);
 
   const hasAny = compliances.length > 0;
-  const isGenerating = regenerate.isPending;
+  // The button is unavailable while a run is in flight as well as while the
+  // request that starts one is going, because a second click would only join the
+  // run already being shown.
+  const isGenerating = generation.isStarting || generation.isActive;
   const actionLabel = hasAny
     ? 'Regenerate compliance'
     : 'Generate compliance';
@@ -68,7 +72,7 @@ export function ProjectComplianceTab({ projectId }: ProjectComplianceTabProps) {
   );
 
   const handleGenerate = () => {
-    regenerate.mutate(projectId);
+    generation.start();
   };
 
   return (
@@ -98,6 +102,15 @@ export function ProjectComplianceTab({ projectId }: ProjectComplianceTabProps) {
           )}
         </Button>
       </div>
+
+      {generation.outcome && (
+        <ComplianceGenerationPanel
+          outcome={generation.outcome}
+          isActive={generation.isActive}
+          percent={generation.percent}
+          progressLabel={generation.progressLabel}
+        />
+      )}
 
       <ComplianceBody
         isLoading={isLoading}
