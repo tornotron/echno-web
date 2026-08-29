@@ -16,8 +16,13 @@ import type { StorageLocation } from '@tornotron/echno-core/storage-locations/ty
  * dropdown with nothing to do about it. Where those rows should really be
  * owned by a project, the fix is to populate the column, not to hide them.
  *
- * This mirrors what the backend ought to enforce (echno-backend#529 and #533);
- * until it does, the filter narrows the choice rather than guaranteeing it.
+ * echno-backend#554 settled this and now refuses the wrong pairing with a 400,
+ * so the filter and the server agree: it keeps the choice off the screen
+ * rather than leaving the user to discover it on submit.
+ *
+ * It lives in `lib` rather than under one feature because both the consumption
+ * form and the site-transfer form need it, and a feature may not import across
+ * into a sibling.
  *
  * @param locations - Every storage location in the organisation.
  * @param projectId - The selected project. Falsy means no project chosen yet,

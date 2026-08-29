@@ -27,13 +27,12 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { AlertTriangle, ArrowRightLeft, Plus, Trash2 } from 'lucide-react';
-import {
-  useMaterialWithStock,
-  useMaterials,
-} from '@tornotron/echno-core/materials/hooks';
+import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { useSiteTransfers } from '@tornotron/echno-core/site-transfers/hooks';
+import { useMaterialStocks } from '@/hooks/materials';
+import { storageLocationsForProject } from '@/lib/inventory/storage-location-scope';
 import { generateTransferNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
@@ -89,16 +88,38 @@ const EMPTY_ITEM: SiteTransferItemRow = {
 // Stock display sub-component
 // ---------------------------------------------------------------------------
 
-function StockDisplay({ materialId }: { materialId: number }) {
-  const { data } = useMaterialWithStock(materialId);
-  if (!data) return <span className="text-xs text-zinc-400">—</span>;
-  const stock = data.currentStock ?? 0;
+/**
+ * The balance the transfer will be debited from, not the organisation total.
+ * The sending project and location decide it, so the parent fetches it once
+ * for every row and passes it down; that keeps the label and `validateForm`
+ * reading the same figure.
+ *
+ * @param props.stock - Stock at the sending project and location, undefined
+ *   while the read is in flight.
+ * @param props.unit - Unit to label the figure with.
+ * @param props.scoped - Whether a sending project has been chosen at all.
+ */
+function StockDisplay({
+  stock,
+  unit,
+  scoped,
+}: {
+  stock: number | undefined;
+  unit: string;
+  scoped: boolean;
+}) {
+  if (!scoped) {
+    return (
+      <span className="text-xs text-zinc-400">Select a sending location</span>
+    );
+  }
+  if (stock === undefined) return <span className="text-xs text-zinc-400">—</span>;
   return (
     <span
       className={`text-xs font-medium ${stock <= 0 ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}
     >
       {stock <= 0 && <AlertTriangle className="mr-0.5 inline h-3 w-3" />}
-      {stock} {data.unit}
+      {stock} {unit}
     </span>
   );
 }
@@ -193,6 +214,86 @@ export function SiteTransferForm({
   if (seededNumber !== nextTransferNumber) {
     setSeededNumber(nextTransferNumber);
     setForm((prev) => ({ ...prev, transferNumber: nextTransferNumber }));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Storage locations available to each side
+  // ---------------------------------------------------------------------------
+
+  // A location with no project is organisation-level and offered from every
+  // project; a location with a project belongs to that project alone. That is
+  // the rule echno-backend#554 now enforces with a 400, so offering the wrong
+  // pairing here only ever bought a rejected submit.
+  const sendingLocations = useMemo(
+    () => storageLocationsForProject(storageLocations, form.sendingProjectId),
+    [storageLocations, form.sendingProjectId]
+  );
+
+  // Within one project, moving between two stores is a real transfer and stays
+  // available. Only the same project at the same location is refused, because
+  // both sides then resolve to one `current_stock` row and nothing moves.
+  const receivingLocations = useMemo(() => {
+    const scoped = storageLocationsForProject(
+      storageLocations,
+      form.receivingProjectId
+    );
+    if (
+      !form.receivingProjectId ||
+      form.receivingProjectId !== form.sendingProjectId
+    ) {
+      return scoped;
+    }
+    return scoped.filter(
+      (location) => location.id !== form.sendingStorageLocationId
+    );
+  }, [
+    storageLocations,
+    form.receivingProjectId,
+    form.sendingProjectId,
+    form.sendingStorageLocationId,
+  ]);
+
+  // A location chosen before its project, or left over from a project since
+  // changed, may no longer be on offer. Leaving it selected would send the
+  // pairing the dropdown has just stopped showing. Each side is checked on its
+  // own, so changing the sending project does not disturb the receiving side.
+  if (
+    form.sendingStorageLocationId &&
+    !sendingLocations.some((l) => l.id === form.sendingStorageLocationId)
+  ) {
+    setForm((prev) => ({ ...prev, sendingStorageLocationId: 0 }));
+  }
+  if (
+    form.receivingStorageLocationId &&
+    !receivingLocations.some((l) => l.id === form.receivingStorageLocationId)
+  ) {
+    setForm((prev) => ({ ...prev, receivingStorageLocationId: 0 }));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Stock, scoped to what will actually be debited
+  // ---------------------------------------------------------------------------
+
+  // The sending side is the one being drawn down, so it is the sending project
+  // and location that decide the figure, not the organisation aggregate the
+  // table used to show.
+  const rowMaterialIds = useMemo(
+    () => items.map((item) => item.materialId),
+    [items]
+  );
+  const stockByMaterial = useMaterialStocks(
+    rowMaterialIds,
+    form.sendingProjectId,
+    form.sendingStorageLocationId
+  );
+  const sendingScopeChosen = Boolean(form.sendingProjectId);
+
+  function unitFor(materialId: number) {
+    return (
+      stockByMaterial.get(materialId)?.unit ??
+      materials.find((m) => m.id === materialId)?.unit ??
+      ''
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -294,7 +395,16 @@ export function SiteTransferForm({
     for (const [i, item] of items.entries()) {
       const rowErr: Record<string, string> = {};
       if (!item.materialId) rowErr.materialId = 'Select a material';
-      if (item.sentQuantity <= 0) rowErr.sentQuantity = 'Must be > 0';
+      if (item.sentQuantity <= 0) {
+        rowErr.sentQuantity = 'Must be > 0';
+      } else {
+        // The same balance the backend checks, so the shortfall is named here
+        // rather than coming back as an insufficient-stock rejection.
+        const available = stockByMaterial.get(item.materialId)?.currentStock;
+        if (available !== undefined && item.sentQuantity > available) {
+          rowErr.sentQuantity = `Only ${available} ${unitFor(item.materialId)} at the sending location`;
+        }
+      }
       if (Object.keys(rowErr).length > 0) newRowErrors[i] = rowErr;
     }
 
@@ -442,7 +552,7 @@ export function SiteTransferForm({
                   <SelectValue placeholder="Select storage location" />
                 </SelectTrigger>
                 <SelectContent>
-                  {storageLocations.map((sl) => (
+                  {sendingLocations.map((sl) => (
                     <SelectItem key={sl.id} value={String(sl.id)}>
                       {sl.locationName}
                     </SelectItem>
@@ -523,7 +633,7 @@ export function SiteTransferForm({
                   <SelectValue placeholder="Select storage location" />
                 </SelectTrigger>
                 <SelectContent>
-                  {storageLocations.map((sl) => (
+                  {receivingLocations.map((sl) => (
                     <SelectItem key={sl.id} value={String(sl.id)}>
                       {sl.locationName}
                     </SelectItem>
@@ -588,6 +698,7 @@ export function SiteTransferForm({
                           }
                         >
                           <SelectTrigger
+                            id={`materialId-${index}`}
                             className={`w-full ${rErr.materialId ? 'border-red-500' : ''}`}
                           >
                             {item.materialId > 0 ? (
@@ -619,12 +730,19 @@ export function SiteTransferForm({
 
                       <TableCell>
                         {item.materialId > 0 && (
-                          <StockDisplay materialId={item.materialId} />
+                          <StockDisplay
+                            stock={
+                              stockByMaterial.get(item.materialId)?.currentStock
+                            }
+                            unit={unitFor(item.materialId)}
+                            scoped={sendingScopeChosen}
+                          />
                         )}
                       </TableCell>
 
                       <TableCell>
                         <Input
+                          id={`sentQuantity-${index}`}
                           type="number"
                           min="1"
                           step="1"
