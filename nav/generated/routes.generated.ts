@@ -203,6 +203,14 @@ export const ROUTE_TREE: RouteNode = {
         children: [],
       },
       {
+        id: 'finance-payables',
+        segment: 'payables',
+        path: '/users/dashboard/finance/payables',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
         id: 'finance-payments',
         segment: 'payments',
         path: '/users/dashboard/finance/payments',

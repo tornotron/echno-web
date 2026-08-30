@@ -51,6 +51,7 @@ export const routes = {
       }),
     },
     journalEntries: b('/finance/journal-entries'),
+    payables: b('/finance/payables'),
     payments: {
       href: b('/finance/payments'),
       new: b('/finance/payments/new'),
