@@ -113,7 +113,8 @@ function StockDisplay({
       <span className="text-xs text-zinc-400">Select a sending location</span>
     );
   }
-  if (stock === undefined) return <span className="text-xs text-zinc-400">—</span>;
+  if (stock === undefined)
+    return <span className="text-xs text-zinc-400">—</span>;
   return (
     <span
       className={`text-xs font-medium ${stock <= 0 ? 'text-red-500' : 'text-zinc-500 dark:text-zinc-400'}`}
@@ -144,7 +145,7 @@ export function SiteTransferForm({
 }: SiteTransferFormProps) {
   const { data: materials = [] } = useMaterials();
   const { data: projects = [] } = useProjects();
-  const { data: storageLocations = [] } = useStorageLocations();
+  const { data: storageLocations } = useStorageLocations();
   const { data: existingTransfers = [] } = useSiteTransfers();
 
   // Derived from the transfers the server already has, so it follows the list
@@ -225,7 +226,8 @@ export function SiteTransferForm({
   // the rule echno-backend#554 now enforces with a 400, so offering the wrong
   // pairing here only ever bought a rejected submit.
   const sendingLocations = useMemo(
-    () => storageLocationsForProject(storageLocations, form.sendingProjectId),
+    () =>
+      storageLocationsForProject(storageLocations ?? [], form.sendingProjectId),
     [storageLocations, form.sendingProjectId]
   );
 
@@ -234,7 +236,7 @@ export function SiteTransferForm({
   // both sides then resolve to one `current_stock` row and nothing moves.
   const receivingLocations = useMemo(() => {
     const scoped = storageLocationsForProject(
-      storageLocations,
+      storageLocations ?? [],
       form.receivingProjectId
     );
     if (
@@ -257,13 +259,20 @@ export function SiteTransferForm({
   // changed, may no longer be on offer. Leaving it selected would send the
   // pairing the dropdown has just stopped showing. Each side is checked on its
   // own, so changing the sending project does not disturb the receiving side.
+  //
+  // Both checks wait for the location query to resolve. Until then the lists
+  // are empty for every id, and firing on that emptiness wiped the locations a
+  // restored draft carried; the draft then re-saved with the zeroes and the
+  // drafted locations were gone for good.
   if (
+    storageLocations !== undefined &&
     form.sendingStorageLocationId &&
     !sendingLocations.some((l) => l.id === form.sendingStorageLocationId)
   ) {
     setForm((prev) => ({ ...prev, sendingStorageLocationId: 0 }));
   }
   if (
+    storageLocations !== undefined &&
     form.receivingStorageLocationId &&
     !receivingLocations.some((l) => l.id === form.receivingStorageLocationId)
   ) {
@@ -507,7 +516,9 @@ export function SiteTransferForm({
                 value={
                   form.sendingProjectId ? String(form.sendingProjectId) : ''
                 }
-                onValueChange={(v) => setField('sendingProjectId', Number(v))}
+                onValueChange={(v) =>
+                  v && setField('sendingProjectId', Number(v))
+                }
               >
                 <SelectTrigger
                   id="sendingProjectId"
@@ -540,7 +551,13 @@ export function SiteTransferForm({
                     : ''
                 }
                 onValueChange={(v) =>
-                  setField('sendingStorageLocationId', Number(v))
+                  // Radix reports an empty value when the selected item is not
+                  // among the mounted options, which is every render until the
+                  // location query resolves. Nothing a user can pick is empty,
+                  // so this only ever drops that spurious clear.
+                  v
+                    ? setField('sendingStorageLocationId', Number(v))
+                    : undefined
                 }
               >
                 <SelectTrigger
@@ -587,7 +604,9 @@ export function SiteTransferForm({
                 value={
                   form.receivingProjectId ? String(form.receivingProjectId) : ''
                 }
-                onValueChange={(v) => setField('receivingProjectId', Number(v))}
+                onValueChange={(v) =>
+                  v && setField('receivingProjectId', Number(v))
+                }
               >
                 <SelectTrigger
                   id="receivingProjectId"
@@ -621,7 +640,9 @@ export function SiteTransferForm({
                     : ''
                 }
                 onValueChange={(v) =>
-                  setField('receivingStorageLocationId', Number(v))
+                  v
+                    ? setField('receivingStorageLocationId', Number(v))
+                    : undefined
                 }
               >
                 <SelectTrigger

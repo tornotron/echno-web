@@ -132,7 +132,7 @@ export function StockAdjustmentForm({
 }: StockAdjustmentFormProps) {
   const { data: materials = [] } = useMaterials();
   const { data: projects = [] } = useProjects();
-  const { data: storageLocations = [] } = useStorageLocations();
+  const { data: storageLocations } = useStorageLocations();
 
   const [form, setForm] = useState<StockAdjustmentFormState>(() => ({
     // `||` rather than `??`: a copy comes in with the number blanked, and a
@@ -255,11 +255,17 @@ export function StockAdjustmentForm({
   // a location that belongs to another project only ever produces a document
   // that cannot be posted.
   const availableLocations = useMemo(
-    () => storageLocationsForProject(storageLocations, form.projectId),
+    () => storageLocationsForProject(storageLocations ?? [], form.projectId),
     [storageLocations, form.projectId]
   );
 
+  // The reset waits for the location query to resolve. Until then the list is
+  // empty for every id, and firing on that emptiness wiped the location a
+  // document being edited or copied arrived with: the field fell back to its
+  // placeholder, and whoever re-picked from memory could silently move the
+  // adjustment onto a different balance row.
   if (
+    storageLocations !== undefined &&
     form.storageLocationId &&
     !availableLocations.some((l) => l.id === form.storageLocationId)
   ) {
@@ -409,7 +415,7 @@ export function StockAdjustmentForm({
                   </Label>
                   <Select
                     value={form.projectId ? String(form.projectId) : ''}
-                    onValueChange={(v) => setField('projectId', Number(v))}
+                    onValueChange={(v) => v && setField('projectId', Number(v))}
                   >
                     <SelectTrigger
                       id="projectId"
@@ -445,12 +451,18 @@ export function StockAdjustmentForm({
                         : ''
                     }
                     onValueChange={(v) =>
-                      setField('storageLocationId', Number(v))
+                      // Radix reports an empty value when the selected item is
+                      // not among the mounted options, which is every render
+                      // until the location query resolves. Nothing a user can
+                      // pick is empty, so this only drops that spurious clear.
+                      v ? setField('storageLocationId', Number(v)) : undefined
                     }
                   >
                     <SelectTrigger
                       id="storageLocationId"
-                      className={errors.storageLocationId ? 'border-red-500' : ''}
+                      className={
+                        errors.storageLocationId ? 'border-red-500' : ''
+                      }
                     >
                       <SelectValue placeholder="Select storage location" />
                     </SelectTrigger>
@@ -558,9 +570,7 @@ export function StockAdjustmentForm({
                           Material <span className="text-red-500">*</span>
                         </Label>
                         <Select
-                          value={
-                            item.materialId ? String(item.materialId) : ''
-                          }
+                          value={item.materialId ? String(item.materialId) : ''}
                           onValueChange={(v) =>
                             selectMaterial(item.id, Number(v))
                           }

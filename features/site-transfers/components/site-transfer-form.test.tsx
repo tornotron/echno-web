@@ -46,9 +46,16 @@ mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
   useProjects: () => ({ data: PROJECTS }),
 }));
+/**
+ * Mutable so a test can hold the query in its unresolved state (`undefined`)
+ * and then let it land, the way a cold cache behaves. Defaults to loaded.
+ */
+let storageLocationList: typeof STORAGE_LOCATIONS | undefined =
+  STORAGE_LOCATIONS;
+
 mock.module('@tornotron/echno-core/storage-locations/hooks', () => ({
   ...realStorageLocationHooks,
-  useStorageLocations: () => ({ data: STORAGE_LOCATIONS }),
+  useStorageLocations: () => ({ data: storageLocationList }),
 }));
 // Both exports are named even though this form only uses the plural one:
 // `mock.module` replaces the whole module record, and a partial replacement
@@ -67,11 +74,16 @@ mock.module('@/lib/styles/toast-styles', () => ({
   },
 }));
 
+/** A draft the mocked `useFormDraft` offers for restoring, or null for none. */
+let offeredDraft: unknown = null;
+
 mock.module('@/hooks/use-form-draft', () => ({
   useFormDraftScope: () => ({ userId: 'u1', orgId: 1 }),
-  useFormDraft: () => ({
-    draft: null,
-    restoreDraft: () => {},
+  useFormDraft: ({ onRestore }: { onRestore: (values: never) => void }) => ({
+    draft: offeredDraft === null ? null : { savedAt: Date.now() },
+    restoreDraft: () => {
+      if (offeredDraft !== null) onRestore(offeredDraft as never);
+    },
     discardDraft: () => {},
   }),
 }));
@@ -88,7 +100,9 @@ const year = new Date().getFullYear();
 function openSelect(container: HTMLElement, id: string): HTMLElement[] {
   const trigger = container.querySelector(`#${id}`) as HTMLElement;
   fireEvent.keyDown(trigger, { key: 'ArrowDown' });
-  return [...document.body.querySelectorAll('[role="option"]')] as HTMLElement[];
+  return [
+    ...document.body.querySelectorAll('[role="option"]'),
+  ] as HTMLElement[];
 }
 
 function offeredBy(container: HTMLElement, id: string): string {
@@ -330,5 +344,97 @@ describe('SiteTransferForm stock', () => {
     };
     expect(data.form.sendingStorageLocationId).toBe(14);
     expect(data.form.receivingStorageLocationId).toBe(2);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Draft restore racing the location query
+// ---------------------------------------------------------------------------
+
+describe('SiteTransferForm draft restore before the locations load', () => {
+  beforeEach(() => {
+    scopedStock = new Map([[2, { currentStock: 60, unit: 'MT' }]]);
+  });
+
+  afterEach(() => {
+    cleanup();
+    transfers = [];
+    offeredDraft = null;
+    storageLocationList = STORAGE_LOCATIONS;
+  });
+
+  test('locations restored from a draft survive the query resolving', () => {
+    // A fresh tab: the location query has not resolved when the draft banner
+    // is already on screen. Restoring at that moment used to run the scope
+    // reset against an empty list, which zeroed both drafted locations; the
+    // draft then re-saved with the zeroes and the selection was gone for good.
+    storageLocationList = undefined;
+    offeredDraft = {
+      fields: {
+        transferNumber: '',
+        issueDate: '2026-08-30',
+        sendingProjectId: 6,
+        sendingStorageLocationId: 4,
+        receivingProjectId: 3,
+        receivingStorageLocationId: 2,
+      },
+      items: [
+        {
+          materialId: 2,
+          materialName: 'TNT Steel',
+          sentQuantity: 5,
+          remarks: '',
+        },
+      ],
+    };
+
+    const { container, rerender, getByRole, onSubmit } = renderForm();
+    fireEvent.click(getByRole('button', { name: 'Restore' }));
+
+    storageLocationList = STORAGE_LOCATIONS;
+    rerender(createElement(SiteTransferForm, { onSubmit }));
+
+    // The submit carries both drafted locations, so neither was zeroed while
+    // the list was still empty. The trigger label cannot be read for this:
+    // Radix resolves it from a mounted item, and nothing has been opened.
+    submit(container);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitted = onSubmit.mock.calls[0][0] as {
+      form: {
+        sendingStorageLocationId: number;
+        receivingStorageLocationId: number;
+      };
+    };
+    expect(submitted.form.sendingStorageLocationId).toBe(4);
+    expect(submitted.form.receivingStorageLocationId).toBe(2);
+  });
+
+  test('a drafted location the project may not use is still cleared once the list lands', () => {
+    // The reset is deferred, not disabled: a stale pairing in the draft is
+    // dropped as soon as the resolved list shows it is not on offer.
+    storageLocationList = undefined;
+    offeredDraft = {
+      fields: {
+        transferNumber: '',
+        issueDate: '2026-08-30',
+        sendingProjectId: 3,
+        sendingStorageLocationId: 4,
+        receivingProjectId: 6,
+        receivingStorageLocationId: 2,
+      },
+      items: [],
+    };
+
+    const { container, rerender, getByRole, onSubmit } = renderForm();
+    fireEvent.click(getByRole('button', { name: 'Restore' }));
+
+    storageLocationList = STORAGE_LOCATIONS;
+    rerender(createElement(SiteTransferForm, { onSubmit }));
+
+    // Location 4 belongs to project 6, and the drafted sending project is 3,
+    // so the sending side is cleared once the list lands and the submit is
+    // refused for the missing location.
+    submit(container);
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });
