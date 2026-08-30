@@ -1,5 +1,6 @@
 import {
   Wallet,
+  ReceiptText,
   Receipt,
   CreditCard,
   FileSpreadsheet,
@@ -54,12 +55,21 @@ export const financeMetadata = {
   'finance-invoices-[id]': { label: 'Invoice', sidebarHidden: true },
   'finance-invoices-[id]-edit': { label: 'Edit', sidebarHidden: true },
 
+  // ── customer invoices (accounts receivable) ────────────────────────────────
+  'finance-customer-invoices': {
+    label: 'Customer Invoices',
+    icon: ReceiptText,
+    description:
+      'Issue and cancel the receivables raised to a customer, and see what is still owed.',
+    order: 4,
+  },
+
   // ── expenses ──────────────────────────────────────────────────────────────
   'finance-expenses': {
     label: 'Expenses',
     icon: TrendingDown,
     description: 'Log day-to-day site and operational expenses.',
-    order: 4,
+    order: 5,
   },
   'finance-expenses-new': { label: 'New Expense', sidebarHidden: true },
   'finance-expenses-[id]': { label: 'Expense', sidebarHidden: true },
@@ -70,7 +80,7 @@ export const financeMetadata = {
     label: 'Budgets',
     icon: PiggyBank,
     description: 'Per-project budget allocation and spend across the organization.',
-    order: 5,
+    order: 6,
   },
 
   // ── chart of accounts ───────────────────────────────────────────────────────
@@ -79,7 +89,7 @@ export const financeMetadata = {
     icon: FolderTree,
     description:
       'Maintain ledger accounts and import or export the chart as CSV.',
-    order: 6,
+    order: 7,
   },
 
   // ── journal entries ─────────────────────────────────────────────────────────
@@ -88,7 +98,7 @@ export const financeMetadata = {
     icon: BookOpen,
     description:
       'Review ledger postings and reverse an entry that was posted in error.',
-    order: 7,
+    order: 8,
   },
 
   // ── cost categories ─────────────────────────────────────────────────────────
@@ -96,7 +106,7 @@ export const financeMetadata = {
     label: 'Cost Categories',
     icon: Tags,
     description: 'Define the budget heads used to allocate and tag costs.',
-    order: 8,
+    order: 9,
   },
 
   // ── finance settings ────────────────────────────────────────────────────────
@@ -105,6 +115,6 @@ export const financeMetadata = {
     icon: Settings,
     description:
       'Configure ledger posting accounts and the invoice approval threshold.',
-    order: 9,
+    order: 10,
   },
 } satisfies MetadataRegistry;
