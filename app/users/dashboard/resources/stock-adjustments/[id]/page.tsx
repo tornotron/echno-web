@@ -56,7 +56,6 @@ import {
 } from '@/components/shadcn/alert-dialog';
 import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
-import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { getErrorMessage } from '@tornotron/echno-core';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
@@ -72,6 +71,7 @@ import {
   stockAdjustmentAmendmentGate,
 } from '@/features/stock-adjustments/decision-gates';
 import { RejectStockAdjustment } from '@/features/stock-adjustments/components';
+import { userReferenceLabel } from '@/lib/utils/user-reference';
 
 
 const handleDownloadPDF = () => {
@@ -185,19 +185,12 @@ export default function StockAdjustmentDetailPage({
   const router = useRouter();
   const numericId = Number.parseInt(id);
   const { data: adjustment } = useStockAdjustment(numericId);
-  const { data: employees = [] } = useEmployeeLookup();
   const { data: currentUser } = useUser();
   const { isSystemAdmin, isManagerOrAbove } = useAuthorization();
   const approveAdjustment = useApproveStockAdjustment();
   const deleteAdjustment = useDeleteStockAdjustment();
   const [confirmingApproval, setConfirmingApproval] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
-
-  const getEmployeeName = (empId?: number): string => {
-    if (!empId) return '—';
-    const employee = employees.find((e) => e.id === empId);
-    return employee?.name || `EMP-${empId.toString().padStart(3, '0')}`;
-  };
 
   if (!adjustment) {
     return (
@@ -373,7 +366,7 @@ export default function StockAdjustmentDetailPage({
             </div>
             <div className="text-zinc-500 dark:text-zinc-400">
               {adjustment.rejectedBy
-                ? `Rejected by ${getEmployeeName(adjustment.rejectedBy)}`
+                ? `Rejected by ${userReferenceLabel(adjustment.rejectedBy)}`
                 : 'Rejected'}
               {adjustment.rejectedAt &&
                 ` on ${format(adjustment.rejectedAt, 'PPP')}`}
@@ -859,7 +852,7 @@ export default function StockAdjustmentDetailPage({
                       )}
                       className="hover:underline"
                     >
-                      {getEmployeeName(adjustment.submittedBy)}
+                      {userReferenceLabel(adjustment.submittedBy)}
                     </Link>
                   </div>
                 </div>
@@ -881,7 +874,7 @@ export default function StockAdjustmentDetailPage({
                         )}
                         className="hover:underline"
                       >
-                        {getEmployeeName(adjustment.approvedBy)}
+                        {userReferenceLabel(adjustment.approvedBy)}
                       </Link>
                     </div>
                   </div>
