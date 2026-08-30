@@ -6,6 +6,9 @@ import {
   useCancelInvoice,
   useIssueInvoice,
 } from '@tornotron/echno-core/finance/hooks';
+import { financeKeys } from '@tornotron/echno-core/finance/hooks/keys';
+import { INVOICE_PAGE_SIZE } from '@tornotron/echno-core/finance-invoice/services';
+import type { InvoiceListParams } from '@tornotron/echno-core/finance-invoice/services';
 import { InvoiceStatus } from '@tornotron/echno-core/finance/types';
 import type { Invoice } from '@tornotron/echno-core/finance/types';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
@@ -44,12 +47,7 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { useAuthorization } from '@/hooks/use-authorization';
-import {
-  customerInvoiceKeys,
-  useCustomerInvoices,
-} from '@/hooks/customer-invoices';
-import { CUSTOMER_INVOICE_PAGE_SIZE } from '@/services/customer-invoices-service';
-import type { CustomerInvoiceListParams } from '@/services/customer-invoices-service';
+import { useCustomerInvoices } from '@/hooks/customer-invoices';
 import { toast } from '@/lib/styles/toast-styles';
 import { invoiceCancelGate, invoiceIssueGate } from '../invoice-action-gates';
 import { clampPageNo } from '../paging';
@@ -104,7 +102,7 @@ const filterOrder: FilterValue[] = [
 
 function filterToParams(
   filter: FilterValue
-): Pick<CustomerInvoiceListParams, 'status' | 'openOnly'> {
+): Pick<InvoiceListParams, 'status' | 'openOnly'> {
   if (filter === ALL) return {};
   if (filter === OPEN_ONLY) return { openOnly: true };
   return { status: filter };
@@ -152,9 +150,9 @@ export function CustomerInvoicesView() {
   const [issueTarget, setIssueTarget] = useState<Invoice | null>(null);
   const [cancelTarget, setCancelTarget] = useState<Invoice | null>(null);
 
-  const params: CustomerInvoiceListParams = {
+  const params: InvoiceListParams = {
     pageNo,
-    pageSize: CUSTOMER_INVOICE_PAGE_SIZE,
+    pageSize: INVOICE_PAGE_SIZE,
     ...filterToParams(filter),
   };
   const { data, isLoading, isError } = useCustomerInvoices(params);
@@ -165,7 +163,9 @@ export function CustomerInvoicesView() {
   // project-manager, so this decides the actions and the reads alike.
   const canManage = isSystemAdmin || isManager;
 
-  const rows = data?.rows ?? [];
+  // Core's listing keeps the Spring envelope rather than unwrapping it, so the
+  // rows are under `content` and the pager reads its total off the same object.
+  const rows = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
   // The page being read can stop existing: issuing the last draft on the final
@@ -184,9 +184,14 @@ export function CustomerInvoicesView() {
    * draft with an Issue button on it. Refetching on the 400 settles the
    * disagreement in favour of the server, instead of leaving a button that
    * fails identically on every further click.
+   *
+   * The prefix is core's `financeKeys.invoices()`, which covers every page and
+   * filter of the listing and the detail entries the issue and cancel mutations
+   * seed. Each page and filter is cached separately, so invalidating only the
+   * page in view would leave the others saying what the server no longer does.
    */
   const refreshList = () => {
-    queryClient.invalidateQueries({ queryKey: customerInvoiceKeys.lists() });
+    queryClient.invalidateQueries({ queryKey: financeKeys.invoices() });
   };
 
   const reportError = (fallback: string) => (error: unknown) => {

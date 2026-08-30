@@ -101,9 +101,21 @@ export function invoiceIssueGate({
  * The rule this cannot apply is the one ahead of both: an invoice that a
  * construction invoice raised on approval is refused by name, because the two
  * documents share a journal entry and the construction invoice owns it.
- * `InvoiceDto` carries no back-reference to that document, and core's
- * `ConstructionInvoice` type drops the `arInvoiceId` that would let the client
- * match them up, so an issued invoice is offered the action with the caveat
+ *
+ * Core 2.3.0 restored `arInvoiceId`, and it is still not enough to settle this
+ * here, because the link points the wrong way. It is a field on
+ * `ConstructionInvoice`; `InvoiceDto` carries no back-reference, so a
+ * receivables row on its own says nothing about who raised it. Inverting the
+ * link client side means holding the `arInvoiceId` of every construction
+ * invoice in the tenant, and the only listing there is takes a Spring
+ * `Pageable` whose page size defaults to 20, which core's
+ * `financeConstructionInvoiceService.getAll` does not raise. An index built
+ * from that first page would be silently partial, and it fails in the worse
+ * direction: a row whose construction invoice fell outside the page would carry
+ * no warning at all, which reads as an assurance that cancelling it is safe.
+ * The backend has the inverse in `ConstructionInvoiceRepository`
+ * `findByArInvoiceId`, but exposes it on no endpoint and puts nothing from it
+ * on the DTO, so an issued invoice is offered the action with the caveat
  * attached rather than being refused on a guess. Cancelling the construction
  * invoice unwinds both sides.
  *
