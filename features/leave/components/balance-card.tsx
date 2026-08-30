@@ -14,6 +14,11 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip';
 import { LeaveBalance } from '@/types/leave';
+import { formatDayCount } from '@/features/leave/lib/leave-days';
+import {
+  leaveEntitlement,
+  leaveUsedPercent,
+} from '@/features/leave/lib/leave-balance-figures';
 import { Calendar, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -23,23 +28,41 @@ interface BalanceCardProps {
   compact?: boolean;
 }
 
+/**
+ * One leave type's balance.
+ *
+ * The five figures are kept distinct because they answer different questions:
+ * the annual quota is what the policy grants for the year, accrued is how much
+ * of it the employee has earned so far, used and pending are what has gone out
+ * or is on its way out, and available is what is left. The card used to label
+ * `openingBalance` as the quota, which is only what last year carried over and
+ * is zero for anyone in their first year, which is where the "Quota 0" beside
+ * a ten-day balance came from. It also added the carried-forward days to `openingBalance`,
+ * which the backend sets to the same figure, counting them twice.
+ */
 export function BalanceCard({
   balance,
   showTrends = true,
   compact = false,
 }: BalanceCardProps) {
-  // Calculate percentages and metrics
-  const totalQuota = balance.openingBalance + balance.carryForwardFromPrevious;
-  const usedPercentage = totalQuota > 0 ? (balance.used / totalQuota) * 100 : 0;
-  const availablePercentage =
-    totalQuota > 0 ? (balance.availableBalance / totalQuota) * 100 : 0;
+  // What the year grants in total: the policy's quota plus anything carried in.
+  const entitlement = leaveEntitlement(balance);
+  const measurable = entitlement > 0;
+
+  const usedPercentage = leaveUsedPercent(balance);
+  const availablePercentage = measurable
+    ? Math.min(100, (balance.availableBalance / entitlement) * 100)
+    : 0;
 
   const totalAvailable = balance.availableBalance;
 
-  // Status classification
-  const isHealthy = totalAvailable >= totalQuota * 0.5;
-  const isLow = totalAvailable < totalQuota * 0.3 && totalAvailable > 0;
-  const isDepleted = totalAvailable === 0;
+  // Status classification. With no entitlement configured there is nothing to be
+  // a proportion of, so no health claim is made either way.
+  const isDepleted = measurable && totalAvailable <= 0;
+  const isLow =
+    measurable && totalAvailable > 0 && totalAvailable < entitlement * 0.3;
+  const isHealthy =
+    measurable && !isDepleted && !isLow && totalAvailable >= entitlement * 0.3;
 
   // Trend calculation (mock - would need historical data in production)
   const isAccruing = balance.accrued > 0;
@@ -109,22 +132,22 @@ export function BalanceCard({
               />
               <div className="flex items-center gap-3 text-xs">
                 <span className="text-muted-foreground">
-                  Quota{' '}
+                  Accrued{' '}
                   <span className="font-medium text-zinc-700 dark:text-zinc-300">
-                    {balance.openingBalance}
+                    {formatDayCount(balance.accrued)}
                   </span>
                 </span>
                 <span className="text-muted-foreground">
                   Used{' '}
                   <span className="font-medium text-red-600">
-                    {balance.used}
+                    {formatDayCount(balance.used)}
                   </span>
                 </span>
                 {balance.pending > 0 && (
                   <span className="text-muted-foreground">
                     Pending{' '}
                     <span className="font-medium text-yellow-600">
-                      {balance.pending}
+                      {formatDayCount(balance.pending)}
                     </span>
                   </span>
                 )}
@@ -132,10 +155,12 @@ export function BalanceCard({
             </div>
             <div className="shrink-0 text-right">
               <p className={cn('text-2xl leading-none font-bold', statusColor)}>
-                {totalAvailable}
+                {formatDayCount(totalAvailable)}
               </p>
               <p className="text-muted-foreground mt-1 text-xs">
-                / {totalQuota} days
+                {measurable
+                  ? `of ${formatDayCount(entitlement)} days`
+                  : 'days available'}
               </p>
             </div>
           </div>
@@ -194,63 +219,106 @@ export function BalanceCard({
             <span className="text-muted-foreground text-sm">Available</span>
             <div className="flex items-baseline gap-1">
               <span className={cn('text-3xl font-bold', statusColor)}>
-                {totalAvailable}
+                {formatDayCount(totalAvailable)}
               </span>
-              <span className="text-muted-foreground text-sm">
-                / {totalQuota}
-              </span>
+              {measurable && (
+                <span className="text-muted-foreground text-sm">
+                  of {formatDayCount(entitlement)}
+                </span>
+              )}
             </div>
           </div>
 
           {/* Visual Progress Bar */}
-          <div className="space-y-1">
-            <Progress
-              value={availablePercentage}
-              className={progressClassName}
-            />
-            <div className="text-muted-foreground flex justify-between text-xs">
-              <span>{availablePercentage.toFixed(0)}% available</span>
-              <span>{usedPercentage.toFixed(0)}% used</span>
+          {measurable && (
+            <div className="space-y-1">
+              <Progress
+                value={availablePercentage}
+                className={progressClassName}
+              />
+              <div className="text-muted-foreground flex justify-between text-xs">
+                <span>{availablePercentage.toFixed(0)}% available</span>
+                <span>{usedPercentage.toFixed(0)}% used</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Detailed Breakdown */}
-        <div className="grid grid-cols-3 gap-3 text-sm">
+        {/* Detailed Breakdown. Entitlement, accrued and available answer different
+            questions, so all three are shown rather than one standing in for another. */}
+        <div className="grid grid-cols-2 gap-3 text-sm">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="cursor-help space-y-1">
                   <p className="text-muted-foreground flex items-center gap-1 text-xs">
-                    Quota
+                    Annual quota
                     <Info className="h-3 w-3" />
                   </p>
-                  <p className="font-semibold">{balance.openingBalance}</p>
+                  <p className="font-semibold">
+                    {formatDayCount(balance.annualQuota)}
+                  </p>
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Annual leave quota allocated</p>
+                <p>Days this leave policy grants for the full year</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help space-y-1">
+                  <p className="text-muted-foreground flex items-center gap-1 text-xs">
+                    Accrued so far
+                    <Info className="h-3 w-3" />
+                  </p>
+                  <p className="font-semibold text-green-600">
+                    {formatDayCount(balance.accrued)}
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Days earned so far this year, out of the annual quota</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
 
           <div className="space-y-1">
             <p className="text-muted-foreground text-xs">Used</p>
-            <p className="font-semibold text-red-600">{balance.used}</p>
+            <p className="font-semibold text-red-600">
+              {formatDayCount(balance.used)}
+            </p>
           </div>
 
-          <div className="space-y-1">
-            <p className="text-muted-foreground text-xs">Pending</p>
-            <p className="font-semibold text-yellow-600">{balance.pending}</p>
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="cursor-help space-y-1">
+                  <p className="text-muted-foreground flex items-center gap-1 text-xs">
+                    Pending
+                    <Info className="h-3 w-3" />
+                  </p>
+                  <p className="font-semibold text-yellow-600">
+                    {formatDayCount(balance.pending)}
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Days on requests awaiting approval. They are held back from</p>
+                <p>what you can book, but are not counted as used yet.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
-        {/* Accrued */}
-        {balance.accrued > 0 && (
+        {/* What is actually bookable right now, once pending requests are held back. */}
+        {balance.pending > 0 && (
           <div className="flex items-center justify-between border-t pt-2 text-sm">
-            <span className="text-muted-foreground">Accrued this period</span>
-            <span className="font-medium text-green-600">
-              +{balance.accrued}
+            <span className="text-muted-foreground">You can book</span>
+            <span className="font-medium">
+              {formatDayCount(balance.bookableBalance)} days
             </span>
           </div>
         )}
@@ -259,12 +327,12 @@ export function BalanceCard({
         {balance.carryForwardFromPrevious > 0 && (
           <Badge variant="secondary" className="w-full justify-center">
             <TrendingUp className="mr-1 h-3 w-3" />+
-            {balance.carryForwardFromPrevious} carried forward
+            {formatDayCount(balance.carryForwardFromPrevious)} carried forward
           </Badge>
         )}
 
         {/* Status Badges */}
-        {isHealthy && !isDepleted && !isLow && (
+        {isHealthy && (
           <Badge
             variant="outline"
             className="w-full justify-center border-green-600 text-green-600"
@@ -273,7 +341,7 @@ export function BalanceCard({
           </Badge>
         )}
 
-        {isLow && !isDepleted && (
+        {isLow && (
           <Badge
             variant="outline"
             className="w-full justify-center border-yellow-600 text-yellow-600"
@@ -288,21 +356,23 @@ export function BalanceCard({
           </Badge>
         )}
 
-        {/* Accrual Rate Info */}
-        {balance.openingBalance > 0 && (
+        {/* Accrual Rate Info. Derived from the annual quota, which is what the
+            entitlement is spread over, not from the carried-forward opening balance. */}
+        {balance.annualQuota > 0 && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="text-muted-foreground flex cursor-help items-center justify-center gap-1 text-center text-xs">
                   <Info className="h-3 w-3" />
-                  Accrual rate: {(balance.openingBalance / 12).toFixed(2)}{' '}
+                  Accrual rate: {formatDayCount(balance.annualQuota / 12)}{' '}
                   days/month
                 </div>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Average monthly leave accrual</p>
                 <p className="text-muted-foreground text-xs">
-                  Based on {balance.openingBalance} days annual quota
+                  Based on {formatDayCount(balance.annualQuota)} days annual
+                  quota
                 </p>
               </TooltipContent>
             </Tooltip>

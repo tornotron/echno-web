@@ -41,6 +41,7 @@ import {
   useEmployeeRequests,
 } from '@/hooks/leave/use-leave';
 import { LeaveStatus } from '@/types/leave';
+import { formatDayCount } from '@/features/leave/lib/leave-days';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { format, isFuture } from 'date-fns';
 import { routes } from '@/nav';
@@ -80,7 +81,7 @@ export function EmployeeDashboard() {
             </p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-                {balanceSummary?.totalAvailable ?? 0}
+                {formatDayCount(balanceSummary?.totalAvailable ?? 0)}
               </p>
               <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
                 <Calendar className="size-4 text-green-600 dark:text-green-400" />
@@ -352,7 +353,7 @@ export function EmployeeDashboard() {
                         Available
                       </span>
                       <span className="text-lg font-bold text-green-600">
-                        {balanceSummary.totalAvailable} days
+                        {formatDayCount(balanceSummary.totalAvailable)} days
                       </span>
                     </div>
                     <Separator />
@@ -361,7 +362,7 @@ export function EmployeeDashboard() {
                         Used
                       </span>
                       <span className="text-lg font-semibold text-red-600">
-                        {balanceSummary.totalUsed} days
+                        {formatDayCount(balanceSummary.totalUsed)} days
                       </span>
                     </div>
                     <Separator />
@@ -370,7 +371,7 @@ export function EmployeeDashboard() {
                         Pending
                       </span>
                       <span className="text-lg font-semibold text-yellow-600">
-                        {balanceSummary.totalPending} days
+                        {formatDayCount(balanceSummary.totalPending)} days
                       </span>
                     </div>
                   </div>

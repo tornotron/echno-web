@@ -31,6 +31,13 @@ import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import { Switch } from '@/components/shadcn/switch';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcn/select';
 import { useAllLeavePolicies } from '@/hooks/leave/use-leave';
 import {
   useCreateLeavePolicy,
@@ -49,6 +56,23 @@ import {
 } from 'lucide-react';
 import { Separator } from '@/components/shadcn/separator';
 import { ConfirmationDialog } from '@/features/leave/components/confirmation-dialog';
+
+/**
+ * Who a leave type is offered to.
+ *
+ * The stored value is compared against the employee record's gender, which the
+ * registration form writes in title case ("Female"). The comparison on the server
+ * ignores case, so these code-style values match either way round.
+ */
+const APPLICABLE_GENDER_OPTIONS: ReadonlyArray<{
+  value: string;
+  label: string;
+}> = [
+  { value: 'ALL', label: 'All employees' },
+  { value: 'FEMALE', label: 'Female employees only' },
+  { value: 'MALE', label: 'Male employees only' },
+  { value: 'OTHER', label: 'Employees recorded as other' },
+];
 
 interface LeavePoliciesManagerProps {
   organizationId: number;
@@ -685,6 +709,60 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
                 })
               }
             />
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Eligibility. Without these two fields every policy had to be left open to
+          everyone, which is why maternity leave appeared on every employee's balance. */}
+      <div>
+        <h4 className="text-muted-foreground mb-3 text-sm font-medium">
+          Eligibility
+        </h4>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="applicableGenders">Applies To</Label>
+            <Select
+              value={formData.applicableGenders}
+              onValueChange={(value) =>
+                setFormData({ ...formData, applicableGenders: value })
+              }
+            >
+              <SelectTrigger id="applicableGenders" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {APPLICABLE_GENDER_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Only employees of this gender are offered the leave type.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="minServiceMonths">Minimum Service (months)</Label>
+            <Input
+              id="minServiceMonths"
+              type="number"
+              min={0}
+              value={formData.minServiceMonths}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  minServiceMonths: Number.parseInt(e.target.value) || 0,
+                })
+              }
+            />
+            <p className="text-muted-foreground text-xs">
+              How long an employee must have been with the organization before
+              the leave type is offered. Leave at 0 for no waiting period.
+            </p>
           </div>
         </div>
       </div>
