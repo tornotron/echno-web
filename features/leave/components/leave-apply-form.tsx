@@ -69,6 +69,7 @@ import {
   isSingleDayRange,
   reconcileHalfDaySelection,
 } from '@/features/leave/lib/leave-duration';
+import { formatDayCount, formatDays } from '@/features/leave/lib/leave-days';
 import { routes } from '@/nav';
 
 interface LeaveApplyFormProps {
@@ -297,7 +298,7 @@ export function LeaveApplyForm({
     }
     if (selectedBalance && calculatedDays > selectedBalance.bookableBalance) {
       toast.error('Insufficient Balance', {
-        description: `You only have ${selectedBalance.bookableBalance} days available`,
+        description: `You only have ${formatDays(selectedBalance.bookableBalance)} available`,
       });
       return false;
     }
@@ -611,7 +612,7 @@ export function LeaveApplyForm({
                             value={policy.id.toString()}
                           >
                             {policy.leaveTypeName} (
-                            {balance?.bookableBalance || 0} days available)
+                            {formatDayCount(balance?.bookableBalance ?? 0)} days available)
                           </SelectItem>
                         );
                       })}
@@ -778,7 +779,8 @@ export function LeaveApplyForm({
                         calculatedDays > selectedBalance.bookableBalance && (
                           <p className="text-destructive mt-2 text-sm">
                             Insufficient balance. You have{' '}
-                            {selectedBalance.bookableBalance} days available.
+                            {formatDays(selectedBalance.bookableBalance)}{' '}
+                            available.
                           </p>
                         )}
                     </AlertDescription>

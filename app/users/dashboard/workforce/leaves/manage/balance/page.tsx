@@ -26,6 +26,8 @@ import { TransactionsTabContent } from '@/features/leave/components/transactions
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { format } from 'date-fns';
 import { downloadCsv } from '@/lib/utils/csv-utils';
+import { formatDayCount } from '@/features/leave/lib/leave-days';
+import { leaveEntitlement } from '@/features/leave/lib/leave-balance-figures';
 
 
 export default function BalanceDetailsPage() {
@@ -49,39 +51,36 @@ export default function BalanceDetailsPage() {
   const totalAvailable = balanceSummary?.totalAvailable || 0;
   const totalUsed = balanceSummary?.totalUsed || 0;
   const totalPending = balanceSummary?.totalPending || 0;
+  // The year's entitlement across every policy. openingBalance already holds the
+  // carried-forward days, so the old sum counted them twice and added days earned
+  // so far to days granted for the year.
   const totalAllocated =
-    balanceSummary?.balances?.reduce(
-      (sum, b) =>
-        sum + (b.openingBalance + b.accrued + b.carryForwardFromPrevious),
-      0
-    ) || 0;
+    balanceSummary?.balances?.reduce((sum, b) => sum + leaveEntitlement(b), 0) ||
+    0;
 
   const handleExport = () => {
     if (activeTab === 'balances') {
       const balances = balanceSummary?.balances ?? [];
       const header = [
         'Leave Type',
-        'Opening',
+        'Annual Quota',
         'Accrued',
         'Carry Forward',
-        'Total',
+        'Total Entitlement',
         'Used',
         'Pending',
         'Available',
       ];
-      const rows = balances.map((b) => {
-        const total = b.openingBalance + b.accrued + b.carryForwardFromPrevious;
-        return [
-          b.leaveTypeName ?? '',
-          b.openingBalance.toFixed(1),
-          b.accrued.toFixed(1),
-          b.carryForwardFromPrevious.toFixed(1),
-          total.toFixed(1),
-          b.used.toFixed(1),
-          b.pending.toFixed(1),
-          b.availableBalance.toFixed(1),
-        ];
-      });
+      const rows = balances.map((b) => [
+        b.leaveTypeName ?? '',
+        formatDayCount(b.annualQuota),
+        formatDayCount(b.accrued),
+        formatDayCount(b.carryForwardFromPrevious),
+        formatDayCount(leaveEntitlement(b)),
+        formatDayCount(b.used),
+        formatDayCount(b.pending),
+        formatDayCount(b.availableBalance),
+      ]);
       downloadCsv(`leave-balances-${selectedYear}.csv`, [header, ...rows]);
     } else {
       const txns = transactions ?? [];
@@ -121,11 +120,11 @@ export default function BalanceDetailsPage() {
           <div className="sm:divide-border grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-0 sm:divide-x">
             <div className="flex flex-col gap-1 sm:pr-6">
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Total Allocated
+                Total Entitlement
               </p>
               <div className="flex items-center justify-between">
                 <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                  {totalAllocated.toFixed(1)}
+                  {formatDayCount(totalAllocated)}
                 </p>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
                   <Calendar className="size-4 text-blue-600 dark:text-blue-400" />
@@ -138,7 +137,7 @@ export default function BalanceDetailsPage() {
               </p>
               <div className="flex items-center justify-between">
                 <p className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
-                  {totalAvailable.toFixed(1)}
+                  {formatDayCount(totalAvailable)}
                 </p>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
                   <TrendingUp className="size-4 text-green-600 dark:text-green-400" />
@@ -149,7 +148,7 @@ export default function BalanceDetailsPage() {
               <p className="text-xs text-zinc-500 dark:text-zinc-400">Used</p>
               <div className="flex items-center justify-between">
                 <p className="text-2xl font-bold tracking-tight text-red-600 dark:text-red-400">
-                  {totalUsed.toFixed(1)}
+                  {formatDayCount(totalUsed)}
                 </p>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-red-50 dark:bg-red-950/30">
                   <TrendingDown className="size-4 text-red-600 dark:text-red-400" />
@@ -162,7 +161,7 @@ export default function BalanceDetailsPage() {
               </p>
               <div className="flex items-center justify-between">
                 <p className="text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
-                  {totalPending.toFixed(1)}
+                  {formatDayCount(totalPending)}
                 </p>
                 <div className="flex size-8 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
                   <Clock className="size-4 text-yellow-600 dark:text-yellow-400" />

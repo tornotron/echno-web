@@ -34,6 +34,8 @@ import {
   useTransactionHistory,
 } from '@/hooks/leave/use-leave';
 import { TransactionType } from '@/types/leave';
+import { formatDayCount } from '@/features/leave/lib/leave-days';
+import { leaveUsedPercent } from '@/features/leave/lib/leave-balance-figures';
 import { BalanceAdjustmentDialog } from './balance-adjustment-dialog';
 
 interface EmployeeLeaveSectionProps {
@@ -158,12 +160,10 @@ export function EmployeeLeaveSection({
           {balances && balances.length > 0 ? (
             <div className="grid gap-4 sm:grid-cols-2">
               {balances.map((balance) => {
-                const total =
-                  balance.openingBalance +
-                  balance.accrued +
-                  balance.carryForwardFromPrevious;
-                const usagePercent =
-                  total > 0 ? (balance.used / total) * 100 : 0;
+                // openingBalance already holds the carried-forward days, so the
+                // old sum counted them twice; the year's entitlement is the quota
+                // plus what was carried in.
+                const usagePercent = leaveUsedPercent(balance);
 
                 return (
                   <div
@@ -175,7 +175,7 @@ export function EmployeeLeaveSection({
                         {balance.leaveTypeName}
                       </span>
                       <span className="text-lg font-bold text-green-600 dark:text-green-400">
-                        {balance.availableBalance.toFixed(1)}
+                        {formatDayCount(balance.availableBalance)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -186,41 +186,41 @@ export function EmployeeLeaveSection({
                     </div>
                     <div className="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
                       <div>
-                        <p className="text-muted-foreground">Opening</p>
+                        <p className="text-muted-foreground">Annual Quota</p>
                         <p className="font-semibold">
-                          {balance.openingBalance.toFixed(1)}
+                          {formatDayCount(balance.annualQuota)}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Accrued</p>
                         <p className="font-semibold text-green-600 dark:text-green-400">
-                          +{balance.accrued.toFixed(1)}
+                          +{formatDayCount(balance.accrued)}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Carry Forward</p>
                         <p className="font-semibold text-blue-600 dark:text-blue-400">
                           {balance.carryForwardFromPrevious > 0
-                            ? `+${balance.carryForwardFromPrevious.toFixed(1)}`
+                            ? `+${formatDayCount(balance.carryForwardFromPrevious)}`
                             : '0.0'}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Used</p>
                         <p className="font-semibold text-red-600 dark:text-red-400">
-                          {balance.used.toFixed(1)}
+                          {formatDayCount(balance.used)}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Pending</p>
                         <p className="font-semibold text-yellow-600 dark:text-yellow-400">
-                          {balance.pending.toFixed(1)}
+                          {formatDayCount(balance.pending)}
                         </p>
                       </div>
                       <div>
                         <p className="text-muted-foreground">Bookable</p>
                         <p className="font-semibold">
-                          {balance.bookableBalance.toFixed(1)}
+                          {formatDayCount(balance.bookableBalance)}
                         </p>
                       </div>
                     </div>

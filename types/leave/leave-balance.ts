@@ -17,6 +17,14 @@ export interface LeaveBalance {
   employeeId: number;
   leavePolicyId: number;
   leaveTypeName?: string;
+  /**
+   * Days the policy grants for a full year.
+   *
+   * The entitlement the balance is measured against, and a different figure from
+   * `openingBalance`, which is only what last year carried over. Read from the
+   * policy the backend embeds in the balance.
+   */
+  annualQuota: number;
   year: number;
   openingBalance: number;
   accrued: number;
@@ -83,6 +91,7 @@ export function parseLeaveBalance(json: any): LeaveBalance {
       'parseLeaveBalance.leavePolicyId'
     ),
     leaveTypeName: json.leaveTypeName ?? json.leavePolicy?.leaveTypeName,
+    annualQuota: json.annualQuota ?? json.leavePolicy?.annualQuota ?? 0,
     year: json.year ?? new Date().getFullYear(),
     openingBalance: json.openingBalance ?? 0,
     accrued: json.accrued ?? 0,

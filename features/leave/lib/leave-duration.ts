@@ -20,6 +20,7 @@
 
 import { HalfDayType } from '@tornotron/echno-core/leave/types';
 import type { LeavePolicy } from '@tornotron/echno-core/leave/types';
+import { formatDays } from './leave-days';
 
 /** Reader-facing name for a half-day value. */
 export function halfDayTypeLabel(type?: HalfDayType | null): string {
@@ -165,14 +166,15 @@ export function describeDuration(
 /**
  * Formats a day count, keeping the half visible.
  *
+ * Kept as the name the duration code calls; the rendering itself is shared with
+ * the balance figures through {@link formatDays}, so a count reads the same
+ * wherever it appears.
+ *
  * @param totalDays - The count returned by the backend, e.g. `0.5` or `3`.
  * @returns `0.5 days`, `1 day`, `2.5 days`.
  */
 export function formatLeaveDays(totalDays: number): string {
-  const rendered = Number.isInteger(totalDays)
-    ? String(totalDays)
-    : totalDays.toFixed(1);
-  return `${rendered} ${totalDays === 1 ? 'day' : 'days'}`;
+  return formatDays(totalDays);
 }
 
 /** The policy fields the duration check reads. */

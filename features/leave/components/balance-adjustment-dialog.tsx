@@ -23,6 +23,7 @@ import {
 import { Loader2 } from 'lucide-react';
 import { useAdjustBalance } from '@/hooks/leave/use-leave-mutations';
 import { LeaveBalance } from '@/types/leave';
+import { formatDayCount } from '@/features/leave/lib/leave-days';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface BalanceAdjustmentDialogProps {
@@ -118,7 +119,7 @@ export function BalanceAdjustmentDialog({
                     value={balance.leavePolicyId.toString()}
                   >
                     {balance.leaveTypeName} (Available:{' '}
-                    {balance.availableBalance.toFixed(1)})
+                    {formatDayCount(balance.availableBalance)})
                   </SelectItem>
                 ))}
               </SelectContent>

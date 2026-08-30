@@ -30,6 +30,11 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Progress } from '@/components/shadcn/progress';
 import { Loader2 } from 'lucide-react';
 import { LeaveBalance } from '@/types/leave';
+import { formatDayCount } from '@/features/leave/lib/leave-days';
+import {
+  leaveEntitlement,
+  leaveUsedPercent,
+} from '@/features/leave/lib/leave-balance-figures';
 
 interface BalancesTabContentProps {
   balanceSummary:
@@ -141,7 +146,7 @@ export function BalancesTabContent({
                 />
               </TableHead>
               <TableHead>Leave Type</TableHead>
-              <TableHead>Opening</TableHead>
+              <TableHead>Annual Quota</TableHead>
               <TableHead>Accrued</TableHead>
               <TableHead>Carry Forward</TableHead>
               <TableHead>Total</TableHead>
@@ -172,11 +177,11 @@ export function BalancesTabContent({
               </TableRow>
             )}
             {filtered.map((balance) => {
-              const total =
-                balance.openingBalance +
-                balance.accrued +
-                balance.carryForwardFromPrevious;
-              const usagePercent = total > 0 ? (balance.used / total) * 100 : 0;
+              // The year's entitlement, not opening + accrued + carry-forward:
+              // openingBalance already holds the carried-forward days, so that
+              // sum counted them twice and added earned days to granted ones.
+              const total = leaveEntitlement(balance);
+              const usagePercent = leaveUsedPercent(balance);
 
               return (
                 <TableRow key={balance.id} className="hover:bg-muted/50">
@@ -196,39 +201,39 @@ export function BalancesTabContent({
                   </TableCell>
                   <TableCell>
                     <span className="text-zinc-700 dark:text-zinc-300">
-                      {balance.openingBalance.toFixed(1)}
+                      {formatDayCount(balance.annualQuota)}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="text-green-600 dark:text-green-400">
-                      +{balance.accrued.toFixed(1)}
+                      +{formatDayCount(balance.accrued)}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="text-blue-600 dark:text-blue-400">
                       {balance.carryForwardFromPrevious > 0
-                        ? `+${balance.carryForwardFromPrevious.toFixed(1)}`
+                        ? `+${formatDayCount(balance.carryForwardFromPrevious)}`
                         : '0.0'}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                      {total.toFixed(1)}
+                      {formatDayCount(total)}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="text-red-600 dark:text-red-400">
-                      {balance.used.toFixed(1)}
+                      {formatDayCount(balance.used)}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="text-yellow-600 dark:text-yellow-400">
-                      {balance.pending.toFixed(1)}
+                      {formatDayCount(balance.pending)}
                     </span>
                   </TableCell>
                   <TableCell>
                     <span className="font-semibold text-green-600 dark:text-green-400">
-                      {balance.availableBalance.toFixed(1)}
+                      {formatDayCount(balance.availableBalance)}
                     </span>
                   </TableCell>
                   <TableCell>
