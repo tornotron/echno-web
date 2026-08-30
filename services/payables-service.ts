@@ -13,8 +13,8 @@ import { api, ApiError, logger } from '@tornotron/echno-core';
  * API and a release, and whether payables survive at all is still open: the
  * construction-invoice flow covers part of the same ground and the module may
  * be retired instead of grown. A screen-local client keeps that decision a
- * one-repo change. The accounts-receivable listing in
- * `customer-invoices-service` sits here for the same reason.
+ * one-repo change. The accounts-receivable listing was held here on the same
+ * terms until core 2.3.0 took it, and this is what is left of that pattern.
  *
  * Every path is the `/web` controller, which is behind
  * `hasAnyOrgRoleForCurrentTenant('system-admin')` on every mapping, the reads
