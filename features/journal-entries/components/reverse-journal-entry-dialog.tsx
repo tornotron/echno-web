@@ -48,6 +48,17 @@ export function ReverseJournalEntryDialog({
   isPending,
 }: ReverseJournalEntryDialogProps) {
   const [reason, setReason] = useState('');
+  // A successful reversal closes this dialog from the parent by flipping the
+  // `open` prop, not through onOpenChange, so the clear inside handleOpenChange
+  // never runs on that path and the reason would be waiting, with the confirm
+  // button already enabled, when the next entry's dialog opens. Resetting on
+  // the open transition instead covers every way the dialog can close, and
+  // leaves the text in place while the closing animation plays.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setReason('');
+  }
   const trimmed = reason.trim();
   const tooLong = trimmed.length > REVERSAL_REASON_MAX_LENGTH;
 
