@@ -52,6 +52,7 @@ import { CUSTOMER_INVOICE_PAGE_SIZE } from '@/services/customer-invoices-service
 import type { CustomerInvoiceListParams } from '@/services/customer-invoices-service';
 import { toast } from '@/lib/styles/toast-styles';
 import { invoiceCancelGate, invoiceIssueGate } from '../invoice-action-gates';
+import { clampPageNo } from '../paging';
 import {
   CancelInvoiceDialog,
   IssueInvoiceDialog,
@@ -166,6 +167,14 @@ export function CustomerInvoicesView() {
 
   const rows = data?.rows ?? [];
   const totalPages = data?.totalPages ?? 0;
+
+  // The page being read can stop existing: issuing the last draft on the final
+  // page of a listing filtered to drafts removes the row that made that page.
+  // Only judged once a response is in hand, since a page count of nothing is
+  // what an unresolved query looks like.
+  if (data && clampPageNo(pageNo, totalPages) !== pageNo) {
+    setPageNo(clampPageNo(pageNo, totalPages));
+  }
 
   /**
    * Drops the cached listing.

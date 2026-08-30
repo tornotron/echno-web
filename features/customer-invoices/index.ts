@@ -6,3 +6,4 @@ export {
   isValidCancelReason,
 } from './invoice-action-gates';
 export type { InvoiceActionGate } from './invoice-action-gates';
+export { clampPageNo } from './paging';
