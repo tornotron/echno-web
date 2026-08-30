@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import type { StorageLocation } from '@tornotron/echno-core/storage-locations/types';
-import { storageLocationsForProject } from './storage-location-scope';
+import {
+  isOutsideProjectScope,
+  storageLocationsForAdjustment,
+  storageLocationsForProject,
+} from './storage-location-scope';
 
 function location(
   id: number,
@@ -53,5 +57,57 @@ describe('storageLocationsForProject', () => {
       (l) => l.locationName
     );
     expect(names).toEqual(['Godown', 'Central Warehouse']);
+  });
+});
+
+describe('storageLocationsForAdjustment', () => {
+  test('an ordinary adjustment sees the strict set', () => {
+    const names = storageLocationsForAdjustment(LOCATIONS, 2, false).map(
+      (l) => l.locationName
+    );
+    expect(names).not.toContain('Riverside Store');
+  });
+
+  test('a balance correction sees every location in the organisation', () => {
+    // The backend accepts a location owned by another project when a balance
+    // row already sits there (echno-backend#572), and nothing the client can
+    // read says which locations those are: no endpoint lists the locations
+    // holding a balance for a material and project. Offering the full set is
+    // what makes the correction reachable at all; the backend still refuses a
+    // location that holds nothing.
+    const names = storageLocationsForAdjustment(LOCATIONS, 2, true).map(
+      (l) => l.locationName
+    );
+    expect(names).toContain('Riverside Store');
+    expect(names.length).toBe(LOCATIONS.length);
+  });
+});
+
+describe('isOutsideProjectScope', () => {
+  test("a document on another project's location is outside it", () => {
+    // This is the shape raised through the API for issue #563: project 2
+    // holding stock at a location project 6 owns.
+    expect(isOutsideProjectScope(LOCATIONS, 2, 4)).toBe(true);
+  });
+
+  test("a document on its own project's location is not", () => {
+    expect(isOutsideProjectScope(LOCATIONS, 2, 1)).toBe(false);
+  });
+
+  test('an organisation-level location is not, from any project', () => {
+    expect(isOutsideProjectScope(LOCATIONS, 2, 14)).toBe(false);
+  });
+
+  test('a document naming no location is not', () => {
+    expect(isOutsideProjectScope(LOCATIONS, 2, undefined)).toBe(false);
+    expect(isOutsideProjectScope(LOCATIONS, 2, 0)).toBe(false);
+  });
+
+  test('a location the list does not carry is not judged at all', () => {
+    // The list arrives asynchronously and can be short a row the document
+    // names. Reading absence as "outside the project" would silently switch a
+    // document into the correction path on a slow query.
+    expect(isOutsideProjectScope(LOCATIONS, 2, 999)).toBe(false);
+    expect(isOutsideProjectScope([], 2, 4)).toBe(false);
   });
 });

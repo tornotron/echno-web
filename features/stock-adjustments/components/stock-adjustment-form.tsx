@@ -10,6 +10,7 @@ import {
   CardDescription,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
+import { Checkbox } from '@/components/shadcn/checkbox';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
@@ -31,7 +32,10 @@ import {
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
-import { storageLocationsForProject } from '@/lib/inventory/storage-location-scope';
+import {
+  isOutsideProjectScope,
+  storageLocationsForAdjustment,
+} from '@/lib/inventory/storage-location-scope';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 import type { StockAdjustment } from '@/types/resource';
@@ -165,6 +169,18 @@ export function StockAdjustmentForm({
       : [blankItem(1)]
   );
 
+  /**
+   * Whether the document corrects a balance already held at a location another
+   * project owns, which is the one case the backend lets an adjustment book
+   * outside its project's locations. Off by default: the ordinary document is
+   * an ordinary one, and this widens the dropdown to every location in the
+   * organisation.
+   */
+  const [correctingExistingBalance, setCorrectingExistingBalance] =
+    useState(false);
+  /** Whether the widening has been decided from the document it opened with. */
+  const [scopeDecided, setScopeDecided] = useState(false);
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [itemErrors, setItemErrors] = useState<
     Record<number, Record<string, string>>
@@ -251,12 +267,48 @@ export function StockAdjustmentForm({
   // Storage locations available to the chosen project
   // ---------------------------------------------------------------------------
 
+  // A document that already sits on another project's location is the shape the
+  // widening exists for, so it opens with the widening on. Without it the reset
+  // below drops the location the document came with, on the very documents the
+  // relaxation was added for.
+  //
+  // It is read on the same pass that records it rather than waiting for the
+  // state to land, because the reset runs on this pass too and would clear the
+  // location before the decision took effect.
+  const opensWidened =
+    !scopeDecided &&
+    storageLocations !== undefined &&
+    isOutsideProjectScope(
+      storageLocations,
+      form.projectId,
+      form.storageLocationId
+    );
+  const correcting = correctingExistingBalance || opensWidened;
+
+  // The decision is taken once, when the location list first resolves, and is
+  // not held as an invariant afterwards: the user has to be able to turn the
+  // widening back off, and re-deciding on every render would tick the box again
+  // as fast as they cleared it.
+  if (storageLocations !== undefined && !scopeDecided) {
+    setScopeDecided(true);
+    if (opensWidened) {
+      setCorrectingExistingBalance(true);
+    }
+  }
+
   // A balance row sits at one (material, project, location) triple, so offering
   // a location that belongs to another project only ever produces a document
-  // that cannot be posted.
+  // that cannot be posted. The exception is a document correcting a balance
+  // that is already sitting on such a pairing: see
+  // `storageLocationsForAdjustment`.
   const availableLocations = useMemo(
-    () => storageLocationsForProject(storageLocations ?? [], form.projectId),
-    [storageLocations, form.projectId]
+    () =>
+      storageLocationsForAdjustment(
+        storageLocations ?? [],
+        form.projectId,
+        correcting
+      ),
+    [storageLocations, form.projectId, correcting]
   );
 
   // The reset waits for the location query to resolve. Until then the list is
@@ -482,6 +534,31 @@ export function StockAdjustmentForm({
                       {errors.storageLocationId}
                     </p>
                   )}
+                  <div className="flex items-start gap-2 pt-1">
+                    <Checkbox
+                      id="correctingExistingBalance"
+                      checked={correcting}
+                      onCheckedChange={(checked) =>
+                        setCorrectingExistingBalance(checked === true)
+                      }
+                    />
+                    <div className="space-y-1">
+                      <Label
+                        htmlFor="correctingExistingBalance"
+                        className="text-sm font-normal"
+                      >
+                        This corrects a balance held at another project&apos;s
+                        location
+                      </Label>
+                      <p className="text-muted-foreground text-xs">
+                        Offers every location in the organization. An adjustment
+                        may correct a balance that already sits on a location
+                        owned by another project, but it cannot create one, so a
+                        location holding nothing for this material and project is
+                        still refused on approval.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
