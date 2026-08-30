@@ -88,6 +88,13 @@ export const useDeleteStockAdjustment = () => {
  * without a refetch. The list and the stock figures the posting moved are
  * invalidated rather than patched: an approval writes inventory transactions
  * and changes material balances, and neither is derivable from this response.
+ *
+ * A failure refetches the document. The commonest way for an approval to fail
+ * is that somebody else has already decided it, and the copy this screen holds
+ * then still says draft and still offers approve, reject, edit and delete: the
+ * page keeps offering a decision that has been taken, and every further click
+ * repeats the same 400. Refetching on the error settles it in the server's
+ * favour, which is the only version that is true.
  */
 export const useApproveStockAdjustment = () => {
   const queryClient = useQueryClient();
@@ -103,6 +110,11 @@ export const useApproveStockAdjustment = () => {
       queryClient.invalidateQueries({ queryKey: materialStockKeys.all });
       queryClient.invalidateQueries({ queryKey: inventoryTransactionKeys.all });
     },
+    onError: (_error, id) => {
+      queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.detail(id),
+      });
+    },
   });
 };
 
@@ -115,6 +127,9 @@ export const useApproveStockAdjustment = () => {
  * inventory transactions and moves no balance, so the material, material-stock
  * and inventory-transaction caches are untouched by it and invalidating them
  * would refetch three namespaces to arrive back at what they already hold.
+ *
+ * A failure refetches the document, for the reason given on
+ * {@link useApproveStockAdjustment}.
  */
 export const useRejectStockAdjustment = () => {
   const queryClient = useQueryClient();
@@ -127,6 +142,11 @@ export const useRejectStockAdjustment = () => {
         rejected
       );
       queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
+    },
+    onError: (_error, { id }) => {
+      queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.detail(id),
+      });
     },
   });
 };
