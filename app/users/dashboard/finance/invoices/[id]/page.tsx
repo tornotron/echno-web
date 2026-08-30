@@ -2,7 +2,6 @@
 
 import { use, useState } from 'react';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
-import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useInvoiceById } from '@/hooks/invoices';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -59,6 +58,7 @@ import {
 import { InvoiceActions } from '@/features/invoices/components/invoice-actions';
 import { invoicesService } from '@/services/invoices-service';
 import { toast } from '@/lib/styles/toast-styles';
+import { userReferenceLabel } from '@/lib/utils/user-reference';
 
 interface InvoiceDetailPageProps {
   params: Promise<{
@@ -82,7 +82,6 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
     isPending: isVendorsLoading,
     isError: isVendorsError,
   } = useVendors();
-  const { data: employees = [] } = useEmployeeLookup();
   const {
     data: invoice,
     isPending: isInvoiceLoading,
@@ -96,12 +95,6 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
   const getVendorName = (vendorId: number): string => {
     const vendor = vendors.find((v) => v.id === vendorId);
     return vendor?.name || `Vendor #${vendorId}`;
-  };
-
-  const getEmployeeName = (employeeId?: number): string => {
-    if (!employeeId) return '—';
-    const employee = employees.find((e) => e.id === employeeId);
-    return employee?.name || `User #${employeeId}`;
   };
 
   if (isLoading)
@@ -617,10 +610,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {getEmployeeName(invoice.submittedBy)}
+                              {userReferenceLabel(invoice.submittedBy)}
                             </Link>
                           ) : (
-                            getEmployeeName(invoice.submittedBy)
+                            userReferenceLabel(invoice.submittedBy)
                           )}{' '}
                           on {formatDateTime(invoice.submittedAt)}
                         </p>
@@ -642,10 +635,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {getEmployeeName(invoice.approvedBy)}
+                              {userReferenceLabel(invoice.approvedBy)}
                             </Link>
                           ) : (
-                            getEmployeeName(invoice.approvedBy)
+                            userReferenceLabel(invoice.approvedBy)
                           )}{' '}
                           on {formatDateTime(invoice.approvedAt)}
                         </p>
@@ -669,10 +662,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {getEmployeeName(invoice.paymentRecordedBy)}
+                              {userReferenceLabel(invoice.paymentRecordedBy)}
                             </Link>
                           ) : (
-                            getEmployeeName(invoice.paymentRecordedBy)
+                            userReferenceLabel(invoice.paymentRecordedBy)
                           )}
                         </p>
                       </div>
