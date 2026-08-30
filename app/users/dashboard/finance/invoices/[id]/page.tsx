@@ -46,7 +46,7 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { userFilterHref } from '@/hooks/use-employee-filter';
 import { format } from 'date-fns';
 import {
   ConstructionInvoiceStatus,
@@ -603,7 +603,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           {invoice.submittedBy ? (
                             <Link
-                              href={employeeFilterHref(
+                              href={userFilterHref(
                                 routes.finance.invoices.href,
                                 invoice.submittedBy,
                                 'submitter'
@@ -628,7 +628,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           {invoice.approvedBy ? (
                             <Link
-                              href={employeeFilterHref(
+                              href={userFilterHref(
                                 routes.finance.invoices.href,
                                 invoice.approvedBy,
                                 'approver'
@@ -655,7 +655,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                         <p className="text-xs text-zinc-600 dark:text-zinc-400">
                           {invoice.paymentRecordedBy ? (
                             <Link
-                              href={employeeFilterHref(
+                              href={userFilterHref(
                                 routes.finance.invoices.href,
                                 invoice.paymentRecordedBy,
                                 'payment-recorder'

@@ -3,6 +3,7 @@
 import { useCallback } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { userReferenceLabel } from '@/lib/utils/user-reference';
 
 /**
  * Maps the `role` query param carried by an employee-filter link to the human
@@ -30,7 +31,12 @@ export const ROLE_LABELS: Record<string, string> = {
 
 /** Resolved employee filter read from the current list page's query params. */
 export interface EmployeeFilterState {
-  /** Employee surrogate id from `?employeeId=`, or `null` when unset. */
+  /**
+   * Id from `?employeeId=` or `?userId=`, or `null` when unset. Which table it
+   * belongs to depends on the param that carried it: the list pages compare it
+   * against the same field the link was built from, so the match is
+   * like-for-like either way.
+   */
   employeeId: number | null;
   /** Role slug from `?role=` (see {@link ROLE_LABELS}), or `null` when unset. */
   role: string | null;
@@ -41,9 +47,17 @@ export interface EmployeeFilterState {
 }
 
 /**
- * Reads `employeeId` (number) and `role` (string) from the current URL's search
- * params, resolves the employee display name via {@link useEmployeeLookup}, and
- * returns the active filter plus a `clear` action.
+ * Reads `employeeId` or `userId` (number) and `role` (string) from the current
+ * URL's search params and returns the active filter plus a `clear` action.
+ *
+ * The two params differ only in how the chip is worded. An `employeeId` names a
+ * row in the employee table, so the display name is resolved via
+ * {@link useEmployeeLookup}. A `userId` is a session-stamped user id (the
+ * `submittedBy` / `approvedBy` / `rejectedBy` fields the backend writes with
+ * `UserContextService.getCurrentUserId()`), which the employee lookup cannot
+ * resolve: the two tables run separate sequences, so the lookup misses for most
+ * ids and names a different person whenever the numbers collide. It is worded
+ * as `User #<id>`, the same label the detail screens use for these fields.
  */
 export function useEmployeeFilterFromParams(): EmployeeFilterState {
   const searchParams = useSearchParams();
@@ -51,7 +65,8 @@ export function useEmployeeFilterFromParams(): EmployeeFilterState {
   const pathname = usePathname();
   const { data: employees = [] } = useEmployeeLookup();
 
-  const rawId = searchParams.get('employeeId');
+  const rawEmployeeId = searchParams.get('employeeId');
+  const rawId = rawEmployeeId ?? searchParams.get('userId');
   const parsedId = rawId == null ? Number.NaN : Number(rawId);
   const employeeId = Number.isFinite(parsedId) ? parsedId : null;
   const role = searchParams.get('role');
@@ -59,8 +74,10 @@ export function useEmployeeFilterFromParams(): EmployeeFilterState {
   const name =
     employeeId == null
       ? null
-      : (employees.find((e) => e.id === employeeId)?.name ??
-        `User #${employeeId}`);
+      : rawEmployeeId == null
+        ? userReferenceLabel(employeeId)
+        : (employees.find((e) => e.id === employeeId)?.name ??
+          userReferenceLabel(employeeId));
 
   const clear = useCallback(() => {
     router.replace(pathname);
@@ -80,6 +97,22 @@ export function employeeFilterHref(
   role: string
 ): string {
   return `${baseHref}?employeeId=${id}&role=${role}`;
+}
+
+/**
+ * Builds a list-page href that filters to one **user** in one role, for the
+ * `*By` fields the backend stamps from the session rather than from an
+ * employee picker. The chip then words the filter as `User #<id>` instead of
+ * resolving the id through the employee lookup, which is keyed by a different
+ * table's sequence and would name whichever employee happens to hold the same
+ * number.
+ */
+export function userFilterHref(
+  baseHref: string,
+  id: number,
+  role: string
+): string {
+  return `${baseHref}?userId=${id}&role=${role}`;
 }
 
 /**

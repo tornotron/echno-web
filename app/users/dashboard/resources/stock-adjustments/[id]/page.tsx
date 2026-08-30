@@ -58,7 +58,7 @@ import { toast } from '@/lib/styles/toast-styles';
 import Link from 'next/link';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { getErrorMessage } from '@tornotron/echno-core';
-import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { userFilterHref } from '@/hooks/use-employee-filter';
 import {
   useStockAdjustment,
   useApproveStockAdjustment,
@@ -845,7 +845,7 @@ export default function StockAdjustmentDetailPage({
                   </div>
                   <div className="font-medium text-zinc-900 dark:text-zinc-100">
                     <Link
-                      href={employeeFilterHref(
+                      href={userFilterHref(
                         routes.resources.stockAdjustments.href,
                         adjustment.submittedBy,
                         'submitter'
@@ -867,7 +867,7 @@ export default function StockAdjustmentDetailPage({
                     </div>
                     <div className="font-medium text-zinc-900 dark:text-zinc-100">
                       <Link
-                        href={employeeFilterHref(
+                        href={userFilterHref(
                           routes.resources.stockAdjustments.href,
                           adjustment.approvedBy,
                           'approver'
