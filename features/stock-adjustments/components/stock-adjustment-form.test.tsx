@@ -122,10 +122,17 @@ describe('StockAdjustmentForm storage location on a cold cache', () => {
     expect(submitted.form.storageLocationId).toBe(4);
   });
 
-  test('a location the project may not use is still cleared once the list lands', () => {
-    // The reset is deferred, not disabled: location 4 belongs to project 6,
-    // so on a document naming project 3 it is dropped as soon as the resolved
-    // list shows the pairing is not on offer, and the submit stays blocked.
+  test("a document already sitting on another project's location keeps it", () => {
+    // Location 4 belongs to project 6, so on a document naming project 3 the
+    // strict scope does not offer it and the reset used to zero the field,
+    // leaving a save that changed only the notes to move the correction onto a
+    // different balance row or be refused outright.
+    //
+    // That pairing is exactly what backend#572 lets an adjustment correct when
+    // a balance already sits there, and it is the shape of the documents raised
+    // through the API for issue #563 because the form could not draft one. The
+    // form recognises it and comes up in the correction path, so the location
+    // the document arrived with survives.
     storageLocationList = undefined;
     const { container, rerender, onSubmit } = renderForm(document(3, 4));
 
@@ -133,6 +140,42 @@ describe('StockAdjustmentForm storage location on a cold cache', () => {
     rerender(
       createElement(StockAdjustmentForm, { initial: document(3, 4), onSubmit })
     );
+
+    submit(container);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitted = onSubmit.mock.calls[0][0] as {
+      form: { storageLocationId: number };
+    };
+    expect(submitted.form.storageLocationId).toBe(4);
+  });
+});
+
+describe('StockAdjustmentForm balance-correction scope', () => {
+  afterEach(() => {
+    cleanup();
+    storageLocationList = STORAGE_LOCATIONS;
+  });
+
+  test("a document on another project's location comes up in the correction path", () => {
+    const { getByRole } = renderForm(document(3, 4));
+    expect(getByRole('checkbox').getAttribute('aria-checked')).toBe('true');
+  });
+
+  test('an ordinary document does not, so the strict scope is what it gets', () => {
+    // Project 6 owns location 4, so this document is inside its own scope and
+    // has no reason to be offered every location in the organisation.
+    const { getByRole } = renderForm(document(6, 4));
+    expect(getByRole('checkbox').getAttribute('aria-checked')).toBe('false');
+  });
+
+  test('turning it off puts the document back inside the strict scope', () => {
+    // The widening is what holds a cross-project location on the document, so
+    // withdrawing it drops that location and blocks the submit, which is the
+    // strict behaviour every other document gets.
+    const { container, getByRole, onSubmit } = renderForm(document(3, 4));
+
+    fireEvent.click(getByRole('checkbox'));
+    expect(getByRole('checkbox').getAttribute('aria-checked')).toBe('false');
 
     submit(container);
     expect(onSubmit).not.toHaveBeenCalled();
