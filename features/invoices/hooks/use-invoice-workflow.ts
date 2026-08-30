@@ -48,6 +48,22 @@ export function useInvoiceWorkflow() {
     queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
   };
 
+  // A failed action refetches the document. The commonest way for one of these
+  // to fail is that somebody else decided the invoice first: the copy this
+  // screen holds still carries the old status and still offers the action, so
+  // without a refetch every further click repeats the same 400. This is the
+  // shape #344 fixed on stock adjustments and leave; the construction invoice
+  // has the same two-manager race on every one of its transitions.
+  const desync = (id: string) => {
+    queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(id) });
+  };
+
+  const showErrorAndDesync =
+    (fallback: string, id: string) => (error: unknown) => {
+      desync(id);
+      showError(fallback)(error);
+    };
+
   interface ActionCallbacks {
     onDone?: () => void;
   }
@@ -61,7 +77,7 @@ export function useInvoiceWorkflow() {
         });
         cb.onDone?.();
       },
-      onError: showError('Failed to submit invoice'),
+      onError: showErrorAndDesync('Failed to submit invoice', id),
     });
   };
 
@@ -74,7 +90,7 @@ export function useInvoiceWorkflow() {
         });
         cb.onDone?.();
       },
-      onError: showError('Failed to approve invoice'),
+      onError: showErrorAndDesync('Failed to approve invoice', id),
     });
   };
 
@@ -89,7 +105,7 @@ export function useInvoiceWorkflow() {
           });
           cb.onDone?.();
         },
-        onError: showError('Failed to cancel invoice'),
+        onError: showErrorAndDesync('Failed to cancel invoice', id),
       }
     );
   };
@@ -109,7 +125,7 @@ export function useInvoiceWorkflow() {
           });
           cb.onDone?.();
         },
-        onError: showError('Failed to record payment'),
+        onError: showErrorAndDesync('Failed to record payment', id),
       }
     );
   };
