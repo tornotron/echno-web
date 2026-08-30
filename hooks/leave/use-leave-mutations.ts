@@ -488,10 +488,17 @@ export const useWithdrawLeaveRequest = () => {
         description: 'The leave request has been withdrawn.',
       });
     },
-    onError: (err) =>
+    onError: (err, { requestId }) => {
+      // A withdrawal usually fails because the request has already been
+      // decided, and the copy this screen holds still says pending and still
+      // offers the button. Refetching the request settles the disagreement in
+      // the server's favour, rather than leaving a control that repeats the
+      // same 400 on every click.
+      queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       toast.error(getErrorTitle(err, 'Failed to Withdraw Leave Request'), {
         description: getErrorMessage(err),
-      }),
+      });
+    },
   });
 };
 
