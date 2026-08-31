@@ -33,6 +33,12 @@ export interface PaymentLifecycleState {
   verifiedAt?: string;
 }
 
+/** The two halves a complete verification stamp carries. */
+export interface VerificationStamp {
+  verifiedBy: number;
+  verifiedAt: string;
+}
+
 /**
  * Whether the voucher carries a verification stamp.
  *
@@ -40,10 +46,19 @@ export interface PaymentLifecycleState {
  * the stamp on: a stamp is a person and a time, and half of one is not a
  * verification anybody can read.
  *
+ * Narrowing rather than a bare boolean, so a screen that has checked the stamp
+ * can then link on the verifier id without re-testing it. The alternative is
+ * every caller repeating the two-field condition inline, which is how the two
+ * halves drift apart. Generic in the voucher so the narrowing adds to the
+ * caller's own type rather than replacing it: a detail screen still has its
+ * `verifiedByName` afterwards.
+ *
  * @param payment - The voucher.
  * @returns True when the voucher has been verified.
  */
-export function isPaymentVerified(payment: PaymentLifecycleState): boolean {
+export function isPaymentVerified<T extends PaymentLifecycleState>(
+  payment: T
+): payment is T & VerificationStamp {
   return Boolean(payment.verifiedBy && payment.verifiedAt);
 }
 
