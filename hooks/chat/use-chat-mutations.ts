@@ -6,7 +6,7 @@ import { chatMessageService } from '@/services/chat-message-service';
 import { SendMessageData } from '@/types/chat';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
-import { getErrorMessage, getErrorTitle } from '@/lib/utils/error-helpers';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 
 /**
  * Send a new message to a room.

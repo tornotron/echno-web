@@ -150,9 +150,22 @@ describe('starting a run', () => {
     expect(toast.error).not.toHaveBeenCalled();
   });
 
+  // The shape here is the backend's, not an invented one. Its problem body puts
+  // the problem class in `title`, the sentence written for the caller in
+  // `message`, and `request.getDescription(false)` in `details`, which is the
+  // request URI. An earlier version of this fixture put the sentence in
+  // `details` and asserted it came back as the description, which held only
+  // while the helper preferred `details` and would have kept a URI under every
+  // toast in the app.
   test('a refused start still surfaces the reason the backend gave', async () => {
     start.mockImplementation(async () => {
-      throw new ApiError('Invalid request', 400, 'This project has no type set.');
+      throw new ApiError(
+        'This project has no type set.',
+        400,
+        'uri=/api/v1/compliance-jobs/web/start/7',
+        undefined,
+        'Validation Failed'
+      );
     });
     const { result } = setup();
 
@@ -162,7 +175,32 @@ describe('starting a run', () => {
     expect(lastOptions(toast.error).description).toBe(
       'This project has no type set.'
     );
+    expect(lastTitle(toast.error)).toBe('Validation Failed');
     expect(result.current.isActive).toBe(false);
+  });
+
+  // A signed-in user without the permission is not a signed-out user. The
+  // refusal names the missing authority and is headed by the server's own
+  // 'Access Denied', never by an invitation to sign in again.
+  test('a 403 is headed by the problem the server named, not by a login prompt', async () => {
+    start.mockImplementation(async () => {
+      throw new ApiError(
+        'Access is denied: requires role site-engineer',
+        403,
+        'uri=/api/v1/compliance-jobs/web/start/7',
+        undefined,
+        'Access Denied'
+      );
+    });
+    const { result } = setup();
+
+    result.current.start();
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    expect(lastTitle(toast.error)).toBe('Access Denied');
+    expect(lastOptions(toast.error).description).toBe(
+      'Access is denied: requires role site-engineer'
+    );
   });
 });
 

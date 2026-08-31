@@ -15,7 +15,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { leaveService } from '@/services/leave-service';
 import { leaveKeys } from '@/hooks/leave/use-leave';
 import { toast } from '@/lib/styles/toast-styles';
-import { getErrorTitle, getErrorMessage } from '@/lib/utils/error-helpers';
+import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import type {
   LeavePolicy,
   LeaveRequest,

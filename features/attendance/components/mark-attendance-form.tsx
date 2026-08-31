@@ -56,7 +56,7 @@ import {
 } from '@tornotron/echno-core/attendance/hooks';
 import { ClockEventType } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
-import { getErrorMessage } from '@/lib/utils/error-helpers';
+import { getErrorMessage } from '@tornotron/echno-core';
 import {
   buildEventTimestamp,
   canClockIn,
