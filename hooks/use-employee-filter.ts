@@ -31,6 +31,9 @@ export const ROLE_LABELS: Record<string, string> = {
   reporter: 'Reported by',
   requester: 'Requested by',
   handover: 'Handover to',
+  payee: 'Paid to',
+  employee: 'Employee',
+  manager: 'Reporting to',
 };
 
 /** Resolved employee filter read from the current list page's query params. */
@@ -50,7 +53,7 @@ export interface EmployeeFilterState {
    * `null` when no filter is set.
    */
   name: string | null;
-  /** Clears the filter by replacing the URL with the bare pathname. */
+  /** Clears the filter, keeping any query params it does not own. */
   clear: () => void;
 }
 
@@ -101,10 +104,30 @@ export function useEmployeeFilterFromParams(
           employeeReferenceLabel(employeeId));
 
   const clear = useCallback(() => {
-    router.replace(pathname);
-  }, [router, pathname]);
+    // Drops the three params this filter owns and keeps the rest. It used to
+    // replace with the bare pathname, which was harmless while every list route
+    // was a bare path, and stops being harmless on the attendance history:
+    // that is one page holding two tabs, so clearing the filter would also drop
+    // `?tab=team` and drop the reader onto somebody else's timesheet.
+    const next = new URLSearchParams(searchParams);
+    next.delete('employeeId');
+    next.delete('userId');
+    next.delete('role');
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname);
+  }, [router, pathname, searchParams]);
 
   return { employeeId, role, name, clear };
+}
+
+/**
+ * Joins the filter params onto a base href with whichever separator the base
+ * needs. Most list routes are a bare path, but the attendance history is one
+ * page holding two tabs, so its links already carry a `?tab=` the filter has to
+ * sit beside rather than overwrite.
+ */
+function withFilterParams(baseHref: string, params: string): string {
+  return `${baseHref}${baseHref.includes('?') ? '&' : '?'}${params}`;
 }
 
 /**
@@ -117,7 +140,7 @@ export function employeeFilterHref(
   id: number,
   role: string
 ): string {
-  return `${baseHref}?employeeId=${id}&role=${role}`;
+  return withFilterParams(baseHref, `employeeId=${id}&role=${role}`);
 }
 
 /**
@@ -133,7 +156,7 @@ export function userFilterHref(
   id: number,
   role: string
 ): string {
-  return `${baseHref}?userId=${id}&role=${role}`;
+  return withFilterParams(baseHref, `userId=${id}&role=${role}`);
 }
 
 /**

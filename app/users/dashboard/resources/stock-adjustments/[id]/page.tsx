@@ -365,9 +365,31 @@ export default function StockAdjustmentDetailPage({
               {adjustment.rejectionReason || 'No reason was recorded.'}
             </div>
             <div className="text-zinc-500 dark:text-zinc-400">
-              {adjustment.rejectedBy
-                ? `Rejected by ${userStampLabel(adjustment.rejectedByName, adjustment.rejectedBy)}`
-                : 'Rejected'}
+              {adjustment.rejectedBy ? (
+                <>
+                  Rejected by{' '}
+                  {/*
+                    A user id, like submittedBy and approvedBy two cards down,
+                    and unlike physicalCountBy on the same document, which comes
+                    off the creation payload and is an employee id.
+                  */}
+                  <Link
+                    href={userFilterHref(
+                      routes.resources.stockAdjustments.href,
+                      adjustment.rejectedBy,
+                      'rejecter'
+                    )}
+                    className="hover:underline"
+                  >
+                    {userStampLabel(
+                      adjustment.rejectedByName,
+                      adjustment.rejectedBy
+                    )}
+                  </Link>
+                </>
+              ) : (
+                'Rejected'
+              )}
               {adjustment.rejectedAt &&
                 ` on ${format(adjustment.rejectedAt, 'PPP')}`}
               . No stock moved.

@@ -3,7 +3,11 @@
 import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueries } from '@tanstack/react-query';
-import { Pagination } from '@/components/common';
+import { ActiveFilterChip, Pagination } from '@/components/common';
+import {
+  ROLE_LABELS,
+  useEmployeeFilterFromParams,
+} from '@/hooks/use-employee-filter';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -98,6 +102,15 @@ export function TeamAttendanceHistory({
   const [searchQuery, setSearchQuery] = useState(
     searchParams.get('search') ?? ''
   );
+  // The ?employeeId= deep link an attendance record's employee name sets. It is
+  // an id rather than a name, so unlike ?search= it cannot match the wrong
+  // person, and it narrows the fetch rather than the fetched rows.
+  const {
+    employeeId: filterEmployeeId,
+    role: filterRole,
+    name: filterName,
+    clear: clearEmployeeFilter,
+  } = useEmployeeFilterFromParams();
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
@@ -134,10 +147,19 @@ export function TeamAttendanceHistory({
     return result;
   }, [projectId, projectMembers, isAdmin, allEmployees, myProjects]);
 
-  const isCapped = targetEmployees.length > MAX_PARALLEL_EMPLOYEES;
+  // Narrowing happens before the cap, and that ordering is the whole point.
+  // The fetch is one request per employee capped at MAX_PARALLEL_EMPLOYEES, so
+  // filtering the rows afterwards would silently return nothing for anybody who
+  // fell outside the first fifty, while the screen still read as an answer.
+  const scopedEmployees =
+    filterEmployeeId != null && filterRole === 'employee'
+      ? targetEmployees.filter((e) => e.id === filterEmployeeId)
+      : targetEmployees;
+
+  const isCapped = scopedEmployees.length > MAX_PARALLEL_EMPLOYEES;
   const fetchEmployees = isCapped
-    ? targetEmployees.slice(0, MAX_PARALLEL_EMPLOYEES)
-    : targetEmployees;
+    ? scopedEmployees.slice(0, MAX_PARALLEL_EMPLOYEES)
+    : scopedEmployees;
 
   // ── Parallel attendance fetch ──────────────────────────────────────────────
   const queries = useQueries({
@@ -231,6 +253,14 @@ export function TeamAttendanceHistory({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4 sm:space-y-6">
+      {filterEmployeeId != null && filterName && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[filterRole ?? ''] ?? 'Filtered by'}
+          name={filterName}
+          onDismiss={clearEmployeeFilter}
+        />
+      )}
+
       {isCapped && (
         <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-900/20">
           <CardContent className="flex items-start gap-3 p-4">
@@ -238,7 +268,7 @@ export function TeamAttendanceHistory({
             <div className="text-sm text-amber-900 dark:text-amber-100">
               <p className="font-medium">
                 Showing the first {MAX_PARALLEL_EMPLOYEES} of{' '}
-                {targetEmployees.length} employees.
+                {scopedEmployees.length} employees.
               </p>
               <p className="text-xs">
                 Pick a specific project from the filter below to narrow the
