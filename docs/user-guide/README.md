@@ -92,9 +92,16 @@ Roles are held per organization. Holding `system-admin` in one organization gran
 | `qa-engineer`     | Quality inspections, checklists, raising NCRs and signing off quality NCRs                              |
 | `safety-officer`  | Safety inspections, raising NCRs and signing off safety NCRs                                            |
 | `site-engineer`   | Reading inspections and reporting corrective action against an NCR                                      |
-| `org-manager`     | Nothing yet. The role exists and can be assigned, but no part of the product grants it anything         |
+| `org-manager`     | No screen or endpoint of its own. What it does grant is manager standing: see below                    |
 
-Two things follow from how the roles are used:
+Three things follow from how the roles are used:
+
+- `org-manager` gates nothing directly. No endpoint names it, and the role picker does not offer it, so
+  it can only be granted through the API. It is not inert, though: it is one of the four manager roles,
+  alongside `system-admin`, `hr-admin` and `project-manager`, and holding any of those is what makes an
+  employee eligible to be named the manager on a project invite code and to appear in the manager
+  listings. Someone holding `org-manager` and nothing else can be named a manager and can see no screen
+  that says so.
 
 - A quality engineer cannot sign off a safety non-conformance and a safety officer cannot sign off a
   quality one. Which of the two an NCR is comes from the inspection it was raised against.
