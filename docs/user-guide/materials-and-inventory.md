@@ -443,7 +443,7 @@ A consolidated list, because each of these has caught somebody out.
     sidebar shows the links to everyone. The two exceptions are Stock Adjustments and Assets, which
     any member of the organization can read and a project manager can write. Materials, storage
     locations, indents, purchase orders, goods receipts, site transfers, consumptions, inventory
-    transactions and vendors are all admin-only end to end.
+    transactions and vendors are all admin-only end-to-end.
 13. **Purchase order and indent statuses are labels.** Nothing validates a transition and nothing sets
     them for you.
 14. **There is no value threshold on a purchase order approval.** A large order and a small one take
