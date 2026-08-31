@@ -41,6 +41,9 @@ import { NcrTable } from '@/features/inspections/components/ncr-table';
 /** Sentinel for "no filter": Radix Select cannot hold an empty string value. */
 const ALL = 'ALL';
 
+/** The people slugs this register narrows on, beside its own engineer control. */
+const PEOPLE_FILTER_SLUGS = new Set(['raiser', 'verifier', 'closer']);
+
 export default function NcrPage() {
   const [inspectionId, setInspectionId] = useState(ALL);
   const [type, setType] = useState(ALL);
@@ -87,10 +90,11 @@ export default function NcrPage() {
   const raisedById = peopleFilter('raiser');
   const verifiedById = peopleFilter('verifier');
   const closedById = peopleFilter('closer');
+  // Only the three this page applies. A link carrying any other role belongs to
+  // another module: the query already ignores it, and a chip naming a person the
+  // list was never narrowed to would turn a no-op into a wrong answer.
   const chipRole =
-    role != null && role !== 'site-engineer' && employeeId != null
-      ? role
-      : null;
+    employeeId != null && PEOPLE_FILTER_SLUGS.has(role ?? '') ? role : null;
   const siteEngineerId =
     linkedEngineerId == null ? engineerChoice : String(linkedEngineerId);
 

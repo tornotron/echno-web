@@ -149,10 +149,22 @@ describe('the reading lists carry an accessor for every role a link can set', ()
       'features/attendance/components/team-attendance-history.tsx'
     );
     expect(text).toContain(
-      "filterEmployeeId != null && filterRole === 'employee' ? targetEmployees.filter((e) => e.id === filterEmployeeId) : targetEmployees"
+      'const scopedEmployees = employeeFilterApplies ? targetEmployees.filter((e) => e.id === filterEmployeeId) : targetEmployees;'
     );
     expect(text).toContain(
       'const isCapped = scopedEmployees.length > MAX_PARALLEL_EMPLOYEES;'
     );
+  });
+
+  test('and shows its chip only for the role it actually applies', () => {
+    // One predicate decides both, so a link carrying another module's role
+    // cannot produce a chip naming somebody the list was never narrowed to.
+    const text = flat(
+      'features/attendance/components/team-attendance-history.tsx'
+    );
+    expect(text).toContain(
+      "const employeeFilterApplies = filterEmployeeId != null && filterRole === 'employee';"
+    );
+    expect(text).toContain('{employeeFilterApplies && filterName && (');
   });
 });
