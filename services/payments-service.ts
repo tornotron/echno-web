@@ -23,4 +23,18 @@ export const paymentsService = {
   ): Promise<ConstructionPayment> {
     return financeConstructionPaymentService.update(id, req);
   },
+  /**
+   * Records the signed-in user as the voucher's verifier. Nothing about the
+   * verifier is sent: the backend takes it from the session.
+   */
+  async verify(id: string): Promise<ConstructionPayment> {
+    return financeConstructionPaymentService.verify(id);
+  },
+  /**
+   * Voids the voucher, recording why. The reason is required and non-blank,
+   * and this is the only route to a cancelled voucher.
+   */
+  async cancel(id: string, reason: string): Promise<ConstructionPayment> {
+    return financeConstructionPaymentService.cancel(id, reason);
+  },
 };

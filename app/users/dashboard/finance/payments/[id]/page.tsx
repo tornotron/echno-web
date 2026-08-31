@@ -23,6 +23,7 @@ import {
   CheckCircle,
   User,
   Briefcase,
+  Ban,
   Loader2,
 } from 'lucide-react';
 import {
@@ -39,8 +40,14 @@ import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { userFilterHref } from '@/hooks/use-employee-filter';
 import {
   employeeReferenceLabel,
-  userReferenceLabel,
+  userStampLabel,
 } from '@/lib/utils/user-reference';
+import {
+  canEditPayment,
+  editRefusalReason,
+  isPaymentCancelled,
+} from '@/lib/utils/payment-lifecycle';
+import { PaymentLifecycleActions } from '@/features/payments';
 import { format } from 'date-fns';
 import {
   paymentTypeLabels,
@@ -121,15 +128,32 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
               <Download className="mr-2 h-4 w-4" />
               Download PDF
             </Button>
-            <Button asChild>
-              <Link href={routes.finance.payments.detail(payment.id).edit}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
+            <PaymentLifecycleActions paymentId={payment.id} payment={payment} />
+            {/*
+              Edit is withdrawn rather than left to fail. echno-backend#636
+              refuses the PUT on a verified voucher and on a cancelled one, so
+              offering it here would load the form, take everything the user
+              typed, and lose it on the save. The reason is said in its place,
+              below the header, because a button that quietly disappears is its
+              own kind of confusing.
+            */}
+            {canEditPayment(payment) && (
+              <Button asChild>
+                <Link href={routes.finance.payments.detail(payment.id).edit}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+            )}
           </>
         }
       />
+
+      {!canEditPayment(payment) && (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          {editRefusalReason(payment)}
+        </p>
+      )}
 
       {/* Main Content */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -442,6 +466,13 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     </p>
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
+                      {/*
+                        The name where the backend resolved one, and the id form
+                        only where it did not. `verifiedByName` was on the DTO
+                        all along and the core schema was stripping it, which is
+                        why this line used to read `User #7`. The id still makes
+                        the filter link.
+                      */}
                       <Link
                         href={userFilterHref(
                           routes.finance.payments.href,
@@ -450,8 +481,52 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                         )}
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
-                        {userReferenceLabel(payment.verifiedBy)}
+                        {userStampLabel(
+                          payment.verifiedByName,
+                          payment.verifiedBy
+                        )}
                       </Link>
+                    </p>
+                    {payment.raisedBy && (
+                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                        {/*
+                          The other half of the pair the backend's
+                          segregation-of-duties check compares: it refuses a
+                          verification from the account that raised the voucher.
+                          Showing both is what makes that refusal legible.
+                        */}
+                        Raised by{' '}
+                        {userStampLabel(payment.raisedByName, payment.raisedBy)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/*
+            Shown alongside the verification card rather than instead of it. The
+            stamp deliberately survives a cancellation, so a voucher can be both
+            verified and voided, and that pair reads as "checked, then thrown
+            out" rather than as a contradiction. The reason is the only record
+            of why somebody's check was set aside.
+          */}
+          {isPaymentCancelled(payment) && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Cancellation</CardTitle>
+                <CardDescription>Why this voucher was voided</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-start space-x-3">
+                  <div className="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
+                    <Ban className="h-4 w-4 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Cancelled</p>
+                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      {payment.cancellationReason ?? 'No reason was recorded.'}
                     </p>
                   </div>
                 </div>

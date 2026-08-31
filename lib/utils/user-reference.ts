@@ -28,10 +28,15 @@
  * approved this" and "the approver's account is gone", which is exactly the
  * distinction an audit trail exists to record.
  *
- * Two stamps still have no name on the wire and keep the id form: a
- * construction payment's `verifiedBy` (a user id the backend does not yet
- * resolve, tracked in echno-backend #621) and the id carried in an
- * `?userId=` filter link, which arrives as a bare number in the URL.
+ * A construction payment voucher's `verifiedBy` was on that list and is not any
+ * more. The backend was sending `verifiedByName` beside it all along; the
+ * `echno-core` schema was stripping the key, so the payment detail page
+ * rendered `User #7` for a verifier whose name had been on the response. Core
+ * `4.0.0` declared it, along with `raisedByName`, and the screen reads them
+ * through {@link userStampLabel} like every other stamp.
+ *
+ * One case still has an id and no name: the id carried in an `?userId=` filter
+ * link, which arrives as a bare number in the URL.
  */
 
 /**
