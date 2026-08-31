@@ -561,10 +561,25 @@ export const useApproveLeaveRequest = () => {
         description: 'The leave request has been approved.',
       });
     },
-    onError: (err) =>
+    onError: (err, { requestId, approverId }) => {
+      // A decision usually fails because somebody got there first: another
+      // approver decided it, the employee withdrew it, or the account has no
+      // employee record in this organization and the server now answers 403.
+      // The copy this screen holds still says pending and still offers the
+      // button, so refetching the request and this approver's pending list
+      // settles the disagreement the server's way rather than leaving a
+      // control that repeats the same refusal on every click.
+      queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
+      queryClient.invalidateQueries({
+        queryKey: leaveKeys.pendingApprovals(approverId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: leaveKeys.pendingApprovalsCount(approverId),
+      });
       toast.error(getErrorTitle(err, 'Failed to Approve Leave Request'), {
         description: getErrorMessage(err),
-      }),
+      });
+    },
   });
 };
 
@@ -600,10 +615,25 @@ export const useRejectLeaveRequest = () => {
         description: 'The leave request has been rejected.',
       });
     },
-    onError: (err) =>
+    onError: (err, { requestId, approverId }) => {
+      // A decision usually fails because somebody got there first: another
+      // approver decided it, the employee withdrew it, or the account has no
+      // employee record in this organization and the server now answers 403.
+      // The copy this screen holds still says pending and still offers the
+      // button, so refetching the request and this approver's pending list
+      // settles the disagreement the server's way rather than leaving a
+      // control that repeats the same refusal on every click.
+      queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
+      queryClient.invalidateQueries({
+        queryKey: leaveKeys.pendingApprovals(approverId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: leaveKeys.pendingApprovalsCount(approverId),
+      });
       toast.error(getErrorTitle(err, 'Failed to Reject Leave Request'), {
         description: getErrorMessage(err),
-      }),
+      });
+    },
   });
 };
 
@@ -647,10 +677,25 @@ export const useDelegateApproval = () => {
         description: 'The approval has been delegated successfully.',
       });
     },
-    onError: (err) =>
+    onError: (err, { requestId, approverId }) => {
+      // A decision usually fails because somebody got there first: another
+      // approver decided it, the employee withdrew it, or the account has no
+      // employee record in this organization and the server now answers 403.
+      // The copy this screen holds still says pending and still offers the
+      // button, so refetching the request and this approver's pending list
+      // settles the disagreement the server's way rather than leaving a
+      // control that repeats the same refusal on every click.
+      queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
+      queryClient.invalidateQueries({
+        queryKey: leaveKeys.pendingApprovals(approverId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: leaveKeys.pendingApprovalsCount(approverId),
+      });
       toast.error(getErrorTitle(err, 'Failed to Delegate Approval'), {
         description: getErrorMessage(err),
-      }),
+      });
+    },
   });
 };
 
