@@ -23,6 +23,7 @@ import type {
   Material,
   MaterialConsumption,
 } from '@tornotron/echno-core/materials/types';
+import { useMaterialCatalogueSize } from '@/features/materials/hooks/use-material-catalogue-size';
 
 interface MaterialsKpiStripProps {
   materials: Material[];
@@ -56,7 +57,21 @@ export function MaterialsKpiStrip({
   materials,
   consumptions,
 }: MaterialsKpiStripProps) {
-  const totalMaterials = materials.length;
+  // How many materials there are is a question only the server can answer.
+  // `materials` comes from GET /materials/web, which stops at 500 rows and
+  // reports the cut in a header the API proxy does not forward, so its
+  // length is the catalogue's size only while the catalogue is smaller
+  // than the cap.
+  const { total, holdsWholeCatalogue, isLoading } = useMaterialCatalogueSize(
+    materials.length
+  );
+
+  // Both figures below are sums and sets over the loaded rows, and there
+  // is no server-side aggregate to replace them with yet (echno-backend
+  // #673). They are the organization's totals exactly when the rows are
+  // the whole catalogue, so that is when they are shown. A partial sum
+  // presented as "current inventory value" is a money figure that will be
+  // quoted, and it fails short with nothing on screen to say so.
   const totalStockValue = materials.reduce(
     (s, m) => s + (m.stockValue ?? 0),
     0
@@ -64,17 +79,32 @@ export function MaterialsKpiStrip({
   const uniqueUnits = new Set(materials.map((m) => m.unit).filter(Boolean))
     .size;
 
+  // One sentence, used by both gated tiles, saying why a figure is absent.
+  function notATotalBecause(): string {
+    if (isLoading) return 'counting the catalogue';
+    if (total === undefined) return 'not shown: the catalogue size is unknown';
+    return `not shown: ${materials.length} of ${total} materials loaded`;
+  }
+
+  function catalogueCaption(): string {
+    if (isLoading) return 'counting the catalogue';
+    if (total === undefined) return 'count unavailable';
+    return 'across all categories';
+  }
+
   const compositionData = useMemo(() => {
     const groups = new Map<string, number>();
     for (const m of materials) {
       groups.set(m.unit, (groups.get(m.unit) ?? 0) + 1);
     }
-    const total = materials.length;
+    // Deliberately the loaded count, not the catalogue size: these are
+    // percentages of the rows the donut is drawn from.
+    const loaded = materials.length;
     return [...groups.entries()]
       .map(([name, count], i) => ({
         name,
         value: count,
-        pct: total > 0 ? Math.round((count / total) * 100) : 0,
+        pct: loaded > 0 ? Math.round((count / loaded) * 100) : 0,
         fill: CHART_PALETTE[i % CHART_PALETTE.length],
       }))
       .toSorted((a, b) => b.value - a.value);
@@ -107,14 +137,14 @@ export function MaterialsKpiStrip({
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-              {totalMaterials}
+              {total ?? '—'}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
               <Layers className="size-4 text-zinc-600 dark:text-zinc-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            across all categories
+            {catalogueCaption()}
           </p>
         </div>
 
@@ -125,14 +155,18 @@ export function MaterialsKpiStrip({
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-              {totalStockValue > 0 ? formatStockValue(totalStockValue) : '—'}
+              {holdsWholeCatalogue && totalStockValue > 0
+                ? formatStockValue(totalStockValue)
+                : '—'}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
               <WarehouseIcon className="size-4 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            current inventory value
+            {holdsWholeCatalogue
+              ? 'current inventory value'
+              : notATotalBecause()}
           </p>
         </div>
 
@@ -143,14 +177,14 @@ export function MaterialsKpiStrip({
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
-              {uniqueUnits}
+              {holdsWholeCatalogue ? uniqueUnits : '—'}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
               <Ruler className="size-4 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            material unit types
+            {holdsWholeCatalogue ? 'material unit types' : notATotalBecause()}
           </p>
         </div>
 
@@ -159,6 +193,11 @@ export function MaterialsKpiStrip({
           <p className="text-xs font-medium tracking-wider text-zinc-500 uppercase dark:text-zinc-400">
             Composition by Unit
           </p>
+          {!holdsWholeCatalogue && compositionData.length > 0 && (
+            <p className="text-xs text-zinc-400 dark:text-zinc-500">
+              of the {materials.length} loaded
+            </p>
+          )}
           {compositionData.length === 0 ? (
             <p className="py-2 text-center text-xs text-zinc-400 dark:text-zinc-500">
               No data
