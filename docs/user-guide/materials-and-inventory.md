@@ -85,17 +85,17 @@ divided by its quantity.
 
 Access in this module is coarse, and coarser than the sidebar suggests.
 
-**Every screen under Resources except stock adjustments is restricted to the `system-admin` role in
-the web app, including simply viewing a list.** That is materials, storage locations, indents,
-purchase orders, goods receipts, site transfers and material consumptions. The sidebar shows these
-links to everybody, so a site engineer or storekeeper sees Materials in the menu, opens it and gets a
-permission error. This is worth telling a new user before they hit it.
+**Most screens under Resources are restricted to the `system-admin` role in the web app, including
+simply viewing a list.** That is materials, storage locations, indents, purchase orders, goods
+receipts, site transfers, material consumptions, inventory transactions and vendors. The sidebar shows
+these links to everybody, so a site engineer or storekeeper sees Materials in the menu, opens it and
+gets a permission error. This is worth telling a new user before they hit it.
 
 The practical effect is that a storekeeper cannot book a goods receipt and a site engineer cannot
 record what they used unless they are made a system administrator of the organization, which grants
 them everything else as well. There is no narrower role for stores work today.
 
-**Stock adjustments** are the exception and have a proper two-role model:
+**Stock adjustments and assets** are the two exceptions, and both have the same two-role model:
 
 | Action               | Who                                                                       |
 | -------------------- | ------------------------------------------------------------------------- |
@@ -244,8 +244,9 @@ Points to get right:
   where you left it, however many receipts you book against it. Moving a purchase order to Partially
   Received or Fully Received is something a person does by hand.
 - The goods receipt number is allocated by the server.
-- **The form marks Purchase Order and Project as optional and they are not.** A receipt with either
-  one left as None is rejected. Choose both. Only the storage location is genuinely optional, and
+- **Purchase Order and Project are both required.** The server resolves each one and refuses the
+  receipt if it cannot. The form used to mark them optional and offer a None that was then rejected;
+  they now carry the required marker and no None. Only the storage location is genuinely optional, and
   leaving it out means the unlocated balance rather than no balance.
 
 ## Issuing material to the work: consumption
@@ -298,15 +299,14 @@ mistake in this module is fixed. It is the only document here with a real approv
 
 ### Getting to it
 
-**Stock adjustments are not in the sidebar and nothing links to them.** The pages exist and work. Go
-to them directly:
+Resources, then Stock Adjustments. The direct address is:
 
 ```text
 /users/dashboard/resources/stock-adjustments
 ```
 
-This is a gap in the navigation rather than a deliberate restriction, and it is worth knowing because
-the module is otherwise unreachable.
+The sidebar entry is recent. Until it was added, the pages existed and worked but nothing anywhere
+linked to them, so the module was reachable only by typing that address.
 
 ### Raising one
 
@@ -425,30 +425,30 @@ A consolidated list, because each of these has caught somebody out.
 1. **A stock adjustment does nothing until it is approved**, and the person who raised it cannot
    approve it unless they hold `system-admin`.
 2. **A stock adjustment is approved against today's balance**, not the balance recorded on the draft.
-3. **Stock adjustments are not in the sidebar** and nothing links to them. Reach the module by its
-   address.
-4. **Goods receipts, transfers and consumptions post immediately.** There is no approval step and no
+3. **Goods receipts, transfers and consumptions post immediately.** There is no approval step and no
    undo.
-5. **A goods receipt does not update its purchase order.** Received quantities on the order stay at
+4. **A goods receipt does not update its purchase order.** Received quantities on the order stay at
    zero and its status never changes on its own.
-6. **A goods receipt does not check what was ordered.** Receiving more than the purchase order says is
+5. **A goods receipt does not check what was ordered.** Receiving more than the purchase order says is
    accepted silently.
-7. **The goods receipt form marks Purchase Order and Project optional when both are required.**
-8. **A site transfer moves both ends at once.** Marking it Completed later does nothing, and there is
+6. **A site transfer moves both ends at once.** Marking it Completed later does nothing, and there is
    nowhere to record a short delivery.
-9. **Site transfers cannot be edited or deleted.**
-10. **The unlocated balance is a real balance, not a total.** Receiving into a location and consuming
-    without one will fail on insufficient stock.
-11. **Reorder levels raise no alerts.** They colour a badge on a screen somebody has to open.
-12. **Opening stock can only be set when the material is created.**
-13. **Saving per-location stock levels replaces all five.** A field left blank is cleared.
-14. **Everything under Resources except stock adjustments is `system-admin` only in the web app,
-    including reading it**, while the sidebar shows the links to everyone.
-15. **Purchase order and indent statuses are labels.** Nothing validates a transition and nothing sets
+7. **Site transfers cannot be edited or deleted.**
+8. **The unlocated balance is a real balance, not a total.** Receiving into a location and consuming
+   without one will fail on insufficient stock.
+9. **Reorder levels raise no alerts.** They colour a badge on a screen somebody has to open.
+10. **Opening stock can only be set when the material is created.**
+11. **Saving per-location stock levels replaces all five.** A field left blank is cleared.
+12. **Most of Resources is `system-admin` only in the web app, including reading it**, while the
+    sidebar shows the links to everyone. The two exceptions are Stock Adjustments and Assets, which
+    any member of the organization can read and a project manager can write. Materials, storage
+    locations, indents, purchase orders, goods receipts, site transfers, consumptions, inventory
+    transactions and vendors are all admin-only end to end.
+13. **Purchase order and indent statuses are labels.** Nothing validates a transition and nothing sets
     them for you.
-16. **There is no value threshold on a purchase order approval.** A large order and a small one take
+14. **There is no value threshold on a purchase order approval.** A large order and a small one take
     the same single click, from anyone who can reach the screen.
-17. **A stock adjustment number can repeat.** It is typed, not allocated.
+15. **A stock adjustment number can repeat.** It is typed, not allocated.
 
 ## Not in the product yet
 
