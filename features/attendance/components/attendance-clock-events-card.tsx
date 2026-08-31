@@ -12,8 +12,6 @@ import {
   Clock,
   MapPin,
   Camera,
-  CheckCircle,
-  XCircle,
   Coffee,
   LogIn,
   LogOut,
@@ -118,28 +116,17 @@ export function AttendanceClockEventsCard({ attendance }: Props) {
                 </div>
 
                 <div className="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-900/50">
-                  <div className="mb-3 flex items-start justify-between">
-                    <div>
-                      <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {getClockEventLabel(type)}
-                      </p>
-                      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                        {format(event.timestamp, 'h:mm:ss a')}
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {event.isWithinGeofence ? (
-                        <div className="flex items-center space-x-1 text-green-600 dark:text-green-400">
-                          <CheckCircle className="h-4 w-4" />
-                          <span className="text-xs">Within Geofence</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-1 text-red-600 dark:text-red-400">
-                          <XCircle className="h-4 w-4" />
-                          <span className="text-xs">Outside Geofence</span>
-                        </div>
-                      )}
-                    </div>
+                  {/* No geofence verdict is shown. The server stores
+                      `isWithinGeofence` and `distanceFromProject` as fixed
+                      values rather than evaluating the punch, so neither one
+                      carries information. See tornotron/echno-backend#646. */}
+                  <div className="mb-3">
+                    <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                      {getClockEventLabel(type)}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                      {format(event.timestamp, 'h:mm:ss a')}
+                    </p>
                   </div>
 
                   <div className="flex flex-col gap-4 sm:flex-row">
@@ -156,9 +143,6 @@ export function AttendanceClockEventsCard({ attendance }: Props) {
                           <p className="font-mono text-xs">
                             {event.location.latitude.toFixed(6)},{' '}
                             {event.location.longitude.toFixed(6)}
-                          </p>
-                          <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                            {event.distanceFromProject}m from project
                           </p>
                         </div>
                       </div>
