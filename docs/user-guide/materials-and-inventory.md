@@ -311,8 +311,17 @@ linked to them, so the module was reachable only by typing that address.
 ### Raising one
 
 An adjustment carries a type, a project, an effective date, a primary reason, a justification and a
-list of lines. Each line names a material, a location, the quantity the system holds, the quantity
-physically counted, and a reason.
+list of lines. Each line names a material, the quantity physically counted, and a reason.
+
+**Current Stock on a line is shown, not typed.** It is the balance the system holds for that material
+at the document's project and storage location, and it is read from the stock record every time the
+document is saved. Pick the project, the storage location and the material and the figure appears; the
+difference and the value beside it follow from it. Until all three are chosen there is no balance to
+read and the field says so.
+
+The figure is worth watching, because it is the one the approval is checked against. If it reads
+"Not available", your account cannot read material stock and the form has nothing to show you; the
+document still saves and the server still records the right balance on it.
 
 Types are increase, decrease, correction, write off, return and recount. Reasons are physical count,
 damaged, expired, lost, found, obsolete, vendor return, quality issue, data error, theft, donation,
@@ -333,21 +342,46 @@ draft and tells you to use the approve action.
 
 On approval, in one step:
 
-1. Each line's movement is worked out **against the balance as it stands at that moment**, not against
-   the system quantity that was recorded when the adjustment was raised. If a count is present, the
-   movement is the counted figure minus the current balance. The line is then rewritten with the
-   balance it actually corrected. An adjustment raised on Monday and approved on Friday corrects
-   Friday's balance to the counted figure, which is usually what you want but is not what the draft
-   said it would do.
-2. A line whose movement works out to nothing is zeroed and skipped, and writes no ledger line.
-3. The ledger lines are written and the balances move.
-4. The document is stamped with who approved it and when, and is frozen.
+1. Every line is checked against the balance it was raised with. If any balance has moved since then,
+   the whole approval is refused. See below.
+2. Each line's movement is the counted figure minus that balance, which is the arithmetic the document
+   shows.
+3. A line whose movement works out to nothing is zeroed and skipped, and writes no ledger line.
+4. The ledger lines are written and the balances move.
+5. The document is stamped with who approved it and when, and is frozen.
 
 An approval is refused, with the reason shown, when the adjustment names no project, has no lines, has
-a line with no material, has a line with no reason, or has a line that would take a balance below zero.
+a line with no material, has a line with no reason, has a line that would take a balance below zero,
+or sits on a balance that has moved since it was raised.
 
 Approving runs once and the document is frozen afterwards. A posted adjustment cannot be edited or
 deleted. Correct it with another adjustment.
+
+### When the balance moves before approval
+
+If stock moves between the count and the approval, the approval is refused. The message names both
+figures: the balance the line was raised against, and the balance as it stands now.
+
+The way forward is short. Open the document and save it again, which reads the current balance onto
+every line, check the count against the figure it now stands at, and approve. Editing the count first
+is fine and is often the point: somebody has to decide whether the goods that arrived were already on
+the shelf when the count was taken.
+
+That decision is why the product stops rather than carrying on. Posting the drafted variance would be
+a guess about exactly that question, and nothing in the data can answer it: the same figures fit a
+delivery that was counted and a delivery that arrived afterwards, and guessing wrong either swallows a
+real receipt or counts it twice. Approval is the one moment a second person is standing over the
+document, so it is where the question gets asked.
+
+It only happens when the balance actually moved. A quiet store approves as it always did.
+
+The delay is what makes it likely, not the size of the adjustment. A count sheet raised in the morning
+and approved after lunch has a whole morning of deliveries and issues to survive. Approving the same
+day you count is the practical answer.
+
+One thing this is not: a line that carries several rows for the same material and location does not
+refuse itself. The document's own postings are discounted, so splitting one shelf's variance across a
+line per reason approves in one pass.
 
 ### Who may approve
 
@@ -424,7 +458,8 @@ A consolidated list, because each of these has caught somebody out.
 
 1. **A stock adjustment does nothing until it is approved**, and the person who raised it cannot
    approve it unless they hold `system-admin`.
-2. **A stock adjustment is approved against today's balance**, not the balance recorded on the draft.
+2. **A stock adjustment is refused if the balance moved after it was raised.** Save it again to take up
+   the current balance, check the count against it, then approve.
 3. **Goods receipts, transfers and consumptions post immediately.** There is no approval step and no
    undo.
 4. **A goods receipt does not update its purchase order.** Received quantities on the order stay at

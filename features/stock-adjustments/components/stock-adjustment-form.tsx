@@ -26,9 +26,11 @@ import {
   Plus,
   Trash2,
   AlertCircle,
+  AlertTriangle,
   TrendingUp,
   TrendingDown,
 } from 'lucide-react';
+import { useMaterialStocks } from '@/hooks/materials';
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
@@ -53,7 +55,14 @@ export interface StockAdjustmentItem {
    */
   materialId: number;
   description: string;
-  currentStock: number;
+  /**
+   * The balance the server holds for this line, read from the stock record at
+   * the document's project and storage location. It is not typed and is not
+   * held in form state: it is attached on submit from the figure the form
+   * displayed, and is `undefined` when that read has not resolved or is not
+   * permitted. See `openingBalanceFor`.
+   */
+  openingBalance?: number;
   countedStock: number;
   unit: string;
   unitCost: number;
@@ -116,13 +125,56 @@ const UNITS = [
 // Component
 // ---------------------------------------------------------------------------
 
+/**
+ * The balance the line will be stamped against, shown rather than typed.
+ *
+ * It is a display and not an input because the server owns the figure: since
+ * echno-backend#658 a stock adjustment's `systemQuantity` is read from the
+ * stock when the document is saved, and anything sent for it is discarded. It
+ * is still worth showing, because it is the number a count is being compared
+ * against and the number a refused approval will name.
+ *
+ * @param props.stock - Balance at the document's project and storage location,
+ *   undefined while the read is in flight or when it is not permitted.
+ * @param props.unit - Unit to label the figure with.
+ * @param props.scoped - Whether a project and a storage location have both been
+ *   chosen, which is what makes a balance readable at all.
+ */
+function StockDisplay({
+  stock,
+  unit,
+  scoped,
+}: {
+  stock: number | undefined;
+  unit: string;
+  scoped: boolean;
+}) {
+  if (!scoped) {
+    return (
+      <p className="text-sm text-zinc-400">
+        Choose a project and a storage location.
+      </p>
+    );
+  }
+  if (stock === undefined) {
+    return <p className="text-sm text-zinc-400">Not available</p>;
+  }
+  return (
+    <p
+      className={`text-sm font-medium ${stock <= 0 ? 'text-red-600 dark:text-red-400' : 'text-zinc-900 dark:text-zinc-100'}`}
+    >
+      {stock <= 0 && <AlertTriangle className="mr-1 inline h-3.5 w-3.5" />}
+      {stock} {unit}
+    </p>
+  );
+}
+
 /** A blank line, used for a new document and by "Add Item". */
 function blankItem(id: number): StockAdjustmentItem {
   return {
     id,
     materialId: 0,
     description: '',
-    currentStock: 0,
     countedStock: 0,
     unit: 'pcs',
     unitCost: 0,
@@ -160,7 +212,12 @@ export function StockAdjustmentForm({
           id: line.id || index + 1,
           materialId: line.materialId ?? 0,
           description: line.description,
-          currentStock: line.systemQuantity,
+          // The line's stored `systemQuantity` is deliberately not carried
+          // over. It is the balance as it stood when the document was last
+          // saved, and saving again restamps it, so the figure this form has
+          // to show is the live one. On a document held back by a moved
+          // balance, showing the stale figure would hide the very thing that
+          // refused the approval.
           countedStock: line.physicalQuantity,
           unit: line.unit || 'pcs',
           unitCost: line.unitValue,
@@ -251,17 +308,59 @@ export function StockAdjustmentForm({
   // Calculations
   // ---------------------------------------------------------------------------
 
+  // The balance a line will be stamped against, read at the same (material,
+  // project, storage location) row the backend reads in `stampOpeningBalance`.
+  // The ids are withheld until both the project and the location are chosen:
+  // with only a project the hook widens to that project's total across its
+  // locations, which is not the row anything is checked against, and showing it
+  // would put a wrong figure where the right one goes.
+  const balanceScopeChosen = Boolean(form.projectId && form.storageLocationId);
+  const rowMaterialIds = useMemo(
+    () => (balanceScopeChosen ? items.map((item) => item.materialId) : []),
+    [balanceScopeChosen, items]
+  );
+  const stockByMaterial = useMaterialStocks(
+    rowMaterialIds,
+    form.projectId,
+    form.storageLocationId
+  );
+
+  /**
+   * The opening balance for a line, or `undefined` when it is not available:
+   * the read is still in flight, or the caller holds `project-manager` without
+   * `system-admin` and the materials stock endpoint refuses them
+   * (echno-backend#666).
+   *
+   * Undefined is carried through the arithmetic below rather than collapsed to
+   * zero. A zero here is a claim that the shelf is empty, and every figure
+   * derived from it says the whole counted quantity is a surplus. That is the
+   * defect this replaced: the old free-text box defaulted to `0` and nothing
+   * ever read the stock.
+   */
+  function openingBalanceFor(materialId: number) {
+    return stockByMaterial.get(materialId)?.currentStock;
+  }
+
   function itemDifference(item: StockAdjustmentItem) {
-    return item.countedStock - item.currentStock;
+    const opening = openingBalanceFor(item.materialId);
+    return opening === undefined ? undefined : item.countedStock - opening;
   }
 
   function itemImpact(item: StockAdjustmentItem) {
-    return itemDifference(item) * item.unitCost;
+    const difference = itemDifference(item);
+    return difference === undefined ? undefined : difference * item.unitCost;
   }
 
-  const totalImpact = items.reduce((sum, item) => sum + itemImpact(item), 0);
-  const surplusItems = items.filter((item) => itemDifference(item) > 0).length;
-  const shortageItems = items.filter((item) => itemDifference(item) < 0).length;
+  const totalImpact = items.reduce(
+    (sum, item) => sum + (itemImpact(item) ?? 0),
+    0
+  );
+  const surplusItems = items.filter(
+    (item) => (itemDifference(item) ?? 0) > 0
+  ).length;
+  const shortageItems = items.filter(
+    (item) => (itemDifference(item) ?? 0) < 0
+  ).length;
 
   // ---------------------------------------------------------------------------
   // Storage locations available to the chosen project
@@ -394,7 +493,17 @@ export function StockAdjustmentForm({
       });
       return;
     }
-    onSubmit({ form, items });
+    // The balance goes out with the lines so the value figures on the payload
+    // are arithmetic over the figure the person submitting was looking at,
+    // rather than over a number they typed. The server stamps its own opening
+    // balance and variance regardless; what this carries is the money.
+    onSubmit({
+      form,
+      items: items.map((item) => ({
+        ...item,
+        openingBalance: openingBalanceFor(item.materialId),
+      })),
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -554,8 +663,8 @@ export function StockAdjustmentForm({
                         Offers every location in the organization. An adjustment
                         may correct a balance that already sits on a location
                         owned by another project, but it cannot create one, so a
-                        location holding nothing for this material and project is
-                        still refused on approval.
+                        location holding nothing for this material and project
+                        is still refused on approval.
                       </p>
                     </div>
                   </div>
@@ -697,19 +806,22 @@ export function StockAdjustmentForm({
 
                       <div className="space-y-2">
                         <Label>Current Stock</Label>
-                        <Input
-                          type="number"
-                          value={item.currentStock || ''}
-                          onChange={(e) =>
-                            updateItem(
-                              item.id,
-                              'currentStock',
-                              Number.parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          min="0"
-                        />
+                        <div className="flex h-9 items-center">
+                          {item.materialId ? (
+                            <StockDisplay
+                              stock={openingBalanceFor(item.materialId)}
+                              unit={item.unit}
+                              scoped={balanceScopeChosen}
+                            />
+                          ) : (
+                            <p className="text-sm text-zinc-400">
+                              Select a material.
+                            </p>
+                          )}
+                        </div>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                          Read from the stock record when the document is saved.
+                        </p>
                       </div>
 
                       <div className="space-y-2">
@@ -793,22 +905,28 @@ export function StockAdjustmentForm({
                           Difference:
                         </span>
                         <div className="flex items-center gap-1">
-                          {diff > 0 ? (
+                          {diff !== undefined && diff > 0 ? (
                             <TrendingUp className="h-4 w-4 text-green-500" />
-                          ) : diff < 0 ? (
+                          ) : diff !== undefined && diff < 0 ? (
                             <TrendingDown className="h-4 w-4 text-red-500" />
                           ) : null}
                           <span
                             className={`font-semibold ${
-                              diff > 0
+                              diff !== undefined && diff > 0
                                 ? 'text-green-600 dark:text-green-400'
-                                : diff < 0
+                                : diff !== undefined && diff < 0
                                   ? 'text-red-600 dark:text-red-400'
                                   : 'text-zinc-900 dark:text-zinc-100'
                             }`}
                           >
-                            {diff > 0 ? '+' : ''}
-                            {diff} {item.unit}
+                            {diff === undefined ? (
+                              '—'
+                            ) : (
+                              <>
+                                {diff > 0 ? '+' : ''}
+                                {diff} {item.unit}
+                              </>
+                            )}
                           </span>
                         </div>
                       </div>
@@ -819,14 +937,16 @@ export function StockAdjustmentForm({
                         </span>
                         <span
                           className={`font-semibold ${
-                            impact > 0
+                            impact !== undefined && impact > 0
                               ? 'text-green-600 dark:text-green-400'
-                              : impact < 0
+                              : impact !== undefined && impact < 0
                                 ? 'text-red-600 dark:text-red-400'
                                 : 'text-zinc-900 dark:text-zinc-100'
                           }`}
                         >
-                          {impact > 0 ? '+' : ''}₹{impact.toLocaleString()}
+                          {impact === undefined
+                            ? '—'
+                            : `${impact > 0 ? '+' : ''}₹${impact.toLocaleString()}`}
                         </span>
                       </div>
                     </div>

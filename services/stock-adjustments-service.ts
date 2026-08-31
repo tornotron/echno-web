@@ -125,9 +125,8 @@ const BASE = '/stock-adjustments/web';
 /**
  * Maps the adjustment form (header + line items) to the backend
  * `StockAdjustmentCreationDto`. The form collects the type and reason as
- * display strings and per-line current/counted quantities; the line
- * adjustment is `counted - current`. `justification` is required by the
- * backend, so it falls back to the notes or a placeholder.
+ * display strings and a counted quantity per line. `justification` is required
+ * by the backend, so it falls back to the notes or a placeholder.
  *
  * The project, the storage location and each line's material are sent as ids,
  * because approval resolves the balance row from exactly those three. A
@@ -136,31 +135,54 @@ const BASE = '/stock-adjustments/web';
  * null `project_id`. The same applies on update: the backend replaces the
  * header wholesale, so a payload without `projectId` would clear the project
  * off a document that had one.
+ *
+ * `systemQuantity` and `adjustmentQuantity` are deliberately not sent.
+ * echno-backend#658 made them the server's: `stampOpeningBalance` reads the
+ * opening balance off the stock and recomputes the variance from it on every
+ * write, and anything sent for them is discarded. Every line this form can
+ * submit names a material and sits on a document naming a project, both being
+ * required by `validateForm`, so there is no line here the server would leave
+ * to the client. Sending a figure the receiver overwrites is how the form came
+ * to carry a "Current Stock" box that did nothing.
+ *
+ * The money is still the client's, because nothing on the server derives it
+ * (echno-backend#665). It is computed from `openingBalance`, the balance the
+ * form read and displayed, and is omitted rather than guessed when that read
+ * was not available: a missing figure is worth more than one built on an
+ * assumed empty shelf.
  */
-export function toPayload(data: StockAdjustmentSubmitData): Record<string, unknown> {
+export function toPayload(
+  data: StockAdjustmentSubmitData
+): Record<string, unknown> {
   const { form, items } = data;
-  const lineItems = items.map((item) => {
-    const adjustmentQuantity = item.countedStock - item.currentStock;
+  const variances = items.map((item) =>
+    item.openingBalance === undefined
+      ? undefined
+      : item.countedStock - item.openingBalance
+  );
+  const lineItems = items.map((item, index) => {
+    const variance = variances[index];
     return {
       materialId: item.materialId || undefined,
       description: item.description || undefined,
-      systemQuantity: item.currentStock,
       physicalQuantity: item.countedStock,
-      adjustmentQuantity,
       unit: item.unit || undefined,
       unitValue: item.unitCost,
-      totalAdjustmentValue: adjustmentQuantity * item.unitCost,
+      totalAdjustmentValue:
+        variance === undefined ? undefined : variance * item.unitCost,
       reason: item.reason || form.adjustmentReason || undefined,
     };
   });
-  const totalAdjustmentValue = lineItems.reduce(
-    (sum, li) => sum + (li.totalAdjustmentValue ?? 0),
-    0
-  );
-  const totalVarianceQuantity = lineItems.reduce(
-    (sum, li) => sum + (li.adjustmentQuantity ?? 0),
-    0
-  );
+  // A total over lines whose variance is unknown would be the total of a
+  // different document, so both totals stand down entirely rather than sum the
+  // part they happen to know.
+  const varianceKnown = variances.every((v) => v !== undefined);
+  const totalAdjustmentValue = varianceKnown
+    ? lineItems.reduce((sum, li) => sum + (li.totalAdjustmentValue ?? 0), 0)
+    : undefined;
+  const totalVarianceQuantity = varianceKnown
+    ? variances.reduce((sum: number, v) => sum + (v ?? 0), 0)
+    : undefined;
   return {
     adjustmentNumber: form.adjustmentNumber || undefined,
     type: form.adjustmentType || undefined,
