@@ -15,7 +15,7 @@ mock.module('@tornotron/echno-core/materials/hooks', () => ({
 }));
 mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
-  useProjects: () => ({ data: [] }),
+  useProjects: () => ({ data: [{ id: 7, projectName: 'Marina Tower' }] }),
 }));
 mock.module('@tornotron/echno-core/vendor/hooks', () => ({
   ...realVendorHooks,
@@ -27,7 +27,7 @@ mock.module('@tornotron/echno-core/storage-locations/hooks', () => ({
 }));
 mock.module('@tornotron/echno-core/purchase-orders/hooks', () => ({
   ...realPurchaseOrderHooks,
-  usePurchaseOrders: () => ({ data: [] }),
+  usePurchaseOrders: () => ({ data: [{ id: 11, poNumber: 'PO-2026-011' }] }),
 }));
 
 mock.module('@/lib/styles/toast-styles', () => ({
@@ -112,6 +112,8 @@ describe('GoodsReceiptForm GRN number', () => {
     // blocked one never calls `onSubmit`, and reading the keys off an absent
     // payload passes whatever the form does.
     choose(container, 'vendorId', 'Acme Supplies');
+    choose(container, 'purchaseOrderId', 'PO-2026-011');
+    choose(container, 'projectId', 'Marina Tower');
     chooseInRow(container, 'TNT Steel');
     fireEvent.submit(container.querySelector('form') as HTMLFormElement);
 
@@ -120,5 +122,84 @@ describe('GoodsReceiptForm GRN number', () => {
       form: Record<string, unknown>;
     };
     expect(Object.keys(submitted.form)).not.toContain('grnNumber');
+  });
+});
+
+/**
+ * `GoodsReceivedNoteService.createGoodsReceivedNoteInTransaction` resolves both
+ * the project and the purchase order with `orElseThrow` and no null guard, so a
+ * receipt without either is refused. The form marked both "(optional)" and
+ * offered an explicit "None", so choosing what it offered filled the whole
+ * document and then lost it to a server error: a 400 for the project, which at
+ * least carries the field, and for the purchase order a 404 reading "Purchase
+ * order with ID null was not found in this organization", which names no field
+ * at all.
+ *
+ * This is the inverse of the GRN-number bug above. There the form asked for a
+ * field the server ignores; here it marks optional two the server demands.
+ */
+describe('GoodsReceiptForm required fields', () => {
+  afterEach(() => {
+    cleanup();
+  });
+
+  test('purchase order and project are marked required, not optional', () => {
+    const { container } = render(
+      createElement(GoodsReceiptForm, { onSubmit: () => {} })
+    );
+
+    for (const id of ['purchaseOrderId', 'projectId']) {
+      const label = container.querySelector(`label[for="${id}"]`);
+      expect(label === null).toBe(false);
+      expect(label?.textContent).toContain('*');
+      expect(label?.textContent).not.toContain('optional');
+    }
+  });
+
+  test('neither select offers a None the server would reject', () => {
+    const { container } = render(
+      createElement(GoodsReceiptForm, { onSubmit: () => {} })
+    );
+
+    for (const id of ['purchaseOrderId', 'projectId']) {
+      const trigger = container.querySelector(`#${id}`) as HTMLElement;
+      fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+      const none = [...document.body.querySelectorAll('[role="option"]')].some(
+        (o) => o.textContent?.trim() === 'None'
+      );
+      expect(none).toBe(false);
+      fireEvent.keyDown(trigger, { key: 'Escape' });
+    }
+  });
+
+  test('submitting without them is blocked here, not at the server', () => {
+    const onSubmit = mock((..._args: unknown[]) => {});
+    const { container } = render(createElement(GoodsReceiptForm, { onSubmit }));
+
+    choose(container, 'vendorId', 'Acme Supplies');
+    chooseInRow(container, 'TNT Steel');
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+
+    expect(onSubmit).toHaveBeenCalledTimes(0);
+    expect(container.textContent).toContain('Purchase order is required');
+    expect(container.textContent).toContain('Project is required');
+  });
+
+  test('choosing both clears the block and lets the receipt through', () => {
+    const onSubmit = mock((..._args: unknown[]) => {});
+    const { container } = render(createElement(GoodsReceiptForm, { onSubmit }));
+
+    choose(container, 'vendorId', 'Acme Supplies');
+    choose(container, 'purchaseOrderId', 'PO-2026-011');
+    choose(container, 'projectId', 'Marina Tower');
+    chooseInRow(container, 'TNT Steel');
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitted = onSubmit.mock.calls[0][0] as {
+      form: { purchaseOrderId: number; projectId: number };
+    };
+    expect(submitted.form.purchaseOrderId).toBe(11);
+    expect(submitted.form.projectId).toBe(7);
   });
 });
