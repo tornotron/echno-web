@@ -37,23 +37,47 @@ describe('toPayload carries what approval needs', () => {
     const payload = toPayload(
       submitData({
         items: [
-          { materialId: 21, currentStock: 10, countedStock: 8, unitCost: 5 },
+          { materialId: 21, openingBalance: 10, countedStock: 8, unitCost: 5 },
         ],
       })
     );
     const line = (payload.lineItems as Array<Record<string, unknown>>)[0];
     expect(line.materialId).toBe(21);
   });
+
+  test('the opening balance and the variance are left to the server', () => {
+    // echno-backend#658 stamps `systemQuantity` from the stock on every write
+    // and recomputes `adjustmentQuantity` from it, so a figure sent for either
+    // is discarded. Sending one anyway is what let a hand-typed "Current
+    // Stock" box sit on the form for as long as it did, looking like it was
+    // being used.
+    const payload = toPayload(
+      submitData({
+        items: [
+          {
+            materialId: 21,
+            openingBalance: 400,
+            countedStock: 370,
+            unitCost: 100,
+          },
+        ],
+      })
+    );
+    const line = (payload.lineItems as Array<Record<string, unknown>>)[0];
+    expect(line.systemQuantity).toBeUndefined();
+    expect(line.adjustmentQuantity).toBeUndefined();
+    expect(line.physicalQuantity).toBe(370);
+  });
 });
 
 describe('toPayload (INVENTORY / MONEY variance)', () => {
-  test('adjustmentQuantity is counted - current and value is qty * unit cost', () => {
+  test('the value is the variance against the opening balance times the unit cost', () => {
     const payload = toPayload(
       submitData({
         items: [
           {
             description: 'Cement',
-            currentStock: 100,
+            openingBalance: 100,
             countedStock: 120,
             unit: 'bag',
             unitCost: 50,
@@ -63,8 +87,6 @@ describe('toPayload (INVENTORY / MONEY variance)', () => {
       })
     );
     const line = (payload.lineItems as Array<Record<string, unknown>>)[0];
-    expect(line.adjustmentQuantity).toBe(20);
-    expect(line.systemQuantity).toBe(100);
     expect(line.physicalQuantity).toBe(120);
     expect(line.totalAdjustmentValue).toBe(1000);
   });
@@ -73,15 +95,57 @@ describe('toPayload (INVENTORY / MONEY variance)', () => {
     const payload = toPayload(
       submitData({
         items: [
-          { currentStock: 100, countedStock: 80, unitCost: 10, reason: 'loss' },
+          {
+            openingBalance: 100,
+            countedStock: 80,
+            unitCost: 10,
+            reason: 'loss',
+          },
         ],
       })
     );
     const line = (payload.lineItems as Array<Record<string, unknown>>)[0];
-    expect(line.adjustmentQuantity).toBe(-20);
     expect(line.totalAdjustmentValue).toBe(-200);
     expect(payload.totalAdjustmentValue).toBe(-200);
     expect(payload.totalVarianceQuantity).toBe(-20);
+  });
+
+  test('an unknown opening balance omits the totals rather than assuming an empty shelf', () => {
+    // The form leaves `openingBalance` undefined when it could not read the
+    // stock, which is every document for a caller holding `project-manager`
+    // without `system-admin` (echno-backend#666). The old default of 0 made
+    // the whole counted quantity look like a surplus, and the header totals
+    // were summed from that and shown on the list until the document posted.
+    const payload = toPayload(
+      submitData({
+        items: [{ materialId: 21, countedStock: 370, unitCost: 100 }],
+      })
+    );
+    const line = (payload.lineItems as Array<Record<string, unknown>>)[0];
+    expect(line.totalAdjustmentValue).toBeUndefined();
+    expect(payload.totalAdjustmentValue).toBeUndefined();
+    expect(payload.totalVarianceQuantity).toBeUndefined();
+  });
+
+  test('one unreadable line stands the whole document total down', () => {
+    // A total summed over the lines it happens to know is the total of a
+    // different document, and nothing on the screen would say which lines it
+    // covered.
+    const payload = toPayload(
+      submitData({
+        items: [
+          {
+            materialId: 21,
+            openingBalance: 100,
+            countedStock: 80,
+            unitCost: 10,
+          },
+          { materialId: 22, countedStock: 5, unitCost: 4 },
+        ],
+      })
+    );
+    expect(payload.totalVarianceQuantity).toBeUndefined();
+    expect(payload.totalAdjustmentValue).toBeUndefined();
   });
 
   test('justification falls back to a placeholder when notes are blank', () => {
@@ -103,7 +167,7 @@ describe('toPayload (INVENTORY / MONEY variance)', () => {
         items: [
           {
             description: '',
-            currentStock: 5,
+            openingBalance: 5,
             countedStock: 5,
             unit: '',
             unitCost: 1,
