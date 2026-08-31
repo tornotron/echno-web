@@ -87,6 +87,7 @@ export default function StockAdjustmentsPage() {
         rowMatchesEmployeeFilter(adj, employeeId, role, {
           submitter: (a) => a.submittedBy,
           approver: (a) => a.approvedBy,
+          rejecter: (a) => a.rejectedBy,
         });
       return (
         matchesSearch &&

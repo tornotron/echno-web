@@ -1,6 +1,6 @@
 'use client';
 
-import { PageHeader, OrgGuard } from '@/components/common';
+import { ActiveFilterChip, PageHeader, OrgGuard } from '@/components/common';
 import { Plus } from 'lucide-react';
 import { useInvitationsByOrganization } from '@tornotron/echno-core/invitation/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
@@ -12,6 +12,11 @@ import {
 import { Button } from '@/components/shadcn/button';
 import Link from 'next/link';
 import { routes } from '@/nav';
+import {
+  ROLE_LABELS,
+  rowMatchesEmployeeFilter,
+  useEmployeeFilterFromParams,
+} from '@/hooks/use-employee-filter';
 
 export default function InvitationsPage() {
   const { data: user, isLoading: isUserLoading } = useUser();
@@ -21,7 +26,25 @@ export default function InvitationsPage() {
     error,
   } = useInvitationsByOrganization(user?.defaultOrganizationId);
 
-  const invitationsList = invitations || [];
+  const {
+    employeeId,
+    role,
+    name: filterName,
+    clear: clearEmployeeFilter,
+  } = useEmployeeFilterFromParams();
+
+  const allInvitations = invitations || [];
+  // The whole collection is loaded, so narrowing it here hides nothing. The
+  // manager id is an employee id, resolved through the employee lookup by the
+  // same `useManagerName` the detail screen uses to name it.
+  const invitationsList =
+    employeeId != null && role
+      ? allInvitations.filter((invitation) =>
+          rowMatchesEmployeeFilter(invitation, employeeId, role, {
+            manager: (i) => i.employeeDetails.managerId,
+          })
+        )
+      : allInvitations;
 
   return (
     <OrgGuard
@@ -29,7 +52,12 @@ export default function InvitationsPage() {
       error={error}
       organizationId={user?.defaultOrganizationId}
     >
-      {invitationsList.length === 0 ? (
+      {/*
+        The empty state is keyed on the unfiltered collection. Keying it on the
+        filtered one would answer a filter that matches nothing with "no
+        invitations yet" and no chip, leaving no way back.
+      */}
+      {allInvitations.length === 0 ? (
         <div className="space-y-4 sm:space-y-6">
           <PageHeader
             title="Employee Invitations"
@@ -51,6 +79,14 @@ export default function InvitationsPage() {
               </Button>
             }
           />
+
+          {employeeId != null && filterName && (
+            <ActiveFilterChip
+              label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
+              name={filterName}
+              onDismiss={clearEmployeeFilter}
+            />
+          )}
 
           <InvitationOverview invitations={invitationsList} />
 

@@ -7,7 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
+import Link from 'next/link';
 import { User, Building } from 'lucide-react';
+import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import {
   getAttendanceStatusLabel,
   getAttendanceStatusColor,
@@ -44,7 +47,23 @@ export function AttendanceEmployeeInfoCard({ attendance }: Props) {
                 Employee
               </p>
               <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                {attendance.employeeName}
+                {/*
+                  An employee id: `Attendance.employeeId` names the employee the
+                  record belongs to, not a session user. The team history is the
+                  destination rather than the attendance list, because that list
+                  is server-paged on one project and one date, so it cannot
+                  answer "every day this person worked".
+                */}
+                <Link
+                  href={employeeFilterHref(
+                    `${routes.attendance.history}?tab=team`,
+                    attendance.employeeId,
+                    'employee'
+                  )}
+                  className="hover:underline"
+                >
+                  {attendance.employeeName}
+                </Link>
               </p>
               <p className="text-sm text-zinc-500 dark:text-zinc-500">
                 {attendance.employeeId}

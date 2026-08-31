@@ -34,7 +34,13 @@ export default function PaymentsPage() {
     employeeId != null && role
       ? payments.filter((r) =>
           rowMatchesEmployeeFilter(r, employeeId, role, {
+            // Two ids of different kinds on one row. `verifier` reads a user
+            // id the backend stamps from the session; `payee` reads the
+            // employee id the creation payload names. The link that sets each
+            // filter uses the matching helper, so the comparison is
+            // like-for-like either way.
             verifier: (p) => p.verifiedBy,
+            payee: (p) => p.employeeId,
           })
         )
       : payments;

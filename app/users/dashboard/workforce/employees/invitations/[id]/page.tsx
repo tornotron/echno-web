@@ -41,6 +41,9 @@ import { useManagerName } from '@tornotron/echno-core/employee/hooks';
 import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
 import { InvitationQRCode, InvitationStatusBadge } from '@/features/invitation';
 import { InvitationErrorState } from '@/features/invitation/components/invitation-error-state';
+import Link from 'next/link';
+import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 
 export default function InvitationPage() {
   const params = useParams();
@@ -512,7 +515,25 @@ export default function InvitationPage() {
                       Reporting Manager
                     </p>
                     <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {managerName}
+                      {invitation.employeeDetails.managerId ? (
+                        /*
+                          An employee id: managerId points into the employee
+                          directory, which is how useManagerName resolves the
+                          name beside it.
+                        */
+                        <Link
+                          href={employeeFilterHref(
+                            routes.workforce.employees.invitations.href,
+                            invitation.employeeDetails.managerId,
+                            'manager'
+                          )}
+                          className="hover:underline"
+                        >
+                          {managerName}
+                        </Link>
+                      ) : (
+                        managerName
+                      )}
                     </p>
                   </div>
                 )}

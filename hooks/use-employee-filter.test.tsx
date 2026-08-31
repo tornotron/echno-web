@@ -15,12 +15,20 @@ let search = '';
 
 import * as realNavigation from 'next/navigation';
 
+let replaced: string | null = null;
+
 mock.module('next/navigation', () => ({
   ...realNavigation,
   useSearchParams: () => new URLSearchParams(search),
-  usePathname: () => '/users/dashboard/resources/stock-adjustments',
-  useRouter: () => ({ replace: () => {} }),
+  usePathname: () => pathname,
+  useRouter: () => ({
+    replace: (href: string) => {
+      replaced = href;
+    },
+  }),
 }));
+
+let pathname = '/users/dashboard/resources/stock-adjustments';
 
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 
@@ -97,5 +105,50 @@ describe('filter hrefs', () => {
     expect(userFilterHref('/base', 12, 'submitter')).toBe(
       '/base?userId=12&role=submitter'
     );
+  });
+
+  // The attendance history is one page holding two tabs, so the link into it
+  // carries a `?tab=team` the filter has to sit beside. A second `?` produces a
+  // URL where `tab` is part of the first param's value and the tab silently
+  // reverts to the reader's own timesheet.
+  test('a base href that already has a query gets an ampersand', () => {
+    expect(employeeFilterHref('/base?tab=team', 12, 'employee')).toBe(
+      '/base?tab=team&employeeId=12&role=employee'
+    );
+    expect(userFilterHref('/base?tab=team', 12, 'verifier')).toBe(
+      '/base?tab=team&userId=12&role=verifier'
+    );
+  });
+});
+
+describe('clearing a filter', () => {
+  test('keeps the params the filter does not own', () => {
+    // Same reason as the href case, from the other end: dropping to the bare
+    // pathname would take `?tab=team` with it and land the reader on their own
+    // timesheet, which reads as the filter having worked.
+    pathname = '/users/dashboard/attendance/history';
+    search = 'tab=team&employeeId=12&role=employee';
+    replaced = null;
+    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    result.current.clear();
+    expect(replaced).toBe('/users/dashboard/attendance/history?tab=team');
+  });
+
+  test('drops to the bare path when it owned every param', () => {
+    pathname = '/users/dashboard/finance/payments';
+    search = 'employeeId=12&role=payee';
+    replaced = null;
+    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    result.current.clear();
+    expect(replaced).toBe('/users/dashboard/finance/payments');
+  });
+
+  test('drops a userId filter too, not only an employeeId one', () => {
+    pathname = '/users/dashboard/resources/stock-adjustments';
+    search = 'userId=12&role=rejecter';
+    replaced = null;
+    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    result.current.clear();
+    expect(replaced).toBe('/users/dashboard/resources/stock-adjustments');
   });
 });

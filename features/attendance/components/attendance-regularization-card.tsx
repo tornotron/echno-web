@@ -57,6 +57,11 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
   // appears when the backend returns it (echno-core parses it into the DTO).
   const regRequestedById = attendance.regularization?.requestedById;
 
+  // The approver's employee surrogate id, which the regularizations list
+  // already filters on under the `approver` slug. `approvedBy` beside it is the
+  // display name, not an id, so the link has to be built from this one.
+  const regApprovedById = attendance.regularization?.approvedById;
+
   // Request dialog state
   const [regDialogOpen, setRegDialogOpen] = useState(false);
   const [regReason, setRegReason] = useState('');
@@ -310,7 +315,21 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                       {attendance.regularization.status === 'approved'
                         ? 'Approved'
                         : 'Rejected'}{' '}
-                      by {attendance.regularization.approvedBy}
+                      by{' '}
+                      {regApprovedById ? (
+                        <Link
+                          href={employeeFilterHref(
+                            routes.attendance.regularizations,
+                            regApprovedById,
+                            'approver'
+                          )}
+                          className="hover:underline"
+                        >
+                          {attendance.regularization.approvedBy}
+                        </Link>
+                      ) : (
+                        attendance.regularization.approvedBy
+                      )}
                       {attendance.regularization.approvedAt &&
                         ` · ${format(
                           attendance.regularization.approvedAt,

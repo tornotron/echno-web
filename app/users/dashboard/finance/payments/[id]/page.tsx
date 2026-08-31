@@ -35,8 +35,15 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { userFilterHref } from '@/hooks/use-employee-filter';
-import { userReferenceLabel } from '@/lib/utils/user-reference';
+import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import {
+  employeeFilterHref,
+  userFilterHref,
+} from '@/hooks/use-employee-filter';
+import {
+  employeeReferenceLabel,
+  userReferenceLabel,
+} from '@/lib/utils/user-reference';
 import { format } from 'date-fns';
 import {
   paymentTypeLabels,
@@ -56,6 +63,8 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const { data: payment, isLoading, isError } = usePaymentById(id);
+  const { data: employees = [] } = useEmployeeLookup();
+  const payeeEmployee = employees.find((e) => e.id === payment?.employeeId);
 
   if (isLoading)
     return (
@@ -387,7 +396,24 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     <div>
                       <p className="text-sm font-medium">Employee</p>
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                        Employee ID: {payment.employeeId}
+                        {/*
+                          An employee id, not a user id. It is the payee, set
+                          from the creation payload alongside vendorId,
+                          subContractId and labourId, and selected by payeeType.
+                          verifiedBy on the same screen is the opposite case: a
+                          session stamp, so it uses userFilterHref.
+                        */}
+                        <Link
+                          href={employeeFilterHref(
+                            routes.finance.payments.href,
+                            payment.employeeId,
+                            'payee'
+                          )}
+                          className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          {payeeEmployee?.name ??
+                            employeeReferenceLabel(payment.employeeId)}
+                        </Link>
                       </p>
                     </div>
                   </div>
