@@ -94,20 +94,33 @@ export interface StockAdjustment {
 
   // Physical Count Reference (if applicable)
   physicalCountDate?: Date;
-  physicalCountBy?: number; // Employee ID
+  // Employee ID, taken from the creation payload rather than the session, so
+  // it resolves through the employee lookup. It is the one *By field on this
+  // document that must NOT be run through the user directory.
+  physicalCountBy?: number;
   countMethod?: string; // e.g., "Full Count", "Cycle Count", "Spot Check"
 
-  // Approval Workflow
-  submittedBy: number; // Employee ID
+  // Approval Workflow.
+  //
+  // Every id below is a USER id: the backend stamps them from the session with
+  // UserContextService.getCurrentUserId(). Each carries the name the backend
+  // resolved for it, which is set exactly when its id is. A name reading
+  // `User #<id>` means the account was deleted, an email means the account
+  // holds no name, and an absent name means the step never happened.
+  submittedBy: number; // User ID
+  submittedByName?: string;
   submittedAt: Date;
-  approvedBy?: number; // Employee ID (typically manager/supervisor)
+  approvedBy?: number; // User ID (typically manager/supervisor)
+  approvedByName?: string;
   approvedAt?: Date;
-  rejectedBy?: number; // Employee ID
+  rejectedBy?: number; // User ID
+  rejectedByName?: string;
   rejectedAt?: Date;
   rejectionReason?: string;
 
   // Processing
-  processedBy?: number; // Employee ID
+  processedBy?: number; // User ID
+  processedByName?: string;
   processedAt?: Date;
 
   // Variance Analysis

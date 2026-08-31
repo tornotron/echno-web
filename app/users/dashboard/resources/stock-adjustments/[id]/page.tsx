@@ -71,7 +71,7 @@ import {
   stockAdjustmentAmendmentGate,
 } from '@/features/stock-adjustments/decision-gates';
 import { RejectStockAdjustment } from '@/features/stock-adjustments/components';
-import { userReferenceLabel } from '@/lib/utils/user-reference';
+import { userStampLabel } from '@/lib/utils/user-reference';
 
 
 const handleDownloadPDF = () => {
@@ -366,7 +366,7 @@ export default function StockAdjustmentDetailPage({
             </div>
             <div className="text-zinc-500 dark:text-zinc-400">
               {adjustment.rejectedBy
-                ? `Rejected by ${userReferenceLabel(adjustment.rejectedBy)}`
+                ? `Rejected by ${userStampLabel(adjustment.rejectedByName, adjustment.rejectedBy)}`
                 : 'Rejected'}
               {adjustment.rejectedAt &&
                 ` on ${format(adjustment.rejectedAt, 'PPP')}`}
@@ -852,7 +852,7 @@ export default function StockAdjustmentDetailPage({
                       )}
                       className="hover:underline"
                     >
-                      {userReferenceLabel(adjustment.submittedBy)}
+                      {userStampLabel(adjustment.submittedByName, adjustment.submittedBy)}
                     </Link>
                   </div>
                 </div>
@@ -874,7 +874,7 @@ export default function StockAdjustmentDetailPage({
                         )}
                         className="hover:underline"
                       >
-                        {userReferenceLabel(adjustment.approvedBy)}
+                        {userStampLabel(adjustment.approvedByName, adjustment.approvedBy)}
                       </Link>
                     </div>
                   </div>

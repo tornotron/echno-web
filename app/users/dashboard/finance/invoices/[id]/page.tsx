@@ -58,7 +58,7 @@ import {
 import { InvoiceActions } from '@/features/invoices/components/invoice-actions';
 import { invoicesService } from '@/services/invoices-service';
 import { toast } from '@/lib/styles/toast-styles';
-import { userReferenceLabel } from '@/lib/utils/user-reference';
+import { userStampLabel } from '@/lib/utils/user-reference';
 
 interface InvoiceDetailPageProps {
   params: Promise<{
@@ -610,10 +610,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {userReferenceLabel(invoice.submittedBy)}
+                              {userStampLabel(invoice.submittedByName, invoice.submittedBy)}
                             </Link>
                           ) : (
-                            userReferenceLabel(invoice.submittedBy)
+                            userStampLabel(invoice.submittedByName, invoice.submittedBy)
                           )}{' '}
                           on {formatDateTime(invoice.submittedAt)}
                         </p>
@@ -635,10 +635,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {userReferenceLabel(invoice.approvedBy)}
+                              {userStampLabel(invoice.approvedByName, invoice.approvedBy)}
                             </Link>
                           ) : (
-                            userReferenceLabel(invoice.approvedBy)
+                            userStampLabel(invoice.approvedByName, invoice.approvedBy)
                           )}{' '}
                           on {formatDateTime(invoice.approvedAt)}
                         </p>
@@ -662,10 +662,10 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {userReferenceLabel(invoice.paymentRecordedBy)}
+                              {userStampLabel(invoice.paymentRecordedByName, invoice.paymentRecordedBy)}
                             </Link>
                           ) : (
-                            userReferenceLabel(invoice.paymentRecordedBy)
+                            userStampLabel(invoice.paymentRecordedByName, invoice.paymentRecordedBy)
                           )}
                         </p>
                       </div>

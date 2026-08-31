@@ -54,6 +54,7 @@ import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { employeeReferenceLabel } from '@/lib/utils/user-reference';
 import { format } from 'date-fns';
 import {
   ReceiptType,
@@ -127,10 +128,20 @@ export default function ReceiptDetailPage({ params }: ReceiptDetailPageProps) {
     }
   }
 
+  /**
+   * Names the employee a receipt stamp points at.
+   *
+   * `issuedBy` is an **employee** id on `ReceiptDto`, and `createdBy` falls back
+   * to it, so unlike the approval stamps on an invoice or a stock adjustment
+   * these do resolve through the employee lookup and get no server-resolved
+   * name. When the lookup has no row the label says employee: calling an
+   * employee id a user would be the same mislabelling the name resolution on
+   * the other documents exists to stop.
+   */
   const getEmployeeName = (employeeId?: number): string => {
     if (!employeeId) return '—';
     const employee = employees.find((e) => e.id === employeeId);
-    return employee?.name || `User #${employeeId}`;
+    return employee?.name || employeeReferenceLabel(employeeId);
   };
 
   if (isLoading)

@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useInvoices } from '@/hooks/invoices';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
@@ -16,13 +17,32 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { ConstructionInvoiceStatus } from '@/types/finance/invoice';
 import { InvoicesFeature } from '@/features/invoices';
+import { resolveStampName } from '@/lib/utils/user-reference';
 
 export default function InvoicesPage() {
   const { data: invoices = [], isLoading, isError } = useInvoices();
   const { data: projects = [] } = useProjects();
   const { data: vendors = [] } = useVendors();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  // A `?userId=` link carries only the id, and there is no client-side user
+  // directory. The invoices already loaded carry the name the backend resolved
+  // for each stamp, so the chip is worded from those rather than left as
+  // `User #<id>`.
+  const resolveUserName = useCallback(
+    (userId: number) =>
+      resolveStampName(
+        invoices.flatMap((i) => [
+          { id: i.submittedBy, name: i.submittedByName },
+          { id: i.approvedBy, name: i.approvedByName },
+          { id: i.paymentRecordedBy, name: i.paymentRecordedByName },
+        ]),
+        userId
+      ),
+    [invoices]
+  );
+
+  const { employeeId, role, name, clear } =
+    useEmployeeFilterFromParams(resolveUserName);
   const filteredInvoices =
     employeeId != null && role
       ? invoices.filter((r) =>

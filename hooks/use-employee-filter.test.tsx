@@ -50,10 +50,33 @@ describe('useEmployeeFilterFromParams', () => {
     expect(result.current.role).toBe('submitter');
   });
 
-  test('an employee the lookup does not carry falls back to the same wording', () => {
+  test('an employee the lookup does not carry is still named an employee', () => {
     search = 'employeeId=99&role=issuer';
     const { result } = renderHook(() => useEmployeeFilterFromParams());
-    expect(result.current.name).toBe('User #99');
+    expect(result.current.name).toBe('Employee #99');
+  });
+
+  // The URL carries only a number, but the rows the filter selects carry the
+  // name the backend resolved for that stamp. A list page hands those in and
+  // the chip reads like the detail screen it was clicked from.
+  test('a user link takes its name from the stamps the loaded rows carry', () => {
+    search = 'userId=12&role=submitter';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams((id) =>
+        id === 12 ? 'Anand Rajashekar' : undefined
+      )
+    );
+    expect(result.current.name).toBe('Anand Rajashekar');
+  });
+
+  // Still never through the employee lookup: employee 12 is not user 12.
+  test('an unresolvable user link keeps the id wording, not an employee name', () => {
+    search = 'userId=12&role=submitter';
+    // No loaded row carries user 12, which is what a filter clicked from a
+    // document the current page has since filtered away looks like.
+    const { result } = renderHook(() => useEmployeeFilterFromParams(() => null));
+    expect(result.current.name).toBe('User #12');
+    expect(result.current.name).not.toBe('Priya Nair');
   });
 
   test('no filter params means no filter', () => {
