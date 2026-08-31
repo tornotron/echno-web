@@ -52,7 +52,7 @@ import {
   useVerifyNcr,
 } from '@/hooks/inspection';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
-import { userReferenceLabel } from '@/lib/utils/user-reference';
+import { employeeReferenceLabel } from '@/lib/utils/user-reference';
 import { routes } from '@/nav';
 import {
   type Ncr,
@@ -117,7 +117,7 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
                 className="hover:underline"
               >
                 {employeeName(ncr.siteEngineerId) ??
-                  userReferenceLabel(ncr.siteEngineerId)}
+                  employeeReferenceLabel(ncr.siteEngineerId)}
               </Link>
             )}
           </Fact>
@@ -151,7 +151,7 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
                 className="hover:underline"
               >
                 {employeeName(ncr.raisedById) ??
-                  userReferenceLabel(ncr.raisedById)}
+                  employeeReferenceLabel(ncr.raisedById)}
               </Link>
             )}
           </Fact>
@@ -600,7 +600,7 @@ function Timeline({
                       )}
                       className="hover:underline"
                     >
-                      {employeeName(step.by)}
+                      {employeeName(step.by) ?? employeeReferenceLabel(step.by)}
                     </Link>
                   ) : (
                     employeeName(step.by)

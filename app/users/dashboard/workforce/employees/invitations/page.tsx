@@ -33,18 +33,23 @@ export default function InvitationsPage() {
     clear: clearEmployeeFilter,
   } = useEmployeeFilterFromParams();
 
+  // This list answers one role. A link carrying another module's slug is
+  // already a no-op here, because rowMatchesEmployeeFilter fails open for a
+  // role it has no accessor for; the chip is what would turn that no-op into a
+  // wrong answer, by naming a person over a list nothing narrowed.
+  const managerFilterApplies = employeeId != null && role === 'manager';
+
   const allInvitations = invitations || [];
   // The whole collection is loaded, so narrowing it here hides nothing. The
   // manager id is an employee id, resolved through the employee lookup by the
   // same `useManagerName` the detail screen uses to name it.
-  const invitationsList =
-    employeeId != null && role
-      ? allInvitations.filter((invitation) =>
-          rowMatchesEmployeeFilter(invitation, employeeId, role, {
-            manager: (i) => i.employeeDetails.managerId,
-          })
-        )
-      : allInvitations;
+  const invitationsList = managerFilterApplies
+    ? allInvitations.filter((invitation) =>
+        rowMatchesEmployeeFilter(invitation, employeeId, 'manager', {
+          manager: (i) => i.employeeDetails.managerId,
+        })
+      )
+    : allInvitations;
 
   return (
     <OrgGuard
@@ -80,7 +85,7 @@ export default function InvitationsPage() {
             }
           />
 
-          {employeeId != null && filterName && (
+          {managerFilterApplies && filterName && (
             <ActiveFilterChip
               label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
               name={filterName}

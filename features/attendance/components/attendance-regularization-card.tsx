@@ -57,10 +57,17 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
   // appears when the backend returns it (echno-core parses it into the DTO).
   const regRequestedById = attendance.regularization?.requestedById;
 
-  // The approver's employee surrogate id, which the regularizations list
-  // already filters on under the `approver` slug. `approvedBy` beside it is the
-  // display name, not an id, so the link has to be built from this one.
-  const regApprovedById = attendance.regularization?.approvedById;
+  /*
+    Not a link, and the reason is on the other end rather than here. The list
+    this would open, `usePendingRegularizations`, is backed by
+    `findByStatus(PENDING)`, and `approvedById` is only stamped when a request
+    is processed and therefore stops being pending. So the filter matches
+    nothing by construction: every click would land on an empty list under a
+    chip reading "Approved by X", which states the opposite of the truth.
+
+    The id is real and is an employee id, so the link costs nothing once the
+    register can show decided requests. Filed as echno-backend#637.
+  */
 
   // Request dialog state
   const [regDialogOpen, setRegDialogOpen] = useState(false);
@@ -315,21 +322,7 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                       {attendance.regularization.status === 'approved'
                         ? 'Approved'
                         : 'Rejected'}{' '}
-                      by{' '}
-                      {regApprovedById ? (
-                        <Link
-                          href={employeeFilterHref(
-                            routes.attendance.regularizations,
-                            regApprovedById,
-                            'approver'
-                          )}
-                          className="hover:underline"
-                        >
-                          {attendance.regularization.approvedBy}
-                        </Link>
-                      ) : (
-                        attendance.regularization.approvedBy
-                      )}
+                      by {attendance.regularization.approvedBy}
                       {attendance.regularization.approvedAt &&
                         ` · ${format(
                           attendance.regularization.approvedAt,
