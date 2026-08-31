@@ -42,6 +42,8 @@
 
 A separate, older Flutter mobile app (`echno`, formerly `echno_attendance`) exists and is attendance-focused. It is legacy and is not required to run or use this web client.
 
+For how to *use* the product rather than how to build it, see the [Echno user guide](docs/user-guide/README.md).
+
 ### Key Highlights
 
 - ⚡ **Next.js 16** with App Router for optimal performance
