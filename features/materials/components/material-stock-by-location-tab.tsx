@@ -171,7 +171,13 @@ export type MaterialGlobalThresholds = {
 interface MaterialStockByLocationTabProps {
   materialId: number;
   unit: string;
-  reorderLevel?: number;
+  /**
+   * The material's own thresholds, which a location inherits unless it
+   * sets an override. `reorderLevel` used to arrive here twice, once in
+   * this map and once as a prop of its own, and the rows compared against
+   * the loose copy: the map is the only one now, so a row cannot be judged
+   * by a level the threshold editor beside it disagrees with.
+   */
   globalThresholds: MaterialGlobalThresholds;
 }
 
@@ -182,7 +188,6 @@ interface MaterialStockByLocationTabProps {
 export function MaterialStockByLocationTab({
   materialId,
   unit,
-  reorderLevel,
   globalThresholds,
 }: MaterialStockByLocationTabProps) {
   const { data: materialStock, isLoading } = useMaterialStock(materialId);
@@ -581,10 +586,18 @@ export function MaterialStockByLocationTab({
                   {paginatedLocations.map((ls) => {
                     const key = locRowKey(ls);
                     const isEmpty = ls.stock === 0;
+                    // The level in force here, not the material's global one.
+                    // A location that sets its own override is saying the
+                    // global figure is the wrong one to judge it by, and this
+                    // is the only screen that reads stock per location.
+                    const locationLevel = effectiveThreshold(
+                      'reorderLevel',
+                      overridesByLocation.get(ls.storageLocationId)
+                    );
                     const isLow =
                       !isEmpty &&
-                      reorderLevel !== undefined &&
-                      ls.stock <= reorderLevel;
+                      locationLevel !== undefined &&
+                      ls.stock <= locationLevel;
                     let stockClass = '';
                     if (isEmpty) stockClass = 'text-zinc-400';
                     else if (isLow)
@@ -622,7 +635,7 @@ export function MaterialStockByLocationTab({
                         <TableCell className="text-right">
                           <StockStatusBadge
                             stock={ls.stock}
-                            reorderLevel={reorderLevel}
+                            reorderLevel={locationLevel}
                           />
                         </TableCell>
                         <TableCell className="text-right">

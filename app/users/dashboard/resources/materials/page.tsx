@@ -65,7 +65,7 @@ export default function MaterialsPage() {
         {/* Right sidebar */}
         <div className="w-full shrink-0 space-y-4 lg:w-72 xl:w-80">
           <StockValueByMaterial materials={materials} />
-          <LowStockAlert materials={materials} />
+          <LowStockAlert />
           <TopProjectsConsuming consumptions={consumptions} />
         </div>
       </div>
