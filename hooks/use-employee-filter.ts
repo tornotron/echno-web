@@ -34,6 +34,8 @@ export const ROLE_LABELS: Record<string, string> = {
   payee: 'Paid to',
   employee: 'Employee',
   manager: 'Reporting to',
+  raiser: 'Raised by',
+  closer: 'Closed by',
 };
 
 /** Resolved employee filter read from the current list page's query params. */

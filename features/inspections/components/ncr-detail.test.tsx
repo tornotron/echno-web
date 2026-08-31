@@ -55,13 +55,8 @@ mock.module('@/hooks/inspection', () => ({
 }));
 
 mock.module('next/link', () => ({
-  default: ({
-    children,
-    href,
-  }: {
-    children: React.ReactNode;
-    href: string;
-  }) => createElement('a', { href }, children),
+  default: ({ children, href }: { children: React.ReactNode; href: string }) =>
+    createElement('a', { href }, children),
 }));
 
 const { NcrDetail } = await import('./ncr-detail');
@@ -105,7 +100,8 @@ function clickAction(status: NcrStatus, action: NcrAction) {
   const button = [...container.querySelectorAll('button')].find(
     (candidate) => candidate.textContent?.trim() === ncrActionLabels[action]
   );
-  if (!button) throw new Error(`No "${ncrActionLabels[action]}" button on screen`);
+  if (!button)
+    throw new Error(`No "${ncrActionLabels[action]}" button on screen`);
 
   fireEvent.click(button);
 }
@@ -150,22 +146,30 @@ describe('NcrDetail — the actions offered for each status', () => {
   ];
 
   for (const [status, labels] of expected) {
-    test(`a ${status} NCR offers ${labels.join(' + ')}`, () => {
-      expect(offeredActions(status)).toEqual(labels);
-    }, RENDER_TIMEOUT_MS);
+    test(
+      `a ${status} NCR offers ${labels.join(' + ')}`,
+      () => {
+        expect(offeredActions(status)).toEqual(labels);
+      },
+      RENDER_TIMEOUT_MS
+    );
   }
 
-  test('the screen never offers a transition the lifecycle map refuses', () => {
-    for (const status of Object.values(NcrStatus)) {
-      const shown = offeredActions(status);
-      const allowed = availableNcrActions(status).map(
-        (action) => ncrActionLabels[action]
-      );
+  test(
+    'the screen never offers a transition the lifecycle map refuses',
+    () => {
+      for (const status of Object.values(NcrStatus)) {
+        const shown = offeredActions(status);
+        const allowed = availableNcrActions(status).map(
+          (action) => ncrActionLabels[action]
+        );
 
-      expect(shown).toEqual(allowed);
-      cleanup();
-    }
-  }, RENDER_TIMEOUT_MS);
+        expect(shown).toEqual(allowed);
+        cleanup();
+      }
+    },
+    RENDER_TIMEOUT_MS
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -173,70 +177,94 @@ describe('NcrDetail — the actions offered for each status', () => {
 // ---------------------------------------------------------------------------
 
 describe('NcrDetail — each action fires its own endpoint', () => {
-  test('Close settles the NCR straight away, with no remarks step', () => {
-    clickAction(NcrStatus.VERIFIED, 'close');
+  test(
+    'Close settles the NCR straight away, with no remarks step',
+    () => {
+      clickAction(NcrStatus.VERIFIED, 'close');
 
-    expect(firedMutations()).toEqual(['close']);
-    expect(close.mutate.mock.calls[0][0]).toBe(NCR_ID);
-  }, RENDER_TIMEOUT_MS);
+      expect(firedMutations()).toEqual(['close']);
+      expect(close.mutate.mock.calls[0][0]).toBe(NCR_ID);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('Assign opens the assignment form rather than assigning blind', () => {
-    clickAction(NcrStatus.OPEN, 'assign');
+  test(
+    'Assign opens the assignment form rather than assigning blind',
+    () => {
+      clickAction(NcrStatus.OPEN, 'assign');
 
-    // Assignment needs an engineer and a date, so nothing is sent on the click
-    // itself.
-    expect(firedMutations()).toEqual([]);
-    expect(document.querySelectorAll('[role="dialog"]').length).toBe(1);
-  }, RENDER_TIMEOUT_MS);
+      // Assignment needs an engineer and a date, so nothing is sent on the click
+      // itself.
+      expect(firedMutations()).toEqual([]);
+      expect(document.querySelectorAll('[role="dialog"]').length).toBe(1);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('Mark Corrected asks for remarks, then reports the correction', () => {
-    clickAction(NcrStatus.ASSIGNED, 'corrective-action-complete');
-    expect(firedMutations()).toEqual([]);
+  test(
+    'Mark Corrected asks for remarks, then reports the correction',
+    () => {
+      clickAction(NcrStatus.ASSIGNED, 'corrective-action-complete');
+      expect(firedMutations()).toEqual([]);
 
-    const remarks = document.querySelector('#ncr-remarks')!;
-    fireEvent.change(remarks, {
-      target: { value: '  Cover re-cast to 40mm and re-measured.  ' },
-    });
-    submitDialog('Mark Corrected');
+      const remarks = document.querySelector('#ncr-remarks')!;
+      fireEvent.change(remarks, {
+        target: { value: '  Cover re-cast to 40mm and re-measured.  ' },
+      });
+      submitDialog('Mark Corrected');
 
-    expect(firedMutations()).toEqual(['complete']);
-    expect(complete.mutate.mock.calls[0][0]).toEqual({
-      id: NCR_ID,
-      req: { remarks: 'Cover re-cast to 40mm and re-measured.' },
-    });
-  }, RENDER_TIMEOUT_MS);
+      expect(firedMutations()).toEqual(['complete']);
+      expect(complete.mutate.mock.calls[0][0]).toEqual({
+        id: NCR_ID,
+        req: { remarks: 'Cover re-cast to 40mm and re-measured.' },
+      });
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('remarks left blank are omitted rather than sent as an empty string', () => {
-    clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'verify');
-    submitDialog('Verify');
+  test(
+    'remarks left blank are omitted rather than sent as an empty string',
+    () => {
+      clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'verify');
+      submitDialog('Verify');
 
-    expect(firedMutations()).toEqual(['verify']);
-    expect(verify.mutate.mock.calls[0][0]).toEqual({
-      id: NCR_ID,
-      req: undefined,
-    });
-  }, RENDER_TIMEOUT_MS);
+      expect(firedMutations()).toEqual(['verify']);
+      expect(verify.mutate.mock.calls[0][0]).toEqual({
+        id: NCR_ID,
+        req: undefined,
+      });
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('Reject sends the rework back and touches nothing else', () => {
-    clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'reject');
-    fireEvent.change(document.querySelector('#ncr-remarks')!, {
-      target: { value: 'Cover still short on the east face.' },
-    });
-    submitDialog('Reject');
+  test(
+    'Reject sends the rework back and touches nothing else',
+    () => {
+      clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'reject');
+      fireEvent.change(document.querySelector('#ncr-remarks')!, {
+        target: { value: 'Cover still short on the east face.' },
+      });
+      submitDialog('Reject');
 
-    expect(firedMutations()).toEqual(['reject']);
-    expect(reject.mutate.mock.calls[0][0]).toEqual({
-      id: NCR_ID,
-      req: { remarks: 'Cover still short on the east face.' },
-    });
-  }, RENDER_TIMEOUT_MS);
+      expect(firedMutations()).toEqual(['reject']);
+      expect(reject.mutate.mock.calls[0][0]).toEqual({
+        id: NCR_ID,
+        req: { remarks: 'Cover still short on the east face.' },
+      });
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('Reopen from closed goes to the reopen endpoint', () => {
-    clickAction(NcrStatus.CLOSED, 'reopen');
-    submitDialog('Reopen');
+  test(
+    'Reopen from closed goes to the reopen endpoint',
+    () => {
+      clickAction(NcrStatus.CLOSED, 'reopen');
+      submitDialog('Reopen');
 
-    expect(firedMutations()).toEqual(['reopen']);
-  }, RENDER_TIMEOUT_MS);
+      expect(firedMutations()).toEqual(['reopen']);
+    },
+    RENDER_TIMEOUT_MS
+  );
 });
 
 /** Clicks the confirm button inside the open remarks dialog. */
@@ -255,12 +283,22 @@ function submitDialog(label: string) {
 // ---------------------------------------------------------------------------
 // Where a name on the report leads (web#35)
 //
-// Clicking the site engineer asks "what else is sitting with this person", so
-// it opens their own NCR register rather than their staff profile. The list
-// endpoint filters on `siteEngineerId`, so the answer stays server-side and
-// complete. It carries no equivalent for the raiser, and it is paged, so
-// "Raised by" is deliberately not a link: narrowing the fetched page in the
-// browser would hide matches without saying so.
+// Clicking a person on an NCR asks "what else is sitting with them", so it
+// opens the register filtered to that person rather than their staff profile.
+// All four now work: the site engineer, which the endpoint has always filtered
+// on, plus the raiser, the verifier and the closer, which echno-backend#626
+// added and echno-core reaches from v3.5.0.
+//
+// None of them could be done in the browser first. The register is paged, so
+// narrowing the fetched page would hide every match outside it while still
+// reading as a complete answer, which is why "Raised by" spent three releases
+// as plain text.
+//
+// Every one is an **employee** id, written from `currentEmployeeId()`, so every
+// href says `employeeId=` and none says `userId=`. That is what the assertions
+// below are really pinning: on a fresh database the two sequences run in
+// lockstep, so a link built off the wrong kind would show the right name here
+// and the wrong one later.
 // ---------------------------------------------------------------------------
 
 const NCR_REGISTER = '/users/dashboard/inspections/ncr';
@@ -279,38 +317,101 @@ function employeeFilterHrefs(container: HTMLElement): string[] {
 }
 
 describe('NcrDetail — the people on the report', () => {
-  test('the site engineer opens the register filtered to their own reports', () => {
-    const { container } = renderNcr({ siteEngineerId: 8, raisedById: 8 });
+  test(
+    'the site engineer opens the register filtered to their own reports',
+    () => {
+      // Distinct from the raiser, so the assertion cannot be satisfied by the
+      // link belonging to the other field.
+      const { container } = renderNcr({ siteEngineerId: 8, raisedById: 14 });
 
-    expect(employeeFilterHrefs(container)).toEqual([
-      `${NCR_REGISTER}?employeeId=8&role=site-engineer`,
-    ]);
-  }, RENDER_TIMEOUT_MS);
+      expect(employeeFilterHrefs(container)).toContain(
+        `${NCR_REGISTER}?employeeId=8&role=site-engineer`
+      );
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('the raiser is not a link, because the endpoint cannot filter on them', () => {
-    // Both fields hold the same person here, so a link built off the wrong
-    // field would look right and still show up as a second filtered href.
-    const { container } = renderNcr({ siteEngineerId: 8, raisedById: 8 });
+  test(
+    'the raiser opens the register filtered to what they raised',
+    () => {
+      // Distinct ids on purpose. With one person in both fields a link built off
+      // the wrong field would produce exactly the right href.
+      const { container } = renderNcr({ siteEngineerId: 8, raisedById: 14 });
 
-    expect(employeeFilterHrefs(container).length).toBe(1);
-  }, RENDER_TIMEOUT_MS);
+      expect(employeeFilterHrefs(container)).toContain(
+        `${NCR_REGISTER}?employeeId=14&role=raiser`
+      );
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('an engineer the directory does not carry is still shown as assigned', () => {
-    // The name is unresolvable, the assignment is not. Reading this as
-    // "Unassigned" would misstate the record, and would leave the one person
-    // accountable for the report unreachable from it.
-    const { container } = renderNcr({ siteEngineerId: 99 });
+  test(
+    'every people link claims an employee id, never a user id',
+    () => {
+      const { container } = renderNcr({ siteEngineerId: 8, raisedById: 14 });
 
-    expect(employeeFilterHrefs(container)).toEqual([
-      `${NCR_REGISTER}?employeeId=99&role=site-engineer`,
-    ]);
-    expect(container.textContent?.includes('Unassigned')).toBe(false);
-  }, RENDER_TIMEOUT_MS);
+      const all = [...container.querySelectorAll('a')].map(
+        (anchor) => anchor.getAttribute('href') ?? ''
+      );
+      expect(
+        all.filter((href) => href.includes('role=')).length
+      ).toBeGreaterThan(0);
+      expect(all.some((href) => href.includes('userId='))).toBe(false);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('an unassigned report offers no engineer link at all', () => {
-    const { container } = renderNcr({ siteEngineerId: undefined });
+  test(
+    'a report with no raiser recorded offers no raiser link',
+    () => {
+      const { container } = renderNcr({
+        siteEngineerId: 8,
+        raisedById: undefined,
+      });
 
-    expect(employeeFilterHrefs(container).length).toBe(0);
-    expect(container.textContent?.includes('Unassigned')).toBe(true);
-  }, RENDER_TIMEOUT_MS);
+      expect(
+        employeeFilterHrefs(container).some((href) =>
+          href.includes('role=raiser')
+        )
+      ).toBe(false);
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'an engineer the directory does not carry is still shown as assigned',
+    () => {
+      // The name is unresolvable, the assignment is not. Reading this as
+      // "Unassigned" would misstate the record, and would leave the one person
+      // accountable for the report unreachable from it.
+      const { container } = renderNcr({
+        siteEngineerId: 99,
+        raisedById: undefined,
+      });
+
+      expect(employeeFilterHrefs(container)).toEqual([
+        `${NCR_REGISTER}?employeeId=99&role=site-engineer`,
+      ]);
+      expect(container.textContent?.includes('Unassigned')).toBe(false);
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'an unassigned report offers no engineer link at all',
+    () => {
+      const { container } = renderNcr({
+        siteEngineerId: undefined,
+        raisedById: undefined,
+      });
+
+      expect(
+        employeeFilterHrefs(container).some((href) =>
+          href.includes('role=site-engineer')
+        )
+      ).toBe(false);
+      expect(container.textContent?.includes('Unassigned')).toBe(true);
+    },
+    RENDER_TIMEOUT_MS
+  );
 });
