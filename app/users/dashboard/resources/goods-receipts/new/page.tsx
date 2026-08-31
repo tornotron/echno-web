@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
@@ -15,16 +14,8 @@ import {
   poKeys,
 } from '@tornotron/echno-core/purchase-orders/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
-import { useClearFormDraft } from '@/hooks/use-form-draft';
-import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
-import { useCreateGRN } from '@tornotron/echno-core/grn/hooks';
-import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import type { CreateGrnRequest } from '@tornotron/echno-core/grn/types';
 import type { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
-import {
-  isOverReceiptRefusal,
-  overReceiptExplanation,
-} from '@/lib/utils/over-receipt';
+import { useGoodsReceiptFiling } from '@/features/grn/hooks';
 import {
   GoodsReceiptForm,
   GOODS_RECEIPT_FORM_ID,
@@ -35,23 +26,19 @@ import {
 } from '@/features/grn/components';
 
 export default function NewGRNPage() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const fromPOId = Number(searchParams.get('fromPO')) || 0;
 
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { data: sourcePO } = usePurchaseOrder(fromPOId);
-  const { mutate: createGRN, isPending } = useCreateGRN();
-  const clearFormDraft = useClearFormDraft();
-
-  // The receipt the server refused, held exactly as it was sent. Refiling it
-  // rebuilt from the form would let anything edited behind the dialog ride in
-  // under an acknowledgement given for different figures.
-  const [refusedReceipt, setRefusedReceipt] = useState<{
-    payload: CreateGrnRequest;
-    explanation: string;
-  } | null>(null);
+  const {
+    fileReceipt,
+    refusal,
+    acknowledgeOverReceipt,
+    dismissRefusal,
+    isPending,
+  } = useGoodsReceiptFiling();
 
   // Read cache synchronously so navigation pre-fill works without waiting for an effect
   const cachedPO = fromPOId
@@ -98,62 +85,6 @@ export default function NewGRNPage() {
         unitCost: item.unitPrice ?? 0,
       }))
     : undefined;
-
-  /**
-   * Files a receipt, and routes the one refusal the receiver can answer to the
-   * dialog rather than to a toast.
-   *
-   * Since echno-backend#659 a line that would take a material past the quantity
-   * its order asked for is refused with a 400 unless the payload acknowledges
-   * it. Read as a generic failure, that refusal is a dead end: the figures that
-   * explain it are in the message, and the way past it is a second, deliberate
-   * filing rather than anything the receiver can change on the form.
-   *
-   * @param payload - The receipt, unchanged between the first attempt and the
-   *   acknowledged one.
-   */
-  function fileReceipt(payload: CreateGrnRequest) {
-    createGRN(payload, {
-      onSuccess: (grn) => {
-        // The record exists now, so the local draft describes work already done.
-        // Left behind it would be offered on the next visit to this form.
-        clearFormDraft(FORM_DRAFT_IDS.GOODS_RECEIPT);
-        setRefusedReceipt(null);
-
-        toast.success('GRN Recorded', {
-          description: payload.allowOverReceipt
-            ? 'Goods received note recorded as an acknowledged over-receipt. Stock has been updated.'
-            : 'Goods received note recorded successfully. Stock has been updated.',
-        });
-        router.push(routes.resources.goodsReceipts.detail(grn.id).href);
-      },
-      onError: (err) => {
-        // Nothing was written, so every figure on this page was judged against
-        // an order the server has just re-read. Whatever else is wrong, the
-        // cached order is the thing most likely to be behind: another receipt
-        // landing between the two decides this one, and a stale copy would go
-        // on offering an outstanding quantity the server has already refused.
-        if (payload.purchaseOrderId) {
-          queryClient.invalidateQueries({
-            queryKey: poKeys.detail(payload.purchaseOrderId),
-          });
-        }
-
-        if (isOverReceiptRefusal(err)) {
-          setRefusedReceipt({
-            payload,
-            explanation: overReceiptExplanation(err),
-          });
-          return;
-        }
-
-        setRefusedReceipt(null);
-        toast.error(getErrorTitle(err, 'Failed to Record GRN'), {
-          description: getErrorMessage(err),
-        });
-      },
-    });
-  }
 
   function handleSubmit(data: GoodsReceiptSubmitData) {
     if (!currentEmployee?.id) {
@@ -251,16 +182,13 @@ export default function NewGRNPage() {
       />
 
       <OverReceiptDialog
-        open={refusedReceipt !== null}
+        open={refusal !== null}
         onOpenChange={(open) => {
-          if (!open) setRefusedReceipt(null);
+          if (!open) dismissRefusal();
         }}
-        explanation={refusedReceipt?.explanation ?? ''}
+        explanation={refusal?.explanation ?? ''}
         isPending={isPending}
-        onAcknowledge={() => {
-          if (!refusedReceipt) return;
-          fileReceipt({ ...refusedReceipt.payload, allowOverReceipt: true });
-        }}
+        onAcknowledge={acknowledgeOverReceipt}
       />
     </div>
   );
