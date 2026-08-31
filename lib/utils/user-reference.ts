@@ -30,7 +30,7 @@
  *
  * Two stamps still have no name on the wire and keep the id form: a
  * construction payment's `verifiedBy` (a user id the backend does not yet
- * resolve, tracked in echno-backend #616) and the id carried in an
+ * resolve, tracked in echno-backend #621) and the id carried in an
  * `?userId=` filter link, which arrives as a bare number in the URL.
  */
 

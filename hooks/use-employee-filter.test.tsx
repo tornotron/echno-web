@@ -74,7 +74,9 @@ describe('useEmployeeFilterFromParams', () => {
     search = 'userId=12&role=submitter';
     // No loaded row carries user 12, which is what a filter clicked from a
     // document the current page has since filtered away looks like.
-    const { result } = renderHook(() => useEmployeeFilterFromParams(() => null));
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams(() => null)
+    );
     expect(result.current.name).toBe('User #12');
     expect(result.current.name).not.toBe('Priya Nair');
   });

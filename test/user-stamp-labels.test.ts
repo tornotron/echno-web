@@ -16,7 +16,17 @@ import path from 'node:path';
  * a user id is worse: the two tables run separate sequences, so it misses for
  * most ids and names a person who never touched the document.
  */
-const SEARCH_ROOTS = ['app', 'features', 'hooks', 'services', 'components'];
+const SEARCH_ROOTS = [
+  'app',
+  'features',
+  'hooks',
+  'services',
+  'components',
+  'lib',
+];
+
+/** The module that owns the reference string and is allowed to build it. */
+const OWNER = path.join('lib', 'utils', 'user-reference.ts');
 const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
 
 function sourceFilesUnder(dir: string): string[] {
@@ -35,13 +45,18 @@ function sourceFilesUnder(dir: string): string[] {
   return found;
 }
 
-const sources = SEARCH_ROOTS.flatMap((root) => sourceFilesUnder(root));
+const sources = SEARCH_ROOTS.flatMap((root) => sourceFilesUnder(root)).filter(
+  (file) => file !== OWNER
+);
 
 describe('the User #<id> placeholder lives in one module', () => {
   test('no screen builds the reference string itself', () => {
-    const offenders = sources.filter((file) =>
-      readFileSync(file, 'utf8').includes('`User #${')
-    );
+    const offenders = sources.filter((file) => {
+      const source = readFileSync(file, 'utf8');
+      // Both spellings: the template literal it was written as, and the
+      // concatenation somebody would reach for after the first is blocked.
+      return source.includes('`User #${') || source.includes("'User #' +");
+    });
     expect(offenders).toEqual([]);
   });
 });
