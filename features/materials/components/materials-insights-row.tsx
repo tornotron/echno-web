@@ -17,6 +17,7 @@ import type {
   Material,
   MaterialConsumption,
 } from '@tornotron/echno-core/materials/types';
+import { useOrganizationLowStock } from '@/features/materials/hooks/use-organization-low-stock';
 
 export function StockValueByMaterial({ materials }: { materials: Material[] }) {
   const stockValueData = useMemo(() => {
@@ -90,24 +91,10 @@ export function StockValueByMaterial({ materials }: { materials: Material[] }) {
   );
 }
 
-export function LowStockAlert({ materials }: { materials: Material[] }) {
-  const lowStockItems = useMemo(
-    () =>
-      materials
-        .filter(
-          (m) =>
-            m.reorderLevel !== undefined &&
-            m.currentStock !== undefined &&
-            m.currentStock <= m.reorderLevel
-        )
-        .toSorted(
-          (a, b) =>
-            (a.currentStock ?? 0) / (a.reorderLevel ?? 1) -
-            (b.currentStock ?? 0) / (b.reorderLevel ?? 1)
-        )
-        .slice(0, 5),
-    [materials]
-  );
+export function LowStockAlert() {
+  const { rows, total, hasMoreThanLoaded, isLoading, isError } =
+    useOrganizationLowStock();
+  const shown = rows.slice(0, 5);
 
   return (
     <Card>
@@ -126,7 +113,18 @@ export function LowStockAlert({ materials }: { materials: Material[] }) {
         </Link>
       </div>
       <CardContent className="p-4">
-        {lowStockItems.length === 0 ? (
+        {isLoading && (
+          <p className="py-3 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Checking stock levels...
+          </p>
+        )}
+        {isError && (
+          <p className="py-3 text-center text-sm text-zinc-500 dark:text-zinc-400">
+            Stock levels could not be checked. The count is unknown, so none is
+            shown.
+          </p>
+        )}
+        {!isLoading && !isError && total === 0 && (
           <div className="flex flex-col items-center gap-2 py-3 text-center">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
               <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
@@ -135,24 +133,43 @@ export function LowStockAlert({ materials }: { materials: Material[] }) {
               All materials are well stocked.
             </p>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Great job!
+              Nothing has reached its reorder level.
             </p>
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {lowStockItems.map((m) => (
-              <div
-                key={m.id}
-                className="flex items-center justify-between text-sm"
-              >
-                <span className="truncate text-zinc-700 dark:text-zinc-300">
-                  {m.materialName}
-                </span>
-                <span className="ml-2 shrink-0 text-xs font-medium text-red-600 dark:text-red-400">
-                  {m.currentStock} / {m.reorderLevel} {m.unit}
-                </span>
-              </div>
-            ))}
+        )}
+        {!isLoading && !isError && total !== undefined && total > 0 && (
+          <div className="space-y-3">
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-bold tracking-tight text-orange-600 tabular-nums dark:text-orange-400">
+                {total}
+              </span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {total === 1 ? 'material at or below' : 'materials at or below'}{' '}
+                their reorder level
+              </span>
+            </div>
+            <div className="space-y-2.5">
+              {shown.map((m) => (
+                <div
+                  key={m.materialId}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span className="truncate text-zinc-700 dark:text-zinc-300">
+                    {m.materialName}
+                  </span>
+                  <span className="ml-2 shrink-0 text-xs font-medium text-red-600 dark:text-red-400">
+                    {m.currentStock} / {m.reorderLevel} {m.unit}
+                  </span>
+                </div>
+              ))}
+            </div>
+            {total > shown.length && (
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                {hasMoreThanLoaded
+                  ? `Showing the ${shown.length} most depleted of ${total}.`
+                  : `Showing the ${shown.length} most depleted.`}
+              </p>
+            )}
           </div>
         )}
       </CardContent>

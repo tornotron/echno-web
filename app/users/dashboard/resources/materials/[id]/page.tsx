@@ -220,7 +220,6 @@ export default function MaterialDetailPage({
           <MaterialStockByLocationTab
             materialId={id}
             unit={material.unit}
-            reorderLevel={material.reorderLevel}
             globalThresholds={{
               minStock: material.minStock,
               maxStock: material.maxStock,

@@ -41,6 +41,7 @@ import type {
   Material,
   MaterialStatus,
 } from '@tornotron/echno-core/materials/types';
+import { useOrganizationLowStock } from '@/features/materials/hooks/use-organization-low-stock';
 
 const ITEMS_PER_PAGE_OPTIONS = ['5', '10', '20', '50'];
 
@@ -146,9 +147,19 @@ function StatusBadge({ status }: { status: MaterialStatus }) {
   );
 }
 
-function deriveStatus(m: Material): MaterialStatus {
-  if (m.status) return m.status;
+/**
+ * The status badge for one loaded row.
+ *
+ * `lowMaterialIds` is the server's answer to which materials have reached
+ * their reorder level, and it decides `LOW_STOCK` here so the badge, the
+ * filter and the Low Stock Alert card cannot disagree. The local
+ * comparison remains only as the fallback for the moment before that
+ * answer arrives, and `MaterialDto` carries no `status` field, so there is
+ * nothing on the row to prefer over either.
+ */
+function deriveStatus(m: Material, lowMaterialIds?: ReadonlySet<number>): MaterialStatus {
   if (m.currentStock === 0) return 'OUT_OF_STOCK';
+  if (lowMaterialIds) return lowMaterialIds.has(m.id) ? 'LOW_STOCK' : 'IN_STOCK';
   if (
     m.currentStock !== undefined &&
     m.reorderLevel !== undefined &&
@@ -164,6 +175,14 @@ export function MaterialsDashboardTable({
   materials: Material[];
 }) {
   const router = useRouter();
+  const {
+    materialIds: lowMaterialIds,
+    total: lowStockTotal,
+    isLoading: isLowStockLoading,
+    isError: isLowStockError,
+  } = useOrganizationLowStock();
+  const lowStockAnswer =
+    isLowStockLoading || isLowStockError ? undefined : lowMaterialIds;
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -193,10 +212,11 @@ export function MaterialsDashboardTable({
       const matchesCategory =
         categoryFilter === 'all' || m.category === categoryFilter;
       const matchesStatus =
-        statusFilter === 'all' || deriveStatus(m) === statusFilter;
+        statusFilter === 'all' ||
+        deriveStatus(m, lowStockAnswer) === statusFilter;
       return matchesSearch && matchesCategory && matchesStatus;
     });
-  }, [materials, searchQuery, categoryFilter, statusFilter]);
+  }, [materials, searchQuery, categoryFilter, statusFilter, lowStockAnswer]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const safePage = Math.min(currentPage, totalPages);
@@ -275,6 +295,24 @@ export function MaterialsDashboardTable({
             </Select>
           </div>
         </div>
+
+        {statusFilter === 'LOW_STOCK' &&
+          !searchQuery &&
+          categoryFilter === 'all' &&
+          lowStockTotal !== undefined &&
+          lowStockTotal > filtered.length && (
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {lowStockTotal} materials are at or below their reorder level.{' '}
+              {filtered.length} of them are on this list, which is limited to
+              the materials this page loaded.
+            </p>
+          )}
+        {statusFilter === 'LOW_STOCK' && isLowStockError && (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            Reorder levels could not be read from the server, so this list is
+            filtered on the stock figures already loaded and may be short.
+          </p>
+        )}
       </CardHeader>
 
       <CardContent className="overflow-x-auto p-0">
@@ -314,7 +352,7 @@ export function MaterialsDashboardTable({
             )}
             {paginated.map((m, idx) => {
               const trendColor = TREND_COLORS[idx % TREND_COLORS.length];
-              const status = deriveStatus(m);
+              const status = deriveStatus(m, lowStockAnswer);
               const stockPct =
                 m.maxStock && m.maxStock > 0
                   ? Math.round(((m.currentStock ?? 0) / m.maxStock) * 100)
