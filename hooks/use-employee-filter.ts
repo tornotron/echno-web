@@ -43,7 +43,11 @@ export interface EmployeeFilterState {
   employeeId: number | null;
   /** Role slug from `?role=` (see {@link ROLE_LABELS}), or `null` when unset. */
   role: string | null;
-  /** Display name resolved from the employee lookup, or `null` when unset. */
+  /**
+   * Display name for the filter: resolved from the employee lookup for an
+   * `employeeId`, or from the stamps the loaded rows carry for a `userId`.
+   * `null` when no filter is set.
+   */
   name: string | null;
   /** Clears the filter by replacing the URL with the bare pathname. */
   clear: () => void;
