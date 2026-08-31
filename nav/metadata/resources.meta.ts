@@ -85,11 +85,15 @@ export const resourcesMetadata = {
     sidebarHidden: true,
   },
 
+  // Shown on the same terms as Assets. Those two are the only Resources
+  // modules a plain org member can read: their controllers guard on
+  // `isMemberOfCurrentTenant() or hasAnyOrgRoleForCurrentTenant('system-admin',
+  // 'project-manager')`, where the other eleven are system-admin only on every
+  // method, reads included.
   'resources-stock-adjustments': {
     label: 'Stock Adjustments',
     icon: ArrowLeftRight,
     order: 9,
-    sidebarHidden: true,
   },
   'resources-stock-adjustments-new': {
     label: 'New Adjustment',
