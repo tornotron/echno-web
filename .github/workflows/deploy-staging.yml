@@ -1,7 +1,6 @@
 name: Staging
 
-# Promotion to staging, on a pull request merging from development. The
-# staging-guard workflow rejects any other source branch.
+# Deploy to the DigitalOcean staging box.
 #
 # The image is published to the GitHub Container Registry, private, and the
 # server pulls it by digest. Deployment runs the Ansible playbook from
@@ -9,10 +8,11 @@ name: Staging
 # path serves CI, an operator's laptop, and the IIT Madras host.
 
 on:
-  # The DO staging box was destroyed to save cost, so this no longer fires on a
-  # merge; the merge-to-staging deploy now targets IITM (deploy-staging-iitm.yml).
-  # It remains here, dispatch-only, to rebuild and redeploy the DO box from the
-  # IaC if it is ever brought back.
+  # Dispatch-only, and dormant. The DO staging box was destroyed to save cost and
+  # IITM took over staging (deploy-staging-iitm.yml), so this exists to rebuild
+  # and redeploy the DO box from the IaC if it is ever brought back. It once ran
+  # on a merge into `staging`; that branch has since been retired
+  # (echno-deployment#38).
   workflow_dispatch:
 
 concurrency:
@@ -28,7 +28,6 @@ env:
 
 jobs:
   build:
-    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     # Scopes vars to this environment (see NEXT_PUBLIC_STORAGE_ORIGIN below).
     # Created on first run with no protection rules, so it gates nothing.
