@@ -33,12 +33,16 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
   const { data: currentEmployee } = useCurrentUserEmployee();
 
   const handleAddComment = async () => {
-    if (!commentText.trim() || !currentEmployee?.id) return;
+    // The employee query is not waited on any more. It feeds the avatar beside
+    // the composer and nothing else: the backend reads the author from the
+    // session, so a comment no longer needs an id from this client and holding
+    // the button shut until the lookup resolves only delays a post that would
+    // have worked.
+    if (!commentText.trim()) return;
     try {
       await createCommentMutation.mutateAsync({
         issueId: issue.id,
         comment: commentText.trim(),
-        authorId: currentEmployee.id,
       });
       toast.success('Comment Added', {
         description: 'Your comment has been added successfully',
@@ -221,9 +225,7 @@ export function IssueCommentsTab({ issue }: IssueCommentsTabProps) {
                   size="sm"
                   onClick={handleAddComment}
                   disabled={
-                    !commentText.trim() ||
-                    !currentEmployee?.id ||
-                    createCommentMutation.isPending
+                    !commentText.trim() || createCommentMutation.isPending
                   }
                 >
                   {createCommentMutation.isPending ? (

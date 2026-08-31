@@ -7,7 +7,6 @@ import { useProject } from '@tornotron/echno-core/project/hooks';
 import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateIssue } from '@tornotron/echno-core/issue/hooks';
-import { useUser, useUserEmployees } from '@tornotron/echno-core/user/hooks';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
@@ -35,17 +34,9 @@ export default function NewIssuePage({ params }: PageProps) {
   const createMutation = useCreateIssue();
   const clearFormDraft = useClearFormDraft();
   const directUpload = useDirectAttachmentUpload();
-  const { data: user } = useUser();
-  const { data: employees = [] } = useUserEmployees();
-  const currentEmployee = employees.find(
-    (emp) => emp.organizationId === user?.defaultOrganizationId
-  );
-
   const isSubmitting = createMutation.isPending || directUpload.isUploading;
 
   async function handleSubmit(data: IssueFormSubmitData) {
-    if (!currentEmployee?.id) return;
-
     const issueData = {
       title: data.fields.title,
       description: data.fields.description,
@@ -53,7 +44,6 @@ export default function NewIssuePage({ params }: PageProps) {
       status: data.fields.status,
       projectId: Number.parseInt(projectId),
       taskId: data.fields.taskId ? Number(data.fields.taskId) : undefined,
-      creatorId: currentEmployee.id,
       assigneeId: data.fields.assigneeId
         ? Number(data.fields.assigneeId)
         : undefined,
