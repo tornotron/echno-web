@@ -22,13 +22,13 @@ const withdrawRequest = mock(
  * for an account with no employee record in this organization, since the
  * backend reads the approver from the session rather than the payload.
  */
-const refuse = () => async () => {
+async function refuse(): Promise<never> {
   throw new Error('Leave request has already been decided');
-};
+}
 
-const approveRequest = mock(refuse());
-const rejectRequest = mock(refuse());
-const delegateApproval = mock(refuse());
+const approveRequest = mock(refuse);
+const rejectRequest = mock(refuse);
+const delegateApproval = mock(refuse);
 
 mock.module('@/services/leave-service', () => ({
   leaveService: {
