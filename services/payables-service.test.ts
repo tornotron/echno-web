@@ -7,6 +7,7 @@ import {
   PAYABLE_PAGE_SIZE,
   readPayablePage,
 } from './payables-service';
+import { checkPaymentAmount } from '@/features/payables';
 
 function row(over: Record<string, unknown> = {}) {
   return {
@@ -56,17 +57,56 @@ describe('parsePayable', () => {
     expect(payable.amountPaid).toBe(100_000);
   });
 
-  test('a missing amountDue is recomputed rather than left blank', () => {
-    const payable = parsePayable(row({ amountDue: undefined }));
-    expect(payable.amountDue).toBe(150_000);
+  test('a missing amountDue is an unreadable row, not a guessed balance', () => {
+    // It used to be recomputed as amountRecorded - amountPaid. The branch
+    // never ran, because the mapper sends the figure unconditionally, so it
+    // never showed that it was a second source of truth for the number the
+    // overpayment gate holds a payment to, computed in IEEE-754 against the
+    // server's exact BigDecimal.
+    expect(() => parsePayable(row({ amountDue: undefined }))).toThrow();
+    expect(() => parsePayable(row({ amountDue: null }))).toThrow();
+    expect(() => parsePayable(row({ amountDue: 'n/a' }))).toThrow();
   });
 
-  test('the server amountDue wins over the derived one', () => {
+  test('the amountDue read is the server figure, whatever the other two say', () => {
     // It is the number the overpayment check on the next payment uses, so a
     // disagreement has to resolve the server's way or the ceiling shown is
     // not the ceiling enforced.
     const payable = parsePayable(row({ amountDue: 149_000 }));
     expect(payable.amountDue).toBe(149_000);
+  });
+
+  // The case the fallback got wrong, and the reason it was worth removing
+  // rather than rounding. The subtraction it did is not the subtraction the
+  // server does, and the difference lands on the number that gates a payment.
+  describe('a fractional balance', () => {
+    test('does not survive a missing amountDue as a derived one', () => {
+      // Derived, this row gave 0.19999999999999998. "Pay in full" then fills
+      // (0.19999999999999998).toFixed(2) = "0.20" and checkPaymentAmount
+      // refuses 0.2 as larger than the balance, so the client rejects the
+      // value it had just offered. It is unreadable instead.
+      expect(0.3 - 0.1).not.toBe(0.2);
+      expect(() =>
+        parsePayable(
+          row({ amountRecorded: 0.3, amountPaid: 0.1, amountDue: undefined })
+        )
+      ).toThrow();
+    });
+
+    test('is accepted in full when the server sends it', () => {
+      const payable = parsePayable(
+        row({ amountRecorded: 0.3, amountPaid: 0.1, amountDue: 0.2 })
+      );
+
+      expect(payable.amountDue).toBe(0.2);
+      expect(payable.amountDue).not.toBe(
+        payable.amountRecorded - payable.amountPaid
+      );
+
+      const fill = payable.amountDue.toFixed(2);
+      expect(fill).toBe('0.20');
+      expect(checkPaymentAmount(fill, payable).valid).toBe(true);
+    });
   });
 
   test('an unreadable amount is an error, not a zero balance', () => {
