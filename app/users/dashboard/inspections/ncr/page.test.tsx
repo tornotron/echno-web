@@ -3,12 +3,19 @@ import { createElement } from 'react';
 import { cleanup, render } from '@testing-library/react';
 
 /**
- * A Site engineer name on an NCR detail links to this register filtered to that
- * person (web#35). The filter has to reach the list query: `GET /ncrs/web` is
- * paged, so narrowing the fetched rows in the browser would drop every match
- * that fell outside the page while still looking like a complete answer.
+ * A person's name on an NCR detail links to this register filtered to them
+ * (web#35). The filter has to reach the list query: `GET /ncrs/web` is paged,
+ * so narrowing the fetched rows in the browser would drop every match that fell
+ * outside the page while still looking like a complete answer.
  *
- * These tests pin what the page asks the endpoint for, given the URL.
+ * Four roles reach it now. `siteEngineerId` always could; `raisedById`,
+ * `verifiedById` and `closedById` arrived with echno-backend#626 and became
+ * reachable from `NcrListParams` in echno-core v3.5.0.
+ *
+ * These tests pin what the page asks the endpoint for, given the URL, and in
+ * particular that **each slug drives its own parameter**. All four take an
+ * employee id from the same source, so a slug wired to the wrong parameter
+ * would return a plausible list of somebody else's reports rather than failing.
  */
 
 let search = '';
@@ -108,6 +115,59 @@ describe('the NCR register reads the site-engineer filter from the URL', () => {
       const params = paramsFor('employeeId=8&role=inspector');
 
       expect(params.siteEngineerId).toBeUndefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'a raiser link narrows on raisedById and on nothing else',
+    () => {
+      const params = paramsFor('employeeId=8&role=raiser');
+
+      expect(params.raisedById).toBe(8);
+      expect(params.siteEngineerId).toBeUndefined();
+      expect(params.verifiedById).toBeUndefined();
+      expect(params.closedById).toBeUndefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'a verifier link narrows on verifiedById and on nothing else',
+    () => {
+      const params = paramsFor('employeeId=8&role=verifier');
+
+      expect(params.verifiedById).toBe(8);
+      expect(params.raisedById).toBeUndefined();
+      expect(params.closedById).toBeUndefined();
+      expect(params.siteEngineerId).toBeUndefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'a closer link narrows on closedById and on nothing else',
+    () => {
+      // Verifying and closing are separate steps taken by separate people, so
+      // collapsing the two would answer a question nobody asked.
+      const params = paramsFor('employeeId=8&role=closer');
+
+      expect(params.closedById).toBe(8);
+      expect(params.verifiedById).toBeUndefined();
+      expect(params.raisedById).toBeUndefined();
+      expect(params.siteEngineerId).toBeUndefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'no filter asks for none of the three',
+    () => {
+      const params = paramsFor('');
+
+      expect(params.raisedById).toBeUndefined();
+      expect(params.verifiedById).toBeUndefined();
+      expect(params.closedById).toBeUndefined();
     },
     RENDER_TIMEOUT_MS
   );

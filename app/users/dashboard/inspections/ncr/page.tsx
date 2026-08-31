@@ -9,7 +9,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
-import { PageHeader } from '@/components/common';
+import { ActiveFilterChip, PageHeader } from '@/components/common';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {
@@ -20,7 +20,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useInspections, useNcrs } from '@/hooks/inspection';
-import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
+import {
+  ROLE_LABELS,
+  useEmployeeFilterFromParams,
+} from '@/hooks/use-employee-filter';
 import type { NcrListParams } from '@tornotron/echno-core/ncr/services';
 import {
   DefectSeverity,
@@ -54,12 +57,40 @@ export default function NcrPage() {
     Site Engineer control directly, rather than seeding a second copy of the
     filter, so the URL and the dropdown cannot disagree; picking anyone else
     drops the param and hands the choice back to the control. The control is
-    also why this page shows no ActiveFilterChip: unlike the list pages the chip
-    was written for, this one already displays and clears the filter in place.
+    also why the Site Engineer filter shows no ActiveFilterChip: unlike the list
+    pages the chip was written for, the control already displays and clears that
+    one in place. The three below have no control, so they do get a chip.
   */
-  const { employeeId, role, clear } = useEmployeeFilterFromParams();
+  const {
+    employeeId,
+    role,
+    name: filterName,
+    clear,
+  } = useEmployeeFilterFromParams();
   const linkedEngineerId =
     employeeId != null && role === 'site-engineer' ? employeeId : null;
+
+  /*
+    The other three people on a report — who raised it, who verified the work
+    and who closed it — have no control of their own, so their links feed the
+    query directly and are shown on a chip instead. Each is an employee id, from
+    the same `currentEmployeeId()` the site engineer comes from, so they are all
+    `?employeeId=` links and none is a user id.
+
+    All three AND with the controls above, server-side on the same
+    specification. That is the whole reason they waited on echno-backend#626:
+    this endpoint is paged, so a browser-side narrow would drop every match
+    outside the fetched page and still look like an answer.
+  */
+  const peopleFilter = (slug: string) =>
+    employeeId != null && role === slug ? employeeId : undefined;
+  const raisedById = peopleFilter('raiser');
+  const verifiedById = peopleFilter('verifier');
+  const closedById = peopleFilter('closer');
+  const chipRole =
+    role != null && role !== 'site-engineer' && employeeId != null
+      ? role
+      : null;
   const siteEngineerId =
     linkedEngineerId == null ? engineerChoice : String(linkedEngineerId);
 
@@ -80,9 +111,21 @@ export default function NcrPage() {
       status: status === ALL ? undefined : (status as NcrStatus),
       siteEngineerId:
         siteEngineerId === ALL ? undefined : Number(siteEngineerId),
+      raisedById,
+      verifiedById,
+      closedById,
       open: openOnly ? true : undefined,
     }),
-    [inspectionId, type, status, siteEngineerId, openOnly]
+    [
+      inspectionId,
+      type,
+      status,
+      siteEngineerId,
+      raisedById,
+      verifiedById,
+      closedById,
+      openOnly,
+    ]
   );
 
   const { data: ncrs = [], isLoading } = useNcrs(params);
@@ -112,6 +155,14 @@ export default function NcrPage() {
         description="Non-conformance reports and their sign-off through to closure"
         actions={<CreateNcrDialog />}
       />
+
+      {chipRole && filterName && (
+        <ActiveFilterChip
+          label={ROLE_LABELS[chipRole] ?? 'Filtered by'}
+          name={filterName}
+          onDismiss={clear}
+        />
+      )}
 
       <InspectionStats
         isLoading={isLoading}

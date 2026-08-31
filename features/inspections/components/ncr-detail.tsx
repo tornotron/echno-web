@@ -127,12 +127,34 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
               : '—'}
           </Fact>
           {/*
-            Not a link. The list endpoint carries no `raisedById` filter, and
-            it is paged, so narrowing in the browser would hide every match
-            that fell outside the fetched page while looking like an answer.
-            Filed as echno-backend#626; the link lands when the filter does.
+            A link now. echno-backend#626 gave `GET /ncrs/web` a `raisedById`
+            filter and echno-core reaches it from v3.5.0, so the register
+            narrows on the server. It could not be done in the browser: the
+            endpoint is paged, so filtering the fetched page would hide every
+            match outside it while still reading as an answer.
+
+            An employee id, like `siteEngineerId` above. The backend writes the
+            column from `currentEmployeeId()`, which resolves the session user
+            through `findByUserIdAndOrganizationId`, so it is not a user id even
+            though it records who acted.
           */}
-          <Fact label="Raised by">{employeeName(ncr.raisedById) ?? '—'}</Fact>
+          <Fact label="Raised by">
+            {ncr.raisedById == null ? (
+              '—'
+            ) : (
+              <Link
+                href={employeeFilterHref(
+                  routes.inspections.ncr.href,
+                  ncr.raisedById,
+                  'raiser'
+                )}
+                className="hover:underline"
+              >
+                {employeeName(ncr.raisedById) ??
+                  userReferenceLabel(ncr.raisedById)}
+              </Link>
+            )}
+          </Fact>
           <Fact label="Raised">
             {ncr.createdAt
               ? format(new Date(ncr.createdAt), 'dd MMM yyyy')
@@ -460,7 +482,10 @@ interface TimelineStep {
   label: string;
   icon: LucideIcon;
   at: string;
+  /** Employee who took the step. Never a user id — see the raiser link above. */
   by?: number;
+  /** Role slug the register reads back, so each actor filters on its own step. */
+  role?: string;
   remarks?: string;
 }
 
@@ -487,6 +512,7 @@ function Timeline({
       icon: Flag,
       at: ncr.createdAt ?? '',
       by: ncr.raisedById,
+      role: 'raiser',
     },
     {
       key: 'corrected',
@@ -500,6 +526,11 @@ function Timeline({
       label: 'Verified',
       icon: ShieldCheck,
       at: ncr.verifiedAt ?? '',
+      // `verifiedById` was on the DTO all along and this step never read it, so
+      // the one actor the timeline left anonymous was the one who accepted the
+      // work. It is a distinct person from whoever closed the report.
+      by: ncr.verifiedById,
+      role: 'verifier',
       remarks: ncr.verificationRemarks,
     },
     {
@@ -508,6 +539,7 @@ function Timeline({
       icon: CheckCircle2,
       at: ncr.closedAt ?? '',
       by: ncr.closedById,
+      role: 'closer',
     },
   ].filter((step) => step.at !== '');
 
@@ -559,7 +591,20 @@ function Timeline({
 
               {step.by != null && (
                 <p className="text-muted-foreground text-xs">
-                  {employeeName(step.by)}
+                  {step.role ? (
+                    <Link
+                      href={employeeFilterHref(
+                        routes.inspections.ncr.href,
+                        step.by,
+                        step.role
+                      )}
+                      className="hover:underline"
+                    >
+                      {employeeName(step.by)}
+                    </Link>
+                  ) : (
+                    employeeName(step.by)
+                  )}
                 </p>
               )}
 
