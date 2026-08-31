@@ -37,7 +37,6 @@ export default function NewOrganizationPage() {
           organizationEmail: data.organizationEmail!,
           organizationPhone: data.organizationPhone!,
           organizationWebsite: data.organizationWebsite,
-          creatorId: currentUser.id,
           isActive: data.isActive,
         },
         files: logoFile ? { logo: logoFile } : undefined,

@@ -69,7 +69,6 @@ export default function OnboardingPage() {
           organizationEmail: data.organizationEmail!,
           organizationPhone: data.organizationPhone!,
           organizationWebsite: data.organizationWebsite,
-          creatorId: currentUser.id,
           isActive: data.isActive,
         },
         files: logoFile ? { logo: logoFile } : undefined,
