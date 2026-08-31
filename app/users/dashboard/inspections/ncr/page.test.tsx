@@ -173,6 +173,20 @@ describe('the NCR register reads the site-engineer filter from the URL', () => {
   );
 
   test(
+    'a role this register does not apply gets no chip either',
+    () => {
+      // The query already ignores it. A chip would be worse than the no-op: it
+      // would name a person the list was never narrowed to, which reads as
+      // "everything this person did" over the whole register.
+      search = 'employeeId=8&role=inspector';
+      const { container } = render(createElement(NcrPage));
+
+      expect(container.textContent?.includes('Ravi Kumar')).toBe(false);
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
     'the engineer control shows whoever the link named',
     () => {
       search = 'employeeId=8&role=site-engineer';

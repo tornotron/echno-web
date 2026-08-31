@@ -147,14 +147,20 @@ export function TeamAttendanceHistory({
     return result;
   }, [projectId, projectMembers, isAdmin, allEmployees, myProjects]);
 
+  // This screen answers exactly one role. A link carrying any other belongs to
+  // another module, and honouring it here would answer a question nobody asked;
+  // showing a chip for it would be worse, since the chip would name a person the
+  // list was never narrowed to. So one predicate decides both.
+  const employeeFilterApplies =
+    filterEmployeeId != null && filterRole === 'employee';
+
   // Narrowing happens before the cap, and that ordering is the whole point.
   // The fetch is one request per employee capped at MAX_PARALLEL_EMPLOYEES, so
   // filtering the rows afterwards would silently return nothing for anybody who
   // fell outside the first fifty, while the screen still read as an answer.
-  const scopedEmployees =
-    filterEmployeeId != null && filterRole === 'employee'
-      ? targetEmployees.filter((e) => e.id === filterEmployeeId)
-      : targetEmployees;
+  const scopedEmployees = employeeFilterApplies
+    ? targetEmployees.filter((e) => e.id === filterEmployeeId)
+    : targetEmployees;
 
   const isCapped = scopedEmployees.length > MAX_PARALLEL_EMPLOYEES;
   const fetchEmployees = isCapped
@@ -253,7 +259,7 @@ export function TeamAttendanceHistory({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4 sm:space-y-6">
-      {filterEmployeeId != null && filterName && (
+      {employeeFilterApplies && filterName && (
         <ActiveFilterChip
           label={ROLE_LABELS[filterRole ?? ''] ?? 'Filtered by'}
           name={filterName}
