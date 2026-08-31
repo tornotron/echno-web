@@ -68,7 +68,12 @@ export interface Payable {
   amountRecorded: number;
   /** What has been paid against it so far. */
   amountPaid: number;
-  /** What is still owed, that is `amountRecorded - amountPaid`. */
+  /**
+   * What is still owed. Computed server-side by `Payable.getAmountDue()` as
+   * `amountRecorded - amountPaid` in `BigDecimal` at scale 2, and never
+   * recomputed here: it is the ceiling `checkPaymentAmount` holds a payment
+   * to, so the client and the server have to be holding the same number.
+   */
   amountDue: number;
   vendorId?: number;
   vendorName?: string;
@@ -160,12 +165,32 @@ function readOptionalText(value: unknown): string | undefined {
 /**
  * Reads one payable off the wire.
  *
- * `amountDue` is derived on the entity rather than stored, so it is present on
- * a current response and absent on anything that predates the getter. It is
- * recomputed here when it cannot be read, because the two numbers it comes
- * from are always there and a blank balance column on an ageing screen is
- * worse than a derived one. When the server does send it, the server's value
- * wins: it is the one the overpayment check on the next payment will use.
+ * `amountDue` is required, the same as `amountRecorded`. It used to be
+ * recomputed here as `amountRecorded - amountPaid` when it could not be read,
+ * which was wrong in two ways worth naming, because the branch never ran and
+ * so never showed either of them.
+ *
+ * The arithmetic was the smaller problem. `Payable.getAmountDue()` subtracts
+ * two `BigDecimal`s at scale 2 and MapStruct maps the result unconditionally,
+ * so the figure on the wire is exact. Redoing it in IEEE-754 is not: recorded
+ * 0.30 against paid 0.10 derives 0.19999999999999998, "Pay in full" fills
+ * `(0.19999999999999998).toFixed(2)` = "0.20", and `checkPaymentAmount` then
+ * refuses the client's own fill as an overpayment, because 0.2 is greater than
+ * the balance the client invented. Rounding to two places would have settled
+ * that one case.
+ *
+ * The larger problem is that it is a second source of truth for a money figure
+ * that gates a payment, and the client is the one that cannot check it. The
+ * two agree only while the server's formula stays `recorded - paid`. Give
+ * `getAmountDue` a credit note or a write-off to account for and the derived
+ * value goes on looking plausible while being wrong, and the overpayment gate
+ * in front of it starts refusing valid payments or waving through invalid
+ * ones. A guessed balance is worse than no balance.
+ *
+ * So a row without it is an unreadable row, which is how every other required
+ * money field here is already handled: {@link readPayablePage} turns it into a
+ * 422 rather than dropping the debt, because a vendor quietly missing from an
+ * ageing list is a vendor who stops being paid.
  *
  * @param raw - One `PayableDto` from a response body.
  * @returns The parsed payable.
@@ -189,13 +214,7 @@ export function parsePayable(raw: unknown): Payable {
 
   const amountRecorded = readAmount(raw.amountRecorded);
   const amountPaid = readAmount(raw.amountPaid ?? 0);
-
-  let amountDue: number;
-  try {
-    amountDue = readAmount(raw.amountDue);
-  } catch {
-    amountDue = amountRecorded - amountPaid;
-  }
+  const amountDue = readAmount(raw.amountDue);
 
   const createdBy = isRecord(raw.createdBy)
     ? {
@@ -211,7 +230,9 @@ export function parsePayable(raw: unknown): Payable {
     id,
     payableNumber: raw.payableNumber,
     contractorName: raw.contractorName,
-    contractType: isContractType(raw.contractType) ? raw.contractType : undefined,
+    contractType: isContractType(raw.contractType)
+      ? raw.contractType
+      : undefined,
     amountRecorded,
     amountPaid,
     amountDue,
