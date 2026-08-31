@@ -41,7 +41,7 @@ import {
   useMovementsByAttendance,
   useVerifyMovement,
 } from '@tornotron/echno-core/movement/hooks';
-import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
   getMovementTypeLabel,
   getMovementTypeColor,
@@ -69,24 +69,30 @@ export function MovementManagement({
   geolocationRequired = false,
 }: MovementManagementProps) {
   const { canApprove } = useAttendanceRole();
-  const { data: currentEmployee } = useCurrentUserEmployee();
-  const verifierId = currentEmployee?.name ?? currentEmployee?.employeeId ?? '';
   const { data: movements = [], isLoading } =
     useMovementsByAttendance(attendanceId);
   const verifyMutation = useVerifyMovement();
 
   const [logFormOpen, setLogFormOpen] = useState(false);
 
+  // The verifier is not sent. echno-backend#635 resolves it from the session
+  // and stamps it, so there is nothing to gather before the action can run and
+  // no employee lookup to wait on.
   function handleVerify(movement: MovementRecord) {
-    if (!verifierId) {
-      toast.error('Your employee profile is still loading. Please try again.');
-      return;
-    }
     verifyMutation.mutate(
-      { id: movement.id, verifiedBy: verifierId },
+      { id: movement.id },
       {
         onSuccess: () => toast.success('Movement verified'),
-        onError: () => toast.error('Failed to verify movement'),
+        // Verification can be refused now, which it never could before, and
+        // the three reasons are not interchangeable: the movement is already
+        // verified, the movement belongs to the caller and nobody verifies
+        // their own, or the session resolves to no user of the organization.
+        // Only the second is something the user can act on, and a fixed string
+        // hides which one happened.
+        onError: (error) =>
+          toast.error(getErrorTitle(error, 'Verification failed'), {
+            description: getErrorMessage(error),
+          }),
       }
     );
   }
