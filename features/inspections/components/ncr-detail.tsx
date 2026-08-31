@@ -51,6 +51,8 @@ import {
   useReopenNcr,
   useVerifyNcr,
 } from '@/hooks/inspection';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { userReferenceLabel } from '@/lib/utils/user-reference';
 import { routes } from '@/nav';
 import {
   type Ncr,
@@ -97,13 +99,39 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
 
         <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
           <Fact label="Site engineer">
-            {employeeName(ncr.siteEngineerId) ?? 'Unassigned'}
+            {ncr.siteEngineerId == null ? (
+              'Unassigned'
+            ) : (
+              /*
+                Straight to this engineer's own register rather than to their
+                profile: the question a name on an NCR raises is what else is
+                sitting with that person, and `GET /ncrs/web` answers it with
+                `siteEngineerId`, so the list stays server-filtered and paged.
+              */
+              <Link
+                href={employeeFilterHref(
+                  routes.inspections.ncr.href,
+                  ncr.siteEngineerId,
+                  'site-engineer'
+                )}
+                className="hover:underline"
+              >
+                {employeeName(ncr.siteEngineerId) ??
+                  userReferenceLabel(ncr.siteEngineerId)}
+              </Link>
+            )}
           </Fact>
           <Fact label="Target date">
             {ncr.targetDate
               ? format(new Date(ncr.targetDate), 'dd MMM yyyy')
               : '—'}
           </Fact>
+          {/*
+            Not a link. The list endpoint carries no `raisedById` filter, and
+            it is paged, so narrowing in the browser would hide every match
+            that fell outside the fetched page while looking like an answer.
+            Filed as echno-backend#626; the link lands when the filter does.
+          */}
           <Fact label="Raised by">{employeeName(ncr.raisedById) ?? '—'}</Fact>
           <Fact label="Raised">
             {ncr.createdAt

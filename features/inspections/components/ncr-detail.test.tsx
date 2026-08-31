@@ -251,3 +251,66 @@ function submitDialog(label: string) {
 
   fireEvent.click(button);
 }
+
+// ---------------------------------------------------------------------------
+// Where a name on the report leads (web#35)
+//
+// Clicking the site engineer asks "what else is sitting with this person", so
+// it opens their own NCR register rather than their staff profile. The list
+// endpoint filters on `siteEngineerId`, so the answer stays server-side and
+// complete. It carries no equivalent for the raiser, and it is paged, so
+// "Raised by" is deliberately not a link: narrowing the fetched page in the
+// browser would hide matches without saying so.
+// ---------------------------------------------------------------------------
+
+const NCR_REGISTER = '/users/dashboard/inspections/ncr';
+
+/** Renders an assigned NCR, with any field overridden. */
+function renderNcr(overrides: Partial<Ncr> = {}) {
+  currentNcr = { ...ncrWith(NcrStatus.ASSIGNED), ...overrides };
+  return render(createElement(NcrDetail, { ncrId: NCR_ID }));
+}
+
+/** Every href on the rendered screen that carries an employee filter. */
+function employeeFilterHrefs(container: HTMLElement): string[] {
+  return [...container.querySelectorAll('a')]
+    .map((anchor) => anchor.getAttribute('href') ?? '')
+    .filter((href) => href.includes('employeeId='));
+}
+
+describe('NcrDetail — the people on the report', () => {
+  test('the site engineer opens the register filtered to their own reports', () => {
+    const { container } = renderNcr({ siteEngineerId: 8, raisedById: 8 });
+
+    expect(employeeFilterHrefs(container)).toEqual([
+      `${NCR_REGISTER}?employeeId=8&role=site-engineer`,
+    ]);
+  }, RENDER_TIMEOUT_MS);
+
+  test('the raiser is not a link, because the endpoint cannot filter on them', () => {
+    // Both fields hold the same person here, so a link built off the wrong
+    // field would look right and still show up as a second filtered href.
+    const { container } = renderNcr({ siteEngineerId: 8, raisedById: 8 });
+
+    expect(employeeFilterHrefs(container).length).toBe(1);
+  }, RENDER_TIMEOUT_MS);
+
+  test('an engineer the directory does not carry is still shown as assigned', () => {
+    // The name is unresolvable, the assignment is not. Reading this as
+    // "Unassigned" would misstate the record, and would leave the one person
+    // accountable for the report unreachable from it.
+    const { container } = renderNcr({ siteEngineerId: 99 });
+
+    expect(employeeFilterHrefs(container)).toEqual([
+      `${NCR_REGISTER}?employeeId=99&role=site-engineer`,
+    ]);
+    expect(container.textContent?.includes('Unassigned')).toBe(false);
+  }, RENDER_TIMEOUT_MS);
+
+  test('an unassigned report offers no engineer link at all', () => {
+    const { container } = renderNcr({ siteEngineerId: undefined });
+
+    expect(employeeFilterHrefs(container).length).toBe(0);
+    expect(container.textContent?.includes('Unassigned')).toBe(true);
+  }, RENDER_TIMEOUT_MS);
+});
