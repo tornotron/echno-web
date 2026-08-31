@@ -533,15 +533,20 @@ export const useApproveLeaveRequest = () => {
       dto,
     }: {
       requestId: number;
+      /**
+       * The acting approver, for the cache patch below. It is not part of the
+       * request body: the backend reads the approver from the session.
+       */
+      approverId: number;
       dto: LeaveApprovalAction;
     }) => leaveService.approveRequest(requestId, dto),
-    onSuccess: (_data, { requestId, dto }) => {
+    onSuccess: (_data, { requestId, approverId }) => {
       // POST /leave-approvals/web/approve → LeaveRequestDto per spec, but
       // leaveService.approveRequest returns Promise<void>.
       // FIXME: capture the response, patch leaveKeys.request(data.id) and
       // the lists. For now, patch what we know deterministically:
       // remove from this approver's pending list and decrement the count.
-      patchPendingApprovalRemoval(queryClient, dto.approverId, requestId);
+      patchPendingApprovalRemoval(queryClient, approverId, requestId);
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalHistory(requestId),
@@ -572,12 +577,17 @@ export const useRejectLeaveRequest = () => {
       dto,
     }: {
       requestId: number;
+      /**
+       * The acting approver, for the cache patch below. It is not part of the
+       * request body: the backend reads the approver from the session.
+       */
+      approverId: number;
       dto: LeaveApprovalAction;
     }) => leaveService.rejectRequest(requestId, dto),
-    onSuccess: (_data, { requestId, dto }) => {
+    onSuccess: (_data, { requestId, approverId }) => {
       // POST /leave-approvals/web/reject → LeaveRequestDto per spec.
       // Same shape as approve: decrement pending count, remove from pending list.
-      patchPendingApprovalRemoval(queryClient, dto.approverId, requestId);
+      patchPendingApprovalRemoval(queryClient, approverId, requestId);
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalHistory(requestId),
@@ -606,12 +616,17 @@ export const useDelegateApproval = () => {
       dto,
     }: {
       requestId: number;
+      /**
+       * The acting approver, for the cache patch below. It is not part of the
+       * request body: the backend reads the approver from the session.
+       */
+      approverId: number;
       dto: LeaveApprovalAction;
     }) => leaveService.delegateApproval(requestId, dto),
-    onSuccess: (_data, { requestId, dto }) => {
+    onSuccess: (_data, { requestId, approverId, dto }) => {
       // POST /leave-approvals/web/delegate → LeaveRequestDto per spec.
       // Removes from current approver, conditionally adds to delegate target.
-      patchPendingApprovalRemoval(queryClient, dto.approverId, requestId);
+      patchPendingApprovalRemoval(queryClient, approverId, requestId);
       queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
       queryClient.invalidateQueries({
         queryKey: leaveKeys.approvalHistory(requestId),

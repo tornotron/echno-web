@@ -8,7 +8,6 @@ import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateTask } from '@tornotron/echno-core/task/hooks';
 import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
-import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
@@ -24,7 +23,6 @@ export default function NewTaskPage() {
 
   const { data: project } = useProject(projectId);
   const { data: workCategories = [] } = useWorkCategories();
-  const { data: currentEmployee } = useCurrentUserEmployee();
   const createTask = useCreateTask();
   const clearFormDraft = useClearFormDraft();
   const directUpload = useDirectAttachmentUpload();
@@ -43,7 +41,6 @@ export default function NewTaskPage() {
         ? new Date(data.fields.startDate)
         : undefined,
       endDate: data.fields.endDate ? new Date(data.fields.endDate) : undefined,
-      creatorId: currentEmployee?.id,
       categoryId: selectedCategory?.id,
       status: data.fields.status,
       progress: Number.parseInt(data.fields.progress),

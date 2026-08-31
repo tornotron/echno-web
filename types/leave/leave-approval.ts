@@ -29,9 +29,14 @@ export interface LeaveApproval {
 
 /**
  * Leave Approval Action
+ *
+ * There is deliberately no approver. The backend stamps it from the signed-in
+ * session (echno-backend #598) and `LeaveApprovalActionDto` no longer declares
+ * an approver field, so nobody can record a decision in a colleague's name.
+ * The mutation hooks still take the acting approver as their own variable,
+ * because the pending-approvals cache is keyed by it, but it is not sent.
  */
 export interface LeaveApprovalAction {
-  approverId: number;
   comments?: string;
   delegateToId?: number;
 }
@@ -82,9 +87,7 @@ export function parseLeaveApproval(json: any): LeaveApproval {
  * Convert approval action DTO to JSON
  */
 export function approvalActionToJson(dto: LeaveApprovalAction): any {
-  const json: any = {
-    approverId: dto.approverId,
-  };
+  const json: any = {};
 
   if (dto.comments !== undefined) json.comments = dto.comments;
   if (dto.delegateToId !== undefined) json.delegateToId = dto.delegateToId;

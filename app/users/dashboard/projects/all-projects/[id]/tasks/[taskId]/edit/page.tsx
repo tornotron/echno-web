@@ -25,7 +25,6 @@ import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { taskKeys } from '@tornotron/echno-core/task/hooks/keys';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
-import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import {
@@ -51,7 +50,6 @@ export default function EditTaskPage({ params }: PageProps) {
   const { data: taskToEdit, isLoading, isError } = useTask(taskId);
   const { data: project } = useProject(projectIdNum);
   const { data: workCategories = [] } = useWorkCategories();
-  const { data: currentEmployee } = useCurrentUserEmployee();
   const updateTask = useUpdateTask();
   const clearFormDraft = useClearFormDraft();
   const deleteTask = useDeleteTask();
@@ -82,7 +80,6 @@ export default function EditTaskPage({ params }: PageProps) {
         ? new Date(data.fields.startDate)
         : undefined,
       endDate: data.fields.endDate ? new Date(data.fields.endDate) : undefined,
-      creatorId: currentEmployee?.id,
       categoryId: selectedCategory?.id,
       status: data.fields.status,
       progress: Number.parseInt(data.fields.progress),

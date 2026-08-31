@@ -161,8 +161,10 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
     try {
       await approveMutation.mutateAsync({
         requestId: request.id,
+        // Not sent: the backend reads the approver from the session. It names
+        // whose pending list the hook patches once the decision lands.
+        approverId: employeeId,
         dto: {
-          approverId: employeeId,
           comments: approveComments || undefined,
         },
       });
@@ -190,8 +192,10 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
     try {
       await rejectMutation.mutateAsync({
         requestId: request.id,
+        // Not sent: the backend reads the approver from the session. It names
+        // whose pending list the hook patches once the decision lands.
+        approverId: employeeId,
         dto: {
-          approverId: employeeId,
           comments: rejectComments,
         },
       });
@@ -214,8 +218,10 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
     try {
       await delegateMutation.mutateAsync({
         requestId: request.id,
+        // Not sent: the backend reads the approver from the session. It names
+        // whose pending list the hook patches once the delegation lands.
+        approverId: employeeId,
         dto: {
-          approverId: employeeId,
           comments: delegateComments || undefined,
           delegateToId: Number.parseInt(delegateToId),
         },
