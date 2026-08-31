@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useInspections, useNcrs } from '@/hooks/inspection';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import type { NcrListParams } from '@tornotron/echno-core/ncr/services';
 import {
   DefectSeverity,
@@ -41,11 +42,31 @@ export default function NcrPage() {
   const [inspectionId, setInspectionId] = useState(ALL);
   const [type, setType] = useState(ALL);
   const [status, setStatus] = useState(ALL);
-  const [siteEngineerId, setSiteEngineerId] = useState(ALL);
+  const [engineerChoice, setEngineerChoice] = useState(ALL);
   const [openOnly, setOpenOnly] = useState(false);
 
   const { data: inspections = [] } = useInspections();
   const { data: employees = [] } = useEmployeeLookup();
+
+  /*
+    A Site engineer name on an NCR detail links here as
+    `?employeeId=<id>&role=site-engineer`. While that param is set it drives the
+    Site Engineer control directly, rather than seeding a second copy of the
+    filter, so the URL and the dropdown cannot disagree; picking anyone else
+    drops the param and hands the choice back to the control. The control is
+    also why this page shows no ActiveFilterChip: unlike the list pages the chip
+    was written for, this one already displays and clears the filter in place.
+  */
+  const { employeeId, role, clear } = useEmployeeFilterFromParams();
+  const linkedEngineerId =
+    employeeId != null && role === 'site-engineer' ? employeeId : null;
+  const siteEngineerId =
+    linkedEngineerId == null ? engineerChoice : String(linkedEngineerId);
+
+  const chooseEngineer = (value: string) => {
+    setEngineerChoice(value);
+    if (linkedEngineerId != null) clear();
+  };
 
   /*
     Every filter here is one the list endpoint understands, so filtering runs
@@ -194,7 +215,7 @@ export default function NcrPage() {
           </FilterField>
 
           <FilterField label="Site Engineer" htmlFor="ncr-filter-engineer">
-            <Select value={siteEngineerId} onValueChange={setSiteEngineerId}>
+            <Select value={siteEngineerId} onValueChange={chooseEngineer}>
               <SelectTrigger
                 id="ncr-filter-engineer"
                 className="w-full sm:w-52"

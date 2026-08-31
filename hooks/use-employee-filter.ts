@@ -23,6 +23,7 @@ export const ROLE_LABELS: Record<string, string> = {
   receiver: 'Received by',
   sender: 'Sent by',
   inspector: 'Inspector',
+  'site-engineer': 'Site engineer',
   assignee: 'Assigned to',
   reporter: 'Reported by',
   requester: 'Requested by',
