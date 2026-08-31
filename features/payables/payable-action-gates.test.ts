@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
 import { ContractType } from '@/services/payables-service';
 import type { Payable } from '@/services/payables-service';
 import {
@@ -235,5 +236,43 @@ describe('checkPayableDraft', () => {
     // so this is a 404 naming an id the user never chose.
     const problems = checkPayableDraft(draft(), { hasEmployeeRecord: false });
     expect(problems.map((problem) => problem.field)).toEqual(['createdBy']);
+  });
+});
+
+/**
+ * `checkPayableDraft`'s doc comment is the stated reason for a design decision
+ * that is still in force and still right: the opening `amountPaid` stays out of
+ * the draft, and money reaches `amountPaid` only through the payment endpoint.
+ * The reasoning underneath it had gone stale. It said `createPayable` stored the
+ * opening amount "with no check at all" and that `@NotNull` was the only
+ * constraint on `amountRecorded`, and `PayableService` on `development`
+ * contradicts both: it refuses a negative opening payment, one that exceeds the
+ * recorded amount, and a null or non-positive recorded amount.
+ *
+ * A false premise under a correct decision is worse than no premise, because the
+ * next reader checks it, finds the gap closed, and concludes the decision was
+ * based on a problem that no longer exists. These two sentences are named so a
+ * rewrite cannot quietly reinstate them.
+ */
+describe('the reasoning on checkPayableDraft describes the server as it is', () => {
+  const source = readFileSync('features/payables/payable-action-gates.ts', 'utf8');
+
+  test('it no longer claims the opening amount is stored unchecked', () => {
+    expect(source.includes('stores it with no check at all')).toBe(false);
+    expect(source.includes('permanently over-paid')).toBe(false);
+  });
+
+  test('it no longer claims NotNull is the only constraint on the recorded amount', () => {
+    expect(source.includes('is the only constraint on it')).toBe(false);
+    expect(source.includes('which is stricter than the\n * server')).toBe(false);
+  });
+
+  test('it still gives a reason for keeping the opening amount out of the draft', () => {
+    // The decision is unchanged, so the comment has to keep arguing for it.
+    // Both anchors are phrases that occur once, in this paragraph. `pessimistic`
+    // is not usable: `checkPaymentAmount` says it too, so the whole argument
+    // could be deleted with a match on that word still passing.
+    expect(source.includes('deliberately not part')).toBe(true);
+    expect(source.includes('second route to the same column')).toBe(true);
   });
 });

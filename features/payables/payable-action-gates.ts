@@ -246,17 +246,24 @@ interface DraftContext {
  * Every reason the backend would refuse this draft, checked before it is sent.
  *
  * The opening `amountPaid` the creation DTO accepts is deliberately not part
- * of the draft. `createPayable` stores it with no check at all, so an opening
- * payment larger than the recorded amount is accepted and leaves a payable
- * that is permanently over-paid and can never take another payment. Letting
- * the amount in only through the payment endpoint keeps it behind the
- * overpayment check and the lock.
+ * of the draft, and it stays out even though `createPayable` now refuses a
+ * negative opening payment and one that exceeds the recorded amount. The
+ * reason is not that the server would let a bad one through. It is that money
+ * paid should arrive by one route: the payment endpoint takes a pessimistic
+ * lock on the row before it adds to `amountPaid`, so concurrent payments
+ * serialize instead of losing an update, and every rupee is checked against
+ * the same ceiling in the same place. An opening amount on create would be a
+ * second route to the same column, with its own check in its own place. It
+ * cannot race a payment, since the row does not exist yet, so the objection is
+ * the duplicated rule rather than the missing lock.
  *
- * `amountRecorded` is required to be positive here, which is stricter than the
- * server: `@NotNull` is the only constraint on it. A payable raised for zero
- * or less cannot ever take a payment, since any positive amount passes its
- * recorded total, so it would be a row that looks like a debt and can never be
- * settled.
+ * `amountRecorded` is required to be positive here, which is the server's rule
+ * rather than a stricter one: `createPayable` rejects a null or non-positive
+ * recorded amount before it saves. Checking it in the browser is what puts the
+ * message beside the field instead of in a toast after a round trip. A payable
+ * raised for zero or less could never take a payment anyway, since any
+ * positive amount passes its recorded total, so it would be a row that looks
+ * like a debt and can never be settled.
  *
  * @param draft - The form as typed.
  * @param context - What is known about the surrounding screen and the user.
