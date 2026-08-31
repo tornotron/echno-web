@@ -30,7 +30,6 @@ export default function NewIndentPage() {
     }
     try {
       const indent = await createIndent({
-        indentNumber: data.form.indentNumber.trim(),
         createdByEmployeeId: currentEmployee.id,
         status: data.form.status,
         expectedOn: data.form.expectedOn

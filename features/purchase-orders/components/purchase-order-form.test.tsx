@@ -9,28 +9,28 @@ import * as realPurchaseOrderHooks from '@tornotron/echno-core/purchase-orders/h
 import { PurchaseOrderStatus } from '@tornotron/echno-core/purchase-orders/types';
 
 /**
- * The order list the mocked `usePurchaseOrders` hands back. It starts empty
- * because that is the state of the cache on the first render, before the
- * request resolves. Reassigning it and re-rendering reproduces the load.
+ * The form no longer reads the order list, since it no longer proposes a
+ * number. The mock stays so the module registry is not left handing the real
+ * hook to a component rendered without a query client.
  */
-let orders: { poNumber: string }[] = [];
-
 mock.module('@tornotron/echno-core/purchase-orders/hooks', () => ({
   ...realPurchaseOrderHooks,
-  usePurchaseOrders: () => ({ data: orders }),
+  usePurchaseOrders: () => ({ data: [] }),
 }));
 mock.module('@tornotron/echno-core/materials/hooks', () => ({
   ...realMaterialHooks,
-  useMaterials: () => ({ data: [] }),
+  useMaterials: () => ({
+    data: [{ id: 2, materialName: 'TNT Steel', unit: 'MT' }],
+  }),
   useMaterialWithStock: () => ({ data: undefined }),
 }));
 mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
-  useProjects: () => ({ data: [] }),
+  useProjects: () => ({ data: [{ id: 3, projectName: 'Riverside' }] }),
 }));
 mock.module('@tornotron/echno-core/vendor/hooks', () => ({
   ...realVendorHooks,
-  useVendors: () => ({ data: [] }),
+  useVendors: () => ({ data: [{ id: 5, name: 'Acme Supplies' }] }),
 }));
 mock.module('@tornotron/echno-core/indents/hooks', () => ({
   ...realIndentHooks,
@@ -57,49 +57,75 @@ mock.module('@/hooks/use-form-draft', () => ({
 
 const { PurchaseOrderForm } = await import('./purchase-order-form');
 
-const year = new Date().getFullYear();
+/**
+ * `DocumentNumberAllocator` hands out the PO number per organization, document
+ * type and year, and `PurchaseOrderService` calls it unconditionally before it
+ * saves. `PurchaseOrderCreationDto` declares no `poNumber`, so a number the
+ * browser proposed was read off nothing and dropped.
+ *
+ * This screen was the worst of the four: the number was a required, editable
+ * input, so somebody could type `PO-LEGACY-0042`, be told the order was
+ * created, and find it filed under whatever the allocator answered. The
+ * previous tests here asserted that the proposal advanced past the list, which
+ * pinned exactly that behaviour and would have kept passing after it was
+ * removed.
+ */
+/** Opens a shadcn/Radix select by id and clicks the option carrying `label`. */
+function choose(container: HTMLElement, id: string, label: string) {
+  const trigger = container.querySelector(`#${id}`) as HTMLElement;
+  fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+  const option = [...document.body.querySelectorAll('[role="option"]')].find(
+    (o) => o.textContent?.includes(label)
+  );
+  if (!option) throw new Error(`"${label}" was not offered by #${id}`);
+  fireEvent.click(option);
+}
 
-function poNumberField(container: HTMLElement) {
-  return container.querySelector('#poNumber') as HTMLInputElement;
+/** The item rows carry no ids, so the row select is reached through the table. */
+function chooseInRow(container: HTMLElement, label: string) {
+  const trigger = container.querySelector(
+    'tbody [role="combobox"]'
+  ) as HTMLElement;
+  fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+  const option = [...document.body.querySelectorAll('[role="option"]')].find(
+    (o) => o.textContent?.includes(label)
+  );
+  if (!option) throw new Error(`"${label}" was not offered in the item row`);
+  fireEvent.click(option);
 }
 
 describe('PurchaseOrderForm PO number', () => {
   afterEach(() => {
     cleanup();
-    orders = [];
   });
 
-  test('advances past the PO numbers already on the server', () => {
-    // First render: the list query has not resolved, so the form has nothing to
-    // count from and offers the first number of the year.
-    const { container, rerender } = render(
-      createElement(PurchaseOrderForm, { onSubmit: () => {} })
-    );
-    expect(poNumberField(container).value).toBe(`PO-${year}-000001`);
-
-    // The list resolves and it already holds that number. Sending it again is
-    // the duplicate the vendor-facing create was failing on.
-    orders = [{ poNumber: `PO-${year}-000001` }];
-    rerender(createElement(PurchaseOrderForm, { onSubmit: () => {} }));
-
-    expect(poNumberField(container).value).toBe(`PO-${year}-000002`);
-  });
-
-  test('leaves a number the user typed alone once the list resolves', () => {
-    // The field is editable, so re-seeding it must not overwrite a deliberate
-    // entry the way it overwrites the placeholder.
-    const { container, rerender } = render(
+  test('the form does not ask for a PO number', () => {
+    const { container } = render(
       createElement(PurchaseOrderForm, { onSubmit: () => {} })
     );
 
-    fireEvent.change(poNumberField(container), {
-      target: { value: 'PO-LEGACY-0042' },
-    });
+    // Asserted as a boolean on purpose: a failing assertion that prints a
+    // Radix DOM node hangs the reporter rather than reporting.
+    expect(container.querySelector('#poNumber') === null).toBe(true);
+    expect(container.textContent).not.toContain('PO Number');
+  });
 
-    orders = [{ poNumber: `PO-${year}-000001` }];
-    rerender(createElement(PurchaseOrderForm, { onSubmit: () => {} }));
+  test('nothing named poNumber reaches the submit payload', () => {
+    const onSubmit = mock((..._args: unknown[]) => {});
+    const { container } = render(
+      createElement(PurchaseOrderForm, { onSubmit })
+    );
 
-    expect(poNumberField(container).value).toBe('PO-LEGACY-0042');
+    choose(container, 'vendorId', 'Acme Supplies');
+    choose(container, 'projectId', 'Riverside');
+    chooseInRow(container, 'TNT Steel');
+    fireEvent.submit(container.querySelector('form') as HTMLFormElement);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitted = onSubmit.mock.calls[0][0] as {
+      form: Record<string, unknown>;
+    };
+    expect(Object.keys(submitted.form)).not.toContain('poNumber');
   });
 });
 
@@ -128,7 +154,6 @@ function statusOptions(container: HTMLElement): string[] {
 describe('PurchaseOrderForm status', () => {
   afterEach(() => {
     cleanup();
-    orders = [];
   });
 
   test('is shown, not offered', () => {

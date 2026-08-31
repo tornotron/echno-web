@@ -7,11 +7,10 @@ import * as realStorageLocationHooks from '@tornotron/echno-core/storage-locatio
 import * as realSiteTransferHooks from '@tornotron/echno-core/site-transfers/hooks';
 
 /**
- * The transfer list the mocked `useSiteTransfers` hands back. It starts empty
- * because that is the state of the cache on the first render, before the
- * request resolves. Reassigning it and re-rendering reproduces the load.
+ * The form no longer reads the transfer list, since it no longer predicts a
+ * number. The mock stays so the module registry is not left handing the real
+ * hook to a component rendered without a query client.
  */
-let transfers: { transferNumber: string }[] = [];
 
 const MATERIALS = [{ id: 2, materialName: 'TNT Steel', unit: 'MT' }];
 
@@ -35,7 +34,7 @@ let scopedStock = new Map<number, { currentStock: number; unit: string }>();
 
 mock.module('@tornotron/echno-core/site-transfers/hooks', () => ({
   ...realSiteTransferHooks,
-  useSiteTransfers: () => ({ data: transfers }),
+  useSiteTransfers: () => ({ data: [] }),
 }));
 mock.module('@tornotron/echno-core/materials/hooks', () => ({
   ...realMaterialHooks,
@@ -90,7 +89,6 @@ mock.module('@/hooks/use-form-draft', () => ({
 
 const { SiteTransferForm } = await import('./site-transfer-form');
 
-const year = new Date().getFullYear();
 
 // ---------------------------------------------------------------------------
 // Driving the form
@@ -146,52 +144,55 @@ function renderForm() {
   return { ...view, onSubmit };
 }
 
-function transferNumberField(container: HTMLElement) {
-  return (container.querySelector('#transferNumber') as HTMLInputElement).value;
-}
-
 // ---------------------------------------------------------------------------
 // Transfer number
 // ---------------------------------------------------------------------------
 
+/**
+ * `DocumentNumberAllocator` allocates the transfer number per organization,
+ * document type and year, and `SiteTransferService` calls it unconditionally
+ * before it saves. `SiteTransferCreationDto` declares no `transferNumber`, so
+ * the key the browser sent was read off nothing and dropped.
+ *
+ * The field was read-only here, which made it worse rather than better: it
+ * displayed a *predicted* number that people read off the screen and wrote
+ * down, and under two people on this form at once the prediction and the
+ * allocation disagree. The tests that stood here asserted the prediction
+ * advanced past the list, which pinned the behaviour being removed and would
+ * have kept passing without it.
+ */
 describe('SiteTransferForm transfer number', () => {
   afterEach(() => {
     cleanup();
-    transfers = [];
   });
 
-  test('advances past the transfer numbers already on the server', () => {
-    // First render: the list query has not resolved, so the form has nothing to
-    // count from and offers the first number of the year.
-    const { container, rerender } = render(
-      createElement(SiteTransferForm, { onSubmit: () => {} })
-    );
-    expect(transferNumberField(container)).toBe(`TRF-${year}-000001`);
-
-    // The list resolves and it already holds that number. The form has to move
-    // on; leaving it where it is guarantees a duplicate on submit.
-    transfers = [{ transferNumber: `TRF-${year}-000001` }];
-    rerender(createElement(SiteTransferForm, { onSubmit: () => {} }));
-
-    expect(transferNumberField(container)).toBe(`TRF-${year}-000002`);
-  });
-
-  test('keeps following the list as later transfers arrive', () => {
-    const { container, rerender } = render(
+  test('the form does not show a transfer number', () => {
+    const { container } = render(
       createElement(SiteTransferForm, { onSubmit: () => {} })
     );
 
-    transfers = [{ transferNumber: `TRF-${year}-000001` }];
-    rerender(createElement(SiteTransferForm, { onSubmit: () => {} }));
-    expect(transferNumberField(container)).toBe(`TRF-${year}-000002`);
+    // Asserted as a boolean on purpose: a failing assertion that prints a
+    // Radix DOM node hangs the reporter rather than reporting.
+    expect(container.querySelector('#transferNumber') === null).toBe(true);
+    expect(container.textContent).not.toContain('Transfer Number');
+  });
 
-    // A second page of the list, or a refetch after someone else created one.
-    transfers = [
-      { transferNumber: `TRF-${year}-000001` },
-      { transferNumber: `TRF-${year}-000007` },
-    ];
-    rerender(createElement(SiteTransferForm, { onSubmit: () => {} }));
-    expect(transferNumberField(container)).toBe(`TRF-${year}-000008`);
+  test('nothing named transferNumber reaches the submit payload', () => {
+    const { container, onSubmit } = renderForm();
+
+    chooseOption(container, 'sendingProjectId', 'Riverside');
+    chooseOption(container, 'sendingStorageLocationId', 'Riverside Store');
+    chooseOption(container, 'receivingProjectId', 'Test 2');
+    chooseOption(container, 'receivingStorageLocationId', 'Central Warehouse');
+    chooseOption(container, 'materialId-0', 'TNT Steel');
+    typeQuantity(container, '5');
+    submit(container);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitted = onSubmit.mock.calls[0][0] as {
+      form: Record<string, unknown>;
+    };
+    expect(Object.keys(submitted.form)).not.toContain('transferNumber');
   });
 });
 
@@ -206,7 +207,6 @@ describe('SiteTransferForm storage location scope', () => {
 
   afterEach(() => {
     cleanup();
-    transfers = [];
   });
 
   test('offers each side only the locations its own project may use', () => {
@@ -277,7 +277,6 @@ describe('SiteTransferForm stock', () => {
 
   afterEach(() => {
     cleanup();
-    transfers = [];
   });
 
   test('shows the balance at the sending project and location, not the organisation total', () => {
@@ -358,7 +357,6 @@ describe('SiteTransferForm draft restore before the locations load', () => {
 
   afterEach(() => {
     cleanup();
-    transfers = [];
     offeredDraft = null;
     storageLocationList = STORAGE_LOCATIONS;
   });
@@ -371,7 +369,6 @@ describe('SiteTransferForm draft restore before the locations load', () => {
     storageLocationList = undefined;
     offeredDraft = {
       fields: {
-        transferNumber: '',
         issueDate: '2026-08-30',
         sendingProjectId: 6,
         sendingStorageLocationId: 4,
@@ -415,7 +412,6 @@ describe('SiteTransferForm draft restore before the locations load', () => {
     storageLocationList = undefined;
     offeredDraft = {
       fields: {
-        transferNumber: '',
         issueDate: '2026-08-30',
         sendingProjectId: 3,
         sendingStorageLocationId: 4,

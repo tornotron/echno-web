@@ -33,8 +33,6 @@ import { usePurchaseOrders } from '@tornotron/echno-core/purchase-orders/hooks';
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useGRNs } from '@tornotron/echno-core/grn/hooks';
-import { generateGrnNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 
@@ -51,7 +49,6 @@ export interface GRNItemRow {
 }
 
 export interface GoodsReceiptFormState {
-  grnNumber: string;
   receivedOn: string;
   vendorId: number;
   purchaseOrderId: number;
@@ -102,17 +99,8 @@ export function GoodsReceiptForm({
   const { data: materials = [] } = useMaterials();
   const { data: projects = [] } = useProjects();
   const { data: storageLocations = [] } = useStorageLocations();
-  const { data: existingGRNs = [] } = useGRNs();
-
-  const grnNumber = useMemo(
-    () =>
-      initialValues?.grnNumber ??
-      generateGrnNumber(existingGRNs.map((g) => g.grnNumber)),
-    [existingGRNs, initialValues]
-  );
 
   const [form, setForm] = useState<GoodsReceiptFormState>(() => ({
-    grnNumber: '',
     receivedOn:
       initialValues?.receivedOn ?? new Date().toISOString().slice(0, 10),
     vendorId: initialValues?.vendorId ?? 0,
@@ -131,8 +119,7 @@ export function GoodsReceiptForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Received and rejected quantities, row by row, against a delivery that is
-  // usually being read off paper. The GRN number is generated rather than typed
-  // and is not part of the form state, so nothing here can restore a stale one.
+  // usually being read off paper.
   const draftScope = useFormDraftScope();
   const draftValues = useMemo(() => ({ fields: form, items }), [form, items]);
   const applyDraft = useCallback(
@@ -278,7 +265,7 @@ export function GoodsReceiptForm({
       });
       return;
     }
-    onSubmit({ form: { ...form, grnNumber }, items, totalCost });
+    onSubmit({ form, items, totalCost });
   }
 
   // ---------------------------------------------------------------------------
@@ -310,16 +297,6 @@ export function GoodsReceiptForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="grnNumber">GRN Number</Label>
-              <Input
-                id="grnNumber"
-                value={grnNumber}
-                readOnly
-                className="bg-zinc-50 font-mono dark:bg-zinc-900"
-              />
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="receivedOn">
                 Received On <span className="text-red-500">*</span>

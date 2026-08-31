@@ -83,7 +83,6 @@ export default function NewPurchaseOrderPage() {
     }
     try {
       const po = await createPO({
-        poNumber: data.form.poNumber.trim(),
         vendorId: data.form.vendorId,
         projectId: data.form.projectId,
         indentId: data.form.indentId || undefined,

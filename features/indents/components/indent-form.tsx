@@ -29,14 +29,11 @@ import {
 } from '@/components/shadcn/table';
 import { FileText, Package, Plus, Trash2 } from 'lucide-react';
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
-import { useIndents } from '@tornotron/echno-core/indents/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import {
   IndentStatus,
   indentStatusLabels,
 } from '@tornotron/echno-core/indents/types';
-import { generateIndentNumber } from '@/lib/utils/document-number-utils';
-import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 
 // ---------------------------------------------------------------------------
@@ -51,7 +48,6 @@ export interface IndentItemRow {
 }
 
 export interface IndentFormState {
-  indentNumber: string;
   status: IndentStatus;
   expectedOn: string;
   remarks: string;
@@ -99,15 +95,8 @@ const EMPTY_ITEM: IndentItemRow = {
 export function IndentForm({ onSubmit }: IndentFormProps) {
   const { data: materials = [] } = useMaterials();
   const { data: projects = [] } = useProjects();
-  const { data: existingIndents = [] } = useIndents();
-
-  const generatedIndentNumber = useMemo(
-    () => generateIndentNumber(existingIndents.map((i) => i.indentNumber)),
-    [existingIndents]
-  );
 
   const [form, setForm] = useState<IndentFormState>(() => ({
-    indentNumber: '',
     status: IndentStatus.pending,
     expectedOn: '',
     remarks: '',
@@ -215,10 +204,6 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
     const newErrors: Record<string, string> = {};
     const newRowErrors: Record<number, Record<string, string>> = {};
 
-    const effectiveIndentNumber = form.indentNumber || generatedIndentNumber;
-    const numberError = required('Indent number')(effectiveIndentNumber);
-    if (numberError) newErrors.indentNumber = numberError;
-
     const filledItems = items.filter((it) => it.materialId !== 0);
     if (filledItems.length === 0) {
       newErrors.items = 'At least one material must be selected';
@@ -252,9 +237,8 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
       });
       return;
     }
-    const effectiveIndentNumber = form.indentNumber || generatedIndentNumber;
     onSubmit({
-      form: { ...form, indentNumber: effectiveIndentNumber },
+      form,
       items: items.filter((it) => it.materialId !== 0),
     });
   }
@@ -284,22 +268,6 @@ export function IndentForm({ onSubmit }: IndentFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="indentNumber">
-                Indent Number <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="indentNumber"
-                placeholder="e.g. IND-2026-001"
-                value={form.indentNumber || generatedIndentNumber}
-                onChange={(e) => setField('indentNumber', e.target.value)}
-                className={errors.indentNumber ? 'border-red-500' : ''}
-              />
-              {errors.indentNumber && (
-                <p className="text-sm text-red-500">{errors.indentNumber}</p>
-              )}
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select

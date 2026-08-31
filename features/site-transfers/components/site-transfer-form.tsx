@@ -30,10 +30,8 @@ import { AlertTriangle, ArrowRightLeft, Plus, Trash2 } from 'lucide-react';
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
-import { useSiteTransfers } from '@tornotron/echno-core/site-transfers/hooks';
 import { useMaterialStocks } from '@/hooks/materials';
 import { storageLocationsForProject } from '@/lib/inventory/storage-location-scope';
-import { generateTransferNumber } from '@/lib/utils/document-number-utils';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 
@@ -49,7 +47,6 @@ export interface SiteTransferItemRow {
 }
 
 export interface SiteTransferFormState {
-  transferNumber: string;
   issueDate: string;
   sendingProjectId: number;
   sendingStorageLocationId: number;
@@ -146,21 +143,8 @@ export function SiteTransferForm({
   const { data: materials = [] } = useMaterials();
   const { data: projects = [] } = useProjects();
   const { data: storageLocations } = useStorageLocations();
-  const { data: existingTransfers = [] } = useSiteTransfers();
-
-  // Derived from the transfers the server already has, so it follows the list
-  // as it loads and as it is refetched. Recomputing is cheap and the list is
-  // the only input, which is why this is not held in form state and seeded
-  // once: a value seeded before the query resolved would stay at the first
-  // number of the year forever.
-  const nextTransferNumber = useMemo(
-    () =>
-      generateTransferNumber(existingTransfers.map((t) => t.transferNumber)),
-    [existingTransfers]
-  );
 
   const [form, setForm] = useState<SiteTransferFormState>(() => ({
-    transferNumber: '',
     issueDate: new Date().toISOString().slice(0, 10),
     sendingProjectId: 0,
     sendingStorageLocationId: 0,
@@ -176,23 +160,15 @@ export function SiteTransferForm({
     Record<number, Record<string, string>>
   >({});
 
-  // Source, destination and the items moving between them. The transfer number
-  // is generated from the transfers that already exist, so it stays out of the
-  // draft rather than being restored as a duplicate.
+  // Source, destination and the items moving between them.
   const draftScope = useFormDraftScope();
-  const draftValues = useMemo(
-    () => ({ fields: { ...form, transferNumber: '' }, items }),
-    [form, items]
-  );
+  const draftValues = useMemo(() => ({ fields: form, items }), [form, items]);
   const applyDraft = useCallback(
     (values: {
       fields: SiteTransferFormState;
       items: SiteTransferItemRow[];
     }) => {
-      setForm((prev) => ({
-        ...values.fields,
-        transferNumber: prev.transferNumber,
-      }));
+      setForm(values.fields);
       setItems(values.items);
     },
     []
@@ -206,16 +182,6 @@ export function SiteTransferForm({
     values: draftValues,
     onRestore: applyDraft,
   });
-
-  // The field is read-only, so there is no user entry to preserve and the state
-  // copy only exists to travel with the rest of the form to `onSubmit`. Keeping
-  // it level with the derived value on every change of the list is what stops
-  // the number sticking at whatever it was when the form first rendered.
-  const [seededNumber, setSeededNumber] = useState<string | undefined>();
-  if (seededNumber !== nextTransferNumber) {
-    setSeededNumber(nextTransferNumber);
-    setForm((prev) => ({ ...prev, transferNumber: nextTransferNumber }));
-  }
 
   // ---------------------------------------------------------------------------
   // Storage locations available to each side
@@ -384,9 +350,6 @@ export function SiteTransferForm({
     const newErrors: Record<string, string> = {};
     const newRowErrors: Record<number, Record<string, string>> = {};
 
-    const numError = required('Transfer number')(form.transferNumber);
-    if (numError) newErrors.transferNumber = numError;
-
     const dateError = required('Issue date')(form.issueDate);
     if (dateError) newErrors.issueDate = dateError;
 
@@ -470,15 +433,6 @@ export function SiteTransferForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="transferNumber">Transfer Number</Label>
-              <Input
-                id="transferNumber"
-                value={form.transferNumber}
-                readOnly
-                className="bg-zinc-50 font-mono dark:bg-zinc-900"
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="issueDate">
                 Issue Date <span className="text-red-500">*</span>
