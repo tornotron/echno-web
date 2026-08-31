@@ -56,8 +56,6 @@ import {
   TrendingUp,
   MapPin,
   Camera,
-  CheckCircle,
-  XCircle,
   Check,
   X,
   Route,
@@ -700,7 +698,7 @@ function AttendancePage() {
                 <TableHead>Clock In</TableHead>
                 <TableHead>Clock Out</TableHead>
                 <TableHead>Work Hours</TableHead>
-                <TableHead>Verification</TableHead>
+                <TableHead>Captured</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -853,12 +851,10 @@ function AttendancePage() {
                       )}
                     </TableCell>
                     <TableCell>
+                      {/* Location and photo captured, not verified. The server
+                          never evaluates the geofence, so no pass or fail mark
+                          belongs here. See tornotron/echno-backend#646. */}
                       <div className="flex items-center space-x-1">
-                        {attendance.morningClockIn?.isWithinGeofence ? (
-                          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                        ) : attendance.morningClockIn ? (
-                          <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                        ) : null}
                         {attendance.morningClockIn && (
                           <>
                             <MapPin className="h-4 w-4 text-zinc-400" />
