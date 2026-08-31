@@ -29,12 +29,19 @@ import {
 } from '@/components/shadcn/table';
 import { Receipt, Package, Plus, Trash2 } from 'lucide-react';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
-import { usePurchaseOrders } from '@tornotron/echno-core/purchase-orders/hooks';
+import {
+  usePurchaseOrder,
+  usePurchaseOrders,
+} from '@tornotron/echno-core/purchase-orders/hooks';
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
+import {
+  materialsOverReceipt,
+  orderedAgainstReceived,
+} from '@/lib/utils/over-receipt';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -117,6 +124,42 @@ export function GoodsReceiptForm({
     initialItems ?? [EMPTY_ITEM]
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // The order the receipt cites, for what it asked for and what has already
+  // arrived against it. Read from the order rather than from the browser
+  // because `PurchaseOrderReceiptReconciler` overwrites the receipt's copy of
+  // the ordered quantity with the order's own figure regardless, so a number
+  // typed here was never the one that was stored.
+  const { data: citedOrder } = usePurchaseOrder(form.purchaseOrderId);
+
+  /**
+   * The rows as they will be sent: the ordered quantity taken from the order
+   * wherever the material is on it, and left as typed where it is not.
+   *
+   * A receipt line for a material the order does not carry reconciles nothing
+   * and posts stock as before, which is deliberate on the server and common on
+   * a real site, so it keeps its own figure rather than being corrected to
+   * zero or refused.
+   */
+  const effectiveItems = useMemo(
+    () =>
+      items.map((item) => {
+        const figures = orderedAgainstReceived(
+          citedOrder?.items,
+          item.materialId
+        );
+        return figures ? { ...item, orderedQuantity: figures.ordered } : item;
+      }),
+    [items, citedOrder]
+  );
+
+  // Per material, not per row: the server adds a receipt's own lines together
+  // before judging them, so two rows of 60 against an order for 100 is an
+  // over-receipt even though neither row is.
+  const overReceiptMaterials = useMemo(
+    () => new Set(materialsOverReceipt(effectiveItems, citedOrder?.items)),
+    [effectiveItems, citedOrder]
+  );
 
   // Received and rejected quantities, row by row, against a delivery that is
   // usually being read off paper.
@@ -243,7 +286,7 @@ export function GoodsReceiptForm({
       newErrors.purchaseOrderId = 'Purchase order is required';
     if (!form.projectId) newErrors.projectId = 'Project is required';
 
-    for (const [i, item] of items.entries()) {
+    for (const [i, item] of effectiveItems.entries()) {
       const rowErr: Record<string, string> = {};
       if (!item.materialId) rowErr.materialId = 'Select a material';
       if (item.orderedQuantity <= 0) rowErr.orderedQuantity = 'Must be > 0';
@@ -273,7 +316,7 @@ export function GoodsReceiptForm({
       });
       return;
     }
-    onSubmit({ form, items, totalCost });
+    onSubmit({ form, items: effectiveItems, totalCost });
   }
 
   // ---------------------------------------------------------------------------
@@ -528,6 +571,7 @@ export function GoodsReceiptForm({
                   <TableHead className="w-32">
                     Ordered Qty <span className="text-red-500">*</span>
                   </TableHead>
+                  <TableHead className="w-36">Still Expected</TableHead>
                   <TableHead className="w-32">
                     Received Qty <span className="text-red-500">*</span>
                   </TableHead>
@@ -539,6 +583,11 @@ export function GoodsReceiptForm({
               <TableBody>
                 {items.map((item, index) => {
                   const rErr = rowErrors[index] ?? {};
+                  const figures = orderedAgainstReceived(
+                    citedOrder?.items,
+                    item.materialId
+                  );
+                  const overReceipt = overReceiptMaterials.has(item.materialId);
                   return (
                     <TableRow key={index}>
                       <TableCell className="pl-6 text-sm text-zinc-500">
@@ -585,24 +634,56 @@ export function GoodsReceiptForm({
                       </TableCell>
 
                       <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="1"
-                          value={item.orderedQuantity}
-                          onChange={(e) =>
-                            updateItem(
-                              index,
-                              'orderedQuantity',
-                              Number.parseInt(e.target.value) || 0
-                            )
-                          }
-                          className={`w-full ${rErr.orderedQuantity ? 'border-red-500' : ''}`}
-                        />
-                        {rErr.orderedQuantity && (
-                          <p className="mt-1 text-xs text-red-500">
-                            {rErr.orderedQuantity}
-                          </p>
+                        {figures ? (
+                          <>
+                            <span className="text-sm font-medium tabular-nums">
+                              {figures.ordered}
+                            </span>
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              from the order
+                            </p>
+                          </>
+                        ) : (
+                          <>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={item.orderedQuantity}
+                              onChange={(e) =>
+                                updateItem(
+                                  index,
+                                  'orderedQuantity',
+                                  Number.parseInt(e.target.value) || 0
+                                )
+                              }
+                              className={`w-full ${rErr.orderedQuantity ? 'border-red-500' : ''}`}
+                            />
+                            {rErr.orderedQuantity && (
+                              <p className="mt-1 text-xs text-red-500">
+                                {rErr.orderedQuantity}
+                              </p>
+                            )}
+                          </>
+                        )}
+                      </TableCell>
+
+                      <TableCell>
+                        {figures ? (
+                          <>
+                            <span className="text-sm font-medium tabular-nums">
+                              {figures.outstanding}
+                            </span>
+                            <p className="text-muted-foreground mt-1 text-xs">
+                              {figures.received} already received
+                            </p>
+                          </>
+                        ) : item.materialId > 0 && form.purchaseOrderId ? (
+                          <span className="text-muted-foreground text-xs">
+                            Not on this order
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">—</span>
                         )}
                       </TableCell>
 
@@ -624,6 +705,11 @@ export function GoodsReceiptForm({
                         {rErr.receivedQuantity && (
                           <p className="mt-1 text-xs text-red-500">
                             {rErr.receivedQuantity}
+                          </p>
+                        )}
+                        {overReceipt && (
+                          <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                            More than this order expects
                           </p>
                         )}
                       </TableCell>

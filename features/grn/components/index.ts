@@ -4,6 +4,7 @@ export * from './grn-vendor-po-card';
 export { GoodsReceiptTable } from './goods-receipt-table';
 export { GoodsReceiptRow } from './goods-receipt-row';
 export { GoodsReceiptForm, GOODS_RECEIPT_FORM_ID } from './goods-receipt-form';
+export { OverReceiptDialog } from './over-receipt-dialog';
 export type {
   GRNItemRow,
   GoodsReceiptFormState,

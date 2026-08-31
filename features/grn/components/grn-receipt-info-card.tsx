@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import { Receipt } from 'lucide-react';
+import { AlertTriangle, Receipt } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -76,6 +76,22 @@ export function GRNReceiptInfoCard({ grn }: GRNReceiptInfoCardProps) {
             <span className="text-muted-foreground">Invoice Amount</span>
             <span className="font-medium">
               ₹{grn.invoiceAmount.toLocaleString('en-IN')}
+            </span>
+          </div>
+        )}
+        {/*
+          Somebody was shown the order's figures, decided the delivery really
+          was bigger, and filed it anyway. The document is the only place that
+          decision is recorded, so it is drawn rather than left to be inferred
+          from a quantity that exceeds an order nobody is looking at.
+        */}
+        {grn.overReceiptAcknowledged && (
+          <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
+            <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>
+              Accepted over the order. This receipt took a material past the
+              quantity its purchase order asked for, and was recorded on a
+              deliberate acknowledgement.
             </span>
           </div>
         )}

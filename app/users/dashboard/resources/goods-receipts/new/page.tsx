@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -18,10 +19,16 @@ import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateGRN } from '@tornotron/echno-core/grn/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import type { CreateGrnRequest } from '@tornotron/echno-core/grn/types';
 import type { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';
+import {
+  isOverReceiptRefusal,
+  overReceiptExplanation,
+} from '@/lib/utils/over-receipt';
 import {
   GoodsReceiptForm,
   GOODS_RECEIPT_FORM_ID,
+  OverReceiptDialog,
   type GRNItemRow,
   type GoodsReceiptFormState,
   type GoodsReceiptSubmitData,
@@ -37,6 +44,14 @@ export default function NewGRNPage() {
   const { data: sourcePO } = usePurchaseOrder(fromPOId);
   const { mutate: createGRN, isPending } = useCreateGRN();
   const clearFormDraft = useClearFormDraft();
+
+  // The receipt the server refused, held exactly as it was sent. Refiling it
+  // rebuilt from the form would let anything edited behind the dialog ride in
+  // under an acknowledgement given for different figures.
+  const [refusedReceipt, setRefusedReceipt] = useState<{
+    payload: CreateGrnRequest;
+    explanation: string;
+  } | null>(null);
 
   // Read cache synchronously so navigation pre-fill works without waiting for an effect
   const cachedPO = fromPOId
@@ -62,60 +77,109 @@ export default function NewGRNPage() {
       }
     : {};
 
+  // Prefilled with what is still expected, not with the whole order.
+  //
+  // `receivedQuantity` on an order line was written 0 at creation and never
+  // again until echno-backend#659, so the ordered quantity was the only figure
+  // there was and prefilling it cost nothing. It costs something now: a second
+  // delivery against an order already 95 of 100 received would arrive here
+  // prefilled at 100, and since #659 that receipt is refused. The refusal is
+  // meant to catch a mistyped digit, and a form that provokes it on every
+  // partially received order teaches people to click past it.
   const initialItems: GRNItemRow[] | undefined = resolvedPO?.items.length
     ? resolvedPO.items.map((item) => ({
         materialId: item.materialId,
         materialName: item.materialName,
         orderedQuantity: item.orderedQuantity,
-        receivedQuantity: item.orderedQuantity,
+        receivedQuantity: Math.max(
+          item.orderedQuantity - (item.receivedQuantity ?? 0),
+          0
+        ),
         unitCost: item.unitPrice ?? 0,
       }))
     : undefined;
+
+  /**
+   * Files a receipt, and routes the one refusal the receiver can answer to the
+   * dialog rather than to a toast.
+   *
+   * Since echno-backend#659 a line that would take a material past the quantity
+   * its order asked for is refused with a 400 unless the payload acknowledges
+   * it. Read as a generic failure, that refusal is a dead end: the figures that
+   * explain it are in the message, and the way past it is a second, deliberate
+   * filing rather than anything the receiver can change on the form.
+   *
+   * @param payload - The receipt, unchanged between the first attempt and the
+   *   acknowledged one.
+   */
+  function fileReceipt(payload: CreateGrnRequest) {
+    createGRN(payload, {
+      onSuccess: (grn) => {
+        // The record exists now, so the local draft describes work already done.
+        // Left behind it would be offered on the next visit to this form.
+        clearFormDraft(FORM_DRAFT_IDS.GOODS_RECEIPT);
+        setRefusedReceipt(null);
+
+        toast.success('GRN Recorded', {
+          description: payload.allowOverReceipt
+            ? 'Goods received note recorded as an acknowledged over-receipt. Stock has been updated.'
+            : 'Goods received note recorded successfully. Stock has been updated.',
+        });
+        router.push(routes.resources.goodsReceipts.detail(grn.id).href);
+      },
+      onError: (err) => {
+        // Nothing was written, so every figure on this page was judged against
+        // an order the server has just re-read. Whatever else is wrong, the
+        // cached order is the thing most likely to be behind: another receipt
+        // landing between the two decides this one, and a stale copy would go
+        // on offering an outstanding quantity the server has already refused.
+        if (payload.purchaseOrderId) {
+          queryClient.invalidateQueries({
+            queryKey: poKeys.detail(payload.purchaseOrderId),
+          });
+        }
+
+        if (isOverReceiptRefusal(err)) {
+          setRefusedReceipt({
+            payload,
+            explanation: overReceiptExplanation(err),
+          });
+          return;
+        }
+
+        setRefusedReceipt(null);
+        toast.error(getErrorTitle(err, 'Failed to Record GRN'), {
+          description: getErrorMessage(err),
+        });
+      },
+    });
+  }
 
   function handleSubmit(data: GoodsReceiptSubmitData) {
     if (!currentEmployee?.id) {
       toast.error('Unable to determine current employee.');
       return;
     }
-    createGRN(
-      {
-        receivedOn: new Date(data.form.receivedOn).toISOString(),
-        receivedByEmployeeId: currentEmployee.id,
-        vendorId: data.form.vendorId,
-        purchaseOrderId: data.form.purchaseOrderId || undefined,
-        projectId: data.form.projectId || undefined,
-        storageLocationId: data.form.storageLocationId || undefined,
-        deliveryChallanNumber:
-          data.form.deliveryChallanNumber.trim() || undefined,
-        invoiceNumber: data.form.invoiceNumber.trim() || undefined,
-        invoiceAmount: data.form.invoiceAmount
-          ? Number.parseFloat(data.form.invoiceAmount)
-          : undefined,
-        items: data.items.map((item) => ({
-          materialId: item.materialId,
-          orderedQuantity: item.orderedQuantity,
-          receivedQuantity: item.receivedQuantity,
-          unitCost: item.unitCost || undefined,
-        })),
-      },
-      {
-        onSuccess: (grn) => {
-          // The record exists now, so the local draft describes work already done.
-          // Left behind it would be offered on the next visit to this form.
-          clearFormDraft(FORM_DRAFT_IDS.GOODS_RECEIPT);
-
-          toast.success('GRN Recorded', {
-            description:
-              'Goods received note recorded successfully. Stock has been updated.',
-          });
-          router.push(routes.resources.goodsReceipts.detail(grn.id).href);
-        },
-        onError: (err) =>
-          toast.error(getErrorTitle(err, 'Failed to Record GRN'), {
-            description: getErrorMessage(err),
-          }),
-      }
-    );
+    fileReceipt({
+      receivedOn: new Date(data.form.receivedOn).toISOString(),
+      receivedByEmployeeId: currentEmployee.id,
+      vendorId: data.form.vendorId,
+      purchaseOrderId: data.form.purchaseOrderId || undefined,
+      projectId: data.form.projectId || undefined,
+      storageLocationId: data.form.storageLocationId || undefined,
+      deliveryChallanNumber:
+        data.form.deliveryChallanNumber.trim() || undefined,
+      invoiceNumber: data.form.invoiceNumber.trim() || undefined,
+      invoiceAmount: data.form.invoiceAmount
+        ? Number.parseFloat(data.form.invoiceAmount)
+        : undefined,
+      items: data.items.map((item) => ({
+        materialId: item.materialId,
+        orderedQuantity: item.orderedQuantity,
+        receivedQuantity: item.receivedQuantity,
+        unitCost: item.unitCost || undefined,
+      })),
+    });
   }
 
   return (
@@ -184,6 +248,19 @@ export default function NewGRNPage() {
         initialValues={initialValues}
         initialItems={initialItems}
         onSubmit={handleSubmit}
+      />
+
+      <OverReceiptDialog
+        open={refusedReceipt !== null}
+        onOpenChange={(open) => {
+          if (!open) setRefusedReceipt(null);
+        }}
+        explanation={refusedReceipt?.explanation ?? ''}
+        isPending={isPending}
+        onAcknowledge={() => {
+          if (!refusedReceipt) return;
+          fileReceipt({ ...refusedReceipt.payload, allowOverReceipt: true });
+        }}
       />
     </div>
   );
