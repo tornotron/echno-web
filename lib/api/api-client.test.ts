@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import * as realAuth from 'next-auth/react';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
 
 // Counts the forced session round trips. Spread the real module so the rest of
@@ -223,5 +224,155 @@ describe('responses that must behave exactly as before', () => {
 
     expect(getSessionCalls).toBe(0);
     expect(fetchCalls).toHaveLength(1);
+  });
+});
+
+// The app kept its own `ApiError` and its own `getErrorTitle` /
+// `getErrorMessage` beside the package's. Both pairs compiled, so nothing
+// complained, and the two never met: a failure raised by this client was not an
+// `instanceof` the class the package's helpers narrow on, so `getErrorTitle`
+// fell through to whatever default the call site passed and `getErrorMessage`
+// read the failure as a plain `Error`.
+//
+// These import the class from this module and the helpers from the package,
+// which is the pairing the app now runs. Every one of them fails against a
+// locally declared class, because the helpers stop recognising it.
+describe('the failures this client raises are the ones the package reads', () => {
+  test('a failure from this client is an instance of the class the package exports', async () => {
+    queuedResponses = [
+      jsonResponse(
+        {
+          title: 'Access Denied',
+          message: 'Access is denied: requires role hr-admin',
+          details: 'uri=/api/v1/leave-requests/web/9/approve',
+        },
+        403
+      ),
+    ];
+
+    const error = await apiClient
+      .get('/v1/leave-requests/9/approve')
+      .catch((error_: unknown) => error_);
+
+    expect(error instanceof ApiError).toBe(true);
+    expect(getErrorTitle(error, 'Operation Failed')).not.toBe(
+      'Operation Failed'
+    );
+  });
+
+  test('a 403 is headed by the problem the server named, not by a login prompt', async () => {
+    queuedResponses = [
+      jsonResponse(
+        {
+          title: 'Access Denied',
+          message: 'Access is denied: requires role hr-admin',
+          details: 'uri=/api/v1/leave-requests/web/9/approve',
+        },
+        403
+      ),
+    ];
+
+    const error = await apiClient
+      .get('/v1/leave-requests/9/approve')
+      .catch((error_: unknown) => error_);
+
+    expect(getErrorTitle(error, 'Could not approve the request')).toBe(
+      'Access Denied'
+    );
+  });
+
+  test('a 403 with no title of its own still avoids telling a signed-in user to sign in', async () => {
+    queuedResponses = [
+      jsonResponse({ message: 'Access is denied' }, 403),
+    ];
+
+    const error = await apiClient
+      .get('/v1/leave-requests/9/approve')
+      .catch((error_: unknown) => error_);
+
+    expect(getErrorTitle(error, 'Could not approve the request')).toBe(
+      'Not Permitted'
+    );
+  });
+
+  test('a 401 is the one status that does mean sign in again', async () => {
+    queuedResponses = [jsonResponse({ message: 'Please sign in.' }, 401)];
+
+    const error = await apiClient
+      .get('/v1/leave-requests/9/approve')
+      .catch((error_: unknown) => error_);
+
+    expect(getErrorTitle(error, 'Could not approve the request')).toBe(
+      'Authentication Required'
+    );
+  });
+
+  test('the description is the sentence the backend wrote, never the request URI', async () => {
+    queuedResponses = [
+      jsonResponse(
+        {
+          title: 'Validation Failed',
+          message: 'The leave request has already been approved.',
+          details: 'uri=/api/v1/leave-requests/web/9/approve',
+        },
+        400
+      ),
+    ];
+
+    const error = await apiClient
+      .get('/v1/leave-requests/9/approve')
+      .catch((error_: unknown) => error_);
+
+    expect(getErrorMessage(error)).toBe(
+      'The leave request has already been approved.'
+    );
+    expect(getErrorMessage(error)).not.toContain('uri=');
+  });
+
+  test('a details field that is not a string never reaches a consumer typed for one', async () => {
+    // The subscription endpoints fill `details` with a quota breakdown rather
+    // than a request description, and `ApiError.details` is typed as a string.
+    queuedResponses = [
+      jsonResponse(
+        {
+          title: 'Quota Exceeded',
+          message: 'The plan does not cover another project.',
+          details: { limit: 3, used: 3 },
+        },
+        402
+      ),
+    ];
+
+    const error = (await apiClient
+      .get('/v1/projects')
+      .catch((error_: unknown) => error_)) as ApiError;
+
+    expect(error.details).toBeUndefined();
+    expect(getErrorMessage(error)).toBe(
+      'The plan does not cover another project.'
+    );
+  });
+
+  test('field-level validation messages are still appended to the sentence', async () => {
+    queuedResponses = [
+      jsonResponse(
+        {
+          title: 'Validation Failed',
+          message: 'The request could not be saved.',
+          details: 'uri=/api/v1/leave-requests/web',
+          errors: { endDate: ['must not be before the start date'] },
+        },
+        400
+      ),
+    ];
+
+    const error = await apiClient
+      .post('/v1/leave-requests', {})
+      .catch((error_: unknown) => error_);
+
+    expect(getErrorMessage(error)).toContain('The request could not be saved.');
+    expect(getErrorMessage(error)).toContain(
+      'endDate: must not be before the start date'
+    );
   });
 });

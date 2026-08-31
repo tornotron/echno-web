@@ -10,8 +10,23 @@
  * The `api` exported object provides bound convenience functions for
  * the most common HTTP verbs used across the codebase.
  */
+import { ApiError } from '@tornotron/echno-core';
+
 import { SESSION_TOKEN_EXPIRED_ERROR } from '@/lib/auth/constants';
 import { refreshSessionOnce } from '@/lib/auth/refresh-session-once';
+
+/**
+ * The error class every failure in this app is reported with, whichever client
+ * issued the request.
+ *
+ * It is the package's class, re-exported rather than redeclared. `getErrorTitle`
+ * and `getErrorMessage` narrow with `instanceof ApiError`, so a second class of
+ * the same name and shape reads as an ordinary `Error` to them: the title falls
+ * back to the caller's default and the server's own wording is never seen. One
+ * class is what makes the package's error copy reach the screens this client
+ * serves.
+ */
+export { ApiError } from '@tornotron/echno-core';
 
 export interface ApiResponse<T = unknown> {
   /** The payload returned by the backend */
@@ -24,52 +39,19 @@ export interface ApiResponse<T = unknown> {
 
 /**
  * Standardized error payload returned by backend on failure.
+ *
+ * `title` and `details` are declared loosely because neither arrives in one
+ * shape. The BFF proxy answers some failures itself with a small body carrying
+ * no `title` at all, and the subscription endpoints fill `details` with a quota
+ * object rather than a sentence. Both are narrowed to a string before they
+ * reach {@link ApiError}.
  */
 export interface ApiErrorData {
   message: string;
   status: number;
-  details?: string;
+  title?: unknown;
+  details?: unknown;
   errors?: Record<string, string[]>;
-}
-
-/**
- * Custom error class for API errors with status code information.
- */
-export class ApiError extends Error {
-  status: number;
-  details?: string;
-  isAuthError: boolean;
-  isNotFound: boolean;
-  isServerError: boolean;
-  isTimeout: boolean;
-  errors?: Record<string, string[]>;
-
-  constructor(
-    message: string,
-    status: number,
-    details?: string,
-    errors?: Record<string, string[]>
-  ) {
-    super(message);
-    this.name = 'ApiError';
-    this.status = status;
-    this.details = details;
-    this.errors = errors;
-    this.isAuthError = status === 401 || status === 403;
-    this.isNotFound = status === 404;
-    this.isServerError = status >= 500;
-    this.isTimeout = false;
-  }
-
-  static timeout(message = 'Request timeout'): ApiError {
-    const error = new ApiError(message, 504);
-    error.isTimeout = true;
-    return error;
-  }
-
-  static network(message = 'Network error'): ApiError {
-    return new ApiError(message, 0);
-  }
 }
 
 /** Optional per-request settings. */
@@ -145,6 +127,12 @@ class ApiClient {
    * Handle fetch `Response` objects. Throws on non-ok responses and
    * returns parsed JSON otherwise.
    *
+   * The backend's problem body names the problem class in `title` ('Access
+   * Denied', 'Validation Failed') and writes the sentence for the caller in
+   * `message`. Both are carried onto the error: the title is what the toast
+   * heading reads, and dropping it here would leave every failure headed by
+   * whatever default the call site happened to pass.
+   *
    * @throws {ApiError} when response.ok === false
    */
   private async handleResponse<T>(response: Response): Promise<T> {
@@ -157,8 +145,9 @@ class ApiClient {
       throw new ApiError(
         errorData.message || this.getDefaultErrorMessage(response.status),
         response.status,
-        errorData.details,
-        errorData.errors
+        typeof errorData.details === 'string' ? errorData.details : undefined,
+        errorData.errors,
+        typeof errorData.title === 'string' ? errorData.title : undefined
       );
     }
 
