@@ -2,10 +2,11 @@ import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 
 /**
- * Four screens used to name who was acting in the payload they sent: an issue's
- * creator, a comment's author, a task's creator and a leave approver. The
- * backend stamps all four from the signed-in session now (echno-backend #598 /
- * PR #607) and `docs/openapi.json` no longer declares them.
+ * Six screens used to name who was acting in the payload they sent: an issue's
+ * creator, a comment's author, a task's creator, a leave approver, and the two
+ * that create an organization. The backend stamps them all from the signed-in
+ * session now (echno-backend #598 / PR #607) and `docs/openapi.json` no longer
+ * declares them.
  *
  * Every value these screens sent was the signed-in employee's own id, so
  * nothing was wrong with what went out. What the shape allowed is the reason to
@@ -38,6 +39,21 @@ const FORBIDDEN: { file: string; what: string; fragments: string[] }[] = [
   {
     file: 'app/users/dashboard/projects/all-projects/[id]/tasks/[taskId]/edit/page.tsx',
     what: 'the task edit form rewrites the creator',
+    fragments: ['creatorId'],
+  },
+  // The organization pair arrived by a different route and is worse than the
+  // four above. `OrganizationService` derives the creator from the JWT subject,
+  // so a `creatorId` in the body is an ownership claim the server is right to
+  // ignore, and honouring one would let a caller hand a colleague an
+  // organization they never made. echno-core stopped emitting it in v3.2.0.
+  {
+    file: 'app/users/onboarding/page.tsx',
+    what: 'the onboarding organization form names its creator',
+    fragments: ['creatorId'],
+  },
+  {
+    file: 'app/users/dashboard/organizations/new/page.tsx',
+    what: 'the new organization form names its creator',
     fragments: ['creatorId'],
   },
 ];
