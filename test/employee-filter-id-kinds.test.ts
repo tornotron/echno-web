@@ -49,6 +49,20 @@ function flat(path: string): string {
   return source(path).replaceAll(/\s+/g, ' ');
 }
 
+/**
+ * How many times a helper is actually *called* in a file, ignoring the import
+ * line and any mention in prose.
+ *
+ * A guard that substring-matches a name it also writes in its own comments
+ * passes whatever the code does, which is the failure mode this file exists to
+ * avoid in the app. Counting call sites is what makes the negative assertions
+ * below mean something.
+ */
+function callCount(path: string, helper: string): number {
+  const call = new RegExp(String.raw`\b${helper}\(`, 'g');
+  return [...flat(path).matchAll(call)].length;
+}
+
 const STOCK_ADJUSTMENT_DETAIL =
   'app/users/dashboard/resources/stock-adjustments/[id]/page.tsx';
 const PAYMENT_DETAIL = 'app/users/dashboard/finance/payments/[id]/page.tsx';
@@ -86,14 +100,6 @@ describe('session stamps link as user ids', () => {
 });
 
 describe('payload and picker ids link as employee ids', () => {
-  test('a payment links its payee employee as an employee', () => {
-    // The same screen carries both kinds, two cards apart, which is why it is
-    // the one most likely to acquire the wrong helper by copy.
-    expect(flat(PAYMENT_DETAIL)).toContain(
-      "employeeFilterHref( routes.finance.payments.href, payment.employeeId, 'payee' )"
-    );
-  });
-
   test('an invitation links its reporting manager as an employee', () => {
     expect(flat(INVITATION_DETAIL)).toContain(
       "employeeFilterHref( routes.workforce.employees.invitations.href, invitation.employeeDetails.managerId, 'manager' )"
@@ -105,17 +111,49 @@ describe('payload and picker ids link as employee ids', () => {
       "employeeFilterHref( `${routes.attendance.history}?tab=team`, attendance.employeeId, 'employee' )"
     );
   });
+});
 
-  test('a regularization links its approver by id, not by the name beside it', () => {
-    // approvedBy on this object is a display string. The link has to be built
-    // from approvedById, and the list already filters on that column.
+describe('two people are named but not linked, because the list cannot answer', () => {
+  /*
+   * These are the ones where the id is right and the destination is not. A link
+   * whose list cannot answer the question is worse than no link: it returns an
+   * empty or truncated set under a chip asserting it is complete, and nothing
+   * on the screen says otherwise.
+   *
+   * Both are counted rather than substring-matched. An assertion that a call is
+   * absent, checked against a file that names the helper in its own comment
+   * explaining why the call is absent, would pass no matter what the code did.
+   */
+  test('a regularization approver is not linked while the register is pending-only', () => {
+    // `getPendingRegularizations` is `findByStatus(PENDING)`, and `approvedById`
+    // is stamped by the same call that moves the row off PENDING. So the filter
+    // is empty by construction: every click would land on nothing, under a chip
+    // reading "Approved by X". echno-backend#637.
     const text = flat(REGULARIZATION_CARD);
-    expect(text).toContain(
-      "employeeFilterHref( routes.attendance.regularizations, regApprovedById, 'approver' )"
+    // The requester link on the same card stays, so this is one call, not none.
+    expect(callCount(REGULARIZATION_CARD, 'employeeFilterHref')).toBe(1);
+    expect(text).toContain("'requester'");
+    expect(text).not.toContain("'approver'");
+  });
+
+  test('a payment payee is named but not linked while the list is one page', () => {
+    // `GET /finance/construction-payments/web` returns a Spring `Page`, this
+    // client sends no size, and Spring's default is twenty. Filtering those
+    // would answer "paid to X" with whatever the first page held.
+    // echno-backend#638.
+    expect(callCount(PAYMENT_DETAIL, 'employeeFilterHref')).toBe(0);
+    // Still named rather than numbered, which needs no list behind it.
+    expect(flat(PAYMENT_DETAIL)).toContain(
+      'payeeEmployee?.name ?? employeeReferenceLabel(payment.employeeId)'
     );
-    expect(text).toContain(
-      'const regApprovedById = attendance.regularization?.approvedById;'
-    );
+  });
+
+  test('and the payments list grows no accessor for a link that is not there', () => {
+    // The pair has to move together. An accessor with no link is dead; a link
+    // with no accessor fails open, which is the worse half.
+    const text = flat('app/users/dashboard/finance/payments/page.tsx');
+    expect(text).not.toContain('payee: (p) => p.employeeId,');
+    expect(text).toContain('verifier: (p) => p.verifiedBy,');
   });
 });
 
@@ -126,19 +164,19 @@ describe('the reading lists carry an accessor for every role a link can set', ()
     ).toContain('rejecter: (a) => a.rejectedBy,');
   });
 
-  test('payments read the payee beside the verifier', () => {
-    // A link with no accessor behind it fails open: rowMatchesEmployeeFilter
-    // returns true for an unknown role, so the chip appears over an unfiltered
-    // list and reads as "everything this person did".
-    const text = flat('app/users/dashboard/finance/payments/page.tsx');
-    expect(text).toContain('verifier: (p) => p.verifiedBy,');
-    expect(text).toContain('payee: (p) => p.employeeId,');
-  });
-
-  test('invitations read the manager', () => {
-    expect(
-      flat('app/users/dashboard/workforce/employees/invitations/page.tsx')
-    ).toContain('manager: (i) => i.employeeDetails.managerId,');
+  test('invitations read the manager, and chip only on that role', () => {
+    // rowMatchesEmployeeFilter fails open for a role it has no accessor for, so
+    // another module's slug is already a no-op here. The chip is what would
+    // turn that no-op into a wrong answer, by naming a person over a list
+    // nothing narrowed.
+    const text = flat(
+      'app/users/dashboard/workforce/employees/invitations/page.tsx'
+    );
+    expect(text).toContain('manager: (i) => i.employeeDetails.managerId,');
+    expect(text).toContain(
+      "const managerFilterApplies = employeeId != null && role === 'manager';"
+    );
+    expect(text).toContain('{managerFilterApplies && filterName && (');
   });
 
   test('the team attendance history narrows before its fetch cap', () => {

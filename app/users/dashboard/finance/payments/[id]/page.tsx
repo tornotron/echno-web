@@ -36,10 +36,7 @@ import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
-import {
-  employeeFilterHref,
-  userFilterHref,
-} from '@/hooks/use-employee-filter';
+import { userFilterHref } from '@/hooks/use-employee-filter';
 import {
   employeeReferenceLabel,
   userReferenceLabel,
@@ -395,25 +392,21 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     <User className="h-5 w-5 text-green-600 dark:text-green-400" />
                     <div>
                       <p className="text-sm font-medium">Employee</p>
+                      {/*
+                        Named rather than numbered, but deliberately not a link.
+                        The id is a real employee id — the payee, set from the
+                        creation payload beside vendorId, subContractId and
+                        labourId and selected by payeeType — so the link itself
+                        would be correct. The list it would open is not:
+                        `GET /finance/construction-payments/web` returns a
+                        Spring `Page` and this client sends no page size, so it
+                        holds twenty vouchers. Filtering those would answer
+                        "paid to X" with whatever happened to be on the first
+                        page. Filed as echno-backend#638.
+                      */}
                       <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                        {/*
-                          An employee id, not a user id. It is the payee, set
-                          from the creation payload alongside vendorId,
-                          subContractId and labourId, and selected by payeeType.
-                          verifiedBy on the same screen is the opposite case: a
-                          session stamp, so it uses userFilterHref.
-                        */}
-                        <Link
-                          href={employeeFilterHref(
-                            routes.finance.payments.href,
-                            payment.employeeId,
-                            'payee'
-                          )}
-                          className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
-                        >
-                          {payeeEmployee?.name ??
-                            employeeReferenceLabel(payment.employeeId)}
-                        </Link>
+                        {payeeEmployee?.name ??
+                          employeeReferenceLabel(payment.employeeId)}
                       </p>
                     </div>
                   </div>

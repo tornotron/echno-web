@@ -34,13 +34,16 @@ export default function PaymentsPage() {
     employeeId != null && role
       ? payments.filter((r) =>
           rowMatchesEmployeeFilter(r, employeeId, role, {
-            // Two ids of different kinds on one row. `verifier` reads a user
-            // id the backend stamps from the session; `payee` reads the
-            // employee id the creation payload names. The link that sets each
-            // filter uses the matching helper, so the comparison is
-            // like-for-like either way.
+            // No `payee` accessor, deliberately. This list is one page of
+            // twenty: the endpoint returns a Spring `Page` and `usePayments`
+            // sends no size, so narrowing it answers "everything paid to X"
+            // with whatever the first page happened to hold. The payee is
+            // named rather than linked on the detail screen until
+            // echno-backend#638 gives the endpoint the parameter.
+            //
+            // `verifier` predates this and has the same flaw; it is on the
+            // same issue rather than fixed here.
             verifier: (p) => p.verifiedBy,
-            payee: (p) => p.employeeId,
           })
         )
       : payments;
