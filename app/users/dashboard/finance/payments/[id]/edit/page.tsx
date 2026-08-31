@@ -41,6 +41,11 @@ import { usePaymentById, useUpdatePayment } from '@/hooks/payments';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { getPayeesByType } from '@/lib/utils/payment-utils';
 import {
+  canEditPayment,
+  editRefusalReason,
+  settablePaymentStatuses,
+} from '@/lib/utils/payment-lifecycle';
+import {
   Save,
   X,
   CreditCard,
@@ -110,6 +115,29 @@ export default function EditPaymentPage({ params }: EditPaymentPageProps) {
         </EmptyHeader>
         <Button asChild>
           <Link href={routes.finance.payments.href}>Back to Payments</Link>
+        </Button>
+      </Empty>
+    );
+
+  // echno-backend#636 refuses the PUT on a verified voucher and on a cancelled
+  // one, so the form is withheld rather than left to fail on save. Reaching
+  // this by URL is the case that matters: the detail page already stops
+  // offering the link, and without the check here the user fills a long form in
+  // and loses all of it to a 400.
+  if (!canEditPayment(payment))
+    return (
+      <Empty variant="default">
+        <EmptyErrorMedia>
+          <CreditCard className="size-6" />
+        </EmptyErrorMedia>
+        <EmptyHeader>
+          <EmptyTitle>This payment can no longer be edited</EmptyTitle>
+          <EmptyDescription>{editRefusalReason(payment)}</EmptyDescription>
+        </EmptyHeader>
+        <Button asChild>
+          <Link href={routes.finance.payments.detail(id).href}>
+            Back to Payment
+          </Link>
         </Button>
       </Empty>
     );
@@ -396,13 +424,18 @@ function PaymentEditForm({ initialData, paymentId }: PaymentEditFormProps) {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.entries(paymentStatusLabels).map(
-                        ([value, label]) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        )
-                      )}
+                      {/*
+                        Cancelled is not among them. The update refuses that
+                        status outright and points at the cancel action, which
+                        records the reason a voided voucher has to carry, so
+                        offering it here is offering an option whose only
+                        outcome is a 400.
+                      */}
+                      {settablePaymentStatuses.map((value) => (
+                        <SelectItem key={value} value={value}>
+                          {paymentStatusLabels[value]}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
