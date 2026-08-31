@@ -41,13 +41,10 @@ import {
   useMaterialWithStock,
   useMaterials,
 } from '@tornotron/echno-core/materials/hooks';
-import { usePurchaseOrders } from '@tornotron/echno-core/purchase-orders/hooks';
 import {
   PurchaseOrderStatus,
   purchaseOrderStatusLabels,
 } from '@tornotron/echno-core/purchase-orders/types';
-import { generatePoNumber } from '@/lib/utils/document-number-utils';
-import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
 
 // ---------------------------------------------------------------------------
@@ -64,7 +61,6 @@ export interface POItemRow {
 }
 
 export interface PurchaseOrderFormState {
-  poNumber: string;
   vendorId: number;
   projectId: number;
   indentId: number;
@@ -144,19 +140,8 @@ export function PurchaseOrderForm({
   const { data: projects = [] } = useProjects();
   const { data: indents = [] } = useIndents();
   const { data: materials = [] } = useMaterials();
-  const { data: existingOrders = [] } = usePurchaseOrders();
-
-  // Derived from the orders the server already has, so it follows the list as
-  // it loads and as it is refetched. On the first render that list is still
-  // empty, which is why a value computed once and kept in state sits at the
-  // first number of the year however many orders turn up afterwards.
-  const nextPoNumber = useMemo(
-    () => generatePoNumber(existingOrders.map((po) => po.poNumber)),
-    [existingOrders]
-  );
 
   const [form, setForm] = useState<PurchaseOrderFormState>(() => ({
-    poNumber: initialValues?.poNumber ?? '',
     vendorId: initialValues?.vendorId ?? 0,
     projectId: initialValues?.projectId ?? 0,
     indentId: initialValues?.indentId ?? 0,
@@ -173,35 +158,13 @@ export function PurchaseOrderForm({
     Record<number, Record<string, string>>
   >({});
 
-  // Unlike the transfer number this field is editable, so the derived value is
-  // only pushed into state while the user has left it alone. Once they type a
-  // number of their own, or one arrives with `initialValues`, the list stops
-  // driving it.
-  const [poNumberEdited, setPoNumberEdited] = useState(
-    initialValues?.poNumber !== undefined
-  );
-  const [seededNumber, setSeededNumber] = useState<string | undefined>();
-  if (!poNumberEdited && seededNumber !== nextPoNumber) {
-    setSeededNumber(nextPoNumber);
-    setForm((prev) => ({ ...prev, poNumber: nextPoNumber }));
-  }
-
   // A purchase order is a header plus priced line items, which is as much
-  // typing as anything in the app. The PO number is left out of the draft: it
-  // is generated from the orders that already exist, and restoring yesterday's
-  // number over today's would put a duplicate in front of a vendor.
+  // typing as anything in the app.
   const draftScope = useFormDraftScope();
-  const draftValues = useMemo(
-    () => ({ fields: { ...form, poNumber: '' }, items }),
-    [form, items]
-  );
+  const draftValues = useMemo(() => ({ fields: form, items }), [form, items]);
   const applyDraft = useCallback(
     (values: { fields: PurchaseOrderFormState; items: POItemRow[] }) => {
-      setForm((prev) => ({
-        ...values.fields,
-        poNumber: prev.poNumber,
-        status: PurchaseOrderStatus.draft,
-      }));
+      setForm({ ...values.fields, status: PurchaseOrderStatus.draft });
       setItems(values.items);
     },
     []
@@ -300,9 +263,6 @@ export function PurchaseOrderForm({
     const newErrors: Record<string, string> = {};
     const newRowErrors: Record<number, Record<string, string>> = {};
 
-    const poError = required('PO number')(form.poNumber);
-    if (poError) newErrors.poNumber = poError;
-
     if (!form.vendorId) newErrors.vendorId = 'Vendor is required';
     if (!form.projectId) newErrors.projectId = 'Project is required';
 
@@ -366,24 +326,6 @@ export function PurchaseOrderForm({
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="poNumber">
-                PO Number <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="poNumber"
-                value={form.poNumber}
-                onChange={(e) => {
-                  setPoNumberEdited(true);
-                  setField('poNumber', e.target.value);
-                }}
-                className={errors.poNumber ? 'border-red-500' : ''}
-              />
-              {errors.poNumber && (
-                <p className="text-sm text-red-500">{errors.poNumber}</p>
-              )}
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="vendorId">
                 Vendor <span className="text-red-500">*</span>

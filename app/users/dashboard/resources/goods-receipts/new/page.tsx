@@ -79,7 +79,6 @@ export default function NewGRNPage() {
     }
     createGRN(
       {
-        grnNumber: data.form.grnNumber.trim(),
         receivedOn: new Date(data.form.receivedOn).toISOString(),
         receivedByEmployeeId: currentEmployee.id,
         vendorId: data.form.vendorId,

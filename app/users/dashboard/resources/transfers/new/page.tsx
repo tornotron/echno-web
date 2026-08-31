@@ -78,7 +78,6 @@ export default function NewSiteTransferPage() {
     }
     createTransfer(
       {
-        transferNumber: data.form.transferNumber.trim(),
         issueDate: new Date(data.form.issueDate).toISOString(),
         sendingPerson: currentEmployee.id,
         sendingProjectId: data.form.sendingProjectId,
