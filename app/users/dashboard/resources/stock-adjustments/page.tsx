@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
@@ -29,6 +29,7 @@ import {
 } from '@/components/shadcn/empty';
 import { useStockAdjustments } from '@/hooks/stock-adjustments';
 import { StockAdjustmentList } from '@/features/stock-adjustments/components';
+import { resolveStampName } from '@/lib/utils/user-reference';
 
 export default function StockAdjustmentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,7 +45,26 @@ export default function StockAdjustmentsPage() {
     isError,
   } = useStockAdjustments();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  // A `?userId=` link carries only the id, and there is no client-side user
+  // directory. The adjustments already loaded carry the name the backend
+  // resolved for each stamp, so the chip is worded from those rather than left
+  // as `User #<id>`.
+  const resolveUserName = useCallback(
+    (userId: number) =>
+      resolveStampName(
+        stockAdjustments.flatMap((a) => [
+          { id: a.submittedBy, name: a.submittedByName },
+          { id: a.approvedBy, name: a.approvedByName },
+          { id: a.rejectedBy, name: a.rejectedByName },
+          { id: a.processedBy, name: a.processedByName },
+        ]),
+        userId
+      ),
+    [stockAdjustments]
+  );
+
+  const { employeeId, role, name, clear } =
+    useEmployeeFilterFromParams(resolveUserName);
 
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adj) => {

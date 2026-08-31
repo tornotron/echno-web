@@ -2,7 +2,6 @@
 
 import { use } from 'react';
 import { usePaymentById } from '@/hooks/payments';
-import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
@@ -36,7 +35,8 @@ import {
 import { PageHeader } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { userFilterHref } from '@/hooks/use-employee-filter';
+import { userReferenceLabel } from '@/lib/utils/user-reference';
 import { format } from 'date-fns';
 import {
   paymentTypeLabels,
@@ -56,12 +56,6 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const { data: payment, isLoading, isError } = usePaymentById(id);
-  const { data: employees = [] } = useEmployeeLookup();
-
-  const getUserName = (userId: number): string => {
-    const employee = employees.find((e) => e.id === userId);
-    return employee?.name || `User #${userId}`;
-  };
 
   if (isLoading)
     return (
@@ -430,14 +424,14 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     <p className="text-xs text-zinc-600 dark:text-zinc-400">
                       By{' '}
                       <Link
-                        href={employeeFilterHref(
+                        href={userFilterHref(
                           routes.finance.payments.href,
                           payment.verifiedBy,
                           'verifier'
                         )}
                         className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
                       >
-                        {getUserName(payment.verifiedBy)}
+                        {userReferenceLabel(payment.verifiedBy)}
                       </Link>
                     </p>
                   </div>

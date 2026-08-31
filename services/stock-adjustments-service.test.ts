@@ -161,3 +161,71 @@ describe('parseStockAdjustment / parseLineItem', () => {
     expect(sa.lineItems[0].description).toBe('Steel');
   });
 });
+
+/**
+ * The four approval stamps are user ids, and the backend now resolves each to a
+ * name beside it. The parser has to carry the names through untouched, because
+ * the screens read the name and never the id, and because the three answers a
+ * name can hold all mean different things.
+ */
+describe('parseStockAdjustment carries the resolved stamp names', () => {
+  test('each stamp keeps the name the backend resolved for it', () => {
+    const sa = parseStockAdjustment({
+      id: 1,
+      submittedBy: 12,
+      submittedByName: 'Anand Rajashekar',
+      approvedBy: 34,
+      approvedByName: 'Aneesh Johny',
+      rejectedBy: 56,
+      rejectedByName: 'Abin Thomas',
+      processedBy: 78,
+      processedByName: 'Hrishi Kesavan',
+    });
+    expect(sa.submittedByName).toBe('Anand Rajashekar');
+    expect(sa.approvedByName).toBe('Aneesh Johny');
+    expect(sa.rejectedByName).toBe('Abin Thomas');
+    expect(sa.processedByName).toBe('Hrishi Kesavan');
+  });
+
+  // An account holding no name resolves to its email, and one that has since
+  // been deleted to the literal `User #<id>`. Both are answers, not absences,
+  // and the parser must not reinterpret either.
+  test('the email and deleted-account forms pass through unchanged', () => {
+    const sa = parseStockAdjustment({
+      id: 1,
+      submittedBy: 12,
+      submittedByName: 'qa-raiser@echno.com',
+      approvedBy: 34,
+      approvedByName: 'User #34',
+    });
+    expect(sa.submittedByName).toBe('qa-raiser@echno.com');
+    expect(sa.approvedByName).toBe('User #34');
+  });
+
+  // The name is absent exactly when its stamp is. That is what keeps "never
+  // approved" apart from "the approver's account is gone".
+  test('a name is undefined only when its stamp is', () => {
+    const sa = parseStockAdjustment({
+      id: 1,
+      submittedBy: 12,
+      submittedByName: 'Anand Rajashekar',
+    });
+    expect(sa.approvedBy).toBeUndefined();
+    expect(sa.approvedByName).toBeUndefined();
+    expect(sa.rejectedByName).toBeUndefined();
+    expect(sa.processedByName).toBeUndefined();
+  });
+
+  // physicalCountBy is an employee id from the creation payload, not a session
+  // stamp. Giving it a name from the user directory is the bug this whole
+  // change removes, just pointed the other way.
+  test('the physical-count employee id gains no user-directory name', () => {
+    const sa = parseStockAdjustment({
+      id: 1,
+      physicalCountBy: 18,
+      physicalCountByName: 'Somebody Else',
+    });
+    expect(sa.physicalCountBy).toBe(18);
+    expect(Object.keys(sa)).not.toContain('physicalCountByName');
+  });
+});
