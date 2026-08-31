@@ -66,6 +66,11 @@ function callCount(path: string, helper: string): number {
 const STOCK_ADJUSTMENT_DETAIL =
   'app/users/dashboard/resources/stock-adjustments/[id]/page.tsx';
 const PAYMENT_DETAIL = 'app/users/dashboard/finance/payments/[id]/page.tsx';
+// The voucher's stamps moved off the route page into a feature component when
+// the verify and cancel actions landed. The link is the same call; only the
+// file it sits in changed, so the guard follows it rather than being dropped.
+const PAYMENT_ATTRIBUTION =
+  'features/payments/components/payment-attribution.tsx';
 const INVITATION_DETAIL =
   'app/users/dashboard/workforce/employees/invitations/[id]/page.tsx';
 const ATTENDANCE_CARD =
@@ -93,9 +98,19 @@ describe('session stamps link as user ids', () => {
   });
 
   test('a payment voucher links its verifier as a user', () => {
-    expect(flat(PAYMENT_DETAIL)).toContain(
+    expect(flat(PAYMENT_ATTRIBUTION)).toContain(
       "userFilterHref( routes.finance.payments.href, payment.verifiedBy, 'verifier' )"
     );
+  });
+
+  test('and its raiser is named without a link, on the same one-page reason', () => {
+    // `raisedBy` is a user id like the verifier, so the link would be the right
+    // kind. The destination is the problem: the payments list is one page of
+    // twenty, so a raiser filter answers "raised by X" with whatever that page
+    // held. Same reason the payee is named and not linked. echno-backend#638.
+    const text = flat(PAYMENT_ATTRIBUTION);
+    expect(text).toContain('userStampLabel(payment.raisedByName, payment.raisedBy)');
+    expect(text).not.toContain("payment.raisedBy, 'raiser'");
   });
 });
 
@@ -142,6 +157,9 @@ describe('two people are named but not linked, because the list cannot answer', 
     // would answer "paid to X" with whatever the first page held.
     // echno-backend#638.
     expect(callCount(PAYMENT_DETAIL, 'employeeFilterHref')).toBe(0);
+    // The stamps moved to their own component; neither file may reach for the
+    // employee directory with a user id.
+    expect(callCount(PAYMENT_ATTRIBUTION, 'employeeFilterHref')).toBe(0);
     // Still named rather than numbered, which needs no list behind it.
     expect(flat(PAYMENT_DETAIL)).toContain(
       'payeeEmployee?.name ?? employeeReferenceLabel(payment.employeeId)'
