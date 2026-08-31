@@ -235,6 +235,14 @@ export function GoodsReceiptForm({
 
     if (!form.vendorId) newErrors.vendorId = 'Vendor is required';
 
+    // Both are resolved with `orElseThrow` and no null guard in
+    // `GoodsReceivedNoteService`, so a receipt without either is refused. Held
+    // here so the receiver is told which field is missing, rather than losing a
+    // filled-in document to a 404 that names no field.
+    if (!form.purchaseOrderId)
+      newErrors.purchaseOrderId = 'Purchase order is required';
+    if (!form.projectId) newErrors.projectId = 'Project is required';
+
     for (const [i, item] of items.entries()) {
       const rowErr: Record<string, string> = {};
       if (!item.materialId) rowErr.materialId = 'Select a material';
@@ -342,24 +350,21 @@ export function GoodsReceiptForm({
 
             <div className="space-y-2">
               <Label htmlFor="purchaseOrderId">
-                Purchase Order{' '}
-                <span className="text-muted-foreground text-xs">
-                  (optional)
-                </span>
+                Purchase Order <span className="text-red-500">*</span>
               </Label>
               <Select
                 value={
-                  form.purchaseOrderId ? String(form.purchaseOrderId) : 'none'
+                  form.purchaseOrderId ? String(form.purchaseOrderId) : ''
                 }
-                onValueChange={(v) =>
-                  setField('purchaseOrderId', v === 'none' ? 0 : Number(v))
-                }
+                onValueChange={(v) => setField('purchaseOrderId', Number(v))}
               >
-                <SelectTrigger id="purchaseOrderId">
-                  <SelectValue placeholder="None" />
+                <SelectTrigger
+                  id="purchaseOrderId"
+                  className={errors.purchaseOrderId ? 'border-red-500' : ''}
+                >
+                  <SelectValue placeholder="Select purchase order" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
                   {purchaseOrders.map((po) => (
                     <SelectItem key={po.id} value={String(po.id)}>
                       {po.poNumber}
@@ -367,26 +372,26 @@ export function GoodsReceiptForm({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.purchaseOrderId && (
+                <p className="text-sm text-red-500">{errors.purchaseOrderId}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="projectId">
-                Project{' '}
-                <span className="text-muted-foreground text-xs">
-                  (optional)
-                </span>
+                Project <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={form.projectId ? String(form.projectId) : 'none'}
-                onValueChange={(v) =>
-                  setField('projectId', v === 'none' ? 0 : Number(v))
-                }
+                value={form.projectId ? String(form.projectId) : ''}
+                onValueChange={(v) => setField('projectId', Number(v))}
               >
-                <SelectTrigger id="projectId">
-                  <SelectValue placeholder="None" />
+                <SelectTrigger
+                  id="projectId"
+                  className={errors.projectId ? 'border-red-500' : ''}
+                >
+                  <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
                   {projects.map((p) => (
                     <SelectItem key={p.id} value={String(p.id)}>
                       {p.projectName}
@@ -394,6 +399,9 @@ export function GoodsReceiptForm({
                   ))}
                 </SelectContent>
               </Select>
+              {errors.projectId && (
+                <p className="text-sm text-red-500">{errors.projectId}</p>
+              )}
             </div>
 
             <div className="space-y-2">
