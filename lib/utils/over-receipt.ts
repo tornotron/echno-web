@@ -1,6 +1,14 @@
 /**
- * What a purchase order still expects, and how to recognise the refusal that
- * follows from ignoring it.
+ * What a document still expects, and how to recognise the refusal that follows
+ * from ignoring it.
+ *
+ * Two backends refuse an over-receipt on the same terms and name the same
+ * payload field: the goods receipt against its purchase order
+ * (echno-backend#659), and the site transfer against what was sent
+ * (echno-backend#660). {@link isOverReceiptRefusal} and
+ * {@link overReceiptExplanation} are shared by both. The arithmetic below is
+ * the purchase order's alone, because a transfer reconciles per line against
+ * its own sent quantity rather than per material across an order's lines.
  *
  * echno-backend#659 made a goods receipt reconcile against the order it cites.
  * Two things follow for a client. A line that would take a material past the
@@ -52,7 +60,10 @@ export function orderedAgainstReceived(
   const lines = items.filter((item) => item.materialId === materialId);
   if (lines.length === 0) return undefined;
 
-  const ordered = lines.reduce((sum, line) => sum + (line.orderedQuantity || 0), 0);
+  const ordered = lines.reduce(
+    (sum, line) => sum + (line.orderedQuantity || 0),
+    0
+  );
   const received = lines.reduce(
     (sum, line) => sum + (line.receivedQuantity || 0),
     0
@@ -120,19 +131,43 @@ export function isOverReceiptRefusal(error: unknown): boolean {
 }
 
 /**
+ * Where each backend's refusal stops naming figures and starts instructing the
+ * client.
+ *
+ * Two of them, because the goods receipt and the site transfer word the
+ * instruction differently: echno-backend#659 writes "If the delivery really did
+ * exceed…", echno-backend#660 writes "If more really did arrive than was
+ * sent…". Both then go on to name a payload field.
+ *
+ * These are matched on the prose, unlike {@link isOverReceiptRefusal}, which
+ * matches on the field name. That is the right way round: recognising the
+ * refusal at all has to be reliable, so it keys on contract. Trimming the tail
+ * is presentation, and the cost of a marker going stale is an extra sentence
+ * shown, not a decision offered for the wrong reason.
+ */
+const CLIENT_INSTRUCTIONS = [
+  'If the delivery really did exceed',
+  'If more really did arrive than was sent',
+];
+
+/**
  * The refusal as it should be read to a person.
  *
- * The server's sentence names the order, the quantity ordered, the quantity
- * already received and the quantity now offered, and those figures are the
- * whole point of the refusal: they are what lets somebody recognise a typed
- * digit. Only the trailing instruction is dropped, because it tells the caller
- * to set a payload field, which is the client's job and not the receiver's.
+ * The server's sentence names the document, what was ordered or sent, what has
+ * already arrived and what is now offered, and those figures are the whole
+ * point of the refusal: they are what lets somebody recognise a typed digit.
+ * Only the trailing instruction is dropped, because it tells the caller to set
+ * a payload field, which is the client's job and not the receiver's.
  *
  * @param error - The refusal.
  * @returns The figures, with the API instruction removed.
  */
 export function overReceiptExplanation(error: unknown): string {
   const message = error instanceof ApiError ? error.message : '';
-  const instruction = message.indexOf('If the delivery really did exceed');
-  return (instruction === -1 ? message : message.slice(0, instruction)).trim();
+  const cut = CLIENT_INSTRUCTIONS.map((marker) =>
+    message.indexOf(marker)
+  ).filter((index) => index !== -1);
+  return (
+    cut.length === 0 ? message : message.slice(0, Math.min(...cut))
+  ).trim();
 }
