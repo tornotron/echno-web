@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useCallback, useState } from 'react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
@@ -26,7 +26,7 @@ import {
 import { format } from 'date-fns';
 import {
   useSiteTransfer,
-  useUpdateSiteTransferStatus,
+  useCancelSiteTransfer,
 } from '@tornotron/echno-core/site-transfers/hooks';
 import {
   SiteTransferStatus,
@@ -36,23 +36,20 @@ import {
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { toast } from '@/lib/styles/toast-styles';
 import {
-  SiteTransferConfirmDialog,
+  CancelTransferDialog,
+  ReceiveTransferDialog,
   SiteTransferItemsCard,
   SiteTransferLocationsCard,
+  TransferOverReceiptDialog,
+  TransferStatusTrail,
 } from '@/features/site-transfers/components';
-
-const nextStatus: Partial<Record<SiteTransferStatus, SiteTransferStatus>> = {
-  [SiteTransferStatus.pending]: SiteTransferStatus.partiallyTransferred,
-  [SiteTransferStatus.partiallyTransferred]: SiteTransferStatus.completed,
-};
-
-interface ConfirmState {
-  open: boolean;
-  title: string;
-  description: string;
-  variant: 'default' | 'destructive';
-  onConfirm: () => void;
-}
+import { useSiteTransferReceipt } from '@/features/site-transfers/hooks';
+import {
+  canCancel,
+  canReceive,
+  crossesProjectBoundary,
+  totalInTransit,
+} from '@/lib/inventory/site-transfer-legs';
 
 export default function SiteTransferDetailPage({
   params,
@@ -63,25 +60,21 @@ export default function SiteTransferDetailPage({
   const id = Number(rawId);
 
   const { data: transfer, isLoading } = useSiteTransfer(id);
-  const { mutate: updateStatus, isPending: isUpdating } =
-    useUpdateSiteTransferStatus();
 
-  const [confirm, setConfirm] = useState<ConfirmState>({
-    open: false,
-    title: '',
-    description: '',
-    variant: 'default',
-    onConfirm: () => {},
-  });
+  const [receiving, setReceiving] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
-  function requestConfirm(
-    title: string,
-    description: string,
-    onConfirm: () => void,
-    variant: 'default' | 'destructive' = 'default'
-  ) {
-    setConfirm({ open: true, title, description, variant, onConfirm });
-  }
+  const closeReceiveForm = useCallback(() => setReceiving(false), []);
+  const {
+    fileReceipt,
+    refusal,
+    acknowledgeOverReceipt,
+    dismissRefusal,
+    isPending: isFiling,
+  } = useSiteTransferReceipt(id, closeReceiveForm);
+
+  const { mutate: cancelTransfer, isPending: isCancelling } =
+    useCancelSiteTransfer();
 
   if (isLoading) {
     return (
@@ -115,21 +108,61 @@ export default function SiteTransferDetailPage({
     );
   }
 
-  const next = nextStatus[transfer.status];
+  const twoStep = crossesProjectBoundary(transfer);
+  const inTransit = totalInTransit(transfer);
+  const offerReceive = canReceive(transfer);
+  const offerCancel = canCancel(transfer);
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <SiteTransferConfirmDialog
-        open={confirm.open}
-        onOpenChange={(open) => setConfirm((s) => ({ ...s, open }))}
-        title={confirm.title}
-        description={confirm.description}
-        variant={confirm.variant}
-        onConfirm={() => {
-          setConfirm((s) => ({ ...s, open: false }));
-          confirm.onConfirm();
+      <ReceiveTransferDialog
+        open={receiving}
+        onOpenChange={setReceiving}
+        transfer={transfer}
+        onFile={fileReceipt}
+        isPending={isFiling}
+      />
+
+      <TransferOverReceiptDialog
+        open={refusal !== null}
+        onOpenChange={(open) => {
+          if (!open) dismissRefusal();
         }}
-        isPending={isUpdating}
+        explanation={refusal?.explanation ?? ''}
+        onAcknowledge={acknowledgeOverReceipt}
+        isPending={isFiling}
+      />
+
+      <CancelTransferDialog
+        open={cancelling}
+        onOpenChange={setCancelling}
+        returningQuantity={inTransit}
+        isPending={isCancelling}
+        onCancelTransfer={(reason) =>
+          cancelTransfer(
+            { id, cancellation: { reason } },
+            {
+              onSuccess: () => {
+                setCancelling(false);
+                toast.success('Transfer cancelled', {
+                  description:
+                    'The stock has been returned to the sending site.',
+                });
+              },
+              onError: (err) => {
+                // Left open. A refusal here usually means somebody has received
+                // against the transfer since this page loaded, and closing the
+                // dialog would take the message with it.
+                toast.error(
+                  getErrorTitle(err, 'Failed to cancel the transfer'),
+                  {
+                    description: getErrorMessage(err),
+                  }
+                );
+              },
+            }
+          )
+        }
       />
 
       {/* Header */}
@@ -147,52 +180,48 @@ export default function SiteTransferDetailPage({
         }
         actions={
           <>
-            {next && (
+            {offerReceive && (
+              <Button
+                size="sm"
+                disabled={isFiling}
+                onClick={() => setReceiving(true)}
+              >
+                Record what arrived
+              </Button>
+            )}
+            {offerCancel && (
               <Button
                 size="sm"
                 variant="outline"
-                disabled={isUpdating}
-                onClick={() =>
-                  requestConfirm(
-                    'Update Status',
-                    `Mark this transfer as "${siteTransferStatusLabels[next]}"?`,
-                    () =>
-                      updateStatus(
-                        { id, status: next },
-                        {
-                          onSuccess: () =>
-                            toast.success('Status Updated', {
-                              description:
-                                'The transfer status has been updated.',
-                            }),
-                          onError: (err) =>
-                            toast.error(
-                              getErrorTitle(err, 'Failed to Update Status'),
-                              { description: getErrorMessage(err) }
-                            ),
-                        }
-                      )
-                  )
-                }
+                disabled={isCancelling}
+                onClick={() => setCancelling(true)}
               >
-                {isUpdating && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Mark as {siteTransferStatusLabels[next]}
+                Cancel transfer
               </Button>
             )}
           </>
         }
       />
 
-      {/* Stock warning notice */}
-      <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300">
-        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-        <span>
-          Site transfers are immutable once created. Stock was decremented on
-          creation. Status updates track delivery progress.
-        </span>
-      </div>
+      {/* What the document says about where the stock is */}
+      {twoStep && inTransit > 0 && (
+        <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>
+            {transfer.status === SiteTransferStatus.pending
+              ? `${inTransit} left the sending site and has not been confirmed at the receiving one. It is counted at neither site until somebody there records what arrived.`
+              : `${inTransit} is unaccounted for: less arrived than was sent. Nothing has been written off, and it stays open until a stock adjustment naming this transfer closes it.`}
+          </span>
+        </div>
+      )}
+
+      {!twoStep && (
+        <div className="text-muted-foreground rounded-lg border p-4 text-sm">
+          A transfer between two stores on one project arrives as it is created:
+          the material never leaves that site&apos;s custody, so there is
+          nothing to confirm and nothing in transit.
+        </div>
+      )}
 
       {/* Key Metrics */}
       <Card className="gap-0 p-6">
@@ -277,6 +306,7 @@ export default function SiteTransferDetailPage({
 
       <SiteTransferItemsCard transfer={transfer} />
       <SiteTransferLocationsCard transfer={transfer} />
+      <TransferStatusTrail transferId={id} />
     </div>
   );
 }

@@ -76,13 +76,36 @@ export default function SiteTransfersPage() {
   const startIndex = (safePage - 1) * itemsPerPage;
   const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
-  const pending = transfers.filter(
-    (t) => t.status === SiteTransferStatus.pending
+  // Open means dispatched and not yet settled either way. PARTIALLY_TRANSFERRED
+  // belongs here as much as PENDING: part of its stock is still on the road.
+  const open = transfers.filter(
+    (t) =>
+      t.status === SiteTransferStatus.pending ||
+      t.status === SiteTransferStatus.partiallyTransferred
   ).length;
   const completed = transfers.filter(
     (t) => t.status === SiteTransferStatus.completed
   ).length;
-  const totalItems = transfers.reduce((sum, t) => sum + t.items.length, 0);
+
+  // Stock that has left one site and has not been recorded at another, summed
+  // across every transfer that is still open. echno-backend#660 means an
+  // organisation-wide on-hand total is now short by exactly this, which is the
+  // truth about material on a lorry but looks like an error to anybody who adds
+  // up the sites. Naming the figure is what makes the two agree. A cancelled
+  // transfer is excluded: its stock went back to the sender and is on hand
+  // there, even though its lines still report what they once had in transit.
+  let inTransit = 0;
+  for (const transfer of transfers) {
+    if (
+      transfer.status !== SiteTransferStatus.pending &&
+      transfer.status !== SiteTransferStatus.partiallyTransferred
+    ) {
+      continue;
+    }
+    for (const item of transfer.items) {
+      inTransit += item.inTransitQuantity;
+    }
+  }
 
   const hasActiveFilters =
     !!searchQuery || statusFilter !== 'all' || projectFilter !== 'all';
@@ -127,17 +150,17 @@ export default function SiteTransfersPage() {
             <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Pending</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">Open</p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-yellow-600 dark:text-yellow-400">
-                {pending}
+                {open}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
                 <Clock className="size-4 text-yellow-600 dark:text-yellow-400" />
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              in transit
+              awaiting confirmation
             </p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
@@ -158,18 +181,18 @@ export default function SiteTransfersPage() {
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Items Moved
+              In Transit
             </p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-orange-600 dark:text-orange-400">
-                {totalItems}
+                {inTransit}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-950/30">
                 <Package className="size-4 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              total line items
+              counted at neither site
             </p>
           </div>
         </div>
