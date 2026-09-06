@@ -59,6 +59,7 @@ import {
   leaveWithdrawalGate,
 } from '@/features/leave/lib/withdrawal-gate';
 import { PhoneDisplay } from '@/components/shadcn/phone-input';
+import { canActOnLeaveApproval } from '@/features/leave/lib/approval-gate';
 import {
   useLeaveRequest,
   useEmployeeRequests,
@@ -75,7 +76,6 @@ import { useManagers } from '@tornotron/echno-core/employee/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { LeaveStatus, ApprovalAction } from '@/types/leave';
 import { toast } from '@/lib/styles/toast-styles';
-import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
 import Link from 'next/link';
@@ -103,34 +103,39 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const backUrl = from ? backUrlMap[from] : null;
 
   const { data: employee } = useCurrentUserEmployee();
-  const { canApprove: hasApprovalPermission } = useLeaveRole();
   const employeeId = employee?.id || 0;
 
-  // For normal employees, fetch from their own requests list (accessible endpoint)
-  // For managers/admins, use the general request endpoint
-  const { data: adminRequest, isLoading: adminRequestLoading } =
-    useLeaveRequest(requestId, hasApprovalPermission);
+  // One read for everybody. The endpoint settles the question against the
+  // record: the employee the leave belongs to, everyone named anywhere in its
+  // approval chain, and the admins. The page used to pick the endpoint from the
+  // viewer's job title, which is how a supervisor holding a decision ended up
+  // reading a list that could never contain somebody else's request.
+  const { data: fetchedRequest, isLoading: fetchedRequestLoading } =
+    useLeaveRequest(requestId);
+
+  // Kept as a fallback for the viewer's own leave, which their own requests
+  // list can always answer for. It covers the window before the backend change
+  // that opened the read above is deployed.
   const { data: employeeRequests, isLoading: employeeRequestsLoading } =
-    useEmployeeRequests(
-      employeeId,
-      undefined,
-      undefined,
-      !hasApprovalPermission
-    );
+    useEmployeeRequests(employeeId);
   const employeeRequest = employeeRequests?.find((r) => r.id === requestId);
 
-  const request = hasApprovalPermission ? adminRequest : employeeRequest;
-  const requestLoading = hasApprovalPermission
-    ? adminRequestLoading
-    : employeeRequestsLoading;
+  const request = fetchedRequest ?? employeeRequest;
+  const requestLoading =
+    fetchedRequestLoading || (!request && employeeRequestsLoading);
 
   // Use approvals from the request object itself (available to all users)
   const approvalHistory = request?.approvals || [];
 
+  const isPending = request?.status === LeaveStatus.PENDING_APPROVAL;
+
+  // Asked of the server for every pending request, whatever the viewer's job
+  // title. The endpoint answers about the signed-in caller and is the same
+  // check the approve call itself runs, so it is the only opinion that counts.
   const { data: canApproveData } = useCanApprove(
     requestId,
     employeeId,
-    hasApprovalPermission
+    isPending
   );
 
   const [approveComments, setApproveComments] = useState('');
@@ -153,7 +158,10 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
   const { data: managers = [], isLoading: managersLoading } = useManagers();
 
   const isLoading = requestLoading;
-  const canApproveRequest = hasApprovalPermission && canApproveData?.canApprove;
+  const canApproveRequest = canActOnLeaveApproval({
+    requestIsPending: isPending,
+    serverCanApprove: canApproveData?.canApprove,
+  });
 
   const handleApprove = async () => {
     if (!request || !employeeId) return;
@@ -314,7 +322,6 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
     );
   }
 
-  const isPending = request.status === LeaveStatus.PENDING_APPROVAL;
   const isDraft = request.status === LeaveStatus.DRAFT;
   const canEdit = isDraft && request.employeeId === employeeId;
   // Cancel now covers only approved leave; a request still waiting on an
@@ -517,8 +524,8 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          {/* Approval Actions - For Approvers Only */}
-          {canApproveRequest && isPending && (
+          {/* Approval Actions - shown to whoever the server names as approver */}
+          {canApproveRequest && (
             <Card className="border-yellow-500/50 bg-yellow-500/5">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-sm font-semibold">
