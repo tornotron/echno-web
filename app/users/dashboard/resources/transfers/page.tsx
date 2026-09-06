@@ -22,6 +22,10 @@ import {
 import { useSiteTransfers } from '@tornotron/echno-core/site-transfers/hooks';
 import { TransferTable } from '@/features/site-transfers/components';
 import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
+import {
+  inTransitMeaning,
+  totalInTransit,
+} from '@/lib/inventory/site-transfer-legs';
 
 export default function SiteTransfersPage() {
   const { data: transfers = [], isLoading } = useSiteTransfers();
@@ -76,12 +80,11 @@ export default function SiteTransfersPage() {
   const startIndex = (safePage - 1) * itemsPerPage;
   const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
 
-  // Open means dispatched and not yet settled either way. PARTIALLY_TRANSFERRED
-  // belongs here as much as PENDING: part of its stock is still on the road.
+  // Open means dispatched and not yet settled either way, which is exactly the
+  // set whose in-transit quantity is still stock on a road; see
+  // `inTransitMeaning`, which the transfer page reads the same rule from.
   const open = transfers.filter(
-    (t) =>
-      t.status === SiteTransferStatus.pending ||
-      t.status === SiteTransferStatus.partiallyTransferred
+    (t) => inTransitMeaning(t) === 'on-the-lorry'
   ).length;
   const completed = transfers.filter(
     (t) => t.status === SiteTransferStatus.completed
@@ -96,15 +99,8 @@ export default function SiteTransfersPage() {
   // there, even though its lines still report what they once had in transit.
   let inTransit = 0;
   for (const transfer of transfers) {
-    if (
-      transfer.status !== SiteTransferStatus.pending &&
-      transfer.status !== SiteTransferStatus.partiallyTransferred
-    ) {
-      continue;
-    }
-    for (const item of transfer.items) {
-      inTransit += item.inTransitQuantity;
-    }
+    if (inTransitMeaning(transfer) !== 'on-the-lorry') continue;
+    inTransit += totalInTransit(transfer);
   }
 
   const hasActiveFilters =

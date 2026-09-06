@@ -76,6 +76,41 @@ export function canCancel(transfer: SiteTransfer): boolean {
 }
 
 /**
+ * How a transfer's in-transit figure should be read.
+ *
+ * The number itself never changes meaning, but what it says about the world
+ * does, and the status is the only thing that settles it:
+ *
+ * - `on-the-lorry` — the quantity has left the sending site and can still be
+ *   recorded as arriving. `PARTIALLY_TRANSFERRED` belongs here as much as
+ *   `PENDING`: {@link canReceive} accepts both, so the remainder is stock
+ *   somebody may yet confirm rather than stock nobody can account for.
+ * - `open-variance` — the transfer is `COMPLETED` and less arrived than was
+ *   sent. The sending site is down the full sent quantity, the receiving site
+ *   is up what arrived, and the difference is unaccounted for. The transfer
+ *   deliberately writes no loss movement for it, because a loss written
+ *   automatically is a stock correction nobody authorised.
+ * - `settled` — the transfer was cancelled, so its outbound leg was reversed
+ *   and the stock is back on the sending balance. The lines still report the
+ *   quantity they once had in transit; that figure is now history.
+ *
+ * @param transfer - The transfer to judge.
+ * @returns What its in-transit quantity means, ignoring whether there is any.
+ */
+export function inTransitMeaning(
+  transfer: SiteTransfer
+): 'on-the-lorry' | 'open-variance' | 'settled' {
+  if (
+    transfer.status === SiteTransferStatus.pending ||
+    transfer.status === SiteTransferStatus.partiallyTransferred
+  ) {
+    return 'on-the-lorry';
+  }
+  if (transfer.status === SiteTransferStatus.completed) return 'open-variance';
+  return 'settled';
+}
+
+/**
  * What is still on the lorry, or unaccounted for, across the whole transfer.
  *
  * @param transfer - The transfer to total.

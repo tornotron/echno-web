@@ -21,33 +21,29 @@ import {
   Package,
   CalendarDays,
   User,
-  AlertTriangle,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
 import {
-  useSiteTransfer,
-  useCancelSiteTransfer,
-} from '@tornotron/echno-core/site-transfers/hooks';
-import {
-  SiteTransferStatus,
   siteTransferStatusLabels,
   siteTransferStatusBadgeColors,
 } from '@tornotron/echno-core/site-transfers/types';
-import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
-import { toast } from '@/lib/styles/toast-styles';
 import {
   CancelTransferDialog,
   ReceiveTransferDialog,
   SiteTransferItemsCard,
   SiteTransferLocationsCard,
+  TransferInTransitNotice,
   TransferOverReceiptDialog,
   TransferStatusTrail,
 } from '@/features/site-transfers/components';
-import { useSiteTransferReceipt } from '@/features/site-transfers/hooks';
+import {
+  useSiteTransferCancellation,
+  useSiteTransferReceipt,
+} from '@/features/site-transfers/hooks';
 import {
   canCancel,
   canReceive,
-  crossesProjectBoundary,
   totalInTransit,
 } from '@/lib/inventory/site-transfer-legs';
 
@@ -62,7 +58,6 @@ export default function SiteTransferDetailPage({
   const { data: transfer, isLoading } = useSiteTransfer(id);
 
   const [receiving, setReceiving] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
 
   const closeReceiveForm = useCallback(() => setReceiving(false), []);
   const {
@@ -73,8 +68,7 @@ export default function SiteTransferDetailPage({
     isPending: isFiling,
   } = useSiteTransferReceipt(id, closeReceiveForm);
 
-  const { mutate: cancelTransfer, isPending: isCancelling } =
-    useCancelSiteTransfer();
+  const cancellation = useSiteTransferCancellation(id);
 
   if (isLoading) {
     return (
@@ -108,8 +102,6 @@ export default function SiteTransferDetailPage({
     );
   }
 
-  const twoStep = crossesProjectBoundary(transfer);
-  const inTransit = totalInTransit(transfer);
   const offerReceive = canReceive(transfer);
   const offerCancel = canCancel(transfer);
 
@@ -134,35 +126,13 @@ export default function SiteTransferDetailPage({
       />
 
       <CancelTransferDialog
-        open={cancelling}
-        onOpenChange={setCancelling}
-        returningQuantity={inTransit}
-        isPending={isCancelling}
-        onCancelTransfer={(reason) =>
-          cancelTransfer(
-            { id, cancellation: { reason } },
-            {
-              onSuccess: () => {
-                setCancelling(false);
-                toast.success('Transfer cancelled', {
-                  description:
-                    'The stock has been returned to the sending site.',
-                });
-              },
-              onError: (err) => {
-                // Left open. A refusal here usually means somebody has received
-                // against the transfer since this page loaded, and closing the
-                // dialog would take the message with it.
-                toast.error(
-                  getErrorTitle(err, 'Failed to cancel the transfer'),
-                  {
-                    description: getErrorMessage(err),
-                  }
-                );
-              },
-            }
-          )
+        open={cancellation.isOpen}
+        onOpenChange={(open) =>
+          open ? cancellation.open() : cancellation.close()
         }
+        returningQuantity={totalInTransit(transfer)}
+        isPending={cancellation.isPending}
+        onCancelTransfer={cancellation.cancelTransfer}
       />
 
       {/* Header */}
@@ -193,8 +163,8 @@ export default function SiteTransferDetailPage({
               <Button
                 size="sm"
                 variant="outline"
-                disabled={isCancelling}
-                onClick={() => setCancelling(true)}
+                disabled={cancellation.isPending}
+                onClick={cancellation.open}
               >
                 Cancel transfer
               </Button>
@@ -203,25 +173,7 @@ export default function SiteTransferDetailPage({
         }
       />
 
-      {/* What the document says about where the stock is */}
-      {twoStep && inTransit > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-orange-200 bg-orange-50 p-4 text-sm text-orange-800 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300">
-          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-          <span>
-            {transfer.status === SiteTransferStatus.pending
-              ? `${inTransit} left the sending site and has not been confirmed at the receiving one. It is counted at neither site until somebody there records what arrived.`
-              : `${inTransit} is unaccounted for: less arrived than was sent. Nothing has been written off, and it stays open until a stock adjustment naming this transfer closes it.`}
-          </span>
-        </div>
-      )}
-
-      {!twoStep && (
-        <div className="text-muted-foreground rounded-lg border p-4 text-sm">
-          A transfer between two stores on one project arrives as it is created:
-          the material never leaves that site&apos;s custody, so there is
-          nothing to confirm and nothing in transit.
-        </div>
-      )}
+      <TransferInTransitNotice transfer={transfer} />
 
       {/* Key Metrics */}
       <Card className="gap-0 p-6">

@@ -19,34 +19,28 @@ import type {
   SiteTransfer,
   SiteTransferItem,
 } from '@tornotron/echno-core/site-transfers/types';
-import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
-import { crossesProjectBoundary } from '@/lib/inventory/site-transfer-legs';
+import {
+  crossesProjectBoundary,
+  inTransitMeaning,
+} from '@/lib/inventory/site-transfer-legs';
 
 interface SiteTransferItemsCardProps {
   transfer: SiteTransfer;
 }
 
 /**
- * How a line's in-transit figure should be read.
+ * How a line's in-transit figure should be read, or `none` when the line has
+ * no quantity in transit to read.
  *
- * The same number means two different things depending on whether anybody has
- * confirmed the line yet, and echno-backend#660 turns on the difference:
- *
- * - on a transfer still open it is stock on a lorry, and nothing is wrong;
- * - once the transfer has been received it is an **open variance** — the
- *   sending site is down the full sent quantity, the receiving site is up what
- *   arrived, and the difference is unaccounted for. The transfer deliberately
- *   writes no loss movement for it, because a loss written automatically is a
- *   stock correction nobody authorised.
+ * The status decides the meaning; see {@link inTransitMeaning}, which the whole
+ * transfer's notice reads from too so the line and the summary cannot disagree.
  */
 function inTransitReading(
   transfer: SiteTransfer,
   item: SiteTransferItem
-): 'none' | 'on-the-lorry' | 'open-variance' {
+): 'none' | 'on-the-lorry' | 'open-variance' | 'settled' {
   if (item.inTransitQuantity <= 0) return 'none';
-  return transfer.status === SiteTransferStatus.pending
-    ? 'on-the-lorry'
-    : 'open-variance';
+  return inTransitMeaning(transfer);
 }
 
 /**
