@@ -26,16 +26,30 @@ const inputVariants = cva(
 );
 
 export interface InputProps
-  extends React.ComponentProps<'input'>,
-    VariantProps<typeof inputVariants> {}
+  extends React.ComponentProps<'input'>, VariantProps<typeof inputVariants> {
+  /**
+   * Let a `type="number"` field accept `+` and `-`. Off by default, because
+   * almost every numeric field here is a quantity, a cost or a threshold that
+   * cannot go below zero. Turn it on for a field whose valid range crosses
+   * zero, such as an inspection checklist bound or reading.
+   */
+  allowSigned?: boolean;
+}
 
-function Input({ className, type, variant, onKeyDown, ...props }: InputProps) {
+function Input({
+  className,
+  type,
+  variant,
+  onKeyDown,
+  allowSigned = false,
+  ...props
+}: InputProps) {
   // Number inputs accept `e`/`E`/`+`/`-` by default (exponent/sign notation);
   // guard those keys while still forwarding any caller-supplied handler.
   const handleKeyDown =
     type === 'number'
       ? (event: React.KeyboardEvent<HTMLInputElement>) => {
-          blockNonNumericKeys(event);
+          blockNonNumericKeys(event, allowSigned);
           onKeyDown?.(event);
         }
       : onKeyDown;

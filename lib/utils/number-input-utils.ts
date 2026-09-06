@@ -8,6 +8,16 @@ import type { KeyboardEvent } from 'react';
 const BLOCKED_NUMBER_KEYS = new Set(['e', 'E', '+', '-']);
 
 /**
+ * The same list without the sign characters, for fields whose valid range
+ * genuinely crosses zero. Inspection checklists are the case that needs it:
+ * a numeric element carries a `validation.min` that may be negative, so the
+ * template author has to be able to type `-5` into the bound and the
+ * inspector has to be able to answer with a negative reading. Exponent
+ * notation stays blocked, since `1e5` is never a wanted keystroke.
+ */
+const BLOCKED_EXPONENT_KEYS = new Set(['e', 'E']);
+
+/**
  * blockNonNumericKeys
  *
  * Keydown guard for numeric inputs. A native `<input type="number">` treats
@@ -19,9 +29,16 @@ const BLOCKED_NUMBER_KEYS = new Set(['e', 'E', '+', '-']);
  *
  * It only calls `preventDefault`; it never reads or rewrites the field value,
  * so numeric parsing, validation and submit handling are unaffected.
+ *
+ * Pass `allowSigned` for a field whose range crosses zero. That keeps `e`/`E`
+ * blocked and lets `+`/`-` through.
  */
-export function blockNonNumericKeys(event: KeyboardEvent<HTMLInputElement>): void {
-  if (BLOCKED_NUMBER_KEYS.has(event.key)) {
+export function blockNonNumericKeys(
+  event: KeyboardEvent<HTMLInputElement>,
+  allowSigned = false
+): void {
+  const blocked = allowSigned ? BLOCKED_EXPONENT_KEYS : BLOCKED_NUMBER_KEYS;
+  if (blocked.has(event.key)) {
     event.preventDefault();
   }
 }
