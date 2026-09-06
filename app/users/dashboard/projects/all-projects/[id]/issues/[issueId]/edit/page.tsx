@@ -32,6 +32,7 @@ import {
   IssueForm,
   type IssueFormSubmitData,
 } from '@/features/issues/components';
+import { buildUpdateIssuePayload } from '@/features/issues/issue-payload';
 
 interface PageProps {
   params: Promise<{ id: string; issueId: string }>;
@@ -61,15 +62,7 @@ export default function EditIssuePage({ params }: PageProps) {
       // this flow is verified across entity types.
       await updateMutation.mutateAsync({
         id: issue.id,
-        data: {
-          title: data.fields.title,
-          description: data.fields.description,
-          issueType: data.fields.issueType,
-          status: data.fields.status,
-          assigneeId: data.fields.assigneeId
-            ? Number(data.fields.assigneeId)
-            : undefined,
-        },
+        data: buildUpdateIssuePayload(data.fields),
       });
 
       // The record exists now, so the local draft describes work already done.

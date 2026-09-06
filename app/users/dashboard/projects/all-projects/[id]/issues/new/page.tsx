@@ -17,6 +17,7 @@ import {
   IssueForm,
   type IssueFormSubmitData,
 } from '@/features/issues/components';
+import { buildCreateIssuePayload } from '@/features/issues/issue-payload';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -37,17 +38,7 @@ export default function NewIssuePage({ params }: PageProps) {
   const isSubmitting = createMutation.isPending || directUpload.isUploading;
 
   async function handleSubmit(data: IssueFormSubmitData) {
-    const issueData = {
-      title: data.fields.title,
-      description: data.fields.description,
-      issueType: data.fields.issueType,
-      status: data.fields.status,
-      projectId: Number.parseInt(projectId),
-      taskId: data.fields.taskId ? Number(data.fields.taskId) : undefined,
-      assigneeId: data.fields.assigneeId
-        ? Number(data.fields.assigneeId)
-        : undefined,
-    };
+    const issueData = buildCreateIssuePayload(data.fields, projectId);
 
     try {
       // Create the issue JSON-only, then upload attachments direct-to-storage

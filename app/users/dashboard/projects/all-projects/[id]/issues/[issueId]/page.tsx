@@ -28,6 +28,8 @@ import {
 import {
   getIssueTypeColor,
   getIssueTypeLabel,
+  getIssuePriorityColor,
+  getIssuePriorityLabel,
 } from '@tornotron/echno-core/issue/types';
 import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import {
@@ -133,10 +135,7 @@ export default function IssueDetailPage({ params }: PageProps) {
         </EmptyHeader>
         <Button asChild>
           <Link
-            href={
-              routes.projects.allProjects.detail(projectId).issues
-                .href
-            }
+            href={routes.projects.allProjects.detail(projectId).issues.href}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Issues
@@ -165,6 +164,21 @@ export default function IssueDetailPage({ params }: PageProps) {
             >
               {getIssueTypeLabel(issue.type)}
             </Badge>
+            {/* Absent on every issue raised before the column existed, and on
+                one raised without a priority, which the backend allows. No
+                badge at all rather than a stand-in for a value nobody set. */}
+            {issue.priority && (
+              <Badge
+                variant="outline"
+                style={{
+                  backgroundColor: `${getIssuePriorityColor(issue.priority)}20`,
+                  borderColor: getIssuePriorityColor(issue.priority),
+                  color: getIssuePriorityColor(issue.priority),
+                }}
+              >
+                {getIssuePriorityLabel(issue.priority)}
+              </Badge>
+            )}
           </div>
         }
         actions={
