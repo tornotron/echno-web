@@ -10,6 +10,9 @@ export * from './attendance-approval-info-card';
 export * from './attendance-geofence-exception-card';
 export * from './attendance-metadata-card';
 
+// Approval surfaces
+export * from './attendance-approval-queue';
+
 // Existing components
 export * from './mark-attendance-form';
 export * from './movement-management';
