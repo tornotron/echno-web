@@ -7,6 +7,7 @@ import {
   isAdmin as hasAdminRole,
   isManagerOrAbove as hasManagerRole,
 } from '@tornotron/echno-core/employee/types';
+import { useAttendancePendingApprovalsCount } from '@tornotron/echno-core/attendance/hooks';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
 import { handleSignOut } from '@/lib/auth/auth-utils';
 import { Badge } from '@/components/shadcn/badge';
@@ -121,13 +122,23 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
     canApproveLeaves ? employee?.id || 0 : 0
   );
 
+  // The away-from-site attendance queue is asked for unconditionally, and the
+  // role gate above is deliberately not repeated here. That queue is served
+  // from the session and routes a held day to the named approver, who is very
+  // often a site supervisor or a foreman holding none of the management roles.
+  // Gating the count on the manager cohort would leave exactly those people
+  // with a silent sidebar over a queue waiting on them. The endpoint answers
+  // 0 for anyone with nothing, and renderBadge draws nothing on a 0.
+  const { data: attendancePendingCount } = useAttendancePendingApprovalsCount();
+
   /** Badge counts keyed by nav route id. */
   const badges = useMemo<Record<string, number | undefined>>(
     () => ({
       chat: chatUnreadCount,
       'workforce-leaves': leavePendingCount,
+      'attendance-approvals': attendancePendingCount,
     }),
-    [chatUnreadCount, leavePendingCount]
+    [chatUnreadCount, leavePendingCount, attendancePendingCount]
   );
 
   const sections = useMemo(() => {

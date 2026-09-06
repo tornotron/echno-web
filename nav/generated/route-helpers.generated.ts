@@ -16,6 +16,7 @@ export const routes = {
 
   attendance: {
     href: b('/attendance'),
+    approvals: b('/attendance/approvals'),
     history: b('/attendance/history'),
     mark: b('/attendance/mark'),
     myLeaves: {

@@ -25,6 +25,14 @@ export const ROUTE_TREE: RouteNode = {
     isCatchAll: false,
     children: [
       {
+        id: 'attendance-approvals',
+        segment: 'approvals',
+        path: '/users/dashboard/attendance/approvals',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
         id: 'attendance-history',
         segment: 'history',
         path: '/users/dashboard/attendance/history',

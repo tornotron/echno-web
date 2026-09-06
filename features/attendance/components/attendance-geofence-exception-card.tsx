@@ -6,35 +6,13 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/shadcn/card';
-import type {
-  Attendance,
-  ClockEvent,
-} from '@tornotron/echno-core/attendance/types';
+import type { Attendance } from '@tornotron/echno-core/attendance/types';
 import { getClockEventLabel } from '@tornotron/echno-core/attendance/types';
+import { geofenceExceptionEvents } from '@/features/attendance/lib/geofence-exceptions';
 import { MapPin } from 'lucide-react';
 
 interface Props {
   attendance: Attendance;
-}
-
-/**
- * The punches on this day that the employee marked from outside the site
- * boundary, in the order they were taken.
- *
- * A punch qualifies on its stored reason rather than on the verdict alone. Only
- * a self-marked punch outside the fence is asked for one, so the reason is what
- * says "this is the thing being approved", where `isWithinGeofence === false`
- * would also catch a punch nobody was asked to explain.
- */
-function geofenceExceptions(attendance: Attendance): ClockEvent[] {
-  return [
-    attendance.morningClockIn,
-    attendance.lunchBreakStart,
-    attendance.lunchBreakEnd,
-    attendance.eveningClockOut,
-  ].filter(
-    (event): event is ClockEvent => !!event?.geofenceExceptionReason
-  );
 }
 
 /**
@@ -51,7 +29,7 @@ function geofenceExceptions(attendance: Attendance): ClockEvent[] {
  * so a figure derived now is not necessarily the one that applied at the time.
  */
 export function AttendanceGeofenceExceptionCard({ attendance }: Props) {
-  const exceptions = geofenceExceptions(attendance);
+  const exceptions = geofenceExceptionEvents(attendance);
   if (exceptions.length === 0) return null;
 
   return (
