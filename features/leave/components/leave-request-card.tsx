@@ -221,7 +221,7 @@ export function LeaveRequestCard({
                     onClick={(e) => {
                       e.stopPropagation();
                       router.push(
-                        `${routes.workforce.leaves.manage.requests.new}?edit=${request.id}`
+                        `${routes.attendance.myLeaves.apply}?edit=${request.id}`
                       );
                     }}
                   >

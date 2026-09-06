@@ -317,7 +317,11 @@ export function applyBreadcrumbOverrides(
   }
 
   // 4. Leave apply in edit mode — relabel "Apply for Leave" → "Edit Leave Request"
-  const isLeaveApplyPage = pathname.endsWith('/workforce/leaves/apply');
+  //
+  // The suffix matched here has to be the live route. It named
+  // `/workforce/leaves/apply`, a path this app has never served, so the
+  // relabel never fired and an edit read as a fresh application.
+  const isLeaveApplyPage = pathname.endsWith('/attendance/my-leaves/apply');
   if (isLeaveApplyPage && editParam) {
     const applyIndex = items.findIndex(
       (item) => item.label === 'Apply for Leave'

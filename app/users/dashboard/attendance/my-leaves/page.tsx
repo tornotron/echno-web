@@ -1,17 +1,16 @@
 /**
- * app/users/dashboard/workforce/my-leaves/page.tsx
+ * app/users/dashboard/attendance/my-leaves/page.tsx
  *
  * The employee-facing entry point for leave.
  *
- * Workforce previously offered a single "Employee Leave" link, and despite the
- * name it opened the organisation-wide analytics page. The self-service surface
- * existed but sat two levels below it, past the sidebar's two-level render
- * ceiling, so an employee had no way to reach their own balance or requests
- * from the navigation.
+ * It sits under My Attendance because that is where a site engineer looks for
+ * anything about their own time: the days they worked and the days they took
+ * off. It used to sit under Workforce, alongside the organisation-wide leave
+ * admin, which put a personal request next to the approvals queue.
  *
- * This route is that surface, on its own top-level link. It is deliberately
- * fixed to the employee view: no role switcher, no organisation totals, no
- * approvals queue. Managers and admins keep their own entry alongside it.
+ * The page is deliberately fixed to the employee view: no role switcher, no
+ * organisation totals, no approvals queue. Managers and admins keep their own
+ * entry under Workforce.
  */
 
 'use client';

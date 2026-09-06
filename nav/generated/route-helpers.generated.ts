@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-30
+ * Generated: 2026-09-06
  */
 
 const BASE = '/users/dashboard';
@@ -18,6 +18,10 @@ export const routes = {
     href: b('/attendance'),
     history: b('/attendance/history'),
     mark: b('/attendance/mark'),
+    myLeaves: {
+      href: b('/attendance/my-leaves'),
+      apply: b('/attendance/my-leaves/apply'),
+    },
     regularizations: b('/attendance/regularizations'),
     settings: b('/attendance/settings'),
     detail: (id: string | number) => ({ href: b(`/attendance/${id}`) }),
@@ -262,12 +266,10 @@ export const routes = {
         policies: b('/workforce/leaves/manage/policies'),
         requests: {
           href: b('/workforce/leaves/manage/requests'),
-          new: b('/workforce/leaves/manage/requests/new'),
           detail: (id: string | number) => ({ href: b(`/workforce/leaves/manage/requests/${id}`) }),
         },
       },
     },
-    myLeaves: b('/workforce/my-leaves'),
   },
 } as const;
 

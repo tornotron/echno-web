@@ -266,7 +266,7 @@ export function EmployeeDashboard() {
                   </p>
                   <Button
                     onClick={() =>
-                      router.push(routes.workforce.leaves.manage.requests.new)
+                      router.push(routes.attendance.myLeaves.apply)
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -295,7 +295,7 @@ export function EmployeeDashboard() {
                 variant="outline"
                 className="w-full justify-start"
                 onClick={() =>
-                  router.push(routes.workforce.leaves.manage.requests.new)
+                  router.push(routes.attendance.myLeaves.apply)
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />

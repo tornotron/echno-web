@@ -95,7 +95,7 @@ describe('applyBreadcrumbOverrides', () => {
     ];
     applyBreadcrumbOverrides(
       items,
-      '/dashboard/workforce/leaves/apply',
+      '/users/dashboard/attendance/my-leaves/apply',
       new URLSearchParams('edit=42')
     );
     expect(items[0].label).toBe('Edit Leave Request');
@@ -108,7 +108,7 @@ describe('applyBreadcrumbOverrides', () => {
     ];
     applyBreadcrumbOverrides(
       items,
-      '/dashboard/workforce/leaves/apply',
+      '/users/dashboard/attendance/my-leaves/apply',
       new URLSearchParams('')
     );
     expect(items[0].label).toBe('Apply for Leave');
