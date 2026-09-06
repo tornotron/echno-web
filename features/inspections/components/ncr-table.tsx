@@ -3,15 +3,15 @@
 import { useMemo, useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { Card } from '@/components/shadcn/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import {
   Empty,
   EmptyDescription,
   EmptyMedia,
   EmptyTitle,
-} from '@/components/ui/empty';
+} from '@/components/shadcn/empty';
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/shadcn/table';
 import { type Ncr, ncrTypeLabels } from '@/types/inspection';
 import {
   NcrDueDate,

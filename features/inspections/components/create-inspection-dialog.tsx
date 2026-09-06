@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/shadcn/button';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
 import {
   Dialog,
   DialogContent,
@@ -15,14 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { useCreateInspection } from '@/hooks/inspection';
 import { InspectionType, inspectionTypeLabels } from '@/types/inspection';
 

@@ -15,11 +15,11 @@
  */
 
 import { Plus, Trash2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/shadcn/button';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Textarea } from '@/components/shadcn/textarea';
+import { Switch } from '@/components/shadcn/switch';
 import type { ChecklistElement, ElementOption } from '@/types/inspection';
 import type { ElementPropertiesProps } from './types';
 
@@ -138,6 +138,7 @@ export function NumericValidation({
         <Input
           id="prop-min"
           type="number"
+          allowSigned
           value={validation.min ?? ''}
           onChange={(event) => patch('min', event.target.value)}
         />
@@ -146,6 +147,7 @@ export function NumericValidation({
         <Input
           id="prop-max"
           type="number"
+          allowSigned
           value={validation.max ?? ''}
           onChange={(event) => patch('max', event.target.value)}
         />

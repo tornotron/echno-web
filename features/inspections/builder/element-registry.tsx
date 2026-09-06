@@ -31,8 +31,8 @@ import {
   ToggleLeft,
   Rows3,
 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/shadcn/switch';
+import { Label } from '@/components/shadcn/label';
 import type {
   ChecklistElement,
   ElementGroup,

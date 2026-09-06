@@ -1,6 +1,6 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 
 export function ReloadButton({ label = 'Reload Page' }: { label?: string }) {
   return (

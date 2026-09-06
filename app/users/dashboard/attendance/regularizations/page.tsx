@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { PageHeader } from '@/components/common';
 import { FileEdit } from 'lucide-react';
 import { useAttendanceRole } from '@/hooks/attendance';

@@ -10,10 +10,10 @@
 
 import { useState } from 'react';
 import { ShieldAlert } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { Card } from '@/components/shadcn/card';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/shadcn/separator';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import { useNcrsByInspection } from '@/hooks/inspection';
 import type { Ncr } from '@/types/inspection';
 import {

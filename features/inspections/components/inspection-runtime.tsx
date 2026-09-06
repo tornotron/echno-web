@@ -16,17 +16,17 @@ import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { PageHeader } from '@/components/common';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
+import { Card } from '@/components/shadcn/card';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Progress } from '@/components/shadcn/progress';
+import { Separator } from '@/components/shadcn/separator';
+import { Skeleton } from '@/components/shadcn/skeleton';
+import { Textarea } from '@/components/shadcn/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/shadcn/toggle-group';
 import { cn } from '@/lib/utils/index';
 import { toast } from '@/lib/styles/toast-styles';
 import { useInspectionById, useUpdateInspection } from '@/hooks/inspection';
@@ -273,9 +273,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
       { id: inspection.id, req: request },
       {
         onSuccess: () => {
-          toast.success(
-            conclude ? 'Inspection completed' : 'Progress saved'
-          );
+          toast.success(conclude ? 'Inspection completed' : 'Progress saved');
         },
         onError: (error) => {
           toast.error(getErrorTitle(error, 'Could not save the inspection'), {
@@ -341,18 +339,14 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
 
       <Card className="gap-0 p-0">
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 p-5 sm:grid-cols-4">
-          <Meta label="Project">
-            {project?.projectName ?? 'Not assigned'}
-          </Meta>
+          <Meta label="Project">{project?.projectName ?? 'Not assigned'}</Meta>
           <Meta label="Inspector">{inspector?.name ?? 'Not assigned'}</Meta>
           <Meta label="Scheduled">
             {inspection.scheduledDate
               ? format(new Date(inspection.scheduledDate), 'dd MMM yyyy')
               : 'Not scheduled'}
           </Meta>
-          <Meta label="Location">
-            {inspection.location ?? 'Not specified'}
-          </Meta>
+          <Meta label="Location">{inspection.location ?? 'Not specified'}</Meta>
         </dl>
         <Separator />
         <div className="flex flex-wrap items-center gap-3 px-5 py-3">
@@ -381,7 +375,9 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
           </div>
           <Progress
             value={
-              items.length === 0 ? 0 : Math.round((answered / items.length) * 100)
+              items.length === 0
+                ? 0
+                : Math.round((answered / items.length) * 100)
             }
           />
         </div>
@@ -402,7 +398,8 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
         <Alert variant="destructive">
           <AlertCircle className="size-4" />
           <AlertTitle>
-            {errorCount} {errorCount === 1 ? 'check point needs' : 'check points need'}{' '}
+            {errorCount}{' '}
+            {errorCount === 1 ? 'check point needs' : 'check points need'}{' '}
             attention
           </AlertTitle>
           <AlertDescription>
@@ -571,9 +568,7 @@ function CheckRow({
             </p>
           )}
           <div className="flex flex-wrap items-center gap-1.5">
-            {item.priority && (
-              <Badge variant="outline">{item.priority}</Badge>
-            )}
+            {item.priority && <Badge variant="outline">{item.priority}</Badge>}
             {item.photosRequired && (
               <Badge variant="secondary">Photo evidence required</Badge>
             )}

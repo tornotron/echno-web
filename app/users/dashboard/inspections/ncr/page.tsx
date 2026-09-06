@@ -10,15 +10,15 @@ import {
 } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { ActiveFilterChip, PageHeader } from '@/components/common';
-import { Card } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Card } from '@/components/shadcn/card';
+import { Label } from '@/components/shadcn/label';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { useInspections, useNcrs } from '@/hooks/inspection';
 import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import type { NcrListParams } from '@tornotron/echno-core/ncr/services';

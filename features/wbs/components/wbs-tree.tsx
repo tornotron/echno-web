@@ -34,7 +34,7 @@ import {
 } from '@/components/shadcn/avatar';
 import { employeeInitials } from '@/components/shared/employee-avatar';
 import { getAvatarColor } from '@/lib/utils/user-profile-utils';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/shadcn/scroll-area';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

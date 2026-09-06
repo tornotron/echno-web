@@ -3,10 +3,10 @@
 import { useCallback } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { Copy, GripVertical, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
-import { Separator } from '@/components/ui/separator';
+import { Separator } from '@/components/shadcn/separator';
 import { cn } from '@/lib/utils/index';
 import type { ChecklistElement, ChecklistSchema } from '@/types/inspection';
 import { definitionFor } from '../../builder/element-registry';

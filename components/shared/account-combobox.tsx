@@ -14,7 +14,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from '@/components/shadcn/popover';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils/index';
 import type { AccountTreeNode } from '@tornotron/echno-core/finance/types';
