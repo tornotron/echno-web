@@ -6,11 +6,7 @@ import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader, ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import {
   Plus,
   Loader2,
@@ -26,7 +22,13 @@ import { PurchaseOrderStatus } from '@tornotron/echno-core/purchase-orders/types
 export default function PurchaseOrdersPage() {
   const { data: orders = [], isLoading } = usePurchaseOrders();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const { chip, matches: matchesEmployeeFilter } =
+    useEmployeeFilterFromParams({
+      rows: orders,
+      roles: {
+      creator: (p) => p.createdBy?.id,
+      },
+    });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -46,17 +48,18 @@ export default function PurchaseOrdersPage() {
         statusFilter === 'all' || po.status === statusFilter;
       const matchesProject =
         projectFilter === 'all' || po.projectName === projectFilter;
-      const matchesEmployee =
-        employeeId == null ||
-        role == null ||
-        rowMatchesEmployeeFilter(po, employeeId, role, {
-          creator: (p) => p.createdBy?.id,
-        });
+      const matchesEmployee = matchesEmployeeFilter(po);
       return (
         matchesSearch && matchesStatus && matchesProject && matchesEmployee
       );
     });
-  }, [orders, searchQuery, statusFilter, projectFilter, employeeId, role]);
+  }, [
+    orders,
+    searchQuery,
+    statusFilter,
+    projectFilter,
+    matchesEmployeeFilter,
+  ]);
 
   const projectOptions = useMemo(() => {
     const names = new Set<string>();
@@ -171,13 +174,7 @@ export default function PurchaseOrdersPage() {
         </div>
       </Card>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <PurchaseOrderTable
         paginated={paginated}

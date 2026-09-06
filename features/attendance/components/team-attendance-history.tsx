@@ -4,10 +4,7 @@ import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueries } from '@tanstack/react-query';
 import { ActiveFilterChip, Pagination } from '@/components/common';
-import {
-  ROLE_LABELS,
-  useEmployeeFilterFromParams,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -105,12 +102,12 @@ export function TeamAttendanceHistory({
   // The ?employeeId= deep link an attendance record's employee name sets. It is
   // an id rather than a name, so unlike ?search= it cannot match the wrong
   // person, and it narrows the fetch rather than the fetched rows.
-  const {
-    employeeId: filterEmployeeId,
-    role: filterRole,
-    name: filterName,
-    clear: clearEmployeeFilter,
-  } = useEmployeeFilterFromParams();
+  // Declared with no accessor: this screen narrows the employee set it fetches
+  // for, not rows it already holds, so there is nothing here to test a row
+  // against. Declaring the role is still what earns the chip.
+  const { employeeId: filterEmployeeId, chip } = useEmployeeFilterFromParams({
+    roles: { employee: {} },
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
 
@@ -151,16 +148,14 @@ export function TeamAttendanceHistory({
   // another module, and honouring it here would answer a question nobody asked;
   // showing a chip for it would be worse, since the chip would name a person the
   // list was never narrowed to. So one predicate decides both.
-  const employeeFilterApplies =
-    filterEmployeeId != null && filterRole === 'employee';
-
   // Narrowing happens before the cap, and that ordering is the whole point.
   // The fetch is one request per employee capped at MAX_PARALLEL_EMPLOYEES, so
   // filtering the rows afterwards would silently return nothing for anybody who
   // fell outside the first fifty, while the screen still read as an answer.
-  const scopedEmployees = employeeFilterApplies
-    ? targetEmployees.filter((e) => e.id === filterEmployeeId)
-    : targetEmployees;
+  const scopedEmployees =
+    filterEmployeeId == null
+      ? targetEmployees
+      : targetEmployees.filter((e) => e.id === filterEmployeeId);
 
   const isCapped = scopedEmployees.length > MAX_PARALLEL_EMPLOYEES;
   const fetchEmployees = isCapped
@@ -259,13 +254,7 @@ export function TeamAttendanceHistory({
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4 sm:space-y-6">
-      {employeeFilterApplies && filterName && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[filterRole ?? ''] ?? 'Filtered by'}
-          name={filterName}
-          onDismiss={clearEmployeeFilter}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       {isCapped && (
         <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-900/20">

@@ -6,11 +6,7 @@ import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader, ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import {
   Plus,
   Loader2,
@@ -26,7 +22,13 @@ import { useAllMaterialConsumptions } from '@tornotron/echno-core/material-consu
 export default function MaterialConsumptionsPage() {
   const { data: consumptions = [], isLoading } = useAllMaterialConsumptions();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const { chip, matches: matchesEmployeeFilter } =
+    useEmployeeFilterFromParams({
+      rows: consumptions,
+      roles: {
+      creator: (row) => row.createdBy?.id,
+      },
+    });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<ConsumptionType | 'all'>('all');
@@ -47,15 +49,16 @@ export default function MaterialConsumptionsPage() {
         typeFilter === 'all' || c.consumptionType === typeFilter;
       const matchesProject =
         projectFilter === 'all' || c.projectName === projectFilter;
-      const matchesEmployee =
-        employeeId == null ||
-        role == null ||
-        rowMatchesEmployeeFilter(c, employeeId, role, {
-          creator: (row) => row.createdBy?.id,
-        });
+      const matchesEmployee = matchesEmployeeFilter(c);
       return matchesSearch && matchesType && matchesProject && matchesEmployee;
     });
-  }, [consumptions, searchQuery, typeFilter, projectFilter, employeeId, role]);
+  }, [
+    consumptions,
+    searchQuery,
+    typeFilter,
+    projectFilter,
+    matchesEmployeeFilter,
+  ]);
 
   const projectOptions = useMemo(() => {
     const names = new Set<string>();
@@ -173,13 +176,7 @@ export default function MaterialConsumptionsPage() {
         </div>
       </Card>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <ConsumptionTable
         paginated={paginated}

@@ -6,11 +6,7 @@ import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
 import { PageHeader, ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import {
   Settings,
   Plus,
@@ -63,8 +59,16 @@ export default function StockAdjustmentsPage() {
     [stockAdjustments]
   );
 
-  const { employeeId, role, name, clear } =
-    useEmployeeFilterFromParams(resolveUserName);
+  const { chip, matches: matchesEmployeeFilter } =
+    useEmployeeFilterFromParams({
+      rows: stockAdjustments,
+      resolveUserName,
+      roles: {
+        submitter: (a) => a.submittedBy,
+        approver: (a) => a.approvedBy,
+        rejecter: (a) => a.rejectedBy,
+      },
+    });
 
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adj) => {
@@ -81,14 +85,7 @@ export default function StockAdjustmentsPage() {
         statusFilter === 'all' || adj.status === statusFilter;
       const matchesReason =
         reasonFilter === 'all' || adj.primaryReason === reasonFilter;
-      const matchesEmployee =
-        employeeId == null ||
-        role == null ||
-        rowMatchesEmployeeFilter(adj, employeeId, role, {
-          submitter: (a) => a.submittedBy,
-          approver: (a) => a.approvedBy,
-          rejecter: (a) => a.rejectedBy,
-        });
+      const matchesEmployee = matchesEmployeeFilter(adj);
       return (
         matchesSearch &&
         matchesType &&
@@ -103,8 +100,7 @@ export default function StockAdjustmentsPage() {
     typeFilter,
     statusFilter,
     reasonFilter,
-    employeeId,
-    role,
+    matchesEmployeeFilter,
   ]);
 
   const totalPages = Math.ceil(filteredAdjustments.length / itemsPerPage);
@@ -243,13 +239,7 @@ export default function StockAdjustmentsPage() {
         </div>
       </Card>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <StockAdjustmentList
         paginated={paginated}

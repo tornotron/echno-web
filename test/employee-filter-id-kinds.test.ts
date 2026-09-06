@@ -182,19 +182,13 @@ describe('the reading lists carry an accessor for every role a link can set', ()
     ).toContain('rejecter: (a) => a.rejectedBy,');
   });
 
-  test('invitations read the manager, and chip only on that role', () => {
-    // rowMatchesEmployeeFilter fails open for a role it has no accessor for, so
-    // another module's slug is already a no-op here. The chip is what would
-    // turn that no-op into a wrong answer, by naming a person over a list
-    // nothing narrowed.
+  test('invitations read the manager', () => {
     const text = flat(
       'app/users/dashboard/workforce/employees/invitations/page.tsx'
     );
-    expect(text).toContain('manager: (i) => i.employeeDetails.managerId,');
     expect(text).toContain(
-      "const managerFilterApplies = employeeId != null && role === 'manager';"
+      'roles: { manager: (i) => i.employeeDetails.managerId },'
     );
-    expect(text).toContain('{managerFilterApplies && filterName && (');
   });
 
   test('the team attendance history narrows before its fetch cap', () => {
@@ -205,22 +199,70 @@ describe('the reading lists carry an accessor for every role a link can set', ()
       'features/attendance/components/team-attendance-history.tsx'
     );
     expect(text).toContain(
-      'const scopedEmployees = employeeFilterApplies ? targetEmployees.filter((e) => e.id === filterEmployeeId) : targetEmployees;'
+      'const scopedEmployees = filterEmployeeId == null ? targetEmployees : targetEmployees.filter((e) => e.id === filterEmployeeId);'
     );
     expect(text).toContain(
       'const isCapped = scopedEmployees.length > MAX_PARALLEL_EMPLOYEES;'
     );
   });
+});
 
-  test('and shows its chip only for the role it actually applies', () => {
-    // One predicate decides both, so a link carrying another module's role
-    // cannot produce a chip naming somebody the list was never narrowed to.
-    const text = flat(
-      'features/attendance/components/team-attendance-history.tsx'
+/**
+ * The chip is derived, not hand-guarded.
+ *
+ * Sixteen pages used to decide for themselves when to show it, on a condition
+ * looser than the one that narrowed, and the seventeenth copy would have drifted
+ * the same way. `useEmployeeFilterFromParams` now returns the chip's props, or
+ * `null`, from the same `roles` map the narrowing comes from. This is the guard
+ * against a page going back to writing its own condition: the props may only be
+ * spread in, never assembled at the call site.
+ */
+describe('no page builds its own chip condition', () => {
+  const CHIP_CALL_SITES = [
+    'app/users/dashboard/finance/expenses/page.tsx',
+    'app/users/dashboard/finance/invoices/page.tsx',
+    'app/users/dashboard/finance/payments/page.tsx',
+    'app/users/dashboard/finance/receipts/page.tsx',
+    'app/users/dashboard/inspections/page.tsx',
+    'app/users/dashboard/inspections/ncr/page.tsx',
+    'app/users/dashboard/projects/all-issues/page.tsx',
+    'app/users/dashboard/projects/all-tasks/page.tsx',
+    'app/users/dashboard/resources/assets/page.tsx',
+    'app/users/dashboard/resources/goods-receipts/page.tsx',
+    'app/users/dashboard/resources/indents/page.tsx',
+    'app/users/dashboard/resources/material-consumptions/page.tsx',
+    'app/users/dashboard/resources/purchase-orders/page.tsx',
+    'app/users/dashboard/resources/stock-adjustments/page.tsx',
+    'app/users/dashboard/resources/transfers/page.tsx',
+    'app/users/dashboard/workforce/employees/invitations/page.tsx',
+    'features/attendance/components/regularization-management.tsx',
+    'features/attendance/components/team-attendance-history.tsx',
+    'features/leave/components/leave-requests-tabs/all-requests-tab.tsx',
+  ];
+
+  test('every list page spreads the chip the hook handed it', () => {
+    const assembled = CHIP_CALL_SITES.filter(
+      (path) => !flat(path).includes('<ActiveFilterChip {...')
     );
-    expect(text).toContain(
-      "const employeeFilterApplies = filterEmployeeId != null && filterRole === 'employee';"
+    expect(assembled).toEqual([]);
+  });
+
+  test('and none of them still writes a label or a name onto it', () => {
+    // `label=` and `name=` on the chip are how the old condition was spelled;
+    // the hook words both now, from the role it agreed to narrow on.
+    const handWritten = CHIP_CALL_SITES.filter((path) =>
+      /<ActiveFilterChip[^>]*\b(label|name)=/.test(flat(path))
     );
-    expect(text).toContain('{employeeFilterApplies && filterName && (');
+    expect(handWritten).toEqual([]);
+  });
+
+  test('and the fail-open row matcher is gone rather than left to be copied', () => {
+    // `rowMatchesEmployeeFilter` matched everything for a role it had no
+    // accessor for. That was survivable on its own; paired with a chip rendered
+    // on a looser condition it stated the opposite of the truth. Deleting it is
+    // what stops the pair being reassembled.
+    expect(flat('hooks/use-employee-filter.ts')).not.toContain(
+      'export function rowMatchesEmployeeFilter'
+    );
   });
 });

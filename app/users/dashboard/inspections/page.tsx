@@ -16,11 +16,7 @@ import {
   SearchAndFilter,
   ActiveFilterChip,
 } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import {
   Select,
   SelectContent,
@@ -91,7 +87,11 @@ export default function InspectionsPage() {
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployeeLookup();
   const { data: inspections = [] } = useInspections();
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
+  const { chip, matches: matchesEmployeeFilter } =
+    useEmployeeFilterFromParams({
+      rows: inspections,
+      roles: { inspector: (i) => i.inspectorId },
+    });
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -132,12 +132,7 @@ export default function InspectionsPage() {
         resultFilter === 'all' || inspection.result === resultFilter;
       const matchesProject =
         projectFilter === 'all' || inspection.projectId === projectFilter;
-      const matchesEmployee =
-        employeeId == null ||
-        role == null ||
-        rowMatchesEmployeeFilter(inspection, employeeId, role, {
-          inspector: (i) => i.inspectorId,
-        });
+      const matchesEmployee = matchesEmployeeFilter(inspection);
 
       return (
         matchesSearch &&
@@ -157,8 +152,7 @@ export default function InspectionsPage() {
     typeFilter,
     resultFilter,
     projectFilter,
-    employeeId,
-    role,
+    matchesEmployeeFilter,
   ]);
 
   // Pagination
@@ -276,13 +270,7 @@ export default function InspectionsPage() {
         </Card>
       </div>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       {/* Filters */}
       <SearchAndFilter
