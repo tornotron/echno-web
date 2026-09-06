@@ -23,7 +23,7 @@ import type {
   Material,
   MaterialConsumption,
 } from '@tornotron/echno-core/materials/types';
-import { useMaterialCatalogueSize } from '@/features/materials/hooks/use-material-catalogue-size';
+import { useMaterialsSummary } from '@/features/materials/hooks/use-materials-summary';
 
 interface MaterialsKpiStripProps {
   materials: Material[];
@@ -57,39 +57,41 @@ export function MaterialsKpiStrip({
   materials,
   consumptions,
 }: MaterialsKpiStripProps) {
-  // How many materials there are is a question only the server can answer.
-  // `materials` comes from GET /materials/web, which stops at 500 rows and
-  // reports the cut in a header the API proxy does not forward, so its
-  // length is the catalogue's size only while the catalogue is smaller
-  // than the cap.
-  const { total, holdsWholeCatalogue, isLoading } = useMaterialCatalogueSize(
-    materials.length
-  );
+  // All three figures below are the server's, totalled in the database
+  // over the whole organization. None of them can be worked out from
+  // `materials`: that array is GET /materials/web, which stops at 500 rows
+  // and reports the cut in a header the API proxy does not forward, so a
+  // sum over it is the value of 500 materials however large the catalogue
+  // is and a set of its units counts only what those 500 are held in.
+  // Both fail short, which is the direction nobody checks.
+  const {
+    materialCount,
+    distinctUnits,
+    totalStockValue,
+    unvaluedHoldingCount,
+    holdsWholeCatalogue,
+    isLoading,
+  } = useMaterialsSummary(materials.length);
 
-  // Both figures below are sums and sets over the loaded rows, and there
-  // is no server-side aggregate to replace them with yet (echno-backend
-  // #673). They are the organization's totals exactly when the rows are
-  // the whole catalogue, so that is when they are shown. A partial sum
-  // presented as "current inventory value" is a money figure that will be
-  // quoted, and it fails short with nothing on screen to say so.
-  const totalStockValue = materials.reduce(
-    (s, m) => s + (m.stockValue ?? 0),
-    0
-  );
-  const uniqueUnits = new Set(materials.map((m) => m.unit).filter(Boolean))
-    .size;
-
-  // One sentence, used by both gated tiles, saying why a figure is absent.
-  function notATotalBecause(): string {
-    if (isLoading) return 'counting the catalogue';
-    if (total === undefined) return 'not shown: the catalogue size is unknown';
-    return `not shown: ${materials.length} of ${total} materials loaded`;
+  // One sentence for every tile whose figure has not arrived. Falling back
+  // to a browser sum here would put back exactly the number the server was
+  // asked to replace.
+  function unavailableCaption(): string {
+    return isLoading ? 'totalling the catalogue' : 'totals unavailable';
   }
 
-  function catalogueCaption(): string {
-    if (isLoading) return 'counting the catalogue';
-    if (total === undefined) return 'count unavailable';
-    return 'across all categories';
+  // What the stock value leaves out, when it leaves anything out. Stock
+  // received with no unit cost adds quantity at no value, so those
+  // holdings sit in the total at the zero they hold and the total
+  // understates by whatever they are worth.
+  function stockValueCaption(): string {
+    if (totalStockValue === undefined) return unavailableCaption();
+    if (unvaluedHoldingCount === undefined || unvaluedHoldingCount === 0) {
+      return 'current inventory value';
+    }
+    return unvaluedHoldingCount === 1
+      ? 'excludes 1 unpriced holding'
+      : `excludes ${unvaluedHoldingCount} unpriced holdings`;
   }
 
   const compositionData = useMemo(() => {
@@ -137,14 +139,16 @@ export function MaterialsKpiStrip({
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-              {total ?? '—'}
+              {materialCount ?? '—'}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
               <Layers className="size-4 text-zinc-600 dark:text-zinc-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            {catalogueCaption()}
+            {materialCount === undefined
+              ? unavailableCaption()
+              : 'across all categories'}
           </p>
         </div>
 
@@ -155,18 +159,16 @@ export function MaterialsKpiStrip({
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-              {holdsWholeCatalogue && totalStockValue > 0
-                ? formatStockValue(totalStockValue)
-                : '—'}
+              {totalStockValue === undefined
+                ? '—'
+                : formatStockValue(totalStockValue)}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
               <WarehouseIcon className="size-4 text-blue-600 dark:text-blue-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            {holdsWholeCatalogue
-              ? 'current inventory value'
-              : notATotalBecause()}
+            {stockValueCaption()}
           </p>
         </div>
 
@@ -177,14 +179,16 @@ export function MaterialsKpiStrip({
           </p>
           <div className="flex items-center justify-between">
             <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
-              {holdsWholeCatalogue ? uniqueUnits : '—'}
+              {distinctUnits ?? '—'}
             </p>
             <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
               <Ruler className="size-4 text-green-600 dark:text-green-400" />
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            {holdsWholeCatalogue ? 'material unit types' : notATotalBecause()}
+            {distinctUnits === undefined
+              ? unavailableCaption()
+              : 'material unit types'}
           </p>
         </div>
 
