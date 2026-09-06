@@ -47,7 +47,6 @@ describe('count endpoints default to zero', () => {
     expect(lastGetEndpoint()).toBe(
       '/leave-requests/web/pending-approvals/count'
     );
-    expect(lastGetParams()).toEqual({ approverId: 5 });
   });
 
   test('getPendingApprovalsCount falls back to 0 when count is absent', async () => {
@@ -83,6 +82,43 @@ describe('calculateDays', () => {
       endDate: '2026-01-01',
     });
     expect(result.totalDays).toBe(0);
+  });
+});
+
+describe('the approval queue is read from the session, not from an id', () => {
+  // echno-backend#683 stopped reading approverId off these three and
+  // employeeId off can-approve, and takes the caller from the session instead.
+  // Sending the id again would be asking for a named person's queue, which is
+  // the read that was closed: an administrator could see any colleague's while
+  // the line managers a chain is actually built from could not see their own.
+  // Nothing in the type system objects to sending it, so the assertion has to
+  // be here.
+
+  test('getPendingApprovalsCount sends no query params', async () => {
+    api.get.mockImplementation(async () => ({ count: 3 }));
+    await leaveService.getPendingApprovalsCount(5);
+    expect(lastGetParams()).toBeUndefined();
+  });
+
+  test('getPendingApprovals sends no query params', async () => {
+    api.get.mockImplementation(async () => []);
+    await leaveService.getPendingApprovals(5);
+    expect(lastGetEndpoint()).toBe('/leave-requests/web/pending-approvals');
+    expect(lastGetParams()).toBeUndefined();
+  });
+
+  test('getApproverRequests sends no query params', async () => {
+    api.get.mockImplementation(async () => []);
+    await leaveService.getApproverRequests(5);
+    expect(lastGetEndpoint()).toBe('/leave-requests/web/approver');
+    expect(lastGetParams()).toBeUndefined();
+  });
+
+  test('canApprove sends the request id and nothing about the caller', async () => {
+    api.get.mockImplementation(async () => ({ canApprove: true }));
+    await leaveService.canApprove(31, 7);
+    expect(lastGetEndpoint()).toBe('/leave-approvals/web/can-approve');
+    expect(lastGetParams()).toEqual({ requestId: 31 });
   });
 });
 
@@ -247,6 +283,46 @@ describe('parse failures are surfaced as 422 ApiErrors', () => {
       .catch((error_) => error_)) as realApiClient.ApiError;
     expect(error).toBeInstanceOf(realApiClient.ApiError);
     expect(error.status).toBe(422);
+  });
+});
+
+describe('createRequest names the employee once', () => {
+  // LeaveRequestControllerWeb.createRequest reads the employee from a
+  // @RequestParam and its @PreAuthorize reads that same parameter, so the
+  // query string is the value that decides access. A body copy is read by
+  // nothing and can disagree with the value that is.
+
+  const created = {
+    id: 12,
+    employeeId: 7,
+    leavePolicyId: 2,
+    startDate: '2026-01-01',
+    endDate: '2026-01-02',
+    status: 'DRAFT',
+  };
+
+  const dto = {
+    employeeId: 7,
+    leavePolicyId: 2,
+    startDate: '2026-01-01',
+    endDate: '2026-01-02',
+    reason: 'Family function',
+  };
+
+  test('sends employeeId on the query string', async () => {
+    api.post.mockImplementation(async () => created);
+    await leaveService.createRequest(dto);
+    expect(api.post.mock.calls[0][0]).toBe('/leave-requests/web');
+    expect(api.post.mock.calls[0][2]).toEqual({ employeeId: 7 });
+  });
+
+  test('keeps employeeId out of the body', async () => {
+    api.post.mockImplementation(async () => created);
+    await leaveService.createRequest(dto);
+    const body = api.post.mock.calls[0][1] as Record<string, unknown>;
+    expect(body).not.toHaveProperty('employeeId');
+    expect(body.leavePolicyId).toBe(2);
+    expect(body.reason).toBe('Family function');
   });
 });
 
