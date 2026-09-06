@@ -24,17 +24,15 @@ import type {
   MaterialConsumption,
 } from '@tornotron/echno-core/materials/types';
 import { useMaterialsSummary } from '@/features/materials/hooks/use-materials-summary';
+import {
+  formatStockValue,
+  stockValueCaption,
+  unavailableCaption,
+} from '@/features/materials/lib/stock-summary-captions';
 
 interface MaterialsKpiStripProps {
   materials: Material[];
   consumptions: MaterialConsumption[];
-}
-
-function formatStockValue(v: number): string {
-  if (v >= 10_000_000) return `₹${(v / 10_000_000).toFixed(1)}Cr`;
-  if (v >= 100_000) return `₹${(v / 100_000).toFixed(1)}L`;
-  if (v >= 1000) return `₹${(v / 1000).toFixed(1)}K`;
-  return `₹${v.toLocaleString('en-IN')}`;
 }
 
 function buildMonthlyTrend(consumptions: MaterialConsumption[], count: number) {
@@ -72,27 +70,6 @@ export function MaterialsKpiStrip({
     holdsWholeCatalogue,
     isLoading,
   } = useMaterialsSummary(materials.length);
-
-  // One sentence for every tile whose figure has not arrived. Falling back
-  // to a browser sum here would put back exactly the number the server was
-  // asked to replace.
-  function unavailableCaption(): string {
-    return isLoading ? 'totalling the catalogue' : 'totals unavailable';
-  }
-
-  // What the stock value leaves out, when it leaves anything out. Stock
-  // received with no unit cost adds quantity at no value, so those
-  // holdings sit in the total at the zero they hold and the total
-  // understates by whatever they are worth.
-  function stockValueCaption(): string {
-    if (totalStockValue === undefined) return unavailableCaption();
-    if (unvaluedHoldingCount === undefined || unvaluedHoldingCount === 0) {
-      return 'current inventory value';
-    }
-    return unvaluedHoldingCount === 1
-      ? 'excludes 1 unpriced holding'
-      : `excludes ${unvaluedHoldingCount} unpriced holdings`;
-  }
 
   const compositionData = useMemo(() => {
     const groups = new Map<string, number>();
@@ -147,7 +124,7 @@ export function MaterialsKpiStrip({
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
             {materialCount === undefined
-              ? unavailableCaption()
+              ? unavailableCaption(isLoading)
               : 'across all categories'}
           </p>
         </div>
@@ -168,7 +145,11 @@ export function MaterialsKpiStrip({
             </div>
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            {stockValueCaption()}
+            {stockValueCaption({
+              totalStockValue,
+              unvaluedHoldingCount,
+              isLoading,
+            })}
           </p>
         </div>
 
@@ -187,7 +168,7 @@ export function MaterialsKpiStrip({
           </div>
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
             {distinctUnits === undefined
-              ? unavailableCaption()
+              ? unavailableCaption(isLoading)
               : 'material unit types'}
           </p>
         </div>
