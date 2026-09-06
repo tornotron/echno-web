@@ -6,6 +6,7 @@ import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { LeaveRole } from '@/types/leave';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
+import { leaveDashboardRoles } from '@/features/leave/lib/approval-gate';
 import { DashboardSwitcher } from '@/features/leave/components/dashboard/dashboard-switcher';
 import { EmployeeDashboard } from '@/features/leave/components/dashboard/employee-dashboard';
 import { ManagerDashboard } from '@/features/leave/components/dashboard/manager-dashboard';
@@ -31,10 +32,22 @@ const ROLE_META: Record<LeaveRole, { title: string; description: string }> = {
 export default function LeaveDashboardPage() {
   const { data: employee, isLoading: employeeLoading } =
     useCurrentUserEmployee();
-  const { role, availableRoles, isLoading: roleLoading } = useLeaveRole();
+  const {
+    role,
+    availableRoles: titleRoles,
+    isLoading: roleLoading,
+  } = useLeaveRole();
   const employeeId = employee?.id || 0;
 
   const { data: pendingCount } = usePendingApprovalsCount(employeeId);
+
+  // The manager dashboard is where the pending approvals list lives. Approvers
+  // come off the employee hierarchy rather than the job title, so a supervisor
+  // holding decisions is offered the switch to it as well.
+  const availableRoles = leaveDashboardRoles({
+    availableRoles: titleRoles,
+    pendingApprovalsCount: pendingCount,
+  });
 
   const [selectedRole, setSelectedRole] = useState<LeaveRole | null>(() => {
     if (globalThis.window === undefined) return null;

@@ -23,6 +23,7 @@ import {
   useEmployeeRequests,
 } from '@/hooks/leave/use-leave';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
+import { shouldOfferApprovalQueue } from '@/features/leave/lib/approval-gate';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { LeaveStatus } from '@/types/leave';
 import { FileText, Clock, Calendar, AlertCircle, Plus } from 'lucide-react';
@@ -38,6 +39,15 @@ export default function RequestsPage() {
     useCurrentUserEmployee();
   const employeeId = employee?.id || 0;
   const { data: pendingCount } = usePendingApprovalsCount(employeeId);
+
+  // The job title is not the whole story. Approvers are found by walking the
+  // employee hierarchy, so a supervisor or foreman can be holding real
+  // decisions without ever landing in the manager cohort. The count comes from
+  // the caller's own queue, so a non-zero one is the server saying so.
+  const showApprovals = shouldOfferApprovalQueue({
+    hasApproverRole: canApprove,
+    pendingApprovalsCount: pendingCount,
+  });
 
   const { data: orgRequests } = useOrganizationRequests();
   const { data: myRequests } = useEmployeeRequests(employeeId);
@@ -153,7 +163,7 @@ export default function RequestsPage() {
         <Tabs value={tab} onValueChange={handleTabChange}>
           <TabsList className="w-full">
             <TabsTrigger value="my">My Requests</TabsTrigger>
-            {canApprove && (
+            {showApprovals && (
               <TabsTrigger value="approvals" className="gap-2">
                 Approvals
                 {(pendingCount ?? 0) > 0 && (
@@ -172,7 +182,7 @@ export default function RequestsPage() {
             <MyRequestsTab employeeId={employeeId} />
           </TabsContent>
 
-          {canApprove && (
+          {showApprovals && (
             <TabsContent value="approvals" className="mt-4">
               <ApprovalsTab employeeId={employeeId} />
             </TabsContent>
