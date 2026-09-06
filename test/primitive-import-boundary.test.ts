@@ -41,9 +41,37 @@ const SKIPPED_DIRECTORIES = new Set(['node_modules', '.next', '.git']);
 
 const SOURCE_EXTENSIONS = ['.ts', '.tsx'];
 
-/** `@/components/ui/x`, `../ui/x`, `./ui/x` — any spelling of the base layer. */
-const UI_IMPORT =
-  /from\s+'[^']*\bcomponents\/ui\/[^']*'|from\s+"[^"]*\bcomponents\/ui\/[^"]*"/;
+/** Every module specifier in a file: static imports, re-exports, dynamic imports. */
+const SPECIFIER =
+  /(?:\bfrom\s*|\bimport\s*\(\s*|\brequire\s*\(\s*)['"]([^'"]+)['"]/g;
+
+const UI_DIRECTORY = 'components/ui';
+
+/**
+ * Where a specifier points, as a repo-relative path. Matching the raw text is
+ * not enough: `components/errors/reload-button.tsx` can write `../ui/button`
+ * and land in the base layer without the string `components/ui` appearing
+ * anywhere in the file.
+ */
+function resolveSpecifier(specifier: string, importingFile: string): string {
+  if (specifier.startsWith('@/')) {
+    return specifier.slice(2);
+  }
+  if (specifier.startsWith('.')) {
+    return path.normalize(path.join(path.dirname(importingFile), specifier));
+  }
+  return specifier;
+}
+
+function importsBaseLayer(
+  fileContents: string,
+  importingFile: string
+): boolean {
+  return [...fileContents.matchAll(SPECIFIER)].some((match) => {
+    const target = resolveSpecifier(match[1], importingFile);
+    return target === UI_DIRECTORY || target.startsWith(`${UI_DIRECTORY}/`);
+  });
+}
 
 function collectSourceFiles(directory: string, found: string[] = []): string[] {
   let entries: string[];
@@ -88,7 +116,7 @@ describe('primitive import boundary', () => {
           )
       )
       .filter((file) =>
-        UI_IMPORT.test(readFileSync(path.join(REPO_ROOT, file), 'utf8'))
+        importsBaseLayer(readFileSync(path.join(REPO_ROOT, file), 'utf8'), file)
       );
 
     expect(offenders).toEqual([]);
