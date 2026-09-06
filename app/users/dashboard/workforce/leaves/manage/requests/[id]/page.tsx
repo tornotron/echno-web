@@ -342,7 +342,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
               variant="outline"
               onClick={() =>
                 router.push(
-                  `${routes.workforce.leaves.manage.requests.new}?edit=${request.id}`
+                  `${routes.attendance.myLeaves.apply}?edit=${request.id}`
                 )
               }
             >
@@ -920,7 +920,7 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   className="w-full justify-start"
                   onClick={() =>
                     router.push(
-                      `${routes.workforce.leaves.manage.requests.new}?edit=${request.id}`
+                      `${routes.attendance.myLeaves.apply}?edit=${request.id}`
                     )
                   }
                 >

@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-08-30
+ * Generated: 2026-09-06
  */
 
 import type { RouteNode } from '../types';
@@ -39,6 +39,23 @@ export const ROUTE_TREE: RouteNode = {
         isDynamic: false,
         isCatchAll: false,
         children: [],
+      },
+      {
+        id: 'attendance-my-leaves',
+        segment: 'my-leaves',
+        path: '/users/dashboard/attendance/my-leaves',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [
+            {
+              id: 'attendance-my-leaves-apply',
+              segment: 'apply',
+              path: '/users/dashboard/attendance/my-leaves/apply',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [],
+            },
+          ],
       },
       {
         id: 'attendance-regularizations',
@@ -1139,14 +1156,6 @@ export const ROUTE_TREE: RouteNode = {
                       isCatchAll: false,
                       children: [
                               {
-                                id: 'workforce-leaves-manage-requests-new',
-                                segment: 'new',
-                                path: '/users/dashboard/workforce/leaves/manage/requests/new',
-                                isDynamic: false,
-                                isCatchAll: false,
-                                children: [],
-                              },
-                              {
                                 id: 'workforce-leaves-manage-requests-[id]',
                                 segment: '[id]',
                                 path: '/users/dashboard/workforce/leaves/manage/requests/[id]',
@@ -1160,14 +1169,6 @@ export const ROUTE_TREE: RouteNode = {
                   ],
             },
           ],
-      },
-      {
-        id: 'workforce-my-leaves',
-        segment: 'my-leaves',
-        path: '/users/dashboard/workforce/my-leaves',
-        isDynamic: false,
-        isCatchAll: false,
-        children: [],
       },
     ],
   },

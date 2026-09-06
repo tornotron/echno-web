@@ -33,8 +33,26 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Redirects are matched in order and the first hit wins, so the two
+  // leave entries have to precede the broad `/dashboard/:path*` rewrite of the
+  // legacy prefix. A request to the old `/dashboard/...` form still lands
+  // correctly, in two hops: the prefix redirect first, then the leave redirect
+  // on the follow-up request.
   async redirects() {
     return [
+      // Leave moved out of Workforce and under My Attendance. Bookmarks and
+      // links already sent out point at the old paths, and a 308 keeps them
+      // working rather than dropping the user on a 404.
+      {
+        source: '/users/dashboard/workforce/my-leaves',
+        destination: '/users/dashboard/attendance/my-leaves',
+        permanent: true,
+      },
+      {
+        source: '/users/dashboard/workforce/leaves/manage/requests/new',
+        destination: '/users/dashboard/attendance/my-leaves/apply',
+        permanent: true,
+      },
       {
         source: '/dashboard/:path*',
         destination: '/users/dashboard/:path*',
