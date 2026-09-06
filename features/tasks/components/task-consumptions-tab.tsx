@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -121,7 +122,29 @@ export function TaskConsumptionsTab({ task }: TaskConsumptionsTabProps) {
                     {c.quantity}
                   </TableCell>
                   <TableCell className="text-muted-foreground text-sm">
-                    {c.createdBy.name}
+                    {/*
+                      Out of the task and into the consumptions register,
+                      narrowed to whoever recorded this one (web#35). An
+                      employee id, the same one the register's `creator`
+                      accessor reads, and the same one the consumption's own
+                      detail screen links with. The register loads its whole
+                      collection, so the narrowed list is the answer rather
+                      than one page of it.
+                    */}
+                    {c.createdBy?.id ? (
+                      <Link
+                        href={employeeFilterHref(
+                          routes.resources.materialConsumptions.href,
+                          c.createdBy.id,
+                          'creator'
+                        )}
+                        className="hover:text-foreground hover:underline"
+                      >
+                        {c.createdBy.name}
+                      </Link>
+                    ) : (
+                      c.createdBy.name
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

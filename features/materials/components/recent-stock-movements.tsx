@@ -3,6 +3,7 @@ import { ArrowUpRight } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { routes } from '@/nav';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import type { MaterialConsumption } from '@tornotron/echno-core/materials/types';
 
 interface RecentStockMovementsProps {
@@ -69,9 +70,30 @@ export function RecentStockMovements({
                     month: 'short',
                   })}
                 </span>
-                <span className="max-w-[96px] truncate text-xs text-zinc-500 dark:text-zinc-400">
-                  {c.createdBy.name}
-                </span>
+                {/*
+                  Out of the material and into the consumptions register,
+                  narrowed to whoever recorded the movement (web#35). An
+                  employee id, read by the register's `creator` accessor, which
+                  is the same slug the consumption detail screen links with.
+                  The register loads its whole collection, so the narrowed list
+                  is the answer and not one page of it.
+                */}
+                {c.createdBy?.id ? (
+                  <Link
+                    href={employeeFilterHref(
+                      routes.resources.materialConsumptions.href,
+                      c.createdBy.id,
+                      'creator'
+                    )}
+                    className="max-w-[96px] truncate text-xs text-zinc-500 hover:underline dark:text-zinc-400"
+                  >
+                    {c.createdBy.name}
+                  </Link>
+                ) : (
+                  <span className="max-w-[96px] truncate text-xs text-zinc-500 dark:text-zinc-400">
+                    {c.createdBy.name}
+                  </span>
+                )}
               </div>
             ))}
           </div>
