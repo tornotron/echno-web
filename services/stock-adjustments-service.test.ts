@@ -9,10 +9,12 @@ import {
 function submitData(over: {
   form?: Record<string, unknown>;
   items?: Array<Record<string, unknown>>;
+  source?: Record<string, unknown>;
 }): StockAdjustmentSubmitData {
   return {
     form: { adjustmentReason: '', notes: '', ...over.form },
     items: over.items ?? [],
+    source: over.source,
   } as unknown as StockAdjustmentSubmitData;
 }
 
@@ -67,6 +69,78 @@ describe('toPayload carries what approval needs', () => {
     expect(line.systemQuantity).toBeUndefined();
     expect(line.adjustmentQuantity).toBeUndefined();
     expect(line.physicalQuantity).toBe(370);
+  });
+});
+
+/**
+ * The reference back to the document an adjustment answers.
+ *
+ * This is the whole of echno-web#398. A site transfer received short shows an
+ * open variance and says a stock adjustment naming the transfer closes it, and
+ * the payload had nowhere to say which transfer. A form could be prefilled from
+ * one, could show its number on screen, and would still post a document with no
+ * link back: the variance stayed open however many adjustments were raised
+ * against it.
+ */
+describe('toPayload carries the document the adjustment answers', () => {
+  test('the source reference survives submit', () => {
+    const payload = toPayload(
+      submitData({ source: { type: 'SITE_TRANSFER', id: 31 } })
+    );
+    expect(payload.sourceDocumentType).toBe('SITE_TRANSFER');
+    expect(payload.sourceDocumentId).toBe(31);
+  });
+
+  test('an adjustment answering nothing sends neither half', () => {
+    const payload = toPayload(submitData({}));
+    expect(payload.sourceDocumentType).toBeUndefined();
+    expect(payload.sourceDocumentId).toBeUndefined();
+  });
+
+  test('a half reference is dropped rather than sent as half', () => {
+    // The backend refuses a type without an id and an id without a type with a
+    // 400. Forwarding half of one turns a missing link into a failed save.
+    const withoutId = toPayload(
+      submitData({ source: { type: 'SITE_TRANSFER' } })
+    );
+    expect(withoutId.sourceDocumentType).toBeUndefined();
+    expect(withoutId.sourceDocumentId).toBeUndefined();
+
+    const withoutType = toPayload(submitData({ source: { id: 31 } }));
+    expect(withoutType.sourceDocumentType).toBeUndefined();
+    expect(withoutType.sourceDocumentId).toBeUndefined();
+  });
+});
+
+describe('parseStockAdjustment reads the source reference back', () => {
+  test('both halves come through', () => {
+    const sa = parseStockAdjustment({
+      id: 1,
+      sourceDocumentType: 'SITE_TRANSFER',
+      sourceDocumentId: 31,
+    });
+    expect(sa.sourceDocumentType).toBe('SITE_TRANSFER');
+    expect(sa.sourceDocumentId).toBe(31);
+  });
+
+  test('an adjustment naming no source carries neither', () => {
+    const sa = parseStockAdjustment({ id: 1 });
+    expect(sa.sourceDocumentType).toBeUndefined();
+    expect(sa.sourceDocumentId).toBeUndefined();
+  });
+
+  test('a half reference is read as no reference', () => {
+    // Nothing writes one, so a payload carrying half is a payload nothing
+    // wrote. Reading it back would put that half on the next update, which is
+    // the one shape the backend refuses.
+    const typeOnly = parseStockAdjustment({
+      id: 1,
+      sourceDocumentType: 'SITE_TRANSFER',
+    });
+    expect(typeOnly.sourceDocumentType).toBeUndefined();
+
+    const idOnly = parseStockAdjustment({ id: 1, sourceDocumentId: 31 });
+    expect(idOnly.sourceDocumentId).toBeUndefined();
   });
 });
 

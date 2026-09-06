@@ -40,7 +40,10 @@ import {
 } from '@/lib/inventory/storage-location-scope';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
-import type { StockAdjustment } from '@/types/resource';
+import type {
+  StockAdjustment,
+  StockAdjustmentSourceReference,
+} from '@/types/resource';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -88,15 +91,35 @@ export interface StockAdjustmentFormState {
 export interface StockAdjustmentSubmitData {
   form: StockAdjustmentFormState;
   items: StockAdjustmentItem[];
+  /**
+   * The document this adjustment was raised to answer, carried straight from
+   * the document the form opened with. It is provenance and not a field: no
+   * input sets it, nothing on the form can change it, and it exists so the
+   * reference survives the round trip to the server rather than being dropped
+   * the moment somebody presses Create.
+   */
+  source?: StockAdjustmentSourceReference;
 }
 
 interface StockAdjustmentFormProps {
   /**
-   * An existing document to edit, or one to copy when raising a new one from
-   * a rejected adjustment. A copy arrives with `adjustmentNumber` blank,
-   * because the number has to be unique and the copy needs its own.
+   * The document to seed the form from: an existing one being edited, one being
+   * copied from a rejected adjustment, or a skeleton built to close another
+   * document's variance. A copy arrives with `adjustmentNumber` blank, because
+   * the number has to be unique and the copy needs its own.
+   *
+   * Partial because a seed is not a document. The variance-closing seed knows a
+   * project, a location, a justification and a few lines, and inventing the two
+   * dozen audit and workflow fields a real adjustment carries would be filling
+   * in figures nobody has decided yet.
    */
-  initial?: StockAdjustment;
+  initial?: Partial<StockAdjustment>;
+  /**
+   * How to name the source document in the read-only note, e.g. a transfer
+   * number. Falls back to the id, which is worth showing but is not what the
+   * document is called on paper.
+   */
+  sourceLabel?: string;
   onSubmit: (data: StockAdjustmentSubmitData) => void;
 }
 
@@ -184,6 +207,7 @@ function blankItem(id: number): StockAdjustmentItem {
 
 export function StockAdjustmentForm({
   initial,
+  sourceLabel,
   onSubmit,
 }: StockAdjustmentFormProps) {
   const { data: materials = [] } = useMaterials();
@@ -206,8 +230,28 @@ export function StockAdjustmentForm({
     notes: initial?.notes ?? '',
   }));
 
+  /**
+   * The document this one answers, seeded once and never editable.
+   *
+   * Which transfer a variance belongs to is a fact about how the form was
+   * reached, not a choice made on it, so there is no input for it. It is held in
+   * state alongside the rest of the seed so that submitting sends it back: the
+   * defect this closes is a prefilled form that named a transfer on screen and
+   * then posted a payload with no reference to it at all.
+   *
+   * The seed is taken as given. Deciding here whether a particular `initial`
+   * deserves to keep its provenance would put that judgement in the one place
+   * that cannot tell a copy from a correction; the routes that build the seed
+   * make that call instead.
+   */
+  const [source] = useState<StockAdjustmentSourceReference | undefined>(() =>
+    initial?.sourceDocumentType && initial?.sourceDocumentId
+      ? { type: initial.sourceDocumentType, id: initial.sourceDocumentId }
+      : undefined
+  );
+
   const [items, setItems] = useState<StockAdjustmentItem[]>(() =>
-    initial && initial.lineItems.length > 0
+    initial?.lineItems && initial.lineItems.length > 0
       ? initial.lineItems.map((line, index) => ({
           id: line.id || index + 1,
           materialId: line.materialId ?? 0,
@@ -503,6 +547,7 @@ export function StockAdjustmentForm({
         ...item,
         openingBalance: openingBalanceFor(item.materialId),
       })),
+      source,
     });
   }
 
@@ -526,6 +571,17 @@ export function StockAdjustmentForm({
               <CardDescription>General adjustment details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {source && (
+                <div
+                  data-testid="source-document-note"
+                  className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200"
+                >
+                  Closes site transfer {sourceLabel ?? `#${source.id}`}. The
+                  reference is recorded with the adjustment, so the transfer
+                  stops reading as unanswered once this is raised. Everything
+                  below it is still yours to change.
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="adjustmentNumber">Adjustment Number</Label>

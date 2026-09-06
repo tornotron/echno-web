@@ -8,6 +8,7 @@ import { inventoryTransactionKeys } from '@tornotron/echno-core/inventory-transa
 import { stockAdjustmentsService } from '@/services/stock-adjustments-service';
 import { materialStockKeys } from '@/hooks/materials/material-stock-keys';
 import type { StockAdjustmentSubmitData } from '@/features/stock-adjustments/components/stock-adjustment-form';
+import type { StockAdjustmentSourceDocumentType } from '@/types/resource';
 import { stockAdjustmentKeys } from './stock-adjustment-keys';
 
 /** Fetches all stock adjustments for the current organization. */
@@ -29,8 +30,35 @@ export const useStockAdjustment = (id: number) =>
   });
 
 /**
+ * Fetches every stock adjustment raised against one source document, newest
+ * first. Stays disabled until `id` is truthy, so a screen can call it before it
+ * knows whether the document has a variance worth asking about.
+ *
+ * An empty array is the answer "nobody has raised one yet", which is what a
+ * transfer's open variance is waiting on. It is not the same as the query not
+ * having run, which is why the caller should read `isPending` before treating
+ * an empty result as an absence.
+ *
+ * @param type - The kind of document to look up adjustments for.
+ * @param id - That document's id. Pass `0` to defer the query.
+ */
+export const useStockAdjustmentsBySourceDocument = (
+  type: StockAdjustmentSourceDocumentType,
+  id: number
+) =>
+  useQuery({
+    queryKey: stockAdjustmentKeys.bySourceDocument(type, id),
+    queryFn: () => stockAdjustmentsService.getBySourceDocument(type, id),
+    enabled: !!id,
+  });
+
+/**
  * Creates a stock adjustment and invalidates the stock-adjustment list on
  * success so the new row appears without a manual refetch.
+ *
+ * The by-source-document lookups go with it. A closing adjustment is raised
+ * here and read on the document it closes, and leaving that cached is what
+ * would keep a transfer's variance amber after somebody had just answered it.
  */
 export const useCreateStockAdjustment = () => {
   const queryClient = useQueryClient();
@@ -39,6 +67,9 @@ export const useCreateStockAdjustment = () => {
       stockAdjustmentsService.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.bySourceDocuments(),
+      });
     },
   });
 };
@@ -60,6 +91,9 @@ export const useUpdateStockAdjustment = () => {
     onSuccess: (_result, { id }) => {
       queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
       queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.bySourceDocuments(),
+      });
+      queryClient.invalidateQueries({
         queryKey: stockAdjustmentKeys.detail(id),
       });
     },
@@ -76,6 +110,9 @@ export const useDeleteStockAdjustment = () => {
     mutationFn: (id: number) => stockAdjustmentsService.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.bySourceDocuments(),
+      });
     },
   });
 };
@@ -106,6 +143,9 @@ export const useApproveStockAdjustment = () => {
         approved
       );
       queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.bySourceDocuments(),
+      });
       queryClient.invalidateQueries({ queryKey: materialsKeys.all });
       queryClient.invalidateQueries({ queryKey: materialStockKeys.all });
       queryClient.invalidateQueries({ queryKey: inventoryTransactionKeys.all });
@@ -142,6 +182,9 @@ export const useRejectStockAdjustment = () => {
         rejected
       );
       queryClient.invalidateQueries({ queryKey: stockAdjustmentKeys.lists() });
+      queryClient.invalidateQueries({
+        queryKey: stockAdjustmentKeys.bySourceDocuments(),
+      });
     },
     onError: (_error, { id }) => {
       queryClient.invalidateQueries({

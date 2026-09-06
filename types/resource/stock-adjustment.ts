@@ -34,6 +34,29 @@ export enum StockAdjustmentStatus {
   cancelled = 'cancelled',
 }
 
+/**
+ * The kind of document a stock adjustment was raised to answer.
+ *
+ * One value today, and the string the backend expects on the wire rather than a
+ * lower-cased display form. A site transfer received short leaves a quantity
+ * that is neither at the sending site nor recorded at the receiving one, and the
+ * transfer writes no loss movement for it deliberately, so the only thing that
+ * closes the variance is an adjustment naming that transfer.
+ */
+export type StockAdjustmentSourceDocumentType = 'SITE_TRANSFER';
+
+/**
+ * The document an adjustment was raised to answer.
+ *
+ * The two halves travel together or neither travels: the backend refuses a type
+ * without an id, and an id without a type, with a 400. Holding them as one
+ * object is what makes a half reference unrepresentable on the way out.
+ */
+export interface StockAdjustmentSourceReference {
+  type: StockAdjustmentSourceDocumentType;
+  id: number;
+}
+
 export interface StockAdjustmentLineItem {
   id: number;
   materialId?: number; // Foreign key to Material, required before the line can be posted
@@ -129,19 +152,17 @@ export interface StockAdjustment {
   variancePercentage: number; // Percentage variance
   isSignificantVariance: boolean; // Flags if variance exceeds threshold
 
-  // Origin Tracking (what created this adjustment)
-  originType?:
-    | 'transfer'
-    | 'purchase_order'
-    | 'goods_receipt'
-    | 'manual'
-    | 'physical_count'
-    | 'return'
-    | 'write_off';
-  originId?: number; // ID of originating transaction
+  // The document this adjustment was raised to answer. Set together or both
+  // absent: the backend writes the pair as one and refuses a half of it.
+  //
+  // These replaced `originType`, `originId` and `transferId`, which were the
+  // shape a mocked screen once needed and which no backend response has ever
+  // carried. Keeping both vocabularies would have left two names for the same
+  // idea, only one of which survives a round trip.
+  sourceDocumentType?: StockAdjustmentSourceDocumentType;
+  sourceDocumentId?: number;
 
   // Related Transactions
-  transferId?: number; // Foreign key to Transfer (if from transfer)
   purchaseOrderId?: number; // Foreign key to PurchaseOrder (if from PO)
   goodsReceiptId?: number; // Foreign key to GoodsReceipt (if from receipt)
   invoiceId?: number; // Foreign key to Invoice (if vendor return)

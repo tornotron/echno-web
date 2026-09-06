@@ -44,8 +44,10 @@ import {
 import {
   canCancel,
   canReceive,
+  inTransitMeaning,
   totalInTransit,
 } from '@/lib/inventory/site-transfer-legs';
+import { useStockAdjustmentsBySourceDocument } from '@/hooks/stock-adjustments';
 
 export default function SiteTransferDetailPage({
   params,
@@ -56,6 +58,19 @@ export default function SiteTransferDetailPage({
   const id = Number(rawId);
 
   const { data: transfer, isLoading } = useSiteTransfer(id);
+
+  // Only a completed transfer that arrived short has anything for an adjustment
+  // to close, so the lookup is deferred on every other transfer rather than
+  // asking after documents that could not exist. Without it the open figure
+  // stays amber for ever, whatever anybody does about it.
+  const varianceOpen =
+    !!transfer &&
+    inTransitMeaning(transfer) === 'open-variance' &&
+    totalInTransit(transfer) > 0;
+  const { data: closingAdjustments = [] } = useStockAdjustmentsBySourceDocument(
+    'SITE_TRANSFER',
+    varianceOpen ? id : 0
+  );
 
   const [receiving, setReceiving] = useState(false);
 
@@ -256,7 +271,10 @@ export default function SiteTransferDetailPage({
         </div>
       </Card>
 
-      <SiteTransferItemsCard transfer={transfer} />
+      <SiteTransferItemsCard
+        transfer={transfer}
+        closingAdjustments={closingAdjustments}
+      />
       <SiteTransferLocationsCard transfer={transfer} />
       <TransferStatusTrail transferId={id} />
     </div>

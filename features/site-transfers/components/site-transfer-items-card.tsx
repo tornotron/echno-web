@@ -14,6 +14,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
+import Link from 'next/link';
 import { Package } from 'lucide-react';
 import type {
   SiteTransfer,
@@ -23,9 +24,23 @@ import {
   crossesProjectBoundary,
   inTransitMeaning,
 } from '@/lib/inventory/site-transfer-legs';
+import { routes } from '@/nav';
+import {
+  stockAdjustmentStatusLabels,
+  type StockAdjustment,
+} from '@/types/resource';
 
 interface SiteTransferItemsCardProps {
   transfer: SiteTransfer;
+  /**
+   * The stock adjustments raised against this transfer, if any have been read.
+   *
+   * The variance is the transfer's own figure, but whether anybody has answered
+   * it lives on another document entirely, so it is passed in rather than
+   * fetched here. An empty array means the lookup came back with nothing, which
+   * is what leaves the variance open.
+   */
+  closingAdjustments?: StockAdjustment[];
 }
 
 /**
@@ -60,10 +75,20 @@ function inTransitReading(
  * material by the time the lorry is unloaded, and pricing off it then would
  * come back as zero.
  *
+ * The footer under an open variance is the only place the transfer offers an
+ * act. It appears on a `COMPLETED` transfer that arrived short and nowhere
+ * else: a cancelled transfer's leftover in-transit figure is history, and a
+ * pending one's is a lorry on a road. Sending somebody to correct a balance in
+ * either case would be sending them to invent a discrepancy. The reading comes
+ * from {@link inTransitMeaning} rather than from the status, so the line, the
+ * notice above and this offer cannot disagree.
+ *
  * @param props.transfer - The site transfer whose items are shown.
+ * @param props.closingAdjustments - Adjustments already raised against it.
  */
 export function SiteTransferItemsCard({
   transfer,
+  closingAdjustments = [],
 }: SiteTransferItemsCardProps) {
   const twoStep = crossesProjectBoundary(transfer);
   let openVariance = 0;
@@ -159,12 +184,50 @@ export function SiteTransferItemsCard({
             <p className="font-medium">
               {openVariance} unaccounted for on this transfer
             </p>
-            <p className="text-muted-foreground mt-1">
-              Less arrived than was sent. The sending site is down the full sent
-              quantity and the receiving site is up what arrived; the difference
-              has not been written off, and it stays open until a stock
-              adjustment naming this transfer closes it.
-            </p>
+            {closingAdjustments.length === 0 ? (
+              <>
+                <p className="text-muted-foreground mt-1">
+                  Less arrived than was sent. The sending site is down the full
+                  sent quantity and the receiving site is up what arrived; the
+                  difference has not been written off, and it stays open until a
+                  stock adjustment naming this transfer closes it.
+                </p>
+                <Link
+                  href={`${routes.resources.stockAdjustments.new}?fromTransfer=${transfer.id}`}
+                  className="mt-2 inline-block font-medium underline underline-offset-4"
+                >
+                  Raise the stock adjustment that closes this
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground mt-1">
+                  {closingAdjustments.length > 1
+                    ? 'Less arrived than was sent. These stock adjustments were raised to answer it; the correction reaches the balance when one of them is approved.'
+                    : 'Less arrived than was sent. This stock adjustment was raised to answer it; the correction reaches the balance when it is approved.'}
+                </p>
+                <ul className="mt-2 space-y-1">
+                  {closingAdjustments.map((adjustment) => (
+                    <li key={adjustment.id}>
+                      <Link
+                        href={
+                          routes.resources.stockAdjustments.detail(
+                            adjustment.id
+                          ).href
+                        }
+                        className="font-medium underline underline-offset-4"
+                      >
+                        {adjustment.adjustmentNumber}
+                      </Link>{' '}
+                      <span className="text-muted-foreground">
+                        {stockAdjustmentStatusLabels[adjustment.status] ??
+                          adjustment.status}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
           </div>
         )}
       </CardContent>
