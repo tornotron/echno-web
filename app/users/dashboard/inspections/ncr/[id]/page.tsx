@@ -4,7 +4,7 @@ import { use } from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { useNcrById } from '@/hooks/inspection';
 import { routes } from '@/nav';
 import { NcrDetail } from '@/features/inspections/components/ncr-detail';

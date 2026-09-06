@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { User, Users, Shield } from 'lucide-react';
 
 interface AttendanceDashboardSwitcherProps {

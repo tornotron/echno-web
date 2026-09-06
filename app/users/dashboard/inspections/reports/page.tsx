@@ -31,16 +31,16 @@ import {
 } from 'lucide-react';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { PageHeader } from '@/components/common';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/shadcn/progress';
+import { Separator } from '@/components/shadcn/separator';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from '@/components/ui/chart';
+} from '@/components/shadcn/chart';
 import {
   useInspections,
   useNcrs,

@@ -2,15 +2,15 @@
 
 import Link from 'next/link';
 import { Maximize2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/shadcn/button';
+import { ScrollArea } from '@/components/shadcn/scroll-area';
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
+} from '@/components/shadcn/sheet';
 import { routes } from '@/nav';
 import type { Ncr } from '@/types/inspection';
 import { NcrDetail } from './ncr-detail';

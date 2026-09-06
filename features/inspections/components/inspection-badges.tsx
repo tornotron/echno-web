@@ -9,7 +9,7 @@
 
 import { format } from 'date-fns';
 import { AlertTriangle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/shadcn/badge';
 import { cn } from '@/lib/utils/index';
 import {
   type InspectionResult,
@@ -66,11 +66,7 @@ export function NcrStatusBadge({ status }: { status: NcrStatus }) {
   );
 }
 
-export function NcrSeverityBadge({
-  severity,
-}: {
-  severity: DefectSeverity;
-}) {
+export function NcrSeverityBadge({ severity }: { severity: DefectSeverity }) {
   return (
     <Badge variant={defectSeverityVariants[severity]}>
       {defectSeverityLabels[severity]}

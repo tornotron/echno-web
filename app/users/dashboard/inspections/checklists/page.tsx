@@ -13,19 +13,19 @@ import {
 } from 'lucide-react';
 import { ApiError, getErrorMessage } from '@tornotron/echno-core';
 import { PageHeader } from '@/components/common';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/shadcn/badge';
+import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Skeleton } from '@/components/shadcn/skeleton';
+import { Textarea } from '@/components/shadcn/textarea';
 import {
   Empty,
   EmptyDescription,
   EmptyMedia,
   EmptyTitle,
-} from '@/components/ui/empty';
+} from '@/components/shadcn/empty';
 import {
   Dialog,
   DialogContent,
@@ -34,20 +34,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/shadcn/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/shadcn/dropdown-menu';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import {
   useAdoptStarterTemplate,
   useChecklistTemplates,
@@ -510,9 +510,7 @@ function StarterTemplatesDialog({
                 size="sm"
                 variant="outline"
                 disabled={
-                  !starter.trade ||
-                  taken.has(starter.trade) ||
-                  adopt.isPending
+                  !starter.trade || taken.has(starter.trade) || adopt.isPending
                 }
                 onClick={() => starter.trade && handleAdopt(starter.trade)}
               >

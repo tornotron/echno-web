@@ -13,18 +13,18 @@
  */
 
 import { Upload } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Input } from '@/components/shadcn/input';
+import { Textarea } from '@/components/shadcn/textarea';
+import { Label } from '@/components/shadcn/label';
+import { Button } from '@/components/shadcn/button';
+import { RadioGroup, RadioGroupItem } from '@/components/shadcn/radio-group';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/shadcn/select';
 import { cn } from '@/lib/utils/index';
 import type { ElementFieldProps } from './types';
 
@@ -126,6 +126,7 @@ export function NumberField({
       <Input
         id={element.id}
         type="number"
+        allowSigned
         value={value === undefined || value === null ? '' : String(value)}
         placeholder={element.placeholder}
         min={element.validation?.min}

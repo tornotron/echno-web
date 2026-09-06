@@ -11,11 +11,11 @@
 
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Separator } from '@/components/ui/separator';
-import { Empty, EmptyDescription, EmptyTitle } from '@/components/ui/empty';
+import { Badge } from '@/components/shadcn/badge';
+import { Card } from '@/components/shadcn/card';
+import { Progress } from '@/components/shadcn/progress';
+import { Separator } from '@/components/shadcn/separator';
+import { Empty, EmptyDescription, EmptyTitle } from '@/components/shadcn/empty';
 import { cn } from '@/lib/utils/index';
 import {
   type ChecklistElement,
@@ -54,7 +54,7 @@ export function ChecklistRenderer({
 
   if (schema.elements.length === 0) {
     return (
-      <Empty className="border-muted-foreground/25 rounded-lg border border-dashed">
+      <Empty>
         <EmptyTitle>Nothing to fill in yet</EmptyTitle>
         <EmptyDescription>
           This checklist has no items. Add elements in the builder first.

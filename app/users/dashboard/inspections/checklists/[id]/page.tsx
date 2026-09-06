@@ -4,9 +4,9 @@ import { useEffect, useMemo, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, X } from 'lucide-react';
 import { getErrorMessage } from '@tornotron/echno-core';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
+import { Button } from '@/components/shadcn/button';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import {
   useChecklistTemplateById,
   useUpdateChecklistTemplate,

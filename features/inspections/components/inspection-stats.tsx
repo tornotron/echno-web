@@ -1,8 +1,8 @@
 'use client';
 
 import type { LucideIcon } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/shadcn/card';
+import { Skeleton } from '@/components/shadcn/skeleton';
 import { cn } from '@/lib/utils/index';
 
 export interface InspectionStatItem {

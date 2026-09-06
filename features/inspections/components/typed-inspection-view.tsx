@@ -18,7 +18,7 @@ import { useMemo, useState } from 'react';
 import { CheckCircle2, ClipboardCheck, Clock, Percent } from 'lucide-react';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { PageHeader } from '@/components/common';
-import { Card } from '@/components/ui/card';
+import { Card } from '@/components/shadcn/card';
 import { useInspections } from '@/hooks/inspection';
 import {
   type InspectionCategory,

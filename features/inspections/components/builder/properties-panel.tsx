@@ -1,11 +1,11 @@
 'use client';
 
 import { MousePointerClick } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/shadcn/badge';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { ScrollArea } from '@/components/shadcn/scroll-area';
+import { Textarea } from '@/components/shadcn/textarea';
 import type { ChecklistElement, ChecklistSchema } from '@/types/inspection';
 import { definitionFor } from '../../builder/element-registry';
 import { PropertyGroup } from '../../builder/property-fields';
