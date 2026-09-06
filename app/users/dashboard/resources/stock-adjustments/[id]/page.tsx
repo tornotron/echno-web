@@ -30,11 +30,7 @@ import {
   User,
   FileText,
   ExternalLink,
-  ShoppingCart,
-  Receipt,
   ArrowLeftRight,
-  FileSpreadsheet,
-  Wallet,
   Settings,
 } from 'lucide-react';
 import {
@@ -98,80 +94,6 @@ const getStatusBadgeColor = (status: string) => {
     }
     default: {
       return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-};
-
-const getOriginTypeLabel = (originType: string | undefined): string => {
-  switch (originType) {
-    case 'purchase_order': {
-      return 'Purchase Order';
-    }
-    case 'goods_receipt': {
-      return 'Goods Receipt';
-    }
-    case 'transfer': {
-      return 'Transfer';
-    }
-    case 'return': {
-      return 'Invoice';
-    }
-    case 'write_off': {
-      return 'Expense';
-    }
-    default: {
-      return 'Manual Entry';
-    }
-  }
-};
-
-const getOriginTypeText = (originType: string | undefined): string => {
-  switch (originType) {
-    case 'transfer': {
-      return ' transfer';
-    }
-    case 'purchase_order': {
-      return ' purchase order';
-    }
-    case 'goods_receipt': {
-      return ' goods receipt';
-    }
-    case 'return': {
-      return ' invoice';
-    }
-    case 'write_off': {
-      return ' expense';
-    }
-    default: {
-      return ' manual entry';
-    }
-  }
-};
-
-const getOriginUrl = (
-  originType: string | undefined,
-  id: number | undefined
-): string => {
-  if (!id) return '#';
-
-  switch (originType) {
-    case 'transfer': {
-      return routes.resources.transfers.detail(id).href;
-    }
-    case 'purchase_order': {
-      return routes.resources.purchaseOrders.detail(id).href;
-    }
-    case 'goods_receipt': {
-      return routes.resources.goodsReceipts.detail(id).href;
-    }
-    case 'return': {
-      return '#';
-    }
-    case 'write_off': {
-      return routes.finance.expenses.detail(id).href;
-    }
-    default: {
-      return '#';
     }
   }
 };
@@ -279,33 +201,13 @@ export default function StockAdjustmentDetailPage({
     (item) => item.adjustmentQuantity < 0
   ).length;
 
-  // Get the correct origin ID based on originType
-  const getOriginId = () => {
-    if (!adjustment.originType) return;
-
-    switch (adjustment.originType) {
-      case 'transfer': {
-        return adjustment.transferId || adjustment.originId;
-      }
-      case 'purchase_order': {
-        return adjustment.purchaseOrderId || adjustment.originId;
-      }
-      case 'goods_receipt': {
-        return adjustment.goodsReceiptId || adjustment.originId;
-      }
-      case 'return': {
-        return adjustment.invoiceId || adjustment.originId;
-      }
-      case 'write_off': {
-        return adjustment.expenseId || adjustment.originId;
-      }
-      default: {
-        return adjustment.originId;
-      }
-    }
-  };
-
-  const originId = getOriginId();
+  // The document this adjustment was raised to answer, if it names one. The
+  // pair is written together by the backend, so a half of it is nothing at all
+  // and is read as no source rather than as a broken link.
+  const sourceTransferId =
+    adjustment.sourceDocumentType === 'SITE_TRANSFER'
+      ? adjustment.sourceDocumentId
+      : undefined;
 
   return (
     <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
@@ -599,64 +501,25 @@ export default function StockAdjustmentDetailPage({
             </CardContent>
           </Card>
 
-          {/* Origin Tracking */}
-          {adjustment.originType && originId && (
+          {/* What this adjustment was raised to answer */}
+          {sourceTransferId && (
             <Card>
               <CardHeader>
-                <CardTitle>Origin Tracking</CardTitle>
+                <CardTitle>Closes a site transfer</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900/50 dark:bg-blue-950/20">
                   <div className="mb-2 flex items-center gap-2">
-                    {adjustment.originType === 'transfer' && (
-                      <ArrowLeftRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                    {adjustment.originType === 'purchase_order' && (
-                      <ShoppingCart className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                    {adjustment.originType === 'goods_receipt' && (
-                      <Receipt className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                    {adjustment.originType === 'return' && (
-                      <FileSpreadsheet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                    {adjustment.originType === 'write_off' && (
-                      <Wallet className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    )}
-                    {adjustment.originType === 'manual' && (
-                      <FileText className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    )}
+                    <ArrowLeftRight className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     <span className="font-semibold text-blue-900 dark:text-blue-100">
-                      Originated from{' '}
-                      {getOriginTypeLabel(adjustment.originType)}
+                      Raised against site transfer #{sourceTransferId}
                     </span>
                   </div>
                   <div className="text-sm text-blue-700 dark:text-blue-300">
-                    This stock adjustment was automatically created when the
-                    {getOriginTypeText(adjustment.originType)} was processed.
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Origin Type
-                    </div>
-                    <div className="font-medium text-zinc-900 capitalize dark:text-zinc-100">
-                      {adjustment.originType === 'purchase_order'
-                        ? 'Purchase Order'
-                        : adjustment.originType === 'goods_receipt'
-                          ? 'Goods Receipt'
-                          : adjustment.originType}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                      Origin ID
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {originId}
-                    </div>
+                    That transfer arrived short and left a quantity accounted
+                    for at neither site. It writes no loss movement of its own,
+                    so this document is what settles the difference, and the
+                    transfer shows it as its answer.
                   </div>
                 </div>
 
@@ -706,10 +569,14 @@ export default function StockAdjustmentDetailPage({
                 <Separator />
 
                 <div>
-                  <Link href={getOriginUrl(adjustment.originType, originId)}>
+                  <Link
+                    href={
+                      routes.resources.transfers.detail(sourceTransferId).href
+                    }
+                  >
                     <Button className="w-full" variant="outline">
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      View Original {getOriginTypeLabel(adjustment.originType)}
+                      Open the site transfer
                     </Button>
                   </Link>
                 </div>

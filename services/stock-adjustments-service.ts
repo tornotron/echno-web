@@ -6,6 +6,8 @@ import type {
   StockAdjustmentType,
   StockAdjustmentStatus,
   StockAdjustmentReason,
+  StockAdjustmentSourceDocumentType,
+  StockAdjustmentSourceReference,
 } from '@/types/resource';
 import type { StockAdjustmentSubmitData } from '@/features/stock-adjustments/components/stock-adjustment-form';
 
@@ -45,10 +47,32 @@ export function parseLineItem(raw: Raw): StockAdjustmentLineItem {
   };
 }
 
+/**
+ * The source document on a payload, or nothing when the payload names one only
+ * half way.
+ *
+ * The backend writes the type and the id together, so a payload carrying one of
+ * them is a payload nothing wrote. Reading half of it back would be worse than
+ * reading none: the document would be edited and saved again with that half
+ * attached, and the write is refused with a 400 for exactly that shape.
+ *
+ * @param raw - The adjustment payload from the backend.
+ * @returns The reference, or `undefined` when it is absent or incomplete.
+ */
+function parseSourceReference(
+  raw: Raw
+): StockAdjustmentSourceReference | undefined {
+  const type = raw?.sourceDocumentType;
+  const id = raw?.sourceDocumentId;
+  if (!type || !id) return undefined;
+  return { type: type as StockAdjustmentSourceDocumentType, id: Number(id) };
+}
+
 export function parseStockAdjustment(raw: Raw): StockAdjustment {
   if (!raw?.id) {
     throw new Error(`Invalid StockAdjustment data: missing id`);
   }
+  const source = parseSourceReference(raw);
   return {
     id: raw.id,
     adjustmentNumber: raw.adjustmentNumber ?? String(raw.id),
@@ -87,9 +111,8 @@ export function parseStockAdjustment(raw: Raw): StockAdjustment {
     totalVarianceValue: raw.totalVarianceValue ?? 0,
     variancePercentage: raw.variancePercentage ?? 0,
     isSignificantVariance: raw.isSignificantVariance ?? false,
-    originType: raw.originType ?? undefined,
-    originId: raw.originId ?? undefined,
-    transferId: raw.transferId ?? undefined,
+    sourceDocumentType: source?.type,
+    sourceDocumentId: source?.id,
     purchaseOrderId: raw.purchaseOrderId ?? undefined,
     goodsReceiptId: raw.goodsReceiptId ?? undefined,
     invoiceId: raw.invoiceId ?? undefined,
@@ -150,11 +173,20 @@ const BASE = '/stock-adjustments/web';
  * form read and displayed, and is omitted rather than guessed when that read
  * was not available: a missing figure is worth more than one built on an
  * assumed empty shelf.
+ *
+ * `sourceDocumentType` and `sourceDocumentId` say which document the adjustment
+ * was raised to answer, and they are what makes a prefilled variance-closing
+ * form worth offering at all. A payload that omits them produces an adjustment
+ * indistinguishable from any other, so the transfer it was raised against goes
+ * on showing its variance as open for ever. They go out as a pair or not at
+ * all: the backend refuses a type without an id and an id without a type.
  */
 export function toPayload(
   data: StockAdjustmentSubmitData
 ): Record<string, unknown> {
   const { form, items } = data;
+  const source =
+    data.source?.type && data.source?.id ? data.source : undefined;
   const variances = items.map((item) =>
     item.openingBalance === undefined
       ? undefined
@@ -196,6 +228,8 @@ export function toPayload(
     notes: form.notes || undefined,
     totalAdjustmentValue,
     totalVarianceQuantity,
+    sourceDocumentType: source?.type,
+    sourceDocumentId: source?.id,
     lineItems,
   };
 }
@@ -211,6 +245,32 @@ export const stockAdjustmentsService = {
   async getById(id: number): Promise<StockAdjustment> {
     const raw = await api.get<Raw>(`${BASE}/${id}`);
     return safeParseStockAdjustment(raw);
+  },
+
+  /**
+   * Every adjustment raised against one source document, newest first.
+   *
+   * This is the answer to "has anybody closed this yet". A site transfer
+   * received short shows an open variance with no way of telling whether it has
+   * been dealt with, and reading the adjustment list to find out means scanning
+   * every document in the organisation for one that happens to mention the
+   * transfer. An empty array is a real answer: nobody has raised one.
+   *
+   * @param type - The kind of document the adjustments were raised against.
+   * @param id - That document's id.
+   * @returns The matching adjustments, newest first, or an empty array.
+   */
+  async getBySourceDocument(
+    type: StockAdjustmentSourceDocumentType,
+    id: number
+  ): Promise<StockAdjustment[]> {
+    const query = new URLSearchParams({
+      sourceDocumentType: type,
+      sourceDocumentId: String(id),
+    });
+    const data = await api.get<Raw>(`${BASE}/by-source-document?${query}`);
+    const rows: Raw[] = Array.isArray(data) ? data : (data?.content ?? []);
+    return rows.map((raw) => safeParseStockAdjustment(raw));
   },
 
   async create(data: StockAdjustmentSubmitData): Promise<StockAdjustment> {

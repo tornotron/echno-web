@@ -76,6 +76,21 @@ mock.module('@tornotron/echno-core/site-transfers/hooks', () => ({
   }),
 }));
 
+/** The adjustments raised against this transfer, set per test. */
+let closingAdjustments: StockAdjustment[] = [];
+
+import * as realStockAdjustmentHooks from '@/hooks/stock-adjustments';
+import type { StockAdjustment } from '@/types/resource';
+import { StockAdjustmentStatus } from '@/types/resource';
+
+mock.module('@/hooks/stock-adjustments', () => ({
+  ...realStockAdjustmentHooks,
+  useStockAdjustmentsBySourceDocument: () => ({
+    data: closingAdjustments,
+    isPending: false,
+  }),
+}));
+
 const errorToast = mock((..._args: unknown[]) => {});
 const successToast = mock((..._args: unknown[]) => {});
 
@@ -127,6 +142,7 @@ function aTransfer(over: Partial<SiteTransfer> = {}): SiteTransfer {
 
 afterEach(() => {
   cleanup();
+  closingAdjustments = [];
   receive.mockClear();
   cancel.mockClear();
   errorToast.mockClear();
@@ -314,6 +330,127 @@ describe('what the page says about where the stock is', () => {
     // The transfer writes no loss movement of its own, and neither does this.
     expect(text.toLowerCase()).not.toContain('write off');
     expect(text.toLowerCase()).not.toContain('write it off');
+  });
+});
+
+/** Finds a link whose text contains `label`, anywhere on the page. */
+function link(label: string): HTMLAnchorElement | undefined {
+  return [...document.body.querySelectorAll('a')].find((a) =>
+    a.textContent?.includes(label)
+  ) as HTMLAnchorElement | undefined;
+}
+
+/** Completed, ten sent, eight recorded, two nobody can account for. */
+function aShortTransfer(): SiteTransfer {
+  return aTransfer({
+    status: SiteTransferStatus.completed,
+    items: [
+      {
+        id: 84,
+        materialId: 21,
+        materialName: 'TNT Steel',
+        sentQuantity: 10,
+        receivedQuantity: 8,
+        inTransitQuantity: 2,
+      },
+    ],
+  });
+}
+
+const RAISE = 'Raise the stock adjustment that closes this';
+
+/**
+ * The route out of an open variance.
+ *
+ * The transfer named the figure and said an adjustment closes it, and then
+ * offered no way of raising one: whoever read it had to find the stock
+ * adjustment screen, work out which project and location the variance sat on,
+ * and retype the material lines. The offer belongs on exactly one reading of
+ * the in-transit figure, and the three that are not it are the trap: a
+ * cancelled transfer has already put its stock back, and a pending or partly
+ * received one may still be delivered in full.
+ */
+describe('the route from an open variance to the adjustment that closes it', () => {
+  test('a short transfer offers it, pointed back at itself', async () => {
+    transfer = aShortTransfer();
+    await renderPage();
+
+    const raise = link(RAISE);
+    expect(raise === undefined).toBe(false);
+    // The id is the whole of the prefill. Without it the form opens blank and
+    // the reference it was meant to carry has to be typed by somebody who has
+    // no field to type it into.
+    expect(raise?.getAttribute('href')).toContain('fromTransfer=7');
+  });
+
+  test('a cancelled transfer offers nothing, because its stock went back', async () => {
+    transfer = aTransfer({
+      status: SiteTransferStatus.cancelled,
+      items: [
+        {
+          id: 84,
+          materialId: 21,
+          materialName: 'TNT Steel',
+          sentQuantity: 10,
+          receivedQuantity: null,
+          inTransitQuantity: 10,
+        },
+      ],
+    });
+    await renderPage();
+
+    // Its lines still carry ten in transit, and the reversal has already put
+    // that ten back on the sending balance. Offering to correct it here is
+    // offering to take the same stock off twice.
+    expect(link(RAISE) === undefined).toBe(true);
+  });
+
+  test('a pending transfer offers nothing, because the lorry is still out', async () => {
+    transfer = aTransfer();
+    await renderPage();
+
+    expect(link(RAISE) === undefined).toBe(true);
+  });
+
+  test('a partly received transfer offers nothing, because more may yet arrive', async () => {
+    transfer = aTransfer({
+      status: SiteTransferStatus.partiallyTransferred,
+      items: [
+        {
+          id: 84,
+          materialId: 21,
+          materialName: 'TNT Steel',
+          sentQuantity: 10,
+          receivedQuantity: 6,
+          inTransitQuantity: 4,
+        },
+      ],
+    });
+    await renderPage();
+
+    expect(link(RAISE) === undefined).toBe(true);
+  });
+
+  test('once an adjustment names it, the variance reads as answered', async () => {
+    transfer = aShortTransfer();
+    closingAdjustments = [
+      {
+        id: 55,
+        adjustmentNumber: 'SA-2026-0055',
+        status: StockAdjustmentStatus.pending,
+      } as StockAdjustment,
+    ];
+    await renderPage();
+
+    // Otherwise the figure stays amber for ever and the next person raises a
+    // second adjustment for a variance somebody has already dealt with.
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('SA-2026-0055');
+    expect(text).toContain('Pending Approval');
+    expect(link('SA-2026-0055')?.getAttribute('href')).toContain(
+      '/resources/stock-adjustments/55'
+    );
+    expect(link(RAISE) === undefined).toBe(true);
   });
 });
 
