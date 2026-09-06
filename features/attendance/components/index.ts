@@ -7,6 +7,7 @@ export * from './attendance-shift-card';
 export * from './attendance-daily-movements-card';
 export * from './attendance-status-indicators-card';
 export * from './attendance-approval-info-card';
+export * from './attendance-geofence-exception-card';
 export * from './attendance-metadata-card';
 
 // Existing components
