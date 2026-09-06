@@ -22,6 +22,7 @@ import {
   canCancel,
   canReceive,
   crossesProjectBoundary,
+  inTransitMeaning,
   totalInTransit,
 } from './site-transfer-legs';
 import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
@@ -157,5 +158,34 @@ describe('what is unaccounted for', () => {
     });
 
     expect(totalInTransit(short)).toBe(2);
+  });
+});
+
+describe('what an in-transit figure is saying', () => {
+  test('nothing confirmed yet means the stock is on a road', () => {
+    expect(inTransitMeaning(transfer())).toBe('on-the-lorry');
+  });
+
+  test('a partly received transfer is still on a road, not short', () => {
+    // The one worth pinning. `canReceive` accepts PARTIALLY_TRANSFERRED, so
+    // what is left can still turn up; calling it an open variance would tell
+    // somebody to raise a stock adjustment for material that is on its way.
+    expect(
+      inTransitMeaning(
+        transfer({ status: SiteTransferStatus.partiallyTransferred })
+      )
+    ).toBe('on-the-lorry');
+  });
+
+  test('a completed transfer with a remainder is short', () => {
+    expect(
+      inTransitMeaning(transfer({ status: SiteTransferStatus.completed }))
+    ).toBe('open-variance');
+  });
+
+  test('a cancelled transfer is short of nothing: the stock went back', () => {
+    expect(
+      inTransitMeaning(transfer({ status: SiteTransferStatus.cancelled }))
+    ).toBe('settled');
   });
 });

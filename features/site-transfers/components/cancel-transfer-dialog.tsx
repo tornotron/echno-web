@@ -46,7 +46,18 @@ export function CancelTransferDialog({
   isPending,
 }: CancelTransferDialogProps) {
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={(next) => {
+        // Escape closes an AlertDialog by default, and the confirm button
+        // deliberately does not. Without this the two disagree: a person who
+        // presses Escape while the request is in flight loses the reason they
+        // typed and, if the server then refuses, is left with a toast and an
+        // empty form. Dismissal is simply ignored until the request settles.
+        if (isPending && !next) return;
+        onOpenChange(next);
+      }}
+    >
       <AlertDialogContent>
         {/*
           Mounted only while open, so a reason typed and then abandoned is gone

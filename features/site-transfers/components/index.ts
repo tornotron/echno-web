@@ -3,6 +3,7 @@ export * from './receive-transfer-dialog';
 export * from './transfer-over-receipt-dialog';
 export * from './cancel-transfer-dialog';
 export * from './transfer-status-trail';
+export * from './transfer-in-transit-notice';
 export * from './site-transfer-items-card';
 export * from './site-transfer-locations-card';
 export * from './transfer-table';

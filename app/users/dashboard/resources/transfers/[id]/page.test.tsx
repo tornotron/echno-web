@@ -241,6 +241,57 @@ describe('what the page says about where the stock is', () => {
     );
   });
 
+  test('a partly received transfer is still waiting, not short', async () => {
+    // Both readings are of the same number, and only the status separates
+    // them. A partly received transfer can take another delivery, so calling
+    // its remainder unaccounted for sends somebody to raise a stock
+    // adjustment for material that is still coming.
+    transfer = aTransfer({
+      status: SiteTransferStatus.partiallyTransferred,
+      items: [
+        {
+          id: 84,
+          materialId: 21,
+          materialName: 'TNT Steel',
+          sentQuantity: 10,
+          receivedQuantity: 6,
+          inTransitQuantity: 4,
+        },
+      ],
+    });
+    await renderPage();
+
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('has not been confirmed at the receiving one');
+    expect(text).not.toContain('unaccounted for');
+    expect(text).not.toContain('stock adjustment');
+  });
+
+  test('a cancelled transfer says the stock went back, and asks for nothing', async () => {
+    // Its lines still carry the quantity they once had in transit, and the
+    // reversal has already put that stock back on the sending balance. Reading
+    // the leftover figure as a variance would invent a shortage.
+    transfer = aTransfer({
+      status: SiteTransferStatus.cancelled,
+      items: [
+        {
+          id: 84,
+          materialId: 21,
+          materialName: 'TNT Steel',
+          sentQuantity: 10,
+          receivedQuantity: null,
+          inTransitQuantity: 10,
+        },
+      ],
+    });
+    await renderPage();
+
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('went back to the sending site');
+    expect(text).not.toContain('unaccounted for');
+    expect(text).not.toContain('stock adjustment');
+  });
+
   test('a shortfall is shown as open, and nothing offers to write it off', async () => {
     transfer = aTransfer({
       status: SiteTransferStatus.completed,
