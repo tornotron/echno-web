@@ -43,6 +43,11 @@ import {
   getIssueStatusLabel,
 } from '@tornotron/echno-core/issue/types';
 import {
+  IssuePriority,
+  getIssuePriorityColor,
+  getIssuePriorityLabel,
+} from '@tornotron/echno-core/issue/types';
+import {
   getTaskStatusColor,
   getTaskStatusLabel,
 } from '@tornotron/echno-core/task/types';
@@ -56,6 +61,10 @@ import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import { AttachmentsSection } from '@/components/common';
 import type { FileUploadState } from '@/hooks/use-direct-attachment-upload';
+import type {
+  IssueFormState,
+  IssueFormSubmitData,
+} from '@/features/issues/issue-form-state';
 import { useFormDraft, useFormDraftScope } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { FormDraftBanner } from '@/components/common';
@@ -66,21 +75,11 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 // Types
 // ---------------------------------------------------------------------------
 
-export interface IssueFormState {
-  initialized: boolean;
-  taskId: string;
-  title: string;
-  description: string;
-  issueType: IssueType;
-  status: IssueStatus;
-  priority: string;
-  assigneeId: string;
-}
-
-export interface IssueFormSubmitData {
-  fields: IssueFormState;
-  attachments: File[];
-}
+export type {
+  IssueFormPriority,
+  IssueFormState,
+  IssueFormSubmitData,
+} from '@/features/issues/issue-form-state';
 
 interface CreateProps {
   mode: 'create';
@@ -119,33 +118,17 @@ const EMPTY_FORM: IssueFormState = {
   description: '',
   issueType: IssueType.technical,
   status: IssueStatus.open,
-  priority: 'medium',
+  priority: IssuePriority.medium,
   assigneeId: '',
 };
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function getPriorityColor(priority: string) {
-  switch (priority) {
-    case 'critical': {
-      return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-    }
-    case 'high': {
-      return 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400';
-    }
-    case 'medium': {
-      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-    }
-    case 'low': {
-      return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400';
-    }
-    default: {
-      return 'bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-400';
-    }
-  }
-}
+/** The order the priority control offers, lowest urgency first. */
+const PRIORITY_OPTIONS: IssuePriority[] = [
+  IssuePriority.low,
+  IssuePriority.medium,
+  IssuePriority.high,
+  IssuePriority.critical,
+];
 
 // ---------------------------------------------------------------------------
 // Component
@@ -176,7 +159,11 @@ export function IssueForm(props: IssueFormProps) {
         description: issue.description || '',
         issueType: issue.type,
         status: issue.status,
-        priority: 'medium',
+        // An issue raised before the column existed, or raised without one,
+        // has no priority, and the control starts blank rather than at the
+        // create form's default. Seeding it with `medium` would show a value
+        // nobody chose and write it back on the next save.
+        priority: issue.priority ?? '',
         assigneeId: issue.assigneeId?.toString() || '',
       };
     }
@@ -599,21 +586,25 @@ export function IssueForm(props: IssueFormProps) {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="priority">
-                    Priority <span className="text-red-500">*</span>
-                  </Label>
+                  {/* No asterisk. The column is nullable and neither the API
+                      nor `validateForm` has ever required a priority, so the
+                      label used to claim a rule nothing enforced. */}
+                  <Label htmlFor="priority">Priority</Label>
                   <Select
                     value={form.priority}
-                    onValueChange={(v) => setField('priority', v)}
+                    onValueChange={(v) =>
+                      setField('priority', v as IssuePriority)
+                    }
                   >
                     <SelectTrigger id="priority">
-                      <SelectValue />
+                      <SelectValue placeholder="Not set" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      {PRIORITY_OPTIONS.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {getIssuePriorityLabel(option)}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -691,10 +682,20 @@ export function IssueForm(props: IssueFormProps) {
                 <span className="text-zinc-600 dark:text-zinc-400">
                   Priority
                 </span>
-                <Badge className={getPriorityColor(form.priority)}>
-                  {form.priority.charAt(0).toUpperCase() +
-                    form.priority.slice(1)}
-                </Badge>
+                {form.priority ? (
+                  <Badge
+                    variant="outline"
+                    style={{
+                      backgroundColor: `${getIssuePriorityColor(form.priority)}20`,
+                      borderColor: getIssuePriorityColor(form.priority),
+                      color: getIssuePriorityColor(form.priority),
+                    }}
+                  >
+                    {getIssuePriorityLabel(form.priority)}
+                  </Badge>
+                ) : (
+                  <span className="text-zinc-400">&mdash;</span>
+                )}
               </div>
               {selectedTask && (
                 <div className="border-t border-zinc-200 pt-3 dark:border-zinc-700">
@@ -817,7 +818,7 @@ export function IssueForm(props: IssueFormProps) {
           )}
 
           {/* Critical Priority Alert */}
-          {form.priority === 'critical' && (
+          {form.priority === IssuePriority.critical && (
             <Card className="border-orange-200 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20">
               <CardContent className="pt-6">
                 <div className="flex items-start gap-3">

@@ -38,6 +38,8 @@ import { IssueStatus, IssueType } from '@tornotron/echno-core/issue/types';
 import {
   getIssueTypeColor,
   getIssueTypeLabel,
+  getIssuePriorityColor,
+  getIssuePriorityLabel,
 } from '@tornotron/echno-core/issue/types';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
@@ -291,6 +293,26 @@ export function IssueTable({
         </Badge>
       </TableCell>
 
+      {/* Priority. Blank on an issue raised before the column existed, or
+          raised without one: the column is nullable with no default, and a
+          stand-in here would read as a priority somebody set. */}
+      <TableCell>
+        {issue.priority ? (
+          <Badge
+            style={{
+              backgroundColor: `${getIssuePriorityColor(issue.priority)}20`,
+              borderColor: getIssuePriorityColor(issue.priority),
+              color: getIssuePriorityColor(issue.priority),
+            }}
+            variant="outline"
+          >
+            {getIssuePriorityLabel(issue.priority)}
+          </Badge>
+        ) : (
+          <span className="text-sm text-zinc-400">&mdash;</span>
+        )}
+      </TableCell>
+
       {/* Related task */}
       <TableCell>
         {issue.taskName && issue.taskId ? (
@@ -431,6 +453,7 @@ export function IssueTable({
                     </TableHead>
                     <TableHead>Issue</TableHead>
                     <TableHead>Type</TableHead>
+                    <TableHead>Priority</TableHead>
                     <TableHead>Related Task</TableHead>
                     <TableHead>Creator</TableHead>
                     <TableHead>Created</TableHead>
@@ -470,8 +493,7 @@ export function IssueTable({
                 <Button asChild>
                   <Link
                     href={
-                      routes.projects.allProjects.detail(projectId)
-                        .issues.new
+                      routes.projects.allProjects.detail(projectId).issues.new
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -560,6 +582,20 @@ export function IssueTable({
                         {getIssueTypeLabel(issue.type)}
                       </Badge>
 
+                      {issue.priority && (
+                        <Badge
+                          style={{
+                            backgroundColor: `${getIssuePriorityColor(issue.priority)}20`,
+                            borderColor: getIssuePriorityColor(issue.priority),
+                            color: getIssuePriorityColor(issue.priority),
+                          }}
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          {getIssuePriorityLabel(issue.priority)}
+                        </Badge>
+                      )}
+
                       {issue.taskName && (
                         <span
                           className="text-xs font-medium text-blue-600 hover:underline dark:text-blue-400"
@@ -623,8 +659,7 @@ export function IssueTable({
               <Button asChild>
                 <Link
                   href={
-                    routes.projects.allProjects.detail(projectId)
-                      .issues.new
+                    routes.projects.allProjects.detail(projectId).issues.new
                   }
                 >
                   <Plus className="mr-2 h-4 w-4" />

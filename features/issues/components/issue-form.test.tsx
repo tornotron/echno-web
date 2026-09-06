@@ -7,6 +7,7 @@ import * as realUserHooks from '@tornotron/echno-core/user/hooks';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
 import type { IssueFormState } from './issue-form';
 import {
+  IssuePriority,
   IssueStatus,
   IssueType,
   type Issue,
@@ -56,7 +57,7 @@ mock.module('@/hooks/use-form-draft', () => ({
 const { IssueForm, ISSUE_FORM_ID } = await import('./issue-form');
 
 /** A saved issue, enough of one for the edit form to seed itself from. */
-function issue(): Issue {
+function issue(overrides: Partial<Issue> = {}): Issue {
   return {
     id: 7,
     taskId: 11,
@@ -64,7 +65,26 @@ function issue(): Issue {
     description: 'Voids along the north face of the raft pour.',
     type: IssueType.technical,
     status: IssueStatus.inProgress,
+    ...overrides,
   } as unknown as Issue;
+}
+
+/** Renders the edit form over a saved issue and returns what it submitted. */
+function renderEditForm(saved: Issue) {
+  const onSubmit = mock((..._args: unknown[]) => {});
+  const view = render(
+    createElement(IssueForm, {
+      mode: 'edit',
+      projectId: '3',
+      issue: saved,
+      isSubmitting: false,
+      isDeleting: false,
+      onSubmit,
+      onDelete: () => {},
+      onCancel: () => {},
+    } as never)
+  );
+  return { ...view, onSubmit };
 }
 
 /**
@@ -168,6 +188,38 @@ describe('IssueForm create mode', () => {
     expect(data.fields.status).toBe(IssueStatus.open);
   });
 
+  // A regression guard rather than a fix: the create form has always started
+  // at medium. It is here because the priority is now sent, so what the form
+  // starts at is on the wire and a change to it is a change to what gets saved.
+  test('an issue is created at the priority the form starts on', () => {
+    const { container, onSubmit } = renderCreateForm('11');
+
+    fireEvent.change(container.querySelector('#title') as HTMLInputElement, {
+      target: { value: 'Honeycombing on the raft' },
+    });
+    fireEvent.change(
+      container.querySelector('#description') as HTMLTextAreaElement,
+      { target: { value: 'Voids along the north face of the raft pour.' } }
+    );
+    fireEvent.submit(container.querySelector(`#${ISSUE_FORM_ID}`)!);
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      fields: { priority: string };
+    };
+    expect(data.fields.priority).toBe(IssuePriority.medium);
+  });
+
+  // The label carried a required asterisk while the column is nullable and
+  // `validateForm` has never checked the field, so it claimed a rule neither
+  // the API nor the form enforced.
+  test('the priority is not marked required', () => {
+    const { container } = renderCreateForm();
+
+    const label = container.querySelector('label[for="priority"]');
+
+    expect(label?.textContent?.trim()).toBe('Priority');
+  });
+
   test('offers no Save as Draft control', () => {
     // The button called an issue a draft and created an ordinary one: status
     // forced to open, "Issue Created" toasted, listed alongside every other
@@ -192,23 +244,43 @@ describe('IssueForm edit mode', () => {
   // Only the create payload is restricted. Moving an issue on is what the
   // update endpoint is for, so the edit form keeps the whole list.
   test('the status is still offered, with the whole list', () => {
-    const { container } = render(
-      createElement(IssueForm, {
-        mode: 'edit',
-        projectId: '3',
-        issue: issue(),
-        isSubmitting: false,
-        isDeleting: false,
-        onSubmit: () => {},
-        onDelete: () => {},
-        onCancel: () => {},
-      } as never)
-    );
+    const { container } = renderEditForm(issue());
 
     const options = statusOptions(container);
     expect(options).toContain('Resolved');
     expect(options).toContain('Closed');
     expect(options.length).toBe(8);
+  });
+
+  // The edit form hardcoded `priority: 'medium'` while seeding itself, so it
+  // showed medium against an issue saved as critical and would have written
+  // that back on the next save. The field was never sent either, so nobody saw
+  // it (#400).
+  test('seeds the priority from the saved issue', () => {
+    const { container, onSubmit } = renderEditForm(
+      issue({ priority: IssuePriority.critical })
+    );
+
+    fireEvent.submit(container.querySelector(`#${ISSUE_FORM_ID}`)!);
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      fields: { priority: string };
+    };
+    expect(data.fields.priority).toBe(IssuePriority.critical);
+  });
+
+  // The column is nullable with no default, so every issue raised before it
+  // existed has none. Seeding the control with the create form's default would
+  // put a value on screen nobody chose and save it on the next edit.
+  test('an issue with no priority does not come back as medium', () => {
+    const { container, onSubmit } = renderEditForm(issue());
+
+    fireEvent.submit(container.querySelector(`#${ISSUE_FORM_ID}`)!);
+
+    const data = onSubmit.mock.calls.at(-1)?.[0] as {
+      fields: { priority: string };
+    };
+    expect(data.fields.priority).toBe('');
   });
 });
 
@@ -232,7 +304,7 @@ describe('IssueForm restored draft', () => {
         description: 'Voids along the north face of the raft pour.',
         issueType: IssueType.technical,
         status: IssueStatus.resolved,
-        priority: 'medium',
+        priority: IssuePriority.medium,
         assigneeId: '',
       },
     };
