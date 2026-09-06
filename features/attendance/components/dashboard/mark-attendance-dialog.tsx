@@ -301,6 +301,19 @@ async function readGeolocationPermission(): Promise<PermissionState | null> {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+/**
+ * Whether a reason given for marking from outside the site boundary is enough
+ * to send.
+ *
+ * Exported and trivial on purpose. The server applies the same rule and refuses
+ * the punch with a 422 when it is not met, so the browser has to agree with it
+ * exactly or the employee is told the reason is fine and then rejected. Blank
+ * space is not a reason on either side.
+ */
+export function isGeofenceReasonSatisfied(reason: string): boolean {
+  return reason.trim().length > 0;
+}
+
 const DEFAULT_GEOFENCE_RADIUS = 100;
 
 function getEffectiveProfile(
@@ -596,6 +609,10 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   // do not require geolocation. Null means "whatever the position matched".
   const [pickedProjectId, setPickedProjectId] = useState<number | null>(null);
   const [remarks, setRemarks] = useState('');
+  // Why the employee is marking from outside the site boundary. Empty until
+  // they are, and cleared by nothing: a reason typed and then walked back into
+  // range is simply not sent.
+  const [geofenceReason, setGeofenceReason] = useState('');
 
   const { data: projects = [], isPending: isLoadingProjects } =
     useProjectsByEmployee(employeeId);
@@ -650,8 +667,17 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   const isWithinGeofence =
     selectedDistance !== null &&
     selectedDistance <= effectiveProfile.geofenceRadiusMeters;
-  const isGeoBlocked =
+  // Outside the boundary, and measured rather than assumed. This used to block
+  // the punch outright, in the browser only: the server never evaluated the
+  // fence, so a direct API call walked past it and the record stored a fixed
+  // verdict nobody had computed. The server evaluates it now
+  // (tornotron/echno-backend#646), and the product decision is that being
+  // outside does not refuse the mark. It asks for a reason and sends the day to
+  // the employee's reporting manager.
+  const isOutsideGeofence =
     geolocationRequired && selectedDistance !== null && !isWithinGeofence;
+  const geofenceReasonMissing =
+    isOutsideGeofence && !isGeofenceReasonSatisfied(geofenceReason);
   const locationSettled = isLocationSettled(
     locationState.status,
     geolocationRequired
@@ -787,19 +813,12 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
     if (
       !photoRequired ||
       cameraState.status !== 'idle' ||
-      nextActionEventType === null ||
-      isGeoBlocked
+      nextActionEventType === null
     ) {
       return;
     }
     void startCamera();
-  }, [
-    photoRequired,
-    cameraState.status,
-    nextActionEventType,
-    isGeoBlocked,
-    startCamera,
-  ]);
+  }, [photoRequired, cameraState.status, nextActionEventType, startCamera]);
 
   // Stop the camera if the component unmounts while it's running.
   useEffect(() => {
@@ -820,6 +839,13 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
       cameraState.status === 'captured' ? cameraState.photo : undefined;
 
     try {
+      // Sent only when the punch is actually outside the boundary. A reason
+      // typed and then walked back into range is not a geofence exception, and
+      // sending one would hold the day for an approval nothing called for.
+      const geofenceExceptionReason = isOutsideGeofence
+        ? geofenceReason.trim()
+        : undefined;
+
       await (!todayRecord ||
       nextAction.eventType === ClockEventType.morningClockIn
         ? checkInMutation.mutateAsync({
@@ -830,6 +856,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             location,
             photo,
             remarks: remarks || undefined,
+            geofenceExceptionReason,
           })
         : clockEventMutation.mutateAsync({
             attendanceId: todayRecord.id,
@@ -838,10 +865,13 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             location,
             photo,
             remarks: remarks || undefined,
+            geofenceExceptionReason,
           }));
 
       toast.success(`${nextAction.label} recorded`, {
-        description: `${selectedProject.projectName} · ${format(now, 'HH:mm')}`,
+        description: geofenceExceptionReason
+          ? `${selectedProject.projectName} · ${format(now, 'HH:mm')} · sent to your reporting manager to approve`
+          : `${selectedProject.projectName} · ${format(now, 'HH:mm')}`,
       });
       onClose();
     } catch {
@@ -949,19 +979,30 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
               </div>
             )}
 
-            {/* Geofence blocked */}
-            {isGeoBlocked && (
-              <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 dark:border-red-800 dark:bg-red-900/20">
-                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                <p className="text-sm text-red-700 dark:text-red-400">
-                  You are outside the project geofence. Move closer to the site
-                  to mark attendance.
-                </p>
+            {/* Outside the site boundary. Not a refusal: say why, and the
+                record goes to your reporting manager. */}
+            {isOutsideGeofence && (
+              <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                    You are{' '}
+                    {selectedDistance === null
+                      ? 'some way'
+                      : formatDistance(selectedDistance)}{' '}
+                    from {selectedProject?.projectName ?? 'the site'}, outside
+                    its {effectiveProfile.geofenceRadiusMeters} m boundary.
+                  </p>
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    You can still mark attendance. Say why, and your reporting
+                    manager will be asked to approve the day.
+                  </p>
+                </div>
               </div>
             )}
 
             {/* Form */}
-            {nextAction && !isGeoBlocked && (
+            {nextAction && (
               <>
                 <Separator className="my-1" />
 
@@ -977,6 +1018,26 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
                     onCapture={handleCapture}
                     onRetake={retake}
                   />
+                )}
+
+                {/* Reason for marking from outside the boundary. Required
+                    only when outside, and the server enforces the same rule. */}
+                {isOutsideGeofence && (
+                  <div className="space-y-1.5">
+                    <Label htmlFor="att-geofence-reason" className="text-sm">
+                      Reason for marking away from site{' '}
+                      <span className="text-destructive">*</span>
+                    </Label>
+                    <Textarea
+                      id="att-geofence-reason"
+                      placeholder="For example: at head office for the client review"
+                      value={geofenceReason}
+                      onChange={(e) => setGeofenceReason(e.target.value)}
+                      rows={2}
+                      disabled={isPending}
+                      className="resize-none text-sm"
+                    />
+                  </div>
                 )}
 
                 {/* Remarks */}
@@ -1013,7 +1074,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             >
               Cancel
             </Button>
-            {nextAction && !isGeoBlocked && (
+            {nextAction && (
               <Button
                 onClick={handleSubmit}
                 // A location is a precondition only for the profiles that ask
@@ -1025,7 +1086,8 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
                   isPending ||
                   !locationSettled ||
                   !selectedProject ||
-                  photoMissing
+                  photoMissing ||
+                  geofenceReasonMissing
                 }
                 className="min-w-[140px]"
               >
@@ -1038,6 +1100,11 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
                 {!isPending && photoMissing && (
                   <span className="ml-1 text-xs opacity-70">
                     (photo needed)
+                  </span>
+                )}
+                {!isPending && !photoMissing && geofenceReasonMissing && (
+                  <span className="ml-1 text-xs opacity-70">
+                    (reason needed)
                   </span>
                 )}
               </Button>

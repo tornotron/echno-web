@@ -21,6 +21,7 @@ import {
   AttendanceDailyMovementsCard,
   AttendanceStatusIndicatorsCard,
   AttendanceApprovalInfoCard,
+  AttendanceGeofenceExceptionCard,
   AttendanceMetadataCard,
 } from '@/features/attendance/components';
 import { toast } from '@/lib/styles/toast-styles';
@@ -174,6 +175,9 @@ export default function AttendanceDetailPage({ params }: PageProps) {
           <AttendanceShiftCard attendance={attendance} />
           <AttendanceDailyMovementsCard attendance={attendance} />
           <AttendanceStatusIndicatorsCard attendance={attendance} />
+          {/* Above the approval card, because it is what the approve and
+              reject buttons in the header are deciding on. */}
+          <AttendanceGeofenceExceptionCard attendance={attendance} />
           <AttendanceApprovalInfoCard attendance={attendance} />
           <AttendanceMetadataCard attendance={attendance} />
         </div>
