@@ -10,7 +10,9 @@ import {
   useAttendanceById,
   useApproveAttendance,
 } from '@tornotron/echno-core/attendance/hooks';
+import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { useAttendanceRole } from '@/hooks/attendance';
+import { canDecideAttendanceApproval } from '@/features/attendance/lib/approval-gate';
 import { MovementManagement } from '@/features/attendance/components/movement-management';
 import {
   AttendanceEmployeeInfoCard,
@@ -42,7 +44,20 @@ export default function AttendanceDetailPage({ params }: PageProps) {
     error,
   } = useAttendanceById(attendanceId);
   const { canApprove, canViewTeamAttendance } = useAttendanceRole();
+  const { data: viewer } = useCurrentUserEmployee();
   const approveMutation = useApproveAttendance();
+
+  // Whether the Approve and Reject buttons belong on this record, for this
+  // viewer. `canApprove` is the job-title cohort and stays one of the two
+  // inputs; the record's own `geofenceApproverId` is the other, and it is what
+  // lets a reporting manager holding no management role decide the day the
+  // backend routed to them by name.
+  const mayDecide =
+    !!attendance &&
+    canDecideAttendanceApproval(attendance, {
+      employeeId: viewer?.id,
+      managesRecords: canApprove,
+    });
 
   if (isLoading) {
     return (
@@ -116,7 +131,7 @@ export default function AttendanceDetailPage({ params }: PageProps) {
                 Employee History
               </Button>
             )}
-            {canApprove && attendance.approvalStatus === 'pending' && (
+            {mayDecide && (
               <>
                 <Button
                   variant="outline"
