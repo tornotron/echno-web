@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
@@ -94,7 +94,14 @@ import { useAttendanceRole } from '@/hooks/attendance';
 import { AttendanceRole } from '@tornotron/echno-core/attendance/types';
 import { useLogMovement } from '@tornotron/echno-core/movement/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
-import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import {
+  useEmployeeLookup,
+  useCurrentUserEmployee,
+} from '@tornotron/echno-core/employee/hooks';
+import {
+  canDecideAttendanceApproval,
+  pendingAttendanceApprovalCount,
+} from '@/features/attendance/lib/approval-gate';
 import { EmployeeDashboard } from '@/features/attendance/components/dashboard/employee-dashboard';
 import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
 
@@ -103,7 +110,11 @@ const ATTENDANCE_DASHBOARD_PREFERENCE_KEY = 'attendance-dashboard-preference';
 function AttendancePage() {
   const router = useRouter();
   // ── Role-based view ────────────────────────────────────────────────────────
-  const { availableRoles, isLoading: roleLoading } = useAttendanceRole();
+  const {
+    availableRoles,
+    isLoading: roleLoading,
+    canApprove,
+  } = useAttendanceRole();
   const [currentView, setCurrentView] = useState<AttendanceRole>(() => {
     if (globalThis.window === undefined) return AttendanceRole.EMPLOYEE;
     const saved = localStorage.getItem(ATTENDANCE_DASHBOARD_PREFERENCE_KEY);
@@ -177,6 +188,7 @@ function AttendancePage() {
   // ── Server data ──────────────────────────────────────────────────────────
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployeeLookup();
+  const { data: viewer } = useCurrentUserEmployee();
   const approveMutation = useApproveAttendance();
   const logMovementMutation = useLogMovement();
   const markAbsentMutation = useMarkAbsent();
@@ -199,7 +211,12 @@ function AttendancePage() {
   const { data: pagedResult, isLoading: attendanceLoading } =
     useAttendanceByProject(apiParams);
 
-  const paginatedAttendance = pagedResult?.content ?? [];
+  // Held stable across renders so the approval gate below is not recomputed on
+  // every one: `?? []` is a fresh array each time and would defeat the memo.
+  const paginatedAttendance = useMemo(
+    () => pagedResult?.content ?? [],
+    [pagedResult?.content]
+  );
   const totalPages = pagedResult?.totalPages ?? 0;
 
   // Statistics from current page (accurate when a project is selected)
@@ -218,9 +235,11 @@ function AttendancePage() {
     halfDay: paginatedAttendance.filter(
       (a) => a.status === AttendanceStatus.halfDay
     ).length,
-    pending: paginatedAttendance.filter(
-      (a) => a.status === AttendanceStatus.pendingRegularization
-    ).length,
+    // The tile below this reads "pending approval", so it counts the approval
+    // state. It used to count AttendanceStatus.pendingRegularization, which
+    // describes a different workflow entirely, so the number under those words
+    // was not the number of records pending approval.
+    pending: pendingAttendanceApprovalCount(paginatedAttendance),
     avgWorkHours:
       paginatedAttendance.reduce(
         (sum, a) => sum + (a.workDuration?.hours || 0),
@@ -233,19 +252,47 @@ function AttendancePage() {
       ? ((stats.present + stats.late + stats.halfDay * 0.5) / stats.total) * 100
       : 0;
 
+  // The rows on this page that this viewer may actually decide.
+  //
+  // Two things are read together: the job-title cohort, which is what the page
+  // used before and still needs for ordinary records, and the record's own
+  // geofenceApproverId, which the backend fills from the reporting manager or
+  // a project manager on the site. A record naming somebody widens who may
+  // decide it; a record flagged for a geofence decision also narrows it, since
+  // nobody approves their own away-from-site day whatever roles they hold.
+  //
+  // Driving selection off this rather than the checkboxes off nothing is what
+  // keeps the bulk bar honest: an id that cannot be selected cannot be sent to
+  // a bulk approve that the server would refuse one row at a time.
+  const decidableIds = useMemo(
+    () =>
+      new Set(
+        paginatedAttendance
+          .filter((a) =>
+            canDecideAttendanceApproval(a, {
+              employeeId: viewer?.id,
+              managesRecords: canApprove,
+            })
+          )
+          .map((a) => a.id)
+      ),
+    [paginatedAttendance, viewer?.id, canApprove]
+  );
+
   // Selection handlers
   const handleSelectAll = () => {
-    if (selectedAttendance.length === paginatedAttendance.length) {
+    const selectable = [...decidableIds];
+    if (selectedAttendance.length === selectable.length) {
       setSelectedAttendance([]);
     } else {
-      setSelectedAttendance(paginatedAttendance.map((att) => att.id));
+      setSelectedAttendance(selectable);
     }
   };
 
   const handleSelectOne = (id: number) => {
     if (selectedAttendance.includes(id)) {
       setSelectedAttendance(selectedAttendance.filter((attId) => attId !== id));
-    } else {
+    } else if (decidableIds.has(id)) {
       setSelectedAttendance([...selectedAttendance, id]);
     }
   };
@@ -329,11 +376,10 @@ function AttendancePage() {
   };
 
   const isAllSelected =
-    paginatedAttendance.length > 0 &&
-    selectedAttendance.length === paginatedAttendance.length;
+    decidableIds.size > 0 && selectedAttendance.length === decidableIds.size;
   const isSomeSelected =
     selectedAttendance.length > 0 &&
-    selectedAttendance.length < paginatedAttendance.length;
+    selectedAttendance.length < decidableIds.size;
 
   // Employee view — return early so we don't call attendance-management hooks unnecessarily
   if (activeView === AttendanceRole.EMPLOYEE) {
@@ -763,6 +809,7 @@ function AttendancePage() {
                       <Checkbox
                         checked={selectedAttendance.includes(attendance.id)}
                         onCheckedChange={() => handleSelectOne(attendance.id)}
+                        disabled={!decidableIds.has(attendance.id)}
                         aria-label={`Select ${attendance.employeeName}`}
                       />
                     </TableCell>
@@ -866,7 +913,7 @@ function AttendancePage() {
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end space-x-1">
                         <TooltipProvider>
-                          {attendance.approvalStatus === 'pending' && (
+                          {decidableIds.has(attendance.id) && (
                             <>
                               <Tooltip>
                                 <TooltipTrigger asChild>
