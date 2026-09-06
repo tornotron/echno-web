@@ -450,33 +450,38 @@ export const leaveService = {
   },
 
   /**
-   * Get all leave requests for an approver.
+   * Get all leave requests for the signed-in approver.
+   *
+   * The approver is the session's, never the argument's. `approverId` stays on
+   * the signature because it keys the React Query cache and gates the fetch;
+   * putting it on the wire would be asking for a named person's queue, which
+   * is the read the endpoint stopped serving.
    */
-  async getApproverRequests(approverId: number): Promise<LeaveRequest[]> {
-    const data = await api.get<ApiResponse[]>(`/leave-requests/web/approver`, {
-      approverId,
-    });
+  async getApproverRequests(_approverId: number): Promise<LeaveRequest[]> {
+    const data = await api.get<ApiResponse[]>(`/leave-requests/web/approver`);
     return safeParseLeaveRequests(data);
   },
 
   /**
-   * Get pending approvals for approver.
+   * Get pending approvals for the signed-in approver.
+   *
+   * Session-served, as {@link getApproverRequests} is.
    */
-  async getPendingApprovals(approverId: number): Promise<LeaveRequest[]> {
+  async getPendingApprovals(_approverId: number): Promise<LeaveRequest[]> {
     const data = await api.get<ApiResponse[]>(
-      `/leave-requests/web/pending-approvals`,
-      { approverId }
+      `/leave-requests/web/pending-approvals`
     );
     return safeParseLeaveRequests(data);
   },
 
   /**
-   * Get pending approvals count.
+   * Get the pending-approval count for the signed-in approver.
+   *
+   * Session-served, as {@link getApproverRequests} is.
    */
-  async getPendingApprovalsCount(approverId: number): Promise<number> {
+  async getPendingApprovalsCount(_approverId: number): Promise<number> {
     const data = await api.get<{ count: number }>(
-      `/leave-requests/web/pending-approvals/count`,
-      { approverId }
+      `/leave-requests/web/pending-approvals/count`
     );
     return data.count ?? 0;
   },
@@ -646,15 +651,19 @@ export const leaveService = {
   },
 
   /**
-   * Check if can approve.
+   * Ask whether the signed-in employee may decide this request.
+   *
+   * The employee is the session's. `employeeId` stays on the signature because
+   * it keys the cache: the answer is per viewer, so a shared key would hand
+   * one viewer another's verdict.
    */
   async canApprove(
     requestId: number,
-    employeeId: number
+    _employeeId: number
   ): Promise<CanApproveResponse> {
     const data = await api.get<ApiResponse>(
       `/leave-approvals/web/can-approve`,
-      { requestId, employeeId }
+      { requestId }
     );
     return {
       canApprove: data.canApprove ?? false,
