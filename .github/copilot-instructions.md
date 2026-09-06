@@ -1,115 +1,128 @@
-# 🚀 Project Directory & Code Structure Guidelines (Root Level)
+# Project structure and dependency rules
 
-This document outlines the standard folder structure and code organization principles for this Next.js project. All developers and AI assistants (like GitHub Copilot) MUST adhere to these guidelines to ensure maintainability, scalability, and a clean separation of concerns.
+How this Next.js app is organised, and the import rules that go with it. These
+apply to everyone working in the repo, human or assistant. `eslint.config.mjs`
+enforces them through `boundaries/element-types`, so a violation fails the
+`Lint` step of the pull request workflow rather than waiting for review to
+catch it.
 
-## 1. Core Philosophy: Feature-Based Structure
+## 1. Files are grouped by feature, not by type
 
-We do **not** group files by _type_ (e.g., all components in one folder). We group files by **feature** or **domain**.
+Everything belonging to one domain lives together. All of the authentication
+code (components, hooks, actions) is in `features/auth`, so working on a
+feature means working in one folder.
 
-- **Example:** All code related to user authentication (components, hooks, actions) lives in `features/auth`.
-- **Benefits:** This is highly scalable. When you work on the "settings" feature, all the files you need are in `features/settings`.
-
----
-
-## 2. Directory Structure Explained
-
-```
-
-my-next-project/
-├── /app                \<-- (1) ROUTING
-│   ├── /(auth)
-│   │   └── /login/page.tsx
-│   └── /(dashboard)
-│       └── /settings/page.tsx
-│
-├── /components         \<-- (2) SHARED UI
-│   ├── /ui             \<-- (DO NOT TOUCH) shadcn/ui primitives.
-│   ├── /layout         \<-- Global layout components (SiteHeader, Sidebar).
-│   └── /shared         \<-- Other shared, simple components (Logo, ThemeToggle).
-│
-├── /features           \<-- (3) CORE BUSINESS LOGIC
-│   ├── /auth           \<-- Feature "auth"
-│   │   ├── /components     \<- Components used ONLY by "auth"
-│   │   │   └── login-form.tsx
-│   │   └── /actions        \<- Server actions for "auth"
-│   │       └── login.ts
-│   │
-│   └── /settings       \<-- Feature "settings"
-│       ├── /components
-│       │   └── appearance-form.tsx
-│       └── /hooks
-│           └── use-appearance.ts
-│
-├── /lib                \<-- (4) UTILITIES
-│   ├── utils.ts        (cn() function)
-│   ├── db.ts           (Database connection)
-│   └── ...
-│
-├── /types              \<-- (5) GLOBAL TYPESCRIPT
-│   └── index.ts
-│
-├── components.json     \<-- shadcn/ui config file
-├── next.config.mjs
-└── tsconfig.json
+## 2. Directory structure
 
 ```
+├── app/                  Routing. Thin pages that compose feature components.
+│
+├── components/
+│   ├── shadcn/           The UI layer everything else imports.
+│   ├── ui/               Base primitives, written by the shadcn CLI.
+│   ├── kibo-ui/          Vendored registry (kibo-ui).
+│   ├── reui/             Vendored registry (reui).
+│   ├── providers/        Root context providers, mounted from app/layout.tsx.
+│   ├── shared/           Global components (EmployeeAvatar, AccountCombobox).
+│   ├── common/           Global building blocks used across features.
+│   └── errors/           Error boundary and recovery components.
+│
+├── features/             Business logic, one folder per domain.
+│   └── auth/
+│       ├── components/   Used only by "auth".
+│       ├── hooks/
+│       └── actions/
+│
+├── hooks/                Shared hooks.
+├── lib/                  Pure helpers, API client, RBAC, utils.
+├── services/             API service layer.
+├── types/                Shared TypeScript types.
+│
+├── components.json       shadcn CLI config. Its `ui` alias points at
+│                         components/ui, which is correct: the CLI writes
+│                         base primitives, and our variants go elsewhere.
+└── eslint.config.mjs
+```
 
----
+## 3. The two primitive folders
 
-## 3. The Rules of Dependency
+This is the part that has caused trouble, so it is worth stating plainly.
 
-This is the most important part. To keep the project clean, we follow a strict **one-way dependency flow**.
+`components/ui` holds the primitives as the shadcn CLI generates them. Treat
+that folder as vendored: run the CLI to add or update a component, and do not
+hand-edit it.
 
----
+`components/shadcn` is our layer on top. Most of its files are one-line
+pass-throughs (`export * from '@/components/ui/x'`). The rest wrap the base
+component to add variants this product needs: the `gradient`, `glass` and
+`social` button variants, the dialog `size`, `animation` and `overlayBlur`
+props, the card and badge and empty variants, the keydown guard on numeric
+inputs.
 
-1.  **`app` (Routes)**
+**Application code imports `@/components/shadcn/*` and never
+`@/components/ui/*`.** Only `components/shadcn` and the two vendored
+registries may reach the base layer. Going straight to `components/ui` skips
+our variants, and it is how the app ended up rendering two different Buttons
+depending on which folder a screen's author picked (#394).
 
-    - **PURPOSE:** Routing and data fetching only.
-    - **RULE:** `page.tsx` files should be "thin." They should import components directly from `features/*` and `components/layout/*`.
-    - **Example:** `app/settings/page.tsx` imports `<AppearanceForm />` from `features/settings/components/appearance-form.tsx`.
+```tsx
+// Right
+import { Button } from '@/components/shadcn/button';
+import { Card } from '@/components/shadcn/card';
 
-2.  **`features` (Business Logic)**
+// Wrong, and the lint step will say so
+import { Button } from '@/components/ui/button';
+```
 
-    - **PURPOSE:** The "brain" of your application.
-    - **RULE:** A feature can import from `components/ui`, `components/shared`, `lib`, and `types`.
-    - **CRITICAL: A feature MUST NOT import from another feature folder.** (e.g., `features/auth` CANNOT import from `features/settings`).
-    - **If you need to share logic between features,** elevate it to a shared hook in `hooks` or a utility in `lib`.
+Adding a primitive the app does not have yet:
 
-3.  **`components` (Shared UI)**
+1. `bunx shadcn@latest add <name>`, which writes `components/ui/<name>.tsx`.
+2. Add `components/shadcn/<name>.tsx`. If no extra variants are needed it is
+   two lines: `'use client';` and `export * from '@/components/ui/<name>';`.
+3. Import the `components/shadcn` path from your feature.
 
-    - **PURPOSE:** Global, reusable UI components that have NO business logic.
-    - `components/ui` is for `shadcn/ui` primitives. **Do not manually edit** this folder; use the CLI.
-    - `components/layout` & `components/shared` are for your own global components (e.g., `SiteHeader`).
-    - **CRITICAL: `components` MUST NOT import from `features/*`.** This is a "dumb" layer and must stay that way.
+## 4. Dependency rules
 
-4.  **`lib` (Utilities)**
-    - **PURPOSE:** Pure, reusable functions, helpers, and SDK initializations.
-    - **RULE:** `lib` CANNOT import from `app`, `features`, or `components`. It is the lowest-level layer.
+The flow is one-way. Reading down the list, each layer may import from the
+ones below it and not the other way round.
 
----
+1. **`app`** routes. Pages stay thin and compose from `features`,
+   `components/shared` and `components/shadcn`.
+2. **`components/providers`**. The composition root, mounted in
+   `app/layout.tsx`. Unlike the other component folders it may import from
+   `features`, because that is where the hooks it wires up live.
+3. **`features`**. May import `components/shadcn`, `components/shared`,
+   `components/providers`, `hooks`, `lib` and `types`. **A feature must not
+   import another feature.** Shared logic moves up to `hooks` or `lib`.
+4. **`components/shared`, `components/common`, `components/errors`**. Global
+   UI with no business logic. **These must not import from `features`.**
+5. **`components/shadcn`**. The only place allowed to import
+   `components/ui`.
+6. **`components/ui`** and the vendored registries. The bottom of the UI
+   stack. They import `lib` and `types` and nothing above.
+7. **`lib`** and **`types`**. Lowest level. `lib` cannot import from `app`,
+   `features` or `components`.
 
-## 4. Workflow: Adding a New Feature (e.g., "Analytics")
+## 5. Adding a feature
 
-1.  **Create the Route:** Add a new page at `app/(dashboard)/analytics/page.tsx`.
-2.  **Create the Feature Folder:** Create a new folder at `features/analytics`.
-3.  **Add `shadcn/ui` Primitives:** Run `npx shadcn-ui@latest add card chart`. They land in `components/ui`.
-4.  **Build Feature Components:** Create your components inside `features/analytics/components/`.
-    - e.g., `features/analytics/components/sales-chart.tsx`.
-    - This component will `import { Card } from '@/components/ui/card'` and `import { Chart } from '@/components/ui/chart'`.
-5.  **Connect Route to Feature:** In `app/(dashboard)/analytics/page.tsx`, import your new feature component:
+1. Create the route: `app/(dashboard)/analytics/page.tsx`.
+2. Create `features/analytics/`.
+3. Add any missing primitives with the CLI, then the matching
+   `components/shadcn` file (section 3).
+4. Build the components under `features/analytics/components/`, importing
+   from `@/components/shadcn/*`.
+5. Compose them in the page:
 
-    ```tsx
-    // app/(dashboard)/analytics/page.tsx
-    import { SalesChart } from "@/features/analytics/components/sales-chart";
+   ```tsx
+   // app/(dashboard)/analytics/page.tsx
+   import { SalesChart } from '@/features/analytics/components/sales-chart';
 
-    export default function AnalyticsPage() {
-      return (
-        <div>
-          <h1 className="text-2xl font-bold">Analytics</h1>
-          <SalesChart />
-        </div>
-      );
-    }
-    ```
-
----
+   export default function AnalyticsPage() {
+     return (
+       <div>
+         <h1 className="text-2xl font-bold">Analytics</h1>
+         <SalesChart />
+       </div>
+     );
+   }
+   ```

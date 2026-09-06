@@ -1,61 +1,87 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 
+import boundariesPlugin from 'eslint-plugin-boundaries';
 
-import boundariesPlugin from "eslint-plugin-boundaries";
-
-import perfectionistPlugin from "eslint-plugin-perfectionist";
-import unicornPlugin from "eslint-plugin-unicorn";
+import perfectionistPlugin from 'eslint-plugin-perfectionist';
+import unicornPlugin from 'eslint-plugin-unicorn';
 
 const customRulesConfig = {
   // Apply these rules to all TypeScript/JavaScript files
-  files: ["**/*.{js,jsx,ts,tsx}"],
+  files: ['**/*.{js,jsx,ts,tsx}'],
 
   plugins: {
     boundaries: boundariesPlugin,
   },
 
   settings: {
-    "import/resolver": {
+    'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
       },
     },
-    "boundaries/include": ["**/*"],
-    "boundaries/elements": [
+    'boundaries/include': ['**/*'],
+    // `mode` matters and defaults to "folder". Every element below whose
+    // members are files rather than directories has to say `mode: "file"`, or
+    // the plugin finds no folder to match and classifies the import as an
+    // unknown type, which `boundaries/element-types` then skips in silence.
+    // That is what happened to `components/ui` and `components/shadcn`: the
+    // one-way rule below has been written down since April and enforced
+    // nothing, which is how the two primitive folders drifted apart (#394).
+    'boundaries/elements': [
       {
-        type: "app",
-        pattern: "app/*",
+        // File mode, so the route files sitting directly in `app/`
+        // (`layout.tsx`, `error.tsx`, `global-error.tsx`) are covered too.
+        // Folder mode skipped them, since it needs a directory to match.
+        type: 'app',
+        mode: 'file',
+        pattern: 'app/**/*',
       },
       {
-        type: "features",
-        pattern: "features/*",
-        capture: ["featureName"],
+        type: 'features',
+        pattern: 'features/*',
+        capture: ['featureName'],
       },
       {
-        type: "shadcn",   // extension layer — custom CVA variants, consumed by app/features
-        pattern: "components/shadcn/*",
+        // Vendored component registries (kibo-ui, reui). Third-party output,
+        // globally ignored by lint, and allowed to sit on the base layer.
+        type: 'vendor',
+        mode: 'file',
+        pattern: 'components/(kibo-ui|reui)/**/*',
       },
       {
-        type: "ui",       // base layer — shadcn CLI target, never imported directly by app/features
-        pattern: "components/ui/*",
+        type: 'shadcn', // extension layer — custom CVA variants, consumed by app/features
+        mode: 'file',
+        pattern: 'components/shadcn/*',
       },
       {
-        type: "layout",
-        pattern: "components/layout/*",
+        type: 'ui', // base layer — shadcn CLI target, never imported directly by app/features
+        mode: 'file',
+        pattern: 'components/ui/*',
       },
       {
-        type: "shared",
-        pattern: "components/shared/*",
+        // The composition root. These are mounted from `app/layout.tsx` and
+        // wire feature hooks into the tree, so unlike the dumb component
+        // layers they are allowed to reach into `features`.
+        type: 'providers',
+        mode: 'file',
+        pattern: 'components/providers/**/*',
       },
       {
-        type: "lib",
-        pattern: "lib/*",
+        // Our own global components. They sit above the extension layer and
+        // import from it, exactly as a feature does.
+        type: 'shared',
+        mode: 'file',
+        pattern: 'components/(shared|common|errors)/**/*',
       },
       {
-        type: "types",
-        pattern: "types/*",
+        type: 'lib',
+        pattern: 'lib/*',
+      },
+      {
+        type: 'types',
+        pattern: 'types/*',
       },
     ],
   },
@@ -65,55 +91,84 @@ const customRulesConfig = {
     // satisfy a signature and is deliberately not read: the `(..._args)` spies in
     // the service tests, discarded destructured fields, ignored catch bindings.
     // Without these patterns the rule cannot tell that apart from an oversight.
-    "@typescript-eslint/no-unused-vars": [
-      "warn",
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
       {
-        argsIgnorePattern: "^_",
-        varsIgnorePattern: "^_",
-        caughtErrorsIgnorePattern: "^_",
-        destructuredArrayIgnorePattern: "^_",
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
       },
     ],
 
     // Enforce One-Way Dependency Structure using eslint-plugin-boundaries
-    "boundaries/element-types": [
-      "error",
+    'boundaries/element-types': [
+      'error',
       {
-        default: "disallow",
+        default: 'disallow',
         rules: [
           {
-            from: "app",
-            allow: ["features", "layout", "shared", "shadcn", "lib", "types"],
-          },
-          {
-            from: "features",
-            allow: ["shadcn", "shared", "lib", "types"],
-          },
-          {
-            from: "features",
+            from: 'app',
             allow: [
-              ["features", { featureName: "${from.featureName}" }],
-              "shadcn",
-              "shared",
-              "lib",
-              "types",
+              'app',
+              'features',
+              'providers',
+              'shared',
+              'shadcn',
+              'lib',
+              'types',
             ],
           },
           {
-            from: ["shadcn", "layout", "shared"],
-            allow: ["shadcn", "ui", "layout", "shared", "lib", "types"],
+            from: 'providers',
+            allow: [
+              'features',
+              'providers',
+              'shared',
+              'shadcn',
+              'lib',
+              'types',
+            ],
           },
           {
-            from: "ui",
-            allow: ["lib", "types"],
+            from: 'features',
+            allow: [
+              ['features', { featureName: '${from.featureName}' }],
+              'shadcn',
+              'shared',
+              // The root context providers, which a feature consumes through
+              // its hook (`useOrganization`) rather than mounting itself.
+              'providers',
+              'lib',
+              'types',
+            ],
           },
           {
-            from: "lib",
-            allow: ["types", "lib"],
+            from: 'shared',
+            allow: ['shadcn', 'shared', 'providers', 'lib', 'types'],
+          },
+          // The extension layer is the only place allowed to reach the base
+          // primitives. Everything above it imports `components/shadcn`, so a
+          // fix to a primitive reaches every screen instead of half of them.
+          {
+            from: 'shadcn',
+            allow: ['shadcn', 'ui', 'vendor', 'shared', 'lib', 'types'],
           },
           {
-            from: "types",
-            allow: ["types"],
+            from: 'vendor',
+            allow: ['ui', 'vendor', 'lib', 'types'],
+          },
+          {
+            from: 'ui',
+            allow: ['ui', 'lib', 'types'],
+          },
+          {
+            from: 'lib',
+            allow: ['types', 'lib'],
+          },
+          {
+            from: 'types',
+            allow: ['types'],
           },
         ],
       },
@@ -123,13 +178,15 @@ const customRulesConfig = {
 
 // PERFECTIONIST (SORTING) RULES ---
 const perfectionistRules = {
-  ...perfectionistPlugin.configs["eslint-plugin-perfectionist/recommended-natural"],
+  ...perfectionistPlugin.configs[
+    'eslint-plugin-perfectionist/recommended-natural'
+  ],
   // You can also use 'recommended-alphabetical' if you prefer
 };
 
 // UNICORN (FILENAME & CODE QUALITY) RULES ---
 const unicornRules = {
-  files: ["**/*.{js,jsx,ts,tsx}"],
+  files: ['**/*.{js,jsx,ts,tsx}'],
   plugins: {
     unicorn: unicornPlugin,
   },
@@ -138,23 +195,23 @@ const unicornRules = {
 
     // This is the 'ls-lint' replacement.
     // It enforces file naming conventions.
-    "unicorn/filename-case": [
-      "error",
+    'unicorn/filename-case': [
+      'error',
       {
-        "cases": {
-          "kebabCase": true,
-          "pascalCase": true, // Allow PascalCase for React components
+        cases: {
+          kebabCase: true,
+          pascalCase: true, // Allow PascalCase for React components
         },
-        "ignore": [
+        ignore: [
           // Ignore Next.js dynamic route filenames like [id].tsx and [...all].tsx
           /\[...all\]\.tsx?$/,
           /\[.+\]\.tsx?$/,
         ],
-      }
+      },
     ],
 
-    "unicorn/prevent-abbreviations": "off",
-    "unicorn/no-null": "off", // 'null' is often needed in Next.js
+    'unicorn/prevent-abbreviations': 'off',
+    'unicorn/no-null': 'off', // 'null' is often needed in Next.js
 
     // Off because it cannot be satisfied here. The rule is happy once a nested
     // ternary is parenthesised, and that is all its autofix does, but lint-staged
@@ -164,7 +221,7 @@ const unicornRules = {
     // forever. The only other way to clear it is to hand-rewrite the ternaries
     // as if/else or helper functions, which is a refactor of rendering code
     // rather than a lint fix.
-    "unicorn/no-nested-ternary": "off",
+    'unicorn/no-nested-ternary': 'off',
 
     // Argument checking off. The rule strips a trailing `undefined` argument
     // without consulting the signature, so `parse(undefined)` on a function whose
@@ -172,8 +229,8 @@ const unicornRules = {
     // the signature. tsc does not catch it either, since tsconfig excludes test
     // files and that is exactly where feeding a parser `undefined` on purpose is
     // the assertion. Declarations are still checked.
-    "unicorn/no-useless-undefined": ["error", { checkArguments: false }],
-  }
+    'unicorn/no-useless-undefined': ['error', { checkArguments: false }],
+  },
 };
 
 // UNICORN OVERRIDE FOR NEXT.JS FILES ---
@@ -182,18 +239,18 @@ const nextFileOverrides = {
   files: [
     // Next.js 'app' router uses files with `page.tsx` etc.
     // We must disable this rule for the 'app' directory.
-    "app/**/{page,layout,template,loading,error,global-error,not-found}.tsx"
+    'app/**/{page,layout,template,loading,error,global-error,not-found}.tsx',
   ],
   rules: {
-    "unicorn/filename-case": [
-      "error",
+    'unicorn/filename-case': [
+      'error',
       {
-        "cases": {
-          "kebabCase": true
-        }
-      }
-    ]
-  }
+        cases: {
+          kebabCase: true,
+        },
+      },
+    ],
+  },
 };
 
 const eslintConfig = defineConfig([
@@ -207,15 +264,15 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
     // shadcn CLI-managed files — treated as third-party, not linted
-    "components/ui/**",
-    "components/kibo-ui/**",
-    "components/reui/**",
-    "hooks/use-mobile.ts",
+    'components/ui/**',
+    'components/kibo-ui/**',
+    'components/reui/**',
+    'hooks/use-mobile.ts',
   ]),
 ]);
 
