@@ -14,6 +14,8 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { PageHeader } from '@/components/common/page-header';
+import { ActiveFilterChip } from '@/components/common';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import Link from 'next/link';
 import { TaskStatus } from '@tornotron/echno-core/task/types';
 import { TaskTable, TaskStatsCard } from '@/features/tasks/components';
@@ -39,6 +41,24 @@ export default function ProjectTasksPage() {
   const isLoading = isProjectLoading || isTasksLoading;
   const isError = isProjectError || isTasksError;
 
+  /*
+    A name in this project's team roster links here as
+    `?employeeId=<id>&role=assignee`. It answers "what is this person doing on
+    this project", and both halves of that are real: the project half is the
+    route, which fetches through `useTasksByProject`, and the assignee half is
+    this filter. `useTasksByProject` returns the project's tasks whole rather
+    than a page of them, so narrowing in the browser hides nothing.
+  */
+  const { chip, matches: matchesAssigneeFilter } = useEmployeeFilterFromParams({
+    rows: projectTasks,
+    roles: {
+      // A task carries several assignees, so no single id answers this.
+      assignee: {
+        matches: (task, id) => task.assignees?.some((a) => a.id === id) ?? false,
+      },
+    },
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,9 +73,9 @@ export default function ProjectTasksPage() {
         task.tags?.some((tag) => tag.toLowerCase().includes(searchLower));
       const matchesStatus =
         statusFilter === 'all' || task.status === statusFilter;
-      return matchesSearch && matchesStatus;
+      return matchesSearch && matchesStatus && matchesAssigneeFilter(task);
     });
-  }, [searchQuery, statusFilter, projectTasks]);
+  }, [searchQuery, statusFilter, projectTasks, matchesAssigneeFilter]);
 
   const totalPages = Math.ceil(filteredTasks.length / itemsPerPage);
   const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages || 1);
@@ -76,7 +96,9 @@ export default function ProjectTasksPage() {
     (t) => t.status === TaskStatus.completed
   ).length;
 
-  const hasActiveFilters = Boolean(searchQuery || statusFilter !== 'all');
+  const hasActiveFilters = Boolean(
+    searchQuery || statusFilter !== 'all' || chip
+  );
 
   if (!projectId) {
     return (
@@ -165,6 +187,8 @@ export default function ProjectTasksPage() {
           </Button>
         }
       />
+
+      {chip && <ActiveFilterChip {...chip} />}
 
       <TaskStatsCard
         totalTasks={totalTasks}

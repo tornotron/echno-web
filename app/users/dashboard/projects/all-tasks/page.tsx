@@ -5,30 +5,28 @@ import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { Loader2 } from 'lucide-react';
 import { PageHeader } from '@/components/common/page-header';
 import { ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { TasksList } from '@/features/tasks/components';
 
 export default function AllTasksPage() {
   const { data: allTasks = [], isLoading: isTasksLoading } = useTasks();
   const { data: projects = [], isLoading: isProjectsLoading } = useProjects();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
-
   // Tasks are fetched in full client-side, so the employee filter is applied
   // here rather than as a backend query param. `assignee` keeps tasks the
   // employee is one of the assignees on; `creator` keeps tasks they created.
-  const filteredTasks =
-    employeeId != null && role
-      ? allTasks.filter((task) => {
-          if (role === 'assignee')
-            return task.assignees?.some((a) => a.id === employeeId) ?? false;
-          if (role === 'creator') return task.creator?.id === employeeId;
-          return true;
-        })
-      : allTasks;
+  // The if-chain this replaces ended in `return true`, so a third role fell
+  // through to the whole list while the chip still named the person.
+  const { chip, filtered: filteredTasks } = useEmployeeFilterFromParams({
+    rows: allTasks,
+    roles: {
+      // A task has several assignees, so no single id answers this one.
+      assignee: {
+        matches: (task, id) => task.assignees?.some((a) => a.id === id) ?? false,
+      },
+      creator: (task) => task.creator?.id,
+    },
+  });
 
   if (isTasksLoading || isProjectsLoading) {
     return (
@@ -44,13 +42,7 @@ export default function AllTasksPage() {
         title="Tasks"
         description="View and manage tasks across all projects"
       />
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
       <TasksList tasks={filteredTasks} projects={projects} />
     </div>
   );

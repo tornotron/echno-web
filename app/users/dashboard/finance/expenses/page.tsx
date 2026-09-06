@@ -2,11 +2,7 @@
 
 import { useExpenses } from '@/hooks/expenses';
 import { PageHeader, ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -18,17 +14,16 @@ import { ExpensesTable } from '@/features/expenses';
 export default function ExpensesPage() {
   const { data: expenses = [], isLoading, isError } = useExpenses();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
-  const filteredExpenses =
-    employeeId != null && role
-      ? expenses.filter((r) =>
-          rowMatchesEmployeeFilter(r, employeeId, role, {
-            submitter: (e) => e.submittedBy,
-            approver: (e) => e.approvedBy,
-            rejecter: (e) => e.rejectedBy,
-          })
-        )
-      : expenses;
+  // The three roles this list answers, declared once. The chip is derived from
+  // the same map, so it cannot name a person over a list nothing narrowed.
+  const { chip, filtered: filteredExpenses } = useEmployeeFilterFromParams({
+    rows: expenses,
+    roles: {
+      submitter: (e) => e.submittedBy,
+      approver: (e) => e.approvedBy,
+      rejecter: (e) => e.rejectedBy,
+    },
+  });
 
   const totalExpenses = expenses.length;
   const paidExpenses = expenses.filter(
@@ -119,13 +114,7 @@ export default function ExpensesPage() {
         </div>
       </Card>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <ExpensesTable
         expenses={filteredExpenses}

@@ -11,10 +11,7 @@ import { PageHeader } from '@/components/common/page-header';
 import { ActiveFilterChip } from '@/components/common';
 import { useDebounce } from '@/hooks/use-debounce';
 import { useIssuesPage } from '@/hooks/issues/use-issues-page';
-import {
-  useEmployeeFilterFromParams,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
 
 export default function AllIssuesPage() {
@@ -40,18 +37,22 @@ export default function AllIssuesPage() {
   // Assigned To name. `assignee` maps to the backend `assigneeId` param;
   // `creator` / `reporter` map to `creatorId`. Sent to the list query so the
   // server does the filtering (this list is server-paginated).
+  // The three roles are declared with no accessor because this list is
+  // server-paginated: the ids go to the query below and the server narrows.
+  // Declaring them here is still what earns the chip, and what keeps a role
+  // this page does not send from producing one.
   const {
     employeeId,
     role: employeeRole,
-    name: employeeName,
-    clear: clearEmployeeFilter,
-  } = useEmployeeFilterFromParams();
+    chip: employeeChip,
+  } = useEmployeeFilterFromParams({
+    roles: { assignee: {}, creator: {}, reporter: {} },
+  });
   const assigneeId =
-    employeeId != null && employeeRole === 'assignee' ? employeeId : undefined;
+    employeeRole === 'assignee' ? (employeeId ?? undefined) : undefined;
   const creatorId =
-    employeeId != null &&
-    (employeeRole === 'creator' || employeeRole === 'reporter')
-      ? employeeId
+    employeeRole === 'creator' || employeeRole === 'reporter'
+      ? (employeeId ?? undefined)
       : undefined;
 
   // Filters (minus paging) shared by the page query and the stats query.
@@ -110,13 +111,7 @@ export default function AllIssuesPage() {
         }
       />
 
-      {employeeId != null && employeeName && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[employeeRole ?? ''] ?? 'Filtered by'}
-          name={employeeName}
-          onDismiss={clearEmployeeFilter}
-        />
-      )}
+      {employeeChip && <ActiveFilterChip {...employeeChip} />}
 
       <IssueStatsCard
         totalIssues={stats?.total ?? 0}

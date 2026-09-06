@@ -5,11 +5,7 @@ import { useInvoices } from '@/hooks/invoices';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
 import { PageHeader, ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { FileText, DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -41,18 +37,15 @@ export default function InvoicesPage() {
     [invoices]
   );
 
-  const { employeeId, role, name, clear } =
-    useEmployeeFilterFromParams(resolveUserName);
-  const filteredInvoices =
-    employeeId != null && role
-      ? invoices.filter((r) =>
-          rowMatchesEmployeeFilter(r, employeeId, role, {
-            submitter: (i) => i.submittedBy,
-            approver: (i) => i.approvedBy,
-            'payment-recorder': (i) => i.paymentRecordedBy,
-          })
-        )
-      : invoices;
+  const { chip, filtered: filteredInvoices } = useEmployeeFilterFromParams({
+    rows: invoices,
+    resolveUserName,
+    roles: {
+      submitter: (i) => i.submittedBy,
+      approver: (i) => i.approvedBy,
+      'payment-recorder': (i) => i.paymentRecordedBy,
+    },
+  });
 
   const totalInvoices = invoices.length;
   const paidInvoices = invoices.filter(
@@ -143,13 +136,7 @@ export default function InvoicesPage() {
         </div>
       </Card>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <InvoicesFeature
         invoices={filteredInvoices}

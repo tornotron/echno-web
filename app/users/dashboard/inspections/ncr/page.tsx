@@ -20,10 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useInspections, useNcrs } from '@/hooks/inspection';
-import {
-  ROLE_LABELS,
-  useEmployeeFilterFromParams,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import type { NcrListParams } from '@tornotron/echno-core/ncr/services';
 import {
   DefectSeverity,
@@ -40,9 +37,6 @@ import { NcrTable } from '@/features/inspections/components/ncr-table';
 
 /** Sentinel for "no filter": Radix Select cannot hold an empty string value. */
 const ALL = 'ALL';
-
-/** The people slugs this register narrows on, beside its own engineer control. */
-const PEOPLE_FILTER_SLUGS = new Set(['raiser', 'verifier', 'closer']);
 
 export default function NcrPage() {
   const [inspectionId, setInspectionId] = useState(ALL);
@@ -64,14 +58,20 @@ export default function NcrPage() {
     pages the chip was written for, the control already displays and clears that
     one in place. The three below have no control, so they do get a chip.
   */
-  const {
-    employeeId,
-    role,
-    name: filterName,
-    clear,
-  } = useEmployeeFilterFromParams();
-  const linkedEngineerId =
-    employeeId != null && role === 'site-engineer' ? employeeId : null;
+  const { employeeId, role, chip, clear } = useEmployeeFilterFromParams({
+    // No accessors: every one of these narrows on the server. Declaring them
+    // is what tells the chip the list really was narrowed, and what keeps a
+    // role this register does not send from producing one.
+    roles: {
+      // The dropdown displays and clears this one in place, so a chip would be
+      // a second copy of the same filter.
+      'site-engineer': { chip: false },
+      raiser: {},
+      verifier: {},
+      closer: {},
+    },
+  });
+  const linkedEngineerId = role === 'site-engineer' ? employeeId : null;
 
   /*
     The other three people on a report — who raised it, who verified the work
@@ -86,15 +86,10 @@ export default function NcrPage() {
     outside the fetched page and still look like an answer.
   */
   const peopleFilter = (slug: string) =>
-    employeeId != null && role === slug ? employeeId : undefined;
+    role === slug ? (employeeId ?? undefined) : undefined;
   const raisedById = peopleFilter('raiser');
   const verifiedById = peopleFilter('verifier');
   const closedById = peopleFilter('closer');
-  // Only the three this page applies. A link carrying any other role belongs to
-  // another module: the query already ignores it, and a chip naming a person the
-  // list was never narrowed to would turn a no-op into a wrong answer.
-  const chipRole =
-    employeeId != null && PEOPLE_FILTER_SLUGS.has(role ?? '') ? role : null;
   const siteEngineerId =
     linkedEngineerId == null ? engineerChoice : String(linkedEngineerId);
 
@@ -160,13 +155,7 @@ export default function NcrPage() {
         actions={<CreateNcrDialog />}
       />
 
-      {chipRole && filterName && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[chipRole] ?? 'Filtered by'}
-          name={filterName}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <InspectionStats
         isLoading={isLoading}

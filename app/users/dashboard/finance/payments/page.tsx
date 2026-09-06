@@ -8,11 +8,7 @@ import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { useSubContracts } from '@/hooks/sub-contracts';
 import { PageHeader, ActiveFilterChip } from '@/components/common';
-import {
-  useEmployeeFilterFromParams,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import { CreditCard, DollarSign, CheckCircle, Clock } from 'lucide-react';
@@ -29,24 +25,22 @@ export default function PaymentsPage() {
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
 
-  const { employeeId, role, name, clear } = useEmployeeFilterFromParams();
-  const filteredPayments =
-    employeeId != null && role
-      ? payments.filter((r) =>
-          rowMatchesEmployeeFilter(r, employeeId, role, {
-            // No `payee` accessor, deliberately. This list is one page of
-            // twenty: the endpoint returns a Spring `Page` and `usePayments`
-            // sends no size, so narrowing it answers "everything paid to X"
-            // with whatever the first page happened to hold. The payee is
-            // named rather than linked on the detail screen until
-            // echno-backend#638 gives the endpoint the parameter.
-            //
-            // `verifier` predates this and has the same flaw; it is on the
-            // same issue rather than fixed here.
-            verifier: (p) => p.verifiedBy,
-          })
-        )
-      : payments;
+  const { chip, filtered: filteredPayments } = useEmployeeFilterFromParams({
+    rows: payments,
+    roles: {
+      // No `payee` role, deliberately. This list is one page of twenty: the
+      // endpoint returns a Spring `Page` and `usePayments` sends no size, so
+      // narrowing it answers "everything paid to X" with whatever the first
+      // page happened to hold. The payee is named rather than linked on the
+      // detail screen until echno-backend#638 gives the endpoint the
+      // parameter. Leaving it out of this map is now also what stops a
+      // `?role=payee` URL putting a chip over an unnarrowed list.
+      //
+      // `verifier` predates this and has the same flaw; it is on the same
+      // issue rather than fixed here.
+      verifier: (p) => p.verifiedBy,
+    },
+  });
 
   const payeeDatasets = useMemo(
     () => ({
@@ -153,13 +147,7 @@ export default function PaymentsPage() {
         </div>
       </Card>
 
-      {employeeId != null && name && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={name}
-          onDismiss={clear}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       <PaymentsTable
         payments={filteredPayments}

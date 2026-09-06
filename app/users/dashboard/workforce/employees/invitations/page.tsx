@@ -12,11 +12,7 @@ import {
 import { Button } from '@/components/shadcn/button';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import {
-  ROLE_LABELS,
-  rowMatchesEmployeeFilter,
-  useEmployeeFilterFromParams,
-} from '@/hooks/use-employee-filter';
+import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 
 export default function InvitationsPage() {
   const { data: user, isLoading: isUserLoading } = useUser();
@@ -26,30 +22,19 @@ export default function InvitationsPage() {
     error,
   } = useInvitationsByOrganization(user?.defaultOrganizationId);
 
-  const {
-    employeeId,
-    role,
-    name: filterName,
-    clear: clearEmployeeFilter,
-  } = useEmployeeFilterFromParams();
-
-  // This list answers one role. A link carrying another module's slug is
-  // already a no-op here, because rowMatchesEmployeeFilter fails open for a
-  // role it has no accessor for; the chip is what would turn that no-op into a
-  // wrong answer, by naming a person over a list nothing narrowed.
-  const managerFilterApplies = employeeId != null && role === 'manager';
-
   const allInvitations = invitations || [];
+
+  // This list answers one role, declared once. A link carrying another
+  // module's slug now narrows nothing and says nothing, instead of naming a
+  // person over a list nothing narrowed.
+  //
   // The whole collection is loaded, so narrowing it here hides nothing. The
   // manager id is an employee id, resolved through the employee lookup by the
   // same `useManagerName` the detail screen uses to name it.
-  const invitationsList = managerFilterApplies
-    ? allInvitations.filter((invitation) =>
-        rowMatchesEmployeeFilter(invitation, employeeId, 'manager', {
-          manager: (i) => i.employeeDetails.managerId,
-        })
-      )
-    : allInvitations;
+  const { chip, filtered: invitationsList } = useEmployeeFilterFromParams({
+    rows: allInvitations,
+    roles: { manager: (i) => i.employeeDetails.managerId },
+  });
 
   return (
     <OrgGuard
@@ -85,13 +70,7 @@ export default function InvitationsPage() {
             }
           />
 
-          {managerFilterApplies && filterName && (
-            <ActiveFilterChip
-              label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-              name={filterName}
-              onDismiss={clearEmployeeFilter}
-            />
-          )}
+          {chip && <ActiveFilterChip {...chip} />}
 
           <InvitationOverview invitations={invitationsList} />
 

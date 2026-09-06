@@ -42,17 +42,30 @@ mock.module('@tornotron/echno-core/employee/hooks', () => ({
 const { useEmployeeFilterFromParams, employeeFilterHref, userFilterHref } =
   await import('./use-employee-filter');
 
+/**
+ * Every role the tests below reach for. A list page declares the roles it
+ * narrows on once, and the hook derives both the narrowing and the chip from
+ * that map, so a role missing from here is a role the page does not apply.
+ */
+const ROLES = {
+  issuer: () => null,
+  submitter: () => null,
+  rejecter: () => null,
+  employee: () => null,
+  payee: () => null,
+};
+
 describe('useEmployeeFilterFromParams', () => {
   test('an employee link resolves the name through the lookup', () => {
     search = 'employeeId=12&role=issuer';
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     expect(result.current.employeeId).toBe(12);
     expect(result.current.name).toBe('Priya Nair');
   });
 
   test('a user link does not, even when an employee holds the same number', () => {
     search = 'userId=12&role=submitter';
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     expect(result.current.employeeId).toBe(12);
     expect(result.current.name).toBe('User #12');
     expect(result.current.role).toBe('submitter');
@@ -60,7 +73,7 @@ describe('useEmployeeFilterFromParams', () => {
 
   test('an employee the lookup does not carry is still named an employee', () => {
     search = 'employeeId=99&role=issuer';
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     expect(result.current.name).toBe('Employee #99');
   });
 
@@ -70,9 +83,10 @@ describe('useEmployeeFilterFromParams', () => {
   test('a user link takes its name from the stamps the loaded rows carry', () => {
     search = 'userId=12&role=submitter';
     const { result } = renderHook(() =>
-      useEmployeeFilterFromParams((id) =>
-        id === 12 ? 'Anand Rajashekar' : undefined
-      )
+      useEmployeeFilterFromParams({
+        roles: ROLES,
+        resolveUserName: (id) => (id === 12 ? 'Anand Rajashekar' : undefined),
+      })
     );
     expect(result.current.name).toBe('Anand Rajashekar');
   });
@@ -83,7 +97,7 @@ describe('useEmployeeFilterFromParams', () => {
     // No loaded row carries user 12, which is what a filter clicked from a
     // document the current page has since filtered away looks like.
     const { result } = renderHook(() =>
-      useEmployeeFilterFromParams(() => null)
+      useEmployeeFilterFromParams({ roles: ROLES, resolveUserName: () => null })
     );
     expect(result.current.name).toBe('User #12');
     expect(result.current.name).not.toBe('Priya Nair');
@@ -91,7 +105,7 @@ describe('useEmployeeFilterFromParams', () => {
 
   test('no filter params means no filter', () => {
     search = '';
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     expect(result.current.employeeId).toBe(null);
     expect(result.current.name).toBe(null);
   });
@@ -129,7 +143,7 @@ describe('clearing a filter', () => {
     pathname = '/users/dashboard/attendance/history';
     search = 'tab=team&employeeId=12&role=employee';
     replaced = null;
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     result.current.clear();
     expect(replaced).toBe('/users/dashboard/attendance/history?tab=team');
   });
@@ -138,7 +152,7 @@ describe('clearing a filter', () => {
     pathname = '/users/dashboard/finance/payments';
     search = 'employeeId=12&role=payee';
     replaced = null;
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     result.current.clear();
     expect(replaced).toBe('/users/dashboard/finance/payments');
   });
@@ -147,8 +161,93 @@ describe('clearing a filter', () => {
     pathname = '/users/dashboard/resources/stock-adjustments';
     search = 'userId=12&role=rejecter';
     replaced = null;
-    const { result } = renderHook(() => useEmployeeFilterFromParams());
+    const { result } = renderHook(() => useEmployeeFilterFromParams({ roles: ROLES }));
     result.current.clear();
     expect(replaced).toBe('/users/dashboard/resources/stock-adjustments');
+  });
+});
+
+/**
+ * The chip and the narrowing now come from one declaration. These pin the
+ * contract at the hook, where the sixteen pages inherit it from; the page-level
+ * proof that it holds end to end is in
+ * `test/filter-chip-follows-the-narrowing.test.tsx`.
+ */
+describe('one declaration for both the chip and the narrowing', () => {
+  const ROWS = [{ id: 1, issuedBy: 12 }, { id: 2, issuedBy: 77 }];
+  const ISSUER = { issuer: (row: { issuedBy: number }) => row.issuedBy };
+
+  test('a declared role narrows the rows and earns a chip', () => {
+    search = 'employeeId=12&role=issuer';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams({ rows: ROWS, roles: ISSUER })
+    );
+    expect(result.current.filtered.map((r) => r.id)).toEqual([1]);
+    expect(result.current.chip?.label).toBe('Issued by');
+    expect(result.current.chip?.name).toBe('Priya Nair');
+  });
+
+  test('a role this page does not declare narrows nothing and says nothing', () => {
+    search = 'employeeId=12&role=submitter';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams({ rows: ROWS, roles: ISSUER })
+    );
+    expect(result.current.filtered.map((r) => r.id)).toEqual([1, 2]);
+    expect(result.current.chip).toBe(null);
+    // Nulled together with the chip, so a page reading these for its own query
+    // params cannot narrow on a role the chip is not entitled to announce.
+    expect(result.current.employeeId).toBe(null);
+    expect(result.current.role).toBe(null);
+    expect(result.current.name).toBe(null);
+  });
+
+  test('a slug inherited from Object.prototype is not a declared role', () => {
+    search = 'employeeId=12&role=toString';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams({ rows: ROWS, roles: ISSUER })
+    );
+    expect(result.current.filtered.map((r) => r.id)).toEqual([1, 2]);
+    expect(result.current.chip).toBe(null);
+  });
+
+  // The NCR register's Site Engineer dropdown already displays and clears that
+  // filter in place, so a chip would be a second copy of the same control.
+  test('a role can narrow and still be shown by a control instead of a chip', () => {
+    search = 'employeeId=12&role=issuer';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams({ roles: { issuer: { chip: false } } })
+    );
+    expect(result.current.employeeId).toBe(12);
+    expect(result.current.role).toBe('issuer');
+    expect(result.current.chip).toBe(null);
+  });
+
+  // A role held in several places on one row: the tasks list's assignees, the
+  // leave register's approval chain.
+  test('a role can be tested against the whole row rather than one id', () => {
+    search = 'employeeId=12&role=submitter';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams({
+        rows: [{ id: 1, people: [3, 12] }, { id: 2, people: [4] }],
+        roles: {
+          submitter: {
+            matches: (row: { people: number[] }, id) => row.people.includes(id),
+          },
+        },
+      })
+    );
+    expect(result.current.filtered.map((r) => r.id)).toEqual([1]);
+    expect(result.current.chip?.label).toBe('Submitted by');
+  });
+
+  // Issues and NCRs send the id to the endpoint and are handed rows already
+  // narrowed, so there is nothing left to test in the browser.
+  test('a role declared with no accessor keeps every row it was handed', () => {
+    search = 'employeeId=12&role=issuer';
+    const { result } = renderHook(() =>
+      useEmployeeFilterFromParams({ rows: ROWS, roles: { issuer: {} } })
+    );
+    expect(result.current.filtered.map((r) => r.id)).toEqual([1, 2]);
+    expect(result.current.chip?.label).toBe('Issued by');
   });
 });

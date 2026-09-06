@@ -62,8 +62,6 @@ import type { RegularizationDetail } from '@tornotron/echno-core/attendance/type
 import {
   useEmployeeFilterFromParams,
   employeeFilterHref,
-  rowMatchesEmployeeFilter,
-  ROLE_LABELS,
 } from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
 
@@ -84,12 +82,14 @@ export function RegularizationManagement({
   const { data: regularizations = [], isLoading } =
     usePendingRegularizations();
   const processMutation = useProcessRegularization();
-  const {
-    employeeId,
-    role,
-    name: filterName,
-    clear: clearEmployeeFilter,
-  } = useEmployeeFilterFromParams();
+  const { chip, matches: matchesEmployeeFilter } =
+    useEmployeeFilterFromParams({
+      rows: regularizations,
+      roles: {
+        requester: (row) => row.requestedById,
+        approver: (row) => row.approvedById,
+      },
+    });
 
   // Local state
   const [searchQuery, setSearchQuery] = useState('');
@@ -100,14 +100,7 @@ export function RegularizationManagement({
 
   // Filtering
   const filtered = regularizations.filter((r) => {
-    const matchesEmployee =
-      employeeId == null ||
-      role == null ||
-      rowMatchesEmployeeFilter(r, employeeId, role, {
-        requester: (row) => row.requestedById,
-        approver: (row) => row.approvedById,
-      });
-    if (!matchesEmployee) return false;
+    if (!matchesEmployeeFilter(r)) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return (
@@ -246,13 +239,7 @@ export function RegularizationManagement({
         </div>
       </Card>
 
-      {employeeId != null && filterName && (
-        <ActiveFilterChip
-          label={ROLE_LABELS[role ?? ''] ?? 'Filtered by'}
-          name={filterName}
-          onDismiss={clearEmployeeFilter}
-        />
-      )}
+      {chip && <ActiveFilterChip {...chip} />}
 
       {/* Table */}
       <Card>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import { Plus, X, Loader2 } from 'lucide-react';
 import type { Employee } from '@tornotron/echno-core/employee/types';
@@ -12,6 +13,8 @@ import {
   useRemoveEmployeeFromProject,
 } from '@tornotron/echno-core/project/hooks';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   Dialog,
@@ -204,7 +207,35 @@ export function TeamMembersSection({
               <div className="flex items-center gap-3">
                 <EmployeeAvatar employee={employee} size="sm" />
                 <div>
-                  <p className="text-sm font-medium">{employee.name}</p>
+                  {/*
+                    Every other person's name in the app is a "who did this"
+                    stamp on a document, and clicking it opens that module's
+                    list filtered to them. A roster entry is a membership
+                    rather than an action, so it goes to this project's task
+                    list narrowed to them: read on a project page, the question
+                    the name raises is what this person is doing here. Their
+                    work everywhere is a click further on from their profile.
+
+                    Only the name is a link. The row also carries a remove
+                    button, so wrapping the whole thing would swallow it.
+                  */}
+                  <p className="text-sm font-medium">
+                    {employee.id == null ? (
+                      employee.name
+                    ) : (
+                      <Link
+                        href={employeeFilterHref(
+                          routes.projects.allProjects.detail(projectId).tasks
+                            .href,
+                          employee.id,
+                          'assignee'
+                        )}
+                        className="hover:underline"
+                      >
+                        {employee.name}
+                      </Link>
+                    )}
+                  </p>
                   <p className="text-muted-foreground text-sm">
                     {employee.designation} •{' '}
                     {getDepartmentLabel(employee.department)}
