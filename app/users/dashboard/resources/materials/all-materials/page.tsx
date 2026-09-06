@@ -17,6 +17,12 @@ import {
 import { useMaterials } from '@tornotron/echno-core/materials/hooks';
 import { MATERIAL_UNITS } from '@/features/materials/components/material-unit-selector';
 import { MaterialList } from '@/features/materials/components';
+import { useMaterialsSummary } from '@/features/materials/hooks/use-materials-summary';
+import {
+  formatStockValue,
+  stockValueCaption,
+  unavailableCaption,
+} from '@/features/materials/lib/stock-summary-captions';
 
 const UNIT_FILTER_OPTIONS = [
   { value: 'all', label: 'All Units' },
@@ -27,6 +33,24 @@ const UNIT_FILTER_OPTIONS = [
 
 export default function AllMaterialsPage() {
   const { data: materials = [], isLoading, isError } = useMaterials();
+
+  // Three of the four tiles are the server's totals, summed in the
+  // database over the whole organization. None of them can be worked out
+  // from `materials`: that array is GET /materials/web, which stops at 500
+  // rows, so a length is 500 however large the catalogue is, a reduce over
+  // stockValue is the value of 500 holdings, and a Set of units counts
+  // only the units those 500 happen to be held in. All three fail short,
+  // which is the direction nobody checks. The scope is the organization,
+  // matching the unscoped useMaterials list this page shows: there is no
+  // project in the route and no project picker on the screen.
+  const {
+    materialCount,
+    distinctUnits,
+    totalStockValue,
+    unvaluedHoldingCount,
+    holdsWholeCatalogue,
+    isLoading: isSummaryLoading,
+  } = useMaterialsSummary(materials.length);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [unitFilter, setUnitFilter] = useState('all');
@@ -58,13 +82,10 @@ export default function AllMaterialsPage() {
 
   const hasActiveFilters = Boolean(searchQuery || unitFilter !== 'all');
 
-  const totalMaterials = materials.length;
-  const uniqueUnits = new Set(materials.map((m) => m.unit)).size;
+  // Materials on hand carrying a SKU. The only tile still counted in the
+  // browser, because the summary endpoint totals no SKUs, so it says what
+  // it counted whenever those rows are not the whole catalogue.
   const withSku = materials.filter((m) => m.sku).length;
-  const totalStockValue = materials.reduce(
-    (sum, m) => sum + (m.stockValue ?? 0),
-    0
-  );
 
   if (isLoading) {
     return (
@@ -97,14 +118,16 @@ export default function AllMaterialsPage() {
             </p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {totalMaterials}
+                {materialCount ?? '—'}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
                 <Package className="size-4 text-zinc-600 dark:text-zinc-400" />
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              across all categories
+              {materialCount === undefined
+                ? unavailableCaption(isSummaryLoading)
+                : 'across all categories'}
             </p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
@@ -113,14 +136,20 @@ export default function AllMaterialsPage() {
             </p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-                ₹{(totalStockValue / 100_000).toFixed(1)}L
+                {totalStockValue === undefined
+                  ? '—'
+                  : formatStockValue(totalStockValue)}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
                 <WarehouseIcon className="size-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              total inventory value
+              {stockValueCaption({
+                totalStockValue,
+                unvaluedHoldingCount,
+                isLoading: isSummaryLoading,
+              })}
             </p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
@@ -129,14 +158,16 @@ export default function AllMaterialsPage() {
             </p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
-                {uniqueUnits}
+                {distinctUnits ?? '—'}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
                 <Ruler className="size-4 text-green-600 dark:text-green-400" />
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              unit types in use
+              {distinctUnits === undefined
+                ? unavailableCaption(isSummaryLoading)
+                : 'unit types in use'}
             </p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
@@ -150,7 +181,9 @@ export default function AllMaterialsPage() {
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              have SKU assigned
+              {holdsWholeCatalogue
+                ? 'have SKU assigned'
+                : `of the ${materials.length} loaded`}
             </p>
           </div>
         </div>
