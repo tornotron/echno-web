@@ -36,6 +36,7 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { employeeReferenceLabel } from '@/lib/utils/user-reference';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import {
   canEditPayment,
   editRefusalReason,
@@ -374,9 +375,7 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
               {payment.projectId && (
                 <Link
                   href={
-                    routes.projects.allProjects.detail(
-                      payment.projectId
-                    ).href
+                    routes.projects.allProjects.detail(payment.projectId).href
                   }
                   className="block"
                 >
@@ -413,21 +412,28 @@ export default function PaymentDetailPage({ params }: PaymentDetailPageProps) {
                     <div>
                       <p className="text-sm font-medium">Employee</p>
                       {/*
-                        Named rather than numbered, but deliberately not a link.
-                        The id is a real employee id — the payee, set from the
-                        creation payload beside vendorId, subContractId and
-                        labourId and selected by payeeType — so the link itself
-                        would be correct. The list it would open is not:
-                        `GET /finance/construction-payments/web` returns a
-                        Spring `Page` and this client sends no page size, so it
-                        holds twenty vouchers. Filtering those would answer
-                        "paid to X" with whatever happened to be on the first
-                        page. Filed as echno-backend#638.
+                        The payee, and an `employeeFilterHref` rather than a
+                        `userFilterHref`: this id is set from the creation
+                        payload beside vendorId, subContractId and labourId and
+                        selected by payeeType, so it names a row in the employee
+                        table. `verifiedBy` two cards along is a session-stamped
+                        user id and links the other way, which makes this the
+                        screen most likely to acquire the wrong helper by copy.
+                        The link waited on echno-backend#638: the register it
+                        opens was a page of twenty and could not answer "paid to
+                        X". It now takes `employeeId` and narrows on the server.
                       */}
-                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                      <Link
+                        href={employeeFilterHref(
+                          routes.finance.payments.href,
+                          payment.employeeId,
+                          'payee'
+                        )}
+                        className="text-xs text-blue-600 hover:underline dark:text-blue-400"
+                      >
                         {payeeEmployee?.name ??
                           employeeReferenceLabel(payment.employeeId)}
-                      </p>
+                      </Link>
                     </div>
                   </div>
                 </div>

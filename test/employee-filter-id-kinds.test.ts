@@ -103,13 +103,19 @@ describe('session stamps link as user ids', () => {
     );
   });
 
-  test('and its raiser is named without a link, on the same one-page reason', () => {
-    // `raisedBy` is a user id like the verifier, so the link would be the right
-    // kind. The destination is the problem: the payments list is one page of
-    // twenty, so a raiser filter answers "raised by X" with whatever that page
-    // held. Same reason the payee is named and not linked. echno-backend#638.
+  test('and its raiser is still named without a link, now only because nobody built it', () => {
+    // `raisedBy` is a user id like the verifier, and the destination objection
+    // has gone: echno-backend#655 gave the listing `raisedBy` alongside
+    // `employeeId` and `verifiedBy`, and core 8.3.0 carries all three on
+    // `ConstructionPaymentListParams`. So this is no longer held back by
+    // anything. It is simply not built, and this pin records that rather than
+    // pretending a blocker is still there. Adding it means a `raiser` entry in
+    // the page's `roles` map and a `raisedBy` line in its params, at which
+    // point this assertion is the one to flip.
     const text = flat(PAYMENT_ATTRIBUTION);
-    expect(text).toContain('userStampLabel(payment.raisedByName, payment.raisedBy)');
+    expect(text).toContain(
+      'userStampLabel(payment.raisedByName, payment.raisedBy)'
+    );
     expect(text).not.toContain("payment.raisedBy, 'raiser'");
   });
 });
@@ -128,50 +134,108 @@ describe('payload and picker ids link as employee ids', () => {
   });
 });
 
-describe('two people are named but not linked, because the list cannot answer', () => {
+describe('one person is named but not linked', () => {
   /*
-   * These are the ones where the id is right and the destination is not. A link
-   * whose list cannot answer the question is worse than no link: it returns an
-   * empty or truncated set under a chip asserting it is complete, and nothing
-   * on the screen says otherwise.
+   * The id is right and the destination is not, or was not. A link whose list
+   * cannot answer the question is worse than no link: it returns an empty or
+   * truncated set under a chip asserting it is complete, and nothing on the
+   * screen says otherwise.
    *
-   * Both are counted rather than substring-matched. An assertion that a call is
-   * absent, checked against a file that names the helper in its own comment
-   * explaining why the call is absent, would pass no matter what the code did.
+   * Counted rather than substring-matched. An assertion that a call is absent,
+   * checked against a file that names the helper in its own comment explaining
+   * why the call is absent, would pass no matter what the code did.
    */
-  test('a regularization approver is not linked while the register is pending-only', () => {
-    // `getPendingRegularizations` is `findByStatus(PENDING)`, and `approvedById`
-    // is stamped by the same call that moves the row off PENDING. So the filter
-    // is empty by construction: every click would land on nothing, under a chip
-    // reading "Approved by X". echno-backend#637.
+  test('a regularization approver is not linked, and the reason has changed', () => {
+    // It used to be unbuildable: `getPendingRegularizations` is
+    // `findByStatus(PENDING)` and `approvedById` is stamped by the same call
+    // that moves the row off PENDING, so the filter was empty by construction.
+    // echno-backend#655 settled that by widening the register rather than
+    // adding a second endpoint, so a decided request is now reachable with
+    // `approvedById` paired with `status`. What is left is a product call about
+    // which screen the approver should land on, since the queue this card sits
+    // beside still shows pending work only. Not built here.
     const text = flat(REGULARIZATION_CARD);
     // The requester link on the same card stays, so this is one call, not none.
     expect(callCount(REGULARIZATION_CARD, 'employeeFilterHref')).toBe(1);
     expect(text).toContain("'requester'");
     expect(text).not.toContain("'approver'");
   });
+});
 
-  test('a payment payee is named but not linked while the list is one page', () => {
-    // `GET /finance/construction-payments/web` returns a Spring `Page`, this
-    // client sends no size, and Spring's default is twenty. Filtering those
-    // would answer "paid to X" with whatever the first page held.
-    // echno-backend#638.
-    expect(callCount(PAYMENT_DETAIL, 'employeeFilterHref')).toBe(0);
-    // The stamps moved to their own component; neither file may reach for the
-    // employee directory with a user id.
-    expect(callCount(PAYMENT_ATTRIBUTION, 'employeeFilterHref')).toBe(0);
-    // Still named rather than numbered, which needs no list behind it.
+describe('a payment payee links to a register that can answer', () => {
+  /*
+   * This is the pair that moved. `employeeId` was always the right id and the
+   * link was always the right kind; the register was the problem, because
+   * `GET /finance/construction-payments/web` returns a Spring `Page` served
+   * twenty rows deep and the client sent no size, so a browser-side filter
+   * answered "paid to X" with whatever that page held. echno-backend#655 gave
+   * the listing `employeeId`, `verifiedBy` and `raisedBy`, so the narrowing
+   * moves onto the endpoint and the link follows it.
+   */
+  test('the detail screen links the payee as an employee', () => {
     expect(flat(PAYMENT_DETAIL)).toContain(
-      'payeeEmployee?.name ?? employeeReferenceLabel(payment.employeeId)'
+      "employeeFilterHref( routes.finance.payments.href, payment.employeeId, 'payee' )"
     );
   });
 
-  test('and the payments list grows no accessor for a link that is not there', () => {
-    // The pair has to move together. An accessor with no link is dead; a link
-    // with no accessor fails open, which is the worse half.
+  test('and the voucher stamps beside it still link as user ids', () => {
+    // Two kinds of id two cards apart, which is what makes this the screen
+    // most likely to acquire the wrong helper by copy. The stamps live in
+    // their own component and may never reach for the employee directory.
+    expect(callCount(PAYMENT_ATTRIBUTION, 'employeeFilterHref')).toBe(0);
+    expect(callCount(PAYMENT_DETAIL, 'userFilterHref')).toBe(0);
+  });
+
+  test('the list declares both roles with no accessor, so neither narrows in the browser', () => {
+    // The whole point. An accessor here would filter the twenty rows the page
+    // holds and put a chip over the result, which is the failure the endpoint
+    // change exists to remove. Server narrowing is expressed by declaring the
+    // role with no `match` and no `matches`.
     const text = flat('app/users/dashboard/finance/payments/page.tsx');
+    expect(text).toContain('roles: { payee: {}, verifier: {}, },');
     expect(text).not.toContain('payee: (p) => p.employeeId,');
-    expect(text).toContain('verifier: (p) => p.verifiedBy,');
+    expect(text).not.toContain('verifier: (p) => p.verifiedBy,');
+  });
+
+  test('and each role feeds the query parameter that matches its id kind', () => {
+    // Crossing these is the defect the guard exists for: on a fresh database
+    // the user and employee sequences run in lockstep, so a swap returns the
+    // right rows under the right name until the two diverge.
+    const text = flat('app/users/dashboard/finance/payments/page.tsx');
+    expect(text).toContain(
+      "employeeId: role === 'payee' ? (employeeId ?? undefined) : undefined,"
+    );
+    expect(text).toContain(
+      "verifiedBy: role === 'verifier' ? (employeeId ?? undefined) : undefined,"
+    );
+    // The narrowed rows have to be the ones rendered. Handing the table an
+    // array the hook filtered would put the browser back in the loop.
+    expect(text).toContain(
+      'const { data: payments = [], isLoading, isError } = usePayments(params);'
+    );
+    expect(text).toContain('<PaymentsTable payments={payments}');
+  });
+
+  test('the summary cards are withheld while a person filter is active', () => {
+    // They count over the fetched rows, so under a filter they would describe
+    // one payee beneath captions reading "all time", directly above a chip
+    // naming that person. That is the same wrong-answer shape one step along.
+    const text = flat('app/users/dashboard/finance/payments/page.tsx');
+    expect(text).toContain('const narrowed = role != null;');
+    expect(text).toContain('{!narrowed && ( <Card className="gap-0 p-6">');
+  });
+
+  test('and a filtered response cannot be served back as the unfiltered page', () => {
+    // The params are part of the query key. Without them the narrowed response
+    // would land in the cache slot the whole-page screen reads.
+    const text = flat('hooks/payments/payment-keys.ts');
+    expect(text).toContain(
+      'list: (params: ConstructionPaymentListParams = {}) => [...paymentKeys.lists(), params] as const,'
+    );
+    // Still under `lists()`, so one prefix invalidation still clears them all.
+    expect(flat('hooks/payments/use-payments.ts')).toContain(
+      'queryKey: paymentKeys.list(params),'
+    );
   });
 });
 

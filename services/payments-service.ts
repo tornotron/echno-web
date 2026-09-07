@@ -1,4 +1,7 @@
-import { financeConstructionPaymentService } from '@tornotron/echno-core/finance-construction-payment/services';
+import {
+  financeConstructionPaymentService,
+  type ConstructionPaymentListParams,
+} from '@tornotron/echno-core/finance-construction-payment/services';
 import type {
   ConstructionPayment,
   CreateConstructionPaymentRequest,
@@ -6,8 +9,20 @@ import type {
 } from '@tornotron/echno-core/finance/types';
 
 export const paymentsService = {
-  async getAll(): Promise<ConstructionPayment[]> {
-    return financeConstructionPaymentService.getAll();
+  /**
+   * Lists vouchers, optionally narrowed on the server.
+   *
+   * The result is one page rather than the register, so narrow through
+   * `params` instead of filtering what comes back: a browser-side filter over
+   * a page hides every match outside it and still reads as a complete answer.
+   * The three people on a voucher are not interchangeable. `employeeId` is the
+   * payee and an employee id; `verifiedBy` and `raisedBy` are user ids stamped
+   * from the session.
+   */
+  async getAll(
+    params?: ConstructionPaymentListParams
+  ): Promise<ConstructionPayment[]> {
+    return financeConstructionPaymentService.getAll(params);
   },
   async getById(id: string): Promise<ConstructionPayment> {
     return financeConstructionPaymentService.getById(id);
