@@ -53,11 +53,13 @@ export default function EmployeeDetailPage({
   const { data: employeeProjects, isLoading: projectsLoading } =
     useProjectsByEmployee(employeeId);
 
-  // Role management. `availableRoles` is every job-family role the employee
-  // does not already hold; only a few of those are Keycloak organisation roles
-  // the assign endpoint can act on, so the dialog is offered the narrowed set.
-  const { currentRoles, availableRoles } = useRoleManagement(employeeId);
-  const assignableRoles = assignableOrgRoles(availableRoles);
+  // Role management. The dialog offers the Keycloak organisation roles the
+  // assign endpoint accepts, less the ones this employee already holds. It is
+  // built from the held roles rather than from `availableRoles`, which is every
+  // echno-core job family the employee lacks and so cannot name a backend role
+  // core has not carried across yet.
+  const { currentRoles } = useRoleManagement(employeeId);
+  const assignableRoles = assignableOrgRoles(currentRoles);
   const assignRole = useAssignRole();
   const unassignRole = useUnassignRole();
   const [showAssignRoleDialog, setShowAssignRoleDialog] = useState(false);
