@@ -4,13 +4,25 @@ import type {
   CreateConstructionPaymentRequest,
   UpdateConstructionPaymentRequest,
 } from '@tornotron/echno-core/finance/types';
+import type { ConstructionPaymentListParams } from '@tornotron/echno-core/finance-construction-payment/services';
 import { paymentKeys } from './payment-keys';
 
-/** Fetches all construction payments for the current organization. */
-export const usePayments = () =>
+/**
+ * Fetches construction payments for the current organization, optionally
+ * narrowed by the server.
+ *
+ * **This is one page, not the register.** The endpoint serves twenty rows when
+ * the caller names no page size, so narrow with `params` rather than filtering
+ * the returned array: a filter applied here would narrow that page alone and
+ * answer a different question from the one it appears to (echno-backend#638).
+ *
+ * @param params - Optional server-side filters. `employeeId` is the payee and
+ *   an employee id; `verifiedBy` and `raisedBy` are session-stamped user ids.
+ */
+export const usePayments = (params?: ConstructionPaymentListParams) =>
   useQuery({
-    queryKey: paymentKeys.lists(),
-    queryFn: () => paymentsService.getAll(),
+    queryKey: paymentKeys.list(params),
+    queryFn: () => paymentsService.getAll(params),
   });
 
 /**

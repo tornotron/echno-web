@@ -19,28 +19,47 @@ import { PaymentsTable } from '@/features/payments';
 
 export default function PaymentsPage() {
   const { data: vendors = [] } = useVendors();
-  const { data: payments = [], isLoading, isError } = usePayments();
   const { data: projects = [] } = useProjects();
   const { data: employees = [] } = useEmployeeLookup();
   const { data: subContracts = [] } = useSubContracts();
   const { data: labour = [] } = useLabour();
 
-  const { chip, filtered: filteredPayments } = useEmployeeFilterFromParams({
-    rows: payments,
+  /*
+    Both roles narrow on the server, so neither declares an accessor. That is
+    the whole reason the payee link waited on echno-backend#638: this listing
+    is a Spring `Page` served twenty rows deep, so a browser-side filter over
+    it answered "everything paid to X" with whatever the first page happened to
+    hold, and a short result then read as a complete answer. `verifier` shipped
+    with exactly that flaw and moves onto the endpoint here with the payee.
+
+    Declaring both is also what keeps a chip honest: a role this page does not
+    send nulls the filter and the chip together.
+  */
+  const { employeeId, role, chip } = useEmployeeFilterFromParams({
     roles: {
-      // No `payee` role, deliberately. This list is one page of twenty: the
-      // endpoint returns a Spring `Page` and `usePayments` sends no size, so
-      // narrowing it answers "everything paid to X" with whatever the first
-      // page happened to hold. The payee is named rather than linked on the
-      // detail screen until echno-backend#638 gives the endpoint the
-      // parameter. Leaving it out of this map is now also what stops a
-      // `?role=payee` URL putting a chip over an unnarrowed list.
-      //
-      // `verifier` predates this and has the same flaw; it is on the same
-      // issue rather than fixed here.
-      verifier: (p) => p.verifiedBy,
+      payee: {},
+      verifier: {},
     },
   });
+
+  /*
+    The two ids are not interchangeable and the link kinds say which is which.
+    The payee is an employee id, set from the creation payload beside vendorId,
+    subContractId and labourId and selected by payeeType, so it arrives as
+    `?employeeId=`. The verifier is a user id the backend stamps from the
+    session, so it arrives as `?userId=`. On a fresh database the two sequences
+    run in lockstep, so crossing them returns the right rows under the right
+    name until they diverge; the role slug is what keeps them apart.
+  */
+  const params = useMemo(
+    () => ({
+      employeeId: role === 'payee' ? (employeeId ?? undefined) : undefined,
+      verifiedBy: role === 'verifier' ? (employeeId ?? undefined) : undefined,
+    }),
+    [role, employeeId]
+  );
+
+  const { data: payments = [], isLoading, isError } = usePayments(params);
 
   const payeeDatasets = useMemo(
     () => ({
@@ -57,6 +76,9 @@ export default function PaymentsPage() {
     for (const p of projects) m.set(p.id, p);
     return m;
   }, [projects]);
+
+  /** True while a person filter is narrowing the listing on the server. */
+  const narrowed = role != null;
 
   const totalPayments = payments.length;
   const completedPayments = payments.filter(
@@ -81,76 +103,90 @@ export default function PaymentsPage() {
         }
       />
 
-      {/* Statistics Cards */}
-      <Card className="gap-0 p-6">
-        <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
-          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Total Payments
-            </p>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                {totalPayments}
+      {/*
+        Statistics Cards. Withheld while a person filter is active, because
+        they summarise the register and the rows below it are one person's
+        vouchers. Left rendered, they would sit directly above a chip reading
+        "Paid to X" under captions reading "all time", and a reader would take
+        them for that person's totals. Recomputing them over the narrowed set
+        instead would make the captions state the opposite of the truth, so
+        neither reading is offered rather than the wrong one.
+      */}
+      {!narrowed && (
+        <Card className="gap-0 p-6">
+          <div className="sm:divide-border grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-0 sm:divide-x">
+            <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pr-6">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Total Payments
               </p>
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                <CreditCard className="size-4 text-zinc-600 dark:text-zinc-400" />
+              <div className="flex items-center justify-between">
+                <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                  {totalPayments}
+                </p>
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                  <CreditCard className="size-4 text-zinc-600 dark:text-zinc-400" />
+                </div>
               </div>
-            </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">all time</p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Completed
-            </p>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
-                {completedPayments}
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                all time
               </p>
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
-                <CheckCircle className="size-4 text-green-600 dark:text-green-400" />
-              </div>
             </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              successfully paid
-            </p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Pending</p>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold tracking-tight text-yellow-600 dark:text-yellow-400">
-                {pendingPayments}
+            <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Completed
               </p>
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
-                <Clock className="size-4 text-yellow-600 dark:text-yellow-400" />
+              <div className="flex items-center justify-between">
+                <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
+                  {completedPayments}
+                </p>
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
+                  <CheckCircle className="size-4 text-green-600 dark:text-green-400" />
+                </div>
               </div>
-            </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              awaiting payment
-            </p>
-          </div>
-          <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Total Amount
-            </p>
-            <div className="flex items-center justify-between">
-              <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                ₹{(totalAmount / 1_000_000).toFixed(1)}M
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                successfully paid
               </p>
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
-                <DollarSign className="size-4 text-zinc-600 dark:text-zinc-400" />
-              </div>
             </div>
-            <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              completed
-            </p>
+            <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Pending
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-2xl font-bold tracking-tight text-yellow-600 dark:text-yellow-400">
+                  {pendingPayments}
+                </p>
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-yellow-50 dark:bg-yellow-950/30">
+                  <Clock className="size-4 text-yellow-600 dark:text-yellow-400" />
+                </div>
+              </div>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                awaiting payment
+              </p>
+            </div>
+            <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Total Amount
+              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
+                  ₹{(totalAmount / 1_000_000).toFixed(1)}M
+                </p>
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
+                  <DollarSign className="size-4 text-zinc-600 dark:text-zinc-400" />
+                </div>
+              </div>
+              <p className="text-xs text-zinc-400 dark:text-zinc-500">
+                completed
+              </p>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
 
       {chip && <ActiveFilterChip {...chip} />}
 
       <PaymentsTable
-        payments={filteredPayments}
+        payments={payments}
         isLoading={isLoading}
         isError={isError}
         payeeDatasets={payeeDatasets}
