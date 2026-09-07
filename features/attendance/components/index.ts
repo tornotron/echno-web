@@ -13,6 +13,9 @@ export * from './attendance-metadata-card';
 // Approval surfaces
 export * from './attendance-approval-queue';
 
+// List surfaces
+export * from './attendance-filter-bar';
+
 // Existing components
 export * from './mark-attendance-form';
 export * from './movement-management';

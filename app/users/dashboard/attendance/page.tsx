@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Pagination, PageHeader } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
-import { Card, CardContent, CardHeader } from '@/components/shadcn/card';
+import { Card, CardContent } from '@/components/shadcn/card';
 import {
   Empty,
   EmptyDescription,
@@ -73,7 +73,6 @@ import {
   HandshakeIcon,
   Wrench,
   FileText,
-  Search,
 } from 'lucide-react';
 import {
   AttendanceStatus,
@@ -109,6 +108,7 @@ import {
 } from '@/features/attendance/lib/attendance-list-filters';
 import { EmployeeDashboard } from '@/features/attendance/components/dashboard/employee-dashboard';
 import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
+import { AttendanceFilterBar } from '@/features/attendance/components/attendance-filter-bar';
 
 const ATTENDANCE_DASHBOARD_PREFERENCE_KEY = 'attendance-dashboard-preference';
 
@@ -638,143 +638,41 @@ function AttendancePage() {
 
       {/* Desktop table */}
       <Card className="hidden lg:block">
-        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search by name or employee ID…"
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => {
-              setStatusFilter(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-[130px] text-xs">
-              <SelectValue placeholder="All Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value={AttendanceStatus.present}>Present</SelectItem>
-              <SelectItem value={AttendanceStatus.absent}>Absent</SelectItem>
-              <SelectItem value={AttendanceStatus.late}>Late</SelectItem>
-              <SelectItem value={AttendanceStatus.halfDay}>Half Day</SelectItem>
-              <SelectItem value={AttendanceStatus.overtime}>
-                Overtime
-              </SelectItem>
-              <SelectItem value={AttendanceStatus.pendingRegularization}>
-                Pending
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/*
-            The two geofence filters, deliberately two controls. `held` is the
-            selective one; a pending decision is the state every record is
-            created in, so it describes nearly the whole day. Kept apart so an
-            approver can ask for the days that were held and have since been
-            approved, which one combined control could not express.
-          */}
-          <Select
-            value={geofenceHoldFilter}
-            onValueChange={(value) => {
-              setGeofenceHoldFilter(value as GeofenceHoldFilter);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger
-              className="h-8 w-[190px] text-xs"
-              title="A day is marked away from site when the employee punched in or out from outside the project's site boundary and gave a reason for it."
-            >
-              <SelectValue placeholder="Marked from anywhere" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Marked from anywhere</SelectItem>
-              <SelectItem value="held">Marked away from site</SelectItem>
-              <SelectItem value="withinBoundary">
-                Marked on site only
-              </SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={decisionFilter}
-            onValueChange={(value) => {
-              setDecisionFilter(value as ApprovalDecisionFilter);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-[150px] text-xs">
-              <SelectValue placeholder="Any decision" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Any decision</SelectItem>
-              <SelectItem value="pending">Awaiting a decision</SelectItem>
-              <SelectItem value="approved">Approved</SelectItem>
-              <SelectItem value="rejected">Rejected</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select
-            value={projectFilter}
-            onValueChange={(value) => {
-              setProjectFilter(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-8 w-[150px] text-xs">
-              <SelectValue placeholder="All Projects" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id.toString()}>
-                  {project.projectName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Input
-            type="date"
-            value={format(selectedDate, 'yyyy-MM-dd')}
-            onChange={(e) => setSelectedDate(new Date(e.target.value))}
-            className="h-8 w-[150px] text-xs"
-          />
-
-          <div className="ml-auto flex items-center gap-2 border-l pl-3">
-            <span className="text-xs whitespace-nowrap text-zinc-500">
-              Rows per page
-            </span>
-            <Select
-              value={itemsPerPage.toString()}
-              onValueChange={(v) => {
-                setItemsPerPage(Number(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[60px] text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {[5, 10, 20, 50, 100].map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardHeader>
+        <AttendanceFilterBar
+          searchQuery={searchQuery}
+          onSearchQueryChange={(value) => {
+            setSearchQuery(value);
+            setCurrentPage(1);
+          }}
+          statusFilter={statusFilter}
+          onStatusFilterChange={(value) => {
+            setStatusFilter(value);
+            setCurrentPage(1);
+          }}
+          geofenceHoldFilter={geofenceHoldFilter}
+          onGeofenceHoldFilterChange={(value) => {
+            setGeofenceHoldFilter(value);
+            setCurrentPage(1);
+          }}
+          decisionFilter={decisionFilter}
+          onDecisionFilterChange={(value) => {
+            setDecisionFilter(value);
+            setCurrentPage(1);
+          }}
+          projectFilter={projectFilter}
+          onProjectFilterChange={(value) => {
+            setProjectFilter(value);
+            setCurrentPage(1);
+          }}
+          projects={projects}
+          selectedDate={selectedDate}
+          onSelectedDateChange={setSelectedDate}
+          itemsPerPage={itemsPerPage}
+          onItemsPerPageChange={(value) => {
+            setItemsPerPage(value);
+            setCurrentPage(1);
+          }}
+        />
 
         <CardContent className="p-0">
           <Table>
