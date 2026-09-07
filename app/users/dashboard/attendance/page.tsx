@@ -102,6 +102,11 @@ import {
   canDecideAttendanceApproval,
   pendingAttendanceApprovalCount,
 } from '@/features/attendance/lib/approval-gate';
+import {
+  attendanceListParamsFrom,
+  type ApprovalDecisionFilter,
+  type GeofenceHoldFilter,
+} from '@/features/attendance/lib/attendance-list-filters';
 import { EmployeeDashboard } from '@/features/attendance/components/dashboard/employee-dashboard';
 import { AttendanceDashboardSwitcher } from '@/features/attendance/components/dashboard/attendance-dashboard-switcher';
 
@@ -150,6 +155,10 @@ function AttendancePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [projectFilter, setProjectFilter] = useState<string>('all');
+  const [geofenceHoldFilter, setGeofenceHoldFilter] =
+    useState<GeofenceHoldFilter>('all');
+  const [decisionFilter, setDecisionFilter] =
+    useState<ApprovalDecisionFilter>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -193,20 +202,16 @@ function AttendancePage() {
   const logMovementMutation = useLogMovement();
   const markAbsentMutation = useMarkAbsent();
 
-  const apiParams =
-    projectFilter === 'all'
-      ? null
-      : {
-          projectId: Number(projectFilter),
-          date: format(selectedDate, 'yyyy-MM-dd'),
-          status:
-            statusFilter === 'all'
-              ? undefined
-              : (statusFilter as AttendanceStatus),
-          search: searchQuery || undefined,
-          page: currentPage - 1, // backend is 0-based
-          size: itemsPerPage,
-        };
+  const apiParams = attendanceListParamsFrom({
+    projectFilter,
+    date: format(selectedDate, 'yyyy-MM-dd'),
+    statusFilter,
+    geofenceHoldFilter,
+    decisionFilter,
+    search: searchQuery,
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
 
   const { data: pagedResult, isLoading: attendanceLoading } =
     useAttendanceByProject(apiParams);
@@ -669,6 +674,53 @@ function AttendancePage() {
               <SelectItem value={AttendanceStatus.pendingRegularization}>
                 Pending
               </SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/*
+            The two geofence filters, deliberately two controls. `held` is the
+            selective one; a pending decision is the state every record is
+            created in, so it describes nearly the whole day. Kept apart so an
+            approver can ask for the days that were held and have since been
+            approved, which one combined control could not express.
+          */}
+          <Select
+            value={geofenceHoldFilter}
+            onValueChange={(value) => {
+              setGeofenceHoldFilter(value as GeofenceHoldFilter);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger
+              className="h-8 w-[190px] text-xs"
+              title="A day is marked away from site when the employee punched in or out from outside the project's site boundary and gave a reason for it."
+            >
+              <SelectValue placeholder="Marked from anywhere" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Marked from anywhere</SelectItem>
+              <SelectItem value="held">Marked away from site</SelectItem>
+              <SelectItem value="withinBoundary">
+                Marked on site only
+              </SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={decisionFilter}
+            onValueChange={(value) => {
+              setDecisionFilter(value as ApprovalDecisionFilter);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="h-8 w-[150px] text-xs">
+              <SelectValue placeholder="Any decision" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any decision</SelectItem>
+              <SelectItem value="pending">Awaiting a decision</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
 
