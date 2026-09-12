@@ -24,3 +24,14 @@ export {
   useScheduleReinspectionForDefect,
   useScheduleReinspectionForNcr,
 } from '@tornotron/echno-core/inspection/hooks';
+
+// Observations (core v8.9.0): the review queue, one observation and its
+// evidence, recording a human one and the review decision.
+export {
+  observationKeys,
+  useCreateObservation,
+  useObservation,
+  useObservationEvidence,
+  useObservations,
+  useReviewObservation,
+} from '@tornotron/echno-core/inspection/hooks';
