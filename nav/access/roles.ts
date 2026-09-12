@@ -37,7 +37,9 @@ export type Permission =
   | 'organizations:manage'
   | 'chat:view'
   | 'settings:view'
-  | 'settings:manage';
+  | 'settings:manage'
+  | 'inspections:view'
+  | 'inspections:manage';
 
 // ---------------------------------------------------------------------------
 // Access config
@@ -70,3 +72,34 @@ export const ADMIN_ONLY: AccessConfig = { allowRoles: ['admin'] } as const;
 export const MANAGER_AND_ABOVE: AccessConfig = {
   allowRoles: ['admin', 'manager'],
 } as const;
+
+// ---------------------------------------------------------------------------
+// Role -> permission mapping
+// ---------------------------------------------------------------------------
+
+/**
+ * The permissions each role grants, so `AccessConfig.permissions` has real
+ * data to check against instead of always seeing an empty set (the bug this
+ * closes: `permissions` was declared on `AccessConfig` but nothing ever
+ * populated `AccessContext.permissions`, so it silently never gated anything).
+ *
+ * There is no fine-grained per-user permission source yet (only `orgRoles`
+ * from the employee record) — the backend has no permissions endpoint or
+ * claim to read. Until that exists, this is a role-derived stand-in: every
+ * authenticated role gets `inspections:view` since the actual gate for a
+ * disabled/unentitled module is the moduleId check in `evaluate.ts`, backed
+ * by the backend's enabled-module descriptor, not this permission. This
+ * mapping only needs to be real business policy once a role or user should
+ * be denied a permission other roles hold; today none is.
+ */
+export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
+  admin: ['inspections:view', 'inspections:manage'],
+  manager: ['inspections:view', 'inspections:manage'],
+  employee: ['inspections:view'],
+};
+
+/** Returns the permissions granted to a role, or none for an unauthenticated user. */
+export function getPermissionsForRole(role?: Role): Permission[] {
+  if (!role) return [];
+  return ROLE_PERMISSIONS[role];
+}

@@ -16,6 +16,8 @@ export const inspectionsMetadata = {
     section: 'inspections',
     order: 4,
     breadcrumb: 'Inspections',
+    moduleId: 'inspections',
+    access: { permissions: ['inspections:view'] },
   },
 
   // ── module sections ───────────────────────────────────────────────────────

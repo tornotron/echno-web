@@ -6,6 +6,7 @@
  */
 
 import type { LucideIcon } from 'lucide-react';
+import type { ModuleId } from '@tornotron/echno-core/module/types';
 import { AccessConfig } from './access/roles';
 
 // ---------------------------------------------------------------------------
@@ -65,6 +66,13 @@ export interface RouteMetadata {
   hideWhenLocked?: boolean;
   /** Access control config for this route. */
   access?: AccessConfig;
+  /**
+   * The pluggable module this route belongs to, if any. When set, the item
+   * (and its whole subtree) is dropped from the nav entirely unless the id
+   * is present in the enabled-module set — see `nav/access/evaluate.ts`.
+   * Unset for core routes, which are never module-gated.
+   */
+  moduleId?: ModuleId;
 }
 
 /** Flat map from route ID to its metadata. */
@@ -95,6 +103,7 @@ export interface ComposedNavItem {
   nonInteractive: boolean;
   hideWhenLocked: boolean;
   access: AccessConfig;
+  moduleId?: ModuleId;
 
   /** Composed children (ordered by metadata.order). */
   children: ComposedNavItem[];

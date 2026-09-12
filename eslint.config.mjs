@@ -83,6 +83,19 @@ const customRulesConfig = {
         type: 'types',
         pattern: 'types/*',
       },
+      {
+        // The filesystem-driven nav platform (routes, metadata, access
+        // control). Was invisible to boundaries entirely until now (#394's
+        // gap), which is how `features/common/components/sidebar.tsx`'s
+        // direct `@/nav` import went unpoliced. Declared here so any *new*
+        // import is checked; the allow-lists below cover every layer that
+        // already reaches into it (app pages for breadcrumbs, features for
+        // the sidebar, the shared error layout, and a couple of lib/utils
+        // helpers) rather than narrowing to one consumer and breaking the rest.
+        type: 'nav',
+        mode: 'file',
+        pattern: 'nav/**/*',
+      },
     ],
   },
 
@@ -117,6 +130,7 @@ const customRulesConfig = {
               'shadcn',
               'lib',
               'types',
+              'nav',
             ],
           },
           {
@@ -141,11 +155,12 @@ const customRulesConfig = {
               'providers',
               'lib',
               'types',
+              'nav',
             ],
           },
           {
             from: 'shared',
-            allow: ['shadcn', 'shared', 'providers', 'lib', 'types'],
+            allow: ['shadcn', 'shared', 'providers', 'lib', 'types', 'nav'],
           },
           // The extension layer is the only place allowed to reach the base
           // primitives. Everything above it imports `components/shadcn`, so a
@@ -164,11 +179,17 @@ const customRulesConfig = {
           },
           {
             from: 'lib',
-            allow: ['types', 'lib'],
+            allow: ['types', 'lib', 'nav'],
           },
           {
             from: 'types',
             allow: ['types'],
+          },
+          // Nav itself imports only its own tree and the module descriptor
+          // types (via `@tornotron/echno-core`, external to boundaries).
+          {
+            from: 'nav',
+            allow: ['nav', 'types'],
           },
         ],
       },
