@@ -39,6 +39,9 @@ import type { OrgRole } from '@tornotron/echno-core/employee/types';
 import { getOrgRoleLabel } from '@tornotron/echno-core/employee/types';
 import type { Project } from '@tornotron/echno-core/project/types';
 import { CurrentProjectsCard } from './current-projects-card';
+import Link from 'next/link';
+import { employeeFilterHref } from '@/hooks/use-employee-filter';
+import { routes } from '@/nav';
 
 interface EmployeeOverviewTabProps {
   employee: Employee;
@@ -343,7 +346,26 @@ export function EmployeeOverviewTab({
               {employee.managerName ? (
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
-                    {employee.managerName}
+                    {/*
+                      Opens the directory narrowed to this manager's direct
+                      reports. The directory reads the filter off the URL and
+                      fetches the subordinates whole, so the reader sees the
+                      complete set rather than one page of it.
+                    */}
+                    {employee.managerId == null ? (
+                      employee.managerName
+                    ) : (
+                      <Link
+                        href={employeeFilterHref(
+                          routes.workforce.employees.employeeManagement.href,
+                          employee.managerId,
+                          'manager'
+                        )}
+                        className="hover:underline"
+                      >
+                        {employee.managerName}
+                      </Link>
+                    )}
                   </p>
                 </div>
               ) : (

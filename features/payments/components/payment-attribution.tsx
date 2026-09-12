@@ -68,7 +68,21 @@ export function PaymentAttribution({
               </div>
               <div>
                 <p className="text-sm font-medium">
-                  {userStampLabel(payment.raisedByName, payment.raisedBy)}
+                  {/*
+                    The same user-id filter the verifier link uses: the raiser
+                    is stamped from the session, and the listing narrows on
+                    `raisedBy` server-side (echno-backend#655).
+                  */}
+                  <Link
+                    href={userFilterHref(
+                      routes.finance.payments.href,
+                      payment.raisedBy,
+                      'raiser'
+                    )}
+                    className="text-blue-600 hover:text-blue-700 hover:underline dark:text-blue-400 dark:hover:text-blue-300"
+                  >
+                    {userStampLabel(payment.raisedByName, payment.raisedBy)}
+                  </Link>
                 </p>
                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
                   A voucher cannot be verified by the account that raised it.

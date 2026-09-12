@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
@@ -64,6 +64,15 @@ import {
   employeeFilterHref,
 } from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
+import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
+import {
+  RegularizationRegisterCard,
+  registerStatusFromParam,
+  type RegisterStatusParam,
+} from './regularization-register-card';
+
+/** The queue's two views, carried as `?tab=`; the pending queue is the default. */
+export type QueueTab = 'pending' | 'decided';
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -73,23 +82,64 @@ export function RegularizationManagement({
   hideHeader?: boolean;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { canApprove } = useAttendanceRole();
+
+  /*
+    Which view is open, and for the decided view which outcome, both live on
+    the URL so an "Approved by X" stamp can link straight to them. Switching
+    tabs rewrites only the params this component owns; the employee filter's
+    own params ride along untouched.
+  */
+  const tab: QueueTab =
+    searchParams.get('tab') === 'decided' ? 'decided' : 'pending';
+  const registerStatus = registerStatusFromParam(searchParams.get('status'));
+  const setQueueParams = useCallback(
+    (next: { tab?: QueueTab; status?: RegisterStatusParam | null }) => {
+      const params = new URLSearchParams(searchParams);
+      if (next.tab !== undefined) {
+        if (next.tab === 'decided') params.set('tab', 'decided');
+        else {
+          params.delete('tab');
+          params.delete('status');
+        }
+      }
+      if (next.status !== undefined) {
+        if (next.status) params.set('status', next.status);
+        else params.delete('status');
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname);
+    },
+    [router, pathname, searchParams]
+  );
   const { data: currentEmployee } = useCurrentUserEmployee();
   const currentUserIdentifier =
     currentEmployee?.name ?? currentEmployee?.employeeId ?? 'manager';
 
   // Data
-  const { data: regularizations = [], isLoading } =
-    usePendingRegularizations();
+  const { data: regularizations = [], isLoading } = usePendingRegularizations();
   const processMutation = useProcessRegularization();
-  const { chip, matches: matchesEmployeeFilter } =
-    useEmployeeFilterFromParams({
-      rows: regularizations,
-      roles: {
-        requester: (row) => row.requestedById,
-        approver: (row) => row.approvedById,
-      },
-    });
+  /*
+    The pending queue narrows by requester in the browser: it is fetched whole,
+    so the accessor hides nothing. An approver never matches a pending row
+    (the stamp is what moves a row off the queue), so that role is only
+    declared on the decided tab, where both roles narrow on the server through
+    the register's own parameters and so declare no accessor.
+  */
+  const {
+    chip,
+    employeeId: filterEmployeeId,
+    role: filterRole,
+    matches: matchesEmployeeFilter,
+  } = useEmployeeFilterFromParams({
+    rows: regularizations,
+    roles:
+      tab === 'decided'
+        ? { requester: {}, approver: {} }
+        : { requester: (row) => row.requestedById },
+  });
 
   // Local state
   const [searchQuery, setSearchQuery] = useState('');
@@ -241,207 +291,238 @@ export function RegularizationManagement({
 
       {chip && <ActiveFilterChip {...chip} />}
 
-      {/* Table */}
-      <Card>
-        <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
-            <Input
-              placeholder="Search by employee, project…"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 pl-8 text-sm"
-            />
-          </div>
-          <span className="ml-auto text-xs text-zinc-500">
-            {filtered.length} pending
-          </span>
-        </CardHeader>
+      <Tabs
+        value={tab}
+        onValueChange={(value) => setQueueParams({ tab: value as QueueTab })}
+      >
+        <TabsList>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="decided">Decided</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
-        {filtered.length === 0 ? (
-          <CardContent>
-            <Empty variant="inline">
-              <EmptyMedia variant="icon">
-                <CheckCircle className="size-6 text-green-500" />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>
-                  {regularizations.length === 0
-                    ? 'All caught up!'
-                    : 'No matching requests'}
-                </EmptyTitle>
-                <EmptyDescription>
-                  {regularizations.length === 0
-                    ? 'There are no pending regularization requests.'
-                    : 'Try adjusting your search query.'}
-                </EmptyDescription>
-              </EmptyHeader>
-            </Empty>
-          </CardContent>
-        ) : (
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Employee</TableHead>
-                    <TableHead>Project</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Missing Events</TableHead>
-                    <TableHead>Reason</TableHead>
-                    <TableHead>Requested</TableHead>
-                    {canApprove && (
-                      <TableHead className="text-right">Actions</TableHead>
-                    )}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((reg) => (
-                    <TableRow key={reg.id}>
-                      {/* Employee */}
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
-                            <User className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {reg.requestedById ? (
-                                <Link
-                                  href={employeeFilterHref(
-                                    routes.attendance.regularizations,
-                                    reg.requestedById,
-                                    'requester'
-                                  )}
-                                  className="hover:underline"
-                                >
-                                  {reg.employeeName ?? reg.requestedBy}
-                                </Link>
-                              ) : (
-                                (reg.employeeName ?? reg.requestedBy)
-                              )}
-                            </p>
-                            <p className="text-xs text-zinc-500 dark:text-zinc-500">
-                              {reg.requestedBy}
-                            </p>
-                          </div>
-                        </div>
-                      </TableCell>
+      {tab === 'decided' ? (
+        <RegularizationRegisterCard
+          status={registerStatus}
+          onStatusChange={(status) => setQueueParams({ status })}
+          approvedById={
+            filterRole === 'approver'
+              ? (filterEmployeeId ?? undefined)
+              : undefined
+          }
+          requestedById={
+            filterRole === 'requester'
+              ? (filterEmployeeId ?? undefined)
+              : undefined
+          }
+        />
+      ) : (
+        <Card>
+          <CardHeader className="flex flex-row flex-wrap items-center gap-3 border-b px-4 py-1">
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute top-1/2 left-3 size-3.5 -translate-y-1/2 text-zinc-400" />
+              <Input
+                placeholder="Search by employee, project…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 pl-8 text-sm"
+              />
+            </div>
+            <span className="ml-auto text-xs text-zinc-500">
+              {filtered.length} pending
+            </span>
+          </CardHeader>
 
-                      {/* Project */}
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Building className="h-3.5 w-3.5 text-zinc-400" />
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                            {reg.projectName ?? '—'}
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      {/* Date */}
-                      <TableCell>
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-                          <span className="text-sm text-zinc-700 dark:text-zinc-300">
-                            {reg.attendanceDate
-                              ? format(reg.attendanceDate, 'MMM d, yyyy')
-                              : '—'}
-                          </span>
-                        </div>
-                      </TableCell>
-
-                      {/* Missing Events */}
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1">
-                          {reg.missingEvents.map((evt, i) => (
-                            <Badge
-                              key={i}
-                              variant="outline"
-                              className="text-xs"
-                            >
-                              {evt.replaceAll('_', ' ')}
-                            </Badge>
-                          ))}
-                        </div>
-                      </TableCell>
-
-                      {/* Reason */}
-                      <TableCell>
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <p className="max-w-[200px] cursor-default truncate text-sm text-zinc-700 dark:text-zinc-300">
-                                {reg.reason}
-                              </p>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-xs">
-                              <p>{reg.reason}</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      </TableCell>
-
-                      {/* Requested At */}
-                      <TableCell>
-                        <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                          {format(reg.requestedAt, 'MMM d, h:mm a')}
-                        </span>
-                      </TableCell>
-
-                      {/* Actions */}
+          {filtered.length === 0 ? (
+            <CardContent>
+              <Empty variant="inline">
+                <EmptyMedia variant="icon">
+                  <CheckCircle className="size-6 text-green-500" />
+                </EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>
+                    {regularizations.length === 0
+                      ? 'All caught up!'
+                      : 'No matching requests'}
+                  </EmptyTitle>
+                  <EmptyDescription>
+                    {regularizations.length === 0
+                      ? 'There are no pending regularization requests.'
+                      : 'Try adjusting your search query.'}
+                  </EmptyDescription>
+                </EmptyHeader>
+              </Empty>
+            </CardContent>
+          ) : (
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Project</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Missing Events</TableHead>
+                      <TableHead>Reason</TableHead>
+                      <TableHead>Requested</TableHead>
                       {canApprove && (
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end space-x-2">
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    className="h-8 w-8"
-                                    onClick={() =>
-                                      router.push(
-                                        `/users/dashboard/attendance/${reg.attendanceId}`
-                                      )
-                                    }
-                                  >
-                                    <ExternalLink className="h-4 w-4 text-zinc-500" />
-                                  </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>View attendance</TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
-                              onClick={() => openRejectDialog(reg)}
-                              disabled={processMutation.isPending}
-                            >
-                              <XCircle className="mr-1 h-3.5 w-3.5" />
-                              Reject
-                            </Button>
-                            <Button
-                              size="sm"
-                              className="bg-green-600 text-white hover:bg-green-700"
-                              onClick={() => handleApprove(reg)}
-                              disabled={processMutation.isPending}
-                            >
-                              <CheckCircle className="mr-1 h-3.5 w-3.5" />
-                              Approve
-                            </Button>
-                          </div>
-                        </TableCell>
+                        <TableHead className="text-right">Actions</TableHead>
                       )}
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        )}
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filtered.map((reg) => (
+                      <TableRow key={reg.id}>
+                        {/* Employee */}
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800">
+                              <User className="h-4 w-4 text-zinc-600 dark:text-zinc-400" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {reg.requestedById ? (
+                                  <Link
+                                    href={employeeFilterHref(
+                                      routes.attendance.regularizations,
+                                      reg.requestedById,
+                                      'requester'
+                                    )}
+                                    className="hover:underline"
+                                  >
+                                    {reg.employeeName ?? reg.requestedBy}
+                                  </Link>
+                                ) : (
+                                  (reg.employeeName ?? reg.requestedBy)
+                                )}
+                              </p>
+                              <p className="text-xs text-zinc-500 dark:text-zinc-500">
+                                {reg.requestedBy}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+
+                        {/* Project */}
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Building className="h-3.5 w-3.5 text-zinc-400" />
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                              {reg.projectName ?? '—'}
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Date */}
+                        <TableCell>
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-3.5 w-3.5 text-zinc-400" />
+                            <span className="text-sm text-zinc-700 dark:text-zinc-300">
+                              {reg.attendanceDate
+                                ? format(reg.attendanceDate, 'MMM d, yyyy')
+                                : '—'}
+                            </span>
+                          </div>
+                        </TableCell>
+
+                        {/* Missing Events */}
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
+                            {reg.missingEvents.map((evt, i) => (
+                              <Badge
+                                key={i}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {evt.replaceAll('_', ' ')}
+                              </Badge>
+                            ))}
+                          </div>
+                        </TableCell>
+
+                        {/* Reason */}
+                        <TableCell>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <p className="max-w-[200px] cursor-default truncate text-sm text-zinc-700 dark:text-zinc-300">
+                                  {reg.reason}
+                                </p>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="bottom"
+                                className="max-w-xs"
+                              >
+                                <p>{reg.reason}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </TableCell>
+
+                        {/* Requested At */}
+                        <TableCell>
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                            {format(reg.requestedAt, 'MMM d, h:mm a')}
+                          </span>
+                        </TableCell>
+
+                        {/* Actions */}
+                        {canApprove && (
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end space-x-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      size="icon"
+                                      variant="ghost"
+                                      className="h-8 w-8"
+                                      onClick={() =>
+                                        router.push(
+                                          `/users/dashboard/attendance/${reg.attendanceId}`
+                                        )
+                                      }
+                                    >
+                                      <ExternalLink className="h-4 w-4 text-zinc-500" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    View attendance
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-red-300 text-red-600 hover:bg-red-50 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/20"
+                                onClick={() => openRejectDialog(reg)}
+                                disabled={processMutation.isPending}
+                              >
+                                <XCircle className="mr-1 h-3.5 w-3.5" />
+                                Reject
+                              </Button>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 text-white hover:bg-green-700"
+                                onClick={() => handleApprove(reg)}
+                                disabled={processMutation.isPending}
+                              >
+                                <CheckCircle className="mr-1 h-3.5 w-3.5" />
+                                Approve
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
 
       {/* Rejection Reason Dialog */}
       <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
