@@ -20,7 +20,7 @@ import {
   type ResolvedNavItem,
   type Role,
 } from '@/nav';
-import { useEnabledModuleIds } from '@/lib/modules/use-enabled-module-ids';
+import { useEnabledModuleIds } from '@/hooks/use-enabled-module-ids';
 import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';

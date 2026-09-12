@@ -39,4 +39,17 @@ describe('computeEnabledModuleIds — the deliberate no-gating fallback', () => 
     });
     expect(result.moduleIds).toEqual(new Set(['inspections', 'billing']));
   });
+
+  test('falls back to undefined even when a failed refetch left stale data cached', () => {
+    // TanStack Query does not clear `data` when a background refetch fails,
+    // so a query can report isError: true while still holding the previous
+    // successful result. Trusting that stale set would gate on modules that
+    // might no longer be accurate.
+    const result = computeEnabledModuleIds({
+      data: [{ id: 'inspections' }],
+      isError: true,
+      isLoading: false,
+    });
+    expect(result.moduleIds).toBeUndefined();
+  });
 });

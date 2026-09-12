@@ -1,4 +1,4 @@
-import { ModuleGuard } from '@/components/common/module-guard';
+import { ModuleGuard } from '@/components/providers/module-guard';
 
 export default function InspectionsLayout({
   children,

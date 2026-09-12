@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ModuleId } from '@tornotron/echno-core/module/types';
-import { useEnabledModuleIds } from '@/lib/modules/use-enabled-module-ids';
+import { useEnabledModuleIds } from '@/hooks/use-enabled-module-ids';
 
 interface ModuleGuardProps {
   /** The module this route segment belongs to. */

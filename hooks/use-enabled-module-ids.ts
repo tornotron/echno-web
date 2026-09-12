@@ -38,9 +38,16 @@ export interface EnabledModulesQueryState {
 export function computeEnabledModuleIds(
   state: EnabledModulesQueryState
 ): EnabledModuleIdsResult {
-  const { data, isLoading } = state;
+  const { data, isError, isLoading } = state;
+  // A background refetch can fail while TanStack Query still holds the
+  // previous successful `data` (it does not clear cached data on error).
+  // Trusting that stale data here would keep gating on a set that might no
+  // longer be accurate, so any current error state falls back to "no
+  // gating" regardless of what data happens to still be cached.
   const moduleIds =
-    !data || data.length === 0 ? undefined : new Set(data.map((m) => m.id));
+    isError || !data || data.length === 0
+      ? undefined
+      : new Set(data.map((m) => m.id));
   return { moduleIds, isLoading };
 }
 
