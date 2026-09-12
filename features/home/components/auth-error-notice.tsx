@@ -33,8 +33,12 @@ const buttonClass =
 export function AuthErrorNotice({ code, hasSession }: AuthErrorNoticeProps) {
   const [signingOut, setSigningOut] = useState(false);
   const message = describeAuthError(code);
+  const staleFlow = message.kind === 'stale-flow';
 
-  if (hasSession) {
+  // Only the stale-flow code can mean "the other sign-in won". A session
+  // alongside logout_failed is the sign-out that did not happen, and must
+  // still read as one.
+  if (hasSession && staleFlow) {
     return (
       <div
         role="status"
@@ -54,8 +58,6 @@ export function AuthErrorNotice({ code, hasSession }: AuthErrorNoticeProps) {
       </div>
     );
   }
-
-  const staleFlow = message.kind === 'stale-flow';
 
   return (
     <div

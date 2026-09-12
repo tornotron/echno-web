@@ -44,6 +44,17 @@ mock.module('next/image', () => ({
     }),
 }));
 
+let sessionValue: unknown = null;
+let authCalls = 0;
+
+mock.module('@/auth', () => ({
+  auth: () => {
+    authCalls += 1;
+    return Promise.resolve(sessionValue);
+  },
+}));
+
+const { default: WelcomePage } = await import('@/app/page');
 const { AuthErrorNotice } =
   await import('@/features/home/components/auth-error-notice');
 const { WelcomeScreen } =
@@ -146,6 +157,55 @@ describe('a session that already exists is not a failure', () => {
     const link = getByRole('link', { name: 'Continue to dashboard' });
     expect(link.getAttribute('href')).toBe('/users/dashboard');
     expect(signOutCalls).toHaveLength(0);
+  });
+
+  test('a failed sign-out with the session still live is reported as that', () => {
+    const { container, queryByRole } = render(
+      createElement(AuthErrorNotice, {
+        code: 'logout_failed',
+        hasSession: true,
+      })
+    );
+    const text = container.textContent ?? '';
+    expect(text).toContain('Sign-out did not complete');
+    expect(text).not.toContain('already signed in');
+    expect(queryByRole('link', { name: 'Continue to dashboard' })).toBeNull();
+  });
+});
+
+async function renderPage(error: string | undefined) {
+  const element = await WelcomePage({
+    searchParams: Promise.resolve(error === undefined ? {} : { error }),
+  });
+  return render(element).container.textContent ?? '';
+}
+
+describe('the page hands the code and session state to the screen', () => {
+  test('no error: no notice, and auth() is not consulted', async () => {
+    authCalls = 0;
+    sessionValue = { user: { name: 'Ravi' } };
+    const text = await renderPage(undefined);
+    expect(text).not.toContain('Sign-in');
+    expect(authCalls).toBe(0);
+  });
+
+  test('error with a usable session: Continue', async () => {
+    sessionValue = { user: { name: 'Ravi' } };
+    const text = await renderPage('Configuration');
+    expect(text).toContain('already signed in');
+  });
+
+  test('error with a session that itself carries an error: failure, not Continue', async () => {
+    sessionValue = { user: { name: 'Ravi' }, error: 'RefreshAccessTokenError' };
+    const text = await renderPage('SessionExpired');
+    expect(text).toContain('Session expired');
+    expect(text).not.toContain('already signed in');
+  });
+
+  test('error with no session: the message', async () => {
+    sessionValue = null;
+    const text = await renderPage('AccessDenied');
+    expect(text).toContain('Access denied');
   });
 });
 
