@@ -30,7 +30,7 @@ const approveRequest = mock(refuse);
 const rejectRequest = mock(refuse);
 const delegateApproval = mock(refuse);
 
-mock.module('@/services/leave-service', () => ({
+mock.module('@tornotron/echno-core/leave/services', () => ({
   leaveService: {
     withdrawRequest,
     approveRequest,
@@ -54,7 +54,7 @@ const {
   useRejectLeaveRequest,
   useDelegateApproval,
 } = await import('./use-leave-mutations');
-const { leaveKeys } = await import('./use-leave');
+const { leaveKeys } = await import('@tornotron/echno-core/leave/hooks/keys');
 
 const REQUEST_ID = 88;
 const EMPLOYEE_ID = 12;

@@ -25,7 +25,7 @@ import {
   useOrganizationCalendar,
   useTeamCalendar,
   useDepartmentCalendar,
-} from '@/hooks/leave/use-leave';
+} from '@tornotron/echno-core/leave/hooks';
 import { Calendar, Users, Download, Filter } from 'lucide-react';
 import { OrgGuard, PageHeader } from '@/components/common';
 import { Skeleton } from '@/components/shadcn/skeleton';

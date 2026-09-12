@@ -38,14 +38,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { useAllLeavePolicies } from '@/hooks/leave/use-leave';
+import { useAllLeavePolicies } from '@tornotron/echno-core/leave/hooks';
 import {
   useCreateLeavePolicy,
   useUpdateLeavePolicy,
   useDeleteLeavePolicy,
   useActivateLeavePolicy,
 } from '@/hooks/leave/use-leave-mutations';
-import { LeavePolicy } from '@/types/leave';
+import { LeavePolicy } from '@tornotron/echno-core/leave/types';
 import {
   Plus,
   Edit,

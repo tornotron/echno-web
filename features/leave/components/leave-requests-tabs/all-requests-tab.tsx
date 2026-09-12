@@ -29,10 +29,10 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
-import { useOrganizationRequests } from '@/hooks/leave/use-leave';
+import { useOrganizationRequests } from '@tornotron/echno-core/leave/hooks';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
-import { LeaveStatus } from '@/types/leave';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
 import {
   Department,
   getDepartmentLabel,
@@ -62,21 +62,20 @@ export function AllRequestsTab() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const { data: requests } = useOrganizationRequests();
-  const { chip, matches: matchesEmployeeFilter } =
-    useEmployeeFilterFromParams({
-      rows: requests,
-      roles: {
-        requester: (row) => row.employeeId,
-        handover: (row) => row.handoverToId,
-        // An approval chain, not one id: the current approver and everyone who
-        // has already signed both count as having approved.
-        approver: {
-          matches: (row, id) =>
-            row.currentApproverId === id ||
-            (row.approvals?.some((a) => a.approverId === id) ?? false),
-        },
+  const { chip, matches: matchesEmployeeFilter } = useEmployeeFilterFromParams({
+    rows: requests,
+    roles: {
+      requester: (row) => row.employeeId,
+      handover: (row) => row.handoverToId,
+      // An approval chain, not one id: the current approver and everyone who
+      // has already signed both count as having approved.
+      approver: {
+        matches: (row, id) =>
+          row.currentApproverId === id ||
+          (row.approvals?.some((a) => a.approverId === id) ?? false),
       },
-    });
+    },
+  });
 
   const departments = useMemo(
     () =>

@@ -36,11 +36,9 @@ import {
 import { BalanceCard } from '@/features/leave/components/balance-card';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
-import {
-  useEmployeeBalanceSummary,
-  useEmployeeRequests,
-} from '@/hooks/leave/use-leave';
-import { LeaveStatus } from '@/types/leave';
+import { useEmployeeRequests } from '@tornotron/echno-core/leave/hooks';
+import { useEmployeeBalanceSummaryWithQuota } from '@/hooks/leave/use-balances-with-quota';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
 import { formatDayCount } from '@/features/leave/lib/leave-days';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { format, isFuture } from 'date-fns';
@@ -54,7 +52,7 @@ export function EmployeeDashboard() {
   const [year] = useState(new Date().getFullYear());
 
   const { data: balanceSummary, isLoading: balanceLoading } =
-    useEmployeeBalanceSummary(employeeId, year);
+    useEmployeeBalanceSummaryWithQuota(employeeId, year);
   const { data: allRequests, isLoading: requestsLoading } =
     useEmployeeRequests(employeeId);
 
@@ -294,9 +292,7 @@ export function EmployeeDashboard() {
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() =>
-                  router.push(routes.attendance.myLeaves.apply)
-                }
+                onClick={() => router.push(routes.attendance.myLeaves.apply)}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 Apply for Leave

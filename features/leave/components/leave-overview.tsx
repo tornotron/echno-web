@@ -16,7 +16,7 @@ import {
   LeavePolicy,
   LeaveStatus,
   getLeaveStatusLabel,
-} from '@/types/leave';
+} from '@tornotron/echno-core/leave/types';
 import { format, isFuture, isToday, differenceInCalendarDays } from 'date-fns';
 import { routes } from '@/nav';
 

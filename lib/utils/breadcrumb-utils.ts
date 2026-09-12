@@ -5,7 +5,7 @@
  * human-readable names for dynamic ID segments in the URL.
  */
 
-import { LeaveRequest } from '@/types/leave';
+import { LeaveRequest } from '@tornotron/echno-core/leave/types';
 import { Material } from '@tornotron/echno-core/materials/types';
 import { Indent } from '@tornotron/echno-core/indents/types';
 import { PurchaseOrder } from '@tornotron/echno-core/purchase-orders/types';

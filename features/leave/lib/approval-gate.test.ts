@@ -4,7 +4,7 @@ import {
   leaveDashboardRoles,
   shouldOfferApprovalQueue,
 } from './approval-gate';
-import { LeaveRole } from '@/types/leave';
+import { LeaveRole } from '@/features/leave/lib/leave-role';
 
 /**
  * The case the client used to get wrong. A site supervisor sits above the

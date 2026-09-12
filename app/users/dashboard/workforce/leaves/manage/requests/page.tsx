@@ -21,11 +21,11 @@ import {
   usePendingApprovalsCount,
   useOrganizationRequests,
   useEmployeeRequests,
-} from '@/hooks/leave/use-leave';
+} from '@tornotron/echno-core/leave/hooks';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
 import { shouldOfferApprovalQueue } from '@/features/leave/lib/approval-gate';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
-import { LeaveStatus } from '@/types/leave';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
 import { FileText, Clock, Calendar, AlertCircle, Plus } from 'lucide-react';
 import { routes } from '@/nav';
 
@@ -95,11 +95,7 @@ export default function RequestsPage() {
             title="Leave Requests"
             description="Manage and review leave requests"
           />
-          <Button
-            onClick={() =>
-              router.push(routes.attendance.myLeaves.apply)
-            }
-          >
+          <Button onClick={() => router.push(routes.attendance.myLeaves.apply)}>
             <Plus className="mr-2 h-4 w-4" />
             New Request
           </Button>

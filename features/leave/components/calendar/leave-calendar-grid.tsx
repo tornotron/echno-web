@@ -42,7 +42,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/shadcn/dialog';
-import { LeaveCalendarEntry, LeaveStatus } from '@/types/leave';
+import {
+  LeaveCalendarEntry,
+  LeaveStatus,
+} from '@tornotron/echno-core/leave/types';
 import { Tabs, TabsList, TabsTrigger } from '@/components/shadcn/tabs';
 import { LeaveStatusBadge } from '@/features/leave/components/leave-status-badge';
 

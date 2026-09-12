@@ -22,7 +22,7 @@ import {
 } from '@/components/shadcn/select';
 import { Loader2 } from 'lucide-react';
 import { useAdjustBalance } from '@/hooks/leave/use-leave-mutations';
-import { LeaveBalance } from '@/types/leave';
+import { LeaveBalance } from '@tornotron/echno-core/leave/types';
 import { formatDayCount } from '@/features/leave/lib/leave-days';
 import { toast } from '@/lib/styles/toast-styles';
 

@@ -12,15 +12,15 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { leaveService } from '@/services/leave-service';
-import { leaveKeys } from '@/hooks/leave/use-leave';
+import { leaveService } from '@tornotron/echno-core/leave/services';
+import { leaveKeys } from '@tornotron/echno-core/leave/hooks/keys';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import type {
   LeavePolicy,
   LeaveRequest,
   LeaveNotification,
-} from '@/types/leave';
+} from '@tornotron/echno-core/leave/types';
 import {
   CreateLeavePolicyRequest,
   UpdateLeavePolicyRequest,
@@ -29,7 +29,7 @@ import {
   UpdateLeaveRequestRequest,
   LeaveApprovalAction,
   CalculateDays,
-} from '@/types/leave';
+} from '@tornotron/echno-core/leave/types';
 
 /**
  * Matches every LeavePolicy[] list cache under the 'leave/policies' namespace,
@@ -467,15 +467,12 @@ export const useWithdrawLeaveRequest = () => {
       requestId: number;
       employeeId: number;
     }) => leaveService.withdrawRequest(requestId, employeeId),
-    onSuccess: (data, { employeeId }) => {
-      // The backend responds with the withdrawn LeaveRequestDto, so patch the
-      // detail and the lists rather than invalidating them, the way
-      // useUpdateLeaveRequest does.
-      queryClient.setQueryData(leaveKeys.request(data.id), data);
-      queryClient.setQueriesData<LeaveRequest[]>(
-        { predicate: isLeaveRequestListCache },
-        (old) => old?.map((r) => (r.id === data.id ? data : r))
-      );
+    onSuccess: (_data, { requestId, employeeId }) => {
+      // The backend responds with the withdrawn LeaveRequestDto, but core's
+      // leaveService.withdrawRequest discards it, so refetch the detail and
+      // the lists rather than patching them.
+      queryClient.invalidateQueries({ queryKey: leaveKeys.request(requestId) });
+      queryClient.invalidateQueries({ predicate: isLeaveRequestListCache });
       // Withdrawing a pending request releases the days it had reserved, and
       // the recomputation is server side, so the balance has to be refetched.
       queryClient.invalidateQueries({

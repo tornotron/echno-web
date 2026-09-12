@@ -20,11 +20,51 @@
  * screens agree.
  */
 
-import type { LeaveBalance } from '@/types/leave';
+import type {
+  LeaveBalance,
+  LeaveBalanceSummary,
+  LeavePolicy,
+} from '@tornotron/echno-core/leave/types';
+
+/**
+ * A balance together with the annual quota of the policy it is measured
+ * against. The backend embeds the policy in every balance it returns, but
+ * core's `parseLeaveBalance` keeps only its id and type name, so the quota is
+ * joined back on from the policy list here.
+ */
+export type LeaveBalanceWithQuota = LeaveBalance & { annualQuota: number };
+
+/** A balance summary whose balances carry their annual quota. */
+export type LeaveBalanceSummaryWithQuota = Omit<
+  LeaveBalanceSummary,
+  'balances'
+> & { balances: LeaveBalanceWithQuota[] };
+
+/**
+ * Joins each balance to its policy by `leavePolicyId` and copies the policy's
+ * annual quota onto it. A balance whose policy is not in the list gets `0`,
+ * which the figures below treat as "no quota configured".
+ *
+ * @param balances - Parsed balances.
+ * @param policies - The policies those balances are measured against.
+ * @returns The same balances, each with an `annualQuota`.
+ */
+export function attachAnnualQuota(
+  balances: LeaveBalance[],
+  policies: readonly LeavePolicy[] | undefined
+): LeaveBalanceWithQuota[] {
+  const quotaByPolicy = new Map(
+    (policies ?? []).map((p) => [p.id, p.annualQuota])
+  );
+  return balances.map((b) => ({
+    ...b,
+    annualQuota: quotaByPolicy.get(b.leavePolicyId) ?? 0,
+  }));
+}
 
 /** The fields the derived figures read. */
 export type EntitlementFields = Pick<
-  LeaveBalance,
+  LeaveBalanceWithQuota,
   'annualQuota' | 'carryForwardFromPrevious' | 'used'
 >;
 
