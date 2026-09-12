@@ -85,10 +85,12 @@ export function parseSpatialImportText(text: string): ImportParseResult {
   const errors: string[] = [];
   let order: Column[] = [...COLUMNS];
   let started = false;
+  // One delimiter for the whole paste, read off the first line with content,
+  // so a name with a comma in a tab-separated sheet does not split a row.
+  const delimiter = detectDelimiter(lines.find((l) => l.trim()) ?? '');
 
   for (const [index, raw] of lines.entries()) {
     if (!raw || !raw.trim()) continue;
-    const delimiter = detectDelimiter(raw);
     const cells = splitLine(raw, delimiter);
 
     if (!started) {
