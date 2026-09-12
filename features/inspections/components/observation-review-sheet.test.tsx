@@ -67,6 +67,17 @@ mock.module('@tornotron/echno-core/spatial/hooks', () => ({
   useSpatialTree: () => ({ data: [], isLoading: false }),
 }));
 
+mock.module('@tornotron/echno-core/observation/services', () => ({
+  observationService: {
+    getById: () =>
+      Promise.resolve({
+        ...pending,
+        reviewStatus: ObservationReviewStatus.REJECTED,
+        reviewNote: 'Decided by someone else',
+      }),
+  },
+}));
+
 mock.module('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) =>
     createElement('a', { href }, children),
@@ -188,6 +199,12 @@ describe('ObservationReviewSheet', () => {
     fireEvent.change(document.querySelector('#edit-title')!, {
       target: { value: 'Crack at column C-15' },
     });
+    fireEvent.change(document.querySelector('#edit-category')!, {
+      target: { value: 'Structural' },
+    });
+    fireEvent.change(document.querySelector('#edit-category')!, {
+      target: { value: '' },
+    });
     const diff = document.querySelector('[data-testid="review-diff"]');
     expect(diff?.textContent).toContain('Crack at column C-14');
     expect(diff?.textContent).toContain('Crack at column C-15');
@@ -221,6 +238,7 @@ describe('ObservationReviewSheet', () => {
     expect(document.querySelector('[role="alert"]')?.textContent).toBe(
       ALREADY_DECIDED_MESSAGE
     );
+    expect(document.body.textContent).toContain('Decided by someone else');
   });
 
   test('after a decision the outcome link points at the record', async () => {

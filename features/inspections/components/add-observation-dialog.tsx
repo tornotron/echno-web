@@ -93,12 +93,23 @@ export function AddObservationDialog({
       req.suggestedSeverity = severity as DefectSeverity;
     if (spatialNodeId) req.spatialNodeId = spatialNodeId;
     if (locationNote.trim()) req.locationNote = locationNote.trim();
+    let created;
     try {
-      const created = await create.mutateAsync(req);
-      if (files.length > 0) {
-        setUploading(true);
+      created = await create.mutateAsync(req);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'The observation could not be saved.'
+      );
+      return;
+    }
+    // The row exists from here on: an evidence failure must not read as an
+    // unsaved observation, or a retry records it twice.
+    if (files.length > 0) {
+      setUploading(true);
+      try {
         const { errors } = await uploadObservationEvidence(created.id, files);
-        setUploading(false);
         if (errors.length > 0) {
           toast.warning(
             `Observation recorded; ${errors.length} file${errors.length === 1 ? '' : 's'} failed to upload.`
@@ -106,19 +117,18 @@ export function AddObservationDialog({
         } else {
           toast.success('Observation recorded with evidence');
         }
-      } else {
-        toast.success('Observation recorded');
+      } catch {
+        toast.warning(
+          'Observation recorded, but its evidence could not be uploaded. Add it again from the observation.'
+        );
+      } finally {
+        setUploading(false);
       }
-      reset();
-      setOpen(false);
-    } catch (error) {
-      setUploading(false);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'The observation could not be saved.'
-      );
+    } else {
+      toast.success('Observation recorded');
     }
+    reset();
+    setOpen(false);
   };
 
   return (

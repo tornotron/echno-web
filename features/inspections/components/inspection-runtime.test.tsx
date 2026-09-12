@@ -144,57 +144,69 @@ const RENDER_TIMEOUT_MS = 20_000;
 // ---------------------------------------------------------------------------
 
 describe('InspectionRuntime — completing is gated on a usable record', () => {
-  test('an unanswered check point blocks completion', () => {
-    const view = renderRuntime(
-      inspectionWith([
-        checkItem('a'),
-        checkItem('b', { status: CheckItemStatus.PENDING }),
-      ])
-    );
+  test(
+    'an unanswered check point blocks completion',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([
+          checkItem('a'),
+          checkItem('b', { status: CheckItemStatus.PENDING }),
+        ])
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(updateInspection.mutate).not.toHaveBeenCalled();
-    expect(view.text()).toContain('1 check point needs attention');
-    expect(view.text()).toContain('Record an outcome for this check point.');
-  }, RENDER_TIMEOUT_MS);
+      expect(updateInspection.mutate).not.toHaveBeenCalled();
+      expect(view.text()).toContain('1 check point needs attention');
+      expect(view.text()).toContain('Record an outcome for this check point.');
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('a failed check point with no remark blocks completion', () => {
-    // A failure with nothing written down leaves whoever picks up the NCR
-    // nothing to act on, which is the whole reason the gate exists.
-    const view = renderRuntime(
-      inspectionWith([checkItem('a', { status: CheckItemStatus.FAILED })])
-    );
+  test(
+    'a failed check point with no remark blocks completion',
+    () => {
+      // A failure with nothing written down leaves whoever picks up the NCR
+      // nothing to act on, which is the whole reason the gate exists.
+      const view = renderRuntime(
+        inspectionWith([checkItem('a', { status: CheckItemStatus.FAILED })])
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(updateInspection.mutate).not.toHaveBeenCalled();
-    expect(view.text()).toContain(
-      'Say what was wrong before failing this check point.'
-    );
-  }, RENDER_TIMEOUT_MS);
+      expect(updateInspection.mutate).not.toHaveBeenCalled();
+      expect(view.text()).toContain(
+        'Say what was wrong before failing this check point.'
+      );
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('writing the remark clears the block and the remark reaches the payload', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a', { status: CheckItemStatus.FAILED })])
-    );
+  test(
+    'writing the remark clears the block and the remark reaches the payload',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a', { status: CheckItemStatus.FAILED })])
+      );
 
-    view.click('Complete inspection');
-    fireEvent.change(view.container.querySelector('#remarks-a')!, {
-      target: { value: 'Cover 20mm against a specified 40mm.' },
-    });
+      view.click('Complete inspection');
+      fireEvent.change(view.container.querySelector('#remarks-a')!, {
+        target: { value: 'Cover 20mm against a specified 40mm.' },
+      });
 
-    expect(view.text()).not.toContain(
-      'Say what was wrong before failing this check point.'
-    );
+      expect(view.text()).not.toContain(
+        'Say what was wrong before failing this check point.'
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(updateInspection.mutate).toHaveBeenCalledTimes(1);
-    expect(view.saved().checkItems[0].remarks).toBe(
-      'Cover 20mm against a specified 40mm.'
-    );
-  }, RENDER_TIMEOUT_MS);
+      expect(updateInspection.mutate).toHaveBeenCalledTimes(1);
+      expect(view.saved().checkItems[0].remarks).toBe(
+        'Cover 20mm against a specified 40mm.'
+      );
+    },
+    RENDER_TIMEOUT_MS
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -202,116 +214,142 @@ describe('InspectionRuntime — completing is gated on a usable record', () => {
 // ---------------------------------------------------------------------------
 
 describe('InspectionRuntime — the save payload', () => {
-  test('completing sends every check point back, scored, with no view state on it', () => {
-    const view = renderRuntime(
-      inspectionWith([
-        checkItem('a'),
-        checkItem('b', {
-          status: CheckItemStatus.FAILED,
-          remarks: 'Spacing 200mm against a specified 150mm.',
-        }),
-        checkItem('c', { status: CheckItemStatus.NOT_APPLICABLE }),
-      ])
-    );
+  test(
+    'completing sends every check point back, scored, with no view state on it',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([
+          checkItem('a'),
+          checkItem('b', {
+            status: CheckItemStatus.FAILED,
+            remarks: 'Spacing 200mm against a specified 150mm.',
+          }),
+          checkItem('c', { status: CheckItemStatus.NOT_APPLICABLE }),
+        ])
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    const request = view.saved();
-    expect(request.status).toBe(InspectionStatus.COMPLETED);
-    // One pass and one fail assessed, the N/A ignored: 50%, which is a fail.
-    expect(request.result).toBe(InspectionResult.FAILED);
-    expect(request.checkItems.length).toBe(3);
-    expect(request.checkItems.map((item: { status: string }) => item.status)).toEqual([
-      CheckItemStatus.PASSED,
-      CheckItemStatus.FAILED,
-      CheckItemStatus.NOT_APPLICABLE,
-    ]);
-    // `key` is the runtime's own React key. The endpoint replaces the whole
-    // set, so anything extra on the way out is a field the backend rejects.
-    expect(Object.hasOwn(request.checkItems[0], 'key')).toBe(false);
-  }, RENDER_TIMEOUT_MS);
+      const request = view.saved();
+      expect(request.status).toBe(InspectionStatus.COMPLETED);
+      // One pass and one fail assessed, the N/A ignored: 50%, which is a fail.
+      expect(request.result).toBe(InspectionResult.FAILED);
+      expect(request.checkItems.length).toBe(3);
+      expect(
+        request.checkItems.map((item: { status: string }) => item.status)
+      ).toEqual([
+        CheckItemStatus.PASSED,
+        CheckItemStatus.FAILED,
+        CheckItemStatus.NOT_APPLICABLE,
+      ]);
+      // `key` is the runtime's own React key. The endpoint replaces the whole
+      // set, so anything extra on the way out is a field the backend rejects.
+      expect(Object.hasOwn(request.checkItems[0], 'key')).toBe(false);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('an outcome recorded on screen is the one that is saved', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a', { status: CheckItemStatus.PENDING })])
-    );
+  test(
+    'an outcome recorded on screen is the one that is saved',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a', { status: CheckItemStatus.PENDING })])
+      );
 
-    const passed = [...view.container.querySelectorAll('button')].find(
-      (button) => button.getAttribute('aria-label') === 'Passed'
-    );
-    if (!passed) throw new Error('No "Passed" outcome on screen');
-    fireEvent.click(passed);
+      const passed = [...view.container.querySelectorAll('button')].find(
+        (button) => button.getAttribute('aria-label') === 'Passed'
+      );
+      if (!passed) throw new Error('No "Passed" outcome on screen');
+      fireEvent.click(passed);
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(updateInspection.mutate).toHaveBeenCalledTimes(1);
-    expect(view.saved().checkItems[0].status).toBe(CheckItemStatus.PASSED);
-  }, RENDER_TIMEOUT_MS);
+      expect(updateInspection.mutate).toHaveBeenCalledTimes(1);
+      expect(view.saved().checkItems[0].status).toBe(CheckItemStatus.PASSED);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('an all-pass inspection is recorded as passed', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a'), checkItem('b')])
-    );
+  test(
+    'an all-pass inspection is recorded as passed',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a'), checkItem('b')])
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(view.saved().result).toBe(InspectionResult.PASSED);
-  }, RENDER_TIMEOUT_MS);
+      expect(view.saved().result).toBe(InspectionResult.PASSED);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('a critical defect fails the inspection whatever the score says', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a')], {
-        // Severity is free text on the backend, so the match is case-blind.
-        defects: [
-          {
-            id: 'd1',
-            category: 'Structural',
-            description: 'Honeycombing at the column head',
-            severity: 'Critical',
-            status: 'open',
-          },
-        ],
-      } as unknown as Partial<Inspection>)
-    );
+  test(
+    'a critical defect fails the inspection whatever the score says',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a')], {
+          // Severity is free text on the backend, so the match is case-blind.
+          defects: [
+            {
+              id: 'd1',
+              category: 'Structural',
+              description: 'Honeycombing at the column head',
+              severity: 'Critical',
+              status: 'open',
+            },
+          ],
+        } as unknown as Partial<Inspection>)
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(view.saved().result).toBe(InspectionResult.FAILED);
-    // PUT replaces the whole inspection, so a defect recorded elsewhere has to
-    // be threaded back or it is deleted by this save.
-    expect(view.saved().defects.length).toBe(1);
-    expect(view.saved().defects[0].description).toBe(
-      'Honeycombing at the column head'
-    );
-  }, RENDER_TIMEOUT_MS);
+      expect(view.saved().result).toBe(InspectionResult.FAILED);
+      // PUT replaces the whole inspection, so a defect recorded elsewhere has to
+      // be threaded back or it is deleted by this save.
+      expect(view.saved().defects.length).toBe(1);
+      expect(view.saved().defects[0].description).toBe(
+        'Honeycombing at the column head'
+      );
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('saving progress moves a scheduled inspection into progress and concludes nothing', () => {
-    const view = renderRuntime(
-      inspectionWith([
-        checkItem('a'),
-        checkItem('b', { status: CheckItemStatus.PENDING }),
-      ])
-    );
+  test(
+    'saving progress moves a scheduled inspection into progress and concludes nothing',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([
+          checkItem('a'),
+          checkItem('b', { status: CheckItemStatus.PENDING }),
+        ])
+      );
 
-    view.click('Save progress');
+      view.click('Save progress');
 
-    const request = view.saved();
-    expect(request.status).toBe(InspectionStatus.IN_PROGRESS);
-    // A part-way save is not a verdict, so the stored result is carried over.
-    expect(request.result).toBe(InspectionResult.PENDING);
-  }, RENDER_TIMEOUT_MS);
+      const request = view.saved();
+      expect(request.status).toBe(InspectionStatus.IN_PROGRESS);
+      // A part-way save is not a verdict, so the stored result is carried over.
+      expect(request.result).toBe(InspectionResult.PENDING);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('saving progress again does not drag an in-progress inspection backwards', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a')], {
-        status: InspectionStatus.IN_PROGRESS,
-      })
-    );
+  test(
+    'saving progress again does not drag an in-progress inspection backwards',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a')], {
+          status: InspectionStatus.IN_PROGRESS,
+        })
+      );
 
-    view.click('Save progress');
+      view.click('Save progress');
 
-    expect(view.saved().status).toBe(InspectionStatus.IN_PROGRESS);
-  }, RENDER_TIMEOUT_MS);
+      expect(view.saved().status).toBe(InspectionStatus.IN_PROGRESS);
+    },
+    RENDER_TIMEOUT_MS
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -319,29 +357,38 @@ describe('InspectionRuntime — the save payload', () => {
 // ---------------------------------------------------------------------------
 
 describe('InspectionRuntime — a concluded inspection is a record, not a form', () => {
-  test('a completed inspection offers no way to write to it', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a')], {
-        status: InspectionStatus.COMPLETED,
-      })
-    );
+  test(
+    'a completed inspection offers no way to write to it',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a')], {
+          status: InspectionStatus.COMPLETED,
+        })
+      );
 
-    expect(view.has('Complete inspection')).toBe(false);
-    expect(view.has('Save progress')).toBe(false);
-    expect(view.text()).toContain('This inspection is closed');
-    expect(
-      view.container.querySelector<HTMLTextAreaElement>('#remarks-a')!.disabled
-    ).toBe(true);
-  }, RENDER_TIMEOUT_MS);
+      expect(view.has('Complete inspection')).toBe(false);
+      expect(view.has('Save progress')).toBe(false);
+      expect(view.text()).toContain('This inspection is closed');
+      expect(
+        view.container.querySelector<HTMLTextAreaElement>('#remarks-a')!
+          .disabled
+      ).toBe(true);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('an inspection with no scheduled date cannot be saved at all', () => {
-    const view = renderRuntime(
-      inspectionWith([checkItem('a')], { scheduledDate: undefined })
-    );
+  test(
+    'an inspection with no scheduled date cannot be saved at all',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([checkItem('a')], { scheduledDate: undefined })
+      );
 
-    view.click('Complete inspection');
+      view.click('Complete inspection');
 
-    expect(updateInspection.mutate).not.toHaveBeenCalled();
-    expect(view.text()).toContain('This inspection has no scheduled date');
-  }, RENDER_TIMEOUT_MS);
+      expect(updateInspection.mutate).not.toHaveBeenCalled();
+      expect(view.text()).toContain('This inspection has no scheduled date');
+    },
+    RENDER_TIMEOUT_MS
+  );
 });

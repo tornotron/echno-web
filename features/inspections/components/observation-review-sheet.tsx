@@ -23,6 +23,7 @@ import type {
   ObservationReviewChanges,
   ReviewObservationRequest,
 } from '@tornotron/echno-core/inspection/types';
+import { observationService } from '@tornotron/echno-core/observation/services';
 import { useInspectionById, useReviewObservation } from '@/hooks/inspection';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
@@ -189,7 +190,40 @@ function ReviewSheetBody({
   const isReject = decision === ObservationDecision.REJECT;
   const isModify = decision === ObservationDecision.MODIFY;
   const noteMissing = isReject && note.trim() === '';
-  const changesMissing = isModify && !hasObservationChanges(edits);
+  // Only fields that still differ from the proposal count as changes: an
+  // edit restored to its original value is not one.
+  const changes = useMemo<ObservationReviewChanges>(() => {
+    const out: ObservationReviewChanges = {};
+    for (const row of diff) {
+      switch (row.field) {
+        case 'title': {
+          out.title = edits.title;
+          break;
+        }
+        case 'description': {
+          out.description = edits.description;
+          break;
+        }
+        case 'category': {
+          out.category = edits.category;
+          break;
+        }
+        case 'severity': {
+          out.severity = edits.severity;
+          break;
+        }
+        case 'spatialNodeId': {
+          out.spatialNodeId = edits.spatialNodeId;
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    }
+    return out;
+  }, [diff, edits]);
+  const changesMissing = isModify && !hasObservationChanges(changes);
   const outcomeIncomplete =
     !isReject &&
     ((outcomeKind === ObservationOutcomeKind.CHECK_ITEM && !checkItemId) ||
@@ -241,7 +275,7 @@ function ReviewSheetBody({
   const submit = async () => {
     const req: ReviewObservationRequest = { decision };
     if (note.trim()) req.note = note.trim();
-    if (isModify) req.changes = edits;
+    if (isModify) req.changes = changes;
     if (!isReject) req.outcome = buildOutcome();
     try {
       const result = await review.mutateAsync({ id: shown.id, req });
@@ -257,6 +291,12 @@ function ReviewSheetBody({
       if (error instanceof ApiError && error.status === 409) {
         setConflict(true);
         toast.error(ALREADY_DECIDED_MESSAGE);
+        // Show the decision that got there first rather than the stale row.
+        try {
+          setDecided(await observationService.getById(shown.id));
+        } catch {
+          // The alert already says what happened; the row stays as loaded.
+        }
         return;
       }
       toast.error(

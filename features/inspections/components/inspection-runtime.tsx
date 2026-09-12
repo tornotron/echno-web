@@ -354,11 +354,12 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
               path={inspection.spatialPath}
               fallback={inspection.location ?? 'Not specified'}
             />
-            {(inspection.spatialPath?.length ?? 0) > 0 && inspection.location && (
-              <span className="text-muted-foreground block text-xs">
-                {inspection.location}
-              </span>
-            )}
+            {(inspection.spatialPath?.length ?? 0) > 0 &&
+              inspection.location && (
+                <span className="text-muted-foreground block text-xs">
+                  {inspection.location}
+                </span>
+              )}
           </Meta>
         </dl>
         <Separator />
