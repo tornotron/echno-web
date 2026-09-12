@@ -1,42 +1,35 @@
-'use client';
+import { auth } from '@/auth';
+import { WelcomeScreen } from '@/features/home/components/welcome-screen';
 
-import Image from 'next/image';
-import Link from 'next/link';
-import { signIn } from 'next-auth/react';
-import { StarsBackground } from '@/components/shadcn/star';
+/**
+ * The landing page doubles as Auth.js's `pages.signIn` and `pages.error`, so
+ * every failed sign-in comes back here as `/?error=<code>`. The code is read on
+ * the server, along with whether a session already exists, and handed to the
+ * screen so the failure is visible instead of the page rendering as if nothing
+ * happened (issue #425).
+ *
+ * `hasSession` matters for the parallel-sign-in case: two flows share one
+ * state cookie, one fails the check and lands here with `?error=Configuration`,
+ * the other completes. The session is then real, and the page says so rather
+ * than reporting a failure. A session carrying an error (refresh failed, idle,
+ * revoked) is not usable and does not count.
+ */
+export default async function WelcomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const raw = params.error;
+  const errorCode = Array.isArray(raw) ? raw[0] : raw;
 
-export default function WelcomePage() {
+  let hasSession = false;
+  if (errorCode) {
+    const session = await auth();
+    hasSession = !!session?.user && !session.error;
+  }
+
   return (
-    <StarsBackground className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center gap-6">
-        <Image
-          src="/e-ai-logo.png"
-          alt="Echno"
-          width={160}
-          height={58}
-          priority
-          className="invert"
-        />
-
-        <h1 className="text-2xl font-bold tracking-tight text-white">
-          Welcome..! Echno Console
-        </h1>
-
-        <div className="flex gap-4">
-          <button
-            onClick={() => signIn('keycloak')}
-            className="rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
-          >
-            Login
-          </button>
-          <Link
-            href="/register"
-            className="rounded-lg border border-zinc-700 bg-transparent px-6 py-2.5 text-sm font-semibold text-white transition hover:border-zinc-500 hover:bg-zinc-800"
-          >
-            Register
-          </Link>
-        </div>
-      </div>
-    </StarsBackground>
+    <WelcomeScreen errorCode={errorCode || undefined} hasSession={hasSession} />
   );
 }
