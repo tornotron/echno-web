@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import {
   Archive,
   ArchiveRestore,
@@ -72,16 +72,20 @@ function NodeEditor({ level, initial, busy, onSubmit, onCancel }: NodeEditorProp
     initial?.levelIndex === undefined ? '' : String(initial.levelIndex)
   );
   const [elementType, setElementType] = useState(initial?.elementType ?? '');
+  const ids = useId();
   const label = spatialLevelLabels[level].toLowerCase();
+  const parsedLevelIndex =
+    levelIndex.trim() === '' ? undefined : Number(levelIndex);
+  const levelIndexInvalid =
+    parsedLevelIndex !== undefined && !Number.isInteger(parsedLevelIndex);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!code.trim()) return;
-    const parsed = levelIndex.trim() === '' ? undefined : Number(levelIndex);
+    if (!code.trim() || levelIndexInvalid) return;
     onSubmit({
       code: code.trim(),
       name: name.trim() || code.trim(),
-      levelIndex: parsed !== undefined && Number.isInteger(parsed) ? parsed : undefined,
+      levelIndex: parsedLevelIndex,
       elementType: elementType.trim() || undefined,
     });
   };
@@ -93,9 +97,9 @@ function NodeEditor({ level, initial, busy, onSubmit, onCancel }: NodeEditorProp
       aria-label={`${initial ? 'Rename' : 'Add'} ${label}`}
     >
       <div className="space-y-1">
-        <Label htmlFor={`code-${level}`}>Code</Label>
+        <Label htmlFor={`${ids}-code`}>Code</Label>
         <Input
-          id={`code-${level}`}
+          id={`${ids}-code`}
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder={level === 'FLOOR' ? 'L03' : level === 'ELEMENT' ? 'C4' : 'B1'}
@@ -104,9 +108,9 @@ function NodeEditor({ level, initial, busy, onSubmit, onCancel }: NodeEditorProp
         />
       </div>
       <div className="space-y-1">
-        <Label htmlFor={`name-${level}`}>Name</Label>
+        <Label htmlFor={`${ids}-name`}>Name</Label>
         <Input
-          id={`name-${level}`}
+          id={`${ids}-name`}
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Optional"
@@ -115,22 +119,23 @@ function NodeEditor({ level, initial, busy, onSubmit, onCancel }: NodeEditorProp
       </div>
       {level === 'FLOOR' && (
         <div className="space-y-1">
-          <Label htmlFor="levelIndex">Level index</Label>
+          <Label htmlFor={`${ids}-levelIndex`}>Level index</Label>
           <Input
-            id="levelIndex"
+            id={`${ids}-levelIndex`}
             value={levelIndex}
             onChange={(e) => setLevelIndex(e.target.value)}
             placeholder="0 = ground"
-            className="h-8 w-24"
+            className={cn('h-8 w-24', levelIndexInvalid && 'border-red-500')}
             inputMode="numeric"
+            aria-invalid={levelIndexInvalid}
           />
         </div>
       )}
       {level === 'ELEMENT' && (
         <div className="space-y-1">
-          <Label htmlFor="elementType">Type</Label>
+          <Label htmlFor={`${ids}-elementType`}>Type</Label>
           <Input
-            id="elementType"
+            id={`${ids}-elementType`}
             value={elementType}
             onChange={(e) => setElementType(e.target.value)}
             placeholder="column"
@@ -138,7 +143,11 @@ function NodeEditor({ level, initial, busy, onSubmit, onCancel }: NodeEditorProp
           />
         </div>
       )}
-      <Button type="submit" size="sm" disabled={busy || !code.trim()}>
+      <Button
+        type="submit"
+        size="sm"
+        disabled={busy || !code.trim() || levelIndexInvalid}
+      >
         {busy && <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />}
         {initial ? 'Save' : `Add ${label}`}
       </Button>

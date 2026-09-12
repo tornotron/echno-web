@@ -15,8 +15,6 @@ interface SpatialLocationPickerProps {
   /** The selected node id at any level, or undefined for none. */
   value: string | undefined;
   onChange: (nodeId: string | undefined) => void;
-  /** Levels the caller allows as the final pick; every level by default. */
-  allowedLevels?: readonly SpatialLevel[];
   disabled?: boolean;
   className?: string;
 }
@@ -50,7 +48,6 @@ export function SpatialLocationPicker({
   projectId,
   value,
   onChange,
-  allowedLevels = LEVELS,
   disabled = false,
   className,
 }: SpatialLocationPickerProps) {
@@ -122,11 +119,7 @@ export function SpatialLocationPicker({
                 {depth === 0 ? 'None' : parent ? 'Any' : ''}
               </option>
               {options.map((node) => (
-                <option
-                  key={node.id}
-                  value={node.id}
-                  disabled={!allowedLevels.includes(level)}
-                >
+                <option key={node.id} value={node.id}>
                   {node.code}
                   {node.name && node.name !== node.code ? ` · ${node.name}` : ''}
                   {node.archivedAt ? ' (archived)' : ''}

@@ -177,6 +177,10 @@ function InspectionCard({
                 {inspection.inspectionNumber}
               </p>
             )}
+            <SpatialBreadcrumb
+              path={inspection.spatialPath}
+              className="mt-0.5 text-xs"
+            />
           </div>
           <InspectionStatusBadge status={inspection.status} />
         </div>
