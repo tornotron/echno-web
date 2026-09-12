@@ -1,12 +1,22 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render, waitFor } from '@testing-library/react';
 
-type GuardState = {
-  moduleIds: Set<string> | undefined;
+// Mocks the core query hook rather than `@/lib/modules/use-enabled-module-ids`
+// directly: bun's `mock.module` replaces a module for the whole test run by
+// resolved path, and that file already has its own direct unit test
+// (use-enabled-module-ids.test.ts) exercising `computeEnabledModuleIds`. This
+// keeps each module mocked from exactly one test file.
+type QueryState = {
+  data: { id: string }[] | undefined;
+  isError: boolean;
   isLoading: boolean;
 };
 
-let guardState: GuardState = { moduleIds: undefined, isLoading: true };
+let queryState: QueryState = {
+  data: undefined,
+  isError: false,
+  isLoading: true,
+};
 let replaceCalls: string[] = [];
 
 mock.module('next/navigation', () => ({
@@ -15,21 +25,21 @@ mock.module('next/navigation', () => ({
   }),
 }));
 
-mock.module('@/lib/modules/use-enabled-module-ids', () => ({
-  useEnabledModuleIds: () => guardState,
+mock.module('@tornotron/echno-core/module/hooks', () => ({
+  useEnabledModules: () => queryState,
 }));
 
 const { ModuleGuard } = await import('./module-guard');
 
 afterEach(() => {
   cleanup();
-  guardState = { moduleIds: undefined, isLoading: true };
+  queryState = { data: undefined, isError: false, isLoading: true };
   replaceCalls = [];
 });
 
 describe('ModuleGuard', () => {
   test('renders children while the enabled set is still loading', () => {
-    guardState = { moduleIds: undefined, isLoading: true };
+    queryState = { data: undefined, isError: false, isLoading: true };
     const { getByText } = render(
       <ModuleGuard moduleId="inspections">
         <p>inspections page</p>
@@ -39,8 +49,8 @@ describe('ModuleGuard', () => {
     expect(replaceCalls).toEqual([]);
   });
 
-  test('renders children when gating fell back to "no gating"', () => {
-    guardState = { moduleIds: undefined, isLoading: false };
+  test('renders children when gating fell back to "no gating" (empty response)', () => {
+    queryState = { data: [], isError: false, isLoading: false };
     const { getByText } = render(
       <ModuleGuard moduleId="inspections">
         <p>inspections page</p>
@@ -51,7 +61,11 @@ describe('ModuleGuard', () => {
   });
 
   test('renders children when the module is in the enabled set', () => {
-    guardState = { moduleIds: new Set(['inspections']), isLoading: false };
+    queryState = {
+      data: [{ id: 'inspections' }],
+      isError: false,
+      isLoading: false,
+    };
     const { getByText } = render(
       <ModuleGuard moduleId="inspections">
         <p>inspections page</p>
@@ -62,7 +76,11 @@ describe('ModuleGuard', () => {
   });
 
   test('redirects to the shared 403 surface and renders nothing when the module is disabled', async () => {
-    guardState = { moduleIds: new Set(['billing']), isLoading: false };
+    queryState = {
+      data: [{ id: 'billing' }],
+      isError: false,
+      isLoading: false,
+    };
     const { queryByText } = render(
       <ModuleGuard moduleId="inspections">
         <p>inspections page</p>
