@@ -13,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip';
-import { LeaveBalance } from '@/types/leave';
+import type { LeaveBalanceWithQuota } from '@/features/leave/lib/leave-balance-figures';
 import { formatDayCount } from '@/features/leave/lib/leave-days';
 import {
   leaveEntitlement,
@@ -23,7 +23,7 @@ import { Calendar, TrendingUp, TrendingDown, Minus, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface BalanceCardProps {
-  balance: LeaveBalance;
+  balance: LeaveBalanceWithQuota;
   showTrends?: boolean;
   compact?: boolean;
 }
@@ -306,7 +306,9 @@ export function BalanceCard({
                 </div>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Days on requests awaiting approval. They are held back from</p>
+                <p>
+                  Days on requests awaiting approval. They are held back from
+                </p>
                 <p>what you can book, but are not counted as used yet.</p>
               </TooltipContent>
             </Tooltip>

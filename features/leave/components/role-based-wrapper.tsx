@@ -22,7 +22,7 @@
 
 import { ReactNode } from 'react';
 import { useLeaveRole } from '@/hooks/leave/use-leave-role';
-import { LeaveRole } from '@/types/leave';
+import { LeaveRole } from '@/features/leave/lib/leave-role';
 import { Alert, AlertDescription, AlertTitle } from '@/components/shadcn/alert';
 import { AlertCircle } from 'lucide-react';
 

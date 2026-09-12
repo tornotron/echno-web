@@ -15,10 +15,8 @@ import {
   TabsTrigger,
 } from '@/components/shadcn/tabs';
 import { Button } from '@/components/shadcn/button';
-import {
-  useEmployeeBalanceSummary,
-  useTransactionHistory,
-} from '@/hooks/leave/use-leave';
+import { useTransactionHistory } from '@tornotron/echno-core/leave/hooks';
+import { useEmployeeBalanceSummaryWithQuota } from '@/hooks/leave/use-balances-with-quota';
 import { Card } from '@/components/shadcn/card';
 import { OrgGuard, PageHeader } from '@/components/common';
 import { BalancesTabContent } from '@/features/leave/components/balances-tab-content';
@@ -28,7 +26,6 @@ import { format } from 'date-fns';
 import { downloadCsv } from '@/lib/utils/csv-utils';
 import { formatDayCount } from '@/features/leave/lib/leave-days';
 import { leaveEntitlement } from '@/features/leave/lib/leave-balance-figures';
-
 
 export default function BalanceDetailsPage() {
   const { data: employee, isLoading: employeeLoading } =
@@ -40,7 +37,10 @@ export default function BalanceDetailsPage() {
   const [activeTab, setActiveTab] = useState('balances');
 
   const { data: balanceSummary, isLoading: balanceLoading } =
-    useEmployeeBalanceSummary(employeeId, Number.parseInt(selectedYear));
+    useEmployeeBalanceSummaryWithQuota(
+      employeeId,
+      Number.parseInt(selectedYear)
+    );
   const { data: transactions, isLoading: transactionsLoading } =
     useTransactionHistory(employeeId);
 
@@ -55,8 +55,10 @@ export default function BalanceDetailsPage() {
   // carried-forward days, so the old sum counted them twice and added days earned
   // so far to days granted for the year.
   const totalAllocated =
-    balanceSummary?.balances?.reduce((sum, b) => sum + leaveEntitlement(b), 0) ||
-    0;
+    balanceSummary?.balances?.reduce(
+      (sum, b) => sum + leaveEntitlement(b),
+      0
+    ) || 0;
 
   const handleExport = () => {
     if (activeTab === 'balances') {

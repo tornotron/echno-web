@@ -1,5 +1,8 @@
 import { Badge } from '@/components/shadcn/badge';
-import { LeaveStatus, getLeaveStatusLabel } from '@/types/leave';
+import {
+  LeaveStatus,
+  getLeaveStatusLabel,
+} from '@tornotron/echno-core/leave/types';
 import { CheckCircle2, Clock, XCircle, Ban, RotateCcw } from 'lucide-react';
 
 interface LeaveStatusBadgeProps {

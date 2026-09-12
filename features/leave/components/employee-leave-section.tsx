@@ -29,11 +29,9 @@ import {
 import { Pagination } from '@/components/common';
 import { Calendar, Loader2, Settings2, FileText } from 'lucide-react';
 import { format } from 'date-fns';
-import {
-  useEmployeeBalances,
-  useTransactionHistory,
-} from '@/hooks/leave/use-leave';
-import { TransactionType } from '@/types/leave';
+import { useTransactionHistory } from '@tornotron/echno-core/leave/hooks';
+import { useEmployeeBalancesWithQuota } from '@/hooks/leave/use-balances-with-quota';
+import { TransactionType } from '@tornotron/echno-core/leave/types';
 import { formatDayCount } from '@/features/leave/lib/leave-days';
 import { leaveUsedPercent } from '@/features/leave/lib/leave-balance-figures';
 import { BalanceAdjustmentDialog } from './balance-adjustment-dialog';
@@ -98,10 +96,8 @@ export function EmployeeLeaveSection({
   const [txPage, setTxPage] = useState(1);
   const [txPerPage, setTxPerPage] = useState(10);
 
-  const { data: balances, isLoading: balanceLoading } = useEmployeeBalances(
-    employeeId,
-    Number.parseInt(selectedYear)
-  );
+  const { data: balances, isLoading: balanceLoading } =
+    useEmployeeBalancesWithQuota(employeeId, Number.parseInt(selectedYear));
   const { data: transactions, isLoading: transactionsLoading } =
     useTransactionHistory(employeeId);
 

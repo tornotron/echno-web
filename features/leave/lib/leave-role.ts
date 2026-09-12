@@ -1,5 +1,5 @@
 /**
- * types/leave/leave-role.ts
+ * features/leave/lib/leave-role.ts
  *
  * Leave management role types and permissions.
  *

@@ -34,8 +34,8 @@ import {
   formatLeaveDays,
 } from '@/features/leave/lib/leave-duration';
 import { isSameDay } from 'date-fns';
-import { useEmployeeRequests } from '@/hooks/leave/use-leave';
-import { LeaveStatus } from '@/types/leave';
+import { useEmployeeRequests } from '@tornotron/echno-core/leave/hooks';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { FileText, Calendar, Search } from 'lucide-react';
 import { format } from 'date-fns';

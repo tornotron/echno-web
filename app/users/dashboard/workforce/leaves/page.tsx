@@ -6,7 +6,7 @@ import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import {
   useOrganizationRequests,
   useAllLeavePolicies,
-} from '@/hooks/leave/use-leave';
+} from '@tornotron/echno-core/leave/hooks';
 import { LeaveOverview } from '@/features/leave/components/leave-overview';
 import { LeaveCharts } from '@/features/leave/components/leave-charts';
 import { Button } from '@/components/shadcn/button';

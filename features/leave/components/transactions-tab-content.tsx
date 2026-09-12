@@ -31,7 +31,10 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { Loader2 } from 'lucide-react';
 import { Pagination } from '@/components/common';
 import { format } from 'date-fns';
-import { TransactionType, LeaveTransaction } from '@/types/leave';
+import {
+  TransactionType,
+  LeaveTransaction,
+} from '@tornotron/echno-core/leave/types';
 
 interface TransactionsTabContentProps {
   transactions: LeaveTransaction[] | undefined;

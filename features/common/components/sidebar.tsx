@@ -8,7 +8,7 @@ import {
   isManagerOrAbove as hasManagerRole,
 } from '@tornotron/echno-core/employee/types';
 import { useAttendancePendingApprovalsCount } from '@tornotron/echno-core/attendance/hooks';
-import { usePendingApprovalsCount } from '@/hooks/leave/use-leave';
+import { usePendingApprovalsCount } from '@tornotron/echno-core/leave/hooks';
 import { handleSignOut } from '@/lib/auth/auth-utils';
 import { Badge } from '@/components/shadcn/badge';
 import {

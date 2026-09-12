@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/shadcn/card';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Separator } from '@/components/shadcn/separator';
-import { LeaveRequest, LeaveStatus } from '@/types/leave';
+import { LeaveRequest, LeaveStatus } from '@tornotron/echno-core/leave/types';
 import { LeaveStatusBadge } from './leave-status-badge';
 import {
   Calendar,

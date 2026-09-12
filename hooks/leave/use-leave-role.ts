@@ -1,5 +1,5 @@
 /**
- * lib/hooks/use-leave-role.ts
+ * hooks/leave/use-leave-role.ts
  *
  * Leave management role detection hook.
  * Uses the role groups from OrgRole (adminRoles, managerRoles, etc.)
@@ -10,10 +10,10 @@
 
 import { useMemo } from 'react';
 import { useAuthorization } from '@/hooks/use-authorization';
-import { LeaveRole, LeaveRoleContext } from '@/types/leave';
+import { LeaveRole, LeaveRoleContext } from '@/features/leave/lib/leave-role';
 
-export { LeaveRole } from '@/types/leave';
-export type { LeaveRoleContext } from '@/types/leave';
+export { LeaveRole } from '@/features/leave/lib/leave-role';
+export type { LeaveRoleContext } from '@/features/leave/lib/leave-role';
 
 /**
  * Hook to determine user's leave management role and permissions.

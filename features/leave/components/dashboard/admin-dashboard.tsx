@@ -41,8 +41,8 @@ import {
   useOrganizationRequests,
   usePendingApprovalsCount,
   useAllLeavePolicies,
-} from '@/hooks/leave/use-leave';
-import { LeaveStatus } from '@/types/leave';
+} from '@tornotron/echno-core/leave/hooks';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { ChevronRight } from 'lucide-react';
 import { format } from 'date-fns';

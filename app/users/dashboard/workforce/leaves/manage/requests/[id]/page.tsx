@@ -64,7 +64,7 @@ import {
   useLeaveRequest,
   useEmployeeRequests,
   useCanApprove,
-} from '@/hooks/leave/use-leave';
+} from '@tornotron/echno-core/leave/hooks';
 import {
   useApproveLeaveRequest,
   useRejectLeaveRequest,
@@ -74,7 +74,7 @@ import {
 } from '@/hooks/leave/use-leave-mutations';
 import { useManagers } from '@tornotron/echno-core/employee/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
-import { LeaveStatus, ApprovalAction } from '@/types/leave';
+import { LeaveStatus, ApprovalAction } from '@tornotron/echno-core/leave/types';
 import { toast } from '@/lib/styles/toast-styles';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';

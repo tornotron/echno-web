@@ -29,7 +29,7 @@ import { Input } from '@/components/shadcn/input';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { Progress } from '@/components/shadcn/progress';
 import { Loader2 } from 'lucide-react';
-import { LeaveBalance } from '@/types/leave';
+import type { LeaveBalanceWithQuota } from '@/features/leave/lib/leave-balance-figures';
 import { formatDayCount } from '@/features/leave/lib/leave-days';
 import {
   leaveEntitlement,
@@ -39,7 +39,7 @@ import {
 interface BalancesTabContentProps {
   balanceSummary:
     | {
-        balances: LeaveBalance[];
+        balances: LeaveBalanceWithQuota[];
         totalAvailable: number;
         totalUsed: number;
         totalPending: number;

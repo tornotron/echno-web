@@ -28,14 +28,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select';
-import { useApproverRequests } from '@/hooks/leave/use-leave';
+import { useApproverRequests } from '@tornotron/echno-core/leave/hooks';
 import { Checkbox } from '@/components/shadcn/checkbox';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import {
   LeaveStatus,
   getLeaveStatusLabel,
   getLeaveStatusColor,
-} from '@/types/leave';
+} from '@tornotron/echno-core/leave/types';
 import {
   Department,
   getDepartmentLabel,

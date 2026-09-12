@@ -3,7 +3,7 @@
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Employee } from '@tornotron/echno-core/employee/types';
-import { LeaveRequest } from '@/types/leave';
+import { LeaveRequest } from '@tornotron/echno-core/leave/types';
 import { Organization } from '@tornotron/echno-core/organization/types';
 import { Task } from '@tornotron/echno-core/task/types';
 import { Issue } from '@tornotron/echno-core/issue/types';

@@ -1,5 +1,5 @@
-import { LeaveStatus } from '@/types/leave';
-import type { LeaveRequest } from '@/types/leave';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
+import type { LeaveRequest } from '@tornotron/echno-core/leave/types';
 
 /**
  * Whether the withdraw action is offered on a leave request, and if not, why.

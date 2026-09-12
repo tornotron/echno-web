@@ -52,8 +52,8 @@ import {
   HalfDayType,
   LeavePolicy,
   LeaveRequest,
-  LeaveBalanceSummary,
-} from '@/types/leave';
+} from '@tornotron/echno-core/leave/types';
+import type { LeaveBalanceSummaryWithQuota } from '@/features/leave/lib/leave-balance-figures';
 import { PageHeader } from '@/components/common';
 import { BalanceCard } from '@/features/leave/components/balance-card';
 import { FormSkeleton } from '@/features/leave/components/skeletons';
@@ -75,7 +75,7 @@ import { routes } from '@/nav';
 interface LeaveApplyFormProps {
   employeeId: number;
   policies: LeavePolicy[];
-  balanceSummary: LeaveBalanceSummary | undefined;
+  balanceSummary: LeaveBalanceSummaryWithQuota | undefined;
   existingRequest: LeaveRequest | undefined;
   isEditMode: boolean;
   editRequestId: string | null;
@@ -612,7 +612,8 @@ export function LeaveApplyForm({
                             value={policy.id.toString()}
                           >
                             {policy.leaveTypeName} (
-                            {formatDayCount(balance?.bookableBalance ?? 0)} days available)
+                            {formatDayCount(balance?.bookableBalance ?? 0)} days
+                            available)
                           </SelectItem>
                         );
                       })}

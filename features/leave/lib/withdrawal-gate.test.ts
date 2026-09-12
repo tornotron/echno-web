@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { LeaveStatus } from '@/types/leave';
-import type { LeaveRequest } from '@/types/leave';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
+import type { LeaveRequest } from '@tornotron/echno-core/leave/types';
 import { canCancelLeaveRequest, leaveWithdrawalGate } from './withdrawal-gate';
 
 const ME = 7;

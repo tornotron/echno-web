@@ -1,4 +1,4 @@
-import { LeaveRole } from '@/types/leave';
+import { LeaveRole } from '@/features/leave/lib/leave-role';
 
 /**
  * Who the client shows leave approval controls to.

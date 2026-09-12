@@ -108,7 +108,13 @@ describe('a leave decision keeps the approver out of the body', () => {
   });
 
   test('the serializer that builds the body drops it either way', () => {
-    const source = readFileSync('types/leave/leave-approval.ts', 'utf8');
+    // The serializer lives in @tornotron/echno-core since the local leave
+    // client was deleted (#412); read the installed build.
+    const source = readFileSync(
+      'node_modules/@tornotron/echno-core/dist/types/leave/leave-approval.js',
+      'utf8'
+    );
+    expect(source.includes('export function approvalActionToJson')).toBe(true);
     expect(source.includes('approverId: dto.approverId')).toBe(false);
   });
 });

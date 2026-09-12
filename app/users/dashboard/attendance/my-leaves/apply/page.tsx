@@ -3,9 +3,9 @@
 import { useSearchParams } from 'next/navigation';
 import {
   useLeavePoliciesByEmployee,
-  useEmployeeBalanceSummary,
   useEmployeeRequests,
-} from '@/hooks/leave/use-leave';
+} from '@tornotron/echno-core/leave/hooks';
+import { useEmployeeBalanceSummaryWithQuota } from '@/hooks/leave/use-balances-with-quota';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { OrgGuard } from '@/components/common';
 import { LeaveApplyForm } from '@/features/leave/components/leave-apply-form';
@@ -21,7 +21,9 @@ export default function NewLeaveRequestPage() {
 
   const { data: policies, isLoading: policiesLoading } =
     useLeavePoliciesByEmployee(employeeId || 0);
-  const { data: balanceSummary } = useEmployeeBalanceSummary(employeeId || 0);
+  const { data: balanceSummary } = useEmployeeBalanceSummaryWithQuota(
+    employeeId || 0
+  );
   const { data: employeeRequests, isLoading: requestsLoading } =
     useEmployeeRequests(employeeId || 0);
 
