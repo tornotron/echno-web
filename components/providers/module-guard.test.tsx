@@ -49,8 +49,19 @@ describe('ModuleGuard', () => {
     expect(replaceCalls).toEqual([]);
   });
 
-  test('renders children when gating fell back to "no gating" (empty response)', () => {
+  test('redirects to the 403 surface when the fetch succeeds with an empty set', async () => {
     queryState = { data: [], isError: false, isLoading: false };
+    const { queryByText } = render(
+      <ModuleGuard moduleId="inspections">
+        <p>inspections page</p>
+      </ModuleGuard>
+    );
+    expect(queryByText('inspections page')).not.toBeInTheDocument();
+    await waitFor(() => expect(replaceCalls).toEqual(['/errors/403']));
+  });
+
+  test('renders children when the fetch fails (falls back to no gating)', () => {
+    queryState = { data: undefined, isError: true, isLoading: false };
     const { getByText } = render(
       <ModuleGuard moduleId="inspections">
         <p>inspections page</p>

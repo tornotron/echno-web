@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { computeEnabledModuleIds } from './use-enabled-module-ids';
 
-describe('computeEnabledModuleIds — the deliberate no-gating fallback', () => {
+describe('computeEnabledModuleIds', () => {
   test('reports loading with no module ids while the query is in flight', () => {
     const result = computeEnabledModuleIds({
       data: undefined,
@@ -22,13 +22,13 @@ describe('computeEnabledModuleIds — the deliberate no-gating fallback', () => 
     expect(result.moduleIds).toBeUndefined();
   });
 
-  test('falls back to undefined (no gating) when the response is empty', () => {
+  test('a successful empty response is a real answer: gates with an empty Set', () => {
     const result = computeEnabledModuleIds({
       data: [],
       isError: false,
       isLoading: false,
     });
-    expect(result.moduleIds).toBeUndefined();
+    expect(result.moduleIds).toEqual(new Set());
   });
 
   test('builds a real Set once the backend answers with modules', () => {

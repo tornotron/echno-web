@@ -49,6 +49,18 @@ describe('isModuleVisible', () => {
 });
 
 describe('filterNavByAccess — module gate', () => {
+  test('an empty enabled set is a real answer: hides a module-tagged entry', () => {
+    const tree = [
+      item({ id: 'inspections', moduleId: 'inspections' }),
+      item({ id: 'projects' }),
+    ];
+    const result = filterNavByAccess(tree, {
+      ...authed,
+      enabledModules: new Set(),
+    });
+    expect(result.map((i) => i.id)).toEqual(['projects']);
+  });
+
   test('drops an item whose module is absent from the enabled set, subtree included', () => {
     const tree = [
       item({
