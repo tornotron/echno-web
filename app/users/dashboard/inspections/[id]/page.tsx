@@ -17,6 +17,9 @@ import {
 } from '@/components/shadcn/tabs';
 import { InspectionEventTimeline } from '@/features/inspections/components/inspection-event-timeline';
 import { DefectReinspectionButton } from '@/features/inspections/components/reinspection-section';
+import { AddObservationDialog } from '@/features/inspections/components/add-observation-dialog';
+import { ComplianceObservationStatus } from '@/features/inspections/components/compliance-observation-status';
+import { ObservationQueue } from '@/features/inspections/components/observation-queue';
 import {
   Edit,
   MapPin,
@@ -170,6 +173,10 @@ export default function InspectionDetailsPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <AddObservationDialog
+            projectId={inspection.projectId}
+            inspectionId={inspection.id}
+          />
           <Button
             variant="outline"
             onClick={() =>
@@ -185,8 +192,28 @@ export default function InspectionDetailsPage() {
       <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="observations">Observations</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="observations">
+          <Card>
+            <CardHeader>
+              <CardTitle>Observations</CardTitle>
+              <CardDescription>
+                What was recorded on this inspection, by a person or a device,
+                and what each became.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ObservationQueue
+                projectId={inspection.projectId}
+                inspectionId={inspection.id}
+                initialStatus="ALL"
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="overview" className="space-y-4 sm:space-y-6">
           {/* Status Overview */}
@@ -280,6 +307,18 @@ export default function InspectionDetailsPage() {
                           {compliancePhaseLabels[inspection.compliancePhase]}
                         </Badge>
                       )}
+                    </div>
+
+                    <div>
+                      <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Observation
+                      </div>
+                      <div className="mt-1">
+                        <ComplianceObservationStatus
+                          projectId={inspection.projectId}
+                          inspectionId={inspection.id}
+                        />
+                      </div>
                     </div>
 
                     {inspection.aiRationale && (
@@ -591,7 +630,9 @@ export default function InspectionDetailsPage() {
                                 </div>
                                 {(defect.spatialPath?.length ?? 0) > 0 && (
                                   <div className="mt-1">
-                                    <SpatialBreadcrumb path={defect.spatialPath} />
+                                    <SpatialBreadcrumb
+                                      path={defect.spatialPath}
+                                    />
                                   </div>
                                 )}
                                 {defect.location && (

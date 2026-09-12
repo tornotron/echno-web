@@ -2,6 +2,7 @@ import {
   BarChart3,
   ClipboardCheck,
   ClipboardList,
+  Eye,
   HardHat,
   LayoutDashboard,
   ShieldAlert,
@@ -39,17 +40,23 @@ export const inspectionsMetadata = {
     breadcrumb: 'NCR / Defects',
     order: 4,
   },
+  'inspections-observations': {
+    label: 'Observations',
+    icon: Eye,
+    breadcrumb: 'Observations',
+    order: 5,
+  },
   'inspections-checklists': {
     label: 'Checklist Builder',
     icon: ClipboardList,
     breadcrumb: 'Checklists',
-    order: 5,
+    order: 6,
   },
   'inspections-reports': {
     label: 'Reports',
     icon: BarChart3,
     breadcrumb: 'Reports',
-    order: 6,
+    order: 7,
   },
 
   // ── inspection detail / create / edit ─────────────────────────────────────
