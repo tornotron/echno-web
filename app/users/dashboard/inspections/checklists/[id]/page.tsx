@@ -68,29 +68,32 @@ export default function ChecklistBuilderPage({
       throw new Error('Checklist has no check points');
     }
 
-    // The trade is required on an update and must go back unchanged, so a
-    // template whose trade this build does not recognize cannot be saved
-    // without inventing one. That happens only if the backend adds a trade
-    // ahead of the client, and refusing is better than sending a guess that
-    // would silently re-file the checklist under the wrong trade.
-    if (!template.trade) {
-      toast.error('This checklist uses a trade this version does not know', {
+    // The trade is fixed at creation and the backend rejects a change, so the
+    // reference goes back exactly as it came: the row id when the template
+    // carries one, else the slug. A template with neither predates the trade
+    // catalogue and cannot be re-filed without guessing.
+    if (!template.tradeId && !template.trade) {
+      toast.error('This checklist has no trade this version can send back', {
         description: 'Update the app before editing it.',
       });
-      throw new Error('Checklist template has an unrecognized trade');
+      throw new Error('Checklist template has no trade reference');
     }
 
     try {
       await updateTemplate.mutateAsync({
         id: template.id,
         req: {
-          // The trade is fixed at creation and the backend rejects a change,
-          // so it is sent back exactly as it came.
-          trade: template.trade,
+          ...(template.tradeId
+            ? { tradeId: template.tradeId }
+            : { trade: template.trade }),
           name: edited.title.trim() || template.name,
           description: edited.description?.trim() || undefined,
           active: template.active,
           items,
+          // Applicability is edited on the checklist list, so the builder
+          // sends it back unchanged rather than clearing it.
+          applicableElementTypes: template.applicableElementTypes ?? [],
+          applicableProjectTypes: template.applicableProjectTypes ?? [],
         },
       });
       markSaved();

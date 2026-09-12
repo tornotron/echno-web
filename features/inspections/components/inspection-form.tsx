@@ -32,6 +32,7 @@ import type {
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { SpatialLocationPicker } from '@/components/shared/spatial-location-picker';
+import { TradePicker } from '@/components/shared/trade-picker';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   InspectionCheckItemsField,
@@ -54,6 +55,8 @@ export interface InspectionFormState {
   projectId: string;
   /** Site structure node id, or empty for none. */
   spatialNodeId: string;
+  /** Trade code for a QA/QC inspection, or empty for none. */
+  trade: string;
   location: string;
   areaInspected: string;
   scheduledDate: string;
@@ -97,6 +100,7 @@ const EMPTY_FORM: InspectionFormState = {
   result: '',
   projectId: '',
   spatialNodeId: '',
+  trade: '',
   location: '',
   areaInspected: '',
   scheduledDate: '',
@@ -128,6 +132,7 @@ export function InspectionForm(props: InspectionFormProps) {
       result: inspection.result || '',
       projectId: inspection.projectId?.toString() || '',
       spatialNodeId: inspection.spatialNodeId || '',
+      trade: inspection.trade || '',
       location: inspection.location || '',
       areaInspected: inspection.areaInspected || '',
       scheduledDate: inspection.scheduledDate || '',
@@ -407,8 +412,8 @@ export function InspectionForm(props: InspectionFormProps) {
                       : (selectedProjectName ?? 'Project no longer available')}
                   </div>
                   <p className="text-muted-foreground text-xs">
-                    Set when the inspection was created and fixed for the life of
-                    the record.
+                    Set when the inspection was created and fixed for the life
+                    of the record.
                   </p>
                 </>
               ) : (
@@ -455,6 +460,20 @@ export function InspectionForm(props: InspectionFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="inspection-trade">Trade</Label>
+              <TradePicker
+                id="inspection-trade"
+                value={form.trade}
+                emptyLabel="No trade"
+                onChange={(code) => setField('trade', code)}
+              />
+              <p className="text-muted-foreground text-xs">
+                The stage or trade a QA/QC inspection covers. Leave empty for
+                safety and compliance inspections.
+              </p>
+            </div>
+
+            <div className="space-y-2">
               <Label>Site location</Label>
               <SpatialLocationPicker
                 projectId={
@@ -468,7 +487,9 @@ export function InspectionForm(props: InspectionFormProps) {
             <div className="space-y-2">
               <Label htmlFor="location">
                 Location note
-                {!form.spatialNodeId && <span className="text-red-600"> *</span>}
+                {!form.spatialNodeId && (
+                  <span className="text-red-600"> *</span>
+                )}
               </Label>
               <Input
                 id="location"

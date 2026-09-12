@@ -18,6 +18,7 @@ import { X } from 'lucide-react';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
+import { TradePicker } from '@/components/shared/trade-picker';
 import {
   Select,
   SelectContent,
@@ -28,12 +29,9 @@ import {
 import {
   type InspectionResult,
   type InspectionStatus,
-  type InspectionTrade,
   type InspectionType,
   inspectionResultLabels,
   inspectionStatusLabels,
-  inspectionTradeLabels,
-  inspectionTradeOrder,
   inspectionTypeLabels,
   InspectionResult as ResultEnum,
   InspectionStatus as StatusEnum,
@@ -194,22 +192,13 @@ export function InspectionFilters({
 
       {showTradeFilter && (
         <Field label="Trade" htmlFor="filter-trade">
-          <Select
-            value={filters.trade}
-            onValueChange={(value) => patch({ trade: value })}
-          >
-            <SelectTrigger id="filter-trade" className="w-full sm:w-56">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>All trades</SelectItem>
-              {inspectionTradeOrder.map((trade) => (
-                <SelectItem key={trade} value={trade}>
-                  {inspectionTradeLabels[trade]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <TradePicker
+            id="filter-trade"
+            className="w-full sm:w-56"
+            value={filters.trade === ALL ? '' : filters.trade}
+            emptyLabel="All trades"
+            onChange={(code) => patch({ trade: code === '' ? ALL : code })}
+          />
         </Field>
       )}
 
@@ -279,7 +268,7 @@ interface FilterableInspection {
   type: InspectionType;
   status: InspectionStatus;
   result?: InspectionResult;
-  trade?: InspectionTrade;
+  trade?: string;
   scheduledDate?: string;
 }
 

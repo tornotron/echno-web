@@ -44,6 +44,7 @@ export default function EditInspectionPage() {
       result: (fields.result || undefined) as InspectionResult | undefined,
       projectId: Number.parseInt(fields.projectId),
       spatialNodeId: fields.spatialNodeId || null,
+      trade: fields.trade || undefined,
       location: fields.location,
       areaInspected: fields.areaInspected,
       scheduledDate: fields.scheduledDate,
