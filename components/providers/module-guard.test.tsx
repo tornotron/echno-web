@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render, waitFor } from '@testing-library/react';
 
-// Mocks the core query hook rather than `@/lib/modules/use-enabled-module-ids`
+// Mocks the core query hook rather than `@/hooks/use-enabled-module-ids`
 // directly: bun's `mock.module` replaces a module for the whole test run by
 // resolved path, and that file already has its own direct unit test
-// (use-enabled-module-ids.test.ts) exercising `computeEnabledModuleIds`. This
-// keeps each module mocked from exactly one test file.
+// (hooks/use-enabled-module-ids.test.ts) exercising `computeEnabledModuleIds`.
+// This keeps each module mocked from exactly one test file.
 type QueryState = {
   data: { id: string }[] | undefined;
   isError: boolean;
