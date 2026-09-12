@@ -49,10 +49,12 @@ export function TradePicker({
   className,
   'aria-label': ariaLabel,
 }: TradePickerProps) {
-  const { data: trades, isLoading } = useOrgTrades();
+  const { data: trades, isLoading, isError } = useOrgTrades();
 
   const groups = useMemo(() => {
-    if (trades && trades.length > 0) {
+    // A successful answer is the organization's word, even when empty; the
+    // legacy list stands in only while loading or after a failed fetch.
+    if (trades !== undefined && !isError) {
       return groupCatalogueRows(
         trades.filter((trade) => !exclude?.has(trade.code))
       );
@@ -68,7 +70,7 @@ export function TradePicker({
         active: true,
       }));
     return groupCatalogueRows(fallback);
-  }, [trades, exclude]);
+  }, [trades, isError, exclude]);
 
   const known = useMemo(
     () => new Set(groups.flatMap((group) => group.rows.map((r) => r.code))),

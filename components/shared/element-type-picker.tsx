@@ -88,12 +88,13 @@ export function ElementTypeMultiPicker({
     const next = new Set(selected);
     if (checked) next.add(code);
     else next.delete(code);
-    // Keep the organization's order rather than click order.
-    onChange(
-      groups
-        .flatMap((g) => g.rows.map((r) => r.code))
-        .filter((c) => next.has(c))
-    );
+    // The organization's order for known codes, then any selected code the
+    // list no longer holds (an inactive type), which stays until unticked.
+    const known = groups.flatMap((g) => g.rows.map((r) => r.code));
+    onChange([
+      ...known.filter((c) => next.has(c)),
+      ...[...next].filter((c) => !known.includes(c)),
+    ]);
   };
 
   if (!isLoading && types.length === 0) {

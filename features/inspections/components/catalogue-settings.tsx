@@ -147,7 +147,14 @@ export function CatalogueSettings({
         <AddRowDialog
           noun={noun}
           codeHint={codeHint}
-          existingCodes={new Set(all.map((row) => row.code))}
+          existingCodes={
+            // Product codes are reserved too: an org-defined row with a
+            // catalogue code would hide that entry from restoration.
+            new Set([
+              ...all.map((row) => row.code),
+              ...(catalogue.data ?? []).map((entry) => entry.code),
+            ])
+          }
           create={create}
         />
       </div>

@@ -18,9 +18,11 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
+  InspectionCategory,
   InspectionStatus,
   InspectionType,
   InspectionResult,
+  defaultInspectionCategoryFor,
   inspectionTypeLabels,
   inspectionStatusLabels,
   inspectionResultLabels,
@@ -116,6 +118,16 @@ const EMPTY_FORM: InspectionFormState = {
 // Component
 // ---------------------------------------------------------------------------
 
+/** Whether inspections of this type carry a trade (QA/QC and other do; safety and compliance do not). */
+function typeCarriesTrade(type: InspectionType | ''): boolean {
+  if (type === '') return false;
+  const category = defaultInspectionCategoryFor(type);
+  return (
+    category === InspectionCategory.QA_QC ||
+    category === InspectionCategory.OTHER
+  );
+}
+
 export function InspectionForm(props: InspectionFormProps) {
   const isEdit = props.mode === 'edit';
 
@@ -182,9 +194,17 @@ export function InspectionForm(props: InspectionFormProps) {
     field: K,
     value: InspectionFormState[K]
   ) {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      // Only QA/QC and other inspections carry a trade; leaving the category
+      // drops it so a safety or compliance inspection never sends one.
+      if (field === 'type' && !typeCarriesTrade(next.type)) next.trade = '';
+      return next;
+    });
     clearError(field);
   }
+
+  const carriesTrade = typeCarriesTrade(form.type);
 
   // ---------------------------------------------------------------------------
   // Validation
@@ -459,19 +479,20 @@ export function InspectionForm(props: InspectionFormProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="inspection-trade">Trade</Label>
-              <TradePicker
-                id="inspection-trade"
-                value={form.trade}
-                emptyLabel="No trade"
-                onChange={(code) => setField('trade', code)}
-              />
-              <p className="text-muted-foreground text-xs">
-                The stage or trade a QA/QC inspection covers. Leave empty for
-                safety and compliance inspections.
-              </p>
-            </div>
+            {carriesTrade && (
+              <div className="space-y-2">
+                <Label htmlFor="inspection-trade">Trade</Label>
+                <TradePicker
+                  id="inspection-trade"
+                  value={form.trade}
+                  emptyLabel="No trade"
+                  onChange={(code) => setField('trade', code)}
+                />
+                <p className="text-muted-foreground text-xs">
+                  The stage or trade the inspection covers.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Site location</Label>
