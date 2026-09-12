@@ -39,6 +39,7 @@ export default function PaymentsPage() {
     roles: {
       payee: {},
       verifier: {},
+      raiser: {},
     },
   });
 
@@ -47,7 +48,8 @@ export default function PaymentsPage() {
     The payee is an employee id, set from the creation payload beside vendorId,
     subContractId and labourId and selected by payeeType, so it arrives as
     `?employeeId=`. The verifier is a user id the backend stamps from the
-    session, so it arrives as `?userId=`. On a fresh database the two sequences
+    session, so it arrives as `?userId=`, and so does the raiser, stamped the
+    same way at creation. On a fresh database the two sequences
     run in lockstep, so crossing them returns the right rows under the right
     name until they diverge; the role slug is what keeps them apart.
   */
@@ -55,6 +57,7 @@ export default function PaymentsPage() {
     () => ({
       employeeId: role === 'payee' ? (employeeId ?? undefined) : undefined,
       verifiedBy: role === 'verifier' ? (employeeId ?? undefined) : undefined,
+      raisedBy: role === 'raiser' ? (employeeId ?? undefined) : undefined,
     }),
     [role, employeeId]
   );

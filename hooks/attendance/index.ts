@@ -3,3 +3,4 @@
 // auth-binding role adapter stays here — it depends on next-auth via
 // `useAuthorization()`, which is not part of echno-core. This file is permanent.
 export * from './use-attendance-role';
+export * from './use-regularization-register';

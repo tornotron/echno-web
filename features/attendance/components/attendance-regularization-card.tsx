@@ -27,6 +27,7 @@ import {
   useProcessRegularization,
 } from '@tornotron/echno-core/attendance-regularization/hooks';
 import { useAttendanceRole } from '@/hooks/attendance';
+import { approverRegisterHref } from './regularization-register-card';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import {
@@ -58,16 +59,12 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
   const regRequestedById = attendance.regularization?.requestedById;
 
   /*
-    Not a link, and the reason is on the other end rather than here. The list
-    this would open, `usePendingRegularizations`, is backed by
-    `findByStatus(PENDING)`, and `approvedById` is only stamped when a request
-    is processed and therefore stops being pending. So the filter matches
-    nothing by construction: every click would land on an empty list under a
-    chip reading "Approved by X", which states the opposite of the truth.
-
-    The id is real and is an employee id, so the link costs nothing once the
-    register can show decided requests. Filed as echno-backend#637.
+    The approver links to the queue's decided tab, narrowed to this outcome
+    and this approver. It used to be plain text because the queue only listed
+    pending rows and a row with an approver has left that list by definition;
+    echno-backend#655 widened the register, and the decided tab reads it.
   */
+  const regApprovedById = attendance.regularization?.approvedById;
 
   // Request dialog state
   const [regDialogOpen, setRegDialogOpen] = useState(false);
@@ -322,7 +319,20 @@ export function AttendanceRegularizationCard({ attendance }: Props) {
                       {attendance.regularization.status === 'approved'
                         ? 'Approved'
                         : 'Rejected'}{' '}
-                      by {attendance.regularization.approvedBy}
+                      by{' '}
+                      {regApprovedById ? (
+                        <Link
+                          href={approverRegisterHref(
+                            regApprovedById,
+                            attendance.regularization.status
+                          )}
+                          className="hover:underline"
+                        >
+                          {attendance.regularization.approvedBy}
+                        </Link>
+                      ) : (
+                        attendance.regularization.approvedBy
+                      )}
                       {attendance.regularization.approvedAt &&
                         ` · ${format(
                           attendance.regularization.approvedAt,

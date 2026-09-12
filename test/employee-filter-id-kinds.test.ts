@@ -103,20 +103,19 @@ describe('session stamps link as user ids', () => {
     );
   });
 
-  test('and its raiser is still named without a link, now only because nobody built it', () => {
-    // `raisedBy` is a user id like the verifier, and the destination objection
-    // has gone: echno-backend#655 gave the listing `raisedBy` alongside
-    // `employeeId` and `verifiedBy`, and core 8.3.0 carries all three on
-    // `ConstructionPaymentListParams`. So this is no longer held back by
-    // anything. It is simply not built, and this pin records that rather than
-    // pretending a blocker is still there. Adding it means a `raiser` entry in
-    // the page's `roles` map and a `raisedBy` line in its params, at which
-    // point this assertion is the one to flip.
-    const text = flat(PAYMENT_ATTRIBUTION);
-    expect(text).toContain(
-      'userStampLabel(payment.raisedByName, payment.raisedBy)'
+  test('and its raiser as a user, through the same filter', () => {
+    // `raisedBy` is stamped from the session like the verifier, and the
+    // listing narrows on it server-side (echno-backend#655, core 8.3.0), so
+    // it takes the user-id link and the page declares `raiser` beside
+    // `verifier`.
+    expect(flat(PAYMENT_ATTRIBUTION)).toContain(
+      "userFilterHref( routes.finance.payments.href, payment.raisedBy, 'raiser' )"
     );
-    expect(text).not.toContain("payment.raisedBy, 'raiser'");
+    const page = flat('app/users/dashboard/finance/payments/page.tsx');
+    expect(page).toContain('raiser: {}');
+    expect(page).toContain(
+      "raisedBy: role === 'raiser' ? (employeeId ?? undefined) : undefined"
+    );
   });
 });
 
@@ -186,15 +185,16 @@ describe('a payment payee links to a register that can answer', () => {
     expect(callCount(PAYMENT_DETAIL, 'userFilterHref')).toBe(0);
   });
 
-  test('the list declares both roles with no accessor, so neither narrows in the browser', () => {
+  test('the list declares all three roles with no accessor, so none narrows in the browser', () => {
     // The whole point. An accessor here would filter the twenty rows the page
     // holds and put a chip over the result, which is the failure the endpoint
     // change exists to remove. Server narrowing is expressed by declaring the
     // role with no `match` and no `matches`.
     const text = flat('app/users/dashboard/finance/payments/page.tsx');
-    expect(text).toContain('roles: { payee: {}, verifier: {}, },');
+    expect(text).toContain('roles: { payee: {}, verifier: {}, raiser: {}, },');
     expect(text).not.toContain('payee: (p) => p.employeeId,');
     expect(text).not.toContain('verifier: (p) => p.verifiedBy,');
+    expect(text).not.toContain('raiser: (p) => p.raisedBy,');
   });
 
   test('and each role feeds the query parameter that matches its id kind', () => {
