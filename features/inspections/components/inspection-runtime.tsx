@@ -24,6 +24,7 @@ import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Progress } from '@/components/shadcn/progress';
 import { Separator } from '@/components/shadcn/separator';
+import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { Textarea } from '@/components/shadcn/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/shadcn/toggle-group';
@@ -235,6 +236,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
         ? resultFromCompliance(percentage, criticalDefects)
         : inspection.result,
       projectId: inspection.projectId,
+      spatialNodeId: inspection.spatialNodeId ?? null,
       location: inspection.location,
       areaInspected: inspection.areaInspected,
       drawingReference: inspection.drawingReference,
@@ -260,6 +262,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
         description: defect.description,
         severity: defect.severity,
         location: defect.location,
+        spatialNodeId: defect.spatialNodeId ?? null,
         photos: defect.photos,
         correctiveAction: defect.correctiveAction,
         responsibleParty: defect.responsibleParty,
@@ -346,7 +349,17 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
               ? format(new Date(inspection.scheduledDate), 'dd MMM yyyy')
               : 'Not scheduled'}
           </Meta>
-          <Meta label="Location">{inspection.location ?? 'Not specified'}</Meta>
+          <Meta label="Location">
+            <SpatialBreadcrumb
+              path={inspection.spatialPath}
+              fallback={inspection.location ?? 'Not specified'}
+            />
+            {(inspection.spatialPath?.length ?? 0) > 0 && inspection.location && (
+              <span className="text-muted-foreground block text-xs">
+                {inspection.location}
+              </span>
+            )}
+          </Meta>
         </dl>
         <Separator />
         <div className="flex flex-wrap items-center gap-3 px-5 py-3">

@@ -20,6 +20,7 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import { routes } from '@/nav';
+import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
 import { compliancePercentage, type Inspection } from '@/types/inspection';
 import {
   InspectionResultBadge,
@@ -108,6 +109,10 @@ export function InspectionTable({
                         </span>
                       )}
                     </Link>
+                    <SpatialBreadcrumb
+                      path={inspection.spatialPath}
+                      className="mt-0.5 text-xs"
+                    />
                   </TableCell>
                   {showType && (
                     <TableCell>

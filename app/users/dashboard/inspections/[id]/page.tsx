@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useInspectionById } from '@/hooks/inspection';
+import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
@@ -343,7 +344,16 @@ export default function InspectionDetailsPage() {
                           Location
                         </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {inspection.location || 'Not specified'}
+                          <SpatialBreadcrumb
+                            path={inspection.spatialPath}
+                            fallback={inspection.location || 'Not specified'}
+                          />
+                          {(inspection.spatialPath?.length ?? 0) > 0 &&
+                            inspection.location && (
+                              <div className="text-sm font-normal text-zinc-600 dark:text-zinc-400">
+                                {inspection.location}
+                              </div>
+                            )}
                         </div>
                       </div>
                     </div>
@@ -579,6 +589,11 @@ export default function InspectionDetailsPage() {
                                 <div className="font-medium text-zinc-900 dark:text-zinc-100">
                                   {defect.description}
                                 </div>
+                                {(defect.spatialPath?.length ?? 0) > 0 && (
+                                  <div className="mt-1">
+                                    <SpatialBreadcrumb path={defect.spatialPath} />
+                                  </div>
+                                )}
                                 {defect.location && (
                                   <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                                     Location: {defect.location}
