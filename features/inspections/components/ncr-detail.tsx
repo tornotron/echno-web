@@ -42,11 +42,18 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/shadcn/tabs';
+import {
   useAssignNcr,
   useCloseNcr,
   useCompleteCorrectiveAction,
   useInspectionById,
   useNcrById,
+  useReinspectionsByNcr,
   useRejectNcr,
   useReopenNcr,
   useVerifyNcr,
@@ -57,11 +64,15 @@ import { routes } from '@/nav';
 import {
   type Ncr,
   type NcrAction,
+  type Reinspection,
   availableNcrActions,
   ncrActionLabels,
   ncrTypeLabels,
+  passedReinspections,
 } from '@/types/inspection';
 import { NcrSeverityBadge, NcrStatusBadge } from './inspection-badges';
+import { InspectionEventTimeline } from './inspection-event-timeline';
+import { ReinspectionSection } from './reinspection-section';
 
 export function NcrDetail({ ncrId }: { ncrId: string }) {
   const { data: ncr, isLoading } = useNcrById(ncrId);
@@ -83,50 +94,58 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
   const defect = inspection?.defects.find((row) => row.id === ncr.defectId);
 
   return (
-    <div className="space-y-6">
-      {/* ── Facts ───────────────────────────────────────────────────────── */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <NcrStatusBadge status={ncr.status} />
-          <NcrSeverityBadge severity={ncr.severity} />
-          <Badge variant="outline">{ncrTypeLabels[ncr.type]}</Badge>
-          <span className="text-muted-foreground text-xs">{ncr.ncrNumber}</span>
-        </div>
+    <Tabs defaultValue="details" className="space-y-4">
+      <TabsList>
+        <TabsTrigger value="details">Details</TabsTrigger>
+        <TabsTrigger value="history">History</TabsTrigger>
+      </TabsList>
 
-        {ncr.description && (
-          <p className="text-sm leading-relaxed">{ncr.description}</p>
-        )}
+      <TabsContent value="details" className="space-y-6">
+        {/* ── Facts ───────────────────────────────────────────────────────── */}
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <NcrStatusBadge status={ncr.status} />
+            <NcrSeverityBadge severity={ncr.severity} />
+            <Badge variant="outline">{ncrTypeLabels[ncr.type]}</Badge>
+            <span className="text-muted-foreground text-xs">
+              {ncr.ncrNumber}
+            </span>
+          </div>
 
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
-          <Fact label="Site engineer">
-            {ncr.siteEngineerId == null ? (
-              'Unassigned'
-            ) : (
-              /*
+          {ncr.description && (
+            <p className="text-sm leading-relaxed">{ncr.description}</p>
+          )}
+
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-3">
+            <Fact label="Site engineer">
+              {ncr.siteEngineerId == null ? (
+                'Unassigned'
+              ) : (
+                /*
                 Straight to this engineer's own register rather than to their
                 profile: the question a name on an NCR raises is what else is
                 sitting with that person, and `GET /ncrs/web` answers it with
                 `siteEngineerId`, so the list stays server-filtered and paged.
               */
-              <Link
-                href={employeeFilterHref(
-                  routes.inspections.ncr.href,
-                  ncr.siteEngineerId,
-                  'site-engineer'
-                )}
-                className="hover:underline"
-              >
-                {employeeName(ncr.siteEngineerId) ??
-                  employeeReferenceLabel(ncr.siteEngineerId)}
-              </Link>
-            )}
-          </Fact>
-          <Fact label="Target date">
-            {ncr.targetDate
-              ? format(new Date(ncr.targetDate), 'dd MMM yyyy')
-              : '—'}
-          </Fact>
-          {/*
+                <Link
+                  href={employeeFilterHref(
+                    routes.inspections.ncr.href,
+                    ncr.siteEngineerId,
+                    'site-engineer'
+                  )}
+                  className="hover:underline"
+                >
+                  {employeeName(ncr.siteEngineerId) ??
+                    employeeReferenceLabel(ncr.siteEngineerId)}
+                </Link>
+              )}
+            </Fact>
+            <Fact label="Target date">
+              {ncr.targetDate
+                ? format(new Date(ncr.targetDate), 'dd MMM yyyy')
+                : '—'}
+            </Fact>
+            {/*
             A link now. echno-backend#626 gave `GET /ncrs/web` a `raisedById`
             filter and echno-core reaches it from v3.5.0, so the register
             narrows on the server. It could not be done in the browser: the
@@ -138,70 +157,78 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
             through `findByUserIdAndOrganizationId`, so it is not a user id even
             though it records who acted.
           */}
-          <Fact label="Raised by">
-            {ncr.raisedById == null ? (
-              '—'
-            ) : (
-              <Link
-                href={employeeFilterHref(
-                  routes.inspections.ncr.href,
-                  ncr.raisedById,
-                  'raiser'
-                )}
-                className="hover:underline"
-              >
-                {employeeName(ncr.raisedById) ??
-                  employeeReferenceLabel(ncr.raisedById)}
-              </Link>
-            )}
-          </Fact>
-          <Fact label="Raised">
-            {ncr.createdAt
-              ? format(new Date(ncr.createdAt), 'dd MMM yyyy')
-              : '—'}
-          </Fact>
-        </dl>
-      </div>
+            <Fact label="Raised by">
+              {ncr.raisedById == null ? (
+                '—'
+              ) : (
+                <Link
+                  href={employeeFilterHref(
+                    routes.inspections.ncr.href,
+                    ncr.raisedById,
+                    'raiser'
+                  )}
+                  className="hover:underline"
+                >
+                  {employeeName(ncr.raisedById) ??
+                    employeeReferenceLabel(ncr.raisedById)}
+                </Link>
+              )}
+            </Fact>
+            <Fact label="Raised">
+              {ncr.createdAt
+                ? format(new Date(ncr.createdAt), 'dd MMM yyyy')
+                : '—'}
+            </Fact>
+          </dl>
+        </div>
 
-      {/* ── Workflow ────────────────────────────────────────────────────── */}
-      <NcrActions ncr={ncr} />
+        {/* ── Workflow ────────────────────────────────────────────────────── */}
+        <NcrActions ncr={ncr} />
 
-      {/* ── Source inspection ───────────────────────────────────────────── */}
-      <Card variant="panel" className="p-3">
-        <Link
-          href={routes.inspections.detail(ncr.inspectionId).href}
-          className="group flex items-start gap-3"
-        >
-          <div className="bg-muted grid size-9 shrink-0 place-items-center rounded-lg">
-            <ClipboardCheck className="text-muted-foreground size-4" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-muted-foreground text-xs">
-              Raised from inspection
-            </p>
-            <p className="truncate text-sm font-medium group-hover:underline">
-              {inspection
-                ? `${inspection.inspectionNumber} · ${inspection.title}`
-                : 'Open inspection'}
-            </p>
-            {defect && (
-              <p className="text-muted-foreground truncate text-xs">
-                Defect: {defect.description}
+        {/* ── Reinspections ───────────────────────────────────────────────── */}
+        <ReinspectionSection ncr={ncr} />
+
+        {/* ── Source inspection ───────────────────────────────────────────── */}
+        <Card variant="panel" className="p-3">
+          <Link
+            href={routes.inspections.detail(ncr.inspectionId).href}
+            className="group flex items-start gap-3"
+          >
+            <div className="bg-muted grid size-9 shrink-0 place-items-center rounded-lg">
+              <ClipboardCheck className="text-muted-foreground size-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-muted-foreground text-xs">
+                Raised from inspection
               </p>
-            )}
-          </div>
-          <ArrowRight className="text-muted-foreground mt-1 size-4 shrink-0" />
-        </Link>
-      </Card>
+              <p className="truncate text-sm font-medium group-hover:underline">
+                {inspection
+                  ? `${inspection.inspectionNumber} · ${inspection.title}`
+                  : 'Open inspection'}
+              </p>
+              {defect && (
+                <p className="text-muted-foreground truncate text-xs">
+                  Defect: {defect.description}
+                </p>
+              )}
+            </div>
+            <ArrowRight className="text-muted-foreground mt-1 size-4 shrink-0" />
+          </Link>
+        </Card>
 
-      <Separator />
+        <Separator />
 
-      {/* ── Timeline ────────────────────────────────────────────────────── */}
-      <section className="space-y-4">
-        <h3 className="text-sm font-semibold">Progress</h3>
-        <Timeline ncr={ncr} employeeName={employeeName} />
-      </section>
-    </div>
+        {/* ── Timeline ────────────────────────────────────────────────────── */}
+        <section className="space-y-4">
+          <h3 className="text-sm font-semibold">Progress</h3>
+          <Timeline ncr={ncr} employeeName={employeeName} />
+        </section>
+      </TabsContent>
+
+      <TabsContent value="history">
+        <InspectionEventTimeline source={{ kind: 'ncr', id: ncr.id }} />
+      </TabsContent>
+    </Tabs>
   );
 }
 
@@ -239,6 +266,12 @@ function NcrActions({ ncr }: { ncr: Ncr }) {
   const [assignOpen, setAssignOpen] = useState(false);
   const [remarksFor, setRemarksFor] = useState<RemarksAction | undefined>();
 
+  // The verify dialog offers the passed attempts so the acceptance can rest
+  // on a recorded re-check. Only passed ones: the backend answers 400 for
+  // any other, so nothing else is worth offering.
+  const { data: attempts = [] } = useReinspectionsByNcr(ncr.id);
+  const passed = passedReinspections(attempts);
+
   const actions = availableNcrActions(ncr.status);
   if (actions.length === 0) return null;
 
@@ -256,7 +289,11 @@ function NcrActions({ ncr }: { ncr: Ncr }) {
     setRemarksFor(action);
   };
 
-  const submitRemarks = (action: RemarksAction, remarks: string) => {
+  const submitRemarks = (
+    action: RemarksAction,
+    remarks: string,
+    reinspectionId?: string
+  ) => {
     const trimmed = remarks.trim();
     const variables = {
       id: ncr.id,
@@ -270,7 +307,14 @@ function NcrActions({ ncr }: { ncr: Ncr }) {
         break;
       }
       case 'verify': {
-        verify.mutate(variables, done);
+        const req =
+          trimmed === '' && reinspectionId === undefined
+            ? undefined
+            : {
+                ...(trimmed === '' ? {} : { remarks: trimmed }),
+                ...(reinspectionId === undefined ? {} : { reinspectionId }),
+              };
+        verify.mutate({ id: ncr.id, req }, done);
         break;
       }
       case 'reject': {
@@ -325,6 +369,7 @@ function NcrActions({ ncr }: { ncr: Ncr }) {
       <RemarksDialog
         action={remarksFor}
         isPending={isPending}
+        passedReinspections={passed}
         onOpenChange={(open) => !open && setRemarksFor(undefined)}
         onSubmit={submitRemarks}
       />
@@ -416,24 +461,42 @@ function AssignDialog({
   );
 }
 
+const NO_REINSPECTION = 'NONE';
+
 function RemarksDialog({
   action,
   isPending,
+  passedReinspections: passed,
   onOpenChange,
   onSubmit,
 }: {
   action?: RemarksAction;
   isPending: boolean;
+  /** Passed attempts a verification may rest on, latest first. */
+  passedReinspections: Reinspection[];
   onOpenChange: (open: boolean) => void;
-  onSubmit: (action: RemarksAction, remarks: string) => void;
+  onSubmit: (
+    action: RemarksAction,
+    remarks: string,
+    reinspectionId?: string
+  ) => void;
 }) {
   const [remarks, setRemarks] = useState('');
+  // Defaults to the latest pass: that is the re-check the verifier just saw.
+  const [reinspection, setReinspection] = useState<string | undefined>();
+  const chosen =
+    action === 'verify'
+      ? (reinspection ?? passed[0]?.id ?? NO_REINSPECTION)
+      : NO_REINSPECTION;
 
   return (
     <Dialog
       open={Boolean(action)}
       onOpenChange={(open) => {
-        if (!open) setRemarks('');
+        if (!open) {
+          setRemarks('');
+          setReinspection(undefined);
+        }
         onOpenChange(open);
       }}
     >
@@ -444,6 +507,32 @@ function RemarksDialog({
               <DialogTitle>{ncrActionLabels[action]}</DialogTitle>
               <DialogDescription>{REMARKS_PROMPTS[action]}</DialogDescription>
             </DialogHeader>
+
+            {action === 'verify' && passed.length > 0 && (
+              <div className="space-y-1.5">
+                <Label htmlFor="ncr-verify-reinspection">
+                  Reinspection this verification rests on
+                </Label>
+                <Select value={chosen} onValueChange={setReinspection}>
+                  <SelectTrigger
+                    id="ncr-verify-reinspection"
+                    className="w-full"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {passed.map((attempt) => (
+                      <SelectItem key={attempt.id} value={attempt.id}>
+                        Attempt {attempt.sequence} (passed)
+                      </SelectItem>
+                    ))}
+                    <SelectItem value={NO_REINSPECTION}>
+                      None, verify on my own account
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label htmlFor="ncr-remarks">Remarks</Label>
@@ -461,7 +550,13 @@ function RemarksDialog({
               </Button>
               <Button
                 disabled={isPending}
-                onClick={() => onSubmit(action, remarks)}
+                onClick={() =>
+                  onSubmit(
+                    action,
+                    remarks,
+                    chosen === NO_REINSPECTION ? undefined : chosen
+                  )
+                }
               >
                 {isPending ? 'Saving…' : ncrActionLabels[action]}
               </Button>
