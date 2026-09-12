@@ -19,7 +19,12 @@ interface SpatialLocationPickerProps {
   className?: string;
 }
 
-const LEVELS: readonly SpatialLevel[] = ['BUILDING', 'FLOOR', 'ZONE', 'ELEMENT'];
+const LEVELS: readonly SpatialLevel[] = [
+  'BUILDING',
+  'FLOOR',
+  'ZONE',
+  'ELEMENT',
+];
 
 function findPath(
   nodes: readonly SpatialTreeNode[],
@@ -102,7 +107,9 @@ export function SpatialLocationPicker({
     >
       {columns.map(({ level, depth, options, selected, parent }) => {
         const enabled =
-          !disabled && (depth === 0 || parent !== undefined) && options.length > 0;
+          !disabled &&
+          (depth === 0 || parent !== undefined) &&
+          options.length > 0;
         const id = `spatial-${level.toLowerCase()}`;
         return (
           <div key={level} className="space-y-1.5">
@@ -121,7 +128,9 @@ export function SpatialLocationPicker({
               {options.map((node) => (
                 <option key={node.id} value={node.id}>
                   {node.code}
-                  {node.name && node.name !== node.code ? ` · ${node.name}` : ''}
+                  {node.name && node.name !== node.code
+                    ? ` · ${node.name}`
+                    : ''}
                   {node.archivedAt ? ' (archived)' : ''}
                 </option>
               ))}

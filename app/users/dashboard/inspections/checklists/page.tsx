@@ -239,6 +239,8 @@ function TemplateCard({ template }: { template: ChecklistTemplate }) {
           description: template.description,
           active: !template.active,
           items: template.items,
+          applicableElementTypes: template.applicableElementTypes ?? [],
+          applicableProjectTypes: template.applicableProjectTypes ?? [],
         },
       },
       {
@@ -303,8 +305,7 @@ function TemplateCard({ template }: { template: ChecklistTemplate }) {
         </Badge>
         <Badge variant="secondary">v{template.version}</Badge>
         {!template.active && <Badge variant="outline">Inactive</Badge>}
-        {(template.applicableElementTypes ||
-          template.applicableProjectTypes) && (
+        {isScoped(template) && (
           <Badge variant="outline" title={applicabilitySummary(template)}>
             Scoped
           </Badge>
@@ -364,6 +365,14 @@ function templateIdentity(template: ChecklistTemplate): {
 function projectTypeLabel(type: ProjectType): string {
   const words = type.toLowerCase().replaceAll('_', ' ');
   return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+/** Whether the template declares any applicability; empty lists mean any. */
+function isScoped(template: ChecklistTemplate): boolean {
+  return (
+    (template.applicableElementTypes?.length ?? 0) > 0 ||
+    (template.applicableProjectTypes?.length ?? 0) > 0
+  );
 }
 
 function applicabilitySummary(template: ChecklistTemplate): string {

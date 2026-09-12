@@ -21,7 +21,9 @@ describe('employeeInitials', () => {
 describe('EmployeeAvatar', () => {
   test('renders the initials in the fallback', async () => {
     const { findByText } = render(
-      <EmployeeAvatar employee={{ name: 'Anjali Nair', profilePicture: undefined }} />,
+      <EmployeeAvatar
+        employee={{ name: 'Anjali Nair', profilePicture: undefined }}
+      />
     );
     expect(await findByText('AN')).toBeInTheDocument();
   });
