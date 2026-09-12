@@ -173,7 +173,16 @@ export function ObservationQueue({
                   key={observation.id}
                   data-testid="observation-row"
                   className="cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Review ${observation.title}`}
                   onClick={() => setSelected(observation)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelected(observation);
+                    }
+                  }}
                 >
                   <TableCell>
                     <div className="font-medium">{observation.title}</div>
@@ -226,7 +235,7 @@ export function ObservationQueue({
         </div>
       )}
 
-      {totalPages > 1 && (
+      {(totalPages > 1 || page > 0) && (
         <div className="flex items-center justify-end gap-2">
           <Button
             variant="outline"
