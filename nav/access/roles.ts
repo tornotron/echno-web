@@ -5,6 +5,8 @@
  * Invalid roles/permissions fail at compile time via exhaustive literal types.
  */
 
+import { OrgRole } from '@tornotron/echno-core/employee/types';
+
 // ---------------------------------------------------------------------------
 // Roles
 // ---------------------------------------------------------------------------
@@ -55,6 +57,17 @@ export interface AccessConfig {
   /** Roles explicitly denied. Takes precedence over allowRoles. */
   denyRoles?: Role[];
 
+  /**
+   * Backend org roles (from `Employee.orgRoles`) at least one of which the
+   * reader must hold. Use this when the backend gates a page on a specific
+   * Keycloak role such as `store-keeper` that the coarse `Role` tiers cannot
+   * name. Evaluated in addition to `allowRoles`, never instead of it, and
+   * matched exactly: a tier does not imply an org role, so an admin-tier
+   * DIRECTOR does not pass a STORE_KEEPER gate. Fail-closed: when the caller
+   * supplies no `orgRoles` in its context, a config that names any is denied.
+   */
+  allowOrgRoles?: OrgRole[];
+
   /** All listed permissions must be satisfied. */
   permissions?: Permission[];
 
@@ -71,6 +84,21 @@ export const ADMIN_ONLY: AccessConfig = { allowRoles: ['admin'] } as const;
 /** Manager and above access config constant. */
 export const MANAGER_AND_ABOVE: AccessConfig = {
   allowRoles: ['admin', 'manager'],
+} as const;
+
+/**
+ * The store documents (materials, goods receipts, purchase orders, indents,
+ * site transfers, material consumptions). Mirrors the backend read threshold
+ * settled on echno-backend #650: `store-keeper`, `project-manager` or
+ * `system-admin`. Anyone else 403s on the list endpoint, so the sidebar must
+ * not offer them the link.
+ */
+export const STORES_ACCESS: AccessConfig = {
+  allowOrgRoles: [
+    OrgRole.STORE_KEEPER,
+    OrgRole.PROJECT_MANAGER,
+    OrgRole.SYSTEM_ADMIN,
+  ],
 } as const;
 
 // ---------------------------------------------------------------------------

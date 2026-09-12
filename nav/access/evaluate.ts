@@ -18,6 +18,15 @@ export interface AccessContext {
   role?: Role;
   /** Fine-grained permissions granted to the user. */
   permissions?: Permission[];
+  /**
+   * The user's backend org roles, verbatim from `Employee.orgRoles`, for
+   * configs that gate on `allowOrgRoles`. Unlike `enabledModules`, `undefined`
+   * here does NOT mean "not gating": an org-role-gated item is denied until a
+   * caller supplies the roles, because a reader of unknown standing must not
+   * be offered a link that 403s. Callers that never gate on org roles can
+   * leave it out with no effect on tier or permission checks.
+   */
+  orgRoles?: readonly string[];
   /** Whether the user is authenticated at all. */
   isAuthenticated: boolean;
   /**
@@ -62,7 +71,8 @@ export function isModuleVisible(
  *  1. requireAuth check
  *  2. denyRoles check (deny wins over allow)
  *  3. allowRoles check (empty = all roles pass)
- *  4. permissions check (all must pass)
+ *  4. allowOrgRoles check (any one held passes; missing ctx.orgRoles fails)
+ *  5. permissions check (all must pass)
  */
 export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
   if (config.requireAuth && !ctx.isAuthenticated) return false;
@@ -80,6 +90,12 @@ export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
     (!ctx.role || !config.allowRoles.includes(ctx.role))
   )
     return false;
+
+  if (config.allowOrgRoles?.length) {
+    const held = ctx.orgRoles;
+    if (!held || !config.allowOrgRoles.some((r) => held.includes(r)))
+      return false;
+  }
 
   if (config.permissions?.length) {
     const userPerms = ctx.permissions ?? [];

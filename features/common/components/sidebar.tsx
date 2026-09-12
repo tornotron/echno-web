@@ -149,6 +149,9 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
     const role = toNavRole(orgRoles as string[]);
     const items = resolveSidebarAccess(getSidebarItems(), {
       role,
+      // Passed alongside the collapsed tier so entries gated on a specific
+      // backend role (allowOrgRoles, e.g. the store documents) can resolve.
+      orgRoles,
       permissions: getPermissionsForRole(role),
       isAuthenticated: true,
       enabledModules,
