@@ -33,6 +33,7 @@ export default function NewInspectionPage() {
       title: fields.title,
       type: fields.type as InspectionType,
       projectId: Number.parseInt(fields.projectId),
+      spatialNodeId: fields.spatialNodeId || null,
       location: fields.location,
       areaInspected: fields.areaInspected,
       scheduledDate: fields.scheduledDate,

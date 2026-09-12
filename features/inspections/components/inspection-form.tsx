@@ -31,6 +31,7 @@ import type {
 } from '@/types/inspection';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { SpatialLocationPicker } from '@/components/shared/spatial-location-picker';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   InspectionCheckItemsField,
@@ -51,6 +52,8 @@ export interface InspectionFormState {
   status: InspectionStatus | '';
   result: InspectionResult | '';
   projectId: string;
+  /** Site structure node id, or empty for none. */
+  spatialNodeId: string;
   location: string;
   areaInspected: string;
   scheduledDate: string;
@@ -93,6 +96,7 @@ const EMPTY_FORM: InspectionFormState = {
   status: '',
   result: '',
   projectId: '',
+  spatialNodeId: '',
   location: '',
   areaInspected: '',
   scheduledDate: '',
@@ -123,6 +127,7 @@ export function InspectionForm(props: InspectionFormProps) {
       status: inspection.status,
       result: inspection.result || '',
       projectId: inspection.projectId?.toString() || '',
+      spatialNodeId: inspection.spatialNodeId || '',
       location: inspection.location || '',
       areaInspected: inspection.areaInspected || '',
       scheduledDate: inspection.scheduledDate || '',
@@ -187,7 +192,8 @@ export function InspectionForm(props: InspectionFormProps) {
     if (!form.type) newErrors.type = 'Please select an inspection type';
     if (isEdit && !form.status) newErrors.status = 'Please select a status';
     if (!form.projectId) newErrors.projectId = 'Please select a project';
-    if (!form.location.trim()) newErrors.location = 'Location is required';
+    if (!form.spatialNodeId && !form.location.trim())
+      newErrors.location = 'Pick a site location or write a location note';
     if (!form.areaInspected.trim())
       newErrors.areaInspected = 'Area to be inspected is required';
     if (!form.scheduledDate)
@@ -240,6 +246,7 @@ export function InspectionForm(props: InspectionFormProps) {
       measurement: item.measurement.trim() || undefined,
       expectedValue: item.expectedValue.trim() || undefined,
       priority: item.priority.trim() || undefined,
+      spatialNodeId: item.spatialNodeId || undefined,
     }));
   }
 
@@ -448,8 +455,20 @@ export function InspectionForm(props: InspectionFormProps) {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label>Site location</Label>
+              <SpatialLocationPicker
+                projectId={
+                  form.projectId ? Number.parseInt(form.projectId) : undefined
+                }
+                value={form.spatialNodeId || undefined}
+                onChange={(nodeId) => setField('spatialNodeId', nodeId ?? '')}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="location">
-                Location <span className="text-red-600">*</span>
+                Location note
+                {!form.spatialNodeId && <span className="text-red-600"> *</span>}
               </Label>
               <Input
                 id="location"

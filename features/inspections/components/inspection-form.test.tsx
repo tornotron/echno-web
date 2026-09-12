@@ -15,6 +15,9 @@ mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
   useProjects: () => ({ data: [{ id: 3, projectName: 'Test' }] }),
 }));
+mock.module('@tornotron/echno-core/spatial/hooks', () => ({
+  useSpatialTree: () => ({ data: [], isPending: false, error: null }),
+}));
 mock.module('@tornotron/echno-core/employee/hooks', () => ({
   ...realEmployeeHooks,
   useEmployeeLookup: () => ({
@@ -144,6 +147,18 @@ describe('InspectionForm — checkpoints in edit mode', () => {
     submit();
 
     expect(submittedCheckItems()).toEqual([]);
+  }, RENDER_TIMEOUT_MS);
+
+  test('a checkpoint placed on a site structure node keeps its node through an edit', () => {
+    const { submit, submittedCheckItems } = renderEditForm([
+      checkItem({ spatialNodeId: '8c3f3c1e-0d4e-4f5a-9b2c-1d2e3f4a5b6e' }),
+    ]);
+
+    submit();
+
+    expect(submittedCheckItems()[0]?.spatialNodeId).toBe(
+      '8c3f3c1e-0d4e-4f5a-9b2c-1d2e3f4a5b6e'
+    );
   }, RENDER_TIMEOUT_MS);
 });
 

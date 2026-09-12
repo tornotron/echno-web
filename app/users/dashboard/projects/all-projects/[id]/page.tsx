@@ -56,6 +56,7 @@ import {
   Wallet,
   Clock,
   CheckCircle,
+  Building2,
 } from 'lucide-react';
 import {
   ProjectStatus,
@@ -78,6 +79,7 @@ import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
 import { ProjectComplianceTab } from '@/features/compliance/components';
 import { ProjectBudgetTab } from '@/features/project-budget/components';
+import { SiteStructureTab } from '@/features/spatial/components';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   AlertDialog,
@@ -359,6 +361,13 @@ export default function ProjectDashboardPage() {
           <TabsTrigger value="budget" className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4" />
             Budget
+          </TabsTrigger>
+          <TabsTrigger
+            value="site-structure"
+            className="flex items-center gap-1.5"
+          >
+            <Building2 className="h-4 w-4" />
+            Site structure
           </TabsTrigger>
         </TabsList>
 
@@ -960,6 +969,11 @@ export default function ProjectDashboardPage() {
         {/* ── Budget ───────────────────────────────────────────────────────── */}
         <TabsContent value="budget" className="mt-6">
           <ProjectBudgetTab projectId={project.id} />
+        </TabsContent>
+
+        {/* ── Site structure ───────────────────────────────────────────────── */}
+        <TabsContent value="site-structure" className="mt-6">
+          <SiteStructureTab projectId={project.id} />
         </TabsContent>
       </Tabs>
 

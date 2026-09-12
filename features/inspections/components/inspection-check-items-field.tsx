@@ -47,6 +47,8 @@ export interface CheckItemDraft {
   measurement: string;
   expectedValue: string;
   priority: string;
+  /** Site structure node the check point covers; kept through an edit. */
+  spatialNodeId: string;
 }
 
 const CHECK_ITEM_STATUS_ORDER: readonly CheckItemStatus[] = [
@@ -75,6 +77,7 @@ export function emptyCheckItemDraft(): CheckItemDraft {
     measurement: '',
     expectedValue: '',
     priority: '',
+    spatialNodeId: '',
   };
 }
 
@@ -94,6 +97,7 @@ export function toCheckItemDrafts(
     measurement: item.measurement ?? '',
     expectedValue: item.expectedValue ?? '',
     priority: item.priority ?? '',
+    spatialNodeId: item.spatialNodeId ?? '',
   }));
 }
 
