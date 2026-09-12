@@ -6,7 +6,8 @@ import {
   resolveSidebarAccess,
   type AccessContext,
 } from './evaluate';
-import { OPEN_ACCESS } from './roles';
+import { OPEN_ACCESS, STORES_ACCESS } from './roles';
+import { OrgRole } from '@tornotron/echno-core/employee/types';
 import type { ComposedNavItem } from '../types';
 
 function item(overrides: Partial<ComposedNavItem>): ComposedNavItem {
@@ -28,6 +29,29 @@ function item(overrides: Partial<ComposedNavItem>): ComposedNavItem {
 }
 
 const authed: AccessContext = { isAuthenticated: true };
+
+const storeTree = () => [
+  item({
+    id: 'resources',
+    nonInteractive: true,
+    children: [
+      item({ id: 'resources-assets' }),
+      item({
+        id: 'resources-goods-receipts',
+        access: STORES_ACCESS,
+        hideWhenLocked: true,
+      }),
+      item({
+        id: 'resources-indents',
+        access: STORES_ACCESS,
+        hideWhenLocked: true,
+      }),
+    ],
+  }),
+];
+
+const visibleIds = (ctx: AccessContext) =>
+  resolveSidebarAccess(storeTree(), ctx)[0].children.map((c) => c.id);
 
 describe('isModuleVisible', () => {
   test('a route with no moduleId is always visible', () => {
@@ -139,5 +163,121 @@ describe('canAccess — permissions gate', () => {
     expect(
       canAccess(config, { ...authed, permissions: ['inspections:view'] })
     ).toBe(true);
+  });
+});
+
+describe('canAccess org-role gate', () => {
+  test('a reader holding only STORE_KEEPER passes, regardless of tier', () => {
+    expect(
+      canAccess(STORES_ACCESS, {
+        ...authed,
+        role: 'employee',
+        orgRoles: [OrgRole.STORE_KEEPER],
+      })
+    ).toBe(true);
+  });
+
+  test('a plain employee with no org role is denied', () => {
+    expect(
+      canAccess(STORES_ACCESS, { ...authed, role: 'employee', orgRoles: [] })
+    ).toBe(false);
+  });
+
+  test('an org role outside the list is denied even at admin tier', () => {
+    expect(
+      canAccess(STORES_ACCESS, {
+        ...authed,
+        role: 'admin',
+        orgRoles: [OrgRole.DIRECTOR],
+      })
+    ).toBe(false);
+  });
+
+  test('SYSTEM_ADMIN and PROJECT_MANAGER pass', () => {
+    expect(
+      canAccess(STORES_ACCESS, { ...authed, orgRoles: [OrgRole.SYSTEM_ADMIN] })
+    ).toBe(true);
+    expect(
+      canAccess(STORES_ACCESS, {
+        ...authed,
+        orgRoles: [OrgRole.LABORER, OrgRole.PROJECT_MANAGER],
+      })
+    ).toBe(true);
+  });
+
+  test('fails closed: undefined orgRoles is denied for an org-role-gated config', () => {
+    expect(canAccess(STORES_ACCESS, authed)).toBe(false);
+  });
+
+  test('undefined orgRoles has no effect on a config with no org-role gate', () => {
+    expect(canAccess(OPEN_ACCESS, authed)).toBe(true);
+    expect(
+      canAccess({ allowRoles: ['admin'] }, { ...authed, role: 'admin' })
+    ).toBe(true);
+  });
+
+  test('allowOrgRoles is checked in addition to allowRoles, not instead', () => {
+    const config = {
+      allowRoles: ['admin'],
+      allowOrgRoles: [OrgRole.STORE_KEEPER],
+    } as const;
+    expect(
+      canAccess(config, {
+        ...authed,
+        role: 'employee',
+        orgRoles: [OrgRole.STORE_KEEPER],
+      })
+    ).toBe(false);
+    expect(
+      canAccess(config, {
+        ...authed,
+        role: 'admin',
+        orgRoles: [OrgRole.STORE_KEEPER],
+      })
+    ).toBe(true);
+  });
+
+  test('sidebar: a store-keeper sees the store entries under Resources', () => {
+    expect(
+      visibleIds({
+        ...authed,
+        role: 'employee',
+        orgRoles: [OrgRole.STORE_KEEPER],
+      })
+    ).toEqual([
+      'resources-assets',
+      'resources-goods-receipts',
+      'resources-indents',
+    ]);
+  });
+
+  test('sidebar: a plain employee sees only the open entries, store ones hidden', () => {
+    expect(visibleIds({ ...authed, role: 'employee', orgRoles: [] })).toEqual([
+      'resources-assets',
+    ]);
+  });
+
+  test('sidebar: a system-admin sees the store entries', () => {
+    expect(
+      visibleIds({ ...authed, role: 'admin', orgRoles: [OrgRole.SYSTEM_ADMIN] })
+    ).toEqual([
+      'resources-assets',
+      'resources-goods-receipts',
+      'resources-indents',
+    ]);
+  });
+
+  test('sidebar: a caller that supplies no orgRoles never sees a store entry', () => {
+    expect(visibleIds({ ...authed, role: 'admin' })).toEqual([
+      'resources-assets',
+    ]);
+  });
+
+  test('filterNavByAccess drops the store entries for a reader without the role', () => {
+    const kept = filterNavByAccess(storeTree(), {
+      ...authed,
+      orgRoles: [OrgRole.SITE_ENGINEER],
+    })[0].children.map((c) => c.id);
+    expect(kept).toEqual(['resources-assets']);
   });
 });

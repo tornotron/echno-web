@@ -72,6 +72,7 @@ export {
   OPEN_ACCESS,
   ADMIN_ONLY,
   MANAGER_AND_ABOVE,
+  STORES_ACCESS,
   ROLE_PERMISSIONS,
   getPermissionsForRole,
 } from './access/roles';
