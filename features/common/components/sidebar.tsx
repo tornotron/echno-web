@@ -13,12 +13,14 @@ import { handleSignOut } from '@/lib/auth/auth-utils';
 import { Badge } from '@/components/shadcn/badge';
 import {
   getSidebarItems,
+  getPermissionsForRole,
   groupBySection,
   isPathActive,
   resolveSidebarAccess,
   type ResolvedNavItem,
   type Role,
 } from '@/nav';
+import { useEnabledModuleIds } from '@/lib/modules/use-enabled-module-ids';
 import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -141,13 +143,18 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
     [chatUnreadCount, leavePendingCount, attendancePendingCount]
   );
 
+  const { moduleIds: enabledModules } = useEnabledModuleIds();
+
   const sections = useMemo(() => {
+    const role = toNavRole(orgRoles as string[]);
     const items = resolveSidebarAccess(getSidebarItems(), {
-      role: toNavRole(orgRoles as string[]),
+      role,
+      permissions: getPermissionsForRole(role),
       isAuthenticated: true,
+      enabledModules,
     });
     return groupBySection(items);
-  }, [orgRoles]);
+  }, [orgRoles, enabledModules]);
 
   const activePath = useMemo(
     () =>

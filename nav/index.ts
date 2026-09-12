@@ -68,11 +68,18 @@ export type {
 } from './types';
 
 export type { Role, Permission, AccessConfig } from './access/roles';
-export { OPEN_ACCESS, ADMIN_ONLY, MANAGER_AND_ABOVE } from './access/roles';
+export {
+  OPEN_ACCESS,
+  ADMIN_ONLY,
+  MANAGER_AND_ABOVE,
+  ROLE_PERMISSIONS,
+  getPermissionsForRole,
+} from './access/roles';
 export {
   canAccess,
   filterNavByAccess,
   resolveSidebarAccess,
+  isModuleVisible,
   isManagerOrAbove,
   isAdmin,
 } from './access/evaluate';

@@ -5,6 +5,7 @@
  * and any code that needs to check whether a user can see or use a route.
  */
 
+import type { ModuleId } from '@tornotron/echno-core/module/types';
 import type { AccessConfig, Role, Permission } from './roles';
 import type { ComposedNavItem } from '../types';
 
@@ -19,6 +20,35 @@ export interface AccessContext {
   permissions?: Permission[];
   /** Whether the user is authenticated at all. */
   isAuthenticated: boolean;
+  /**
+   * The set of modules enabled and entitled for the current org, as loaded
+   * from `GET /api/v1/modules/web/enabled`. `undefined` means "not gating by
+   * module" — either the check hasn't been wired up by this caller, or the
+   * loader fell back after a failed/empty fetch — so every item passes
+   * regardless of `moduleId`. An empty `Set` is a real "nothing enabled"
+   * answer and does gate.
+   */
+  enabledModules?: Set<ModuleId>;
+}
+
+// ---------------------------------------------------------------------------
+// Module gate
+// ---------------------------------------------------------------------------
+
+/**
+ * Returns true when a nav item's module (if any) is enabled for the org.
+ *
+ * Items with no `moduleId` are core routes and always pass. When
+ * `ctx.enabledModules` is `undefined` the caller isn't gating by module at
+ * all (see {@link AccessContext.enabledModules}), so this also passes.
+ */
+export function isModuleVisible(
+  moduleId: ModuleId | undefined,
+  ctx: Pick<AccessContext, 'enabledModules'>
+): boolean {
+  if (!moduleId) return true;
+  if (!ctx.enabledModules) return true;
+  return ctx.enabledModules.has(moduleId);
 }
 
 // ---------------------------------------------------------------------------
@@ -73,7 +103,10 @@ export function filterNavByAccess(
   ctx: AccessContext
 ): ComposedNavItem[] {
   return items
-    .filter((item) => canAccess(item.access, ctx))
+    .filter(
+      (item) =>
+        canAccess(item.access, ctx) && isModuleVisible(item.moduleId, ctx)
+    )
     .map((item) => ({
       ...item,
       children: filterNavByAccess(item.children, ctx),
@@ -99,12 +132,18 @@ export type ResolvedNavItem = Omit<ComposedNavItem, 'children'> & {
  * the locked children of an accessible parent — a parent the user *can* open
  * should not advertise sub-pages they cannot reach. Children of a locked parent
  * are kept so the disabled group still reads as a coherent module.
+ *
+ * A module-gated item (see `moduleId`) is not merely locked when its module
+ * is absent from the enabled set: it is dropped outright, subtree and all,
+ * before locking is even computed. Unlike a role/permission lock, there is
+ * nothing to upsell here for a module the org's plan doesn't cover.
  */
 export function resolveSidebarAccess(
   items: ComposedNavItem[],
   ctx: AccessContext
 ): ResolvedNavItem[] {
   return items
+    .filter((item) => isModuleVisible(item.moduleId, ctx))
     .map((item) => {
       const locked = !canAccess(item.access, ctx);
       const children = resolveSidebarAccess(item.children, ctx);

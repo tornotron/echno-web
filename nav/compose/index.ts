@@ -55,6 +55,7 @@ function composeNode(
     nonInteractive: meta.nonInteractive ?? false,
     hideWhenLocked: meta.hideWhenLocked ?? false,
     access: meta.access ?? OPEN_ACCESS,
+    moduleId: meta.moduleId,
 
     // Legacy compat: map access → roles/hideForRoles for existing consumers
     roles: meta.access?.allowRoles as string[] | undefined,

@@ -5,6 +5,7 @@ import { QueryProvider } from './query-provider';
 import { OrgCacheGuard } from './org-cache-guard';
 import { UserPrefetcher } from './user-prefetcher';
 import { useOrganizationPrefetch } from '@/features/organization/hooks/use-organization-prefetch';
+import { useModulesPrefetch } from '@/lib/modules/use-modules-prefetch';
 import { useCallback, useEffect, useMemo } from 'react';
 import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
@@ -72,6 +73,7 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
  */
 function FeaturePrefetcher({ children }: { children: React.ReactNode }) {
   useOrganizationPrefetch();
+  useModulesPrefetch();
   return <>{children}</>;
 }
 
