@@ -34,6 +34,7 @@ export default function NewInspectionPage() {
       type: fields.type as InspectionType,
       projectId: Number.parseInt(fields.projectId),
       spatialNodeId: fields.spatialNodeId || null,
+      trade: fields.trade || undefined,
       location: fields.location,
       areaInspected: fields.areaInspected,
       scheduledDate: fields.scheduledDate,

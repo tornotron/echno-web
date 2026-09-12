@@ -15,6 +15,7 @@ import {
   compliancePhaseLabels,
   compliancePhaseOrder,
   inspectionCategoryLabels,
+  inspectionTradeLabel,
   inspectionTradeLabels,
   ncrStatusLabels,
   ncrStatusVariants,
@@ -27,7 +28,9 @@ describe('compliance enum labels', () => {
     for (const status of Object.values(InspectionStatus)) {
       expect(inspectionStatusLabels[status]).toBeTruthy();
     }
-    expect(inspectionStatusLabels[InspectionStatus.SUGGESTED]).toBe('Suggested');
+    expect(inspectionStatusLabels[InspectionStatus.SUGGESTED]).toBe(
+      'Suggested'
+    );
   });
 
   test('origin labels cover both origins', () => {
@@ -78,6 +81,18 @@ describe('badge variants cover the core enums', () => {
       expect(defectSeverityLabels[severity]).toBeTruthy();
       expect(defectSeverityVariants[severity]).toBeTruthy();
     }
+  });
+
+  test('the sixteen legacy trades still map to labels and a new slug is titled', () => {
+    expect(Object.values(InspectionTrade)).toHaveLength(16);
+    for (const trade of Object.values(InspectionTrade)) {
+      expect(inspectionTradeLabel(trade)).toBe(inspectionTradeLabels[trade]);
+    }
+    expect(inspectionTradeLabel('rcc')).toBe('RCC');
+    expect(inspectionTradeLabel('fire-systems')).toBe('Fire Systems');
+    expect(inspectionTradeLabel('fire-systems', 'Fire protection')).toBe(
+      'Fire protection'
+    );
   });
 
   test('every category and trade carries a label', () => {

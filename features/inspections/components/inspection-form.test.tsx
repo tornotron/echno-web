@@ -15,6 +15,10 @@ mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
   useProjects: () => ({ data: [{ id: 3, projectName: 'Test' }] }),
 }));
+mock.module('@tornotron/echno-core/inspection/hooks', () => ({
+  useOrgTrades: () => ({ data: [], isLoading: false }),
+}));
+
 mock.module('@tornotron/echno-core/spatial/hooks', () => ({
   useSpatialTree: () => ({ data: [], isPending: false, error: null }),
 }));
@@ -33,9 +37,8 @@ const toast = {
 };
 mock.module('@/lib/styles/toast-styles', () => ({ toast }));
 
-const { InspectionForm, INSPECTION_FORM_ID } = await import(
-  './inspection-form'
-);
+const { InspectionForm, INSPECTION_FORM_ID } =
+  await import('./inspection-form');
 
 function checkItem(
   overrides: Partial<InspectionCheckItem> = {}
@@ -90,8 +93,11 @@ function renderEditForm(checkItems: InspectionCheckItem[]) {
       fireEvent.submit(view.container.querySelector(`#${INSPECTION_FORM_ID}`)!),
     /** The checkItems of the most recent submit. */
     submittedCheckItems: () =>
-      (onSubmit.mock.calls.at(-1)![0] as { checkItems: Record<string, unknown>[] })
-        .checkItems,
+      (
+        onSubmit.mock.calls.at(-1)![0] as {
+          checkItems: Record<string, unknown>[];
+        }
+      ).checkItems,
   };
 }
 
@@ -110,96 +116,122 @@ const RENDER_TIMEOUT_MS = 20_000;
 describe('InspectionForm — checkpoints in edit mode', () => {
   // The API replaces the whole checkpoint list on save, so a form that does not
   // carry the existing ones back deletes them. This is the guard on that.
-  test('an untouched form hands back the checkpoints it was given', () => {
-    const { submit, submittedCheckItems } = renderEditForm([checkItem()]);
+  test(
+    'an untouched form hands back the checkpoints it was given',
+    () => {
+      const { submit, submittedCheckItems } = renderEditForm([checkItem()]);
 
-    submit();
+      submit();
 
-    expect(submittedCheckItems()).toEqual([
-      {
-        category: 'Reinforcement',
-        checkPoint: 'Rebar spacing matches drawing',
-        specification: '150mm c/c +/- 10mm',
-        status: CheckItemStatus.PASSED,
-        remarks: 'Within tolerance',
-        photosRequired: true,
-        photos: ['photo-1'],
-        measurement: '148mm',
-        expectedValue: '150mm',
-        priority: 'high',
-      },
-    ]);
-  }, RENDER_TIMEOUT_MS);
+      expect(submittedCheckItems()).toEqual([
+        {
+          category: 'Reinforcement',
+          checkPoint: 'Rebar spacing matches drawing',
+          specification: '150mm c/c +/- 10mm',
+          status: CheckItemStatus.PASSED,
+          remarks: 'Within tolerance',
+          photosRequired: true,
+          photos: ['photo-1'],
+          measurement: '148mm',
+          expectedValue: '150mm',
+          priority: 'high',
+        },
+      ]);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('the existing checkpoints are on screen to be edited', () => {
-    const { getByDisplayValue, getByText } = renderEditForm([checkItem()]);
+  test(
+    'the existing checkpoints are on screen to be edited',
+    () => {
+      const { getByDisplayValue, getByText } = renderEditForm([checkItem()]);
 
-    expect(getByDisplayValue('Rebar spacing matches drawing')).toBeDefined();
-    expect(getByText('Checkpoint 1')).toBeDefined();
-  }, RENDER_TIMEOUT_MS);
+      expect(getByDisplayValue('Rebar spacing matches drawing')).toBeDefined();
+      expect(getByText('Checkpoint 1')).toBeDefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('a checkpoint can be removed', () => {
-    const { getByLabelText, submit, submittedCheckItems } = renderEditForm([
-      checkItem(),
-    ]);
+  test(
+    'a checkpoint can be removed',
+    () => {
+      const { getByLabelText, submit, submittedCheckItems } = renderEditForm([
+        checkItem(),
+      ]);
 
-    fireEvent.click(getByLabelText('Remove checkpoint 1'));
-    submit();
+      fireEvent.click(getByLabelText('Remove checkpoint 1'));
+      submit();
 
-    expect(submittedCheckItems()).toEqual([]);
-  }, RENDER_TIMEOUT_MS);
+      expect(submittedCheckItems()).toEqual([]);
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('a checkpoint placed on a site structure node keeps its node through an edit', () => {
-    const { submit, submittedCheckItems } = renderEditForm([
-      checkItem({ spatialNodeId: '8c3f3c1e-0d4e-4f5a-9b2c-1d2e3f4a5b6e' }),
-    ]);
+  test(
+    'a checkpoint placed on a site structure node keeps its node through an edit',
+    () => {
+      const { submit, submittedCheckItems } = renderEditForm([
+        checkItem({ spatialNodeId: '8c3f3c1e-0d4e-4f5a-9b2c-1d2e3f4a5b6e' }),
+      ]);
 
-    submit();
+      submit();
 
-    expect(submittedCheckItems()[0]?.spatialNodeId).toBe(
-      '8c3f3c1e-0d4e-4f5a-9b2c-1d2e3f4a5b6e'
-    );
-  }, RENDER_TIMEOUT_MS);
+      expect(submittedCheckItems()[0]?.spatialNodeId).toBe(
+        '8c3f3c1e-0d4e-4f5a-9b2c-1d2e3f4a5b6e'
+      );
+    },
+    RENDER_TIMEOUT_MS
+  );
 });
 
 describe('InspectionForm — adding a checkpoint', () => {
-  test('a filled-in checkpoint reaches the payload, blank optionals dropped', () => {
-    const { getByLabelText, getByText, submit, submittedCheckItems } =
-      renderEditForm([]);
+  test(
+    'a filled-in checkpoint reaches the payload, blank optionals dropped',
+    () => {
+      const { getByLabelText, getByText, submit, submittedCheckItems } =
+        renderEditForm([]);
 
-    fireEvent.click(getByText('Add checkpoint'));
-    fireEvent.change(getByLabelText(/^Category/), {
-      target: { value: 'Formwork' },
-    });
-    fireEvent.change(getByLabelText(/^Check point/), {
-      target: { value: 'Props plumb and braced' },
-    });
-    submit();
+      fireEvent.click(getByText('Add checkpoint'));
+      fireEvent.change(getByLabelText(/^Category/), {
+        target: { value: 'Formwork' },
+      });
+      fireEvent.change(getByLabelText(/^Check point/), {
+        target: { value: 'Props plumb and braced' },
+      });
+      submit();
 
-    const items = submittedCheckItems();
-    expect(items).toHaveLength(1);
-    expect(items[0]).toMatchObject({
-      category: 'Formwork',
-      checkPoint: 'Props plumb and braced',
-      // A checkpoint is written down before it is carried out.
-      status: CheckItemStatus.PENDING,
-      photosRequired: false,
-    });
-    expect(items[0].remarks).toBeUndefined();
-    expect(items[0].specification).toBeUndefined();
-  }, RENDER_TIMEOUT_MS);
+      const items = submittedCheckItems();
+      expect(items).toHaveLength(1);
+      expect(items[0]).toMatchObject({
+        category: 'Formwork',
+        checkPoint: 'Props plumb and braced',
+        // A checkpoint is written down before it is carried out.
+        status: CheckItemStatus.PENDING,
+        photosRequired: false,
+      });
+      expect(items[0].remarks).toBeUndefined();
+      expect(items[0].specification).toBeUndefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
 
-  test('an incomplete checkpoint blocks the save', () => {
-    const { getByLabelText, getByText, submit, onSubmit } = renderEditForm([]);
+  test(
+    'an incomplete checkpoint blocks the save',
+    () => {
+      const { getByLabelText, getByText, submit, onSubmit } = renderEditForm(
+        []
+      );
 
-    fireEvent.click(getByText('Add checkpoint'));
-    fireEvent.change(getByLabelText(/^Category/), {
-      target: { value: 'Formwork' },
-    });
-    submit();
+      fireEvent.click(getByText('Add checkpoint'));
+      fireEvent.change(getByLabelText(/^Category/), {
+        target: { value: 'Formwork' },
+      });
+      submit();
 
-    expect(onSubmit).not.toHaveBeenCalled();
-    expect(toast.error).toHaveBeenCalled();
-    expect(getByText('Check point is required')).toBeDefined();
-  }, RENDER_TIMEOUT_MS);
+      expect(onSubmit).not.toHaveBeenCalled();
+      expect(toast.error).toHaveBeenCalled();
+      expect(getByText('Check point is required')).toBeDefined();
+    },
+    RENDER_TIMEOUT_MS
+  );
 });

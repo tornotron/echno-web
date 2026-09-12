@@ -36,6 +36,7 @@ export {
   DefectSeverity,
   DefectStatus,
   inspectionCategoryLabels,
+  inspectionTradeLabel,
   inspectionTradeLabels,
   inspectionTradeOrder,
   ncrTypeLabels,
@@ -75,17 +76,19 @@ export const complianceRiskLevelLabels: Record<ComplianceRiskLevel, string> = {
 
 // Badge colours for the compliance risk level, low (green) through critical
 // (red), matching the palette used by the inspection status/result badges.
-export const complianceRiskLevelBadgeColors: Record<ComplianceRiskLevel, string> =
-  {
-    [ComplianceRiskLevel.LOW]:
-      'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
-    [ComplianceRiskLevel.MEDIUM]:
-      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
-    [ComplianceRiskLevel.HIGH]:
-      'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
-    [ComplianceRiskLevel.CRITICAL]:
-      'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
-  };
+export const complianceRiskLevelBadgeColors: Record<
+  ComplianceRiskLevel,
+  string
+> = {
+  [ComplianceRiskLevel.LOW]:
+    'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300',
+  [ComplianceRiskLevel.MEDIUM]:
+    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300',
+  [ComplianceRiskLevel.HIGH]:
+    'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300',
+  [ComplianceRiskLevel.CRITICAL]:
+    'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300',
+};
 
 // Construction-lifecycle phase a compliance applies to.
 export const compliancePhaseLabels: Record<CompliancePhase, string> = {
@@ -202,8 +205,7 @@ export function compliancePercentage(inspection: {
   passedCheckPoints: number;
   failedCheckPoints: number;
 }): number {
-  const assessed =
-    inspection.passedCheckPoints + inspection.failedCheckPoints;
+  const assessed = inspection.passedCheckPoints + inspection.failedCheckPoints;
   if (assessed <= 0) return 0;
   return Math.round((inspection.passedCheckPoints / assessed) * 100);
 }
