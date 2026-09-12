@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { logger } from '@tornotron/echno-core';
 import { useEnabledModules } from '@tornotron/echno-core/module/hooks';
 import type { ModuleId } from '@tornotron/echno-core/module/types';
@@ -22,6 +22,28 @@ export interface EnabledModuleIdsResult {
   isLoading: boolean;
 }
 
+/** The slice of `useEnabledModules()`'s return value the fallback reduction needs. */
+export interface EnabledModulesQueryState {
+  data: { id: ModuleId }[] | undefined;
+  isError: boolean;
+  isLoading: boolean;
+}
+
+/**
+ * Pure reduction of the enabled-modules query state to the loader's
+ * fallback shape. Kept as a standalone function (rather than inlined in the
+ * hook) so the fallback logic — the part that matters for #428 — has a
+ * plain, deterministic unit test with no React rendering involved.
+ */
+export function computeEnabledModuleIds(
+  state: EnabledModulesQueryState
+): EnabledModuleIdsResult {
+  const { data, isLoading } = state;
+  const moduleIds =
+    !data || data.length === 0 ? undefined : new Set(data.map((m) => m.id));
+  return { moduleIds, isLoading };
+}
+
 /**
  * Reads the enabled-module set from the TanStack Query cache (populated by
  * `useModulesPrefetch` at auth bootstrap, or fetched here directly if that
@@ -29,7 +51,8 @@ export interface EnabledModuleIdsResult {
  * `ModuleGuard`.
  */
 export function useEnabledModuleIds(): EnabledModuleIdsResult {
-  const { data, isError, isLoading } = useEnabledModules();
+  const queryState = useEnabledModules();
+  const { data, isError, isLoading } = queryState;
 
   useEffect(() => {
     if (isLoading) return;
@@ -44,10 +67,5 @@ export function useEnabledModuleIds(): EnabledModuleIdsResult {
     }
   }, [isError, isLoading, data]);
 
-  const moduleIds = useMemo(() => {
-    if (!data || data.length === 0) return;
-    return new Set(data.map((m) => m.id));
-  }, [data]);
-
-  return { moduleIds, isLoading };
+  return computeEnabledModuleIds(queryState);
 }
