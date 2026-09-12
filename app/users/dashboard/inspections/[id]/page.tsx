@@ -10,6 +10,14 @@ import {
 import { Button } from '@/components/shadcn/button';
 import { Badge } from '@/components/shadcn/badge';
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/shadcn/tabs';
+import { InspectionEventTimeline } from '@/features/inspections/components/inspection-event-timeline';
+import { DefectReinspectionButton } from '@/features/inspections/components/reinspection-section';
+import {
   Edit,
   MapPin,
   Calendar,
@@ -39,6 +47,7 @@ import {
   InspectionResult,
   InspectionOrigin,
   CheckItemStatus,
+  DefectStatus,
   inspectionStatusLabels,
   inspectionTypeLabels,
   inspectionResultLabels,
@@ -163,9 +172,7 @@ export default function InspectionDetailsPage() {
           <Button
             variant="outline"
             onClick={() =>
-              router.push(
-                routes.inspections.detail(inspection.id).edit
-              )
+              router.push(routes.inspections.detail(inspection.id).edit)
             }
           >
             <Edit className="mr-2 h-4 w-4" />
@@ -174,89 +181,43 @@ export default function InspectionDetailsPage() {
         </div>
       </div>
 
-      {/* Status Overview */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Badge className={getStatusBadge(inspection.status)}>
-                {inspectionStatusLabels[inspection.status]}
-              </Badge>
-              {inspection.result && (
-                <Badge className={getResultBadge(inspection.result)}>
-                  {inspectionResultLabels[inspection.result]}
-                </Badge>
-              )}
-              <Badge variant="outline">
-                {inspectionTypeLabels[inspection.type]}
-              </Badge>
-              {inspection.origin === InspectionOrigin.AI_GENERATED && (
-                <Badge className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300">
-                  <Sparkles className="mr-1 h-3 w-3" />
-                  AI-suggested
-                </Badge>
-              )}
-              {inspection.riskLevel && (
-                <Badge
-                  className={
-                    complianceRiskLevelBadgeColors[inspection.riskLevel]
-                  }
-                >
-                  {complianceRiskLevelLabels[inspection.riskLevel]} risk
-                </Badge>
-              )}
-              {inspection.compliancePhase && (
-                <Badge variant="outline">
-                  {compliancePhaseLabels[inspection.compliancePhase]}
-                </Badge>
-              )}
-            </div>
-            {inspection.totalCheckPoints > 0 && (
-              <div className="text-right">
-                <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                  {compliance.toFixed(1)}%
-                </div>
-                <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Compliance
-                </div>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-      </Card>
+      <Tabs defaultValue="overview" className="space-y-4 sm:space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="history">History</TabsTrigger>
+        </TabsList>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Details - 2 columns */}
-        <div className="space-y-6 lg:col-span-2">
-          {/* AI Compliance Analysis (AI-generated compliance inspections only) */}
-          {inspection.origin === InspectionOrigin.AI_GENERATED && (
-            <Card className="border-violet-200 dark:border-violet-900">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-violet-600" />
-                  AI-suggested Compliance
-                </CardTitle>
-                <CardDescription>
-                  This compliance was proposed by the AI compliance analysis.
-                  Review it before acting on it.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
+        <TabsContent value="overview" className="space-y-4 sm:space-y-6">
+          {/* Status Overview */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex flex-wrap items-center gap-3">
+                  <Badge className={getStatusBadge(inspection.status)}>
+                    {inspectionStatusLabels[inspection.status]}
+                  </Badge>
+                  {inspection.result && (
+                    <Badge className={getResultBadge(inspection.result)}>
+                      {inspectionResultLabels[inspection.result]}
+                    </Badge>
+                  )}
+                  <Badge variant="outline">
+                    {inspectionTypeLabels[inspection.type]}
+                  </Badge>
+                  {inspection.origin === InspectionOrigin.AI_GENERATED && (
+                    <Badge className="bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300">
+                      <Sparkles className="mr-1 h-3 w-3" />
+                      AI-suggested
+                    </Badge>
+                  )}
                   {inspection.riskLevel && (
-                    <div className="flex items-center gap-2">
-                      <ShieldAlert className="h-4 w-4 text-zinc-500" />
-                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Risk level
-                      </span>
-                      <Badge
-                        className={
-                          complianceRiskLevelBadgeColors[inspection.riskLevel]
-                        }
-                      >
-                        {complianceRiskLevelLabels[inspection.riskLevel]}
-                      </Badge>
-                    </div>
+                    <Badge
+                      className={
+                        complianceRiskLevelBadgeColors[inspection.riskLevel]
+                      }
+                    >
+                      {complianceRiskLevelLabels[inspection.riskLevel]} risk
+                    </Badge>
                   )}
                   {inspection.compliancePhase && (
                     <Badge variant="outline">
@@ -264,430 +225,518 @@ export default function InspectionDetailsPage() {
                     </Badge>
                   )}
                 </div>
-
-                {inspection.aiRationale && (
-                  <div>
-                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Rationale
+                {inspection.totalCheckPoints > 0 && (
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                      {compliance.toFixed(1)}%
                     </div>
-                    <p className="mt-1 text-sm whitespace-pre-line text-zinc-600 dark:text-zinc-400">
-                      {inspection.aiRationale}
-                    </p>
+                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                      Compliance
+                    </div>
                   </div>
                 )}
-
-                {inspection.resolutionOptions && (
-                  <div>
-                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Resolution options
-                    </div>
-                    <p className="mt-1 text-sm whitespace-pre-line text-zinc-600 dark:text-zinc-400">
-                      {inspection.resolutionOptions}
-                    </p>
-                  </div>
-                )}
-
-                {inspection.complianceRuleRef && (
-                  <div>
-                    <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                      Reference
-                    </div>
-                    <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                      {inspection.complianceRuleRef}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              </div>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-start gap-3">
-                  <Building2 className="mt-1 h-5 w-5 text-zinc-500" />
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Project
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {project?.projectName || 'Unknown Project'}
-                    </div>
-                  </div>
-                </div>
+          </Card>
 
-                <div className="flex items-start gap-3">
-                  <MapPin className="mt-1 h-5 w-5 text-zinc-500" />
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Location
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {inspection.location || 'Not specified'}
-                    </div>
-                  </div>
-                </div>
-
-                {inspection.areaInspected && (
-                  <div className="flex items-start gap-3">
-                    <FileText className="mt-1 h-5 w-5 text-zinc-500" />
-                    <div>
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Area Inspected
-                      </div>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {inspection.areaInspected}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex items-start gap-3">
-                  <Calendar className="mt-1 h-5 w-5 text-zinc-500" />
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Scheduled Date
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {inspection.scheduledDate
-                        ? format(new Date(inspection.scheduledDate), 'PPP')
-                        : 'Not scheduled'}
-                      {inspection.scheduledTime &&
-                        ` at ${inspection.scheduledTime}`}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <User className="mt-1 h-5 w-5 text-zinc-500" />
-                  <div>
-                    <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                      Inspector
-                    </div>
-                    <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                      {inspection.inspectorId ? (
-                        <Link
-                          href={employeeFilterHref(
-                            routes.inspections.href,
-                            inspection.inspectorId,
-                            'inspector'
-                          )}
-                          className="hover:underline"
-                        >
-                          {inspector?.name || 'Unknown Inspector'}
-                        </Link>
-                      ) : (
-                        (inspector?.name ?? 'Unknown Inspector')
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Main Details - 2 columns */}
+            <div className="space-y-6 lg:col-span-2">
+              {/* AI Compliance Analysis (AI-generated compliance inspections only) */}
+              {inspection.origin === InspectionOrigin.AI_GENERATED && (
+                <Card className="border-violet-200 dark:border-violet-900">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-violet-600" />
+                      AI-suggested Compliance
+                    </CardTitle>
+                    <CardDescription>
+                      This compliance was proposed by the AI compliance
+                      analysis. Review it before acting on it.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap items-center gap-3">
+                      {inspection.riskLevel && (
+                        <div className="flex items-center gap-2">
+                          <ShieldAlert className="h-4 w-4 text-zinc-500" />
+                          <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                            Risk level
+                          </span>
+                          <Badge
+                            className={
+                              complianceRiskLevelBadgeColors[
+                                inspection.riskLevel
+                              ]
+                            }
+                          >
+                            {complianceRiskLevelLabels[inspection.riskLevel]}
+                          </Badge>
+                        </div>
+                      )}
+                      {inspection.compliancePhase && (
+                        <Badge variant="outline">
+                          {compliancePhaseLabels[inspection.compliancePhase]}
+                        </Badge>
                       )}
                     </div>
-                  </div>
-                </div>
 
-                {inspection.drawingReference && (
-                  <div className="flex items-start gap-3">
-                    <FileText className="mt-1 h-5 w-5 text-zinc-500" />
-                    <div>
-                      <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                        Drawing Reference
-                      </div>
-                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                        {inspection.drawingReference}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {(inspection.clientRepresentative ||
-                inspection.attendees.length > 0) && (
-                <div className="mt-4 border-t pt-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {inspection.clientRepresentative && (
+                    {inspection.aiRationale && (
                       <div>
-                        <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Client Representative
+                        <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          Rationale
                         </div>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {inspection.clientRepresentative}
-                        </div>
+                        <p className="mt-1 text-sm whitespace-pre-line text-zinc-600 dark:text-zinc-400">
+                          {inspection.aiRationale}
+                        </p>
                       </div>
                     )}
-                    {inspection.attendees.length > 0 && (
+
+                    {inspection.resolutionOptions && (
                       <div>
-                        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                          <Users className="h-4 w-4" />
-                          Attendees
+                        <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          Resolution options
                         </div>
-                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {inspection.attendees.join(', ')}
-                        </div>
+                        <p className="mt-1 text-sm whitespace-pre-line text-zinc-600 dark:text-zinc-400">
+                          {inspection.resolutionOptions}
+                        </p>
                       </div>
                     )}
-                  </div>
-                </div>
+
+                    {inspection.complianceRuleRef && (
+                      <div>
+                        <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                          Reference
+                        </div>
+                        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                          {inspection.complianceRuleRef}
+                        </p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
 
-          {/* Weather Conditions */}
-          {(inspection.weatherConditions || inspection.temperature) && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Weather Conditions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {inspection.weatherConditions && (
+              {/* Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
                     <div className="flex items-start gap-3">
-                      <Cloud className="mt-1 h-5 w-5 text-zinc-500" />
+                      <Building2 className="mt-1 h-5 w-5 text-zinc-500" />
                       <div>
                         <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Weather
+                          Project
                         </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {inspection.weatherConditions}
+                          {project?.projectName || 'Unknown Project'}
                         </div>
                       </div>
                     </div>
-                  )}
-                  {inspection.temperature && (
+
                     <div className="flex items-start gap-3">
-                      <Thermometer className="mt-1 h-5 w-5 text-zinc-500" />
+                      <MapPin className="mt-1 h-5 w-5 text-zinc-500" />
                       <div>
                         <div className="text-sm text-zinc-600 dark:text-zinc-400">
-                          Temperature
+                          Location
                         </div>
                         <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                          {inspection.temperature}
+                          {inspection.location || 'Not specified'}
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
 
-          {/* Check Items. Rendered even when there are none, because an
+                    {inspection.areaInspected && (
+                      <div className="flex items-start gap-3">
+                        <FileText className="mt-1 h-5 w-5 text-zinc-500" />
+                        <div>
+                          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                            Area Inspected
+                          </div>
+                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {inspection.areaInspected}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex items-start gap-3">
+                      <Calendar className="mt-1 h-5 w-5 text-zinc-500" />
+                      <div>
+                        <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                          Scheduled Date
+                        </div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {inspection.scheduledDate
+                            ? format(new Date(inspection.scheduledDate), 'PPP')
+                            : 'Not scheduled'}
+                          {inspection.scheduledTime &&
+                            ` at ${inspection.scheduledTime}`}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <User className="mt-1 h-5 w-5 text-zinc-500" />
+                      <div>
+                        <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                          Inspector
+                        </div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                          {inspection.inspectorId ? (
+                            <Link
+                              href={employeeFilterHref(
+                                routes.inspections.href,
+                                inspection.inspectorId,
+                                'inspector'
+                              )}
+                              className="hover:underline"
+                            >
+                              {inspector?.name || 'Unknown Inspector'}
+                            </Link>
+                          ) : (
+                            (inspector?.name ?? 'Unknown Inspector')
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {inspection.drawingReference && (
+                      <div className="flex items-start gap-3">
+                        <FileText className="mt-1 h-5 w-5 text-zinc-500" />
+                        <div>
+                          <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                            Drawing Reference
+                          </div>
+                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                            {inspection.drawingReference}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {(inspection.clientRepresentative ||
+                    inspection.attendees.length > 0) && (
+                    <div className="mt-4 border-t pt-4">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {inspection.clientRepresentative && (
+                          <div>
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                              Client Representative
+                            </div>
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {inspection.clientRepresentative}
+                            </div>
+                          </div>
+                        )}
+                        {inspection.attendees.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+                              <Users className="h-4 w-4" />
+                              Attendees
+                            </div>
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {inspection.attendees.join(', ')}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Weather Conditions */}
+              {(inspection.weatherConditions || inspection.temperature) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Weather Conditions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {inspection.weatherConditions && (
+                        <div className="flex items-start gap-3">
+                          <Cloud className="mt-1 h-5 w-5 text-zinc-500" />
+                          <div>
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                              Weather
+                            </div>
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {inspection.weatherConditions}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {inspection.temperature && (
+                        <div className="flex items-start gap-3">
+                          <Thermometer className="mt-1 h-5 w-5 text-zinc-500" />
+                          <div>
+                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                              Temperature
+                            </div>
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {inspection.temperature}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Check Items. Rendered even when there are none, because an
               inspection with no checkpoints is exactly the case where the user
               needs to be told they can add some. */}
-          {inspection.checkItems.length === 0 ? (
-            <Card>
-              <CardHeader>
-                <CardTitle>Inspection Checklist</CardTitle>
-                <CardDescription>
-                  The individual checks this inspection covers
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border border-dashed py-8 text-center">
-                  <ListChecks className="mx-auto mb-3 h-8 w-8 text-zinc-400" />
-                  <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    No checkpoints have been added to this inspection yet.
-                  </p>
-                  <Button asChild variant="outline" size="sm">
-                    <Link
-                      href={routes.inspections.detail(inspection.id).edit}
-                    >
-                      Add checkpoints
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>Inspection Checklist</CardTitle>
-                <CardDescription>
-                  {inspection.passedCheckPoints}/{inspection.totalCheckPoints}{' '}
-                  items passed
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inspection.checkItems.map(
-                    (item: InspectionCheckItem, index: number) => (
-                      <div
-                        key={item.id || index}
-                        className="flex items-start gap-3 rounded-lg border p-3"
-                      >
-                        {getCheckItemIcon(item.status)}
-                        <div className="flex-1">
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                            {item.checkPoint}
-                          </div>
-                          {item.remarks && (
-                            <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                              {item.remarks}
-                            </div>
-                          )}
-                        </div>
-                        <Badge variant="outline">
-                          {checkItemStatusLabels[item.status]}
-                        </Badge>
-                      </div>
-                    )
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Defects */}
-          {inspection.defects.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
-                  Defects Found
-                </CardTitle>
-                <CardDescription>
-                  {inspection.defectsFound} defects identified
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {inspection.defects.map(
-                    (defect: InspectionDefect, index: number) => (
-                      <div
-                        key={defect.id || index}
-                        className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex-1">
-                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                              {defect.description}
-                            </div>
-                            {defect.location && (
-                              <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                                Location: {defect.location}
+              {inspection.checkItems.length === 0 ? (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Inspection Checklist</CardTitle>
+                    <CardDescription>
+                      The individual checks this inspection covers
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-lg border border-dashed py-8 text-center">
+                      <ListChecks className="mx-auto mb-3 h-8 w-8 text-zinc-400" />
+                      <p className="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
+                        No checkpoints have been added to this inspection yet.
+                      </p>
+                      <Button asChild variant="outline" size="sm">
+                        <Link
+                          href={routes.inspections.detail(inspection.id).edit}
+                        >
+                          Add checkpoints
+                        </Link>
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Inspection Checklist</CardTitle>
+                    <CardDescription>
+                      {inspection.passedCheckPoints}/
+                      {inspection.totalCheckPoints} items passed
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {inspection.checkItems.map(
+                        (item: InspectionCheckItem, index: number) => (
+                          <div
+                            key={item.id || index}
+                            className="flex items-start gap-3 rounded-lg border p-3"
+                          >
+                            {getCheckItemIcon(item.status)}
+                            <div className="flex-1">
+                              <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                                {item.checkPoint}
                               </div>
-                            )}
-                            {defect.correctiveAction && (
-                              <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-                                <strong>Corrective Action:</strong>{' '}
-                                {defect.correctiveAction}
-                              </div>
-                            )}
-                          </div>
-                          {defect.severity && (
-                            <Badge
-                              variant="outline"
-                              className={
-                                defect.severity === 'critical'
-                                  ? 'border-red-600 text-red-600'
-                                  : defect.severity === 'major'
-                                    ? 'border-orange-600 text-orange-600'
-                                    : 'border-yellow-600 text-yellow-600'
-                              }
-                            >
-                              {defect.severity}
+                              {item.remarks && (
+                                <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                  {item.remarks}
+                                </div>
+                              )}
+                            </div>
+                            <Badge variant="outline">
+                              {checkItemStatusLabels[item.status]}
                             </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-        {/* Sidebar - 1 column */}
-        <div className="space-y-6">
-          {/* Statistics */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Statistics</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">
-                    Check Points
-                  </span>
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                    {inspection.totalCheckPoints}
-                  </span>
-                </div>
-                <div className="mt-2 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700">
-                  <div
-                    className="h-2 rounded-full bg-green-600"
-                    style={{ width: `${compliance}%` }}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950">
-                  <div className="text-2xl font-bold text-green-700 dark:text-green-400">
-                    {inspection.passedCheckPoints}
-                  </div>
-                  <div className="text-xs text-green-600 dark:text-green-500">
-                    Passed
-                  </div>
-                </div>
-                <div className="rounded-lg bg-red-50 p-3 dark:bg-red-950">
-                  <div className="text-2xl font-bold text-red-700 dark:text-red-400">
-                    {inspection.failedCheckPoints}
-                  </div>
-                  <div className="text-xs text-red-600 dark:text-red-500">
-                    Failed
-                  </div>
-                </div>
-              </div>
-
-              {inspection.defectsFound > 0 && (
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-zinc-600 dark:text-zinc-400">
+              {/* Defects */}
+              {inspection.defects.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <AlertTriangle className="h-5 w-5 text-red-600" />
                       Defects Found
-                    </span>
-                    <span className="font-semibold text-red-700 dark:text-red-400">
-                      {inspection.defectsFound}
-                    </span>
-                  </div>
-                </div>
+                    </CardTitle>
+                    <CardDescription>
+                      {inspection.defectsFound} defects identified
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {inspection.defects.map(
+                        (defect: InspectionDefect, index: number) => (
+                          <div
+                            key={defect.id || index}
+                            className="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex-1">
+                                <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                                  {defect.description}
+                                </div>
+                                {defect.location && (
+                                  <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                                    Location: {defect.location}
+                                  </div>
+                                )}
+                                {defect.correctiveAction && (
+                                  <div className="mt-2 text-sm text-zinc-700 dark:text-zinc-300">
+                                    <strong>Corrective Action:</strong>{' '}
+                                    {defect.correctiveAction}
+                                  </div>
+                                )}
+                                {/*
+                              A resolved defect with no NCR is re-checked
+                              through its own reinspection; the backend only
+                              accepts the schedule from `resolved`.
+                            */}
+                                {defect.id &&
+                                  defect.status === DefectStatus.RESOLVED && (
+                                    <div className="mt-3">
+                                      <DefectReinspectionButton
+                                        defectId={defect.id}
+                                        label={`defect "${defect.description}"`}
+                                      />
+                                    </div>
+                                  )}
+                              </div>
+                              {defect.severity && (
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    defect.severity === 'critical'
+                                      ? 'border-red-600 text-red-600'
+                                      : defect.severity === 'major'
+                                        ? 'border-orange-600 text-orange-600'
+                                        : 'border-yellow-600 text-yellow-600'
+                                  }
+                                >
+                                  {defect.severity}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Timestamps */}
+            {/* Sidebar - 1 column */}
+            <div className="space-y-6">
+              {/* Statistics */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Statistics</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                        Check Points
+                      </span>
+                      <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                        {inspection.totalCheckPoints}
+                      </span>
+                    </div>
+                    <div className="mt-2 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700">
+                      <div
+                        className="h-2 rounded-full bg-green-600"
+                        style={{ width: `${compliance}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg bg-green-50 p-3 dark:bg-green-950">
+                      <div className="text-2xl font-bold text-green-700 dark:text-green-400">
+                        {inspection.passedCheckPoints}
+                      </div>
+                      <div className="text-xs text-green-600 dark:text-green-500">
+                        Passed
+                      </div>
+                    </div>
+                    <div className="rounded-lg bg-red-50 p-3 dark:bg-red-950">
+                      <div className="text-2xl font-bold text-red-700 dark:text-red-400">
+                        {inspection.failedCheckPoints}
+                      </div>
+                      <div className="text-xs text-red-600 dark:text-red-500">
+                        Failed
+                      </div>
+                    </div>
+                  </div>
+
+                  {inspection.defectsFound > 0 && (
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                          Defects Found
+                        </span>
+                        <span className="font-semibold text-red-700 dark:text-red-400">
+                          {inspection.defectsFound}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Timestamps */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Timestamps</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 text-sm">
+                  {inspection.createdAt && (
+                    <div>
+                      <div className="text-zinc-600 dark:text-zinc-400">
+                        Created
+                      </div>
+                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {format(new Date(inspection.createdAt), 'PPp')}
+                      </div>
+                    </div>
+                  )}
+                  {inspection.updatedAt && (
+                    <div>
+                      <div className="text-zinc-600 dark:text-zinc-400">
+                        Last Updated
+                      </div>
+                      <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                        {format(new Date(inspection.updatedAt), 'PPp')}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="history">
           <Card>
             <CardHeader>
-              <CardTitle>Timestamps</CardTitle>
+              <CardTitle>History</CardTitle>
+              <CardDescription>
+                Every change to this inspection, its check points, defects, NCRs
+                and reinspections, oldest first.
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {inspection.createdAt && (
-                <div>
-                  <div className="text-zinc-600 dark:text-zinc-400">
-                    Created
-                  </div>
-                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {format(new Date(inspection.createdAt), 'PPp')}
-                  </div>
-                </div>
-              )}
-              {inspection.updatedAt && (
-                <div>
-                  <div className="text-zinc-600 dark:text-zinc-400">
-                    Last Updated
-                  </div>
-                  <div className="font-medium text-zinc-900 dark:text-zinc-100">
-                    {format(new Date(inspection.updatedAt), 'PPp')}
-                  </div>
-                </div>
-              )}
+            <CardContent>
+              <InspectionEventTimeline
+                source={{ kind: 'inspection', id: inspection.id }}
+              />
             </CardContent>
           </Card>
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

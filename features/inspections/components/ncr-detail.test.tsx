@@ -7,10 +7,12 @@ import {
   DefectSeverity,
   NcrStatus,
   NcrType,
+  ReinspectionOutcome,
   availableNcrActions,
   ncrActionLabels,
   type Ncr,
   type NcrAction,
+  type Reinspection,
 } from '@/types/inspection';
 
 // ---------------------------------------------------------------------------
@@ -36,6 +38,10 @@ const close = mutation();
 const mutations = { assign, complete, verify, reject, reopen, close };
 
 let currentNcr: Ncr | undefined;
+let currentAttempts: Reinspection[] = [];
+
+const scheduleForNcr = mutation();
+const recordOutcome = mutation();
 
 mock.module('@tornotron/echno-core/employee/hooks', () => ({
   ...realEmployeeHooks,
@@ -52,6 +58,22 @@ mock.module('@/hooks/inspection', () => ({
   useRejectNcr: () => reject,
   useReopenNcr: () => reopen,
   useCloseNcr: () => close,
+  // The reinspection section and the History tab (#437) read through the
+  // same import point, so they are stubbed here too or they would reach
+  // TanStack without a client.
+  useReinspectionsByNcr: () => ({ data: currentAttempts, isLoading: false }),
+  useScheduleReinspectionForNcr: () => scheduleForNcr,
+  useRecordReinspectionOutcome: () => recordOutcome,
+  useNcrEvents: () => ({
+    data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 25 },
+    isLoading: false,
+    isFetching: false,
+  }),
+  useInspectionEvents: () => ({
+    data: undefined,
+    isLoading: false,
+    isFetching: false,
+  }),
 }));
 
 mock.module('next/link', () => ({
@@ -77,6 +99,22 @@ function ncrWith(status: NcrStatus): Ncr {
     raisedById: 8,
     targetDate: '2026-09-10',
     createdAt: '2026-08-20T09:00:00Z',
+  };
+}
+
+const ATTEMPT_1 = '44444444-4444-4444-8444-444444444444';
+const ATTEMPT_2 = '55555555-5555-4555-8555-555555555555';
+
+function attempt(
+  overrides: Partial<Reinspection> & { id: string }
+): Reinspection {
+  return {
+    ncrId: NCR_ID,
+    originalInspectionId: '22222222-2222-4222-8222-222222222222',
+    reinspectionInspectionId: '66666666-6666-4666-8666-666666666666',
+    sequence: 1,
+    outcome: ReinspectionOutcome.PENDING,
+    ...overrides,
   };
 }
 
@@ -115,11 +153,14 @@ function firedMutations(): string[] {
 
 beforeEach(() => {
   for (const spy of Object.values(mutations)) spy.mutate.mockReset();
+  scheduleForNcr.mutate.mockReset();
+  recordOutcome.mutate.mockReset();
 });
 
 afterEach(() => {
   cleanup();
   currentNcr = undefined;
+  currentAttempts = [];
 });
 
 // Radix dialogs and selects go through the DOM shim, which is slow enough to
@@ -229,6 +270,64 @@ describe('NcrDetail — each action fires its own endpoint', () => {
       submitDialog('Verify');
 
       expect(firedMutations()).toEqual(['verify']);
+      expect(verify.mutate.mock.calls[0][0]).toEqual({
+        id: NCR_ID,
+        req: undefined,
+      });
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'Verify offers the passed reinspection and names it in the request',
+    () => {
+      // Two attempts: the first failed, the second passed. Only the pass is
+      // offered, and it is chosen by default, so a plain submit carries it.
+      currentAttempts = [
+        attempt({
+          id: ATTEMPT_1,
+          sequence: 1,
+          outcome: ReinspectionOutcome.FAILED,
+        }),
+        attempt({
+          id: ATTEMPT_2,
+          sequence: 2,
+          outcome: ReinspectionOutcome.PASSED,
+        }),
+      ];
+      clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'verify');
+
+      expect(document.querySelector('#ncr-verify-reinspection')).not.toBeNull();
+      expect(document.body.textContent).toInclude('Attempt 2 (passed)');
+      expect(document.body.textContent).not.toInclude('Attempt 1 (passed)');
+
+      fireEvent.change(document.querySelector('#ncr-remarks')!, {
+        target: { value: 'Re-check passed on site.' },
+      });
+      submitDialog('Verify');
+
+      expect(firedMutations()).toEqual(['verify']);
+      expect(verify.mutate.mock.calls[0][0]).toEqual({
+        id: NCR_ID,
+        req: { remarks: 'Re-check passed on site.', reinspectionId: ATTEMPT_2 },
+      });
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'Verify with no passed attempt offers no picker and sends no reinspectionId',
+    () => {
+      currentAttempts = [
+        attempt({
+          id: ATTEMPT_1,
+          sequence: 1,
+          outcome: ReinspectionOutcome.PENDING,
+        }),
+      ];
+      clickAction(NcrStatus.CORRECTIVE_ACTION_COMPLETE, 'verify');
+      expect(document.querySelector('#ncr-verify-reinspection')).toBeNull();
+      submitDialog('Verify');
       expect(verify.mutate.mock.calls[0][0]).toEqual({
         id: NCR_ID,
         req: undefined,

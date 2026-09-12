@@ -7,7 +7,12 @@ import type {
   AssignNcrRequest,
   CreateNcrRequest,
   NcrRemarksRequest,
+  VerifyNcrRequest,
 } from '@tornotron/echno-core/inspection/types';
+import {
+  inspectionEventKeys,
+  reinspectionKeys,
+} from '@tornotron/echno-core/inspection/hooks';
 import { ncrKeys } from './ncr-keys';
 
 /** Fetches NCRs for the current organization, optionally filtered. */
@@ -39,16 +44,22 @@ export const useNcrById = (id: string) =>
   });
 
 /**
- * Invalidates both the lists and the one detail a lifecycle step touched.
+ * Invalidates the lists, the one detail a lifecycle step touched, and the
+ * event log it wrote to.
  *
  * Every transition changes the row's status, so a stale list would keep
- * offering an action the backend has already moved past.
+ * offering an action the backend has already moved past. Every transition
+ * also records an event, so the History tab is stale after any of them, and
+ * a verification that names a reinspection changes what that attempt is
+ * evidence for.
  */
 function useNcrInvalidation() {
   const queryClient = useQueryClient();
   return (id: string) => {
     queryClient.invalidateQueries({ queryKey: ncrKeys.lists() });
     queryClient.invalidateQueries({ queryKey: ncrKeys.detail(id) });
+    queryClient.invalidateQueries({ queryKey: inspectionEventKeys.all });
+    queryClient.invalidateQueries({ queryKey: reinspectionKeys.byNcr(id) });
   };
 }
 
@@ -80,10 +91,15 @@ export const useCompleteCorrectiveAction = () => {
   });
 };
 
+/**
+ * Accepts the corrective work. `req.reinspectionId` names the passed
+ * reinspection the acceptance rests on; the backend answers 400 when it is
+ * another NCR's or has not passed, so the dialog only offers passed attempts.
+ */
 export const useVerifyNcr = () => {
   const invalidate = useNcrInvalidation();
   return useMutation({
-    mutationFn: ({ id, req }: { id: string; req?: NcrRemarksRequest }) =>
+    mutationFn: ({ id, req }: { id: string; req?: VerifyNcrRequest }) =>
       ncrService.verify(id, req),
     onSuccess: (data) => invalidate(data.id),
   });
