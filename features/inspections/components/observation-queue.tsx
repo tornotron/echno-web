@@ -88,8 +88,8 @@ export function ObservationQueue({
   // the page in hand; fall back to the last page that still exists. Set
   // during render, as React advises for state adjusted to fresh data, so
   // the query re-issues with the clamped page without an extra commit.
-  if (data && data.totalPages > 0 && page >= data.totalPages) {
-    setPage(data.totalPages - 1);
+  if (data && page > 0 && page >= data.totalPages) {
+    setPage(Math.max(0, data.totalPages - 1));
   }
 
   return (

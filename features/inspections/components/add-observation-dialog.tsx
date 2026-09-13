@@ -151,6 +151,8 @@ export function AddObservationDialog({
     <Dialog
       open={open}
       onOpenChange={(next) => {
+        // Closing mid-upload would drop the files the upload is still working on.
+        if (!next && uploading) return;
         setOpen(next);
         if (!next) reset();
       }}
