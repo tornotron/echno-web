@@ -41,7 +41,9 @@ export type Permission =
   | 'settings:view'
   | 'settings:manage'
   | 'inspections:view'
-  | 'inspections:manage';
+  | 'inspections:manage'
+  | 'bim:view'
+  | 'bim:manage';
 
 // ---------------------------------------------------------------------------
 // Access config
@@ -121,9 +123,9 @@ export const STORES_ACCESS: AccessConfig = {
  * be denied a permission other roles hold; today none is.
  */
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  admin: ['inspections:view', 'inspections:manage'],
-  manager: ['inspections:view', 'inspections:manage'],
-  employee: ['inspections:view'],
+  admin: ['inspections:view', 'inspections:manage', 'bim:view', 'bim:manage'],
+  manager: ['inspections:view', 'inspections:manage', 'bim:view', 'bim:manage'],
+  employee: ['inspections:view', 'bim:view'],
 };
 
 /** Returns the permissions granted to a role, or none for an unauthenticated user. */

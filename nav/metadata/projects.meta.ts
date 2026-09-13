@@ -31,6 +31,13 @@ export const projectsMetadata = {
     label: 'Edit',
     sidebarHidden: true,
   },
+  'projects-all-projects-[id]-bim': {
+    label: 'BIM',
+    breadcrumb: 'BIM',
+    sidebarHidden: true,
+    moduleId: 'bim',
+    access: { permissions: ['bim:view'] },
+  },
 
   // ── project tasks ─────────────────────────────────────────────────────────
   'projects-all-projects-[id]-tasks': {
