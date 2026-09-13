@@ -63,6 +63,8 @@ export function BillingSettingsView({ checkout }: { checkout?: UseCheckoutOption
       toast.success('Your plan is active.');
       return;
     }
+    // PAST_DUE can still recover while the provider retries the payment.
+    if (projectedStatus === 'PAST_DUE') return;
     // INCOMPLETE_EXPIRED, UNPAID, CANCELED and the rest: the activation is over
     // and it did not succeed. Stop polling and say so instead of waiting forever.
     activationFailed(projectedStatus, describeSubscription(projected ?? null).message);

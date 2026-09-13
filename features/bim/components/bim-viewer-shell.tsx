@@ -196,7 +196,9 @@ export function BimViewerShell({
             continue;
           }
           setFailed((prev) => new Map(prev).set(key, describeTileError(loadError)));
-          continue;
+          // The failed map is an effect dependency, so the effect restarts and
+          // picks up the remaining keys; carrying on here would load them twice.
+          return;
         }
         if (cancelled) return;
         // A tile that loaded may expire again later in the session; let the
