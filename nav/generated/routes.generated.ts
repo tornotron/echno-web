@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-09-12
+ * Generated: 2026-09-13
  */
 
 import type { RouteNode } from '../types';
@@ -523,6 +523,14 @@ export const ROUTE_TREE: RouteNode = {
               isCatchAll: false,
               paramName: 'id',
               children: [
+                    {
+                      id: 'projects-all-projects-[id]-bim',
+                      segment: 'bim',
+                      path: '/users/dashboard/projects/all-projects/[id]/bim',
+                      isDynamic: false,
+                      isCatchAll: false,
+                      children: [],
+                    },
                     {
                       id: 'projects-all-projects-[id]-compliance',
                       segment: 'compliance',

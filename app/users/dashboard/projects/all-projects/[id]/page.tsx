@@ -78,6 +78,8 @@ import { HealthTab } from '@/features/health/components/health-tab';
 import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
 import { ProjectComplianceTab } from '@/features/compliance/components';
+import { ProjectBimTab } from '@/features/bim/components';
+import { useEnabledModuleIds } from '@/hooks/use-enabled-module-ids';
 import { ProjectBudgetTab } from '@/features/project-budget/components';
 import { SiteStructureTab } from '@/features/spatial/components';
 import { toast } from '@/lib/styles/toast-styles';
@@ -153,6 +155,8 @@ const getAttachmentIcon = (type: AttachmentType) => {
 export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
+  const { moduleIds } = useEnabledModuleIds();
+  const bimEnabled = moduleIds?.has('bim') ?? false;
   const now = new Date();
   const projectId = params.id
     ? Number.parseInt(params.id as string)
@@ -358,6 +362,12 @@ export default function ProjectDashboardPage() {
             <ShieldCheck className="h-4 w-4" />
             Compliance
           </TabsTrigger>
+          {bimEnabled && (
+            <TabsTrigger value="bim" className="flex items-center gap-1.5">
+              <Box className="h-4 w-4" />
+              BIM
+            </TabsTrigger>
+          )}
           <TabsTrigger value="budget" className="flex items-center gap-1.5">
             <Wallet className="h-4 w-4" />
             Budget
@@ -965,6 +975,13 @@ export default function ProjectDashboardPage() {
         <TabsContent value="compliance" className="mt-6">
           <ProjectComplianceTab projectId={project.id} />
         </TabsContent>
+
+        {/* ── BIM (module-gated) ───────────────────────────────────────────── */}
+        {bimEnabled && (
+          <TabsContent value="bim" className="mt-6">
+            <ProjectBimTab projectId={project.id} />
+          </TabsContent>
+        )}
 
         {/* ── Budget ───────────────────────────────────────────────────────── */}
         <TabsContent value="budget" className="mt-6">
