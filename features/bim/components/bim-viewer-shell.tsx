@@ -33,6 +33,33 @@ async function defaultEngine(): Promise<CreateViewerEngine> {
 }
 
 /**
+ * The HTTP status behind a failed tile load, when there is one. three's
+ * FileLoader rejects with an `HttpError` carrying the fetch `Response`; a
+ * bare `Response` or an error with its own `status` is read the same way.
+ */
+export function tileErrorStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') return undefined;
+  const own = (error as { status?: unknown }).status;
+  if (typeof own === 'number') return own;
+  const nested = (error as { response?: { status?: unknown } }).response?.status;
+  return typeof nested === 'number' ? nested : undefined;
+}
+
+/** Whether the store refused the tile, which for a presigned url means it expired. */
+export function isForbidden(error: unknown): boolean {
+  return tileErrorStatus(error) === 403;
+}
+
+/** One line for the storey row: the status when known, else the error's message. */
+export function describeTileError(error: unknown): string {
+  const status = tileErrorStatus(error);
+  if (status === 403) return 'The tile link expired and could not be refreshed.';
+  if (status !== undefined) return `The tile could not be fetched (${status}).`;
+  if (error instanceof Error && error.message) return error.message;
+  return 'The tile could not be loaded.';
+}
+
+/**
  * The viewer: storey navigator on the left, canvas in the middle, element
  * panel on the right. Loads one presigned tile per selected storey and
  * resolves a picked GlobalId to its element row.
@@ -48,7 +75,16 @@ export function BimViewerShell({
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<ViewerEngine | null>(null);
   const [engineReady, setEngineReady] = useState(false);
-  const { data: manifest, isLoading, error } = useBimTiles(modelId, versionId);
+  const { data: manifest, isLoading, error, refetch } = useBimTiles(modelId, versionId);
+  // Tiles whose load failed, keyed like the selection, with the message to
+  // show next to the storey row. A retry clears the entry first.
+  const [failed, setFailed] = useState<Map<string, string>>(new Map());
+  // Keys whose presigned url was refreshed once already after a 403, so a
+  // second refusal is reported rather than refetched forever.
+  const refreshedOnce = useRef(new Set<string>());
+  // Bumped when a manifest refetch came back with the same object, so the
+  // reconcile effect still runs the retry.
+  const [retryTick, setRetryTick] = useState(0);
   const [selection, setSelection] = useState<{ manifestId?: string; keys: Set<string> }>({
     keys: new Set(initialStorey ? [initialStorey] : []),
   });
@@ -130,7 +166,12 @@ export function BimViewerShell({
     [manifest]
   );
 
-  // Reconcile loaded tiles with the selection.
+  // Reconcile loaded tiles with the selection. Each tile load is guarded on
+  // its own: a failure is recorded against its key (rendered by the storey
+  // row) instead of surfacing as an unhandled rejection, and the loop moves
+  // on to the next storey. A 403 means the presigned url has expired, so the
+  // manifest is refetched once and the tile retried on the fresh url; the
+  // second refusal is reported (web #457).
   useEffect(() => {
     const engine = engineRef.current;
     if (!engine || !engineReady || !manifest) return;
@@ -140,21 +181,51 @@ export function BimViewerShell({
       if (!selected.has(key)) engine.unloadTile(key);
     }
     (async () => {
+      let refreshManifest = false;
       for (const key of selected) {
-        if (loaded.has(key)) continue;
+        if (loaded.has(key) || failed.has(key)) continue;
         const url = urlFor(key);
         if (!url) continue;
-        await engine.loadTile(key, url);
+        try {
+          await engine.loadTile(key, url);
+        } catch (loadError) {
+          if (cancelled) return;
+          if (isForbidden(loadError) && !refreshedOnce.current.has(key)) {
+            refreshedOnce.current.add(key);
+            refreshManifest = true;
+            continue;
+          }
+          setFailed((prev) => new Map(prev).set(key, describeTileError(loadError)));
+          continue;
+        }
         if (cancelled) return;
+        // A tile that loaded may expire again later in the session; let the
+        // next 403 on it earn one more refresh.
+        refreshedOnce.current.delete(key);
         if (pendingFocus.current && engine.select(pendingFocus.current, true)) {
           pendingFocus.current = undefined;
         }
+      }
+      if (refreshManifest && !cancelled) {
+        const fresh = await refetch();
+        if (!cancelled && fresh.data === manifest) setRetryTick((t) => t + 1);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [selected, manifest, engineReady, urlFor]);
+    // retryTick only re-arms the loop; it is not read inside it.
+  }, [selected, manifest, engineReady, urlFor, failed, refetch, retryTick]);
+
+  const retryTile = useCallback((key: string) => {
+    refreshedOnce.current.delete(key);
+    setFailed((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Map(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
 
   const toggle = useCallback((key: string, on: boolean) => {
     setSelected((prev) => {
@@ -175,10 +246,10 @@ export function BimViewerShell({
 
   return (
     <div
-      className="grid h-[calc(100vh-14rem)] min-h-[480px] grid-cols-1 gap-3 md:grid-cols-[14rem_1fr] lg:grid-cols-[14rem_1fr_22rem]"
+      className="grid grid-cols-1 gap-3 md:h-[calc(100vh-14rem)] md:min-h-[480px] md:grid-cols-[14rem_1fr] lg:grid-cols-[14rem_1fr_22rem]"
       data-testid="bim-viewer"
     >
-      <aside className="overflow-y-auto rounded-md border bg-white dark:bg-zinc-900">
+      <aside className="max-h-64 min-h-0 overflow-y-auto rounded-md border bg-white md:max-h-none dark:bg-zinc-900">
         {isLoading ? (
           <div className="space-y-2 p-3">
             <Skeleton className="h-5 w-24" />
@@ -190,14 +261,16 @@ export function BimViewerShell({
             storeys={manifest?.storeys ?? []}
             hasUnassigned={hasUnassigned}
             selected={selected}
+            failed={failed}
             onToggle={toggle}
             onOnly={only}
+            onRetry={retryTile}
             className="p-2"
           />
         )}
       </aside>
 
-      <div className="relative min-h-[320px] overflow-hidden rounded-md border bg-zinc-50 dark:bg-zinc-950">
+      <div className="relative h-[60vh] min-h-[320px] overflow-hidden rounded-md border bg-zinc-50 md:h-auto md:min-h-0 dark:bg-zinc-950">
         <div ref={containerRef} className="absolute inset-0" data-testid="bim-canvas" />
         {error && (
           <div className="absolute inset-0 flex items-center justify-center p-4 text-sm text-red-700">
@@ -225,7 +298,7 @@ export function BimViewerShell({
         </div>
       </div>
 
-      <aside className="overflow-hidden rounded-md border bg-white dark:bg-zinc-900">
+      <aside className="max-h-[70vh] min-h-0 overflow-y-auto rounded-md border bg-white md:col-span-2 md:max-h-none md:overflow-hidden lg:col-span-1 dark:bg-zinc-900">
         {picked ? (
           <ElementPanel
             projectId={projectId}

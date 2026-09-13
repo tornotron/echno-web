@@ -9,8 +9,10 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { ApiError } from '@tornotron/echno-core';
 import * as realBillingServices from '@tornotron/echno-core/billing/services';
 import { parsePlan } from '@tornotron/echno-core/billing/types';
+import { BILLING_NOT_CONFIGURED_MESSAGE } from '../lib/billing-messages';
 import type { RazorpayOptions } from '../lib/razorpay-checkout';
 
 const createCheckoutSession = mock(async (req: { planCode: string; billingPeriod: string }) => ({
@@ -119,10 +121,43 @@ describe('useCheckout', () => {
   });
 
   test('a session the backend refuses ends in error and never opens Checkout.js', async () => {
-    createCheckoutSession.mockRejectedValueOnce(new Error('Billing not configured'));
+    createCheckoutSession.mockRejectedValueOnce(new Error('Plan STARTER is already live'));
     const { result } = renderHook(() => useCheckout({ razorpayFactory: fakeFactory }), { wrapper });
     await act(() => result.current.start(plan, 'MONTHLY'));
     expect(result.current.step.kind).toBe('error');
+    expect(result.current.step.kind === 'error' && result.current.step.message).toBe(
+      'Plan STARTER is already live'
+    );
     expect(opened).toHaveLength(0);
+  });
+
+  test('a 409 Billing Not Configured is shown as the app\'s not-configured message, not the backend text (#451)', async () => {
+    createCheckoutSession.mockRejectedValueOnce(
+      new ApiError(
+        'No billing provider is configured (echno.billing.provider=none); online checkout is unavailable and subscriptions are provisioned manually',
+        409,
+        'uri=/api/v1/billing/checkout/web/sessions',
+        undefined,
+        'Billing Not Configured'
+      )
+    );
+    const { result } = renderHook(() => useCheckout({ razorpayFactory: fakeFactory }), { wrapper });
+    await act(() => result.current.start(plan, 'MONTHLY'));
+    expect(result.current.step.kind).toBe('error');
+    expect(result.current.step.kind === 'error' && result.current.step.message).toBe(
+      BILLING_NOT_CONFIGURED_MESSAGE
+    );
+    expect(opened).toHaveLength(0);
+  });
+
+  test('an above-cap plan sends acceptPerChargeAfa when the caller passes it (#452)', async () => {
+    const enterprise = parsePlan({ id: 4, code: 'ENTERPRISE', name: 'Enterprise Plan', monthlyPrice: 24_999 });
+    const { result } = renderHook(() => useCheckout({ razorpayFactory: fakeFactory }), { wrapper });
+    await act(() => result.current.start(enterprise, 'MONTHLY', true));
+    expect(createCheckoutSession).toHaveBeenCalledWith({
+      planCode: 'ENTERPRISE',
+      billingPeriod: 'MONTHLY',
+      acceptPerChargeAfa: true,
+    });
   });
 });

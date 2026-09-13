@@ -47,7 +47,13 @@ export function ObservationEvidenceStrip({
     );
   }
   return (
-    <div className={cn('flex flex-wrap items-center gap-2', className)}>
+    // The strip sits inside a clickable queue row: a thumbnail click opens
+    // the file, and must not also open the review sheet through bubbling.
+    <div
+      className={cn('flex flex-wrap items-center gap-2', className)}
+      onClick={(event) => event.stopPropagation()}
+      onKeyDown={(event) => event.stopPropagation()}
+    >
       {items.map((attachment) =>
         attachment.fileType === AttachmentType.image ? (
           <a

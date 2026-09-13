@@ -165,6 +165,9 @@ class ApiClient {
       case 401: {
         return 'Please sign in to continue.';
       }
+      case 402: {
+        return "This feature is not included in your organization's plan.";
+      }
       case 403: {
         return 'You do not have permission to perform this action.';
       }

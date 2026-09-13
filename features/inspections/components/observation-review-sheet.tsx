@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { ArrowRight, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
@@ -24,7 +25,11 @@ import type {
   ReviewObservationRequest,
 } from '@tornotron/echno-core/inspection/types';
 import { observationService } from '@tornotron/echno-core/observation/services';
-import { useInspectionById, useReviewObservation } from '@/hooks/inspection';
+import {
+  observationKeys,
+  useInspectionById,
+  useReviewObservation,
+} from '@/hooks/inspection';
 import { Button } from '@/components/shadcn/button';
 import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
@@ -149,6 +154,7 @@ function ReviewSheetBody({
   onOpenChange: (open: boolean) => void;
 }) {
   const review = useReviewObservation();
+  const queryClient = useQueryClient();
   const [decision, setDecision] = useState<ObservationDecision>(
     ObservationDecision.ACCEPT
   );
@@ -289,14 +295,24 @@ function ReviewSheetBody({
       );
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
+        // The conflict flag hides the form, so the stale row cannot be
+        // submitted again from this sheet.
         setConflict(true);
         toast.error(ALREADY_DECIDED_MESSAGE);
-        // Show the decision that got there first rather than the stale row.
+        // Show the decision that got there first rather than the stale row,
+        // and put it in the cache so a reopened sheet starts from it.
         try {
-          setDecided(await observationService.getById(shown.id));
+          const fresh = await observationService.getById(shown.id);
+          setDecided(fresh);
+          queryClient.setQueryData(observationKeys.detail(fresh.id), fresh);
         } catch {
           // The alert already says what happened; the row stays as loaded.
         }
+        // The mutation failed, so core's own invalidation never ran: the
+        // queue would keep listing the row as pending until staleTime.
+        void queryClient.invalidateQueries({
+          queryKey: observationKeys.lists(),
+        });
         return;
       }
       toast.error(

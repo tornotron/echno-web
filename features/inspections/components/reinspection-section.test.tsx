@@ -43,6 +43,16 @@ mock.module('@/hooks/inspection', () => ({
   useRecordReinspectionOutcome: () => recordOutcome,
 }));
 
+const toastError = mock((..._args: unknown[]) => {});
+mock.module('@/lib/styles/toast-styles', () => ({
+  toast: {
+    success: mock(() => {}),
+    error: toastError,
+    info: mock(() => {}),
+    warning: mock(() => {}),
+  },
+}));
+
 mock.module('next/link', () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) =>
     createElement('a', { href }, children),
@@ -93,6 +103,7 @@ beforeEach(() => {
   scheduleForNcr.mutate.mockReset();
   scheduleForDefect.mutate.mockReset();
   recordOutcome.mutate.mockReset();
+  toastError.mockReset();
 });
 
 afterEach(() => {
@@ -189,6 +200,39 @@ describe('ReinspectionSection', () => {
         ncrId: NCR_ID,
         req: { targetDate: '2026-09-20' },
       });
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'a rejected schedule is said out loud and the dialog stays open',
+    () => {
+      // The backend refuses when the NCR moved on or an attempt is open;
+      // core's hook has no onError, so the section has to say so itself.
+      scheduleForNcr.mutate.mockImplementation(
+        (_vars: unknown, options?: { onError?: (e: unknown) => void }) => {
+          options?.onError?.(new Error('A reinspection is already open.'));
+        }
+      );
+      const { container } = render(
+        createElement(ReinspectionSection, {
+          ncr: ncrWith(NcrStatus.CORRECTIVE_ACTION_COMPLETE),
+        })
+      );
+      fireEvent.click(
+        [...container.querySelectorAll('button')].find(
+          (b) => b.textContent?.trim() === 'Schedule reinspection'
+        )!
+      );
+      fireEvent.click(
+        [...document.querySelectorAll('button')].find(
+          (b) => b.textContent?.trim() === 'Schedule'
+        )!
+      );
+      expect(toastError).toHaveBeenCalledWith(
+        'A reinspection is already open.'
+      );
+      expect(document.querySelector('[role="dialog"]')).not.toBeNull();
     },
     RENDER_TIMEOUT_MS
   );

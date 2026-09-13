@@ -12,6 +12,7 @@
  */
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { Bot, Cpu, Server, User } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
@@ -26,6 +27,8 @@ import {
 } from '@/components/shadcn/select';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { useInspectionEvents, useNcrEvents } from '@/hooks/inspection';
+import { ApiError } from '@/lib/api/api-client';
+import { moduleDeniedPath } from '@/lib/billing/paths';
 import { employeeReferenceLabel } from '@/lib/utils/user-reference';
 import {
   type InspectionEvent,
@@ -74,6 +77,31 @@ export function InspectionEventTimeline({
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
       </div>
+    );
+  }
+
+  if (query.isError) {
+    const denied =
+      query.error instanceof ApiError && query.error.status === 402;
+    return (
+      <p
+        className="text-destructive text-xs"
+        data-testid={denied ? 'module-denied' : 'event-timeline'}
+      >
+        {denied ? (
+          <>
+            Your plan does not include the inspections module.{' '}
+            <Link
+              href={moduleDeniedPath('inspections')}
+              className="underline underline-offset-2"
+            >
+              See plan options
+            </Link>
+          </>
+        ) : (
+          'The history could not be loaded.'
+        )}
+      </p>
     );
   }
 

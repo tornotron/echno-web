@@ -15,6 +15,7 @@ import type {
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Skeleton } from '@/components/shadcn/skeleton';
+import { useAuthorization } from '@/hooks/use-authorization';
 
 interface HierarchyProposalReviewProps {
   projectId: number;
@@ -26,6 +27,9 @@ interface HierarchyProposalReviewProps {
  * The site structure the worker read from the IFC's spatial containment,
  * pending confirmation into the project's `Building > Floor > Zone > Element`
  * tree. Nodes that already exist show as matched; the rest are created.
+ *
+ * The regenerate and confirm buttons show only to managers and above, the
+ * roles the backend accepts them from (web #456).
  */
 export function HierarchyProposalReview({
   projectId,
@@ -33,8 +37,9 @@ export function HierarchyProposalReview({
   versionId,
 }: HierarchyProposalReviewProps) {
   const { data: proposal, isLoading } = useBimHierarchyProposal(modelId, versionId);
-  const regenerate = useRegenerateBimHierarchyProposal(modelId);
+  const regenerate = useRegenerateBimHierarchyProposal(modelId, projectId);
   const confirm = useConfirmBimHierarchy(modelId, projectId);
+  const { isManagerOrAbove } = useAuthorization();
 
   if (isLoading) return <Skeleton className="h-24 w-full" />;
   if (!proposal) return null;
@@ -86,26 +91,28 @@ export function HierarchyProposalReview({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          onClick={() => regenerate.mutate({ versionId })}
-          disabled={regenerate.isPending}
-        >
-          <RefreshCw className="size-4" />
-          Regenerate
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => run(false)}
-          disabled={confirm.isPending}
-        >
-          Confirm structure only
-        </Button>
-        <Button onClick={() => run(true)} disabled={confirm.isPending}>
-          {confirmed ? 'Confirm again with elements' : 'Confirm with elements'}
-        </Button>
-      </div>
+      {isManagerOrAbove && (
+        <div className="flex flex-wrap gap-2" data-testid="hierarchy-proposal-actions">
+          <Button
+            variant="outline"
+            onClick={() => regenerate.mutate({ versionId })}
+            disabled={regenerate.isPending}
+          >
+            <RefreshCw className="size-4" />
+            Regenerate
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => run(false)}
+            disabled={confirm.isPending}
+          >
+            Confirm structure only
+          </Button>
+          <Button onClick={() => run(true)} disabled={confirm.isPending}>
+            {confirmed ? 'Confirm again with elements' : 'Confirm with elements'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

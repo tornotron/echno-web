@@ -146,15 +146,25 @@ const MESSAGES: Record<string, AuthErrorMessage> = {
 export const KNOWN_AUTH_ERROR_CODES: readonly string[] = Object.keys(MESSAGES);
 
 /**
+ * The shape of a code this page will echo back. Auth.js codes are PascalCase
+ * words and the app's own are snake_case, so letters and underscores cover
+ * every real one. Anything else is attacker-controlled query text and is not
+ * repeated in the alert.
+ */
+const ECHOABLE_CODE = /^[A-Za-z_]{1,40}$/;
+
+/**
  * The message for an `?error=` code. Unknown codes still get a visible message
- * that names the code, so a new Auth.js code is never silent again.
+ * that names the code, so a new Auth.js code is never silent again. A code
+ * outside {@link ECHOABLE_CODE} is described without being quoted.
  */
 export function describeAuthError(code: string): AuthErrorMessage {
   const known = MESSAGES[code];
   if (known) return known;
+  const named = ECHOABLE_CODE.test(code) ? `(${code})` : '(an unrecognised error code)';
   return {
     kind: 'unknown',
     title: 'Sign-in failed',
-    description: `The sign-in ended with an error this page does not recognise (${code}). Try again; if it persists, contact the administrator.`,
+    description: `The sign-in ended with an error this page does not recognise ${named}. Try again; if it persists, contact the administrator.`,
   };
 }

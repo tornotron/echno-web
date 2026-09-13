@@ -21,7 +21,7 @@ import * as OBC from '@thatopen/components';
 export interface ViewerEngine {
   /** Fetches a tile and adds it to the scene under `key`. Idempotent per key. */
   loadTile(key: string, url: string): Promise<void>;
-  /** Removes a tile's meshes from the scene and frees their geometry. */
+  /** Removes a tile's meshes from the scene and frees their geometry, materials and textures. */
   unloadTile(key: string): void;
   /** Which tiles are currently loaded. */
   loadedTiles(): string[];
@@ -46,6 +46,28 @@ const HIGHLIGHT = new THREE.MeshLambertMaterial({
   emissive: 0x7C_2D_12,
   emissiveIntensity: 0.35,
 });
+
+/**
+ * Frees a material and every texture it references. The highlight material
+ * is shared across selections and must outlive any one tile, so it is
+ * skipped; a mesh that was highlighted at unload time still has its own
+ * material in `originalMaterials`, which the caller disposes instead.
+ */
+function disposeMaterial(material: THREE.Material): void {
+  if (material === HIGHLIGHT) return;
+  for (const value of Object.values(material)) {
+    if (value instanceof THREE.Texture) value.dispose();
+  }
+  material.dispose();
+}
+
+function disposeMaterials(material: THREE.Material | THREE.Material[]): void {
+  if (Array.isArray(material)) {
+    for (const m of material) disposeMaterial(m);
+  } else {
+    disposeMaterial(material);
+  }
+}
 
 function globalIdOf(object: THREE.Object3D | null): string | undefined {
   let current: THREE.Object3D | null = object;
@@ -167,6 +189,12 @@ export function createViewerEngine(container: HTMLElement): ViewerEngine {
           else meshesByGlobalId.delete(id);
         }
         mesh.geometry.dispose();
+        // The glTF loader gives each tile its own materials and textures, so
+        // they go with the geometry; a highlighted mesh's real material sits
+        // in `originalMaterials` and is freed from there (web #457).
+        const original = originalMaterials.get(mesh);
+        disposeMaterials(original ?? mesh.material);
+        originalMaterials.delete(mesh);
       });
       world.scene.three.remove(group);
       tiles.delete(key);

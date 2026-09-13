@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useId, useMemo } from 'react';
 import type {
   SpatialLevel,
   SpatialTreeNode,
@@ -57,6 +57,9 @@ export function SpatialLocationPicker({
   className,
 }: SpatialLocationPickerProps) {
   const { data: tree = [], isPending } = useSpatialTree(projectId, true);
+  // Two pickers can be mounted at once (a form and a dialog over it), so
+  // the select ids carry a per-instance prefix.
+  const idPrefix = useId();
 
   const selectedTrail = useMemo(
     () => (value ? (findPath(tree, value) ?? []) : []),
@@ -110,7 +113,7 @@ export function SpatialLocationPicker({
           !disabled &&
           (depth === 0 || parent !== undefined) &&
           options.length > 0;
-        const id = `spatial-${level.toLowerCase()}`;
+        const id = `${idPrefix}spatial-${level.toLowerCase()}`;
         return (
           <div key={level} className="space-y-1.5">
             <Label htmlFor={id}>{spatialLevelLabels[level]}</Label>

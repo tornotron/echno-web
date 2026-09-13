@@ -19,7 +19,9 @@ import type {
   BillingPeriod,
   CheckoutSession,
   Plan,
+  SubscriptionStatus,
 } from '@tornotron/echno-core/billing/types';
+import { checkoutErrorMessage } from '../lib/billing-messages';
 import {
   browserRazorpayFactory,
   checkoutOptionsFor,
@@ -34,6 +36,8 @@ export type CheckoutStep =
   | { kind: 'paying'; plan: Plan; period: BillingPeriod; session: CheckoutSession }
   | { kind: 'verifying'; plan: Plan; session: CheckoutSession }
   | { kind: 'verified'; plan: Plan }
+  /** The projected row for the bought plan ended on a status other than active (#453). */
+  | { kind: 'activation-failed'; plan: Plan; status: SubscriptionStatus; message: string }
   | { kind: 'dismissed'; plan: Plan; period: BillingPeriod; session: CheckoutSession }
   | { kind: 'error'; plan: Plan | null; message: string };
 
@@ -48,6 +52,8 @@ export interface UseCheckoutResult {
   start: (plan: Plan, period: BillingPeriod, acceptPerChargeAfa?: boolean) => Promise<void>;
   /** The buyer accepted the mandate terms; opens Checkout.js. */
   acceptMandate: () => Promise<void>;
+  /** The pending poll saw the bought plan's row settle on a non-active status; ends the wait. */
+  activationFailed: (status: SubscriptionStatus, message: string) => void;
   reset: () => void;
   isBusy: boolean;
 }
@@ -132,8 +138,7 @@ export function useCheckout(options: UseCheckoutOptions = {}): UseCheckoutResult
         setStep({
           kind: 'error',
           plan,
-          message:
-            error instanceof Error ? error.message : 'Checkout could not be started. Try again.',
+          message: checkoutErrorMessage(error, 'Checkout could not be started. Try again.'),
         });
       }
     },
@@ -145,12 +150,23 @@ export function useCheckout(options: UseCheckoutOptions = {}): UseCheckoutResult
     await openCheckout(step.plan, step.period, step.session);
   }, [openCheckout, step]);
 
+  const activationFailed = useCallback(
+    (status: SubscriptionStatus, message: string) =>
+      setStep((current) =>
+        current.kind === 'verified'
+          ? { kind: 'activation-failed', plan: current.plan, status, message }
+          : current
+      ),
+    []
+  );
+
   const reset = useCallback(() => setStep({ kind: 'idle' }), []);
 
   return {
     step,
     start,
     acceptMandate,
+    activationFailed,
     reset,
     isBusy: step.kind === 'creating' || step.kind === 'paying' || step.kind === 'verifying',
   };
