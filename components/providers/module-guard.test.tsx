@@ -57,7 +57,7 @@ describe('ModuleGuard', () => {
       </ModuleGuard>
     );
     expect(queryByText('inspections page')).not.toBeInTheDocument();
-    await waitFor(() => expect(replaceCalls).toEqual(['/errors/403']));
+    await waitFor(() => expect(replaceCalls).toEqual(['/errors/403?reason=module&module=inspections']));
   });
 
   test('renders children when the fetch fails (falls back to no gating)', () => {
@@ -98,6 +98,6 @@ describe('ModuleGuard', () => {
       </ModuleGuard>
     );
     expect(queryByText('inspections page')).not.toBeInTheDocument();
-    await waitFor(() => expect(replaceCalls).toEqual(['/errors/403']));
+    await waitFor(() => expect(replaceCalls).toEqual(['/errors/403?reason=module&module=inspections']));
   });
 });

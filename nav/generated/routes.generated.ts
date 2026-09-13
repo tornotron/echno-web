@@ -933,7 +933,16 @@ export const ROUTE_TREE: RouteNode = {
     path: '/users/dashboard/settings',
     isDynamic: false,
     isCatchAll: false,
-    children: [],
+    children: [
+      {
+        id: 'settings-billing',
+        segment: 'billing',
+        path: '/users/dashboard/settings/billing',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+    ],
   },
   {
     id: 'site',

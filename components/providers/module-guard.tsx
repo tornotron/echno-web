@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ModuleId } from '@tornotron/echno-core/module/types';
 import { useEnabledModuleIds } from '@/hooks/use-enabled-module-ids';
+import { moduleDeniedPath } from '@/lib/billing/paths';
 
 interface ModuleGuardProps {
   /** The module this route segment belongs to. */
@@ -14,8 +15,8 @@ interface ModuleGuardProps {
 /**
  * Guards a module's routes on the client: once the enabled-module set is
  * known and does not include `moduleId`, redirects to the shared 403 surface
- * (`app/errors/403`), whose reasons list already leads with "your
- * organization hasn't purchased this module".
+ * (`app/errors/403`) with `reason=module&module=<id>`, so the page can
+ * offer the upgrade path to the plan that includes the module (#448).
  *
  * Deliberately client-side for this iteration, per
  * `echno-backend/docs/specs/2026-08-26-modular-plugin-architecture.md`
@@ -37,9 +38,9 @@ export function ModuleGuard({ moduleId, children }: ModuleGuardProps) {
 
   useEffect(() => {
     if (denied) {
-      router.replace('/errors/403');
+      router.replace(moduleDeniedPath(moduleId));
     }
-  }, [denied, router]);
+  }, [denied, moduleId, router]);
 
   if (denied) return null;
   return <>{children}</>;

@@ -36,7 +36,7 @@
     "@tanstack/react-query": "^5.90.12",
     "@thatopen/components": "3.4.8",
     "@thatopen/fragments": "3.4.7",
-    "@tornotron/echno-core": "^8.10.0",
+    "@tornotron/echno-core": "^8.11.0",
     "camera-controls": "3.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

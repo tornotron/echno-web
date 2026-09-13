@@ -10,6 +10,7 @@ const STAGES: Record<BimImportJob['status'], { label: string; percent: number }>
   RUNNING: { label: 'Parsing the IFC and writing tiles', percent: 55 },
   DONE: { label: 'Imported', percent: 100 },
   FAILED: { label: 'Import failed', percent: 100 },
+  UNKNOWN: { label: 'Status not recognised', percent: 0 },
 };
 
 export function describeImportJob(job: BimImportJob | undefined) {

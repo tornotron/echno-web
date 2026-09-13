@@ -23,6 +23,7 @@ const STATUS_STYLE: Record<BimModelVersion['status'], string> = {
   INGESTING: 'bg-blue-100 text-blue-800',
   READY: 'bg-emerald-100 text-emerald-800',
   FAILED: 'bg-red-100 text-red-800',
+  UNKNOWN: 'bg-zinc-200 text-zinc-800',
 };
 
 interface ProjectBimTabProps {
