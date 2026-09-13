@@ -26,7 +26,9 @@ import {
   Eye,
   Lock,
   AlertTriangle,
+  CreditCard,
 } from 'lucide-react';
+import { BILLING_SETTINGS_PATH } from '@/lib/billing/paths';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface NotificationSettings {
@@ -187,6 +189,24 @@ export default function SettingsPage() {
               Edit Profile
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Billing Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            <CardTitle>Billing</CardTitle>
+          </div>
+          <CardDescription>
+            Your organization&apos;s plan, payment method and invoices
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => router.push(BILLING_SETTINGS_PATH)}>
+            Manage plan and billing
+          </Button>
         </CardContent>
       </Card>
 

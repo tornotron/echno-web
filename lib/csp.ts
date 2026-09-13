@@ -61,6 +61,29 @@ function warnOnceAboutMissingStorageOrigin(): void {
   );
 }
 
+/**
+ * Razorpay Checkout.js (`features/billing`, #448). The script is served from
+ * `checkout.razorpay.com` and injected on demand, so it needs a host entry
+ * (the nonce covers only inline scripts Next stamps). The checkout itself
+ * renders in an iframe served from `api.razorpay.com` (the modal) and
+ * `checkout.razorpay.com`, which is why a `frame-src` directive appears at
+ * all: without one `default-src 'self'` would refuse the frame. The
+ * connect-src origins are the ones Razorpay's own CSP guidance lists for the
+ * parent page (`api.razorpay.com` for the preferences and status calls the
+ * loader script makes, `lumberjack.razorpay.com` for its telemetry); the
+ * `/api/csp-report` endpoint says whether either can be dropped after the
+ * first test-mode checkout.
+ */
+export const RAZORPAY_CHECKOUT_ORIGIN = 'https://checkout.razorpay.com';
+export const RAZORPAY_FRAME_ORIGINS = [
+  'https://api.razorpay.com',
+  'https://checkout.razorpay.com',
+] as const;
+export const RAZORPAY_CONNECT_ORIGINS = [
+  'https://api.razorpay.com',
+  'https://lumberjack.razorpay.com',
+] as const;
+
 export function buildCsp() {
   const bytes = new Uint8Array(16);
   crypto.getRandomValues(bytes);
@@ -73,6 +96,7 @@ export function buildCsp() {
     "'self'",
     'https://cloudflareinsights.com',
     ...storage,
+    ...RAZORPAY_CONNECT_ORIGINS,
   ].join(' ');
   // The same origins again: an attachment is uploaded through connect-src and
   // then rendered through img-src, so a store listed for one and not the other
@@ -87,8 +111,9 @@ export function buildCsp() {
   ].join(' ');
   const policy = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://static.cloudflareinsights.com`,
+    `script-src 'self' 'nonce-${nonce}' 'wasm-unsafe-eval' https://static.cloudflareinsights.com ${RAZORPAY_CHECKOUT_ORIGIN}`,
     "style-src 'self' 'unsafe-inline'",
+    `frame-src ${RAZORPAY_FRAME_ORIGINS.join(' ')}`,
     `img-src ${imgSrc}`,
     "font-src 'self' data:",
     `connect-src ${connectSrc}`,

@@ -39,3 +39,19 @@ test('violations are reported and the page cannot be framed', () => {
   expect(directive(policy, 'frame-ancestors')).toBe("frame-ancestors 'none'");
   expect(directive(policy, 'base-uri')).toBe("base-uri 'self'");
 });
+
+test('Razorpay Checkout.js is allowed as a script, a frame and a connect target (#448)', () => {
+  const { policy } = buildCsp();
+  const scriptSrc = directive(policy, 'script-src');
+  expect(scriptSrc).toContain('https://checkout.razorpay.com');
+  expect(scriptSrc).not.toContain('https://api.razorpay.com');
+
+  const frameSrc = directive(policy, 'frame-src');
+  expect(frameSrc).toContain('https://checkout.razorpay.com');
+  expect(frameSrc).toContain('https://api.razorpay.com');
+  expect(frameSrc).not.toContain('*');
+
+  const connectSrc = directive(policy, 'connect-src');
+  expect(connectSrc).toContain('https://api.razorpay.com');
+  expect(connectSrc).toContain("'self'");
+});

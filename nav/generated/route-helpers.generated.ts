@@ -209,7 +209,10 @@ export const routes = {
     },
   },
 
-  settings: b('/settings'),
+  settings: {
+    href: b('/settings'),
+    billing: b('/settings/billing'),
+  },
 
   site: b('/site'),
 
