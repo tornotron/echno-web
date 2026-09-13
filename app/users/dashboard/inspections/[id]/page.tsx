@@ -41,6 +41,7 @@ import {
 import { useRouter, useParams } from 'next/navigation';
 import { useInspectionById } from '@/hooks/inspection';
 import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
+import { ShowInModelLink } from '@/components/shared/show-in-model-link';
 import { useEmployees } from '@tornotron/echno-core/employee/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { routes } from '@/nav';
@@ -387,6 +388,11 @@ export default function InspectionDetailsPage() {
                             path={inspection.spatialPath}
                             fallback={inspection.location || 'Not specified'}
                           />
+                          <ShowInModelLink
+                            projectId={inspection.projectId}
+                            spatialNodeId={inspection.spatialNodeId}
+                            className="ml-2"
+                          />
                           {(inspection.spatialPath?.length ?? 0) > 0 &&
                             inspection.location && (
                               <div className="text-sm font-normal text-zinc-600 dark:text-zinc-400">
@@ -629,9 +635,13 @@ export default function InspectionDetailsPage() {
                                   {defect.description}
                                 </div>
                                 {(defect.spatialPath?.length ?? 0) > 0 && (
-                                  <div className="mt-1">
+                                  <div className="mt-1 flex flex-wrap items-center gap-2">
                                     <SpatialBreadcrumb
                                       path={defect.spatialPath}
+                                    />
+                                    <ShowInModelLink
+                                      projectId={inspection.projectId}
+                                      spatialNodeId={defect.spatialNodeId}
                                     />
                                   </div>
                                 )}

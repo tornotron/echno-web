@@ -73,6 +73,8 @@ import {
 import { NcrSeverityBadge, NcrStatusBadge } from './inspection-badges';
 import { InspectionEventTimeline } from './inspection-event-timeline';
 import { ReinspectionSection } from './reinspection-section';
+import { ShowInModelLink } from '@/components/shared/show-in-model-link';
+import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
 
 export function NcrDetail({ ncrId }: { ncrId: string }) {
   const { data: ncr, isLoading } = useNcrById(ncrId);
@@ -214,6 +216,19 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
             </div>
             <ArrowRight className="text-muted-foreground mt-1 size-4 shrink-0" />
           </Link>
+          {(defect?.spatialNodeId || inspection?.spatialNodeId) && (
+            <div className="mt-2 flex flex-wrap items-center gap-3 pl-12">
+              <SpatialBreadcrumb
+                path={
+                  defect?.spatialNodeId ? defect.spatialPath : inspection?.spatialPath
+                }
+              />
+              <ShowInModelLink
+                projectId={inspection?.projectId}
+                spatialNodeId={defect?.spatialNodeId ?? inspection?.spatialNodeId}
+              />
+            </div>
+          )}
         </Card>
 
         <Separator />
