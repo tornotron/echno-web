@@ -41,14 +41,23 @@ export function checkBimSourceFile(file: File): string | undefined {
  * Runs the four-step upload: presign (creates the next version), PUT the IFC
  * straight to the object store, register the upload, then queue the worker
  * import. Each stage is exposed so the dialog can narrate it.
+ *
+ * `upload` takes an optional model id override for the case where the model
+ * was created in the same click: the hook's `modelId` is bound at render
+ * time, so a caller that has just created the model must hand the fresh id
+ * in directly rather than wait for a re-render (web #454).
  */
 export function useBimSourceUpload(modelId: string | undefined) {
   const queryClient = useQueryClient();
   const [state, setState] = useState<BimUploadState>({ stage: 'idle', progress: 0 });
 
   const upload = useCallback(
-    async (file: File) => {
-      if (!modelId) return;
+    async (file: File, modelIdOverride?: string) => {
+      const targetId = modelIdOverride ?? modelId;
+      if (!targetId) {
+        setState({ stage: 'error', progress: 0, error: 'Choose or create a model first.' });
+        return;
+      }
       const problem = checkBimSourceFile(file);
       if (problem) {
         setState({ stage: 'error', progress: 0, error: problem });
@@ -56,7 +65,7 @@ export function useBimSourceUpload(modelId: string | undefined) {
       }
       try {
         setState({ stage: 'presign', progress: 0 });
-        const slot = await bimService.presignSource(modelId, {
+        const slot = await bimService.presignSource(targetId, {
           filename: file.name,
           fileSize: file.size,
           contentType: file.type || 'application/x-step',
@@ -69,9 +78,9 @@ export function useBimSourceUpload(modelId: string | undefined) {
           (p) => setState((s) => ({ ...s, progress: p.percent ?? 0 }))
         );
         setState({ stage: 'register', progress: 100, versionId: slot.versionId });
-        await bimService.registerSource(modelId, slot.versionId);
+        await bimService.registerSource(targetId, slot.versionId);
         setState({ stage: 'enqueue', progress: 100, versionId: slot.versionId });
-        const job = await bimService.enqueueImport(modelId, slot.versionId);
+        const job = await bimService.enqueueImport(targetId, slot.versionId);
         queryClient.setQueryData(bimKeys.job(job.id), job);
         await queryClient.invalidateQueries({ queryKey: bimKeys.all });
         setState({ stage: 'done', progress: 100, versionId: slot.versionId, jobId: job.id });

@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 import * as realInspectionHooks from '@/hooks/inspection';
+import { ApiError } from '@/lib/api/api-client';
 import type { InspectionEvent } from '@/types/inspection';
 
 /**
@@ -21,6 +22,7 @@ type Page = {
 
 let inspectionPage: Page | undefined;
 let ncrPage: Page | undefined;
+let ncrError: Error | undefined;
 const inspectionCalls: Array<[string | undefined, { page?: number }]> = [];
 const ncrCalls: Array<[string | undefined, { page?: number }]> = [];
 
@@ -42,9 +44,11 @@ mock.module('@/hooks/inspection', () => ({
   useNcrEvents: (id?: string, params: { page?: number } = {}) => {
     ncrCalls.push([id, params]);
     return {
-      data: id ? ncrPage : undefined,
+      data: id && !ncrError ? ncrPage : undefined,
       isLoading: false,
       isFetching: false,
+      isError: id !== undefined && ncrError !== undefined,
+      error: id ? ncrError : undefined,
     };
   },
 }));
@@ -84,6 +88,7 @@ afterEach(() => {
   cleanup();
   inspectionPage = undefined;
   ncrPage = undefined;
+  ncrError = undefined;
   inspectionCalls.length = 0;
   ncrCalls.length = 0;
 });
@@ -149,6 +154,32 @@ describe('InspectionEventTimeline', () => {
       })
     );
     expect(container.textContent).toInclude('No history recorded yet');
+  });
+
+  test('a 402 offers the plan link, not the empty-history text', () => {
+    ncrError = new ApiError('Payment Required', 402);
+    const { container } = render(
+      createElement(InspectionEventTimeline, {
+        source: { kind: 'ncr', id: NCR_ID },
+      })
+    );
+    const denied = container.querySelector('[data-testid="module-denied"]');
+    expect(denied).not.toBeNull();
+    expect(denied!.querySelector('a')?.getAttribute('href')).toBe(
+      '/errors/403?reason=module&module=inspections'
+    );
+    expect(container.textContent).not.toInclude('No history recorded yet');
+  });
+
+  test('any other failure is reported rather than read as empty', () => {
+    ncrError = new ApiError('Server Error', 500);
+    const { container } = render(
+      createElement(InspectionEventTimeline, {
+        source: { kind: 'ncr', id: NCR_ID },
+      })
+    );
+    expect(container.textContent).toInclude('The history could not be loaded');
+    expect(container.querySelector('[data-testid="module-denied"]')).toBeNull();
   });
 
   test('Next asks the hook for the following page', () => {

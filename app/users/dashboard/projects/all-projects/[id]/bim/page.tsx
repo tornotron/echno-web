@@ -29,7 +29,28 @@ interface PageProps {
 
 export default function ProjectBimPage({ params }: PageProps) {
   const { id } = use(params);
-  const projectId = Number.parseInt(id);
+  const projectId = Number.parseInt(id, 10);
+
+  // A non-numeric segment would otherwise reach the model query as NaN and
+  // come back as a 400; show a not-found state instead (web #457).
+  if (Number.isNaN(projectId)) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <PageHeader title="Project not found" description="There is no project at this address." />
+        <Button asChild variant="outline">
+          <Link href={routes.projects.allProjects.href}>
+            <ArrowLeft className="size-4" />
+            All projects
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  return <ProjectBimView projectId={projectId} />;
+}
+
+function ProjectBimView({ projectId }: { projectId: number }) {
   const search = useSearchParams();
   const { data: project } = useProject(projectId);
   const { data: models } = useBimModels(projectId);

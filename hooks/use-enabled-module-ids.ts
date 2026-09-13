@@ -7,19 +7,31 @@ import type { ModuleId } from '@tornotron/echno-core/module/types';
 
 export interface EnabledModuleIdsResult {
   /**
-   * Enabled-and-entitled module ids, or `undefined` when not gating: the
-   * query hasn't settled yet, or the fetch failed. `tornotron/echno-backend#747`
-   * now serves `GET /api/v1/modules/web/enabled` for real, so a successful
-   * response is trusted as-is, including an empty array — an org with no
-   * subscription really does have nothing enabled, and that must gate every
-   * module-tagged route and nav entry. Only a failed fetch falls back to "no
-   * gating" — every module stays visible/reachable, exactly as before the
-   * loader existed — and warns so the fallback is visible in development
-   * rather than silently masking a real backend outage later.
+   * Enabled-and-entitled module ids, or `undefined` when the answer is not
+   * known: the query hasn't settled yet, or the fetch failed.
+   * `tornotron/echno-backend#747` now serves `GET /api/v1/modules/web/enabled`
+   * for real, so a successful response is trusted as-is, including an empty
+   * array: an org with no subscription really does have nothing enabled, and
+   * that must gate every module-tagged route and nav entry. On a failed
+   * fetch the nav keeps every module visible (as before the loader existed),
+   * while `ModuleGuard` holds module pages behind a retry panel (`isError`
+   * below tells the two states apart, web #455). The hook warns so the
+   * fallback is visible in development rather than silently masking a real
+   * backend outage later.
    */
   moduleIds: Set<ModuleId> | undefined;
   /** True while the underlying query has not yet settled. */
   isLoading: boolean;
+  /**
+   * True when the fetch failed, so a caller can tell "unknown because the
+   * request failed" from "unknown because it is still loading" and show a
+   * retry instead of falling open (web #455).
+   */
+  isError: boolean;
+  /** The failure behind `isError`, when the query exposes one. */
+  error?: Error | null;
+  /** Re-runs the enabled-modules fetch. */
+  refetch: () => Promise<unknown>;
 }
 
 /** The slice of `useEnabledModules()`'s return value the fallback reduction needs. */
@@ -32,7 +44,7 @@ export interface EnabledModulesQueryState {
 /**
  * Pure reduction of the enabled-modules query state to the loader's
  * fallback shape. Kept as a standalone function (rather than inlined in the
- * hook) so the fallback logic — the part that matters for #428 — has a
+ * hook) so the fallback logic, the part that matters for #428, has a
  * plain, deterministic unit test with no React rendering involved.
  */
 export function computeEnabledModuleIds(
@@ -47,10 +59,10 @@ export function computeEnabledModuleIds(
   //
   // An empty array is a real, successful answer (an org with no enabled
   // modules) and must produce an empty `Set` that gates everything, not
-  // `undefined` — only a missing/failed fetch falls open.
+  // `undefined`: only a missing/failed fetch leaves the set unknown.
   const moduleIds =
     isError || !data ? undefined : new Set(data.map((m) => m.id));
-  return { moduleIds, isLoading };
+  return { moduleIds, isLoading, isError, refetch: async () => {} };
 }
 
 /**
@@ -61,16 +73,16 @@ export function computeEnabledModuleIds(
  */
 export function useEnabledModuleIds(): EnabledModuleIdsResult {
   const queryState = useEnabledModules();
-  const { isError, isLoading } = queryState;
+  const { isError, isLoading, error, refetch } = queryState;
 
   useEffect(() => {
     if (isLoading) return;
     if (isError) {
       logger.warn(
-        'Modules: failed to fetch the enabled-module set; falling back to no module gating (every module stays visible).'
+        'Modules: failed to fetch the enabled-module set; nav shows every module and module pages are held behind a retry.'
       );
     }
   }, [isError, isLoading]);
 
-  return computeEnabledModuleIds(queryState);
+  return { ...computeEnabledModuleIds(queryState), error, refetch };
 }

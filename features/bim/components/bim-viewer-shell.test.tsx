@@ -8,7 +8,7 @@
  * a pick opens the element panel with the row the GlobalId resolved to.
  */
 import { afterEach, describe, expect, mock, test } from 'bun:test';
-import { createElement, type ReactNode } from 'react';
+import { createElement, useState, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import * as realBimHooks from '@tornotron/echno-core/bim/hooks';
@@ -46,9 +46,34 @@ const element = {
 };
 
 let lookedUp: string | undefined;
+let manifestRefetches = 0;
+/** A refetch hands back the same storeys with re-signed urls. */
+function resignedManifest(generation: number) {
+  const sig = `sig${generation}`;
+  return {
+    ...manifest,
+    unassignedUrl: `https://store/unassigned.glb?${sig}`,
+    storeys: manifest.storeys.map((s) => ({ ...s, url: s.url.replace('sig', sig) })),
+  };
+}
 mock.module('@tornotron/echno-core/bim/hooks', () => ({
   ...realBimHooks,
-  useBimTiles: () => ({ data: manifest, isLoading: false, error: null }),
+  // Stateful so a `refetch` re-renders the shell with fresh urls, the way
+  // TanStack would after the manifest query settles again.
+  useBimTiles: () => {
+    const [data, setData] = useState(manifest);
+    return {
+      data,
+      isLoading: false,
+      error: null,
+      refetch: async () => {
+        manifestRefetches += 1;
+        const next = resignedManifest(manifestRefetches + 1);
+        setData(next);
+        return { data: next };
+      },
+    };
+  },
   useBimElementByGlobalId: (_m: string, globalId?: string) => {
     lookedUp = globalId;
     return { data: globalId === element.globalId ? element : null, isLoading: false };
@@ -110,7 +135,10 @@ interface Recorder extends ViewerEngine {
   pick: (globalId: string | undefined) => void;
 }
 
-function recorder(): Recorder {
+/** What a tile load throws for a given url; `undefined` means the load succeeds. */
+type Refusal = (url: string) => unknown;
+
+function recorder(refuse: Refusal = () => {}): Recorder {
   const handlers = new Set<(id: string | undefined) => void>();
   const loaded = new Set<string>();
   const engine: Recorder = {
@@ -119,8 +147,10 @@ function recorder(): Recorder {
     selections: [],
     pick: (id) => { for (const h of handlers) h(id) },
     async loadTile(key, url) {
-      loaded.add(key);
       engine.loads.push({ key, url });
+      const refusal = refuse(url);
+      if (refusal !== undefined) throw refusal;
+      loaded.add(key);
     },
     unloadTile(key) {
       loaded.delete(key);
@@ -164,7 +194,12 @@ function renderShell(engine: Recorder, props: Partial<Parameters<typeof BimViewe
 afterEach(() => {
   cleanup();
   lookedUp = undefined;
+  manifestRefetches = 0;
 });
+
+function storeyRow(view: ReturnType<typeof renderShell>, key: string) {
+  return view.getAllByTestId('storey-row').find((r) => r.dataset.storey === key) as HTMLElement;
+}
 
 describe('BimViewerShell', () => {
   test('lists the storeys from the manifest and loads the lowest one by default', async () => {
@@ -207,6 +242,56 @@ describe('BimViewerShell', () => {
     expect(panel.textContent).toContain('Column pour check');
     expect(panel.textContent).toContain('Honeycombing');
     expect(engine.selections).toContain(element.globalId);
+  });
+
+  test('a tile that fails to load is reported on its storey row and not retried on a loop', async () => {
+    const engine = recorder((url) => (url.includes('S0') ? new Error('bad glTF') : undefined));
+    const view = renderShell(engine);
+    await waitFor(() => expect(storeyRow(view, 'S0').dataset.error).toBe('true'));
+    expect(storeyRow(view, 'S0').textContent).toContain('bad glTF');
+    expect(storeyRow(view, 'S1').dataset.error).toBeUndefined();
+    // No refetch for a plain failure, and the failed key is left alone until
+    // the person retries it.
+    expect(manifestRefetches).toBe(0);
+    await new Promise((r) => setTimeout(r, 50));
+    expect(engine.loads.filter((l) => l.key === 'S0')).toHaveLength(1);
+  });
+
+  test('a 403 refreshes the manifest and retries the tile once on the re-signed url', async () => {
+    const engine = recorder((url) => (url.endsWith('?sig') ? { status: 403 } : undefined));
+    const view = renderShell(engine);
+    await waitFor(() => expect(engine.loads).toHaveLength(2));
+    expect(engine.loads.map((l) => l.url)).toEqual([
+      'https://store/S0.glb?sig',
+      'https://store/S0.glb?sig2',
+    ]);
+    expect(manifestRefetches).toBe(1);
+    expect(storeyRow(view, 'S0').dataset.error).toBeUndefined();
+  });
+
+  test('a second 403 after the refresh is reported instead of refetching again', async () => {
+    const engine = recorder(() => ({ status: 403 }));
+    const view = renderShell(engine);
+    await waitFor(() => expect(storeyRow(view, 'S0').dataset.error).toBe('true'));
+    expect(storeyRow(view, 'S0').textContent).toContain('expired');
+    expect(manifestRefetches).toBe(1);
+    expect(engine.loads).toHaveLength(2);
+  });
+
+  test('retry on a failed row clears the error and asks for the tile again', async () => {
+    let refusals = 0;
+    const engine = recorder((url) => {
+      if (!url.includes('S0')) return;
+      refusals += 1;
+      return refusals === 1 ? new Error('bad glTF') : undefined;
+    });
+    const view = renderShell(engine);
+    await waitFor(() => expect(storeyRow(view, 'S0').dataset.error).toBe('true'));
+    const retry = storeyRow(view, 'S0').querySelector('button[title="Try loading this storey again"]');
+    expect(retry).not.toBeNull();
+    fireEvent.click(retry as Element);
+    await waitFor(() => expect(engine.loads.filter((l) => l.key === 'S0')).toHaveLength(2));
+    await waitFor(() => expect(storeyRow(view, 'S0').dataset.error).toBeUndefined());
   });
 
   test('opening with a focus element loads its storey and frames it once the tile is in', async () => {

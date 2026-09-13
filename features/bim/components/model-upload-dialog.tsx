@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from '@/components/shadcn/dialog';
 import { Input } from '@/components/shadcn/input';
+import { useAuthorization } from '@/hooks/use-authorization';
 import { Label } from '@/components/shadcn/label';
 import { Progress } from '@/components/shadcn/progress';
 import {
@@ -50,6 +51,10 @@ interface ModelUploadDialogProps {
 /**
  * Uploads an IFC as the next version of a model: presigned PUT to the object
  * store, register, queue the worker, then narrate the job until it is DONE.
+ *
+ * Rendered only for managers and above: the backend refuses the upload to
+ * anyone else, so a member should not be offered a button that ends in a
+ * 403 toast (web #456).
  */
 export function ModelUploadDialog({
   projectId,
@@ -57,6 +62,7 @@ export function ModelUploadDialog({
   defaultModelId,
   trigger,
 }: ModelUploadDialogProps) {
+  const { isManagerOrAbove } = useAuthorization();
   const [open, setOpen] = useState(false);
   const [choice, setChoice] = useState<string>(
     defaultModelId ?? models[0]?.id ?? NEW_MODEL
@@ -64,8 +70,7 @@ export function ModelUploadDialog({
   const [newName, setNewName] = useState('');
   const [file, setFile] = useState<File | undefined>();
   const createModel = useCreateBimModel(projectId);
-  const [createdId, setCreatedId] = useState<string | undefined>();
-  const modelId = choice === NEW_MODEL ? createdId : choice;
+  const modelId = choice === NEW_MODEL ? undefined : choice;
   const { state, upload, reset } = useBimSourceUpload(modelId);
 
   const busy = useMemo(
@@ -75,11 +80,19 @@ export function ModelUploadDialog({
 
   async function start() {
     if (!file) return;
-    if (choice === NEW_MODEL && !createdId) {
-      const model = await createModel.mutateAsync({ name: newName.trim() || file.name });
-      setCreatedId(model.id);
-      // The upload hook is bound to the model id; give React one tick to rebind.
-      setTimeout(() => void upload(file), 0);
+    if (choice === NEW_MODEL) {
+      let model: BimModel;
+      try {
+        model = await createModel.mutateAsync({ name: newName.trim() || file.name });
+      } catch {
+        // The mutation surfaces its own error state; nothing to upload into.
+        return;
+      }
+      // Select the created model so a retry uploads into it instead of
+      // creating a second one, and hand the id straight to the upload: the
+      // hook's bound id only catches up on the next render (web #454).
+      setChoice(model.id);
+      await upload(file, model.id);
       return;
     }
     await upload(file);
@@ -90,9 +103,10 @@ export function ModelUploadDialog({
     if (!next) {
       reset();
       setFile(undefined);
-      setCreatedId(undefined);
     }
   }
+
+  if (!isManagerOrAbove) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -126,6 +140,11 @@ export function ModelUploadDialog({
                     {m.name} (v{m.versions[0]?.versionNumber ?? 0})
                   </SelectItem>
                 ))}
+                {createModel.data && !models.some((m) => m.id === createModel.data.id) && (
+                  <SelectItem value={createModel.data.id}>
+                    {createModel.data.name} (new)
+                  </SelectItem>
+                )}
                 <SelectItem value={NEW_MODEL}>New model</SelectItem>
               </SelectContent>
             </Select>
@@ -153,6 +172,11 @@ export function ModelUploadDialog({
             />
           </div>
 
+          {createModel.isError && state.stage === 'idle' && (
+            <p className="text-sm text-red-700 dark:text-red-400" data-testid="create-model-error">
+              Could not create the model. {createModel.error.message}
+            </p>
+          )}
           {state.stage !== 'idle' && state.stage !== 'done' && (
             <div className="space-y-2" data-testid="upload-stage" data-stage={state.stage}>
               <div className="text-sm">{STAGE_LABELS[state.stage]}</div>

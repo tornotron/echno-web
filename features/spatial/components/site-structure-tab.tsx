@@ -355,6 +355,18 @@ function NodeRow({ node, depth, projectId, showArchived }: NodeRowProps) {
 // Import
 // ---------------------------------------------------------------------------
 
+/**
+ * The Import button says what a click would do: how many rows go in, and
+ * when any line failed to parse, how many, since only five are listed and
+ * the import is held until the paste is clean.
+ */
+function importLabel(rows: number, errors: number): string {
+  if (errors > 0) {
+    return `Fix ${errors} error${errors === 1 ? '' : 's'} to import`;
+  }
+  return rows > 0 ? `Import ${rows} rows` : 'Import';
+}
+
 function ImportPanel({ projectId }: { projectId: number }) {
   const [text, setText] = useState('');
   const importRows = useImportSpatialRows(projectId);
@@ -411,12 +423,16 @@ function ImportPanel({ projectId }: { projectId: number }) {
             type="button"
             size="sm"
             onClick={run}
-            disabled={parsed.rows.length === 0 || importRows.isPending}
+            disabled={
+              parsed.rows.length === 0 ||
+              parsed.errors.length > 0 ||
+              importRows.isPending
+            }
           >
             {importRows.isPending && (
               <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
             )}
-            Import {parsed.rows.length > 0 ? `${parsed.rows.length} rows` : ''}
+            {importLabel(parsed.rows.length, parsed.errors.length)}
           </Button>
         </div>
       </CardContent>

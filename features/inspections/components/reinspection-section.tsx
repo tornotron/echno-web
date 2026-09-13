@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { ArrowRight, RotateCcw } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -45,6 +46,7 @@ import {
   useScheduleReinspectionForDefect,
   useScheduleReinspectionForNcr,
 } from '@/hooks/inspection';
+import { toast } from '@/lib/styles/toast-styles';
 import { employeeReferenceLabel } from '@/lib/utils/user-reference';
 import { routes } from '@/nav';
 import {
@@ -56,6 +58,13 @@ import {
   hasPendingReinspection,
   reinspectionOutcomeLabels,
 } from '@/types/inspection';
+
+/**
+ * The backend rejects a schedule when the NCR has moved on or another
+ * attempt is still open, and an outcome when the attempt is already settled;
+ * the dialog would otherwise flip back from "Scheduling" with no word why.
+ */
+const fail = (error: unknown) => toast.error(getErrorMessage(error));
 
 // ---------------------------------------------------------------------------
 // Section
@@ -126,7 +135,7 @@ export function ReinspectionSection({ ncr }: { ncr: Ncr }) {
         onSubmit={(req) =>
           schedule.mutate(
             { ncrId: ncr.id, req },
-            { onSuccess: () => setScheduleOpen(false) }
+            { onSuccess: () => setScheduleOpen(false), onError: fail }
           )
         }
       />
@@ -376,7 +385,7 @@ export function DefectReinspectionButton({
         onSubmit={(req) =>
           schedule.mutate(
             { defectId, req },
-            { onSuccess: () => setOpen(false) }
+            { onSuccess: () => setOpen(false), onError: fail }
           )
         }
       />
@@ -484,7 +493,7 @@ function RecordOutcomeDialog({
                         ...(trimmed === '' ? {} : { remarks: trimmed }),
                       },
                     },
-                    { onSuccess: () => onOpenChange(false) }
+                    { onSuccess: () => onOpenChange(false), onError: fail }
                   );
                 }}
               >

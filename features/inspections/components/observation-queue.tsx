@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { format } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import {
@@ -11,6 +12,8 @@ import {
 } from '@tornotron/echno-core/inspection/types';
 import type { Observation } from '@tornotron/echno-core/inspection/types';
 import { useObservations } from '@/hooks/inspection';
+import { ApiError } from '@/lib/api/api-client';
+import { moduleDeniedPath } from '@/lib/billing/paths';
 import { Button } from '@/components/shadcn/button';
 import { Label } from '@/components/shadcn/label';
 import {
@@ -68,7 +71,7 @@ export function ObservationQueue({
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Observation | null>(null);
 
-  const { data, isLoading, isError } = useObservations({
+  const { data, isLoading, isError, error } = useObservations({
     projectId,
     inspectionId,
     reviewStatus:
@@ -80,6 +83,14 @@ export function ObservationQueue({
 
   const rows = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
+
+  // A decision on the last row of a later page shrinks the result below
+  // the page in hand; fall back to the last page that still exists. Set
+  // during render, as React advises for state adjusted to fresh data, so
+  // the query re-issues with the clamped page without an extra commit.
+  if (data && data.totalPages > 0 && page >= data.totalPages) {
+    setPage(data.totalPages - 1);
+  }
 
   return (
     <div className="space-y-4">
@@ -146,9 +157,21 @@ export function ObservationQueue({
           <Skeleton className="h-10 w-full" />
         </div>
       ) : isError ? (
-        <p className="text-destructive text-sm">
-          The observations could not be loaded.
-        </p>
+        error instanceof ApiError && error.status === 402 ? (
+          <p className="text-destructive text-sm" data-testid="module-denied">
+            Your plan does not include the inspections module.{' '}
+            <Link
+              href={moduleDeniedPath('inspections')}
+              className="underline underline-offset-2"
+            >
+              See plan options
+            </Link>
+          </p>
+        ) : (
+          <p className="text-destructive text-sm">
+            The observations could not be loaded.
+          </p>
+        )
       ) : rows.length === 0 ? (
         <p className="text-muted-foreground text-sm">
           Nothing here. Machine findings land as pending; a person records one
@@ -241,6 +264,7 @@ export function ObservationQueue({
             variant="outline"
             size="sm"
             disabled={page === 0}
+            aria-label="Previous page"
             onClick={() => setPage((p) => Math.max(0, p - 1))}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -252,6 +276,7 @@ export function ObservationQueue({
             variant="outline"
             size="sm"
             disabled={page + 1 >= totalPages}
+            aria-label="Next page"
             onClick={() => setPage((p) => p + 1)}
           >
             <ChevronRight className="h-4 w-4" />

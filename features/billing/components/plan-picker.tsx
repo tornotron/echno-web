@@ -22,10 +22,10 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { cn } from '@/lib/utils/index';
+import { BILLING_NOT_CONFIGURED_MESSAGE } from '../lib/billing-messages';
 import { formatRupees } from '../lib/money';
 
-export const BILLING_NOT_CONFIGURED_MESSAGE =
-  'Online payments are not set up for this environment yet. Contact your administrator to change plans.';
+export { BILLING_NOT_CONFIGURED_MESSAGE } from '../lib/billing-messages';
 
 interface PlanPickerProps {
   plans: Plan[];

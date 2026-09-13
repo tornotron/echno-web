@@ -81,7 +81,7 @@ export function BillingEventsList({ events, isLoading, unavailable }: BillingEve
                     <TableCell className="capitalize">{eventLabel(event.eventType)}</TableCell>
                     <TableCell className="font-mono text-xs">{event.reference ?? ''}</TableCell>
                     <TableCell className="text-right">
-                      {event.amountPaise === null ? '' : formatPaise(event.amountPaise)}
+                      {event.amountPaise == null ? '' : formatPaise(event.amountPaise)}
                     </TableCell>
                   </TableRow>
                 ))}

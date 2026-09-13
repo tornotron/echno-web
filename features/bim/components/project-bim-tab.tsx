@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Box, ExternalLink } from 'lucide-react';
+import { AlertTriangle, Box, ExternalLink, RefreshCw } from 'lucide-react';
+import { ApiError } from '@tornotron/echno-core';
 import { useBimModels } from '@tornotron/echno-core/bim/hooks';
 import {
   isBimVersionInProgress,
@@ -12,6 +13,7 @@ import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/card';
 import { Skeleton } from '@/components/shadcn/skeleton';
+import { moduleDeniedPath } from '@/lib/billing/paths';
 import { bimViewerHref } from '@/lib/bim/show-in-model-href';
 import { HierarchyProposalReview } from './hierarchy-proposal-review';
 import { ModelUploadDialog } from './model-upload-dialog';
@@ -30,11 +32,19 @@ interface ProjectBimTabProps {
   projectId: number;
 }
 
-/** A project's BIM models with their versions, the upload entry and the viewer link. */
+/**
+ * A project's BIM models with their versions, the upload entry and the viewer
+ * link. A failed list is an error state, kept apart from "no model yet": a
+ * 402 (the org's plan lacks the module) links to the module-denied page with
+ * its upgrade path, anything else shows the message with a retry (web #455).
+ */
 export function ProjectBimTab({ projectId }: ProjectBimTabProps) {
-  const { data: models, isLoading } = useBimModels(projectId);
+  const { data: models, isLoading, error, refetch } = useBimModels(projectId);
 
   if (isLoading) return <Skeleton className="h-32 w-full" />;
+  if (error) {
+    return <BimListError error={error} onRetry={() => void refetch()} />;
+  }
   const list = models ?? [];
 
   return (
@@ -60,6 +70,37 @@ export function ProjectBimTab({ projectId }: ProjectBimTabProps) {
         <ModelCard key={model.id} projectId={projectId} model={model} />
       ))}
     </div>
+  );
+}
+
+function BimListError({ error, onRetry }: { error: Error; onRetry: () => void }) {
+  const notInPlan = error instanceof ApiError && error.status === 402;
+  return (
+    <Card data-testid="project-bim-tab-error" data-status={notInPlan ? 402 : undefined}>
+      <CardContent className="flex flex-col items-center gap-3 py-10 text-center text-sm">
+        <AlertTriangle className="size-8 text-amber-500" />
+        {notInPlan ? (
+          <>
+            <p className="text-zinc-700 dark:text-zinc-300">
+              BIM is not included in your organization&apos;s plan.
+            </p>
+            <Button asChild size="sm">
+              <Link href={moduleDeniedPath('bim')}>See upgrade options</Link>
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="text-zinc-700 dark:text-zinc-300">
+              The BIM models could not be loaded. {error.message}
+            </p>
+            <Button variant="outline" size="sm" onClick={onRetry}>
+              <RefreshCw className="size-4" />
+              Retry
+            </Button>
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

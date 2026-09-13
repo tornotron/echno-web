@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useBimImportJob } from '@tornotron/echno-core/bim/hooks';
+import { bimKeys } from '@tornotron/echno-core/bim/hooks/keys';
 import type { BimImportJob } from '@tornotron/echno-core/bim/types';
 import { Progress } from '@/components/shadcn/progress';
 
@@ -28,12 +31,38 @@ interface ImportJobStatusProps {
   intervalMs?: number;
 }
 
-/** Narrates one import job while the hook polls it, and stops at DONE or FAILED. */
+/**
+ * Narrates one import job while the hook polls it, and stops at DONE or
+ * FAILED. Reaching either end state invalidates the BIM cache so the model
+ * list and its versions pick up the finished import without a reload; a
+ * job fetch that fails before any status arrived is shown as an error
+ * rather than an endless "Starting" (web #457).
+ */
 export function ImportJobStatus({ jobId, intervalMs }: ImportJobStatusProps) {
-  const { data: job } = useBimImportJob(jobId, intervalMs);
+  const queryClient = useQueryClient();
+  const { data: job, error } = useBimImportJob(jobId, intervalMs);
   const { label, percent } = describeImportJob(job);
   const failed = job?.status === 'FAILED';
   const done = job?.status === 'DONE';
+  const settled = done || failed;
+
+  useEffect(() => {
+    if (!settled) return;
+    void queryClient.invalidateQueries({ queryKey: bimKeys.all });
+  }, [settled, queryClient]);
+
+  if (!job && error) {
+    return (
+      <div
+        className="flex items-center gap-2 text-sm text-red-700 dark:text-red-400"
+        data-testid="import-job-status"
+        data-status="error"
+      >
+        <XCircle className="size-4" />
+        <span>Could not read the import status. {error.message}</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-2" data-testid="import-job-status" data-status={job?.status ?? 'loading'}>

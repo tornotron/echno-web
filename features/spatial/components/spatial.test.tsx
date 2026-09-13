@@ -114,6 +114,26 @@ describe('SpatialLocationPicker', () => {
   });
 });
 
+describe('SpatialLocationPicker ids', () => {
+  test('two pickers on one page do not share select ids', () => {
+    const { container } = render(
+      createElement(
+        'div',
+        null,
+        createElement(SpatialLocationPicker, { projectId: 12, value: undefined, onChange: () => {} }),
+        createElement(SpatialLocationPicker, { projectId: 12, value: undefined, onChange: () => {} })
+      )
+    );
+    const ids = [...container.querySelectorAll('select')].map((s) => s.id);
+    expect(ids).toHaveLength(8);
+    expect(new Set(ids).size).toBe(8);
+    // Each label still points at its own select.
+    for (const label of container.querySelectorAll('label')) {
+      expect(container.querySelector(`#${CSS.escape(label.htmlFor)}`)).not.toBeNull();
+    }
+  });
+});
+
 describe('SpatialBreadcrumb', () => {
   const path: SpatialPathSegment[] = [
     { id: B1, level: 'BUILDING', code: 'B1', name: 'Block B' },
@@ -177,5 +197,22 @@ describe('SiteStructureTab', () => {
         { building: 'B2', floor: 'L02' },
       ],
     });
+  });
+
+  test('holds the import while any pasted line fails to parse, and counts them', () => {
+    const { getByLabelText, getByRole } = render(
+      createElement(SiteStructureTab, { projectId: 12 })
+    );
+    // Two good rows, two bad: one with a non-integer level index, one with
+    // no building. Only the good ones would import, silently.
+    fireEvent.change(getByLabelText('Import rows'), {
+      target: {
+        value: 'building,floor,zone,element,levelIndex\nB2,L01,,,1\nB2,L02,,,x\n,L03\nB2,L04',
+      },
+    });
+    const button = getByRole('button', { name: /Fix 2 errors to import/ }) as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+    fireEvent.click(button);
+    expect(mutate).not.toHaveBeenCalled();
   });
 });

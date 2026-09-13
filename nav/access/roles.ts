@@ -103,6 +103,16 @@ export const STORES_ACCESS: AccessConfig = {
   ],
 } as const;
 
+/**
+ * The billing surface. The backend gates every `/billing/subscriptions/web/*`
+ * and `/billing/checkout/web/*` call to `system-admin` (echno-web #456), a
+ * narrower set than the `admin` tier (which also holds directors), so this
+ * names the org role exactly.
+ */
+export const BILLING_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+} as const;
+
 // ---------------------------------------------------------------------------
 // Role -> permission mapping
 // ---------------------------------------------------------------------------

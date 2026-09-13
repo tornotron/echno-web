@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test';
-import { cleanup, render, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 
 // Mocks the core query hook rather than `@/hooks/use-enabled-module-ids`
 // directly: bun's `mock.module` replaces a module for the whole test run by
@@ -18,6 +18,7 @@ let queryState: QueryState = {
   isLoading: true,
 };
 let replaceCalls: string[] = [];
+let refetchCalls = 0;
 
 mock.module('next/navigation', () => ({
   useRouter: () => ({
@@ -26,7 +27,13 @@ mock.module('next/navigation', () => ({
 }));
 
 mock.module('@tornotron/echno-core/module/hooks', () => ({
-  useEnabledModules: () => queryState,
+  useEnabledModules: () => ({
+    ...queryState,
+    error: queryState.isError ? new Error('modules fetch failed') : null,
+    refetch: async () => {
+      refetchCalls += 1;
+    },
+  }),
 }));
 
 const { ModuleGuard } = await import('./module-guard');
@@ -35,6 +42,7 @@ afterEach(() => {
   cleanup();
   queryState = { data: undefined, isError: false, isLoading: true };
   replaceCalls = [];
+  refetchCalls = 0;
 });
 
 describe('ModuleGuard', () => {
@@ -60,15 +68,28 @@ describe('ModuleGuard', () => {
     await waitFor(() => expect(replaceCalls).toEqual(['/errors/403?reason=module&module=inspections']));
   });
 
-  test('renders children when the fetch fails (falls back to no gating)', () => {
+  test('a failed fetch holds the page back behind a retry panel instead of falling open', () => {
     queryState = { data: undefined, isError: true, isLoading: false };
-    const { getByText } = render(
+    const { queryByText, getByTestId } = render(
       <ModuleGuard moduleId="inspections">
         <p>inspections page</p>
       </ModuleGuard>
     );
-    expect(getByText('inspections page')).toBeInTheDocument();
+    expect(queryByText('inspections page')).not.toBeInTheDocument();
+    expect(getByTestId('module-guard-error').textContent).toContain('Could not confirm your plan');
+    // Unknown is not denied: no redirect to the 403 surface.
     expect(replaceCalls).toEqual([]);
+  });
+
+  test('the retry button re-runs the enabled-modules fetch', () => {
+    queryState = { data: undefined, isError: true, isLoading: false };
+    const { getByRole } = render(
+      <ModuleGuard moduleId="inspections">
+        <p>inspections page</p>
+      </ModuleGuard>
+    );
+    fireEvent.click(getByRole('button', { name: /retry/i }));
+    expect(refetchCalls).toBe(1);
   });
 
   test('renders children when the module is in the enabled set', () => {

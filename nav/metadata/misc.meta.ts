@@ -1,5 +1,6 @@
 import { Settings, LayoutDashboard, GraduationCap, CreditCard } from 'lucide-react';
 import type { MetadataRegistry } from '../types';
+import { BILLING_ACCESS } from '../access/roles';
 
 export const miscMetadata = {
   settings: {
@@ -12,6 +13,8 @@ export const miscMetadata = {
     icon: CreditCard,
     description: "Your organization's plan, payment method and invoices.",
     sidebarHidden: true,
+    access: BILLING_ACCESS,
+    hideWhenLocked: true,
   },
   site: {
     label: 'Site',

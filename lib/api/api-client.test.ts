@@ -295,6 +295,20 @@ describe('the failures this client raises are the ones the package reads', () =>
     );
   });
 
+  test('a 402 with no body of its own names the plan, not a generic status line', async () => {
+    queuedResponses = [new Response('', { status: 402 })];
+
+    const error = await apiClient
+      .get('/v1/bim/projects/7/models')
+      .catch((error_: unknown) => error_);
+
+    expect(error instanceof ApiError).toBe(true);
+    expect((error as InstanceType<typeof ApiError>).status).toBe(402);
+    expect(getErrorMessage(error)).toBe(
+      "This feature is not included in your organization's plan."
+    );
+  });
+
   test('a 401 is the one status that does mean sign in again', async () => {
     queuedResponses = [jsonResponse({ message: 'Please sign in.' }, 401)];
 
