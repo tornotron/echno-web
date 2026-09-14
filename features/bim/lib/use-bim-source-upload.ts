@@ -92,35 +92,39 @@ export function useBimSourceUpload(modelId: string | undefined) {
 
   const upload = useCallback(
     async (file: File, modelIdOverride?: string): Promise<BimUploadState> => {
-      const finish = (next: BimUploadState) => {
+      // The state as last set, kept locally so the resolved value does not
+      // depend on when React runs an updater.
+      let current: BimUploadState = { stage: 'idle', progress: 0 };
+      const advance = (next: BimUploadState) => {
+        current = next;
         setState(next);
         return next;
       };
       const targetId = modelIdOverride ?? modelId;
       if (!targetId) {
-        return finish({ stage: 'error', progress: 0, error: 'Choose or create a model first.' });
+        return advance({ stage: 'error', progress: 0, error: 'Choose or create a model first.' });
       }
       const problem = checkBimSourceFile(file);
       if (problem) {
-        return finish({ stage: 'error', progress: 0, error: problem });
+        return advance({ stage: 'error', progress: 0, error: problem });
       }
       try {
-        setState({ stage: 'presign', progress: 0 });
+        advance({ stage: 'presign', progress: 0 });
         const slot = await bimService.presignSource(targetId, {
           filename: file.name,
           fileSize: file.size,
           contentType: file.type || 'application/x-step',
         });
-        setState({ stage: 'put', progress: 0, versionId: slot.versionId });
+        advance({ stage: 'put', progress: 0, versionId: slot.versionId });
         await attachmentService.putToStorage(
           slot.upload.url,
           file,
           slot.upload.contentType,
-          (p) => setState((s) => ({ ...s, progress: p.percent ?? 0 }))
+          (p) => advance({ ...current, progress: p.percent ?? 0 })
         );
-        setState({ stage: 'register', progress: 100, versionId: slot.versionId });
+        advance({ stage: 'register', progress: 100, versionId: slot.versionId });
         const registered = await bimService.registerSource(targetId, slot.versionId);
-        setState({ stage: 'enqueue', progress: 100, versionId: slot.versionId });
+        advance({ stage: 'enqueue', progress: 100, versionId: slot.versionId });
         let job: BimImportJob | undefined;
         if (registered.status !== 'UPLOADED') {
           // Register moved the version on (QUEUED on the current backend):
@@ -138,15 +142,13 @@ export function useBimSourceUpload(modelId: string | undefined) {
         }
         queryClient.setQueryData(bimKeys.job(job.id), job);
         await queryClient.invalidateQueries({ queryKey: bimKeys.all });
-        return finish({ stage: 'done', progress: 100, versionId: slot.versionId, jobId: job.id });
+        return advance({ stage: 'done', progress: 100, versionId: slot.versionId, jobId: job.id });
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Upload failed.';
-        let ended: BimUploadState = { stage: 'error', progress: 0, error: message };
-        setState((s) => {
-          ended = { ...s, stage: 'error', error: message };
-          return ended;
+        return advance({
+          ...current,
+          stage: 'error',
+          error: error instanceof Error ? error.message : 'Upload failed.',
         });
-        return ended;
       }
     },
     [modelId, queryClient]

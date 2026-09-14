@@ -33,7 +33,8 @@ describe('parseSpatialImportText', () => {
 
 describe('importSummary', () => {
   // web #463 item 3: four rows sharing a building and a floor visit sixteen
-  // nodes; the toast says rows and nodes apart so the count reads right.
+  // nodes, twelve created and four found already there; the toast says rows
+  // and nodes apart so the count reads right.
   test('names the rows and the nodes separately', () => {
     expect(importSummary(4, 12, 4)).toBe('Imported 4 rows: 12 nodes created, 4 already there');
     expect(importSummary(1, 1, 0)).toBe('Imported 1 row: 1 node created, 0 already there');
