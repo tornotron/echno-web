@@ -333,4 +333,17 @@ describe('BimViewerShell', () => {
     expect(defaultEngineCreated).toBe(1);
     expect(view.queryByTestId('bim-canvas-loading')).toBeNull();
   });
+
+  test('an engine that fails to mount is reported in the canvas instead of loading forever', async () => {
+    const view = renderShell(recorder(), {
+      createEngine: () => {
+        throw new Error('WebGL is not available');
+      },
+    });
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
+    expect(view.queryByTestId('bim-canvas-loading')).toBeNull();
+    expect(view.getByTestId('bim-canvas-error').textContent).toContain('WebGL is not available');
+  });
 });

@@ -75,6 +75,9 @@ export function BimViewerShell({
   const containerRef = useRef<HTMLDivElement>(null);
   const engineRef = useRef<ViewerEngine | null>(null);
   const [engineReady, setEngineReady] = useState(false);
+  // Why the engine could not be mounted (a failed chunk load, no WebGL);
+  // shown in the canvas instead of an overlay that never clears.
+  const [engineError, setEngineError] = useState<string | undefined>();
   const { data: manifest, isLoading, error, refetch } = useBimTiles(modelId, versionId);
   // Tiles whose load failed, keyed like the selection, with the message to
   // show next to the storey row. A retry clears the entry first.
@@ -123,17 +126,27 @@ export function BimViewerShell({
     let disposed = false;
     let engine: ViewerEngine | undefined;
     (async () => {
-      const factory = createEngine ?? (await defaultEngine());
-      if (disposed) return;
-      engine = factory(container);
-      engineRef.current = engine;
-      setEngineReady(true);
+      try {
+        const factory = createEngine ?? (await defaultEngine());
+        if (disposed) return;
+        engine = factory(container);
+        engineRef.current = engine;
+        setEngineReady(true);
+      } catch (mountError) {
+        if (disposed) return;
+        setEngineError(
+          mountError instanceof Error && mountError.message
+            ? mountError.message
+            : 'The 3D viewer could not be started.'
+        );
+      }
     })();
     return () => {
       disposed = true;
       engine?.dispose();
       engineRef.current = null;
       setEngineReady(false);
+      setEngineError(undefined);
     };
   }, [createEngine]);
 
@@ -274,7 +287,7 @@ export function BimViewerShell({
 
       <div className="relative h-[60vh] min-h-[320px] overflow-hidden rounded-md border bg-zinc-50 md:h-auto md:min-h-0 dark:bg-zinc-950">
         <div ref={containerRef} className="absolute inset-0" data-testid="bim-canvas" />
-        {!engineReady && !error && (
+        {!engineReady && !error && !engineError && (
           <div
             className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-zinc-500"
             data-testid="bim-canvas-loading"
@@ -282,6 +295,14 @@ export function BimViewerShell({
           >
             <Loader2 className="size-5 animate-spin" />
             Loading the 3D viewer
+          </div>
+        )}
+        {engineError && !error && (
+          <div
+            className="absolute inset-0 flex items-center justify-center p-4 text-sm text-red-700"
+            data-testid="bim-canvas-error"
+          >
+            The 3D viewer could not be started. {engineError}
           </div>
         )}
         {error && (
