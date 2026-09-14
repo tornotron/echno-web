@@ -11,7 +11,7 @@ import {
   observationSourceLabels,
 } from '@tornotron/echno-core/inspection/types';
 import type { Observation } from '@tornotron/echno-core/inspection/types';
-import { useObservations } from '@/hooks/inspection';
+import { useObservationPageEvidence, useObservations } from '@/hooks/inspection';
 import { ApiError } from '@/lib/api/api-client';
 import { moduleDeniedPath } from '@/lib/billing/paths';
 import { Button } from '@/components/shadcn/button';
@@ -83,6 +83,7 @@ export function ObservationQueue({
 
   const rows = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
+  const pageEvidence = useObservationPageEvidence(rows);
 
   // A decision on the last row of a later page shrinks the result below
   // the page in hand; fall back to the last page that still exists. Set
@@ -233,6 +234,7 @@ export function ObservationQueue({
                     <ObservationEvidenceStrip
                       observation={observation}
                       size="sm"
+                      evidence={pageEvidence.get(observation.id)}
                     />
                   </TableCell>
                   <TableCell className="text-sm whitespace-nowrap">

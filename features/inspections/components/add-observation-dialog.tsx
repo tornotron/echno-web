@@ -32,6 +32,7 @@ import {
 import { Textarea } from '@/components/shadcn/textarea';
 import { SpatialLocationPicker } from '@/components/shared/spatial-location-picker';
 import { uploadObservationEvidence } from '../lib/observation-evidence';
+import { userFacingErrorMessage } from '@/lib/utils/api-utils';
 
 const NO_SEVERITY = 'NONE';
 
@@ -103,6 +104,8 @@ export function AddObservationDialog({
       if (category.trim()) req.category = category.trim();
       if (severity !== NO_SEVERITY)
         req.suggestedSeverity = severity as DefectSeverity;
+      // Unset is omitted (core sends null only when a caller says so; the
+      // backend stores no node for either).
       if (spatialNodeId) req.spatialNodeId = spatialNodeId;
       if (locationNote.trim()) req.locationNote = locationNote.trim();
       try {
@@ -110,9 +113,7 @@ export function AddObservationDialog({
         observationId = created.id;
       } catch (error) {
         toast.error(
-          error instanceof Error
-            ? error.message
-            : 'The observation could not be saved.'
+          userFacingErrorMessage(error, 'The observation could not be saved.')
         );
         return;
       }

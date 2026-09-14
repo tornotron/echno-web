@@ -3,6 +3,8 @@
  * Centralized type definitions and helper functions for API responses
  */
 
+import { ApiError } from '@tornotron/echno-core';
+
 export interface ApiSuccessResponse<T = unknown> {
   data: T;
   message?: string;
@@ -251,6 +253,48 @@ export async function safeJsonParse<T = unknown>(
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Shapes a backend `message` takes when it is exception text rather than a
+ * sentence written for the caller: a Java class name (`...Exception`), a
+ * class-prefixed message (`NullPointerException: ...`), a SQL fragment,
+ * or a stack frame. Any of these means the backend leaked its internals and
+ * the status default is the better message to show.
+ */
+const RAW_EXCEPTION_TEXT: readonly RegExp[] = [
+  /\b[a-z][\w$]*(?:\.[\w$]+)+\.[A-Z][\w$]*(?:Exception|Error)\b/,
+  /^\s*[A-Z][\w$]*(?:Exception|Error)\s*:/,
+  /\bcould not execute (?:statement|query)\b/i,
+  /\b(?:SQLSTATE|constraint|duplicate key value|violates)\b/i,
+  /\bat [\w$.]+\([\w$]+\.java:\d+\)/,
+];
+
+/** True when a message reads as raw exception text, not as a sentence. */
+export function isRawExceptionText(message: string): boolean {
+  return RAW_EXCEPTION_TEXT.some((pattern) => pattern.test(message));
+}
+
+/**
+ * The message to show for a failed call. A backend sentence written for the
+ * caller comes through as is; raw exception text is replaced by the status
+ * default (a 409 keeps its own wording at the call sites that know what the
+ * conflict means); a non-API error falls back to `fallback`.
+ */
+export function userFacingErrorMessage(
+  error: unknown,
+  fallback = 'Something went wrong. Please try again.'
+): string {
+  if (error instanceof ApiError) {
+    if (!error.message || isRawExceptionText(error.message)) {
+      return getDefaultErrorMessage(error.status);
+    }
+    return error.message;
+  }
+  if (error instanceof Error && error.message) {
+    return isRawExceptionText(error.message) ? fallback : error.message;
+  }
+  return fallback;
 }
 
 /**

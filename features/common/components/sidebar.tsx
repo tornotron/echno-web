@@ -20,7 +20,7 @@ import {
   type ResolvedNavItem,
   type Role,
 } from '@/nav';
-import { useEnabledModuleIds } from '@/hooks/use-enabled-module-ids';
+import { useEnabledModuleIds, shouldShowNavSkeleton } from '@/hooks/use-enabled-module-ids';
 import { ChevronRight, Lock, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -60,6 +60,7 @@ import {
   AvatarImage,
   AvatarFallback,
 } from '@/components/shadcn/avatar';
+import { Skeleton } from '@/components/shadcn/skeleton';
 
 // ---------------------------------------------------------------------------
 // Role bridge
@@ -110,6 +111,9 @@ interface AppSidebarProps {
   chatUnreadCount?: number;
 }
 
+/** Rows the nav shows while the enabled-module set is still loading. */
+const SKELETON_ROWS = [0, 1, 2, 3, 4, 5, 6, 7] as const;
+
 export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
@@ -143,7 +147,12 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
     [chatUnreadCount, leavePendingCount, attendancePendingCount]
   );
 
-  const { moduleIds: enabledModules } = useEnabledModuleIds();
+  const { moduleIds: enabledModules, isLoading: modulesLoading } =
+    useEnabledModuleIds();
+  const navPending = shouldShowNavSkeleton({
+    isLoading: modulesLoading,
+    moduleIds: enabledModules,
+  });
 
   const sections = useMemo(() => {
     const role = toNavRole(orgRoles as string[]);
@@ -356,7 +365,23 @@ export function AppSidebar({ chatUnreadCount = 0 }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
-        {sections.map((group) => (
+        {navPending && (
+          <SidebarGroup data-testid="sidebar-skeleton" aria-busy="true">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {SKELETON_ROWS.map((row) => (
+                  <SidebarMenuItem key={row}>
+                    <div className="flex h-8 items-center gap-2 px-2">
+                      <Skeleton className="h-4 w-4 rounded-sm" />
+                      <Skeleton className="h-4 flex-1 group-data-[collapsible=icon]:hidden" />
+                    </div>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
+        {!navPending && sections.map((group) => (
           <SidebarGroup key={group.section.id}>
             <SidebarGroupLabel>{group.section.label}</SidebarGroupLabel>
             <SidebarGroupContent>

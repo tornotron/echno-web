@@ -33,6 +33,8 @@ let rows: Observation[] = [];
 let listTotalPages = 1;
 let listError: Error | undefined;
 let evidence: Attachment[] = [];
+const rowEvidenceCalls: string[] = [];
+const pageEvidenceCalls: string[][] = [];
 const uploadCalls: Array<[string, File[]]> = [];
 let uploadResult: () => Promise<{
   attachments: Attachment[];
@@ -64,7 +66,21 @@ mock.module('@/hooks/inspection', () => ({
       error: null,
     };
   },
-  useObservationEvidence: () => ({ data: evidence, isLoading: false }),
+  useObservationEvidence: (id?: string) => {
+    if (id !== undefined) rowEvidenceCalls.push(id);
+    return { data: id ? evidence : undefined, isLoading: false };
+  },
+  useObservationPageEvidence: (
+    observations: readonly { id: string }[]
+  ) => {
+    pageEvidenceCalls.push(observations.map((o) => o.id));
+    return new Map(
+      observations.map((o) => [
+        o.id,
+        { attachments: evidence, isLoading: false },
+      ])
+    );
+  },
   useInspectionById: () => ({ data: undefined }),
   useReviewObservation: () => ({
     isPending: false,
@@ -226,6 +242,20 @@ describe('ObservationQueue', () => {
       '/errors/403?reason=module&module=inspections'
     );
     expect(container.textContent).not.toContain('could not be loaded');
+  });
+
+  test('evidence is fetched once for the page, not once per row', () => {
+    rows = [pending, { ...pending, id: 'obs-2', title: 'Second' }];
+    rowEvidenceCalls.length = 0;
+    pageEvidenceCalls.length = 0;
+    const { container } = renderWithClient(
+      createElement(ObservationQueue, { projectId: 7 })
+    );
+    expect(
+      container.querySelectorAll('[data-testid="observation-row"]').length
+    ).toBe(2);
+    expect(pageEvidenceCalls.at(-1)).toEqual([OBS, 'obs-2']);
+    expect(rowEvidenceCalls).toEqual([]);
   });
 
   test('a click on an evidence thumbnail does not open the review sheet', () => {

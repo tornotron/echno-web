@@ -25,6 +25,7 @@ import type {
   ReviewObservationRequest,
 } from '@tornotron/echno-core/inspection/types';
 import { observationService } from '@tornotron/echno-core/observation/services';
+import { userFacingErrorMessage } from '@/lib/utils/api-utils';
 import {
   observationKeys,
   useInspectionById,
@@ -316,9 +317,7 @@ function ReviewSheetBody({
         return;
       }
       toast.error(
-        error instanceof Error
-          ? error.message
-          : 'The decision could not be saved.'
+        userFacingErrorMessage(error, 'The decision could not be saved.')
       );
     }
   };
@@ -479,9 +478,19 @@ function ReviewSheetBody({
                 <SpatialLocationPicker
                   projectId={shown.projectId}
                   value={edits.spatialNodeId ?? shown.spatialNodeId}
-                  onChange={(nodeId) =>
-                    setEdits({ ...edits, spatialNodeId: nodeId })
-                  }
+                  onChange={(nodeId) => {
+                    // A review can move the node but not clear it (core's
+                    // ObservationReviewChanges): clearing the picker drops
+                    // the edit, so the request omits the field and the
+                    // picker shows the node that will stay.
+                    if (nodeId === undefined) {
+                      const { spatialNodeId: _dropped, ...rest } = edits;
+                      void _dropped;
+                      setEdits(rest);
+                      return;
+                    }
+                    setEdits({ ...edits, spatialNodeId: nodeId });
+                  }}
                 />
                 {diff.length > 0 ? (
                   <ul className="space-y-1 text-xs" data-testid="review-diff">

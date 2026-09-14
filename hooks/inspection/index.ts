@@ -35,3 +35,4 @@ export {
   useObservations,
   useReviewObservation,
 } from '@tornotron/echno-core/inspection/hooks';
+export * from './use-observation-page-evidence';

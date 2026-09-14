@@ -66,6 +66,19 @@ export function computeEnabledModuleIds(
 }
 
 /**
+ * True while the nav has nothing trustworthy to gate on yet: the fetch is
+ * still in flight and no set (from the prefetch or an earlier load) is in
+ * hand. The sidebar shows a skeleton then, so module entries do not appear
+ * and vanish as the answer lands. A settled fetch, or a set already cached,
+ * renders the real entries even if a refetch is in progress.
+ */
+export function shouldShowNavSkeleton(
+  state: Pick<EnabledModuleIdsResult, 'isLoading' | 'moduleIds'>
+): boolean {
+  return state.isLoading && state.moduleIds === undefined;
+}
+
+/**
  * Reads the enabled-module set from the TanStack Query cache (populated by
  * `useModulesPrefetch` at auth bootstrap, or fetched here directly if that
  * hasn't run yet) and reduces it to a `Set<ModuleId>` for nav filtering and

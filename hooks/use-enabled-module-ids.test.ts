@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'bun:test';
-import { computeEnabledModuleIds } from './use-enabled-module-ids';
+import {
+  computeEnabledModuleIds,
+  shouldShowNavSkeleton,
+} from './use-enabled-module-ids';
 
 describe('computeEnabledModuleIds', () => {
   test('reports loading with no module ids while the query is in flight', () => {
@@ -51,5 +54,28 @@ describe('computeEnabledModuleIds', () => {
       isLoading: false,
     });
     expect(result.moduleIds).toBeUndefined();
+  });
+});
+
+describe('shouldShowNavSkeleton', () => {
+  test('shows the skeleton only while loading with no set in hand', () => {
+    expect(
+      shouldShowNavSkeleton({ isLoading: true, moduleIds: undefined })
+    ).toBe(true);
+  });
+
+  test('a cached set renders the nav even during a refetch', () => {
+    expect(
+      shouldShowNavSkeleton({ isLoading: true, moduleIds: new Set() })
+    ).toBe(false);
+  });
+
+  test('a settled fetch, with or without a set, renders the nav', () => {
+    expect(
+      shouldShowNavSkeleton({ isLoading: false, moduleIds: undefined })
+    ).toBe(false);
+    expect(
+      shouldShowNavSkeleton({ isLoading: false, moduleIds: new Set() })
+    ).toBe(false);
   });
 });
