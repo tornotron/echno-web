@@ -12,6 +12,7 @@ import { Settings, User, Star } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import type { Organization } from '@tornotron/echno-core/organization/types';
+import { DatasetConsentSetting } from './dataset-consent-setting';
 
 interface OrganizationSettingsTabProps {
   organization: Organization;
@@ -107,6 +108,15 @@ export function OrganizationSettingsTab({
                 <Badge variant="outline">{orgProjectsCount}</Badge>
               </div>
             </div>
+          </div>
+
+          <Separator />
+
+          <div>
+            <h3 className="mb-4 text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Data Sharing
+            </h3>
+            <DatasetConsentSetting organizationId={organization.id} />
           </div>
 
           <Separator />
