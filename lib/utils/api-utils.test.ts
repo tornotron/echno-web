@@ -1,5 +1,7 @@
 import { describe, expect, test } from 'bun:test';
+import { ApiError } from '@tornotron/echno-core';
 import {
+  userFacingErrorMessage,
   createErrorResponse,
   createSuccessResponse,
   extractErrorMessage,
@@ -130,5 +132,49 @@ describe('createSuccessResponse / createErrorResponse', () => {
     expect(err.userMessage).toBe('Check the form');
     expect(err.success).toBe(false);
     expect(typeof err.timestamp).toBe('string');
+  });
+});
+
+describe('userFacingErrorMessage', () => {
+  test('passes a backend sentence through', () => {
+    const error = new ApiError('The inspection is already closed.', 422);
+    expect(userFacingErrorMessage(error)).toBe(
+      'The inspection is already closed.'
+    );
+  });
+
+  test('replaces a leaked Java exception with the status default', () => {
+    const error = new ApiError(
+      'org.springframework.dao.DataIntegrityViolationException: could not execute statement',
+      500
+    );
+    expect(userFacingErrorMessage(error)).toBe(getDefaultErrorMessage(500));
+  });
+
+  test('replaces a class-prefixed message and a SQL fragment', () => {
+    expect(
+      userFacingErrorMessage(new ApiError('NullPointerException: null', 500))
+    ).toBe(getDefaultErrorMessage(500));
+    expect(
+      userFacingErrorMessage(
+        new ApiError('duplicate key value violates unique constraint "uk_x"', 409)
+      )
+    ).toBe(getDefaultErrorMessage(409));
+  });
+
+  test('an empty message takes the status default', () => {
+    expect(userFacingErrorMessage(new ApiError('', 403))).toBe(
+      getDefaultErrorMessage(403)
+    );
+  });
+
+  test('a non-API error keeps its own text unless it is exception text', () => {
+    expect(userFacingErrorMessage(new Error('Network down'), 'fb')).toBe(
+      'Network down'
+    );
+    expect(
+      userFacingErrorMessage(new Error('TypeError: x is not a function'), 'fb')
+    ).toBe('fb');
+    expect(userFacingErrorMessage('nope', 'fb')).toBe('fb');
   });
 });

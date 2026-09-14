@@ -5,6 +5,7 @@ import { AttachmentType } from '@tornotron/echno-core/attachment/types';
 import type { Attachment } from '@tornotron/echno-core/attachment/types';
 import type { Observation } from '@tornotron/echno-core/inspection/types';
 import { useObservationEvidence } from '@/hooks/inspection';
+import type { ObservationEvidenceState } from '@/hooks/inspection';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { cn } from '@/lib/utils/index';
 
@@ -18,14 +19,21 @@ export function ObservationEvidenceStrip({
   observation,
   size = 'md',
   className,
+  evidence,
 }: {
   observation: Pick<Observation, 'id' | 'evidenceRefs'>;
   size?: 'sm' | 'md';
   className?: string;
+  /**
+   * Evidence already fetched for the page (see
+   * `useObservationPageEvidence`). When given, the strip makes no request
+   * of its own.
+   */
+  evidence?: ObservationEvidenceState;
 }) {
-  const { data: attachments, isLoading } = useObservationEvidence(
-    observation.id
-  );
+  const own = useObservationEvidence(evidence ? undefined : observation.id);
+  const attachments = evidence ? evidence.attachments : own.data;
+  const isLoading = evidence ? evidence.isLoading : own.isLoading;
   const external = observation.evidenceRefs.filter(
     (ref) => typeof ref.attachmentId !== 'number'
   ).length;
