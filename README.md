@@ -42,7 +42,7 @@
 
 A separate, older Flutter mobile app (`echno`, formerly `echno_attendance`) exists and is attendance-focused. It is legacy and is not required to run or use this web client.
 
-For how to *use* the product rather than how to build it, see the [Echno user guide](docs/user-guide/README.md).
+For how to _use_ the product rather than how to build it, see the [Echno user guide](docs/user-guide/README.md).
 
 ### Key Highlights
 
@@ -233,34 +233,24 @@ pnpm install
 
 ### 3. Environment Setup
 
-Create a `.env.local` file in the web directory:
+Copy the committed example and fill it in. The copy is gitignored (and backed up with `envault`);
+deployed environments do not use it, they get their variables from the deployment repo.
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Edit `.env.local` with your environment configuration:
+The variables, all read by the app or by Auth.js:
 
-```env
-# Backend REST API (used server-side by the BFF proxy, not exposed to the browser)
-BACKEND_API_URL=https://backend.echno.xyz
-BACKEND_API_VERSION=v1
-
-# Keycloak OpenID Connect
-KEYCLOAK_CLIENT_ID=your-client-id
-KEYCLOAK_ISSUER=https://your-keycloak-domain/realms/your-realm
-
-# NextAuth Configuration
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=your-secret-key
-
-# App environment
-NEXT_PUBLIC_APP_ENV=development
-
-# Analytics (optional)
-NEXT_PUBLIC_POSTHOG_KEY=
-NEXT_PUBLIC_POSTHOG_HOST=
-```
+| Variable                                             | Purpose                                                                                            |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `BACKEND_API_URL`                                    | Backend base URL including `/api/v1`; used server-side by the BFF proxy, never sent to the browser |
+| `NEXT_PUBLIC_API_URL`                                | Prefix the browser calls on this app (`/api/v1`)                                                   |
+| `KEYCLOAK_ID`, `KEYCLOAK_ISSUER`                     | Keycloak public client id and realm issuer URL                                                     |
+| `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `AUTH_TRUST_HOST` | Auth.js: app URL, session secret (`openssl rand -base64 32`), trust the host header                |
+| `NEXT_PUBLIC_APP_URL`                                | Public origin of this app                                                                          |
+| `NEXT_PUBLIC_STORAGE_ORIGIN`                         | Object store host the browser reaches for presigned uploads and downloads                          |
+| `REDIS_URL`, `ENABLE_DEBUG_LOGS`, `TZ`               | Optional: session revocation sync, verbose logs, timezone                                          |
 
 ### Keycloak Configuration
 
@@ -280,9 +270,9 @@ To set up authentication with Keycloak using PKCE:
 
 4. **PKCE Flow**: NextAuth automatically handles PKCE (Proof Key for Code Exchange) for enhanced security in public clients.
 
-5. **Update Environment Variables**: Replace the placeholder values in `.env.local` with your actual Keycloak configuration:
+5. **Update Environment Variables**: Replace the placeholder values in `.env` with your Keycloak configuration:
    - `KEYCLOAK_ISSUER`: Your Keycloak issuer URL (e.g., `http://localhost:8080/realms/your-realm`)
-   - `KEYCLOAK_CLIENT_ID`: Your client ID
+   - `KEYCLOAK_ID`: Your client ID
 
 6. **Create Users**: Add users in Keycloak and assign appropriate roles for role-based access control.
 
@@ -353,7 +343,7 @@ web/
 │   └── favicon.png
 ├── styles/                      # Additional styles
 ├── tests/                       # Test files
-├── .env.local                   # Environment variables (local)
+├── .env                         # Local environment variables (gitignored; see .env.example)
 ├── .env.example                 # Environment variables template
 ├── next.config.js               # Next.js configuration
 ├── tailwind.config.ts           # Tailwind CSS configuration
