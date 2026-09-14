@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { AlertTriangle, Box, ExternalLink, RefreshCw } from 'lucide-react';
 import { ApiError } from '@tornotron/echno-core';
-import { useBimModels } from '@tornotron/echno-core/bim/hooks';
+import { useBimImportJobs, useBimModels } from '@tornotron/echno-core/bim/hooks';
 import {
   isBimVersionInProgress,
   type BimModel,
@@ -15,7 +15,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shadcn/ca
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { moduleDeniedPath } from '@/lib/billing/paths';
 import { bimViewerHref } from '@/lib/bim/show-in-model-href';
+import { pickVersionJob } from '../lib/use-bim-source-upload';
 import { HierarchyProposalReview } from './hierarchy-proposal-review';
+import { ImportJobStatus } from './import-job-status';
 import { ModelUploadDialog } from './model-upload-dialog';
 
 const STATUS_STYLE: Record<BimModelVersion['status'], string> = {
@@ -137,10 +139,12 @@ function ModelCard({ projectId, model }: { projectId: number; model: BimModel })
                   {v.elementCount} elements · {v.storeyCount ?? 0} storeys
                 </span>
               )}
-              {isBimVersionInProgress(v.status) && (
-                <span className="text-xs text-zinc-500">Import in progress</span>
-              )}
             </div>
+            {isBimVersionInProgress(v.status) && (
+              <div className="mt-2">
+                <VersionImportStatus modelId={model.id} versionId={v.id} />
+              </div>
+            )}
             {v.status === 'FAILED' && v.error && (
               <p className="mt-1 text-sm text-red-700 dark:text-red-400">{v.error}</p>
             )}
@@ -161,4 +165,24 @@ function ModelCard({ projectId, model }: { projectId: number; model: BimModel })
       </CardContent>
     </Card>
   );
+}
+
+/**
+ * The live import of a version that is not READY yet: polls its latest job
+ * and, through `ImportJobStatus`, invalidates the BIM cache when the job
+ * settles, so the card picks up the version's status, schema and counts
+ * without a reload. The upload dialog closes as soon as the job is queued,
+ * so this is where the progress is watched (web #462, #463).
+ */
+function VersionImportStatus({ modelId, versionId }: { modelId: string; versionId: string }) {
+  const { data: jobs } = useBimImportJobs(modelId, versionId);
+  const job = jobs ? pickVersionJob(jobs) : undefined;
+  if (!job) {
+    return (
+      <span className="text-xs text-zinc-500" data-testid="bim-version-waiting">
+        Import in progress
+      </span>
+    );
+  }
+  return <ImportJobStatus jobId={job.id} />;
 }

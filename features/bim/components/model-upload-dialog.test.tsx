@@ -84,6 +84,13 @@ mock.module('@tornotron/echno-core/bim/services', () => ({
     getJob,
   },
 }));
+const toasts: string[] = [];
+mock.module('sonner', () => ({
+  toast: {
+    success: (m: string) => toasts.push(`success:${m}`),
+    error: (m: string) => toasts.push(`error:${m}`),
+  },
+}));
 mock.module('@tornotron/echno-core/attachment/services', () => ({
   ...realAttachmentServices,
   attachmentService: { ...realAttachmentServices.attachmentService, putToStorage },
@@ -124,6 +131,7 @@ function uploadButton(): HTMLButtonElement | undefined {
 
 afterEach(() => {
   cleanup();
+  toasts.length = 0;
   created.length = 0;
   presigned.length = 0;
   isManagerOrAbove = true;
@@ -149,9 +157,11 @@ describe('ModelUploadDialog, "New model" path', () => {
     // The presign is the first call bound to a model id; without the override
     // the upload hook returned early with no id and this list stayed empty.
     await waitFor(() => expect(presigned).toEqual([CREATED]));
-    await waitFor(() =>
-      expect(document.body.querySelector('[data-testid="import-job-status"]')).not.toBeNull()
-    );
+    // web #462: once the job is queued the dialog closes and hands the
+    // progress to the model card; it no longer narrates the job itself.
+    await waitFor(() => expect(document.body.querySelector('#bim-file')).toBeNull());
+    expect(toasts.some((t) => t.startsWith('success:IFC uploaded'))).toBe(true);
+    expect(document.body.querySelector('[data-testid="import-job-status"]')).toBeNull();
   });
 
   test('a second upload after a failed first one reuses the created model', async () => {

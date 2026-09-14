@@ -42,7 +42,7 @@ import {
 } from '@/components/shadcn/card';
 import { toast } from '@/lib/styles/toast-styles';
 import { cn } from '@/lib/utils/index';
-import { parseSpatialImportText } from '../lib/import-rows';
+import { importSummary, parseSpatialImportText } from '../lib/import-rows';
 
 interface SiteStructureTabProps {
   projectId: number;
@@ -378,9 +378,7 @@ function ImportPanel({ projectId }: { projectId: number }) {
       { rows: parsed.rows },
       {
         onSuccess: (result) => {
-          toast.success(
-            `Imported ${result.created} node${result.created === 1 ? '' : 's'}, ${result.skipped} already there`
-          );
+          toast.success(importSummary(parsed.rows.length, result.created, result.skipped));
           setText('');
         },
         onError: (error) => toast.error(getErrorMessage(error)),
