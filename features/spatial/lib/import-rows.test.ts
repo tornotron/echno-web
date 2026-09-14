@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { parseSpatialImportText } from './import-rows';
+import { importSummary, parseSpatialImportText } from './import-rows';
 
 describe('parseSpatialImportText', () => {
   test('reads a headed CSV into import rows', () => {
@@ -28,5 +28,14 @@ describe('parseSpatialImportText', () => {
     expect(errors).toHaveLength(2);
     expect(errors[0]).toContain('line 2');
     expect(errors[1]).toContain('line 3');
+  });
+});
+
+describe('importSummary', () => {
+  // web #463 item 3: four rows sharing a building and a floor visit sixteen
+  // nodes; the toast says rows and nodes apart so the count reads right.
+  test('names the rows and the nodes separately', () => {
+    expect(importSummary(4, 12, 4)).toBe('Imported 4 rows: 12 nodes created, 4 already there');
+    expect(importSummary(1, 1, 0)).toBe('Imported 1 row: 1 node created, 0 already there');
   });
 });

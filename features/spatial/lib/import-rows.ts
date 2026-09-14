@@ -131,3 +131,15 @@ export function parseSpatialImportText(text: string): ImportParseResult {
 
   return { rows, errors };
 }
+
+/**
+ * The backend counts nodes, not rows: every level of a row is one node
+ * visited, created or found, so four rows under one building and one floor
+ * report more nodes than rows (web #463). Saying both keeps the toast honest.
+ */
+export function importSummary(rows: number, created: number, skipped: number): string {
+  const rowWord = rows === 1 ? 'row' : 'rows';
+  const nodeWord = created === 1 ? 'node' : 'nodes';
+  return `Imported ${rows} ${rowWord}: ${created} ${nodeWord} created, ${skipped} already there`;
+}
+

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Maximize2, Scissors } from 'lucide-react';
+import { Loader2, Maximize2, Scissors } from 'lucide-react';
 import {
   useBimElementByGlobalId,
   useBimTiles,
@@ -274,6 +274,16 @@ export function BimViewerShell({
 
       <div className="relative h-[60vh] min-h-[320px] overflow-hidden rounded-md border bg-zinc-50 md:h-auto md:min-h-0 dark:bg-zinc-950">
         <div ref={containerRef} className="absolute inset-0" data-testid="bim-canvas" />
+        {!engineReady && !error && (
+          <div
+            className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-zinc-500"
+            data-testid="bim-canvas-loading"
+            role="status"
+          >
+            <Loader2 className="size-5 animate-spin" />
+            Loading the 3D viewer
+          </div>
+        )}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center p-4 text-sm text-red-700">
             Could not load the tile manifest. {error.message}

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { Upload } from 'lucide-react';
+import { toast } from 'sonner';
 import { useCreateBimModel } from '@tornotron/echno-core/bim/hooks';
 import type { BimModel } from '@tornotron/echno-core/bim/types';
 import { Button } from '@/components/shadcn/button';
@@ -26,7 +27,6 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import { useBimSourceUpload, type BimUploadStage } from '../lib/use-bim-source-upload';
-import { ImportJobStatus } from './import-job-status';
 
 const STAGE_LABELS: Record<BimUploadStage, string> = {
   idle: '',
@@ -50,7 +50,10 @@ interface ModelUploadDialogProps {
 
 /**
  * Uploads an IFC as the next version of a model: presigned PUT to the object
- * store, register, queue the worker, then narrate the job until it is DONE.
+ * store, register, make sure the worker import is queued. Once the job is
+ * queued the dialog closes and the model card's version row narrates the
+ * import until it is DONE (web #462); a dialog left open on a job the worker
+ * finished in a fraction of a second only got in the way.
  *
  * Rendered only for managers and above: the backend refuses the upload to
  * anyone else, so a member should not be offered a button that ends in a
@@ -78,6 +81,13 @@ export function ModelUploadDialog({
     [createModel.isPending, state.stage]
   );
 
+  // The upload is over once the job is queued: hand over to the model card.
+  function settle(outcome: { stage: BimUploadStage }) {
+    if (outcome.stage !== 'done') return;
+    toast.success('IFC uploaded. The import is queued; its progress shows on the model card.');
+    onOpenChange(false);
+  }
+
   async function start() {
     if (!file) return;
     if (choice === NEW_MODEL) {
@@ -92,10 +102,10 @@ export function ModelUploadDialog({
       // creating a second one, and hand the id straight to the upload: the
       // hook's bound id only catches up on the next render (web #454).
       setChoice(model.id);
-      await upload(file, model.id);
+      settle(await upload(file, model.id));
       return;
     }
-    await upload(file);
+    settle(await upload(file));
   }
 
   function onOpenChange(next: boolean) {
@@ -130,7 +140,7 @@ export function ModelUploadDialog({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="bim-model">Model</Label>
-            <Select value={choice} onValueChange={setChoice} disabled={busy || state.stage === 'done'}>
+            <Select value={choice} onValueChange={setChoice} disabled={busy}>
               <SelectTrigger id="bim-model">
                 <SelectValue placeholder="Choose a model" />
               </SelectTrigger>
@@ -167,7 +177,7 @@ export function ModelUploadDialog({
               id="bim-file"
               type="file"
               accept=".ifc,.ifczip"
-              disabled={busy || state.stage === 'done'}
+              disabled={busy}
               onChange={(e) => setFile(e.target.files?.[0])}
             />
           </div>
@@ -177,7 +187,7 @@ export function ModelUploadDialog({
               Could not create the model. {createModel.error.message}
             </p>
           )}
-          {state.stage !== 'idle' && state.stage !== 'done' && (
+          {state.stage !== 'idle' && (
             <div className="space-y-2" data-testid="upload-stage" data-stage={state.stage}>
               <div className="text-sm">{STAGE_LABELS[state.stage]}</div>
               {state.stage === 'put' && <Progress value={state.progress} />}
@@ -186,18 +196,13 @@ export function ModelUploadDialog({
               )}
             </div>
           )}
-          {state.stage === 'done' && <ImportJobStatus jobId={state.jobId} />}
         </div>
 
         <DialogFooter>
-          {state.stage === 'done' ? (
-            <Button onClick={() => onOpenChange(false)}>Close</Button>
-          ) : (
-            <Button onClick={() => void start()} disabled={!file || busy}>
-              <Upload className="size-4" />
-              Upload and import
-            </Button>
-          )}
+          <Button onClick={() => void start()} disabled={!file || busy}>
+            <Upload className="size-4" />
+            Upload and import
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -8,6 +8,7 @@ import { createElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render } from '@testing-library/react';
 import * as realBimHooks from '@tornotron/echno-core/bim/hooks';
+import * as realSpatialHooks from '@tornotron/echno-core/spatial/hooks';
 
 const MODEL = '11111111-1111-1111-1111-111111111111';
 const VERSION = '22222222-2222-2222-2222-222222222222';
@@ -35,6 +36,14 @@ mock.module('@tornotron/echno-core/bim/hooks', () => ({
   useConfirmBimHierarchy: mutation,
 }));
 
+// The project's tree as the site team built it since the proposal was
+// stored: Block B was imported from CSV with the IFC's GlobalId on it.
+let tree: unknown[] = [];
+mock.module('@tornotron/echno-core/spatial/hooks', () => ({
+  ...realSpatialHooks,
+  useSpatialTree: () => ({ data: tree, isLoading: false }),
+}));
+
 let isManagerOrAbove = true;
 mock.module('@/hooks/use-authorization', () => ({
   useAuthorization: () => ({ isManagerOrAbove, isLoading: false }),
@@ -56,9 +65,44 @@ function renderReview() {
 afterEach(() => {
   cleanup();
   isManagerOrAbove = true;
+  tree = [];
 });
 
 describe('HierarchyProposalReview', () => {
+  // web #463: the stored proposal says "new" for every node, but confirm
+  // matches by GlobalId against the current tree, so the preview must too.
+  test('a node whose GlobalId is already in the project tree is labelled matched', () => {
+    tree = [
+      {
+        id: 'n-b1',
+        projectId: 7,
+        level: 'BUILDING',
+        code: 'B1',
+        name: 'Block B',
+        bimElementGuid: 'B1',
+        children: [],
+      },
+    ];
+    const view = renderReview();
+    const rows = view.getByTestId('hierarchy-proposal');
+    const buildingButton = [...rows.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Block B')
+    );
+    expect(buildingButton?.textContent).toContain('matched');
+    expect(buildingButton?.textContent).not.toContain('new');
+    const floorButton = [...rows.querySelectorAll('button')].find((b) =>
+      b.textContent?.includes('Level 1')
+    );
+    expect(floorButton?.textContent).toContain('new');
+    expect(rows.textContent).toContain('1 matched');
+  });
+
+  test('with no tree match the stored labels stand', () => {
+    const view = renderReview();
+    const rows = view.getByTestId('hierarchy-proposal');
+    expect(rows.textContent).not.toContain('matched');
+  });
+
   test('a manager sees the regenerate and confirm buttons', () => {
     const view = renderReview();
     expect(view.getByTestId('hierarchy-proposal-actions').textContent).toContain('Regenerate');

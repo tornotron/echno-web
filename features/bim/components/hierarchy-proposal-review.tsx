@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -12,10 +12,12 @@ import type {
   ProposedBimBuilding,
   ProposedBimFloor,
 } from '@tornotron/echno-core/bim/types';
+import { useSpatialTree } from '@tornotron/echno-core/spatial/hooks';
 import { Badge } from '@/components/shadcn/badge';
 import { Button } from '@/components/shadcn/button';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { useAuthorization } from '@/hooks/use-authorization';
+import { countMatchedStructure, matchedNodeFor, spatialGuidIndex } from '../lib/proposal-matching';
 
 interface HierarchyProposalReviewProps {
   projectId: number;
@@ -26,7 +28,11 @@ interface HierarchyProposalReviewProps {
 /**
  * The site structure the worker read from the IFC's spatial containment,
  * pending confirmation into the project's `Building > Floor > Zone > Element`
- * tree. Nodes that already exist show as matched; the rest are created.
+ * tree. Nodes that already exist show as matched; the rest are created. The
+ * match is looked up against the project's current tree by IFC GlobalId, the
+ * same lookup confirm runs, so a node created since the proposal was stored
+ * (a CSV import, say) reads "matched" here as it will in the result
+ * (web #463).
  *
  * The regenerate and confirm buttons show only to managers and above, the
  * roles the backend accepts them from (web #456).
@@ -37,6 +43,8 @@ export function HierarchyProposalReview({
   versionId,
 }: HierarchyProposalReviewProps) {
   const { data: proposal, isLoading } = useBimHierarchyProposal(modelId, versionId);
+  const { data: tree } = useSpatialTree(projectId, true);
+  const index = useMemo(() => spatialGuidIndex(tree), [tree]);
   const regenerate = useRegenerateBimHierarchyProposal(modelId, projectId);
   const confirm = useConfirmBimHierarchy(modelId, projectId);
   const { isManagerOrAbove } = useAuthorization();
@@ -46,6 +54,7 @@ export function HierarchyProposalReview({
 
   const counts = proposal.counts;
   const confirmed = !!proposal.confirmedAt;
+  const matched = Math.max(counts.matched ?? 0, countMatchedStructure(proposal, index));
 
   function run(includeElements: boolean) {
     confirm.mutate(
@@ -71,7 +80,7 @@ export function HierarchyProposalReview({
         <Badge variant="secondary">{counts.floors ?? 0} floors</Badge>
         <Badge variant="secondary">{counts.zones ?? 0} zones</Badge>
         <Badge variant="secondary">{counts.elements ?? 0} elements</Badge>
-        {counts.matched ? <Badge variant="outline">{counts.matched} matched</Badge> : null}
+        {matched ? <Badge variant="outline">{matched} matched</Badge> : null}
         {counts.unplaced ? (
           <Badge variant="outline">{counts.unplaced} without a storey</Badge>
         ) : null}
@@ -84,7 +93,7 @@ export function HierarchyProposalReview({
 
       <div className="rounded-md border">
         {proposal.buildings.map((b) => (
-          <BuildingRow key={b.globalId || b.code} building={b} />
+          <BuildingRow key={b.globalId || b.code} building={b} index={index} />
         ))}
         {proposal.buildings.length === 0 && (
           <p className="p-3 text-sm text-zinc-500">The IFC carries no building.</p>
@@ -117,7 +126,7 @@ export function HierarchyProposalReview({
   );
 }
 
-function BuildingRow({ building }: { building: ProposedBimBuilding }) {
+function BuildingRow({ building, index }: { building: ProposedBimBuilding; index: Map<string, string> }) {
   const [open, setOpen] = useState(true);
   return (
     <div className="border-b last:border-b-0">
@@ -128,15 +137,17 @@ function BuildingRow({ building }: { building: ProposedBimBuilding }) {
       >
         {open ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
         {building.code} {building.name}
-        <MatchBadge matched={!!building.matchedNodeId} />
+        <MatchBadge matched={!!matchedNodeFor(building, index)} />
       </button>
       {open &&
-        building.floors.map((f) => <FloorRow key={f.globalId || f.code} floor={f} />)}
+        building.floors.map((f) => (
+          <FloorRow key={f.globalId || f.code} floor={f} index={index} />
+        ))}
     </div>
   );
 }
 
-function FloorRow({ floor }: { floor: ProposedBimFloor }) {
+function FloorRow({ floor, index }: { floor: ProposedBimFloor; index: Map<string, string> }) {
   const [open, setOpen] = useState(false);
   const elementCount = floor.zones.reduce((n, z) => n + z.elements.length, 0);
   return (
@@ -152,7 +163,7 @@ function FloorRow({ floor }: { floor: ProposedBimFloor }) {
         <span className="text-xs text-zinc-500">
           {floor.zones.length} zones · {elementCount} elements
         </span>
-        <MatchBadge matched={!!floor.matchedNodeId} />
+        <MatchBadge matched={!!matchedNodeFor(floor, index)} />
       </button>
       {open &&
         floor.zones.map((z) => (
@@ -162,7 +173,7 @@ function FloorRow({ floor }: { floor: ProposedBimFloor }) {
               <span className="text-zinc-600 dark:text-zinc-400">{z.name}</span>
               {z.defaultZone && <span className="text-xs text-zinc-500">(default zone)</span>}
               <span className="text-xs text-zinc-500">{z.elements.length} elements</span>
-              <MatchBadge matched={!!z.matchedNodeId} />
+              <MatchBadge matched={!!matchedNodeFor(z, index)} />
             </div>
           </div>
         ))}

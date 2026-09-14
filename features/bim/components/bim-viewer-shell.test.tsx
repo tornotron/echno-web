@@ -174,6 +174,19 @@ function recorder(refuse: Refusal = () => {}): Recorder {
   return engine;
 }
 
+// The default engine is the on-demand three.js import, an async step the
+// shell sits through with an empty canvas; a recorder stands in for three so
+// the shell can be observed between mount and the engine being ready
+// (web #463).
+const defaultEngineRecorder = recorder();
+let defaultEngineCreated = 0;
+mock.module('../lib/viewer-engine', () => ({
+  createViewerEngine: () => {
+    defaultEngineCreated += 1;
+    return defaultEngineRecorder;
+  },
+}));
+
 function renderShell(engine: Recorder, props: Partial<Parameters<typeof BimViewerShell>[0]> = {}) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -299,5 +312,25 @@ describe('BimViewerShell', () => {
     renderShell(engine, { initialElement: element.globalId });
     await waitFor(() => expect(engine.loads.map((l) => l.key)).toContain('S1'));
     await waitFor(() => expect(engine.selections).toContain(element.globalId));
+  });
+
+  test('the canvas shows a loading state until the engine is ready', async () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    const view = render(
+      createElement(
+        QueryClientProvider,
+        { client },
+        createElement(BimViewerShell, { projectId: 7, modelId: MODEL, versionId: VERSION })
+      )
+    );
+    const loading = view.getByTestId('bim-canvas-loading');
+    expect(loading.textContent).toContain('Loading the 3D viewer');
+    // The engine import settles on a later tick; flush it inside act rather
+    // than through waitFor, which holds the act scope open around it.
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
+    expect(defaultEngineCreated).toBe(1);
+    expect(view.queryByTestId('bim-canvas-loading')).toBeNull();
   });
 });
