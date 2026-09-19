@@ -49,6 +49,10 @@ describe('resolveManagerId', () => {
   test('spells the first-employee case as an explicit null', () => {
     expect(resolveManagerId('', 'exempt')).toEqual({ managerId: null });
   });
+
+  test('ignores a stale selection once the organization is exempt', () => {
+    expect(resolveManagerId('5', 'exempt')).toEqual({ managerId: null });
+  });
 });
 
 describe('managerFieldErrorFrom', () => {

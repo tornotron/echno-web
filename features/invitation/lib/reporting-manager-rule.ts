@@ -52,11 +52,13 @@ export function resolveManagerId(
   selected: string,
   requirement: ManagerRequirement
 ): { managerId: number | null } | { error: string } {
+  // The exemption wins over a selection: the picker is hidden for an exempt
+  // organization, so anything still held from before the list loaded is stale.
+  if (requirement === 'exempt') return { managerId: null };
   if (selected) {
     const id = Number.parseInt(selected, 10);
     if (Number.isInteger(id) && id > 0) return { managerId: id };
   }
-  if (requirement === 'exempt') return { managerId: null };
   return { error: MANAGER_REQUIRED_MESSAGE };
 }
 
