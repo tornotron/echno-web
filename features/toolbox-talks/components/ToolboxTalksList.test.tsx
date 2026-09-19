@@ -7,7 +7,13 @@ import { afterEach, describe, expect, mock, test } from 'bun:test';
 import { cleanup, render } from '@testing-library/react';
 
 let listState: {
-  data: { content: { id: string; name: string; description: string }[]; page: number; totalPages: number } | undefined;
+  data:
+    | {
+        content: { id: string; name: string; description: string }[];
+        page: number;
+        totalPages: number;
+      }
+    | undefined;
   isLoading: boolean;
   isError: boolean;
   error: unknown;
@@ -39,7 +45,9 @@ describe('ToolboxTalksList', () => {
   test('renders the rows the hook returns', () => {
     listState = {
       data: {
-        content: [{ id: '1', name: 'First record', description: 'From the hook' }],
+        content: [
+          { id: '1', name: 'First record', description: 'From the hook' },
+        ],
         page: 0,
         totalPages: 1,
       },
