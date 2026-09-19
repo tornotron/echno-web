@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-09-13
+ * Generated: 2026-09-19
  */
 
 const BASE = '/users/dashboard';
@@ -245,6 +245,8 @@ export const routes = {
       }),
     },
   },
+
+  toolboxTalks: b('/toolbox-talks'),
 
   workforce: {
     href: b('/workforce'),
