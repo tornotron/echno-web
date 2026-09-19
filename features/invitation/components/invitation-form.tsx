@@ -44,9 +44,18 @@ import {
 import type { Invitation } from '@tornotron/echno-core/invitation/types';
 import { useGenerateInviteCode } from '@tornotron/echno-core/invitation/hooks';
 import { useUser } from '@tornotron/echno-core/user/hooks';
-import { useManagers } from '@tornotron/echno-core/employee/hooks';
+import {
+  useEmployeeLookup,
+  useManagers,
+} from '@tornotron/echno-core/employee/hooks';
 import { useShifts } from '@tornotron/echno-core/shift-timing/hooks';
 import { InvitationQRCode } from './invitation-qr-code';
+import {
+  FIRST_EMPLOYEE_NOTE,
+  managerFieldErrorFrom,
+  managerRequirement,
+  resolveManagerId,
+} from '../lib/reporting-manager-rule';
 
 // Sentinel Select value for "no shift assigned" (shadcn Select forbids an
 // empty-string item value).
@@ -66,6 +75,11 @@ export function InvitationForm() {
   const generateMutation = useGenerateInviteCode();
   const { data: managers = [], isLoading: managersLoading } = useManagers();
   const { data: shifts = [] } = useShifts();
+  // A new employee must have a reporting manager; the first employee of an
+  // organization is the one exception. Only active employees count.
+  const { data: employeeLookup } = useEmployeeLookup();
+  const requirement = managerRequirement(employeeLookup);
+  const [managerError, setManagerError] = useState<string | null>(null);
 
   // Resolves a shift-timing id to a human label for print/share output.
   const shiftLabel = (id?: number | null): string | null => {
@@ -117,6 +131,14 @@ export function InvitationForm() {
       return;
     }
 
+    const manager = resolveManagerId(formData.managerId, requirement);
+    if ('error' in manager) {
+      setManagerError(manager.error);
+      toast.error(manager.error);
+      return;
+    }
+    setManagerError(null);
+
     generateMutation.mutate(
       {
         organizationId: user.defaultOrganizationId,
@@ -133,9 +155,7 @@ export function InvitationForm() {
           salary: formData.salary
             ? Number.parseFloat(formData.salary)
             : undefined,
-          managerId: formData.managerId
-            ? Number.parseInt(formData.managerId, 10)
-            : undefined,
+          managerId: manager.managerId ?? undefined,
           shiftTimingId: formData.shiftTimingId
             ? Number.parseInt(formData.shiftTimingId, 10)
             : undefined,
@@ -150,6 +170,12 @@ export function InvitationForm() {
           });
         },
         onError: (error) => {
+          const fieldError = managerFieldErrorFrom(error);
+          if (fieldError) {
+            setManagerError(fieldError);
+            toast.error(fieldError);
+            return;
+          }
           toast.error('Failed to Generate Invitation', {
             description:
               error instanceof Error ? error.message : 'Please try again.',
@@ -637,20 +663,36 @@ export function InvitationForm() {
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="managerId">Reporting Manager</Label>
+                  <Label htmlFor="managerId">
+                    Reporting Manager
+                    {requirement !== 'exempt' && ' *'}
+                  </Label>
+                  {requirement === 'exempt' ? (
+                    <p
+                      className="text-muted-foreground text-sm"
+                      data-testid="first-employee-note"
+                    >
+                      {FIRST_EMPLOYEE_NOTE}
+                    </p>
+                  ) : (
                   <Select
                     value={formData.managerId}
-                    onValueChange={(value) =>
-                      setFormData({ ...formData, managerId: value })
-                    }
+                    onValueChange={(value) => {
+                      setManagerError(null);
+                      setFormData({ ...formData, managerId: value });
+                    }}
                     disabled={isGenerated}
                   >
-                    <SelectTrigger id="managerId">
+                    <SelectTrigger
+                      id="managerId"
+                      aria-invalid={managerError ? true : undefined}
+                      aria-describedby={managerError ? 'managerId-error' : undefined}
+                    >
                       <SelectValue
                         placeholder={
                           managersLoading
                             ? 'Loading managers...'
-                            : 'Select manager (optional)'
+                            : 'Select manager'
                         }
                       />
                     </SelectTrigger>
@@ -670,6 +712,16 @@ export function InvitationForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  )}
+                  {managerError && requirement !== 'exempt' && (
+                    <p
+                      id="managerId-error"
+                      className="text-destructive text-sm"
+                      role="alert"
+                    >
+                      {managerError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
