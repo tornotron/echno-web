@@ -119,4 +119,40 @@ describe('ToolboxTalksForm', () => {
     });
     expect(create.mutate).not.toHaveBeenCalled();
   });
+
+  test('will not submit a conductor who has since gone inactive', () => {
+    const talk = {
+      id: 't-2',
+      projectId: 7,
+      spatialNodeId: undefined,
+      topic: 'Working at height',
+      talkDate: '2026-09-19',
+      talkTime: '07:30:00',
+      conductorEmployeeId: 22, // Gone Person: inactive in the mock roster
+      notes: '',
+      status: 'DRAFT' as const,
+      attendees: [],
+    };
+    const { getByLabelText, getByRole, getByText } = render(
+      createElement(ToolboxTalksForm, { talk, onSaved: noop, onCancel: noop })
+    );
+
+    expect(
+      getByText(/Gone Person is no longer an active employee/)
+    ).not.toBeNull();
+
+    fireEvent.submit(getByRole('form', { name: 'Edit toolbox talk' }));
+    expect(update.mutate).not.toHaveBeenCalled();
+
+    fireEvent.change(getByLabelText('Conducted by'), {
+      target: { value: '21' },
+    });
+    fireEvent.submit(getByRole('form', { name: 'Edit toolbox talk' }));
+
+    expect(update.mutate).toHaveBeenCalledTimes(1);
+    expect(update.mutate.mock.calls[0]?.[0]).toMatchObject({
+      id: 't-2',
+      data: { conductorEmployeeId: 21 },
+    });
+  });
 });
