@@ -65,6 +65,20 @@ export function ToolboxTalksForm({
       employees.filter((employee) => employee.status === EmployeeStatus.active),
     [employees]
   );
+  const conductorIsActive = active.some(
+    (employee) => String(employee.id) === conductorId
+  );
+  /** The talk's original conductor, when they have since gone inactive: the
+   * select only lists active employees, so this id has no matching option
+   * and the form must be re-picked rather than silently resubmit it. */
+  const staleConductorName = useMemo(() => {
+    if (!talk || conductorIsActive) return;
+    const original = String(talk.conductorEmployeeId);
+    return (
+      employees.find((employee) => String(employee.id) === original)?.name ??
+      `Employee #${talk.conductorEmployeeId}`
+    );
+  }, [talk, conductorIsActive, employees]);
   const crew = useMemo(() => {
     const needle = search.trim().toLowerCase();
     return needle
@@ -85,7 +99,7 @@ export function ToolboxTalksForm({
   const valid =
     topic.trim() !== '' &&
     talkDate !== '' &&
-    conductorId !== '' &&
+    conductorIsActive &&
     projectId !== '';
 
   const toggleAttendee = (id: number, checked: boolean) => {
@@ -169,6 +183,12 @@ export function ToolboxTalksForm({
               </option>
             ))}
           </select>
+          {staleConductorName && (
+            <p role="alert" className="text-destructive text-sm">
+              {staleConductorName} is no longer an active employee. Pick a
+              replacement conductor.
+            </p>
+          )}
         </div>
       </div>
 
