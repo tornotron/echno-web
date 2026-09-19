@@ -12,7 +12,8 @@
     "preinstall": "npx only-allow bun",
     "prepare": "husky",
     "routes:generate": "node --experimental-strip-types scripts/generate-routes.ts",
-    "routes:watch": "node --experimental-strip-types scripts/watch-routes.ts"
+    "routes:watch": "node --experimental-strip-types scripts/watch-routes.ts",
+    "scaffold:feature": "bun scripts/scaffold-feature.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

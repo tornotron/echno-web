@@ -449,6 +449,24 @@ npm run test:coverage
 npm run type-check
 ```
 
+### Scaffolding a module feature
+
+```bash
+bun run scaffold:feature toolbox-talks "Toolbox Talks"
+```
+
+The id is the module id from the backend manifest (`[a-z][a-z0-9-]*`). The command writes
+`features/<id>/` (`module.config.ts`, a list and a form component on the core hooks from
+`@tornotron/echno-core/<id>/hooks`, tests), the route segment `app/users/dashboard/<id>/` with a
+`ModuleGuard` layout, `nav/metadata/<id>.meta.ts`, registers it in `nav/metadata/index.ts`, adds and
+grants `<id>:read` in `nav/access/roles.ts`, and regenerates the route tables. It refuses an id that
+fails the pattern or already exists. Templates live in `scripts/scaffold/templates/`; the
+`scaffold-check` job in the pull-request workflow generates a throwaway `ci-probe` feature from them on
+every PR, so a template that drifts from the app fails that PR.
+
+The core side of the same module comes from `bun run scaffold:domain <id>` in echno-core; bump
+`@tornotron/echno-core` to the version that publishes `<id>/hooks` before building the feature out.
+
 ### Code Style
 
 This project follows:

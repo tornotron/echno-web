@@ -1,0 +1,27 @@
+/** Type stand-in for `@tornotron/echno-core/__MODULE_ID__/types`; see hooks.ts. */
+export interface __MODULE_PASCAL__ {
+  id: string;
+  name: string;
+  description: string;
+  projectId?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+export interface Create__MODULE_PASCAL__Request {
+  name: string;
+  description?: string;
+  projectId?: number;
+}
+export type Update__MODULE_PASCAL__Request = Partial<Create__MODULE_PASCAL__Request>;
+export interface __MODULE_PASCAL__ListParams {
+  projectId?: number;
+  page?: number;
+  size?: number;
+}
+export interface __MODULE_PASCAL__Page {
+  content: __MODULE_PASCAL__[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

@@ -1,0 +1,75 @@
+'use client';
+
+import { useState, type FormEvent } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useCreate__MODULE_PASCAL__ } from '@tornotron/echno-core/__MODULE_ID__/hooks';
+import { getErrorMessage } from '@tornotron/echno-core';
+import { Button } from '@/components/shadcn/button';
+import { Input } from '@/components/shadcn/input';
+import { Label } from '@/components/shadcn/label';
+import { Textarea } from '@/components/shadcn/textarea';
+
+interface __MODULE_PASCAL__FormProps {
+  /** Called after a successful create, or when the user cancels. */
+  onDone: () => void;
+}
+
+/**
+ * Records one __MODULE_NAME__ entry through `useCreate__MODULE_PASCAL__`.
+ * Replace the fields with the module's real request shape.
+ */
+export function __MODULE_PASCAL__Form({ onDone }: __MODULE_PASCAL__FormProps) {
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const create = useCreate__MODULE_PASCAL__();
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    create.mutate(
+      { name: trimmed, description: description.trim() || undefined },
+      { onSuccess: onDone }
+    );
+  };
+
+  return (
+    <form
+      onSubmit={submit}
+      className="flex flex-col gap-3 rounded-md border p-4"
+      data-testid="__MODULE_ID__-form"
+    >
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="__MODULE_ID__-name">Name</Label>
+        <Input
+          id="__MODULE_ID__-name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          required
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <Label htmlFor="__MODULE_ID__-description">Description</Label>
+        <Textarea
+          id="__MODULE_ID__-description"
+          value={description}
+          onChange={(event) => setDescription(event.target.value)}
+        />
+      </div>
+      {create.isError && (
+        <p role="alert" className="text-sm text-destructive">
+          {getErrorMessage(create.error)}
+        </p>
+      )}
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={onDone}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={create.isPending || !name.trim()}>
+          {create.isPending && <Loader2 className="size-4 animate-spin" />}
+          Save
+        </Button>
+      </div>
+    </form>
+  );
+}

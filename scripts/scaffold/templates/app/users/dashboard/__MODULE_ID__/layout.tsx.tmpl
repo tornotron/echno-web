@@ -1,0 +1,9 @@
+import { ModuleGuard } from '@/components/providers/module-guard';
+
+export default function __MODULE_PASCAL__Layout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <ModuleGuard moduleId="__MODULE_ID__">{children}</ModuleGuard>;
+}

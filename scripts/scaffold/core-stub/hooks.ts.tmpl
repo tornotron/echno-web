@@ -1,0 +1,33 @@
+/**
+ * Type stand-in for `@tornotron/echno-core/__MODULE_ID__/hooks`, used only by
+ * the `scaffold-check` CI job: the probe's core subpath is never published,
+ * so `tsc` resolves it here through `tsconfig.scaffold-check.json`.
+ *
+ * It mirrors what echno-core's `scripts/scaffold/templates/hooks/` generates.
+ * When that template changes its hook names or shapes, change this file too.
+ */
+import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query';
+import type {
+  __MODULE_PASCAL__,
+  __MODULE_PASCAL__ListParams,
+  __MODULE_PASCAL__Page,
+  Create__MODULE_PASCAL__Request,
+  Update__MODULE_PASCAL__Request,
+} from './types';
+
+export declare function use__MODULE_PASCAL__List(
+  params?: __MODULE_PASCAL__ListParams
+): UseQueryResult<__MODULE_PASCAL__Page>;
+export declare function use__MODULE_PASCAL__(
+  id: string | undefined
+): UseQueryResult<__MODULE_PASCAL__>;
+export declare function useCreate__MODULE_PASCAL__(): UseMutationResult<
+  __MODULE_PASCAL__,
+  Error,
+  Create__MODULE_PASCAL__Request
+>;
+export declare function useUpdate__MODULE_PASCAL__(): UseMutationResult<
+  __MODULE_PASCAL__,
+  Error,
+  { id: string; data: Update__MODULE_PASCAL__Request }
+>;

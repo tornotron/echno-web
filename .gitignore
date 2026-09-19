@@ -52,3 +52,4 @@ commit-msg.md
 # build/report artifacts
 lint_report.txt
 tsconfig.tsbuildinfo
+scripts/scaffold/.stub/
