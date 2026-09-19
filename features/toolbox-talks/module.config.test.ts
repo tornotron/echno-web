@@ -11,14 +11,19 @@ import { toolboxTalksMetadata } from '@/nav/metadata/toolbox-talks.meta';
 import { toolboxTalksModule } from './module.config';
 
 const layout = readFileSync(
-  new URL('../../app/users/dashboard/toolbox-talks/layout.tsx', import.meta.url),
+  new URL(
+    '../../app/users/dashboard/toolbox-talks/layout.tsx',
+    import.meta.url
+  ),
   'utf8'
 );
 
 describe('Toolbox Talks module wiring', () => {
   test('the entitlement key follows the module id', () => {
     expect(toolboxTalksModule.id).toBe('toolbox-talks');
-    expect(toolboxTalksModule.entitlementFeatureKey).toBe('MODULE_TOOLBOX_TALKS');
+    expect(toolboxTalksModule.entitlementFeatureKey).toBe(
+      'MODULE_TOOLBOX_TALKS'
+    );
   });
 
   test('the nav entry and the metadata gate on the same permission', () => {
@@ -27,7 +32,9 @@ describe('Toolbox Talks module wiring', () => {
     expect(entry.access?.permissions).toEqual(
       toolboxTalksModule.nav[0].requiredPermissions
     );
-    expect(toolboxTalksModule.nav[0].path).toBe('/users/dashboard/toolbox-talks');
+    expect(toolboxTalksModule.nav[0].path).toBe(
+      '/users/dashboard/toolbox-talks'
+    );
   });
 
   test('every role holds the read permission; the module gate is the entitlement', () => {
