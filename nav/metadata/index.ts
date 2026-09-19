@@ -18,6 +18,7 @@ import { resourcesMetadata } from './resources.meta';
 import { thirdPartyMetadata } from './third-party.meta';
 import { workforceMetadata } from './workforce.meta';
 import { miscMetadata } from './misc.meta';
+import { toolboxTalksMetadata } from './toolbox-talks.meta';
 
 function validateMetadataModules(
   modules: Record<string, MetadataRegistry>
@@ -59,6 +60,7 @@ export const metadataRegistry: MetadataRegistry = validateMetadataModules({
   thirdPartyMetadata,
   workforceMetadata,
   miscMetadata,
+  toolboxTalksMetadata,
 });
 
 export { rootMetadata } from './root.meta';
@@ -72,3 +74,4 @@ export { resourcesMetadata } from './resources.meta';
 export { thirdPartyMetadata } from './third-party.meta';
 export { workforceMetadata } from './workforce.meta';
 export { miscMetadata } from './misc.meta';
+export { toolboxTalksMetadata } from './toolbox-talks.meta';
