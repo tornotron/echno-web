@@ -44,7 +44,8 @@ export type Permission =
   | 'inspections:manage'
   | 'bim:view'
   | 'bim:manage'
-  | 'toolbox-talks:read';
+  | 'toolbox-talks:read'
+  | 'toolbox-talks:manage';
 
 // ---------------------------------------------------------------------------
 // Access config
@@ -134,8 +135,22 @@ export const BILLING_ACCESS: AccessConfig = {
  * be denied a permission other roles hold; today none is.
  */
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  admin: ['inspections:view', 'inspections:manage', 'bim:view', 'bim:manage', 'toolbox-talks:read'],
-  manager: ['inspections:view', 'inspections:manage', 'bim:view', 'bim:manage', 'toolbox-talks:read'],
+  admin: [
+    'inspections:view',
+    'inspections:manage',
+    'bim:view',
+    'bim:manage',
+    'toolbox-talks:read',
+    'toolbox-talks:manage',
+  ],
+  manager: [
+    'inspections:view',
+    'inspections:manage',
+    'bim:view',
+    'bim:manage',
+    'toolbox-talks:read',
+    'toolbox-talks:manage',
+  ],
   employee: ['inspections:view', 'bim:view', 'toolbox-talks:read'],
 };
 

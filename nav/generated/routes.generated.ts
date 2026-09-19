@@ -1080,7 +1080,34 @@ export const ROUTE_TREE: RouteNode = {
     path: '/users/dashboard/toolbox-talks',
     isDynamic: false,
     isCatchAll: false,
-    children: [],
+    children: [
+      {
+        id: 'toolbox-talks-new',
+        segment: 'new',
+        path: '/users/dashboard/toolbox-talks/new',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [],
+      },
+      {
+        id: 'toolbox-talks-[id]',
+        segment: '[id]',
+        path: '/users/dashboard/toolbox-talks/[id]',
+        isDynamic: true,
+        isCatchAll: false,
+        paramName: 'id',
+        children: [
+            {
+              id: 'toolbox-talks-[id]-edit',
+              segment: 'edit',
+              path: '/users/dashboard/toolbox-talks/[id]/edit',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [],
+            },
+          ],
+      },
+    ],
   },
   {
     id: 'workforce',

@@ -246,7 +246,14 @@ export const routes = {
     },
   },
 
-  toolboxTalks: b('/toolbox-talks'),
+  toolboxTalks: {
+    href: b('/toolbox-talks'),
+    new: b('/toolbox-talks/new'),
+    detail: (id: string | number) => ({
+      href: b(`/toolbox-talks/${id}`),
+      edit: b(`/toolbox-talks/${id}/edit`),
+    }),
+  },
 
   workforce: {
     href: b('/workforce'),
