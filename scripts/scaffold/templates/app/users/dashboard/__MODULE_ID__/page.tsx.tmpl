@@ -1,0 +1,13 @@
+'use client';
+
+import { PageHeader } from '@/components/common/page-header';
+import { __MODULE_PASCAL__List } from '@/features/__MODULE_ID__';
+
+export default function __MODULE_PASCAL__Page() {
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader title="__MODULE_NAME__" />
+      <__MODULE_PASCAL__List />
+    </div>
+  );
+}

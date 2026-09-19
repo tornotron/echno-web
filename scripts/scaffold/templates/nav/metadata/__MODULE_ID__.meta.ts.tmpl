@@ -1,0 +1,19 @@
+import { Puzzle } from 'lucide-react';
+import type { MetadataRegistry } from '../types';
+
+/**
+ * Sidebar and breadcrumb metadata for the __MODULE_NAME__ module. The
+ * `moduleId` hides the entry for an org without `__FEATURE_KEY__`; the
+ * permission matches `features/__MODULE_ID__/module.config.ts`.
+ */
+export const __MODULE_CAMEL__Metadata = {
+  '__MODULE_ID__': {
+    label: '__MODULE_NAME__',
+    icon: Puzzle,
+    section: 'projects',
+    order: 50,
+    breadcrumb: '__MODULE_NAME__',
+    moduleId: '__MODULE_ID__',
+    access: { permissions: ['__MODULE_ID__:read'] },
+  },
+} satisfies MetadataRegistry;

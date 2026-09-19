@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false,
+    "paths": {
+      "@/*": ["./*"],
+      "@tornotron/echno-core/ci-probe/*": ["./scripts/scaffold/.stub/ci-probe/*"]
+    }
+  }
+}
