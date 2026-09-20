@@ -3,6 +3,7 @@ import { createElement } from 'react';
 import { cleanup, fireEvent, render } from '@testing-library/react';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 import * as realInspectionHooks from '@/hooks/inspection';
+import { routes } from '@/nav';
 import {
   DefectSeverity,
   NcrStatus,
@@ -510,6 +511,46 @@ describe('NcrDetail — the people on the report', () => {
         )
       ).toBe(false);
       expect(container.textContent?.includes('Unassigned')).toBe(true);
+    },
+    RENDER_TIMEOUT_MS
+  );
+});
+
+describe('NcrDetail — where the report came from', () => {
+  test(
+    'the project and the source inspection are named off the report itself',
+    () => {
+      const { container } = renderNcr({
+        projectId: 42,
+        projectName: 'Tower B',
+        inspectionNumber: 'INS-2026-0001',
+        inspectionTitle: 'Slab check',
+      });
+
+      const hrefs = [...container.querySelectorAll('a')].map(
+        (anchor) => anchor.getAttribute('href') ?? ''
+      );
+      expect(hrefs).toContain(routes.projects.allProjects.detail(42).href);
+      expect(container.textContent?.includes('Tower B')).toBe(true);
+      expect(
+        container.textContent?.includes('INS-2026-0001 · Slab check')
+      ).toBe(true);
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'a report whose inspection carries no project says so instead of linking',
+    () => {
+      const { container } = renderNcr({ projectId: undefined });
+
+      const hrefs = [...container.querySelectorAll('a')].map(
+        (anchor) => anchor.getAttribute('href') ?? ''
+      );
+      expect(hrefs.some((href) => href.includes('/all-projects/'))).toBe(false);
+      expect(
+        container.textContent?.includes('recorded without a project')
+      ).toBe(true);
     },
     RENDER_TIMEOUT_MS
   );
