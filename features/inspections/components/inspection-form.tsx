@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
+  CheckItemStatus,
   InspectionCategory,
   InspectionStatus,
   InspectionType,
@@ -239,6 +240,14 @@ export function InspectionForm(props: InspectionFormProps) {
         newCheckItemErrors[item.key] = 'Category is required';
       } else if (!item.checkPoint.trim()) {
         newCheckItemErrors[item.key] = 'Check point is required';
+      } else if (
+        item.status === CheckItemStatus.NOT_DONE &&
+        !item.remarks.trim()
+      ) {
+        // The backend refuses a not-done check point with no remark: the
+        // remark is what makes "not done" an answer rather than a gap.
+        newCheckItemErrors[item.key] =
+          'Say why this check point was not carried out';
       }
     }
     setCheckItemErrors(newCheckItemErrors);

@@ -2,7 +2,11 @@
 
 import { useRouter, useParams } from 'next/navigation';
 import { Loader2, Save } from 'lucide-react';
-import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
+import {
+  getErrorTitle,
+  getErrorMessage,
+  readChecklistIncomplete,
+} from '@tornotron/echno-core';
 import { useInspectionById, useUpdateInspection } from '@/hooks/inspection';
 import type {
   UpdateInspectionRequest,
@@ -78,8 +82,15 @@ export default function EditInspectionPage() {
           router.push(routes.inspections.detail(inspectionId).href);
         },
         onError: (err) => {
+          // A status move into completed, or straight to a verdict, is refused
+          // while check points are pending; the body names them, so say which.
+          const refused = readChecklistIncomplete(err);
           toast.error(getErrorTitle(err, 'Failed to update inspection'), {
-            description: getErrorMessage(err),
+            description: refused
+              ? `${refused.message} Unanswered: ${refused.unansweredItems
+                  .map((item) => `${item.category} / ${item.checkPoint}`)
+                  .join('; ')}`
+              : getErrorMessage(err),
           });
         },
       }

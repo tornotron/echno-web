@@ -56,6 +56,7 @@ const CHECK_ITEM_STATUS_ORDER: readonly CheckItemStatus[] = [
   CheckItemStatus.PASSED,
   CheckItemStatus.FAILED,
   CheckItemStatus.NOT_APPLICABLE,
+  CheckItemStatus.NOT_DONE,
 ];
 
 let draftCounter = 0;
@@ -285,7 +286,11 @@ function CheckItemRow({
         </div>
 
         <div className="space-y-2 sm:col-span-2 lg:col-span-3">
-          <Label htmlFor={`${rowId}-remarks`}>Remarks (optional)</Label>
+          <Label htmlFor={`${rowId}-remarks`}>
+            {item.status === CheckItemStatus.NOT_DONE
+              ? 'Remarks (required: why this check was not carried out)'
+              : 'Remarks (optional)'}
+          </Label>
           <Textarea
             id={`${rowId}-remarks`}
             value={item.remarks}

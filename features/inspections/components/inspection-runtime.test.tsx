@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import { createElement } from 'react';
-import { cleanup, fireEvent, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
+import { ApiError } from '@tornotron/echno-core';
 import * as realProjectHooks from '@tornotron/echno-core/project/hooks';
 import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
 import * as realInspectionHooks from '@/hooks/inspection';
@@ -119,6 +120,25 @@ function renderRuntime(inspection: Inspection) {
       fireEvent.click(button);
     },
     has: (label: string) => Boolean(buttonNamed(label)),
+    button: (label: string) => {
+      const button = buttonNamed(label);
+      if (!button) throw new Error(`No "${label}" button on screen`);
+      return button;
+    },
+    /** Opens the tooltip on the disabled Complete button and returns its text. */
+    completeTooltip: () => {
+      const trigger = view.container.querySelector(
+        '[data-testid="complete-gate"]'
+      );
+      if (!trigger) return '';
+      act(() => {
+        fireEvent.focus(trigger);
+      });
+      return document.body.textContent ?? '';
+    },
+    progress: () =>
+      view.container.querySelector('[data-testid="checklist-progress"]')
+        ?.textContent ?? '',
     /** The request body of the most recent save. */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     saved: () => (updateInspection.mutate.mock.calls.at(-1)![0] as any).req,
@@ -145,7 +165,7 @@ const RENDER_TIMEOUT_MS = 20_000;
 
 describe('InspectionRuntime — completing is gated on a usable record', () => {
   test(
-    'an unanswered check point blocks completion',
+    'an unanswered check point disables completion and the tooltip names it',
     () => {
       const view = renderRuntime(
         inspectionWith([
@@ -154,17 +174,21 @@ describe('InspectionRuntime — completing is gated on a usable record', () => {
         ])
       );
 
-      view.click('Complete inspection');
+      expect(view.button('Complete inspection').disabled).toBe(true);
+      expect(view.progress()).toContain('1 of 2 answered, 1 to go');
 
+      view.click('Complete inspection');
       expect(updateInspection.mutate).not.toHaveBeenCalled();
-      expect(view.text()).toContain('1 check point needs attention');
-      expect(view.text()).toContain('Record an outcome for this check point.');
+
+      const tooltip = view.completeTooltip();
+      expect(tooltip).toContain('1 check point is holding this up');
+      expect(tooltip).toContain('Reinforcement / Check point b: no outcome');
     },
     RENDER_TIMEOUT_MS
   );
 
   test(
-    'a failed check point with no remark blocks completion',
+    'a failed check point with no remark disables completion',
     () => {
       // A failure with nothing written down leaves whoever picks up the NCR
       // nothing to act on, which is the whole reason the gate exists.
@@ -172,31 +196,26 @@ describe('InspectionRuntime — completing is gated on a usable record', () => {
         inspectionWith([checkItem('a', { status: CheckItemStatus.FAILED })])
       );
 
-      view.click('Complete inspection');
-
-      expect(updateInspection.mutate).not.toHaveBeenCalled();
-      expect(view.text()).toContain(
-        'Say what was wrong before failing this check point.'
+      expect(view.button('Complete inspection').disabled).toBe(true);
+      expect(view.completeTooltip()).toContain(
+        'Reinforcement / Check point a: failed, remark missing'
       );
     },
     RENDER_TIMEOUT_MS
   );
 
   test(
-    'writing the remark clears the block and the remark reaches the payload',
+    'writing the remark enables completion and the remark reaches the payload',
     () => {
       const view = renderRuntime(
         inspectionWith([checkItem('a', { status: CheckItemStatus.FAILED })])
       );
 
-      view.click('Complete inspection');
       fireEvent.change(view.container.querySelector('#remarks-a')!, {
         target: { value: 'Cover 20mm against a specified 40mm.' },
       });
 
-      expect(view.text()).not.toContain(
-        'Say what was wrong before failing this check point.'
-      );
+      expect(view.button('Complete inspection').disabled).toBe(false);
 
       view.click('Complete inspection');
 
@@ -204,6 +223,107 @@ describe('InspectionRuntime — completing is gated on a usable record', () => {
       expect(view.saved().checkItems[0].remarks).toBe(
         'Cover 20mm against a specified 40mm.'
       );
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'not done needs a remark, and with one it counts as answered and is submitted',
+    () => {
+      const view = renderRuntime(
+        inspectionWith([
+          checkItem('a'),
+          checkItem('b', { status: CheckItemStatus.PENDING }),
+        ])
+      );
+
+      // the outcome buttons repeat per row, so the last "Not done" is b's
+      const notDone = [...view.container.querySelectorAll('button')].findLast(
+        (button) => button.getAttribute('aria-label') === 'Not done'
+      );
+      if (!notDone) throw new Error('No "Not done" outcome on screen');
+      fireEvent.click(notDone);
+
+      // chosen but unexplained: still gated, and the remark field says so
+      expect(view.button('Complete inspection').disabled).toBe(true);
+      expect(view.completeTooltip()).toContain(
+        'Reinforcement / Check point b: not done, remark missing'
+      );
+      expect(view.text()).toContain('Remarks (required)');
+
+      fireEvent.change(view.container.querySelector('#remarks-b')!, {
+        target: { value: 'Test pump not on site; deferred to the next visit.' },
+      });
+
+      expect(view.progress()).toContain('2 of 2 answered');
+      expect(view.text()).toContain('1 not done');
+      expect(view.button('Complete inspection').disabled).toBe(false);
+
+      view.click('Complete inspection');
+
+      const request = view.saved();
+      expect(request.status).toBe(InspectionStatus.COMPLETED);
+      expect(request.checkItems[1].status).toBe(CheckItemStatus.NOT_DONE);
+      expect(request.checkItems[1].remarks).toBe(
+        'Test pump not on site; deferred to the next visit.'
+      );
+      // not done is scored as neither pass nor fail: one pass of one assessed
+      expect(request.result).toBe(InspectionResult.PASSED);
+    },
+    RENDER_TIMEOUT_MS
+  );
+
+  test(
+    'a refusal from the server is rendered from its body and highlights the rows it names',
+    () => {
+      // The screen thought the record was complete; the server, judging the
+      // checklist it was sent, did not. Its 422 names the item, by the stored id
+      // the screen already holds.
+      const view = renderRuntime(
+        inspectionWith([checkItem('a'), checkItem('b')])
+      );
+      updateInspection.mutate.mockImplementation(
+        (_variables: unknown, options?: unknown) => {
+          const body = {
+            title: 'Checklist Incomplete',
+            status: 422,
+            detail:
+              'Inspection INS-2026-0042 cannot be submitted: 1 check point is still unanswered.',
+            message:
+              'Inspection INS-2026-0042 cannot be submitted: 1 check point is still unanswered.',
+            unansweredItems: [
+              {
+                index: 1,
+                id: 'b',
+                category: 'Reinforcement',
+                checkPoint: 'Check point b',
+              },
+            ],
+          };
+          (options as { onError: (error: unknown) => void }).onError(
+            new ApiError(
+              body.message,
+              422,
+              undefined,
+              undefined,
+              body.title,
+              body
+            )
+          );
+        }
+      );
+
+      view.click('Complete inspection');
+
+      expect(view.text()).toContain(
+        'The server would not complete this inspection'
+      );
+      expect(view.text()).toContain('1 check point is still unanswered');
+      expect(view.text()).toContain('Reinforcement / Check point b');
+      expect(view.text()).toContain(
+        'The server has no outcome for this check point.'
+      );
+      expect(toast.error).toHaveBeenCalledTimes(1);
     },
     RENDER_TIMEOUT_MS
   );

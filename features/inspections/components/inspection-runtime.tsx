@@ -7,12 +7,25 @@
  * checklist and the record of the visit. There is no separate submission to
  * save into, so this edits the items in place and persists them through the
  * inspection's own update endpoint, which replaces the whole set.
+ *
+ * Completing is gated on the checklist, here and on the server. Every check
+ * point needs an outcome; one that could not be carried out is marked not done
+ * with a remark saying why, and the submission then goes through with that
+ * remark on the record. The button stays disabled while the gate would refuse,
+ * and if the server refuses anyway (a stale screen, another editor) its 422
+ * body names the items and they are highlighted from that.
  */
 
 import { useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { AlertCircle, ChevronDown, Save, Send } from 'lucide-react';
-import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  checklistProgress,
+  getErrorMessage,
+  getErrorTitle,
+  readChecklistIncomplete,
+  type ChecklistIncomplete,
+} from '@tornotron/echno-core';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { PageHeader } from '@/components/common';
@@ -28,6 +41,12 @@ import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
 import { Skeleton } from '@/components/shadcn/skeleton';
 import { Textarea } from '@/components/shadcn/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/shadcn/toggle-group';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/shadcn/tooltip';
 import { cn } from '@/lib/utils/index';
 import { toast } from '@/lib/styles/toast-styles';
 import { useInspectionById, useUpdateInspection } from '@/hooks/inspection';
@@ -120,8 +139,10 @@ type RunErrors = Record<string, string>;
 
 /**
  * A check point is answerable in one pass, so the only things that can be
- * wrong are leaving it unanswered or failing it without saying why. A failure
- * with no remark gives whoever picks up the NCR nothing to act on.
+ * wrong are leaving it unanswered, failing it without saying why, or marking
+ * it not done without saying why. A failure with no remark gives whoever picks
+ * up the NCR nothing to act on; a not-done with no remark is refused by the
+ * server outright, since the remark is what makes it an answer.
  */
 function validate(items: RunItem[]): RunErrors {
   const errors: RunErrors = {};
@@ -134,9 +155,61 @@ function validate(items: RunItem[]): RunErrors {
       !item.remarks?.trim()
     ) {
       errors[item.key] = 'Say what was wrong before failing this check point.';
+    } else if (
+      item.status === CheckItemStatus.NOT_DONE &&
+      !item.remarks?.trim()
+    ) {
+      errors[item.key] = 'Say why this check point was not carried out.';
     }
   }
 
+  return errors;
+}
+
+/** How many items the disabled button's tooltip names before it counts the rest. */
+const NAMED_IN_TOOLTIP = 6;
+
+/**
+ * The lines the tooltip on a disabled Complete button shows: what is still
+ * missing, by category and check point, so the inspector does not have to
+ * scroll for it.
+ */
+function missingLines(items: RunItem[], errors: RunErrors): string[] {
+  const lines: string[] = [];
+  for (const item of items) {
+    const error = errors[item.key];
+    if (!error) continue;
+    const reason =
+      item.status === CheckItemStatus.PENDING
+        ? 'no outcome'
+        : item.status === CheckItemStatus.NOT_DONE
+          ? 'not done, remark missing'
+          : 'failed, remark missing';
+    lines.push(
+      `${item.category?.trim() || UNGROUPED} / ${item.checkPoint}: ${reason}`
+    );
+  }
+  return lines;
+}
+
+/**
+ * Turns the server's refusal into row errors. An item is matched by the stored
+ * id when the server could report one, else by position; the row is then
+ * highlighted exactly as a local validation failure would be.
+ */
+function errorsFromRefusal(
+  refusal: ChecklistIncomplete,
+  items: RunItem[]
+): RunErrors {
+  const errors: RunErrors = {};
+  for (const unanswered of refusal.unansweredItems) {
+    const byId = unanswered.id
+      ? items.find((item) => item.key === unanswered.id)
+      : undefined;
+    const item = byId ?? items[unanswered.index];
+    if (item)
+      errors[item.key] = 'The server has no outcome for this check point.';
+  }
   return errors;
 }
 
@@ -148,6 +221,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
   const [items, setItems] = useState<RunItem[]>(() => toRunItems(inspection));
   const [errors, setErrors] = useState<RunErrors>({});
   const [showErrors, setShowErrors] = useState(false);
+  const [refusal, setRefusal] = useState<ChecklistIncomplete | undefined>();
 
   const readOnly = CLOSED_STATUSES.has(inspection.status);
 
@@ -156,6 +230,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
       passed: 0,
       failed: 0,
       notApplicable: 0,
+      notDone: 0,
       pending: 0,
     };
 
@@ -173,6 +248,10 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
           counted.notApplicable += 1;
           break;
         }
+        case CheckItemStatus.NOT_DONE: {
+          counted.notDone += 1;
+          break;
+        }
         default: {
           counted.pending += 1;
         }
@@ -182,6 +261,14 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
     return counted;
   }, [items]);
 
+  // What the server's gate would say about the checklist as it stands, judged
+  // the same way it judges it, plus the two remark rules. Computed live so the
+  // Complete button can stay disabled, with its reasons, until the record is
+  // ready.
+  const gate = useMemo(() => validate(items), [items]);
+  const progress = checklistProgress(items);
+  const missing = useMemo(() => missingLines(items, gate), [items, gate]);
+
   // Scored from the answers in hand rather than the stored counts, which only
   // catch up on the next save.
   const percentage = compliancePercentage({
@@ -190,7 +277,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
     failedCheckPoints: tally.failed,
   });
 
-  const answered = items.length - tally.pending;
+  const answered = progress.answered;
 
   const groups = useMemo(() => {
     const byCategory = new Map<string, RunItem[]>();
@@ -217,6 +304,8 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
       if (showErrors) setErrors(validate(updated));
       return updated;
     });
+    // Any edit supersedes what the server said about the previous payload.
+    setRefusal(undefined);
   };
 
   // A critical defect fails the inspection whatever the score says. Severity is
@@ -279,6 +368,14 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
           toast.success(conclude ? 'Inspection completed' : 'Progress saved');
         },
         onError: (error) => {
+          // The server judged the checklist and found it short: point at the
+          // rows it named rather than only toasting the sentence.
+          const refused = readChecklistIncomplete(error);
+          if (refused) {
+            setRefusal(refused);
+            setErrors(errorsFromRefusal(refused, items));
+            setShowErrors(true);
+          }
           toast.error(getErrorTitle(error, 'Could not save the inspection'), {
             description: getErrorMessage(error),
           });
@@ -310,6 +407,7 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
 
   const errorCount = Object.keys(errors).length;
   const canSave = Boolean(inspection.scheduledDate);
+  const canComplete = canSave && missing.length === 0;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -328,13 +426,11 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
                 <Save className="size-4" />
                 Save progress
               </Button>
-              <Button
-                disabled={!canSave || updateInspection.isPending}
+              <CompleteButton
+                disabled={!canComplete || updateInspection.isPending}
+                missing={missing}
                 onClick={handleComplete}
-              >
-                <Send className="size-4" />
-                Complete inspection
-              </Button>
+              />
             </div>
           )
         }
@@ -373,7 +469,8 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
                 {percentage}%
               </span>{' '}
               ({tally.passed} pass / {tally.failed} fail
-              {tally.notApplicable > 0 && ` / ${tally.notApplicable} N/A`})
+              {tally.notApplicable > 0 && ` / ${tally.notApplicable} N/A`}
+              {tally.notDone > 0 && ` / ${tally.notDone} not done`})
             </span>
           )}
         </div>
@@ -383,8 +480,12 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-sm">
             <span className="font-medium">Progress</span>
-            <span className="text-muted-foreground tabular-nums">
-              {answered} of {items.length}
+            <span
+              className="text-muted-foreground tabular-nums"
+              data-testid="checklist-progress"
+            >
+              {answered} of {items.length} answered
+              {tally.pending > 0 && `, ${tally.pending} to go`}
             </span>
           </div>
           <Progress
@@ -408,7 +509,24 @@ function RunSheet({ inspection }: { inspection: Inspection }) {
         </Alert>
       )}
 
-      {showErrors && errorCount > 0 && (
+      {refusal && (
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" />
+          <AlertTitle>The server would not complete this inspection</AlertTitle>
+          <AlertDescription>
+            <p>{refusal.message}</p>
+            <ul className="mt-1 list-disc pl-4">
+              {refusal.unansweredItems.map((item) => (
+                <li key={`${item.index}-${item.id ?? ''}`}>
+                  {item.category || UNGROUPED} / {item.checkPoint}
+                </li>
+              ))}
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {!refusal && showErrors && errorCount > 0 && (
         <Alert variant="destructive">
           <AlertCircle className="size-4" />
           <AlertTitle>
@@ -570,6 +688,8 @@ function CheckRow({
   onPatch,
 }: CheckRowProps) {
   const failed = item.status === CheckItemStatus.FAILED;
+  const notDone = item.status === CheckItemStatus.NOT_DONE;
+  const remarkRequired = failed || notDone;
 
   return (
     <div className={cn('space-y-3 px-5 py-4', error && 'bg-destructive/5')}>
@@ -648,15 +768,20 @@ function CheckRow({
 
       <div className="space-y-1.5">
         <Label htmlFor={`remarks-${item.key}`} className="text-xs">
-          Remarks
+          Remarks{remarkRequired && ' (required)'}
         </Label>
         <Textarea
           id={`remarks-${item.key}`}
           rows={2}
           value={item.remarks ?? ''}
           disabled={disabled}
+          aria-required={remarkRequired}
           placeholder={
-            failed ? 'What was wrong, and where' : 'Anything worth noting'
+            failed
+              ? 'What was wrong, and where'
+              : notDone
+                ? 'Why this check could not be carried out, and what happens next'
+                : 'Anything worth noting'
           }
           onChange={(event) =>
             onPatch(item.key, { remarks: event.target.value })
@@ -682,12 +807,70 @@ function CheckRow({
   );
 }
 
-/** The outcomes an inspector picks from; PENDING is the unanswered state. */
+/**
+ * The outcomes an inspector picks from; PENDING is the unanswered state. Not
+ * done is last because it is the exception: the check could not be carried out,
+ * and the remark it requires is what the approver reads in place of a result.
+ */
 const OUTCOMES: CheckItemStatus[] = [
   CheckItemStatus.PASSED,
   CheckItemStatus.FAILED,
   CheckItemStatus.NOT_APPLICABLE,
+  CheckItemStatus.NOT_DONE,
 ];
+
+interface CompleteButtonProps {
+  disabled: boolean;
+  missing: string[];
+  onClick: () => void;
+}
+
+/**
+ * The Complete button, with the reasons it is disabled in a tooltip. A disabled
+ * button gets no pointer events, so the tooltip hangs off a focusable wrapper.
+ */
+function CompleteButton({ disabled, missing, onClick }: CompleteButtonProps) {
+  const button = (
+    <Button disabled={disabled} onClick={onClick}>
+      <Send className="size-4" />
+      Complete inspection
+    </Button>
+  );
+
+  if (missing.length === 0) return button;
+
+  const named = missing.slice(0, NAMED_IN_TOOLTIP);
+  const rest = missing.length - named.length;
+
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span
+            tabIndex={0}
+            className="inline-flex"
+            data-testid="complete-gate"
+          >
+            {button}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" align="end" className="max-w-xs">
+          <p className="font-medium">
+            {missing.length === 1
+              ? '1 check point is holding this up'
+              : `${missing.length} check points are holding this up`}
+          </p>
+          <ul className="mt-1 list-disc pl-4">
+            {named.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+            {rest > 0 && <li>and {rest} more</li>}
+          </ul>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
 
 function Meta({
   label,

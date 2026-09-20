@@ -37,7 +37,9 @@ import {
   Users,
   Sparkles,
   ShieldAlert,
+  CircleSlash,
 } from 'lucide-react';
+import { checklistProgress } from '@tornotron/echno-core';
 import { useRouter, useParams } from 'next/navigation';
 import { useInspectionById } from '@/hooks/inspection';
 import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
@@ -113,6 +115,9 @@ const getCheckItemIcon = (status: CheckItemStatus) => {
     case CheckItemStatus.NOT_APPLICABLE: {
       return <div className="h-5 w-5 text-zinc-400">N/A</div>;
     }
+    case CheckItemStatus.NOT_DONE: {
+      return <CircleSlash className="h-5 w-5 text-amber-600" />;
+    }
     default: {
       return <Clock className="h-5 w-5 text-zinc-400" />;
     }
@@ -146,6 +151,10 @@ export default function InspectionDetailsPage() {
 
   const project = projects.find((p) => p.id === inspection.projectId);
   const inspector = employees.find((emp) => emp.id === inspection.inspectorId);
+  const progress = checklistProgress(inspection.checkItems);
+  const notDoneItems = inspection.checkItems.filter(
+    (item) => item.status === CheckItemStatus.NOT_DONE
+  );
   const compliance =
     inspection.totalCheckPoints > 0
       ? (inspection.passedCheckPoints / inspection.totalCheckPoints) * 100
@@ -543,6 +552,53 @@ export default function InspectionDetailsPage() {
                 </Card>
               )}
 
+              {/* Check points the inspector could not carry out. Ahead of the
+              checklist, because an approver reads what was not done, and why,
+              before the scores that leave it out. */}
+              {notDoneItems.length > 0 && (
+                <Card
+                  className="border-amber-300 dark:border-amber-800"
+                  data-testid="not-done-items"
+                >
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <CircleSlash className="h-5 w-5 text-amber-600" />
+                      Not carried out
+                    </CardTitle>
+                    <CardDescription>
+                      {notDoneItems.length === 1
+                        ? '1 check point was marked not done'
+                        : `${notDoneItems.length} check points were marked not done`}{' '}
+                      and submitted with a remark in place of a result. They
+                      count as neither passed nor failed.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {notDoneItems.map(
+                        (item: InspectionCheckItem, index: number) => (
+                          <div
+                            key={item.id || index}
+                            className="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-900 dark:bg-amber-950"
+                          >
+                            <div className="text-xs font-medium tracking-wide text-amber-800 uppercase dark:text-amber-300">
+                              {item.category}
+                            </div>
+                            <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                              {item.checkPoint}
+                            </div>
+                            <div className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">
+                              {item.remarks?.trim() ||
+                                'No remark was recorded.'}
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Check Items. Rendered even when there are none, because an
               inspection with no checkpoints is exactly the case where the user
               needs to be told they can add some. */}
@@ -576,7 +632,11 @@ export default function InspectionDetailsPage() {
                     <CardTitle>Inspection Checklist</CardTitle>
                     <CardDescription>
                       {inspection.passedCheckPoints}/
-                      {inspection.totalCheckPoints} items passed
+                      {inspection.totalCheckPoints} items passed,{' '}
+                      {progress.answered}/{progress.total} answered
+                      {progress.pending > 0 &&
+                        ` (${progress.pending} still pending, so this inspection cannot be completed yet)`}
+                      {progress.notDone > 0 && `, ${progress.notDone} not done`}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
