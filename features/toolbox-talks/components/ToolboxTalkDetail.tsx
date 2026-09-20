@@ -145,7 +145,7 @@ export function ToolboxTalkDetail({ talkId }: ToolboxTalkDetailProps) {
         <div className="flex flex-wrap gap-2">
           {draft && (
             <Button variant="outline" size="sm" asChild>
-              <Link href={routes.toolboxTalks.detail(talk.id).edit.href}>
+              <Link href={routes.toolboxTalks.detail(talk.id).edit}>
                 <Pencil className="size-4" />
                 Edit
               </Link>

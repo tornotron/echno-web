@@ -155,7 +155,7 @@ export function InvitationForm() {
           salary: formData.salary
             ? Number.parseFloat(formData.salary)
             : undefined,
-          managerId: manager.managerId ?? undefined,
+          managerId: manager.managerId,
           shiftTimingId: formData.shiftTimingId
             ? Number.parseInt(formData.shiftTimingId, 10)
             : undefined,
