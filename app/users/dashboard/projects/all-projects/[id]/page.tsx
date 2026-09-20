@@ -106,6 +106,8 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { routes } from '@/nav';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -153,6 +155,8 @@ const getAttachmentIcon = (type: AttachmentType) => {
 };
 
 export default function ProjectDashboardPage() {
+  // Raising an issue is the project pair's (echno-backend #853).
+  const { allowed: canWriteIssues } = useCan(PROJECT_WRITE_ACCESS);
   const params = useParams();
   const router = useRouter();
   const { moduleIds } = useEnabledModuleIds();
@@ -214,11 +218,7 @@ export default function ProjectDashboardPage() {
             {error instanceof Error ? error.message : 'An error occurred'}
           </EmptyDescription>
         </EmptyHeader>
-        <Button
-          onClick={() =>
-            router.push(routes.projects.allProjects.href)
-          }
-        >
+        <Button onClick={() => router.push(routes.projects.allProjects.href)}>
           Back to Projects
         </Button>
       </Empty>
@@ -237,11 +237,7 @@ export default function ProjectDashboardPage() {
             The project you&apos;re looking for doesn&apos;t exist.
           </EmptyDescription>
         </EmptyHeader>
-        <Button
-          onClick={() =>
-            router.push(routes.projects.allProjects.href)
-          }
-        >
+        <Button onClick={() => router.push(routes.projects.allProjects.href)}>
           Back to Projects
         </Button>
       </Empty>
@@ -261,11 +257,7 @@ export default function ProjectDashboardPage() {
             again.
           </EmptyDescription>
         </EmptyHeader>
-        <Button
-          onClick={() =>
-            router.push(routes.projects.allProjects.href)
-          }
-        >
+        <Button onClick={() => router.push(routes.projects.allProjects.href)}>
           Back to Projects
         </Button>
       </Empty>
@@ -319,11 +311,7 @@ export default function ProjectDashboardPage() {
         }
         actions={
           <Button variant="outline" size="sm" asChild>
-            <Link
-              href={
-                routes.projects.allProjects.detail(project.id).edit
-              }
-            >
+            <Link href={routes.projects.allProjects.detail(project.id).edit}>
               <Edit className="mr-2 h-4 w-4" />
               Edit Project
             </Link>
@@ -477,8 +465,7 @@ export default function ProjectDashboardPage() {
                 </p>
                 <Link
                   href={
-                    routes.projects.allProjects.detail(project.id)
-                      .tasks.href
+                    routes.projects.allProjects.detail(project.id).tasks.href
                   }
                   className="text-primary text-xs hover:underline"
                 >
@@ -582,8 +569,7 @@ export default function ProjectDashboardPage() {
                 </p>
                 <Link
                   href={
-                    routes.projects.allProjects.detail(project.id)
-                      .issues.href
+                    routes.projects.allProjects.detail(project.id).issues.href
                   }
                   className="text-primary text-xs hover:underline"
                 >
@@ -855,8 +841,7 @@ export default function ProjectDashboardPage() {
                   >
                     <Link
                       href={
-                        routes.projects.allProjects.detail(project.id)
-                          .tasks.new
+                        routes.projects.allProjects.detail(project.id).tasks.new
                       }
                     >
                       <ListTodo className="mr-2 h-4 w-4" />
@@ -873,21 +858,23 @@ export default function ProjectDashboardPage() {
                       Schedule Inspection
                     </Link>
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    asChild
-                  >
-                    <Link
-                      href={
-                        routes.projects.allProjects.detail(project.id)
-                          .issues.new
-                      }
+                  {canWriteIssues && (
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                      asChild
                     >
-                      <AlertCircle className="mr-2 h-4 w-4" />
-                      Report Issue
-                    </Link>
-                  </Button>
+                      <Link
+                        href={
+                          routes.projects.allProjects.detail(project.id).issues
+                            .new
+                        }
+                      >
+                        <AlertCircle className="mr-2 h-4 w-4" />
+                        Report Issue
+                      </Link>
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     className="w-full justify-start"
