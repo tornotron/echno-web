@@ -97,15 +97,19 @@ const SHELL_MAX_WIDTH = 'max-w-[96rem]';
 interface ChecklistBuilderProps {
   /**
    * Persist the current schema. The store's dirty flag is cleared on success.
-   * May return a promise — "Save and close" waits on it and stays open if the
-   * save rejects, so a failed write never silently discards the work.
+   * May return a promise: every save waits on it and closes the builder once
+   * it resolves, and stays open if it rejects, so a failed write never
+   * silently discards the work.
    *
    * There is no separate publish step. A template save replaces its check
    * points and bumps the server-side version, and no draft state exists to
    * promote out of.
    */
   onSave: (schema: ChecklistSchema) => void | Promise<unknown>;
-  /** Dismiss the overlay. Guarded behind a prompt when there are unsaved edits. */
+  /**
+   * Dismiss the overlay. Called after a successful save, and by the Close
+   * button, which is guarded behind a prompt when there are unsaved edits.
+   */
   onClose: () => void;
   saving?: boolean;
   /** Version label shown next to the title, e.g. "v3". */
@@ -154,14 +158,16 @@ export function ChecklistBuilder({
     else onClose();
   }, [dirty, onClose]);
 
-  // `onSave` may return a promise that rejects. The mutation already reports
-  // the failure as a toast, so the rejection is handled, but leaving it
-  // unhandled surfaces Next's dev error overlay on top of the builder, which
-  // reads as a crash. Swallow it at every call site.
+  // A save that goes through closes the builder and returns to the checklist
+  // list; there is nothing left to do in it once the write has landed. `onSave`
+  // may return a promise that rejects. The mutation already reports the
+  // failure as a toast, so the rejection is handled, but leaving it unhandled
+  // surfaces Next's dev error overlay on top of the builder, which reads as a
+  // crash. Swallow it at every call site and stay open.
   const save = useCallback(() => {
     if (saving) return;
-    Promise.resolve(onSave(schema)).catch(() => {});
-  }, [onSave, schema, saving]);
+    Promise.resolve(onSave(schema)).then(onClose, () => {});
+  }, [onClose, onSave, schema, saving]);
 
   // The overlay covers the page, so the page behind it must not scroll.
   useEffect(() => {
@@ -410,7 +416,7 @@ export function ChecklistBuilder({
                 size="sm"
                 disabled={saving}
                 onClick={save}
-                title="Saves the checklist and moves it to the next version. Inspections already created keep the check points they were made with."
+                title="Saves the checklist, moves it to the next version and closes the builder. Inspections already created keep the check points they were made with."
               >
                 <Save className="size-4" />
                 <span className="hidden sm:inline">
