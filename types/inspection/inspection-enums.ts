@@ -128,6 +128,7 @@ export const checkItemStatusLabels: Record<CheckItemStatus, string> = {
   [CheckItemStatus.FAILED]: 'Failed',
   [CheckItemStatus.NOT_APPLICABLE]: 'N/A',
   [CheckItemStatus.PENDING]: 'Pending',
+  [CheckItemStatus.NOT_DONE]: 'Not done',
 };
 
 // Badge variants, so inspection chips read the same as every other module's.
@@ -159,6 +160,7 @@ export const checkItemStatusVariants: Record<CheckItemStatus, BadgeVariant> = {
   [CheckItemStatus.FAILED]: 'destructive',
   [CheckItemStatus.NOT_APPLICABLE]: 'outline',
   [CheckItemStatus.PENDING]: 'outline',
+  [CheckItemStatus.NOT_DONE]: 'secondary',
 };
 
 // An NCR is a problem until it is signed off, so the open end of the lifecycle
