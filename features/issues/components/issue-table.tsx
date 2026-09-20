@@ -45,6 +45,8 @@ import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { routes } from '@/nav';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { usePrefetchIssue } from '@tornotron/echno-core/issue/hooks';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -173,6 +175,8 @@ export function IssueTable({
   onProjectChange,
 }: IssueTableProps) {
   const router = useRouter();
+  // Raising an issue is the project pair's (echno-backend #853).
+  const { allowed: canWrite } = useCan(PROJECT_WRITE_ACCESS);
   const prefetchIssue = usePrefetchIssue();
   const endIndex = Math.min(startIndex + itemsPerPage, filteredIssuesCount);
 
@@ -489,7 +493,7 @@ export function IssueTable({
                     : 'Get started by creating your first issue'}
                 </EmptyDescription>
               </EmptyHeader>
-              {!hasActiveFilters && (
+              {!hasActiveFilters && canWrite && (
                 <Button asChild>
                   <Link
                     href={
@@ -655,7 +659,7 @@ export function IssueTable({
                   : 'Get started by creating your first issue'}
               </EmptyDescription>
             </EmptyHeader>
-            {!hasActiveFilters && (
+            {!hasActiveFilters && canWrite && (
               <Button asChild>
                 <Link
                   href={

@@ -30,6 +30,8 @@ import Link from 'next/link';
 import type { Task } from '@tornotron/echno-core/task/types';
 import { getIssueTypeLabel } from '@tornotron/echno-core/issue/types';
 import { routes } from '@/nav';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 // ---------------------------------------------------------------------------
 // Issue status helpers
@@ -70,6 +72,8 @@ interface TaskIssuesTabProps {
 
 export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
   const router = useRouter();
+  // Raising an issue is the project pair's (echno-backend #853).
+  const { allowed: canWrite } = useCan(PROJECT_WRITE_ACCESS);
   const relatedIssues = task.issues || [];
 
   const reportIssueHref = `${routes.projects.allProjects.detail(task.projectId).issues.new}?taskId=${task.id}&taskTitle=${encodeURIComponent(task.title)}`;
@@ -88,12 +92,14 @@ export function TaskIssuesTab({ task }: TaskIssuesTabProps) {
             </CardTitle>
             <CardDescription>Issues reported for this task</CardDescription>
           </div>
-          <Link href={reportIssueHref}>
-            <Button size="sm">
-              <Plus className="mr-2 h-4 w-4" />
-              Report Issue
-            </Button>
-          </Link>
+          {canWrite && (
+            <Link href={reportIssueHref}>
+              <Button size="sm">
+                <Plus className="mr-2 h-4 w-4" />
+                Report Issue
+              </Button>
+            </Link>
+          )}
         </div>
       </CardHeader>
       <CardContent>
