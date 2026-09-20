@@ -16,7 +16,7 @@ export const inspectionsModule: ModuleConfig = {
       section: 'inspections',
       path: '/users/dashboard/inspections',
       icon: 'ClipboardCheck',
-      requiredPermissions: ['inspections:view'],
+      requiredPermissions: ['inspections:read'],
     },
   ],
 };
