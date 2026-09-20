@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { ShieldAlert } from 'lucide-react';
+import Link from 'next/link';
+import { FolderKanban, ShieldAlert } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { Badge } from '@/components/shadcn/badge';
 import { Card } from '@/components/shadcn/card';
@@ -20,6 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/shadcn/table';
+import { routes } from '@/nav';
 import { type Ncr, ncrTypeLabels } from '@/types/inspection';
 import {
   NcrDueDate,
@@ -95,6 +97,7 @@ export function NcrTable({ ncrs, isLoading = false }: NcrTableProps) {
             <TableHeader>
               <TableRow>
                 <TableHead>NCR</TableHead>
+                <TableHead>Project</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Severity</TableHead>
                 <TableHead>Status</TableHead>
@@ -124,6 +127,9 @@ export function NcrTable({ ncrs, isLoading = false }: NcrTableProps) {
                         {ncr.ncrNumber}
                       </span>
                     </button>
+                  </TableCell>
+                  <TableCell>
+                    <NcrProjectLink ncr={ncr} />
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{ncrTypeLabels[ncr.type]}</Badge>
@@ -218,6 +224,7 @@ function NcrCard({
 
         <div className="text-muted-foreground flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
           <span className="truncate">{engineerName ?? 'Unassigned'}</span>
+          <NcrProjectLink ncr={ncr} />
         </div>
 
         {/* Labelled here, unlike the table, where the column header says it. */}
@@ -227,5 +234,31 @@ function NcrCard({
         </div>
       </button>
     </Card>
+  );
+}
+
+/**
+ * The project an NCR belongs to, as a link to the project page.
+ *
+ * The backend resolves it through the inspection the report was raised
+ * against, so it is the inspection's project whatever the client sent. A
+ * report whose inspection carries no project shows a dash. The click is
+ * stopped so it navigates without also opening the row's detail sheet.
+ */
+function NcrProjectLink({ ncr }: { ncr: Ncr }) {
+  if (ncr.projectId == null) {
+    return <span className="text-muted-foreground text-sm">&mdash;</span>;
+  }
+  return (
+    <Link
+      href={routes.projects.allProjects.detail(ncr.projectId).href}
+      onClick={(event) => event.stopPropagation()}
+      className="inline-flex max-w-56 items-center gap-1.5 text-sm hover:underline"
+    >
+      <FolderKanban className="text-muted-foreground size-3.5 shrink-0" />
+      <span className="truncate">
+        {ncr.projectName ?? `Project #${ncr.projectId}`}
+      </span>
+    </Link>
   );
 }

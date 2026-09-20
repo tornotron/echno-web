@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Flag,
+  FolderKanban,
   ShieldCheck,
   Wrench,
   type LucideIcon,
@@ -78,8 +79,8 @@ import { SpatialBreadcrumb } from '@/components/shared/spatial-breadcrumb';
 
 export function NcrDetail({ ncrId }: { ncrId: string }) {
   const { data: ncr, isLoading } = useNcrById(ncrId);
-  // The NCR carries only the inspection id, so the source card fetches the
-  // inspection itself for its number, title and matching defect row.
+  // The NCR names its inspection and project itself; the inspection is still
+  // fetched for the matching defect row and the spatial reference.
   const { data: inspection } = useInspectionById(ncr?.inspectionId ?? '');
   const employeeName = useEmployeeNames();
 
@@ -190,6 +191,39 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
         {/* ── Reinspections ───────────────────────────────────────────────── */}
         <ReinspectionSection ncr={ncr} />
 
+        {/* ── Project ─────────────────────────────────────────────────────── */}
+        <Card variant="panel" className="p-3">
+          {ncr.projectId == null ? (
+            <div className="flex items-start gap-3">
+              <div className="bg-muted grid size-9 shrink-0 place-items-center rounded-lg">
+                <FolderKanban className="text-muted-foreground size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground text-xs">Project</p>
+                <p className="text-muted-foreground text-sm">
+                  The inspection was recorded without a project.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <Link
+              href={routes.projects.allProjects.detail(ncr.projectId).href}
+              className="group flex items-start gap-3"
+            >
+              <div className="bg-muted grid size-9 shrink-0 place-items-center rounded-lg">
+                <FolderKanban className="text-muted-foreground size-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-muted-foreground text-xs">Project</p>
+                <p className="truncate text-sm font-medium group-hover:underline">
+                  {ncr.projectName ?? `Project #${ncr.projectId}`}
+                </p>
+              </div>
+              <ArrowRight className="text-muted-foreground mt-1 size-4 shrink-0" />
+            </Link>
+          )}
+        </Card>
+
         {/* ── Source inspection ───────────────────────────────────────────── */}
         <Card variant="panel" className="p-3">
           <Link
@@ -204,9 +238,11 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
                 Raised from inspection
               </p>
               <p className="truncate text-sm font-medium group-hover:underline">
-                {inspection
-                  ? `${inspection.inspectionNumber} · ${inspection.title}`
-                  : 'Open inspection'}
+                {ncr.inspectionNumber
+                  ? `${ncr.inspectionNumber} · ${ncr.inspectionTitle ?? ''}`
+                  : inspection
+                    ? `${inspection.inspectionNumber} · ${inspection.title}`
+                    : 'Open inspection'}
               </p>
               {defect && (
                 <p className="text-muted-foreground truncate text-xs">
@@ -220,12 +256,16 @@ export function NcrDetail({ ncrId }: { ncrId: string }) {
             <div className="mt-2 flex flex-wrap items-center gap-3 pl-12">
               <SpatialBreadcrumb
                 path={
-                  defect?.spatialNodeId ? defect.spatialPath : inspection?.spatialPath
+                  defect?.spatialNodeId
+                    ? defect.spatialPath
+                    : inspection?.spatialPath
                 }
               />
               <ShowInModelLink
-                projectId={inspection?.projectId}
-                spatialNodeId={defect?.spatialNodeId ?? inspection?.spatialNodeId}
+                projectId={ncr.projectId ?? inspection?.projectId}
+                spatialNodeId={
+                  defect?.spatialNodeId ?? inspection?.spatialNodeId
+                }
               />
             </div>
           )}

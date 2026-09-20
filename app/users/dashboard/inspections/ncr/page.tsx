@@ -9,6 +9,7 @@ import {
   Wrench,
 } from 'lucide-react';
 import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { ActiveFilterChip, PageHeader } from '@/components/common';
 import { Card } from '@/components/shadcn/card';
 import { Label } from '@/components/shadcn/label';
@@ -39,14 +40,39 @@ import { NcrTable } from '@/features/inspections/components/ncr-table';
 const ALL = 'ALL';
 
 export default function NcrPage() {
+  const [projectId, setProjectId] = useState(ALL);
   const [inspectionId, setInspectionId] = useState(ALL);
   const [type, setType] = useState(ALL);
   const [status, setStatus] = useState(ALL);
   const [engineerChoice, setEngineerChoice] = useState(ALL);
   const [openOnly, setOpenOnly] = useState(false);
 
+  const { data: projects = [] } = useProjects();
   const { data: inspections = [] } = useInspections();
   const { data: employees = [] } = useEmployeeLookup();
+
+  // The inspection dropdown follows the project, so a chosen project offers
+  // only its own inspections, and choosing a project drops an inspection that
+  // belongs to another one.
+  const inspectionChoices = useMemo(
+    () =>
+      projectId === ALL
+        ? inspections
+        : inspections.filter((i) => String(i.projectId) === projectId),
+    [inspections, projectId]
+  );
+  const chooseProject = (value: string) => {
+    setProjectId(value);
+    if (
+      value !== ALL &&
+      inspectionId !== ALL &&
+      !inspections.some(
+        (i) => i.id === inspectionId && String(i.projectId) === value
+      )
+    ) {
+      setInspectionId(ALL);
+    }
+  };
 
   /*
     A Site engineer name on an NCR detail links here as
@@ -105,6 +131,7 @@ export default function NcrPage() {
   */
   const params = useMemo<NcrListParams>(
     () => ({
+      projectId: projectId === ALL ? undefined : Number(projectId),
       inspectionId: inspectionId === ALL ? undefined : inspectionId,
       type: type === ALL ? undefined : (type as NcrType),
       status: status === ALL ? undefined : (status as NcrStatus),
@@ -116,6 +143,7 @@ export default function NcrPage() {
       open: openOnly ? true : undefined,
     }),
     [
+      projectId,
       inspectionId,
       type,
       status,
@@ -207,6 +235,22 @@ export default function NcrPage() {
 
       <Card className="p-4">
         <div className="flex flex-wrap items-end gap-3">
+          <FilterField label="Project" htmlFor="ncr-filter-project">
+            <Select value={projectId} onValueChange={chooseProject}>
+              <SelectTrigger id="ncr-filter-project" className="w-full sm:w-56">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>All Projects</SelectItem>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={String(project.id)}>
+                    {project.projectName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FilterField>
+
           <FilterField label="Inspection" htmlFor="ncr-filter-inspection">
             <Select value={inspectionId} onValueChange={setInspectionId}>
               <SelectTrigger
@@ -217,7 +261,7 @@ export default function NcrPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All Inspections</SelectItem>
-                {inspections.map((inspection) => (
+                {inspectionChoices.map((inspection) => (
                   <SelectItem key={inspection.id} value={inspection.id}>
                     {inspection.inspectionNumber} · {inspection.title}
                   </SelectItem>
