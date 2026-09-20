@@ -48,6 +48,7 @@ import {
   User,
 } from 'lucide-react';
 import { format, startOfMonth, subDays } from 'date-fns';
+import { MarkedByNote } from './marked-by-note';
 import { attendanceService } from '@tornotron/echno-core/attendance/services';
 import { attendanceKeys } from '@tornotron/echno-core/attendance/hooks/keys';
 import {
@@ -589,6 +590,7 @@ export function TeamAttendanceHistory({
                       ) : (
                         <span className="text-sm text-zinc-400">{'—'}</span>
                       )}
+                      <MarkedByNote attendance={record} />
                     </TableCell>
                     <TableCell>
                       {record.eveningClockOut ? (

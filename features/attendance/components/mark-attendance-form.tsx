@@ -61,20 +61,31 @@ import {
   buildEventTimestamp,
   canClockIn,
   canClockOut,
-  describeCaptureBlock,
+  describeLocationHold,
+  describeSelectionSplit,
   isSelectableState,
+  isSupervisorLocationRequired,
   resolveTeamMemberState,
   summarizeBulkOutcome,
   teamMemberStateLabel,
   type BulkAttempt,
   type TeamMemberState,
 } from '../lib/team-marking';
+import { useDeviceLocation } from '../lib/use-device-location';
+import { LocationStatus } from './location-status';
 
-export function MarkAttendanceForm() {
-  const [selectedProject, setSelectedProject] = useState<string>('');
-  const [selectedDate, setSelectedDate] = useState<string>(
-    todayForDateInput()
+interface MarkAttendanceFormProps {
+  /** Project to open on, as its id; the operator can still change it. */
+  initialProjectId?: number;
+}
+
+export function MarkAttendanceForm({
+  initialProjectId,
+}: MarkAttendanceFormProps = {}) {
+  const [selectedProject, setSelectedProject] = useState<string>(
+    initialProjectId ? String(initialProjectId) : ''
   );
+  const [selectedDate, setSelectedDate] = useState<string>(todayForDateInput());
   const [selectedEmployees, setSelectedEmployees] = useState<Set<number>>(
     new Set()
   );
@@ -143,7 +154,9 @@ export function MarkAttendanceForm() {
 
   // Rows a supervisor can still act on. A completed day and a leave day are
   // terminal, so they are shown but locked.
-  const selectableMembers = members.filter((m) => isSelectableState(stateOf(m.id)));
+  const selectableMembers = members.filter((m) =>
+    isSelectableState(stateOf(m.id))
+  );
 
   // Split the ticked rows by the action each one is actually eligible for, so
   // each button counts what it will really submit rather than the raw tick
@@ -155,11 +168,25 @@ export function MarkAttendanceForm() {
     canClockOut(stateOf(id))
   );
 
-  // The team screen marks attendance on other people's behalf from a desk, so
-  // it can supply neither a selfie nor coordinates. When the project demands
-  // either, every request would 400; say so before anything is submitted.
+  // A supervisor marking for the team owes no selfie on the subordinate's
+  // behalf, but their own position goes on every entry and is measured against
+  // the site's boundary by the server, which refuses an entry from outside it
+  // (echno-backend#839). Where the project requires geolocation the buttons
+  // wait for a position; otherwise whatever the browser gave is sent.
   const effectiveSettings = projectSettings ?? orgSettings;
-  const captureBlock = describeCaptureBlock(effectiveSettings);
+  const locationRequired = isSupervisorLocationRequired(effectiveSettings);
+  const { state: locationState, allow, retry } = useDeviceLocation();
+  const supervisorLocation =
+    locationState.status === 'detected' ? locationState.location : undefined;
+  const locationHold = describeLocationHold(
+    locationRequired,
+    locationState.status
+  );
+  const selectionNote = describeSelectionSplit(
+    selectedEmployees.size,
+    clockInTargets.length,
+    clockOutTargets.length
+  );
 
   const handleSelectAll = (checked: boolean) => {
     setSelectedEmployees(
@@ -224,9 +251,9 @@ export function MarkAttendanceForm() {
       toast.error('Select at least one employee who has not clocked in yet');
       return;
     }
-    if (captureBlock) {
-      toast.error('Bulk marking is not allowed for this project', {
-        description: captureBlock,
+    if (locationHold) {
+      toast.error('Your location is needed first', {
+        description: locationHold,
       });
       return;
     }
@@ -252,6 +279,7 @@ export function MarkAttendanceForm() {
           attendanceId: existing.id,
           eventType: ClockEventType.morningClockIn,
           eventTimestamp,
+          location: supervisorLocation,
           remarks,
         });
       }
@@ -260,6 +288,7 @@ export function MarkAttendanceForm() {
         projectId: Number(selectedProject),
         shiftTimingId: resolvedShiftTimingId,
         eventTimestamp,
+        location: supervisorLocation,
         remarks,
       });
     });
@@ -272,9 +301,9 @@ export function MarkAttendanceForm() {
       );
       return;
     }
-    if (captureBlock) {
-      toast.error('Bulk marking is not allowed for this project', {
-        description: captureBlock,
+    if (locationHold) {
+      toast.error('Your location is needed first', {
+        description: locationHold,
       });
       return;
     }
@@ -288,7 +317,8 @@ export function MarkAttendanceForm() {
     // A clock-out before the recorded clock-in would produce a negative work
     // duration, so it is refused here rather than written and corrected later.
     const tooEarly = clockOutTargets.filter((empId) => {
-      const clockIn = attendanceByEmployee.get(empId)?.morningClockIn?.timestamp;
+      const clockIn =
+        attendanceByEmployee.get(empId)?.morningClockIn?.timestamp;
       return clockIn !== undefined && eventTimestamp <= clockIn;
     });
     if (tooEarly.length > 0) {
@@ -303,6 +333,7 @@ export function MarkAttendanceForm() {
         attendanceId: attendanceByEmployee.get(empId)!.id,
         eventType: ClockEventType.eveningClockOut,
         eventTimestamp,
+        location: supervisorLocation,
         remarks,
       })
     );
@@ -502,11 +533,28 @@ export function MarkAttendanceForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {captureBlock && (
+            {/* The supervisor's own position: recorded on every entry and
+                checked against the site boundary by the server. The
+                subordinates are not asked for a selfie on this path. */}
+            <div className="space-y-2">
+              <Label>Your location</Label>
+              <LocationStatus
+                state={locationState}
+                onAllow={allow}
+                onRetry={retry}
+              />
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Recorded with each entry as the person who marked it, and
+                checked against the project&apos;s site boundary. An entry from
+                outside the boundary is refused.
+              </p>
+            </div>
+
+            {locationHold && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Bulk marking is blocked for this project</AlertTitle>
-                <AlertDescription>{captureBlock}</AlertDescription>
+                <AlertTitle>Location needed before marking</AlertTitle>
+                <AlertDescription>{locationHold}</AlertDescription>
               </Alert>
             )}
 
@@ -550,7 +598,7 @@ export function MarkAttendanceForm() {
               <Button
                 onClick={handleMarkClockIn}
                 disabled={
-                  loading || !!captureBlock || clockInTargets.length === 0
+                  loading || !!locationHold || clockInTargets.length === 0
                 }
                 className="flex items-center gap-2"
               >
@@ -561,7 +609,7 @@ export function MarkAttendanceForm() {
               <Button
                 onClick={handleMarkClockOut}
                 disabled={
-                  loading || !!captureBlock || clockOutTargets.length === 0
+                  loading || !!locationHold || clockOutTargets.length === 0
                 }
                 variant="secondary"
                 className="flex items-center gap-2"
@@ -571,14 +619,14 @@ export function MarkAttendanceForm() {
               </Button>
             </div>
 
-            {selectedEmployees.size > 0 &&
-              clockInTargets.length + clockOutTargets.length <
-                selectedEmployees.size && (
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Some selected employees have already completed the day and
-                  will be skipped.
-                </p>
-              )}
+            {selectionNote && (
+              <p
+                className="text-sm text-zinc-600 dark:text-zinc-400"
+                data-testid="selection-note"
+              >
+                {selectionNote}
+              </p>
+            )}
           </CardContent>
         </Card>
       )}

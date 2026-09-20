@@ -55,6 +55,7 @@ import {
   getAttendanceStatusColor,
 } from '@tornotron/echno-core/attendance/types';
 import { format, startOfMonth, subDays } from 'date-fns';
+import { MarkedByNote } from './marked-by-note';
 
 // ─── Attendance History ───────────────────────────────────────────────────────
 
@@ -556,6 +557,7 @@ export function AttendanceHistory({
                       ) : (
                         <span className="text-sm text-zinc-400">—</span>
                       )}
+                      <MarkedByNote attendance={record} />
                     </TableCell>
                     <TableCell>
                       {record.eveningClockOut ? (

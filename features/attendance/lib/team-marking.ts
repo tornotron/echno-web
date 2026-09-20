@@ -109,30 +109,78 @@ export function pruneSelection(
 }
 
 /**
- * Explains why the bulk screen cannot satisfy the project's capture rules.
+ * Whether the supervisor's own position has to be on the request.
  *
- * The backend rejects a check-in when the effective attendance settings demand
- * a selfie or GPS coordinates. The team screen is operated from a desk on
- * behalf of other people, so it can supply neither. Detecting that up front
- * turns a run of silent 400s into one actionable sentence.
+ * A supervisor marking for the team owes no selfie on the subordinate's
+ * behalf (the server no longer asks for one on an entry recorded for somebody
+ * else), but their own position is measured against the site's geofence when
+ * the entry is created and refused when it falls outside. Where the project
+ * requires geolocation the request cannot go without it; where it does not,
+ * the position is sent when the browser gave one and the server measures what
+ * it can.
  *
  * @param settings - Effective attendance settings for the project, falling back
  *   to the organisation defaults.
- * @returns A message naming the blocking requirements, or `null` when bulk
- *   marking is permitted.
+ * @returns `true` when a request without coordinates would be refused.
  */
-export function describeCaptureBlock(
-  settings?: Pick<
-    AttendanceProfile,
-    'photoRequiredOnCheckIn' | 'geolocationRequired'
-  >
+export function isSupervisorLocationRequired(
+  settings?: Pick<AttendanceProfile, 'geolocationRequired'>
+): boolean {
+  return settings?.geolocationRequired ?? false;
+}
+
+/**
+ * Explains why the action buttons are held while the position is missing.
+ *
+ * @param required - Whether the project demands coordinates.
+ * @param status - Where the browser's location attempt has got to.
+ * @returns A sentence for the operator, or `null` when nothing holds the
+ *   buttons.
+ */
+export function describeLocationHold(
+  required: boolean,
+  status: 'idle' | 'detecting' | 'detected' | 'error'
 ): string | null {
-  if (!settings) return null;
-  const blockers: string[] = [];
-  if (settings.photoRequiredOnCheckIn) blockers.push('a check-in photo');
-  if (settings.geolocationRequired) blockers.push('GPS coordinates');
-  if (blockers.length === 0) return null;
-  return `This project requires ${blockers.join(' and ')} on every attendance event, which cannot be captured when marking on behalf of the team. Turn the requirement off in Attendance Settings for this project, or have the employees clock in themselves.`;
+  if (!required || status === 'detected') return null;
+  if (status === 'error') {
+    return 'This project requires your location on every attendance entry. Allow location access, or retry, before marking the team.';
+  }
+  return 'Reading your location. Your position is recorded with every entry and checked against the site boundary.';
+}
+
+/**
+ * Explains a tick that the clock-in button will not count.
+ *
+ * The two buttons count only the ticked rows each one can act on, so a row
+ * ticked while already clocked in shows up on Clock-Out and not on Clock-In.
+ * That is right, and it also reads as "my selection was ignored" unless the
+ * screen says so (ClickUp 86d45jzpa).
+ *
+ * @param selectedCount - Rows ticked.
+ * @param clockInCount - Ticked rows that can still clock in.
+ * @param clockOutCount - Ticked rows that can still clock out.
+ * @returns A sentence for the operator, or `null` when every tick is counted
+ *   on the button the operator is likely looking at.
+ */
+export function describeSelectionSplit(
+  selectedCount: number,
+  clockInCount: number,
+  clockOutCount: number
+): string | null {
+  if (selectedCount === 0) return null;
+  const skipped = selectedCount - clockInCount - clockOutCount;
+  const parts: string[] = [];
+  if (clockOutCount > 0 && clockInCount === 0) {
+    parts.push(
+      `${clockOutCount} selected ${plural(clockOutCount)} ${clockOutCount === 1 ? 'is' : 'are'} already clocked in, so only Clock-Out applies.`
+    );
+  }
+  if (skipped > 0) {
+    parts.push(
+      `${skipped} selected ${plural(skipped)} ${skipped === 1 ? 'has' : 'have'} already completed the day and will be skipped.`
+    );
+  }
+  return parts.length > 0 ? parts.join(' ') : null;
 }
 
 /** One member's outcome from a bulk clock action. */
