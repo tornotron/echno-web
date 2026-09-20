@@ -11,7 +11,7 @@ import {
 import { Building } from 'lucide-react';
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
+import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 
 export function OrganizationSelector() {
   const { data: session } = useSession();
@@ -22,7 +22,7 @@ export function OrganizationSelector() {
     setOrganizations,
   } = useOrganization();
 
-  const { data: fetchedOrganizations } = useOrganizations();
+  const { data: fetchedOrganizations } = useOrganizationSummaries();
 
   // Sync fetched organizations to context.
   // Default-selection logic lives exclusively in OrganizationProvider's sync

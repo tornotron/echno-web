@@ -14,7 +14,7 @@ import { leaveFromMap } from '@/lib/utils/leave-path-map';
 import { Employee } from '@tornotron/echno-core/employee/types';
 import { Issue } from '@tornotron/echno-core/issue/types';
 import { Labour } from '@tornotron/echno-core/labour/types';
-import { Organization } from '@tornotron/echno-core/organization/types';
+import { OrganizationSummary } from '@tornotron/echno-core/organization/types';
 import { Project } from '@tornotron/echno-core/project/types';
 import { StorageLocation } from '@tornotron/echno-core/storage-locations/types';
 import { Task } from '@tornotron/echno-core/task/types';
@@ -76,7 +76,7 @@ export function getNameForId(
   context: string[],
   employee?: Employee,
   leaveRequests?: LeaveRequest[],
-  organizations?: Organization[],
+  organizations?: OrganizationSummary[],
   project?: Project,
   task?: Task,
   issue?: Issue,

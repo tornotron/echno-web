@@ -19,7 +19,7 @@ import { CommandPalette } from '@/features/common/components/command-palette';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@tornotron/echno-core/user/hooks';
-import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
+import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 import { useBreadcrumbData } from '@/hooks/use-breadcrumb-data';
 import { Suspense, useEffect } from 'react';
 import { routes } from '@/nav';
@@ -43,7 +43,7 @@ function AppLayoutContent({ children, floatingChat }: AppLayoutProps) {
   const router = useRouter();
   const { data: user, isLoading: userLoading } = useUser();
   const { data: organizations, isLoading: organizationsLoading } =
-    useOrganizations();
+    useOrganizationSummaries();
 
   // Fetch data for breadcrumbs using custom hook
   const breadcrumbData = useBreadcrumbData();

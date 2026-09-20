@@ -34,7 +34,7 @@ import { useEmployeeLookup } from '@tornotron/echno-core/employee/hooks';
 import { useCreateDirectRoom } from '@/hooks/chat/use-chat-mutations';
 import { useUser } from '@tornotron/echno-core/user/hooks';
 import { useUserEmployees } from '@tornotron/echno-core/user/hooks';
-import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
+import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 import { ChatRoom, ChatRoomType } from '@/types/chat';
 import { format } from 'date-fns';
 import {
@@ -167,7 +167,7 @@ export function ChatSidebar({ onRoomSelect }: ChatSidebarProps) {
 
   const { data: user } = useUser();
   const { data: userEmployees = [] } = useUserEmployees();
-  const { data: organizations = [] } = useOrganizations();
+  const { data: organizations = [] } = useOrganizationSummaries();
   const currentOrg = organizations.find(
     (o) => o.id === user?.defaultOrganizationId
   );

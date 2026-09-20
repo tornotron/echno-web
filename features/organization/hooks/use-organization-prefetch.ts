@@ -10,8 +10,11 @@ import { organizationKeys } from '@tornotron/echno-core/organization/hooks/keys'
 /**
  * useOrganizationPrefetch
  *
- * Prefetches organizations for the authenticated user and stores
- * them in the React Query cache under `organizationKeys.all`.
+ * Prefetches the organization summaries for the authenticated user and
+ * stores them in the React Query cache under `organizationKeys.summaries()`,
+ * the key `useOrganizationSummaries` reads (the picker, the membership check
+ * and the breadcrumb lookup). The full list stays lazy: only the
+ * organizations card page reads it.
  *
  * Mount this hook once at the app level (e.g., inside AuthProvider or
  * a dedicated provider) alongside `<UserPrefetcher>`.
@@ -34,9 +37,9 @@ export function useOrganizationPrefetch() {
       hasPrefetched.current = true;
 
       organizationService
-        .getAll()
+        .getAllSummaries()
         .then((organizations) => {
-          queryClient.setQueryData(organizationKeys.all, organizations);
+          queryClient.setQueryData(organizationKeys.summaries(), organizations);
           logger.debug('User organizations prefetched successfully');
         })
         .catch((error) => {
