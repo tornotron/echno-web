@@ -40,7 +40,7 @@ export type Permission =
   | 'chat:view'
   | 'settings:view'
   | 'settings:manage'
-  | 'inspections:view'
+  | 'inspections:read'
   | 'inspections:manage'
   | 'bim:view'
   | 'bim:manage'
@@ -128,7 +128,7 @@ export const BILLING_ACCESS: AccessConfig = {
  * There is no fine-grained per-user permission source yet (only `orgRoles`
  * from the employee record) — the backend has no permissions endpoint or
  * claim to read. Until that exists, this is a role-derived stand-in: every
- * authenticated role gets `inspections:view` since the actual gate for a
+ * authenticated role gets `inspections:read` since the actual gate for a
  * disabled/unentitled module is the moduleId check in `evaluate.ts`, backed
  * by the backend's enabled-module descriptor, not this permission. This
  * mapping only needs to be real business policy once a role or user should
@@ -136,7 +136,7 @@ export const BILLING_ACCESS: AccessConfig = {
  */
 export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   admin: [
-    'inspections:view',
+    'inspections:read',
     'inspections:manage',
     'bim:view',
     'bim:manage',
@@ -144,14 +144,14 @@ export const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     'toolbox-talks:manage',
   ],
   manager: [
-    'inspections:view',
+    'inspections:read',
     'inspections:manage',
     'bim:view',
     'bim:manage',
     'toolbox-talks:read',
     'toolbox-talks:manage',
   ],
-  employee: ['inspections:view', 'bim:view', 'toolbox-talks:read'],
+  employee: ['inspections:read', 'bim:view', 'toolbox-talks:read'],
 };
 
 /** Returns the permissions granted to a role, or none for an unauthenticated user. */

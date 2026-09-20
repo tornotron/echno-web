@@ -139,7 +139,7 @@ describe('resolveSidebarAccess — module gate', () => {
       item({
         id: 'inspections',
         moduleId: 'inspections',
-        access: { permissions: ['inspections:view'] },
+        access: { permissions: ['inspections:read'] },
       }),
     ];
     const result = resolveSidebarAccess(tree, {
@@ -154,14 +154,14 @@ describe('resolveSidebarAccess — module gate', () => {
 
 describe('canAccess — permissions gate', () => {
   test('hides an item from a user without the required permission', () => {
-    const config = { permissions: ['inspections:view'] } as const;
+    const config = { permissions: ['inspections:read'] } as const;
     expect(canAccess(config, { ...authed, permissions: [] })).toBe(false);
   });
 
   test('allows an item once the user holds every required permission', () => {
-    const config = { permissions: ['inspections:view'] } as const;
+    const config = { permissions: ['inspections:read'] } as const;
     expect(
-      canAccess(config, { ...authed, permissions: ['inspections:view'] })
+      canAccess(config, { ...authed, permissions: ['inspections:read'] })
     ).toBe(true);
   });
 });
