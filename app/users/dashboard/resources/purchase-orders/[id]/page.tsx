@@ -43,6 +43,12 @@ import {
   POInfoCard,
   PORemarksCard,
 } from '@/features/purchase-orders/components';
+import {
+  ReversalControls,
+  ReversalNotice,
+  ReversedBadge,
+} from '@/features/document-reversals/components';
+import { ReversibleDocumentType } from '@tornotron/echno-core/document-reversals/types';
 
 export default function PurchaseOrderDetailPage({
   params,
@@ -99,6 +105,7 @@ export default function PurchaseOrderDetailPage({
             <Badge className={purchaseOrderStatusBadgeColors[po.status]}>
               {purchaseOrderStatusLabels[po.status]}
             </Badge>
+            <ReversedBadge reversalId={po.reversalId} />
             {po.indentNumber && (
               <Badge variant="outline" className="text-xs">
                 <FolderOpen className="mr-1 h-3 w-3" />
@@ -111,27 +118,40 @@ export default function PurchaseOrderDetailPage({
           </div>
         }
         actions={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Actions <ChevronDown className="ml-1.5 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                className="gap-2"
-                onClick={() =>
-                  router.push(
-                    `${routes.resources.goodsReceipts.new}?fromPO=${id}`
-                  )
-                }
-              >
-                <ClipboardList className="h-4 w-4" />
-                Create GRN
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <>
+            <ReversalControls
+              documentType={ReversibleDocumentType.purchaseOrder}
+              documentId={po.id}
+              documentLabel={`purchase order ${po.poNumber}`}
+              movesStock={false}
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Actions <ChevronDown className="ml-1.5 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="gap-2"
+                  onClick={() =>
+                    router.push(
+                      `${routes.resources.goodsReceipts.new}?fromPO=${id}`
+                    )
+                  }
+                >
+                  <ClipboardList className="h-4 w-4" />
+                  Create GRN
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
         }
+      />
+
+      <ReversalNotice
+        documentType={ReversibleDocumentType.purchaseOrder}
+        documentId={po.id}
       />
 
       {/* Key Metrics */}
