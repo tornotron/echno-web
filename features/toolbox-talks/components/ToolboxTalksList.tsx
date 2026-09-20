@@ -84,7 +84,7 @@ export function ToolboxTalksList() {
           }}
         />
         <Button size="sm" asChild>
-          <Link href={routes.toolboxTalks.new.href}>
+          <Link href={routes.toolboxTalks.new}>
             <Plus className="size-4" />
             New talk
           </Link>
