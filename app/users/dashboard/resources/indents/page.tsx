@@ -22,24 +22,23 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { useIndentsPaginated } from '@tornotron/echno-core/indents/hooks';
+import { useIndentSummaries } from '@tornotron/echno-core/indents/hooks';
 import { IndentTable } from '@/features/indents/components';
 import { IndentStatus } from '@tornotron/echno-core/indents/types';
 
 export default function IndentsPage() {
-  const {
-    data: indents = [],
-    isLoading,
-    isError,
-  } = useIndentsPaginated(0, 200);
+  // The list filters and pages on the client, so one summary page is
+  // asked for. The summary carries the line counts and none of the lines,
+  // so the page no longer reads a material for every line of every indent.
+  const { data: page, isLoading, isError } = useIndentSummaries(0, 200);
+  const indents = useMemo(() => page?.content ?? [], [page]);
 
-  const { chip, matches: matchesEmployeeFilter } =
-    useEmployeeFilterFromParams({
-      rows: indents,
-      roles: {
+  const { chip, matches: matchesEmployeeFilter } = useEmployeeFilterFromParams({
+    rows: indents,
+    roles: {
       creator: (row) => row.createdBy?.id,
-      },
-    });
+    },
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');

@@ -1,6 +1,6 @@
 'use client';
 
-import { Organization } from '@tornotron/echno-core/organization/types';
+import type { OrganizationSummary } from '@tornotron/echno-core/organization/types';
 import {
   Card,
   CardContent,
@@ -27,12 +27,17 @@ import { useOrganization } from '@/components/providers/organization-provider';
 import { toast } from '@/lib/styles/toast-styles';
 
 interface OrganizationCardProps {
-  organization: Organization;
+  /**
+   * An organization summary from `useOrganizationSummaries`: the scalar
+   * columns plus the employee and project counts and the signed logo URL
+   * the backend resolves from the latest `ORGANIZATION_LOGO` attachment.
+   */
+  organization: OrganizationSummary;
 }
 
 export function OrganizationCard({ organization }: OrganizationCardProps) {
-  const employeeCount = organization.employees?.length || 0;
-  const projectCount = organization.projects?.length || 0;
+  const employeeCount = organization.employeeCount ?? 0;
+  const projectCount = organization.projectCount ?? 0;
   const { defaultOrganization, setDefaultOrganization } = useOrganization();
   const isDefault = defaultOrganization?.id === organization.id;
 
@@ -45,10 +50,10 @@ export function OrganizationCard({ organization }: OrganizationCardProps) {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              {organization.logo ? (
+              {organization.logoUrl ? (
                 <div className="relative h-12 w-12 overflow-hidden rounded-lg border border-zinc-200 dark:border-zinc-800">
                   <Image
-                    src={organization.logo.file}
+                    src={organization.logoUrl}
                     alt={organization.organizationName}
                     fill
                     className="object-cover"

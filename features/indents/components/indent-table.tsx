@@ -32,14 +32,14 @@ import { routes } from '@/nav';
 import {
   IndentStatus,
   indentStatusLabels,
-  type Indent,
+  type IndentSummary,
 } from '@tornotron/echno-core/indents/types';
 import { IndentRow } from './indent-row';
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20, 50, 100];
 
 interface IndentTableProps {
-  paginated: Indent[];
+  paginated: IndentSummary[];
   filteredCount: number;
   startIndex: number;
   itemsPerPage: number;
