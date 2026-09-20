@@ -3,8 +3,10 @@ import {
   buildEventTimestamp,
   canClockIn,
   canClockOut,
-  describeCaptureBlock,
+  describeLocationHold,
+  describeSelectionSplit,
   isSelectableState,
+  isSupervisorLocationRequired,
   pruneSelection,
   resolveTeamMemberState,
   summarizeBulkOutcome,
@@ -99,36 +101,63 @@ describe('pruneSelection', () => {
   });
 });
 
-describe('describeCaptureBlock', () => {
-  test('no settings yet means no verdict', () => {
-    expect(describeCaptureBlock()).toBeNull();
+describe('isSupervisorLocationRequired', () => {
+  test('no settings yet means nothing is demanded', () => {
+    expect(isSupervisorLocationRequired()).toBe(false);
   });
 
-  test('permissive settings do not block bulk marking', () => {
-    expect(
-      describeCaptureBlock({
-        photoRequiredOnCheckIn: false,
-        geolocationRequired: false,
-      })
-    ).toBeNull();
+  test('follows the geolocation flag, and only that flag', () => {
+    // The selfie flag used to block the whole screen. It no longer applies to
+    // an entry recorded for somebody else, so it must not hold anything here.
+    expect(isSupervisorLocationRequired({ geolocationRequired: true })).toBe(
+      true
+    );
+    expect(isSupervisorLocationRequired({ geolocationRequired: false })).toBe(
+      false
+    );
+  });
+});
+
+describe('describeLocationHold', () => {
+  test('nothing holds the buttons when the site does not need a position', () => {
+    expect(describeLocationHold(false, 'error')).toBeNull();
+    expect(describeLocationHold(false, 'idle')).toBeNull();
   });
 
-  test('a required photo is reported', () => {
-    const message = describeCaptureBlock({
-      photoRequiredOnCheckIn: true,
-      geolocationRequired: false,
-    });
-    expect(message).toContain('a check-in photo');
-    expect(message).not.toContain('GPS');
+  test('a detected position releases the hold', () => {
+    expect(describeLocationHold(true, 'detected')).toBeNull();
   });
 
-  test('both requirements are named together', () => {
-    const message = describeCaptureBlock({
-      photoRequiredOnCheckIn: true,
-      geolocationRequired: true,
-    });
-    expect(message).toContain('a check-in photo and GPS coordinates');
-    expect(message).toContain('Attendance Settings');
+  test('a missing position is explained while it is read and when it fails', () => {
+    expect(describeLocationHold(true, 'detecting')).toContain(
+      'Reading your location'
+    );
+    expect(describeLocationHold(true, 'error')).toContain(
+      'Allow location access'
+    );
+  });
+});
+
+describe('describeSelectionSplit', () => {
+  test('says nothing with no ticks', () => {
+    expect(describeSelectionSplit(0, 0, 0)).toBeNull();
+  });
+
+  test('says nothing when every tick counts on clock-in', () => {
+    expect(describeSelectionSplit(2, 2, 0)).toBeNull();
+  });
+
+  test('explains a tick that only clock-out will count', () => {
+    // The ticket's symptom: EMP-0004 ticked, "Mark Clock-In (0 selected)".
+    expect(describeSelectionSplit(1, 0, 1)).toBe(
+      '1 selected employee is already clocked in, so only Clock-Out applies.'
+    );
+  });
+
+  test('explains ticks the day has already closed', () => {
+    expect(describeSelectionSplit(3, 1, 0)).toBe(
+      '2 selected employees have already completed the day and will be skipped.'
+    );
   });
 });
 

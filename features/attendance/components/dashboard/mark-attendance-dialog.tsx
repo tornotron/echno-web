@@ -21,8 +21,6 @@ import {
   SelectValue,
 } from '@/components/shadcn/select';
 import {
-  MapPin,
-  MapPinOff,
   Building2,
   CheckCircle,
   AlertTriangle,
@@ -48,6 +46,19 @@ import {
 } from '@tornotron/echno-core/attendance/types';
 import { useProjectsByEmployee } from '@tornotron/echno-core/project/hooks';
 import {
+  detectLocationBlocker,
+  formatCoord,
+  isLocationSettled,
+  locationErrorKind,
+  nextLocationStep,
+  readGeolocationPermission,
+  type LocationState,
+} from '../../lib/device-location';
+import { LocationStatus } from '../location-status';
+
+// Re-exported so the rules the dialog is built on keep their old import path.
+export { isLocationSettled, nextLocationStep } from '../../lib/device-location';
+import {
   useOrgSettings,
   useProjectSettings,
 } from '@tornotron/echno-core/attendance-settings/hooks';
@@ -60,27 +71,6 @@ import { toast } from '@/lib/styles/toast-styles';
 import { format } from 'date-fns';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-
-/**
- * Why the browser would not give us a position. Attendance is verified against
- * the site the employee is standing on, so a bare "location unavailable" leaves
- * them with nothing to act on. Each kind carries its own explanation and its own
- * next step.
- */
-type LocationErrorKind =
-  | 'unsupported'
-  | 'insecure'
-  | 'permission-required'
-  | 'permission-denied'
-  | 'position-unavailable'
-  | 'timeout'
-  | 'failed';
-
-type LocationState =
-  | { status: 'idle' }
-  | { status: 'detecting' }
-  | { status: 'detected'; location: GeoLocation }
-  | { status: 'error'; kind: LocationErrorKind };
 
 type CameraState =
   | { status: 'idle' }
@@ -138,112 +128,6 @@ const ACTION_CONFIG: Partial<
   },
 };
 
-// ─── Location copy ────────────────────────────────────────────────────────────
-
-/**
- * What the dialog says for each failure, and what it offers the employee next.
- * `allow` renders the button that triggers the browser's permission prompt;
- * `retry` re-reads the permission and asks for a position again; `none` is for
- * the cases the employee cannot fix from this screen.
- */
-const LOCATION_ERROR_COPY: Record<
-  LocationErrorKind,
-  { title: string; body: string; action: 'allow' | 'retry' | 'none' }
-> = {
-  unsupported: {
-    title: 'Location is not available on this device',
-    body: 'This browser cannot report a location, so attendance cannot be verified here. Open Echno in a current version of Chrome, Safari, Edge or Firefox.',
-    action: 'none',
-  },
-  insecure: {
-    title: 'Location needs a secure connection',
-    body: 'Browsers only share a location over HTTPS. Open Echno on its https:// address, then select Retry.',
-    action: 'retry',
-  },
-  'permission-required': {
-    title: 'Location access required',
-    body: 'Your location is needed to verify that you are checking in from the permitted work location. It is read once, when you mark attendance.',
-    action: 'allow',
-  },
-  'permission-denied': {
-    title: 'Location permission is blocked',
-    body: 'Echno was refused access to your location. Enable Location for this site in your browser or device settings, then return here and select Retry.',
-    action: 'retry',
-  },
-  'position-unavailable': {
-    title: 'Your location could not be determined',
-    body: 'Your device could not get a fix. Check that location services are switched on, move somewhere with a clearer view of the sky, then select Retry.',
-    action: 'retry',
-  },
-  timeout: {
-    title: 'Location request timed out',
-    body: 'Your device took too long to report a position. Stay on this screen and select Retry.',
-    action: 'retry',
-  },
-  failed: {
-    title: 'Location could not be read',
-    body: 'Something went wrong while reading your location. Select Retry to try again.',
-    action: 'retry',
-  },
-};
-
-/**
- * Decides what the dialog does next, given what it already knows about the
- * environment and the browser's standing permission. Split out from the
- * component so the rule can be read and tested on its own.
- *
- * A blocker beats everything, because no permission can rescue a browser with
- * no Geolocation API or a page on plain HTTP. A denied permission is reported
- * rather than re-requested: browsers do not re-prompt, so calling
- * `getCurrentPosition` again would only reproduce the same failure. An
- * unresolved permission stops at an explanation on the automatic pass and goes
- * through to the prompt once the employee asks for it, so the prompt never
- * appears without a reason beside it. A granted permission, and a browser with
- * no Permissions API to ask, go straight to the position request.
- *
- * @param blocker - Environment failure found without asking the browser, or null.
- * @param permission - The browser's standing decision, or null when unreadable.
- * @param userInitiated - Whether this pass came from the employee's own click.
- */
-export function nextLocationStep(
-  blocker: LocationErrorKind | null,
-  permission: PermissionState | null,
-  userInitiated: boolean
-): { status: 'detecting' } | { status: 'error'; kind: LocationErrorKind } {
-  if (blocker) return { status: 'error', kind: blocker };
-  if (permission === 'denied') {
-    return { status: 'error', kind: 'permission-denied' };
-  }
-  if (permission === 'prompt' && !userInitiated) {
-    return { status: 'error', kind: 'permission-required' };
-  }
-  return { status: 'detecting' };
-}
-
-/**
- * Whether the dialog has everything it needs from the browser to record an
- * event.
- *
- * A profile with `geolocationRequired` set has to have a position, because the
- * event is verified against the site the employee is standing on and there is
- * nothing to verify without coordinates. A profile without it only waits while
- * the attempt is still in flight, and goes ahead once the attempt has settled
- * one way or the other, so a refused or unavailable position stops being fatal
- * on the profiles that never asked for one. `idle` and `detecting` are both
- * still in flight.
- *
- * @param status - Where the location attempt has got to.
- * @param geolocationRequired - The effective profile's flag.
- */
-export function isLocationSettled(
-  status: LocationState['status'],
-  geolocationRequired: boolean
-): boolean {
-  if (status === 'detected') return true;
-  if (geolocationRequired) return false;
-  return status === 'error';
-}
-
 /**
  * Metres between a position and a project's site, or null when the project
  * carries no coordinates and there is therefore nothing to measure against.
@@ -259,44 +143,6 @@ function distanceToProject(
     latitude: project.projectLatitude,
     longitude: project.projectLongitude,
   });
-}
-
-/**
- * The failure the page can determine on its own, before the browser is asked
- * for anything: no Geolocation API at all, or a page served over plain HTTP,
- * where every browser refuses geolocation regardless of the permission.
- */
-function detectLocationBlocker(): LocationErrorKind | null {
-  if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    return 'unsupported';
-  }
-  // Undefined on the server, where there is nothing to decide; only an explicit
-  // false means the page really is on an origin the browser calls insecure.
-  if (globalThis.isSecureContext === false) {
-    return 'insecure';
-  }
-  return null;
-}
-
-/**
- * Reads the browser's standing decision for geolocation without asking for a
- * position, which is what lets the dialog tell "never asked" apart from
- * "blocked". Returns null where the Permissions API is missing or refuses the
- * query (older Safari, some in-app webviews); the caller then falls back to
- * asking for a position and reading the error code that comes back.
- */
-async function readGeolocationPermission(): Promise<PermissionState | null> {
-  if (typeof navigator === 'undefined' || !navigator.permissions?.query) {
-    return null;
-  }
-  try {
-    const status = await navigator.permissions.query({
-      name: 'geolocation' as PermissionName,
-    });
-    return status.state;
-  } catch {
-    return null;
-  }
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -389,12 +235,6 @@ function isPhotoRequired(
 
 function formatDistance(m: number): string {
   return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toFixed(1)} km`;
-}
-
-function formatCoord(lat: number, lng: number): string {
-  const latDir = lat >= 0 ? 'N' : 'S';
-  const lngDir = lng >= 0 ? 'E' : 'W';
-  return `${Math.abs(lat).toFixed(5)}°${latDir}, ${Math.abs(lng).toFixed(5)}°${lngDir}`;
 }
 
 // ─── Canvas watermark ─────────────────────────────────────────────────────────
@@ -735,22 +575,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
         setProjectMatch(nearest);
       },
       (err) => {
-        let kind: LocationErrorKind = 'failed';
-        switch (err.code) {
-          case err.PERMISSION_DENIED: {
-            kind = 'permission-denied';
-            break;
-          }
-          case err.POSITION_UNAVAILABLE: {
-            kind = 'position-unavailable';
-            break;
-          }
-          case err.TIMEOUT: {
-            kind = 'timeout';
-            break;
-          }
-        }
-        setLocationState({ status: 'error', kind });
+        setLocationState({ status: 'error', kind: locationErrorKind(err) });
       },
       { enableHighAccuracy: true, timeout: 15_000, maximumAge: 30_000 }
     );
@@ -1254,95 +1079,6 @@ function CameraCapture({
 
       {/* Hidden canvas */}
       <canvas ref={canvasRef} className="hidden" />
-    </div>
-  );
-}
-
-// ─── Location status ──────────────────────────────────────────────────────────
-
-function LocationStatus({
-  state,
-  onAllow,
-  onRetry,
-}: {
-  state: LocationState;
-  onAllow: () => void;
-  onRetry: () => void;
-}) {
-  if (state.status === 'idle' || state.status === 'detecting') {
-    return (
-      <div className="bg-muted/60 flex items-center gap-3 rounded-lg px-3 py-2.5">
-        <Loader2 className="text-muted-foreground h-4 w-4 shrink-0 animate-spin" />
-        <div>
-          <p className="text-sm font-medium">Detecting location…</p>
-          <p className="text-muted-foreground text-xs">
-            Allow location access when prompted
-          </p>
-        </div>
-      </div>
-    );
-  }
-  if (state.status === 'error') {
-    const copy = LOCATION_ERROR_COPY[state.kind];
-    // 'permission-required' is a step in the flow rather than a fault, so it
-    // reads as an amber prompt; everything else has actually failed.
-    const isPrompt = state.kind === 'permission-required';
-    return (
-      <div
-        className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 ${
-          isPrompt
-            ? 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20'
-            : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
-        }`}
-      >
-        {isPrompt ? (
-          <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-        ) : (
-          <MapPinOff className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
-        )}
-        <div className="flex-1 space-y-2">
-          <div className="space-y-0.5">
-            <p className="text-sm font-medium">{copy.title}</p>
-            <p className="text-muted-foreground text-xs">{copy.body}</p>
-          </div>
-          {copy.action === 'allow' && (
-            <Button size="sm" onClick={onAllow} className="h-7 text-xs">
-              <MapPin className="mr-1 h-3 w-3" />
-              Allow Location Access
-            </Button>
-          )}
-          {copy.action === 'retry' && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={onRetry}
-              className="h-7 text-xs"
-            >
-              <RefreshCw className="mr-1 h-3 w-3" />
-              Retry
-            </Button>
-          )}
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="bg-muted/60 flex items-center gap-3 rounded-lg px-3 py-2.5">
-      <MapPin className="h-4 w-4 shrink-0 text-green-600" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">
-          {formatCoord(state.location.latitude, state.location.longitude)}
-        </p>
-        <p className="text-muted-foreground text-xs">
-          ±{Math.round(state.location.accuracy ?? 0)} m accuracy
-        </p>
-      </div>
-      <Badge
-        variant="outline"
-        className="shrink-0 border-green-300 text-xs text-green-700 dark:border-green-700 dark:text-green-400"
-      >
-        GPS
-      </Badge>
     </div>
   );
 }

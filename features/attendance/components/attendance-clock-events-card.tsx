@@ -16,6 +16,7 @@ import {
   LogIn,
   LogOut,
   PlayCircle,
+  UserCheck,
 } from 'lucide-react';
 import {
   getClockEventLabel,
@@ -23,6 +24,11 @@ import {
 } from '@tornotron/echno-core/attendance/types';
 import type { Attendance } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
+import {
+  describeMarkedBy,
+  describeMarkedFrom,
+  isMarkedByAnotherPerson,
+} from '../lib/marked-by';
 
 interface Props {
   attendance: Attendance;
@@ -104,6 +110,10 @@ export function AttendanceClockEventsCard({ attendance }: Props) {
           {clockEvents.map(({ event, type, icon: Icon, color }, index) => {
             if (!event) return null;
             const colors = colorMap[color] ?? colorMap.orange;
+            const markedBy = isMarkedByAnotherPerson(
+              event,
+              attendance.employeeId
+            );
             return (
               <div
                 key={index}
@@ -127,6 +137,28 @@ export function AttendanceClockEventsCard({ attendance }: Props) {
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
                       {format(event.timestamp, 'h:mm:ss a')}
                     </p>
+                    {/* Who recorded the punch, when it was not the employee:
+                        a supervisor marking the team. The server stamps the
+                        supervisor's own position and distance, measured at
+                        the moment of marking (echno-backend#839). */}
+                    {markedBy && (
+                      <div
+                        className="mt-2 flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1.5 text-xs text-blue-900 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200"
+                        data-testid="marked-by"
+                      >
+                        <UserCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <div>
+                          <p className="font-medium">
+                            {describeMarkedBy(event)}
+                          </p>
+                          {describeMarkedFrom(event) && (
+                            <p className="font-mono">
+                              from {describeMarkedFrom(event)}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-4 sm:flex-row">

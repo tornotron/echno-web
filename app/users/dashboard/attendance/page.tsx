@@ -83,6 +83,7 @@ import {
   getMovementTypeIcon,
 } from '@tornotron/echno-core/attendance/types';
 import { format } from 'date-fns';
+import { MarkedByNote } from '@/features/attendance/components/marked-by-note';
 import { toast } from '@/lib/styles/toast-styles';
 import {
   useAttendanceByProject,
@@ -813,6 +814,7 @@ function AttendancePage() {
                       ) : (
                         <span className="text-sm text-zinc-400">—</span>
                       )}
+                      <MarkedByNote attendance={attendance} />
                     </TableCell>
                     <TableCell>
                       {attendance.eveningClockOut ? (
