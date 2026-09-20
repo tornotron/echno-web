@@ -10,7 +10,11 @@ import {
   Undo2,
 } from 'lucide-react';
 import type { MetadataRegistry, RouteMetadata } from '../types';
-import { STORES_ACCESS } from '../access/roles';
+import {
+  STORES_ACCESS,
+  STORAGE_LOCATION_WRITE_ACCESS,
+  ASSET_WRITE_ACCESS,
+} from '../access/roles';
 
 /**
  * The store documents share one backend read threshold (echno-backend #650:
@@ -21,6 +25,25 @@ import { STORES_ACCESS } from '../access/roles';
  */
 const stores = {
   access: STORES_ACCESS,
+  hideWhenLocked: true,
+} satisfies RouteMetadata;
+
+/**
+ * Storage locations are shaped by the administrator alone (echno-backend
+ * #853: create, update and delete are `system-admin`), so the hidden form
+ * routes carry the write gate while the list and detail carry `stores`.
+ */
+const storageLocationWrite = {
+  access: STORAGE_LOCATION_WRITE_ACCESS,
+  hideWhenLocked: true,
+} satisfies RouteMetadata;
+
+/**
+ * Asset writes are `system-admin` or `project-manager` (echno-backend #853).
+ * The register itself stays open to any member.
+ */
+const assetWrite = {
+  access: ASSET_WRITE_ACCESS,
   hideWhenLocked: true,
 } satisfies RouteMetadata;
 
@@ -38,9 +61,17 @@ export const resourcesMetadata = {
     icon: PackageCheck,
     order: 2,
   },
-  'resources-assets-new': { label: 'New Asset', sidebarHidden: true },
+  'resources-assets-new': {
+    ...assetWrite,
+    label: 'New Asset',
+    sidebarHidden: true,
+  },
   'resources-assets-[id]': { label: 'Asset', sidebarHidden: true },
-  'resources-assets-[id]-edit': { label: 'Edit', sidebarHidden: true },
+  'resources-assets-[id]-edit': {
+    ...assetWrite,
+    label: 'Edit',
+    sidebarHidden: true,
+  },
 
   'resources-goods-receipts': {
     ...stores,
@@ -133,24 +164,28 @@ export const resourcesMetadata = {
     sidebarHidden: true,
   },
 
-  // Shown on the same terms as Assets: their controllers guard on
-  // `isMemberOfCurrentTenant() or hasAnyOrgRoleForCurrentTenant('system-admin',
-  // 'project-manager')`, so any org member can read them. The store documents
-  // above carry `stores` instead (see STORES_ACCESS).
+  // A store document since echno-backend #853: reading, raising and editing
+  // an adjustment is the stores tier, the same three roles that read the
+  // catalogue and the balances a document names. Approving is narrower and is
+  // gated on the detail page (STOCK_ADJUSTMENT_DECIDE_ACCESS).
   'resources-stock-adjustments': {
+    ...stores,
     label: 'Stock Adjustments',
     icon: ArrowLeftRight,
     order: 9,
   },
   'resources-stock-adjustments-new': {
+    ...stores,
     label: 'New Adjustment',
     sidebarHidden: true,
   },
   'resources-stock-adjustments-[id]': {
+    ...stores,
     label: 'Adjustment',
     sidebarHidden: true,
   },
   'resources-stock-adjustments-[id]-edit': {
+    ...stores,
     label: 'Edit',
     sidebarHidden: true,
   },
@@ -168,20 +203,26 @@ export const resourcesMetadata = {
     sidebarHidden: true,
   },
 
+  // Read by the stores tier (echno-backend #666 opened the list to the
+  // project manager and the store keeper), written by the administrator.
   'resources-storage-locations': {
+    ...stores,
     label: 'Storage Locations',
     icon: MapPin,
     order: 3,
   },
   'resources-storage-locations-new': {
+    ...storageLocationWrite,
     label: 'New Location',
     sidebarHidden: true,
   },
   'resources-storage-locations-[id]': {
+    ...stores,
     label: 'Storage Location',
     sidebarHidden: true,
   },
   'resources-storage-locations-[id]-edit': {
+    ...storageLocationWrite,
     label: 'Edit',
     sidebarHidden: true,
   },

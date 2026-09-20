@@ -13,8 +13,13 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { useIssuesPage } from '@/hooks/issues/use-issues-page';
 import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 export default function AllIssuesPage() {
+  // Raising an issue is the project pair's (echno-backend #853), so the
+  // button is withheld from everyone else rather than offered and refused.
+  const { allowed: canWrite } = useCan(PROJECT_WRITE_ACCESS);
   const { data: projects = [], isLoading: isProjectsLoading } = useProjects();
 
   const [projectFilter, setProjectFilter] = useState<string>('all');
@@ -95,13 +100,10 @@ export default function AllIssuesPage() {
         title="Issues"
         description="Track and manage issues across all projects"
         actions={
-          projectId ? (
+          projectId && canWrite ? (
             <Button asChild>
               <Link
-                href={
-                  routes.projects.allProjects.detail(projectId).issues
-                    .new
-                }
+                href={routes.projects.allProjects.detail(projectId).issues.new}
               >
                 <Plus className="mr-2 h-4 w-4" />
                 New Issue

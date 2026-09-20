@@ -10,12 +10,16 @@ import Link from 'next/link';
 import { IssueStatus } from '@tornotron/echno-core/issue/types';
 import { IssueTable, IssueStatsCard } from '@/features/issues/components';
 import { routes } from '@/nav';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function IssuesPage({ params }: PageProps) {
+  // Raising an issue is the project pair's (echno-backend #853).
+  const { allowed: canWrite } = useCan(PROJECT_WRITE_ACCESS);
   const { id: projectId } = use(params);
   const { data: project } = useProject(Number.parseInt(projectId));
   const { data: issues = [], isLoading } = useIssuesByProject(
@@ -78,17 +82,16 @@ export default function IssuesPage({ params }: PageProps) {
         title={`${project?.projectName ?? 'Project'} — Issues`}
         description="Track and manage issues for this project"
         actions={
-          <Button asChild>
-            <Link
-              href={
-                routes.projects.allProjects.detail(projectId).issues
-                  .new
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              New Issue
-            </Link>
-          </Button>
+          canWrite ? (
+            <Button asChild>
+              <Link
+                href={routes.projects.allProjects.detail(projectId).issues.new}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Issue
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 

@@ -12,7 +12,18 @@ import {
   BookOpen,
   Banknote,
 } from 'lucide-react';
-import type { MetadataRegistry } from '../types';
+import type { MetadataRegistry, RouteMetadata } from '../types';
+import { CONSTRUCTION_INVOICES_ACCESS } from '../access/roles';
+
+/**
+ * Construction invoices are `system-admin` or `project-manager` on every
+ * endpoint, the list included (echno-backend #853), so the whole surface is
+ * gated and hidden from anyone else rather than offered and then refused.
+ */
+const invoices = {
+  access: CONSTRUCTION_INVOICES_ACCESS,
+  hideWhenLocked: true,
+} satisfies RouteMetadata;
 
 export const financeMetadata = {
   finance: {
@@ -47,14 +58,27 @@ export const financeMetadata = {
 
   // ── invoices ──────────────────────────────────────────────────────────────
   'finance-invoices': {
+    ...invoices,
     label: 'Invoices',
     icon: FileSpreadsheet,
     description: 'Raise and track vendor invoices and outstanding balances.',
     order: 3,
   },
-  'finance-invoices-new': { label: 'New Invoice', sidebarHidden: true },
-  'finance-invoices-[id]': { label: 'Invoice', sidebarHidden: true },
-  'finance-invoices-[id]-edit': { label: 'Edit', sidebarHidden: true },
+  'finance-invoices-new': {
+    ...invoices,
+    label: 'New Invoice',
+    sidebarHidden: true,
+  },
+  'finance-invoices-[id]': {
+    ...invoices,
+    label: 'Invoice',
+    sidebarHidden: true,
+  },
+  'finance-invoices-[id]-edit': {
+    ...invoices,
+    label: 'Edit',
+    sidebarHidden: true,
+  },
 
   // ── customer invoices (accounts receivable) ────────────────────────────────
   'finance-customer-invoices': {
@@ -89,7 +113,8 @@ export const financeMetadata = {
   'finance-budgets': {
     label: 'Budgets',
     icon: PiggyBank,
-    description: 'Per-project budget allocation and spend across the organization.',
+    description:
+      'Per-project budget allocation and spend across the organization.',
     order: 7,
   },
 

@@ -5,11 +5,16 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { MapPin, Plus, Building2, BarChart3, CheckCircle2 } from 'lucide-react';
 import { StorageLocationType } from '@tornotron/echno-core/storage-locations/types';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { StorageLocationGrid } from '@/features/storage-locations/components';
+import { useCan } from '@/hooks/use-can';
+import {
+  STORAGE_LOCATION_WRITE_ACCESS,
+  STORES_ACCESS,
+} from '@/nav/access/roles';
 
 interface LocationFilters {
   search: string;
@@ -17,7 +22,10 @@ interface LocationFilters {
   status: 'all' | 'active' | 'inactive';
 }
 
-export default function LocationsPage() {
+function LocationsPageContent() {
+  // Shaping the list of locations is the administrator's alone
+  // (echno-backend #853); the stores tier reads it.
+  const { allowed: canWrite } = useCan(STORAGE_LOCATION_WRITE_ACCESS);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(9);
   const [filters, setFilters] = useState<LocationFilters>({
@@ -76,12 +84,14 @@ export default function LocationsPage() {
         title="Storage Locations"
         description="Manage storage locations and warehouses"
         actions={
-          <Button asChild>
-            <Link href={routes.resources.storageLocations.new}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Location
-            </Link>
-          </Button>
+          canWrite ? (
+            <Button asChild>
+              <Link href={routes.resources.storageLocations.new}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Location
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -182,5 +192,19 @@ export default function LocationsPage() {
         isLoading={isLoading}
       />
     </div>
+  );
+}
+
+export default function LocationsPage() {
+  return (
+    <AccessGate
+      config={STORES_ACCESS}
+      subject="view storage locations"
+      allowed="store keepers, project managers and system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <LocationsPageContent />
+    </AccessGate>
   );
 }

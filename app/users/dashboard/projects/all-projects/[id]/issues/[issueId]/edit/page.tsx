@@ -11,7 +11,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
   useDeleteIssue,
@@ -33,12 +33,13 @@ import {
   type IssueFormSubmitData,
 } from '@/features/issues/components';
 import { buildUpdateIssuePayload } from '@/features/issues/issue-payload';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 interface PageProps {
   params: Promise<{ id: string; issueId: string }>;
 }
 
-export default function EditIssuePage({ params }: PageProps) {
+function EditIssuePageContent({ params }: PageProps) {
   const { id: projectId, issueId } = use(params);
   const router = useRouter();
 
@@ -184,5 +185,21 @@ export default function EditIssuePage({ params }: PageProps) {
         onCancel={() => router.back()}
       />
     </div>
+  );
+}
+
+export default function EditIssuePage(
+  props: Parameters<typeof EditIssuePageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={PROJECT_WRITE_ACCESS}
+      subject="edit issues"
+      allowed="system administrators and project managers"
+      backHref={routes.projects.href}
+      backLabel="Back to Projects"
+    >
+      <EditIssuePageContent {...props} />
+    </AccessGate>
   );
 }

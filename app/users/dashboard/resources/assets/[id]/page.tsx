@@ -58,6 +58,8 @@ import {
 import { useAsset } from '@/hooks/assets';
 import { toast } from '@/lib/styles/toast-styles';
 import { AssetTransferModal } from '@/features/assets/components';
+import { useCan } from '@/hooks/use-can';
+import { ASSET_WRITE_ACCESS } from '@/nav/access/roles';
 
 // The original getStatusColor function was not used.
 // The instruction implies using a helper from outside, and getAssetStatusBadgeColor is already imported.
@@ -72,6 +74,9 @@ const getUtilizationColor = (utilization: number) => {
 };
 
 export default function AssetDetailPage() {
+  // Editing, deleting and moving an asset are the project pair's
+  // (echno-backend #853); any member reads it.
+  const { allowed: canWrite } = useCan(ASSET_WRITE_ACCESS);
   const params = useParams();
   const router = useRouter();
   const assetId = Number.parseInt(params.id as string);
@@ -130,22 +135,24 @@ export default function AssetDetailPage() {
         title={asset.name}
         description={asset.assetId}
         actions={
-          <>
-            <Button asChild variant="outline">
-              <Link href={routes.resources.assets.detail(asset.id).edit}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="text-red-600 hover:text-red-700"
-              onClick={handleDelete}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </>
+          canWrite ? (
+            <>
+              <Button asChild variant="outline">
+                <Link href={routes.resources.assets.detail(asset.id).edit}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                className="text-red-600 hover:text-red-700"
+                onClick={handleDelete}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            </>
+          ) : undefined
         }
       />
 
@@ -567,14 +574,16 @@ export default function AssetDetailPage() {
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => setShowTransferModal(true)}
-              >
-                <TrendingUp className="mr-2 h-4 w-4" />
-                Transfer Asset
-              </Button>
+              {canWrite && (
+                <Button
+                  variant="outline"
+                  className="w-full justify-start"
+                  onClick={() => setShowTransferModal(true)}
+                >
+                  <TrendingUp className="mr-2 h-4 w-4" />
+                  Transfer Asset
+                </Button>
+              )}
               <Button variant="outline" className="w-full justify-start">
                 <Wrench className="mr-2 h-4 w-4" />
                 Schedule Maintenance

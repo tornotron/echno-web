@@ -7,8 +7,10 @@ import { getErrorMessage } from '@tornotron/echno-core';
 import { SubContractForm } from '@/features/sub-contracts';
 import type { SubContractFormValues } from '@/features/sub-contracts/components/sub-contract-form';
 import { useCreateSubContract } from '@/hooks/sub-contracts';
+import { AccessGate } from '@/components/common';
+import { SUB_CONTRACT_WRITE_ACCESS } from '@/nav/access/roles';
 
-export default function SubContractNewPage() {
+function SubContractNewPageContent() {
   const router = useRouter();
   const createSubContract = useCreateSubContract();
 
@@ -30,5 +32,19 @@ export default function SubContractNewPage() {
       onSubmit={handleSubmit}
       isSubmitting={createSubContract.isPending}
     />
+  );
+}
+
+export default function SubContractNewPage() {
+  return (
+    <AccessGate
+      config={SUB_CONTRACT_WRITE_ACCESS}
+      subject="create sub-contracts"
+      allowed="system administrators and project managers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <SubContractNewPageContent />
+    </AccessGate>
   );
 }

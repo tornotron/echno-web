@@ -31,8 +31,13 @@ import {
 import { useAssets } from '@/hooks/assets';
 import { useStorageLocations } from '@tornotron/echno-core/storage-locations/hooks';
 import { AssetList } from '@/features/assets/components';
+import { useCan } from '@/hooks/use-can';
+import { ASSET_WRITE_ACCESS } from '@/nav/access/roles';
 
 export default function AssetsPage() {
+  // Registering an asset is the project pair's (echno-backend #853); any
+  // member reads the register.
+  const { allowed: canWrite } = useCan(ASSET_WRITE_ACCESS);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -47,13 +52,12 @@ export default function AssetsPage() {
 
   const { data: assets = [], isLoading, isError } = useAssets();
   const { data: locations = [] } = useStorageLocations();
-  const { chip, matches: matchesEmployeeFilter } =
-    useEmployeeFilterFromParams({
-      rows: assets,
-      roles: {
+  const { chip, matches: matchesEmployeeFilter } = useEmployeeFilterFromParams({
+    rows: assets,
+    roles: {
       assignee: (a) => a.assignedToId,
-      },
-    });
+    },
+  });
 
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
@@ -149,12 +153,14 @@ export default function AssetsPage() {
         title="Assets"
         description="Track equipment, vehicles, and machinery"
         actions={
-          <Button asChild className="w-full sm:w-auto">
-            <Link href={routes.resources.assets.new}>
-              <Cog className="mr-2 h-4 w-4" />
-              Register Asset
-            </Link>
-          </Button>
+          canWrite ? (
+            <Button asChild className="w-full sm:w-auto">
+              <Link href={routes.resources.assets.new}>
+                <Cog className="mr-2 h-4 w-4" />
+                Register Asset
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 

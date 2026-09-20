@@ -14,8 +14,10 @@ import {
 } from '@/components/shadcn/empty';
 import Link from 'next/link';
 import { LabourEditForm } from '@/features/labour';
+import { AccessGate } from '@/components/common';
+import { LABOUR_ACCESS } from '@/nav/access/roles';
 
-export default function LabourFormPage() {
+function LabourFormPageContent() {
   const params = useParams();
   const isEdit = params?.id !== 'new';
   const labourId = isEdit ? Number(params.id) : 0;
@@ -49,4 +51,18 @@ export default function LabourFormPage() {
   }
 
   return <LabourEditForm initialData={labourRecord} isEdit={isEdit} />;
+}
+
+export default function LabourFormPage() {
+  return (
+    <AccessGate
+      config={LABOUR_ACCESS}
+      subject="edit labour records"
+      allowed="system administrators and HR managers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <LabourFormPageContent />
+    </AccessGate>
+  );
 }

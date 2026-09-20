@@ -107,6 +107,31 @@ export function canAccess(config: AccessConfig, ctx: AccessContext): boolean {
 }
 
 // ---------------------------------------------------------------------------
+// Org-role gate for pages and affordances
+// ---------------------------------------------------------------------------
+
+/**
+ * Whether a signed-in member holding `orgRoles` passes an org-role gate such
+ * as {@link STORES_ACCESS} or `PROJECT_WRITE_ACCESS`. This is `canAccess`
+ * for the case a page or a button has: the caller is authenticated, the
+ * config names org roles, and the coarse tier is not in play.
+ *
+ * Fail-closed like `canAccess`: `undefined` roles (the employee record not
+ * yet loaded) is a denial, so a gated button is withheld rather than offered
+ * and then refused. Callers that want to avoid a flash of "Access Denied"
+ * while the record loads should hold the page on their loading state first.
+ *
+ * A config with `allowRoles` is a programming error here, because no tier is
+ * supplied to satisfy it; it is denied rather than silently passed.
+ */
+export function can(
+  config: AccessConfig,
+  orgRoles: readonly string[] | undefined
+): boolean {
+  return canAccess(config, { isAuthenticated: true, orgRoles });
+}
+
+// ---------------------------------------------------------------------------
 // Nav-tree filter
 // ---------------------------------------------------------------------------
 

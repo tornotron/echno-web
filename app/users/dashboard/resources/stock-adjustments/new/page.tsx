@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorMessage } from '@tornotron/echno-core';
@@ -28,6 +28,7 @@ import {
   STOCK_ADJUSTMENT_FORM_ID,
   type StockAdjustmentSubmitData,
 } from '@/features/stock-adjustments/components';
+import { STORES_ACCESS } from '@/nav/access/roles';
 
 /** A positive integer from a query parameter, or 0 when it is not one. */
 function idParam(raw: string | null): number {
@@ -90,7 +91,7 @@ function seedFromTransfer(transfer: SiteTransfer): Partial<StockAdjustment> {
   };
 }
 
-export default function CreateStockAdjustmentPage() {
+function CreateStockAdjustmentPageContent() {
   const router = useRouter();
   const createAdjustment = useCreateStockAdjustment();
   const searchParams = useSearchParams();
@@ -241,5 +242,19 @@ export default function CreateStockAdjustmentPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function CreateStockAdjustmentPage() {
+  return (
+    <AccessGate
+      config={STORES_ACCESS}
+      subject="raise stock adjustments"
+      allowed="store keepers, project managers and system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <CreateStockAdjustmentPageContent />
+    </AccessGate>
   );
 }

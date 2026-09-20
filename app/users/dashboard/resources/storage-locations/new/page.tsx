@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { MapPin, Loader2, Save } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { CreateStorageLocationRequest } from '@tornotron/echno-core/storage-locations/types';
@@ -20,8 +20,9 @@ import {
   StorageLocationForm,
   STORAGE_LOCATION_FORM_ID,
 } from '@/features/storage-locations/components/storage-location-form';
+import { STORAGE_LOCATION_WRITE_ACCESS } from '@/nav/access/roles';
 
-export default function NewLocationPage() {
+function NewLocationPageContent() {
   const router = useRouter();
   const createLocation = useCreateStorageLocation();
 
@@ -91,5 +92,19 @@ export default function NewLocationPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function NewLocationPage() {
+  return (
+    <AccessGate
+      config={STORAGE_LOCATION_WRITE_ACCESS}
+      subject="create storage locations"
+      allowed="system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <NewLocationPageContent />
+    </AccessGate>
   );
 }

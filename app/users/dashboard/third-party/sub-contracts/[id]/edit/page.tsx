@@ -17,8 +17,10 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { SubContractForm } from '@/features/sub-contracts';
+import { AccessGate } from '@/components/common';
+import { SUB_CONTRACT_WRITE_ACCESS } from '@/nav/access/roles';
 
-export default function SubContractEditPage() {
+function SubContractEditPageContent() {
   const params = useParams();
   const router = useRouter();
   const isEditMode = params.id !== 'new';
@@ -79,5 +81,19 @@ export default function SubContractEditPage() {
       onSubmit={handleSubmit}
       isSubmitting={updateSubContract.isPending}
     />
+  );
+}
+
+export default function SubContractEditPage() {
+  return (
+    <AccessGate
+      config={SUB_CONTRACT_WRITE_ACCESS}
+      subject="edit sub-contracts"
+      allowed="system administrators and project managers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <SubContractEditPageContent />
+    </AccessGate>
   );
 }

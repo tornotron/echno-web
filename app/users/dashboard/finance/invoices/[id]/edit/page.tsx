@@ -58,16 +58,17 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
+import { CONSTRUCTION_INVOICES_ACCESS } from '@/nav/access/roles';
 
 interface EditInvoicePageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function EditInvoicePage({ params }: EditInvoicePageProps) {
+function EditInvoicePageContent({ params }: EditInvoicePageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const { data: invoice, isLoading, isError } = useInvoiceById(id);
@@ -774,5 +775,21 @@ function InvoiceEditForm({ initialData, invoiceId }: InvoiceEditFormProps) {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function EditInvoicePage(
+  props: Parameters<typeof EditInvoicePageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={CONSTRUCTION_INVOICES_ACCESS}
+      subject="edit construction invoices"
+      allowed="system administrators and project managers"
+      backHref={routes.finance.href}
+      backLabel="Back to Finance"
+    >
+      <EditInvoicePageContent {...props} />
+    </AccessGate>
   );
 }

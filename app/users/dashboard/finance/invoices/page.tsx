@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useInvoices } from '@/hooks/invoices';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { useVendors } from '@tornotron/echno-core/vendor/hooks';
-import { PageHeader, ActiveFilterChip } from '@/components/common';
+import { PageHeader, ActiveFilterChip, AccessGate } from '@/components/common';
 import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
@@ -14,8 +14,9 @@ import { routes } from '@/nav';
 import { ConstructionInvoiceStatus } from '@/types/finance/invoice';
 import { InvoicesFeature } from '@/features/invoices';
 import { resolveStampName } from '@/lib/utils/user-reference';
+import { CONSTRUCTION_INVOICES_ACCESS } from '@/nav/access/roles';
 
-export default function InvoicesPage() {
+function InvoicesPageContent() {
   const { data: invoices = [], isLoading, isError } = useInvoices();
   const { data: projects = [] } = useProjects();
   const { data: vendors = [] } = useVendors();
@@ -146,5 +147,19 @@ export default function InvoicesPage() {
         isError={isError}
       />
     </div>
+  );
+}
+
+export default function InvoicesPage() {
+  return (
+    <AccessGate
+      config={CONSTRUCTION_INVOICES_ACCESS}
+      subject="view construction invoices"
+      allowed="system administrators and project managers"
+      backHref={routes.finance.href}
+      backLabel="Back to Finance"
+    >
+      <InvoicesPageContent />
+    </AccessGate>
   );
 }

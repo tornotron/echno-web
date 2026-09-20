@@ -60,6 +60,8 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { useCan } from '@/hooks/use-can';
+import { SUB_CONTRACT_WRITE_ACCESS } from '@/nav/access/roles';
 
 const milestoneStatusIcons: Record<string, LucideIcon> = {
   completed: CheckCircle2,
@@ -76,6 +78,9 @@ const milestoneStatusColors: Record<string, string> = {
 };
 
 export default function SubContractDetailPage() {
+  // Editing and deleting a sub-contract are the project pair's
+  // (echno-backend #853).
+  const { allowed: canWrite } = useCan(SUB_CONTRACT_WRITE_ACCESS);
   const params = useParams();
   const contractId = Number(params.id);
   const { data: subContract, isLoading, isError } = useSubContract(contractId);
@@ -115,26 +120,28 @@ export default function SubContractDetailPage() {
         title={subContract.contractorName}
         description={`Contract ID: ${subContract.contractId}`}
         actions={
-          <>
-            <Button variant="outline" size="sm" asChild>
-              <Link
-                href={
-                  routes.thirdParty.subContracts.detail(subContract.id).edit
-                }
+          canWrite ? (
+            <>
+              <Button variant="outline" size="sm" asChild>
+                <Link
+                  href={
+                    routes.thirdParty.subContracts.detail(subContract.id).edit
+                  }
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700"
               >
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </Button>
-          </>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </Button>
+            </>
+          ) : undefined
         }
       />
 

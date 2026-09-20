@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Cog, Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorMessage } from '@tornotron/echno-core';
@@ -22,8 +22,9 @@ import {
   AssetFormData,
   ASSET_FORM_ID,
 } from '@/features/assets/components/asset-form';
+import { ASSET_WRITE_ACCESS } from '@/nav/access/roles';
 
-export default function EditAssetPage() {
+function EditAssetPageContent() {
   const { id } = useParams();
   const assetId = Number(id);
   const router = useRouter();
@@ -94,5 +95,19 @@ export default function EditAssetPage() {
       />
       <AssetForm mode="edit" asset={asset} onSubmit={handleSubmit} />
     </div>
+  );
+}
+
+export default function EditAssetPage() {
+  return (
+    <AccessGate
+      config={ASSET_WRITE_ACCESS}
+      subject="edit assets"
+      allowed="system administrators and project managers"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <EditAssetPageContent />
+    </AccessGate>
   );
 }

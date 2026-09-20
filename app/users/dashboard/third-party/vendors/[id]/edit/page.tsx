@@ -14,12 +14,14 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { AccessGate } from '@/components/common';
+import { VENDOR_WRITE_ACCESS } from '@/nav/access/roles';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function VendorEditPage({ params }: PageProps) {
+function VendorEditPageContent({ params }: PageProps) {
   const { id } = use(params);
   const vendorId = Number(id);
 
@@ -53,4 +55,20 @@ export default function VendorEditPage({ params }: PageProps) {
   }
 
   return <VendorEditor vendor={vendor} vendorId={vendorId} />;
+}
+
+export default function VendorEditPage(
+  props: Parameters<typeof VendorEditPageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={VENDOR_WRITE_ACCESS}
+      subject="edit vendors"
+      allowed="system administrators"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <VendorEditPageContent {...props} />
+    </AccessGate>
+  );
 }

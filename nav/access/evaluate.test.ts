@@ -1,12 +1,22 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  can,
   canAccess,
   filterNavByAccess,
   isModuleVisible,
   resolveSidebarAccess,
   type AccessContext,
 } from './evaluate';
-import { OPEN_ACCESS, STORES_ACCESS } from './roles';
+import {
+  ADMIN_ONLY,
+  CONSTRUCTION_INVOICES_ACCESS,
+  LABOUR_ACCESS,
+  OPEN_ACCESS,
+  PROJECT_WRITE_ACCESS,
+  STORAGE_LOCATION_WRITE_ACCESS,
+  STORES_ACCESS,
+  VENDOR_READ_ACCESS,
+} from './roles';
 import { OrgRole } from '@tornotron/echno-core/employee/types';
 import type { ComposedNavItem } from '../types';
 
@@ -279,5 +289,56 @@ describe('canAccess org-role gate', () => {
       orgRoles: [OrgRole.SITE_ENGINEER],
     })[0].children.map((c) => c.id);
     expect(kept).toEqual(['resources-assets']);
+  });
+});
+
+describe('can: the org-role gate a page or a button asks', () => {
+  test('passes a holder of any named role, whatever else they hold', () => {
+    expect(can(PROJECT_WRITE_ACCESS, [OrgRole.PROJECT_MANAGER])).toBe(true);
+    expect(
+      can(PROJECT_WRITE_ACCESS, [OrgRole.LABORER, OrgRole.SYSTEM_ADMIN])
+    ).toBe(true);
+    expect(can(STORES_ACCESS, [OrgRole.STORE_KEEPER])).toBe(true);
+    expect(can(LABOUR_ACCESS, [OrgRole.HR_ADMIN])).toBe(true);
+    expect(can(VENDOR_READ_ACCESS, [OrgRole.STORE_KEEPER])).toBe(true);
+  });
+
+  test('refuses the roles the coarse tiers would have admitted', () => {
+    // `admin` also holds DIRECTOR; `manager` also holds SITE_MANAGER and
+    // HR_ADMIN. None of them is on the project pair, and a gate written on
+    // the tier would have offered them a button that 403s.
+    for (const role of [
+      OrgRole.DIRECTOR,
+      OrgRole.SITE_MANAGER,
+      OrgRole.HR_ADMIN,
+    ]) {
+      expect(can(PROJECT_WRITE_ACCESS, [role]), role).toBe(false);
+      expect(can(CONSTRUCTION_INVOICES_ACCESS, [role]), role).toBe(false);
+    }
+    expect(can(STORAGE_LOCATION_WRITE_ACCESS, [OrgRole.PROJECT_MANAGER])).toBe(
+      false
+    );
+    expect(can(LABOUR_ACCESS, [OrgRole.PROJECT_MANAGER])).toBe(false);
+    expect(can(VENDOR_READ_ACCESS, [OrgRole.PROJECT_MANAGER])).toBe(false);
+  });
+
+  test('refuses a plain member', () => {
+    expect(can(PROJECT_WRITE_ACCESS, [])).toBe(false);
+    expect(can(PROJECT_WRITE_ACCESS, [OrgRole.LABORER])).toBe(false);
+  });
+
+  test('fails closed while the roles are unknown', () => {
+    expect(can(PROJECT_WRITE_ACCESS, undefined)).toBe(false);
+  });
+
+  test('an open config passes anyone signed in', () => {
+    expect(can(OPEN_ACCESS, [])).toBe(true);
+    expect(can(OPEN_ACCESS, undefined)).toBe(true);
+  });
+
+  test('a tier-only config is refused, because no tier is supplied', () => {
+    // Guards against reaching for `can` with a tier constant and reading
+    // the silence as a pass.
+    expect(can(ADMIN_ONLY, [OrgRole.SYSTEM_ADMIN])).toBe(false);
   });
 });

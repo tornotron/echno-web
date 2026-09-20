@@ -129,6 +129,22 @@ mock.module('@/lib/styles/toast-styles', () => ({
   },
 }));
 
+// The page sits behind the stores gate (echno-backend #853), which reads the
+// employee record's org roles; a store keeper is the reader these tests are
+// about, and the gate itself is pinned in components/common/access-gate.test.
+import * as realEmployeeHooks from '@tornotron/echno-core/employee/hooks';
+import { OrgRole } from '@tornotron/echno-core/employee/types';
+
+mock.module('@tornotron/echno-core/employee/hooks', () => ({
+  ...realEmployeeHooks,
+  useEmployeeRoles: () => ({
+    orgRoles: [OrgRole.STORE_KEEPER],
+    isLoading: false,
+    error: null,
+    employee: { id: 3, name: 'Asha' },
+  }),
+}));
+
 const { default: CreateStockAdjustmentPage } = await import('./page');
 
 /** Ten sent, eight recorded, two nobody can account for. */

@@ -116,6 +116,91 @@ export const BILLING_ACCESS: AccessConfig = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Roles-matrix gates (echno-backend #853)
+// ---------------------------------------------------------------------------
+//
+// Each constant below names, as exact org roles, the guard the backend puts on
+// one row of the roles matrix (echno-docs, admin guide, "Roles and
+// permissions"). They are written against org roles rather than the coarse
+// `Role` tiers because the tiers are lossy: `manager` also holds SITE_MANAGER
+// and HR_ADMIN and `admin` also holds DIRECTOR, none of which the backend
+// admits on these rows. A gate on the tier would offer a button that 403s.
+
+/**
+ * Writes on projects, tasks and issues: `hasAnyOrgRoleForCurrentTenant(
+ * 'system-admin','project-manager')` on create, update and delete. Reads on
+ * all three are open to any member, so this gates the affordance, not the page.
+ */
+export const PROJECT_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Construction invoices. Every mapping on `ConstructionInvoiceControllerWeb`,
+ * the list and the PDF included, is `system-admin` or `project-manager`, so
+ * this gates the whole surface: list, detail, forms and the download.
+ */
+export const CONSTRUCTION_INVOICES_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Creating, editing and deleting a storage location is `system-admin` alone
+ * on the backend. Reading the list is the stores tier ({@link STORES_ACCESS}).
+ */
+export const STORAGE_LOCATION_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+} as const;
+
+/**
+ * Registering, editing and deleting an asset, and recording a movement on
+ * one, is `system-admin` or `project-manager`. Any member reads the register.
+ */
+export const ASSET_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Approving, rejecting or deleting a stock adjustment. Raising and editing a
+ * draft, and reading the list, is the stores tier ({@link STORES_ACCESS});
+ * the decision is the narrower pair, and the backend also refuses the raiser.
+ */
+export const STOCK_ADJUSTMENT_DECIDE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Reading the vendor register (list, detail, search and contacts). The store
+ * reads who delivers and how to reach them; the commercial detail on a vendor
+ * (summary, tax identifiers, bank accounts, payment terms) and every write is
+ * {@link VENDOR_WRITE_ACCESS}.
+ */
+export const VENDOR_READ_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.STORE_KEEPER],
+} as const;
+
+/** Creating, editing and deleting a vendor, and its commercial detail. */
+export const VENDOR_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN],
+} as const;
+
+/**
+ * The labour register, reads and writes alike: `system-admin` or `hr-admin`
+ * on every mapping of `LabourControllerWeb`.
+ */
+export const LABOUR_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.HR_ADMIN],
+} as const;
+
+/**
+ * Creating, editing and deleting a sub-contract is `system-admin` or
+ * `project-manager`. Any member reads them.
+ */
+export const SUB_CONTRACT_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+// ---------------------------------------------------------------------------
 // Role -> permission mapping
 // ---------------------------------------------------------------------------
 

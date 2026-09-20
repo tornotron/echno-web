@@ -1,5 +1,16 @@
 import { FolderKanban } from 'lucide-react';
-import type { MetadataRegistry } from '../types';
+import type { MetadataRegistry, RouteMetadata } from '../types';
+import { PROJECT_WRITE_ACCESS } from '../access/roles';
+
+/**
+ * Raising, editing and deleting an issue is `system-admin` or
+ * `project-manager`, the pair that writes tasks (echno-backend #853). The
+ * lists and the detail stay open to any member.
+ */
+const issueWrite = {
+  access: PROJECT_WRITE_ACCESS,
+  hideWhenLocked: true,
+} satisfies RouteMetadata;
 
 export const projectsMetadata = {
   // ── module root ───────────────────────────────────────────────────────────
@@ -63,6 +74,7 @@ export const projectsMetadata = {
     sidebarHidden: true,
   },
   'projects-all-projects-[id]-issues-new': {
+    ...issueWrite,
     label: 'New Issue',
     sidebarHidden: true,
   },
@@ -71,6 +83,7 @@ export const projectsMetadata = {
     sidebarHidden: true,
   },
   'projects-all-projects-[id]-issues-[issueId]-edit': {
+    ...issueWrite,
     label: 'Edit',
     sidebarHidden: true,
   },
