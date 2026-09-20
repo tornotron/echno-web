@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEmployee } from '@tornotron/echno-core/employee/hooks';
 import { useProject } from '@tornotron/echno-core/project/hooks';
-import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
+import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 import { useLeaveRequest } from '@tornotron/echno-core/leave/hooks';
 import { useTask } from '@tornotron/echno-core/task/hooks';
 import { useIssue } from '@tornotron/echno-core/issue/hooks';
@@ -16,7 +16,7 @@ import { usePurchaseOrder } from '@tornotron/echno-core/purchase-orders/hooks';
 import { useSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
 import { Employee } from '@tornotron/echno-core/employee/types';
 import { Project } from '@tornotron/echno-core/project/types';
-import { Organization } from '@tornotron/echno-core/organization/types';
+import { OrganizationSummary } from '@tornotron/echno-core/organization/types';
 import { LeaveRequest } from '@tornotron/echno-core/leave/types';
 import { Task } from '@tornotron/echno-core/task/types';
 import { Issue } from '@tornotron/echno-core/issue/types';
@@ -32,7 +32,7 @@ import { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
 interface BreadcrumbData {
   employee?: Employee;
   project?: Project;
-  organizations?: Organization[];
+  organizations?: OrganizationSummary[];
   leaveRequest?: LeaveRequest;
   task?: Task;
   issue?: Issue;
@@ -160,7 +160,7 @@ export function useBreadcrumbData(): BreadcrumbData {
 
   // The organization list is small, and the shell already holds it for the
   // organization switcher, so this reads the same cache rather than a second request.
-  const { data: organizations } = useOrganizations();
+  const { data: organizations } = useOrganizationSummaries();
 
   // Conditionally fetch leave request details only when ID exists
   const { data: leaveRequest } = useLeaveRequest(

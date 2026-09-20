@@ -9,27 +9,27 @@ import React, {
   useMemo,
   useRef,
 } from 'react';
-import { Organization } from '@tornotron/echno-core/organization/types';
+import { OrganizationSummary } from '@tornotron/echno-core/organization/types';
 import {
   useUpdateUserOrganization,
   useUser,
 } from '@tornotron/echno-core/user/hooks';
-import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
+import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 import { logger } from '@/lib/logger';
 
 interface OrganizationContextType {
-  defaultOrganization: Organization | null;
-  setDefaultOrganization: (org: Organization | null) => void;
-  organizations: Organization[];
+  defaultOrganization: OrganizationSummary | null;
+  setDefaultOrganization: (org: OrganizationSummary | null) => void;
+  organizations: OrganizationSummary[];
   /** @deprecated - provider now fetches organizations internally; kept for compatibility */
-  setOrganizations: (orgs: Organization[]) => void;
+  setOrganizations: (orgs: OrganizationSummary[]) => void;
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(
   undefined
 );
 
-function readStoredOrg(): Organization | null {
+function readStoredOrg(): OrganizationSummary | null {
   if (globalThis.window === undefined) return null;
   const stored = localStorage.getItem('defaultOrganization');
   if (!stored) return null;
@@ -49,7 +49,7 @@ export function OrganizationProvider({
   // Explicit user selection. Wrapping in an object lets us distinguish
   // "user explicitly set null" from "no override yet" (undefined).
   const [manualOrg, setManualOrg] = useState<
-    { value: Organization | null } | undefined
+    { value: OrganizationSummary | null } | undefined
   >();
 
   // Read localStorage once on mount — equivalent to useState initializer but
@@ -59,7 +59,7 @@ export function OrganizationProvider({
   const { data: user } = useUser();
   // Fetch organizations directly so the sync does not depend on the selector
   // calling setOrganizations — React Query deduplicates the request.
-  const { data: fetchedOrganizations = [] } = useOrganizations();
+  const { data: fetchedOrganizations = [] } = useOrganizationSummaries();
   const updateOrganizationMutation = useUpdateUserOrganization();
 
   // Derive defaultOrganization without calling setState in an effect:
@@ -103,7 +103,7 @@ export function OrganizationProvider({
   }, [user, fetchedOrganizations, updateOrganizationMutation]);
 
   const setDefaultOrganization = useCallback(
-    (org: Organization | null) => {
+    (org: OrganizationSummary | null) => {
       setManualOrg({ value: org });
 
       if (globalThis.window !== undefined) {
@@ -124,8 +124,8 @@ export function OrganizationProvider({
     [user, updateOrganizationMutation]
   );
 
-  const setOrganizations = useCallback((_orgs: Organization[]) => {
-    // No-op: provider now fetches organizations internally via useOrganizations().
+  const setOrganizations = useCallback((_orgs: OrganizationSummary[]) => {
+    // No-op: provider now fetches organizations internally via useOrganizationSummaries().
     // Kept in context for backward compatibility with any existing callers.
   }, []);
 

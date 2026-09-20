@@ -12,7 +12,7 @@ import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { UpdateOrganizationRequest } from '@tornotron/echno-core/organization/types';
 import {
   useCreateOrganization,
-  useOrganizations,
+  useOrganizationSummaries,
 } from '@tornotron/echno-core/organization/hooks';
 import {
   useUser,
@@ -36,7 +36,8 @@ import { routes } from '@/nav';
 export default function OnboardingPage() {
   const router = useRouter();
   const { data: currentUser, isLoading: isUserLoading } = useUser();
-  const { data: organizations, isLoading: isOrgsLoading } = useOrganizations();
+  const { data: organizations, isLoading: isOrgsLoading } =
+    useOrganizationSummaries();
   const { mutate: createOrganization, isPending } = useCreateOrganization();
   const { mutate: setDefaultOrganization } = useUpdateUserOrganization();
 
@@ -152,7 +153,11 @@ export default function OnboardingPage() {
             <LogOut className="mr-2 h-4 w-4" />
             Sign out
           </Button>
-          <Button type="submit" form={ORGANIZATION_FORM_ID} disabled={isPending}>
+          <Button
+            type="submit"
+            form={ORGANIZATION_FORM_ID}
+            disabled={isPending}
+          >
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
