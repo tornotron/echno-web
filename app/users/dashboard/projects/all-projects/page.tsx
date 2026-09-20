@@ -11,12 +11,26 @@ import {
   EmptyDescription,
 } from '@/components/shadcn/empty';
 import { FolderKanban, Loader2, Plus } from 'lucide-react';
-import { useProjects } from '@tornotron/echno-core/project/hooks';
+import { useProjectSummaries } from '@tornotron/echno-core/project/hooks';
 import { ProjectsGridTable } from '@/features/projects/components';
 import { routes } from '@/nav';
 
+/**
+ * The grid filters and pages on the client over everything the tenant has,
+ * so one page of the summary endpoint is asked for at the backend's cap.
+ * The summary carries the counts the cards render and none of the
+ * collections, so a tenant with hundreds of tasks per project costs a page
+ * read and one aggregate rather than the whole graph.
+ */
+const SUMMARY_PAGE_SIZE = 500;
+
 export default function ProjectsManagePage() {
-  const { data: projects = [], isLoading, error } = useProjects();
+  const {
+    data: page,
+    isLoading,
+    error,
+  } = useProjectSummaries({ pageNo: 0, pageSize: SUMMARY_PAGE_SIZE });
+  const projects = page?.content ?? [];
 
   if (isLoading) {
     return (

@@ -7,7 +7,7 @@ import { Button } from '@/components/shadcn/button';
 import { Plus, Search, Building2, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { useOrganizations } from '@tornotron/echno-core/organization/hooks';
+import { useOrganizationSummaries } from '@tornotron/echno-core/organization/hooks';
 
 export default function OrganizationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -15,7 +15,10 @@ export default function OrganizationsPage() {
     'all' | 'active' | 'inactive'
   >('all');
 
-  const { data: organizations, isLoading, error } = useOrganizations();
+  // The cards render counts and a logo, which the summary now carries, so
+  // the page no longer pulls every project and employee of every
+  // organization to print two numbers.
+  const { data: organizations, isLoading, error } = useOrganizationSummaries();
 
   if (isLoading) {
     return (

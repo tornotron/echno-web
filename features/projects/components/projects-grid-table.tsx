@@ -44,7 +44,7 @@ import {
   ProjectStatus,
   getProjectStatusLabel,
 } from '@tornotron/echno-core/project/types';
-import type { Project } from '@tornotron/echno-core/project/types';
+import type { ProjectSummary } from '@tornotron/echno-core/project/types';
 import { routes } from '@/nav';
 import { usePrefetchProject } from '@tornotron/echno-core/project/hooks';
 
@@ -100,7 +100,12 @@ const getStatusBadgeColor = (status: ProjectStatus): string => {
 };
 
 interface ProjectsGridTableProps {
-  projects: Project[];
+  /**
+   * Project summaries from `useProjectSummaries`: every scalar of the full
+   * project plus `memberCount` and `taskCount`. The grid never reads the
+   * team or the tasks themselves, so the summary is all it asks for.
+   */
+  projects: ProjectSummary[];
 }
 
 export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
@@ -202,15 +207,12 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
       <CardContent className="p-6">
         {paginatedProjects.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {paginatedProjects.map((project: Project) => {
+            {paginatedProjects.map((project: ProjectSummary) => {
               const progress = Math.round(project.progress);
               return (
                 <Link
                   key={project.id}
-                  href={
-                    routes.projects.allProjects.detail(project.id)
-                      .href
-                  }
+                  href={routes.projects.allProjects.detail(project.id).href}
                   onMouseEnter={() => prefetchProject(project.id)}
                   onFocus={() => prefetchProject(project.id)}
                 >
@@ -291,11 +293,11 @@ export function ProjectsGridTable({ projects }: ProjectsGridTableProps) {
                       <div className="flex items-center justify-between text-sm">
                         <div className="text-muted-foreground flex items-center gap-1">
                           <Users className="h-3.5 w-3.5" />
-                          <span>{project.members.length} members</span>
+                          <span>{project.memberCount} members</span>
                         </div>
                         <div className="text-muted-foreground flex items-center gap-1">
                           <ListTodo className="h-3.5 w-3.5" />
-                          <span>{project.tasks.length} tasks</span>
+                          <span>{project.taskCount} tasks</span>
                         </div>
                       </div>
                     </CardContent>

@@ -5,11 +5,15 @@ import { format } from 'date-fns';
 import {
   indentStatusBadgeColors,
   indentStatusLabels,
-  type Indent,
+  type IndentSummary,
 } from '@tornotron/echno-core/indents/types';
 
 interface IndentRowProps {
-  indent: Indent;
+  /**
+   * An indent summary: the indent without its lines, with `itemCount` and
+   * `convertedItemCount` in their place. The row renders only counts.
+   */
+  indent: IndentSummary;
   onClick: () => void;
 }
 
@@ -21,9 +25,7 @@ interface IndentRowProps {
  * @param props.onClick - Invoked when the row is activated.
  */
 export function IndentRow({ indent, onClick }: IndentRowProps) {
-  const convertedCount = indent.items.filter(
-    (it) => it.convertedToPurchaseOrder
-  ).length;
+  const convertedCount = indent.convertedItemCount;
 
   return (
     <TableRow
@@ -56,7 +58,7 @@ export function IndentRow({ indent, onClick }: IndentRowProps) {
       </TableCell>
       <TableCell>
         <span className="text-sm">
-          {indent.items.length}
+          {indent.itemCount}
           {convertedCount > 0 && (
             <span className="text-muted-foreground ml-1">
               ({convertedCount} converted)
