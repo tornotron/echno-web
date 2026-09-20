@@ -49,9 +49,12 @@ import {
   useCheckConflicts,
 } from '@/hooks/leave/use-leave-mutations';
 import {
+  CalculateDaysResponse,
   HalfDayType,
   LeavePolicy,
   LeaveRequest,
+  WeekendHolidayTreatment,
+  getWeekendHolidayTreatmentLabel,
 } from '@tornotron/echno-core/leave/types';
 import type { LeaveBalanceSummaryWithQuota } from '@/features/leave/lib/leave-balance-figures';
 import { PageHeader } from '@/components/common';
@@ -118,6 +121,7 @@ export function LeaveApplyForm({
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [calculatedDays, setCalculatedDays] = useState(0);
+  const [charge, setCharge] = useState<CalculateDaysResponse | null>(null);
   const [hasConflict, setHasConflict] = useState(false);
   const [conflictMessage, setConflictMessage] = useState('');
 
@@ -223,10 +227,14 @@ export function LeaveApplyForm({
           endDate: formData.endDate,
           startHalfDayType: formData.startHalfDayType,
           endHalfDayType: formData.endHalfDayType,
+          leavePolicyId: formData.leavePolicyId
+            ? Number(formData.leavePolicyId)
+            : undefined,
         },
         {
           onSuccess: (data) => {
             setCalculatedDays(data.totalDays);
+            setCharge(data);
           },
         }
       );
@@ -256,6 +264,7 @@ export function LeaveApplyForm({
     formData.endDate,
     formData.startHalfDayType,
     formData.endHalfDayType,
+    formData.leavePolicyId,
     employeeId,
     calculateDays,
     checkConflicts,
@@ -766,6 +775,22 @@ export function LeaveApplyForm({
                         Duration:{' '}
                         {describeDuration(halfDaySelection, isSingleDay)}
                       </p>
+                      {charge &&
+                        charge.deductionRule !==
+                          WeekendHolidayTreatment.CHARGE_ALL_DAYS && (
+                          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                            {getWeekendHolidayTreatmentLabel(
+                              charge.deductionRule
+                            )}
+                            : {formatLeaveDays(charge.calendarDays)} on the
+                            calendar, {charge.nonWorkingDaysExcluded}{' '}
+                            non-working{' '}
+                            {charge.nonWorkingDaysExcluded === 1
+                              ? 'day'
+                              : 'days'}{' '}
+                            not charged.
+                          </p>
+                        )}
                       {durationIssue && (
                         <p className="text-destructive mt-2 text-sm">
                           {durationIssue}

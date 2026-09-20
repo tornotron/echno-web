@@ -74,7 +74,11 @@ import {
 } from '@/hooks/leave/use-leave-mutations';
 import { useManagers } from '@tornotron/echno-core/employee/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
-import { LeaveStatus, ApprovalAction } from '@tornotron/echno-core/leave/types';
+import {
+  LeaveStatus,
+  ApprovalAction,
+  getWeekendHolidayTreatmentLabel,
+} from '@tornotron/echno-core/leave/types';
 import { toast } from '@/lib/styles/toast-styles';
 import { PageHeader } from '@/components/common';
 import { routes } from '@/nav';
@@ -451,6 +455,12 @@ export default function LeaveRequestDetailsPage({ params }: PageProps) {
                   <p className="text-primary text-2xl font-bold">
                     {request.totalDays}{' '}
                     {request.totalDays === 1 ? 'day' : 'days'}
+                  </p>
+                  <p className="text-muted-foreground text-xs">
+                    Charged under:{' '}
+                    {request.deductionRule
+                      ? getWeekendHolidayTreatmentLabel(request.deductionRule)
+                      : 'every calendar day counted'}
                   </p>
                 </div>
               </div>
