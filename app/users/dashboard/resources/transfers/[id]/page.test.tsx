@@ -76,6 +76,21 @@ mock.module('@tornotron/echno-core/site-transfers/hooks', () => ({
   }),
 }));
 
+// The reversal controls and notice ask the server about the document; none
+// of these tests is about reversal, so they see a document nobody may reverse
+// and no request on it.
+import * as realReversalHooks from '@tornotron/echno-core/document-reversals/hooks';
+
+mock.module('@tornotron/echno-core/document-reversals/hooks', () => ({
+  ...realReversalHooks,
+  useDocumentReversalEligibility: () => ({
+    data: { reversible: false, callerIsCreator: false },
+  }),
+  useDocumentReversalsByDocument: () => ({ data: [] }),
+  useRequestDocumentReversal: () => ({ mutate: () => {}, isPending: false }),
+  useCancelDocumentReversal: () => ({ mutate: () => {}, isPending: false }),
+}));
+
 /** The adjustments raised against this transfer, set per test. */
 let closingAdjustments: StockAdjustment[] = [];
 

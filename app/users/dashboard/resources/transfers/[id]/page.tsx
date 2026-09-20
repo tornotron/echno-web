@@ -48,6 +48,12 @@ import {
   totalInTransit,
 } from '@/lib/inventory/site-transfer-legs';
 import { useStockAdjustmentsBySourceDocument } from '@/hooks/stock-adjustments';
+import {
+  ReversalControls,
+  ReversalNotice,
+  ReversedBadge,
+} from '@/features/document-reversals/components';
+import { ReversibleDocumentType } from '@tornotron/echno-core/document-reversals/types';
 
 export default function SiteTransferDetailPage({
   params,
@@ -158,6 +164,7 @@ export default function SiteTransferDetailPage({
             <Badge className={siteTransferStatusBadgeColors[transfer.status]}>
               {siteTransferStatusLabels[transfer.status]}
             </Badge>
+            <ReversedBadge reversalId={transfer.reversalId} />
             <span className="text-muted-foreground text-sm">
               Issued {format(new Date(transfer.issueDate), 'MMM dd, yyyy')}
             </span>
@@ -165,6 +172,11 @@ export default function SiteTransferDetailPage({
         }
         actions={
           <>
+            <ReversalControls
+              documentType={ReversibleDocumentType.siteTransfer}
+              documentId={transfer.id}
+              documentLabel={`site transfer ${transfer.transferNumber}`}
+            />
             {offerReceive && (
               <Button
                 size="sm"
@@ -186,6 +198,11 @@ export default function SiteTransferDetailPage({
             )}
           </>
         }
+      />
+
+      <ReversalNotice
+        documentType={ReversibleDocumentType.siteTransfer}
+        documentId={transfer.id}
       />
 
       <TransferInTransitNotice transfer={transfer} />

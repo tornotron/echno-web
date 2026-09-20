@@ -30,6 +30,12 @@ import {
   GRNReceiptInfoCard,
   GRNVendorPOCard,
 } from '@/features/grn/components';
+import {
+  ReversalControls,
+  ReversalNotice,
+  ReversedBadge,
+} from '@/features/document-reversals/components';
+import { ReversibleDocumentType } from '@tornotron/echno-core/document-reversals/types';
 
 export default function GRNDetailPage({
   params,
@@ -80,6 +86,7 @@ export default function GRNDetailPage({
             <Badge variant="outline" className="text-xs">
               Goods Received Note
             </Badge>
+            <ReversedBadge reversalId={grn.reversalId} />
             {grn.purchaseOrderNumber && (
               <Badge variant="outline" className="text-xs">
                 PO: {grn.purchaseOrderNumber}
@@ -90,14 +97,28 @@ export default function GRNDetailPage({
             </span>
           </div>
         }
+        actions={
+          <ReversalControls
+            documentType={ReversibleDocumentType.goodsReceivedNote}
+            documentId={grn.id}
+            documentLabel={`goods received note ${grn.grnNumber}`}
+          />
+        }
+      />
+
+      <ReversalNotice
+        documentType={ReversibleDocumentType.goodsReceivedNote}
+        documentId={grn.id}
       />
 
       {/* Immutability notice */}
       <div className="flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
         <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
         <span>
-          GRNs are immutable once created. Stock has been automatically updated.
-          Remember to manually update the linked PO status if needed.
+          A GRN cannot be edited once created; the stock and the linked order
+          were updated when it was filed. A receipt booked wrongly is reversed
+          with approval, never deleted: the person who filed it asks, and the
+          stock goes back where it was.
         </span>
       </div>
 

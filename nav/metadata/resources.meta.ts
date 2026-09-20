@@ -7,6 +7,7 @@ import {
   ArrowLeftRight,
   TrendingDown,
   Warehouse,
+  Undo2,
 } from 'lucide-react';
 import type { MetadataRegistry, RouteMetadata } from '../types';
 import { STORES_ACCESS } from '../access/roles';
@@ -151,6 +152,19 @@ export const resourcesMetadata = {
   },
   'resources-stock-adjustments-[id]-edit': {
     label: 'Edit',
+    sidebarHidden: true,
+  },
+
+  // Reversal requests on transfers, orders and receipts. Same terms as stock
+  // adjustments: any member reads and may ask on their own document; the
+  // decision endpoints are guarded server-side.
+  'resources-reversals': {
+    label: 'Reversals',
+    icon: Undo2,
+    order: 10,
+  },
+  'resources-reversals-[id]': {
+    label: 'Reversal',
     sidebarHidden: true,
   },
 
