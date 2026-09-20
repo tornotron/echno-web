@@ -45,7 +45,15 @@ import {
   useDeleteLeavePolicy,
   useActivateLeavePolicy,
 } from '@/hooks/leave/use-leave-mutations';
-import { LeavePolicy } from '@tornotron/echno-core/leave/types';
+import {
+  AccrualMethod,
+  LeaveApproverRole,
+  LeavePolicy,
+  WeekendHolidayTreatment,
+  getAccrualMethodLabel,
+  getLeaveApproverRoleLabel,
+  getWeekendHolidayTreatmentLabel,
+} from '@tornotron/echno-core/leave/types';
 import {
   Plus,
   Edit,
@@ -113,6 +121,10 @@ export function LeavePoliciesManager({
     isPaid: true,
     displayOrder: 0,
     multiLevelApprovalEnabled: true,
+    supportingDocumentNote: '',
+    accrualMethod: AccrualMethod.MONTHLY,
+    weekendHolidayTreatment: WeekendHolidayTreatment.CHARGE_ALL_DAYS,
+    approverRole: LeaveApproverRole.REPORTING_MANAGER,
   });
 
   const resetForm = () => {
@@ -135,6 +147,10 @@ export function LeavePoliciesManager({
       isPaid: true,
       displayOrder: 0,
       multiLevelApprovalEnabled: true,
+      supportingDocumentNote: '',
+      accrualMethod: AccrualMethod.MONTHLY,
+      weekendHolidayTreatment: WeekendHolidayTreatment.CHARGE_ALL_DAYS,
+      approverRole: LeaveApproverRole.REPORTING_MANAGER,
     });
   };
 
@@ -213,6 +229,10 @@ export function LeavePoliciesManager({
       isPaid: policy.isPaid,
       displayOrder: policy.displayOrder,
       multiLevelApprovalEnabled: policy.multiLevelApprovalEnabled,
+      supportingDocumentNote: policy.supportingDocumentNote || '',
+      accrualMethod: policy.accrualMethod,
+      weekendHolidayTreatment: policy.weekendHolidayTreatment,
+      approverRole: policy.approverRole,
     });
     setIsEditDialogOpen(true);
   };
@@ -525,6 +545,10 @@ interface PolicyFormProps {
     isPaid: boolean;
     displayOrder: number;
     multiLevelApprovalEnabled: boolean;
+    supportingDocumentNote: string;
+    accrualMethod: AccrualMethod;
+    weekendHolidayTreatment: WeekendHolidayTreatment;
+    approverRole: LeaveApproverRole;
   };
   setFormData: (data: PolicyFormProps['formData']) => void;
 }
@@ -612,6 +636,34 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
                 })
               }
             />
+          </div>
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="accrualMethod">Accrual Method</Label>
+            <Select
+              value={formData.accrualMethod}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  accrualMethod: value as AccrualMethod,
+                })
+              }
+            >
+              <SelectTrigger id="accrualMethod" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(AccrualMethod).map((method) => (
+                  <SelectItem key={method} value={method}>
+                    {getAccrualMethodLabel(method)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Monthly credits one twelfth of the quota each month of service. In
+              full on qualifying credits the whole quota once the minimum
+              service is met, which is how maternity and paternity leave work.
+            </p>
           </div>
         </div>
       </div>
@@ -769,6 +821,75 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
 
       <Separator />
 
+      {/* Approval and deduction */}
+      <div>
+        <h4 className="text-muted-foreground mb-3 text-sm font-medium">
+          Approval &amp; Deduction
+        </h4>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="approverRole">Approved By</Label>
+            <Select
+              value={formData.approverRole}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  approverRole: value as LeaveApproverRole,
+                })
+              }
+            >
+              <SelectTrigger id="approverRole" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(LeaveApproverRole).map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {getLeaveApproverRoleLabel(role)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Reporting manager walks the management line. HR admin or system
+              admin sends the request to one holder of that role in a single
+              step.
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="weekendHolidayTreatment">
+              Weekends &amp; Holidays
+            </Label>
+            <Select
+              value={formData.weekendHolidayTreatment}
+              onValueChange={(value) =>
+                setFormData({
+                  ...formData,
+                  weekendHolidayTreatment: value as WeekendHolidayTreatment,
+                })
+              }
+            >
+              <SelectTrigger id="weekendHolidayTreatment" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(WeekendHolidayTreatment).map((treatment) => (
+                  <SelectItem key={treatment} value={treatment}>
+                    {getWeekendHolidayTreatmentLabel(treatment)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-muted-foreground text-xs">
+              Charge all days counts every calendar day. Exclude never charges a
+              weekend or holiday. Sandwich charges them only when they fall
+              between two leave days.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Options */}
       <div>
         <h4 className="text-muted-foreground mb-3 text-sm font-medium">
@@ -826,6 +947,29 @@ function PolicyForm({ formData, setFormData }: PolicyFormProps) {
               }
             />
           </div>
+          {formData.requiresAttachment && (
+            <div className="space-y-2">
+              <Label htmlFor="supportingDocumentNote">
+                Supporting Document
+              </Label>
+              <Textarea
+                id="supportingDocumentNote"
+                rows={2}
+                maxLength={500}
+                placeholder="What the employee should attach, for example a medical certificate"
+                value={formData.supportingDocumentNote}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    supportingDocumentNote: e.target.value,
+                  })
+                }
+              />
+              <p className="text-muted-foreground text-xs">
+                Shown to the employee when they apply.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

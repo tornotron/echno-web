@@ -1227,6 +1227,14 @@ export const ROUTE_TREE: RouteNode = {
                       children: [],
                     },
                     {
+                      id: 'workforce-leaves-manage-holidays',
+                      segment: 'holidays',
+                      path: '/users/dashboard/workforce/leaves/manage/holidays',
+                      isDynamic: false,
+                      isCatchAll: false,
+                      children: [],
+                    },
+                    {
                       id: 'workforce-leaves-manage-policies',
                       segment: 'policies',
                       path: '/users/dashboard/workforce/leaves/manage/policies',
