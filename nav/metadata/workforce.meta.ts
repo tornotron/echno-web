@@ -1,6 +1,7 @@
 import {
   Users,
   Calendar,
+  CalendarDays,
   LayoutDashboard,
   FileText,
   TrendingUp,
@@ -90,5 +91,10 @@ export const workforceMetadata = {
     label: 'Policies',
     icon: Settings,
     order: 4,
+  },
+  'workforce-leaves-manage-holidays': {
+    label: 'Holidays',
+    icon: CalendarDays,
+    order: 5,
   },
 } satisfies MetadataRegistry;

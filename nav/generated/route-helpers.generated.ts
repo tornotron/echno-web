@@ -282,6 +282,7 @@ export const routes = {
         href: b('/workforce/leaves/manage'),
         balance: b('/workforce/leaves/manage/balance'),
         calendar: b('/workforce/leaves/manage/calendar'),
+        holidays: b('/workforce/leaves/manage/holidays'),
         policies: b('/workforce/leaves/manage/policies'),
         requests: {
           href: b('/workforce/leaves/manage/requests'),
