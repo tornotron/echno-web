@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Button } from '@/components/shadcn/button';
 import { Card } from '@/components/shadcn/card';
 import {
@@ -17,8 +17,9 @@ import { routes } from '@/nav';
 import { useLabour } from '@tornotron/echno-core/labour/hooks';
 import { LabourStatus } from '@tornotron/echno-core/labour/types';
 import { LabourTable } from '@/features/labour';
+import { LABOUR_ACCESS } from '@/nav/access/roles';
 
-export default function LabourPage() {
+function LabourPageContent() {
   const { data: labour = [], isLoading, isError } = useLabour();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -194,5 +195,19 @@ export default function LabourPage() {
         projectOptions={uniqueProjects}
       />
     </div>
+  );
+}
+
+export default function LabourPage() {
+  return (
+    <AccessGate
+      config={LABOUR_ACCESS}
+      subject="view labour records"
+      allowed="system administrators and HR managers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <LabourPageContent />
+    </AccessGate>
   );
 }

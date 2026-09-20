@@ -9,3 +9,4 @@ export * from './page-header';
 export * from './org-guard';
 export * from './active-filter-chip';
 export * from './form-draft-banner';
+export * from './access-gate';

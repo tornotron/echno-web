@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import { Separator } from '@/components/shadcn/separator';
 import {
@@ -68,7 +68,11 @@ import {
 } from '@/features/stock-adjustments/decision-gates';
 import { RejectStockAdjustment } from '@/features/stock-adjustments/components';
 import { userStampLabel } from '@/lib/utils/user-reference';
-
+import { useCan } from '@/hooks/use-can';
+import {
+  STOCK_ADJUSTMENT_DECIDE_ACCESS,
+  STORES_ACCESS,
+} from '@/nav/access/roles';
 
 const handleDownloadPDF = () => {
   toast.success('Downloading stock adjustment report...');
@@ -98,7 +102,7 @@ const getStatusBadgeColor = (status: string) => {
   }
 };
 
-export default function StockAdjustmentDetailPage({
+function StockAdjustmentDetailPageContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -108,7 +112,11 @@ export default function StockAdjustmentDetailPage({
   const numericId = Number.parseInt(id);
   const { data: adjustment } = useStockAdjustment(numericId);
   const { data: currentUser } = useUser();
-  const { isSystemAdmin, isManagerOrAbove } = useAuthorization();
+  const { isSystemAdmin } = useAuthorization();
+  // Approving, rejecting and deleting are `system-admin` or `project-manager`
+  // exactly (echno-backend #853). The `manager` tier also holds HR and site
+  // managers, whom the backend refuses, so the org roles are named here.
+  const { allowed: canDecide } = useCan(STOCK_ADJUSTMENT_DECIDE_ACCESS);
   const approveAdjustment = useApproveStockAdjustment();
   const deleteAdjustment = useDeleteStockAdjustment();
   const [confirmingApproval, setConfirmingApproval] = useState(false);
@@ -166,8 +174,6 @@ export default function StockAdjustmentDetailPage({
     }
   }
 
-  const canDecide = isSystemAdmin || isManagerOrAbove;
-
   const approval = stockAdjustmentApprovalGate({
     adjustment,
     currentUserId: currentUser?.id,
@@ -222,15 +228,17 @@ export default function StockAdjustmentDetailPage({
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => setConfirmingDelete(true)}
-                disabled={deleteAdjustment.isPending}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                {deleteAdjustment.isPending ? 'Deleting...' : 'Delete'}
-              </Button>
+              {canDecide && (
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmingDelete(true)}
+                  disabled={deleteAdjustment.isPending}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {deleteAdjustment.isPending ? 'Deleting...' : 'Delete'}
+                </Button>
+              )}
             </>
           ) : (
             amendment.rejected && (
@@ -741,7 +749,10 @@ export default function StockAdjustmentDetailPage({
                       )}
                       className="hover:underline"
                     >
-                      {userStampLabel(adjustment.submittedByName, adjustment.submittedBy)}
+                      {userStampLabel(
+                        adjustment.submittedByName,
+                        adjustment.submittedBy
+                      )}
                     </Link>
                   </div>
                 </div>
@@ -763,7 +774,10 @@ export default function StockAdjustmentDetailPage({
                         )}
                         className="hover:underline"
                       >
-                        {userStampLabel(adjustment.approvedByName, adjustment.approvedBy)}
+                        {userStampLabel(
+                          adjustment.approvedByName,
+                          adjustment.approvedBy
+                        )}
                       </Link>
                     </div>
                   </div>
@@ -866,5 +880,21 @@ export default function StockAdjustmentDetailPage({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function StockAdjustmentDetailPage(
+  props: Parameters<typeof StockAdjustmentDetailPageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={STORES_ACCESS}
+      subject="view stock adjustments"
+      allowed="store keepers, project managers and system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <StockAdjustmentDetailPageContent {...props} />
+    </AccessGate>
   );
 }

@@ -12,7 +12,7 @@ import {
   TabsTrigger,
 } from '@/components/shadcn/tabs';
 import { Edit, Building2, Loader2 } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import {
   Empty,
   EmptyErrorMedia,
@@ -33,12 +33,14 @@ import {
   VendorBankingTab,
   VendorTaxTab,
 } from '@/features/vendor';
+import { useCan } from '@/hooks/use-can';
+import { VENDOR_READ_ACCESS, VENDOR_WRITE_ACCESS } from '@/nav/access/roles';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function VendorDetailPage({ params }: PageProps) {
+function VendorDetailPageContent({ params }: PageProps) {
   const { id } = use(params);
   const vendorId = Number(id);
 
@@ -47,7 +49,14 @@ export default function VendorDetailPage({ params }: PageProps) {
   const { data: vendor, isLoading, isError, error } = useVendor(vendorId);
   // Fetched here only for tab badge counts — tab components re-use the same cache
   const { data: contacts = [] } = useVendorContacts(vendorId);
-  const { data: bankAccounts = [] } = useVendorBankAccounts(vendorId);
+  // The commercial detail on a vendor (bank accounts, tax identifiers,
+  // payment terms) and every write is system-admin on the backend
+  // (echno-backend #853); a store keeper sees the register and the contacts.
+  // Passing 0 leaves the query disabled rather than fetching a 403.
+  const { allowed: canManage } = useCan(VENDOR_WRITE_ACCESS);
+  const { data: bankAccounts = [] } = useVendorBankAccounts(
+    canManage ? vendorId : 0
+  );
 
   if (!isValidId) {
     return (
@@ -107,11 +116,13 @@ export default function VendorDetailPage({ params }: PageProps) {
             {vendor.type && (
               <Badge variant="outline">{getVendorTypeLabel(vendor.type)}</Badge>
             )}
-            <Button variant="outline" size="sm" asChild>
-              <Link href={routes.thirdParty.vendors.detail(vendor.id).edit}>
-                <Edit className="mr-2 h-4 w-4" /> Edit
-              </Link>
-            </Button>
+            {canManage && (
+              <Button variant="outline" size="sm" asChild>
+                <Link href={routes.thirdParty.vendors.detail(vendor.id).edit}>
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </Link>
+              </Button>
+            )}
           </>
         }
       />
@@ -127,15 +138,17 @@ export default function VendorDetailPage({ params }: PageProps) {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="banking">
-            Banking
-            {bankAccounts.length > 0 && (
-              <span className="ml-1.5 rounded-full bg-zinc-200 px-1.5 py-0.5 text-xs dark:bg-zinc-700">
-                {bankAccounts.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="tax">Tax & Legal</TabsTrigger>
+          {canManage && (
+            <TabsTrigger value="banking">
+              Banking
+              {bankAccounts.length > 0 && (
+                <span className="ml-1.5 rounded-full bg-zinc-200 px-1.5 py-0.5 text-xs dark:bg-zinc-700">
+                  {bankAccounts.length}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
+          {canManage && <TabsTrigger value="tax">Tax & Legal</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="overview" className="mt-4">
@@ -146,14 +159,34 @@ export default function VendorDetailPage({ params }: PageProps) {
           <VendorContactsTab vendorId={vendorId} />
         </TabsContent>
 
-        <TabsContent value="banking" className="mt-4">
-          <VendorBankingTab vendorId={vendorId} />
-        </TabsContent>
+        {canManage && (
+          <TabsContent value="banking" className="mt-4">
+            <VendorBankingTab vendorId={vendorId} />
+          </TabsContent>
+        )}
 
-        <TabsContent value="tax" className="mt-4">
-          <VendorTaxTab vendorId={vendorId} />
-        </TabsContent>
+        {canManage && (
+          <TabsContent value="tax" className="mt-4">
+            <VendorTaxTab vendorId={vendorId} />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
+  );
+}
+
+export default function VendorDetailPage(
+  props: Parameters<typeof VendorDetailPageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={VENDOR_READ_ACCESS}
+      subject="view vendors"
+      allowed="system administrators and store keepers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <VendorDetailPageContent {...props} />
+    </AccessGate>
   );
 }

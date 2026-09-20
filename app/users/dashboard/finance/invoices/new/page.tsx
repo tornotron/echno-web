@@ -41,13 +41,14 @@ import {
   invoiceStatusLabels,
 } from '@/types/finance/invoice';
 import { Save, X, Plus, Trash2, Hash, Calendar } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { format } from 'date-fns';
 import { toast } from '@/lib/styles/toast-styles';
+import { CONSTRUCTION_INVOICES_ACCESS } from '@/nav/access/roles';
 
 const NO_COST_CATEGORY = 'none';
 
-export default function NewInvoicePage() {
+function NewInvoicePageContent() {
   const router = useRouter();
   const { data: projects = [] } = useProjects();
   const { data: costCategories = [] } = useCostCategories(true);
@@ -685,5 +686,19 @@ export default function NewInvoicePage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function NewInvoicePage() {
+  return (
+    <AccessGate
+      config={CONSTRUCTION_INVOICES_ACCESS}
+      subject="raise construction invoices"
+      allowed="system administrators and project managers"
+      backHref={routes.finance.href}
+      backLabel="Back to Finance"
+    >
+      <NewInvoicePageContent />
+    </AccessGate>
   );
 }

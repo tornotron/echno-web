@@ -16,8 +16,13 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { useSubContracts } from '@/hooks/sub-contracts';
 import { SubContractTable } from '@/features/sub-contracts';
+import { useCan } from '@/hooks/use-can';
+import { SUB_CONTRACT_WRITE_ACCESS } from '@/nav/access/roles';
 
 export default function SubContractsPage() {
+  // Creating a sub-contract is the project pair's (echno-backend #853); any
+  // member reads them.
+  const { allowed: canWrite } = useCan(SUB_CONTRACT_WRITE_ACCESS);
   const { data: contracts = [], isLoading, isError } = useSubContracts();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -74,12 +79,14 @@ export default function SubContractsPage() {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button size="sm" asChild>
-              <Link href={routes.thirdParty.subContracts.new}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Contract
-              </Link>
-            </Button>
+            {canWrite && (
+              <Button size="sm" asChild>
+                <Link href={routes.thirdParty.subContracts.new}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Contract
+                </Link>
+              </Button>
+            )}
           </>
         }
       />

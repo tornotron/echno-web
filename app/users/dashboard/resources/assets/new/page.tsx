@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorMessage } from '@tornotron/echno-core';
@@ -14,8 +14,9 @@ import {
   AssetFormData,
   ASSET_FORM_ID,
 } from '@/features/assets/components/asset-form';
+import { ASSET_WRITE_ACCESS } from '@/nav/access/roles';
 
-export default function NewAssetPage() {
+function NewAssetPageContent() {
   const router = useRouter();
   const createAsset = useCreateAsset();
   const isPending = createAsset.isPending;
@@ -61,5 +62,19 @@ export default function NewAssetPage() {
       />
       <AssetForm mode="create" onSubmit={handleSubmit} />
     </div>
+  );
+}
+
+export default function NewAssetPage() {
+  return (
+    <AccessGate
+      config={ASSET_WRITE_ACCESS}
+      subject="register assets"
+      allowed="system administrators and project managers"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <NewAssetPageContent />
+    </AccessGate>
   );
 }

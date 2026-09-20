@@ -65,6 +65,8 @@ import type {
 } from '@tornotron/echno-core/vendor/types';
 import { VendorStatusBadge } from './vendor-status-badge';
 import { VendorField } from './vendor-field';
+import { useCan } from '@/hooks/use-can';
+import { VENDOR_WRITE_ACCESS } from '@/nav/access/roles';
 
 interface VendorOverviewTabProps {
   vendorId: number;
@@ -75,7 +77,13 @@ export function VendorOverviewTab({
   vendorId,
   vendor,
 }: VendorOverviewTabProps) {
-  const { data: paymentTerms } = useVendorPaymentTerms(vendorId);
+  // Payment terms are commercial detail, system-admin on the backend
+  // (echno-backend #853). Passing 0 leaves the query disabled for anyone
+  // else, and the card below is withheld with it.
+  const { allowed: canManage } = useCan(VENDOR_WRITE_ACCESS);
+  const { data: paymentTerms } = useVendorPaymentTerms(
+    canManage ? vendorId : 0
+  );
   const setPaymentTermsMutation = useSetVendorPaymentTerms(vendorId);
   const removePaymentTermsMutation = useDeleteVendorPaymentTerms(vendorId);
 
@@ -253,76 +261,78 @@ export function VendorOverviewTab({
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Payment Terms */}
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-3">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Receipt className="h-4 w-4" /> Payment Terms
-              </CardTitle>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => openSetPaymentTerms(paymentTerms ?? undefined)}
-              >
+          {canManage && (
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Receipt className="h-4 w-4" /> Payment Terms
+                </CardTitle>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => openSetPaymentTerms(paymentTerms ?? undefined)}
+                >
+                  {paymentTerms ? (
+                    <Edit className="h-3.5 w-3.5" />
+                  ) : (
+                    <Plus className="h-3.5 w-3.5" />
+                  )}
+                </Button>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 {paymentTerms ? (
-                  <Edit className="h-3.5 w-3.5" />
+                  <>
+                    <VendorField
+                      label="Terms"
+                      value={
+                        PAYMENT_TERMS_LABELS[
+                          paymentTerms.paymentTerms as PaymentTerms
+                        ] ?? paymentTerms.paymentTerms
+                      }
+                    />
+                    {paymentTerms.creditLimit !== undefined && (
+                      <VendorField
+                        label="Credit Limit"
+                        value={
+                          paymentTerms.creditLimit === 0
+                            ? 'No limit'
+                            : `₹${paymentTerms.creditLimit.toLocaleString()}`
+                        }
+                      />
+                    )}
+                    {paymentTerms.creditDays !== undefined && (
+                      <VendorField
+                        label="Credit Days"
+                        value={
+                          paymentTerms.creditDays === 0
+                            ? 'Immediate payment'
+                            : `${paymentTerms.creditDays} days`
+                        }
+                      />
+                    )}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full text-red-500 hover:text-red-600"
+                      onClick={() => setDeletePt(true)}
+                    >
+                      <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Remove
+                    </Button>
+                  </>
                 ) : (
-                  <Plus className="h-3.5 w-3.5" />
+                  <p className="text-sm text-zinc-400">
+                    No payment terms set.{' '}
+                    <button
+                      className="text-blue-500 hover:underline"
+                      onClick={() => openSetPaymentTerms()}
+                    >
+                      Set now
+                    </button>
+                  </p>
                 )}
-              </Button>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {paymentTerms ? (
-                <>
-                  <VendorField
-                    label="Terms"
-                    value={
-                      PAYMENT_TERMS_LABELS[
-                        paymentTerms.paymentTerms as PaymentTerms
-                      ] ?? paymentTerms.paymentTerms
-                    }
-                  />
-                  {paymentTerms.creditLimit !== undefined && (
-                    <VendorField
-                      label="Credit Limit"
-                      value={
-                        paymentTerms.creditLimit === 0
-                          ? 'No limit'
-                          : `₹${paymentTerms.creditLimit.toLocaleString()}`
-                      }
-                    />
-                  )}
-                  {paymentTerms.creditDays !== undefined && (
-                    <VendorField
-                      label="Credit Days"
-                      value={
-                        paymentTerms.creditDays === 0
-                          ? 'Immediate payment'
-                          : `${paymentTerms.creditDays} days`
-                      }
-                    />
-                  )}
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="w-full text-red-500 hover:text-red-600"
-                    onClick={() => setDeletePt(true)}
-                  >
-                    <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Remove
-                  </Button>
-                </>
-              ) : (
-                <p className="text-sm text-zinc-400">
-                  No payment terms set.{' '}
-                  <button
-                    className="text-blue-500 hover:underline"
-                    onClick={() => openSetPaymentTerms()}
-                  >
-                    Set now
-                  </button>
-                </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Notes */}
           {vendor.notes && (

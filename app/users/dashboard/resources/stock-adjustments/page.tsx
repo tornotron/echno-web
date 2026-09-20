@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { routes } from '@/nav';
 import { Card } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader, ActiveFilterChip } from '@/components/common';
+import { PageHeader, ActiveFilterChip, AccessGate } from '@/components/common';
 import { useEmployeeFilterFromParams } from '@/hooks/use-employee-filter';
 import {
   Settings,
@@ -26,8 +26,9 @@ import {
 import { useStockAdjustments } from '@/hooks/stock-adjustments';
 import { StockAdjustmentList } from '@/features/stock-adjustments/components';
 import { resolveStampName } from '@/lib/utils/user-reference';
+import { STORES_ACCESS } from '@/nav/access/roles';
 
-export default function StockAdjustmentsPage() {
+function StockAdjustmentsPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
@@ -59,16 +60,15 @@ export default function StockAdjustmentsPage() {
     [stockAdjustments]
   );
 
-  const { chip, matches: matchesEmployeeFilter } =
-    useEmployeeFilterFromParams({
-      rows: stockAdjustments,
-      resolveUserName,
-      roles: {
-        submitter: (a) => a.submittedBy,
-        approver: (a) => a.approvedBy,
-        rejecter: (a) => a.rejectedBy,
-      },
-    });
+  const { chip, matches: matchesEmployeeFilter } = useEmployeeFilterFromParams({
+    rows: stockAdjustments,
+    resolveUserName,
+    roles: {
+      submitter: (a) => a.submittedBy,
+      approver: (a) => a.approvedBy,
+      rejecter: (a) => a.rejectedBy,
+    },
+  });
 
   const filteredAdjustments = useMemo(() => {
     return stockAdjustments.filter((adj) => {
@@ -277,5 +277,19 @@ export default function StockAdjustmentsPage() {
         onClearFilters={clearFilters}
       />
     </div>
+  );
+}
+
+export default function StockAdjustmentsPage() {
+  return (
+    <AccessGate
+      config={STORES_ACCESS}
+      subject="view stock adjustments"
+      allowed="store keepers, project managers and system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <StockAdjustmentsPageContent />
+    </AccessGate>
   );
 }

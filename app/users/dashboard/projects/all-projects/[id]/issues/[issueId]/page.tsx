@@ -38,6 +38,8 @@ import {
   DeleteAttachmentDialog,
 } from '@/features/issues/components';
 import { routes } from '@/nav';
+import { useCan } from '@/hooks/use-can';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 // ---------------------------------------------------------------------------
 // Status helpers
@@ -88,6 +90,8 @@ interface PageProps {
 }
 
 export default function IssueDetailPage({ params }: PageProps) {
+  // Editing an issue is the project pair's (echno-backend #853).
+  const { allowed: canWrite } = useCan(PROJECT_WRITE_ACCESS);
   const { id: projectId, issueId: issueIdParam } = use(params);
   const searchParams = useSearchParams();
 
@@ -182,12 +186,14 @@ export default function IssueDetailPage({ params }: PageProps) {
           </div>
         }
         actions={
-          <Button variant="outline" size="sm" asChild>
-            <Link href={editHref}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Issue
-            </Link>
-          </Button>
+          canWrite ? (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={editHref}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Issue
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 

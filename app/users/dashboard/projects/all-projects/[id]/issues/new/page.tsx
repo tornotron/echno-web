@@ -7,7 +7,7 @@ import { useProject } from '@tornotron/echno-core/project/hooks';
 import { useClearFormDraft } from '@/hooks/use-form-draft';
 import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateIssue } from '@tornotron/echno-core/issue/hooks';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { logger } from '@/lib/logger';
 import { routes } from '@/nav';
@@ -18,12 +18,13 @@ import {
   type IssueFormSubmitData,
 } from '@/features/issues/components';
 import { buildCreateIssuePayload } from '@/features/issues/issue-payload';
+import { PROJECT_WRITE_ACCESS } from '@/nav/access/roles';
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function NewIssuePage({ params }: PageProps) {
+function NewIssuePageContent({ params }: PageProps) {
   const { id: projectId } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -101,5 +102,21 @@ export default function NewIssuePage({ params }: PageProps) {
         onCancel={() => router.back()}
       />
     </div>
+  );
+}
+
+export default function NewIssuePage(
+  props: Parameters<typeof NewIssuePageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={PROJECT_WRITE_ACCESS}
+      subject="raise issues"
+      allowed="system administrators and project managers"
+      backHref={routes.projects.href}
+      backLabel="Back to Projects"
+    >
+      <NewIssuePageContent {...props} />
+    </AccessGate>
   );
 }

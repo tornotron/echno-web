@@ -5,13 +5,18 @@ import { Button } from '@/components/shadcn/button';
 import { Plus } from 'lucide-react';
 import Link from 'next/link';
 import { routes } from '@/nav';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { useVendorsPaginated } from '@tornotron/echno-core/vendor/hooks';
 import { VendorListView } from '@/features/vendor';
+import { useCan } from '@/hooks/use-can';
+import { VENDOR_READ_ACCESS, VENDOR_WRITE_ACCESS } from '@/nav/access/roles';
 
 const PAGE_SIZE = 10;
 
-export default function VendorsPage() {
+function VendorsPageContent() {
+  // The store reads the register; adding to it is the administrator's
+  // (echno-backend #853).
+  const { allowed: canWrite } = useCan(VENDOR_WRITE_ACCESS);
   const [pageNo, setPageNo] = useState(0);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -31,12 +36,14 @@ export default function VendorsPage() {
         title="Vendor Management"
         description="Manage suppliers and service providers"
         actions={
-          <Button size="sm" asChild>
-            <Link href={routes.thirdParty.vendors.new}>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Vendor
-            </Link>
-          </Button>
+          canWrite ? (
+            <Button size="sm" asChild>
+              <Link href={routes.thirdParty.vendors.new}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Vendor
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -69,5 +76,19 @@ export default function VendorsPage() {
         }}
       />
     </div>
+  );
+}
+
+export default function VendorsPage() {
+  return (
+    <AccessGate
+      config={VENDOR_READ_ACCESS}
+      subject="view vendors"
+      allowed="system administrators and store keepers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <VendorsPageContent />
+    </AccessGate>
   );
 }

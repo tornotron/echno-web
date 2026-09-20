@@ -1,19 +1,19 @@
 import { describe, expect, test } from 'bun:test';
 import { allNavItems, getSidebarItems } from '@/nav';
 import type { ComposedNavItem } from '@/nav';
+import { STORES_ACCESS } from '@/nav';
 
 /**
- * Stock adjustments is one of only two Resources modules a plain org member can
- * read: `StockAdjustmentControllerWeb` and `AssetControllerWeb` both guard on
- * `isMemberOfCurrentTenant() or hasAnyOrgRoleForCurrentTenant('system-admin',
- * 'project-manager')`, while the other eleven Resources controllers are
- * system-admin only on every method, reads included.
+ * Stock adjustments carried `sidebarHidden: true` from the first metadata
+ * commit, so the whole module (list, detail, approve, reject, edit) was
+ * reachable only by typing the URL. These tests pin it visible.
  *
- * Assets has always been in the sidebar. Stock adjustments carried
- * `sidebarHidden: true` from the first metadata commit, so the whole module —
- * list, detail, approve, reject, edit — was reachable only by typing the URL.
- * These tests pin it visible and pin the pair consistent, so the two entries
- * with the same authorization shape cannot drift apart again unnoticed.
+ * It used to be shown on the same terms as Assets, when both were readable by
+ * any org member. Since echno-backend #853 its reads are the stores tier
+ * (`system-admin`, `project-manager`, `store-keeper`), the same guard as the
+ * goods receipts, so the entry is now pinned consistent with those instead:
+ * gated on STORES_ACCESS and hidden when locked, so a labourer is not offered
+ * a link that 403s.
  */
 
 function findById(
@@ -44,15 +44,19 @@ describe('Resources sidebar entries', () => {
     expect(child === undefined).toBe(false);
   });
 
-  test('it is shown on the same terms as assets, which it is gated like', () => {
-    const assets = allNavItems.find((i) => i.id === 'resources-assets');
+  test('it is shown on the same terms as the goods receipts, which it is gated like', () => {
+    const receipts = allNavItems.find(
+      (i) => i.id === 'resources-goods-receipts'
+    );
     const adjustments = allNavItems.find(
       (i) => i.id === 'resources-stock-adjustments'
     );
-    expect(assets === undefined).toBe(false);
+    expect(receipts === undefined).toBe(false);
     expect(adjustments === undefined).toBe(false);
-    expect(adjustments?.sidebarHidden).toBe(assets?.sidebarHidden ?? true);
-    expect(adjustments?.access).toEqual(assets?.access ?? {});
+    expect(adjustments?.sidebarHidden).toBe(receipts?.sidebarHidden ?? true);
+    expect(adjustments?.access).toBe(STORES_ACCESS);
+    expect(adjustments?.access).toEqual(receipts?.access ?? {});
+    expect(adjustments?.hideWhenLocked).toBe(true);
   });
 
   test('its own child pages stay out of the sidebar', () => {

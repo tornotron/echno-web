@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Loader2, Save, Settings } from 'lucide-react';
 import {
   Empty,
@@ -27,8 +27,9 @@ import {
   type StockAdjustmentSubmitData,
 } from '@/features/stock-adjustments/components';
 import type { StockAdjustment } from '@/types/resource';
+import { STORES_ACCESS } from '@/nav/access/roles';
 
-export default function EditStockAdjustmentPage({
+function EditStockAdjustmentPageContent({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -139,5 +140,21 @@ function AdjustmentEditor({
       />
       <StockAdjustmentForm initial={adjustment} onSubmit={handleSubmit} />
     </div>
+  );
+}
+
+export default function EditStockAdjustmentPage(
+  props: Parameters<typeof EditStockAdjustmentPageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={STORES_ACCESS}
+      subject="edit stock adjustments"
+      allowed="store keepers, project managers and system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <EditStockAdjustmentPageContent {...props} />
+    </AccessGate>
   );
 }

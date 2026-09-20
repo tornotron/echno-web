@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { Badge } from '@/components/shadcn/badge';
 import {
   Tabs,
@@ -47,8 +47,15 @@ import {
 } from '@/components/shadcn/empty';
 import { useStorageLocation } from '@tornotron/echno-core/storage-locations/hooks';
 import { StorageLocationStockTab } from '@/features/storage-locations/components';
+import { useCan } from '@/hooks/use-can';
+import {
+  STORAGE_LOCATION_WRITE_ACCESS,
+  STORES_ACCESS,
+} from '@/nav/access/roles';
 
-export default function ViewLocationPage() {
+function ViewLocationPageContent() {
+  // Editing a location is the administrator's alone (echno-backend #853).
+  const { allowed: canWrite } = useCan(STORAGE_LOCATION_WRITE_ACCESS);
   const params = useParams();
   const locationId = Number(params.id);
 
@@ -134,14 +141,18 @@ export default function ViewLocationPage() {
           </div>
         }
         actions={
-          <Button asChild>
-            <Link
-              href={routes.resources.storageLocations.detail(location.id).edit}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Location
-            </Link>
-          </Button>
+          canWrite ? (
+            <Button asChild>
+              <Link
+                href={
+                  routes.resources.storageLocations.detail(location.id).edit
+                }
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Location
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -324,3 +335,17 @@ const getTypeColor = (type: StorageLocationType) => {
     }
   }
 };
+
+export default function ViewLocationPage() {
+  return (
+    <AccessGate
+      config={STORES_ACCESS}
+      subject="view storage locations"
+      allowed="store keepers, project managers and system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <ViewLocationPageContent />
+    </AccessGate>
+  );
+}

@@ -23,7 +23,7 @@ import {
 } from '@/components/shadcn/select';
 import { toast } from '@/lib/styles/toast-styles';
 import { Building2, Save, Loader2 } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { useCreateVendor } from '@tornotron/echno-core/vendor/hooks';
 import {
   CreateVendorRequest,
@@ -32,6 +32,7 @@ import {
   VendorStatus,
   VendorType,
 } from '@tornotron/echno-core/vendor/types';
+import { VENDOR_WRITE_ACCESS } from '@/nav/access/roles';
 
 const VENDOR_FORM_ID = 'vendor-form';
 
@@ -49,7 +50,7 @@ const INITIAL: CreateVendorRequest = {
   notes: '',
 };
 
-export default function VendorNewPage() {
+function VendorNewPageContent() {
   const router = useRouter();
   const [form, setForm] = useState<CreateVendorRequest>(INITIAL);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -299,5 +300,19 @@ export default function VendorNewPage() {
         </Card>
       </form>
     </div>
+  );
+}
+
+export default function VendorNewPage() {
+  return (
+    <AccessGate
+      config={VENDOR_WRITE_ACCESS}
+      subject="create vendors"
+      allowed="system administrators"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <VendorNewPageContent />
+    </AccessGate>
   );
 }

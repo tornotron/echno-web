@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Button } from '@/components/shadcn/button';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { MapPin, Trash2, Loader2, Save } from 'lucide-react';
 import {
   Empty,
@@ -34,8 +34,9 @@ import {
   STORAGE_LOCATION_FORM_ID,
 } from '@/features/storage-locations/components/storage-location-form';
 import { DeleteStorageLocationDialog } from '@/features/storage-locations/components/storage-location-alert-dialogs';
+import { STORAGE_LOCATION_WRITE_ACCESS } from '@/nav/access/roles';
 
-export default function EditLocationPage() {
+function EditLocationPageContent() {
   const params = useParams();
   const router = useRouter();
   const locationId = Number(params.id);
@@ -197,5 +198,19 @@ export default function EditLocationPage() {
         onConfirm={handleDelete}
       />
     </>
+  );
+}
+
+export default function EditLocationPage() {
+  return (
+    <AccessGate
+      config={STORAGE_LOCATION_WRITE_ACCESS}
+      subject="edit storage locations"
+      allowed="system administrators"
+      backHref={routes.resources.href}
+      backLabel="Back to Resources"
+    >
+      <EditLocationPageContent />
+    </AccessGate>
   );
 }

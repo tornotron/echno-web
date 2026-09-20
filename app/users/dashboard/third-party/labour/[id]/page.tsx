@@ -23,7 +23,7 @@ import {
   User,
   HardHat,
 } from 'lucide-react';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import { format } from 'date-fns';
 import Link from 'next/link';
 import { routes } from '@/nav';
@@ -45,6 +45,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
+import { LABOUR_ACCESS } from '@/nav/access/roles';
 
 const typeLabels: Record<EmploymentType, string> = {
   [EmploymentType.DAILY_WAGE]: 'Daily Wage',
@@ -88,7 +89,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default function LabourDetailPage({ params }: PageProps) {
+function LabourDetailPageContent({ params }: PageProps) {
   const router = useRouter();
   const { id } = use(params);
   const labourId = Number.parseInt(id);
@@ -491,5 +492,21 @@ export default function LabourDetailPage({ params }: PageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LabourDetailPage(
+  props: Parameters<typeof LabourDetailPageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={LABOUR_ACCESS}
+      subject="view labour records"
+      allowed="system administrators and HR managers"
+      backHref={routes.thirdParty.href}
+      backLabel="Back to Third Party"
+    >
+      <LabourDetailPageContent {...props} />
+    </AccessGate>
   );
 }

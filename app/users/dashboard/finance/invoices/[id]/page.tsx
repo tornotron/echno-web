@@ -43,7 +43,7 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from '@/components/shadcn/empty';
-import { PageHeader } from '@/components/common';
+import { PageHeader, AccessGate } from '@/components/common';
 import Link from 'next/link';
 import { routes } from '@/nav';
 import { userFilterHref } from '@/hooks/use-employee-filter';
@@ -59,6 +59,7 @@ import { InvoiceActions } from '@/features/invoices/components/invoice-actions';
 import { invoicesService } from '@/services/invoices-service';
 import { toast } from '@/lib/styles/toast-styles';
 import { userStampLabel } from '@/lib/utils/user-reference';
+import { CONSTRUCTION_INVOICES_ACCESS } from '@/nav/access/roles';
 
 interface InvoiceDetailPageProps {
   params: Promise<{
@@ -74,7 +75,7 @@ function formatDateTime(value?: string): string {
   return value ? format(value, 'dd MMM yyyy, HH:mm') : '—';
 }
 
-export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
+function InvoiceDetailPageContent({ params }: InvoiceDetailPageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   const {
@@ -235,9 +236,7 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
               {invoice.projectId ? (
                 <Link
                   href={
-                    routes.projects.allProjects.detail(
-                      invoice.projectId
-                    ).href
+                    routes.projects.allProjects.detail(invoice.projectId).href
                   }
                   className="font-medium text-blue-600 hover:underline dark:text-blue-400"
                 >
@@ -610,10 +609,16 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {userStampLabel(invoice.submittedByName, invoice.submittedBy)}
+                              {userStampLabel(
+                                invoice.submittedByName,
+                                invoice.submittedBy
+                              )}
                             </Link>
                           ) : (
-                            userStampLabel(invoice.submittedByName, invoice.submittedBy)
+                            userStampLabel(
+                              invoice.submittedByName,
+                              invoice.submittedBy
+                            )
                           )}{' '}
                           on {formatDateTime(invoice.submittedAt)}
                         </p>
@@ -635,10 +640,16 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {userStampLabel(invoice.approvedByName, invoice.approvedBy)}
+                              {userStampLabel(
+                                invoice.approvedByName,
+                                invoice.approvedBy
+                              )}
                             </Link>
                           ) : (
-                            userStampLabel(invoice.approvedByName, invoice.approvedBy)
+                            userStampLabel(
+                              invoice.approvedByName,
+                              invoice.approvedBy
+                            )
                           )}{' '}
                           on {formatDateTime(invoice.approvedAt)}
                         </p>
@@ -662,10 +673,16 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
                               )}
                               className="font-medium hover:underline"
                             >
-                              {userStampLabel(invoice.paymentRecordedByName, invoice.paymentRecordedBy)}
+                              {userStampLabel(
+                                invoice.paymentRecordedByName,
+                                invoice.paymentRecordedBy
+                              )}
                             </Link>
                           ) : (
-                            userStampLabel(invoice.paymentRecordedByName, invoice.paymentRecordedBy)
+                            userStampLabel(
+                              invoice.paymentRecordedByName,
+                              invoice.paymentRecordedBy
+                            )
                           )}
                         </p>
                       </div>
@@ -763,5 +780,21 @@ export default function InvoiceDetailPage({ params }: InvoiceDetailPageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function InvoiceDetailPage(
+  props: Parameters<typeof InvoiceDetailPageContent>[0]
+) {
+  return (
+    <AccessGate
+      config={CONSTRUCTION_INVOICES_ACCESS}
+      subject="view construction invoices"
+      allowed="system administrators and project managers"
+      backHref={routes.finance.href}
+      backLabel="Back to Finance"
+    >
+      <InvoiceDetailPageContent {...props} />
+    </AccessGate>
   );
 }
