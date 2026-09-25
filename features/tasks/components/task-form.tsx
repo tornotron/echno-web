@@ -79,11 +79,9 @@ interface CreateProps {
   mode: 'create';
   projectId: number;
   projectName?: string;
-  isSubmitting: boolean;
   /** Per-file direct-upload progress, index-aligned to the selected files. */
   uploadStates?: FileUploadState[];
   onSubmit: (data: TaskFormSubmitData) => void;
-  onCancel: () => void;
 }
 
 interface EditProps {
@@ -91,18 +89,75 @@ interface EditProps {
   projectId: number;
   projectName?: string;
   task: Task;
-  isSubmitting: boolean;
-  isDeleting: boolean;
   /** Per-file direct-upload progress, index-aligned to the selected files. */
   uploadStates?: FileUploadState[];
   onSubmit: (data: TaskFormSubmitData) => void;
-  onDelete: () => void;
-  onCancel: () => void;
 }
 
 type TaskFormProps = CreateProps | EditProps;
 
 export const TASK_FORM_ID = 'task-form';
+
+interface TaskFormActionsProps {
+  mode: 'create' | 'edit';
+  isSubmitting: boolean;
+  isDeleting?: boolean;
+  onCancel: () => void;
+  /** Edit mode only: opens the delete confirmation. */
+  onDelete?: () => void;
+}
+
+/**
+ * Cancel and submit buttons for the task form, rendered in the page header
+ * (the same placement the other create and edit pages use). The submit button
+ * sits outside the form element and reaches it through the `form` attribute,
+ * so native validation and Enter-to-submit behave as before.
+ */
+export function TaskFormActions({
+  mode,
+  isSubmitting,
+  isDeleting = false,
+  onCancel,
+  onDelete,
+}: TaskFormActionsProps) {
+  const busy = isSubmitting || isDeleting;
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {mode === 'edit' && onDelete && (
+        <Button
+          type="button"
+          variant="destructive"
+          onClick={onDelete}
+          disabled={busy}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          {isDeleting ? 'Deleting...' : 'Delete Task'}
+        </Button>
+      )}
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onCancel}
+        disabled={busy}
+      >
+        Cancel
+      </Button>
+      <Button type="submit" form={TASK_FORM_ID} disabled={busy}>
+        {mode === 'edit' ? (
+          <>
+            <Save className="mr-2 h-4 w-4" />
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </>
+        ) : (
+          <>
+            <Send className="mr-2 h-4 w-4" />
+            {isSubmitting ? 'Creating...' : 'Create Task'}
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
 
 const defaultForm: TaskFormState = {
   title: '',
@@ -129,7 +184,7 @@ function formatDateForInput(date: Date): string {
 
 export function TaskForm(props: TaskFormProps) {
   const isEdit = props.mode === 'edit';
-  const { projectId, isSubmitting, onCancel } = props;
+  const { projectId } = props;
 
   const { data: projectMembers = [] } = useEmployeesByProject(projectId);
   const { data: workCategories = [] } = useWorkCategories();
@@ -398,8 +453,6 @@ export function TaskForm(props: TaskFormProps) {
   // Render
   // ---------------------------------------------------------------------------
 
-  const isDeleting = isEdit ? (props as EditProps).isDeleting : false;
-  const busy = isSubmitting || isDeleting;
   const existingAttachments = isEdit
     ? (props as EditProps).task.attachments
     : undefined;
@@ -805,50 +858,6 @@ export function TaskForm(props: TaskFormProps) {
             </Card>
           </div>
         </div>
-
-        {/* Action Buttons */}
-        {isEdit ? (
-          <div className="flex justify-between">
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={(props as EditProps).onDelete}
-              disabled={busy}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? 'Deleting...' : 'Delete Task'}
-            </Button>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={busy}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={busy}>
-                <Save className="mr-2 h-4 w-4" />
-                {isSubmitting ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              disabled={busy}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={busy} className="ml-auto">
-              <Send className="mr-2 h-4 w-4" />
-              {isSubmitting ? 'Creating...' : 'Create Task'}
-            </Button>
-          </div>
-        )}
       </form>
 
       <CreateCategoryDialog

@@ -29,6 +29,7 @@ import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
 import {
   TaskForm,
+  TaskFormActions,
   SaveTaskDialog,
   DeleteTaskDialog,
   type TaskFormSubmitData,
@@ -206,11 +207,21 @@ export default function EditTaskPage({ params }: PageProps) {
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
+        sticky
         title="Edit Task"
         description={
           project
             ? `Update task in ${project.projectName}`
             : 'Update task information'
+        }
+        actions={
+          <TaskFormActions
+            mode="edit"
+            isSubmitting={isSubmitting}
+            isDeleting={isDeleting}
+            onDelete={() => setShowDeleteDialog(true)}
+            onCancel={() => router.back()}
+          />
         }
       />
 
@@ -219,12 +230,8 @@ export default function EditTaskPage({ params }: PageProps) {
         projectId={projectIdNum}
         projectName={project?.projectName}
         task={taskToEdit}
-        isSubmitting={isSubmitting}
-        isDeleting={isDeleting}
         uploadStates={directUpload.states}
         onSubmit={handleSubmit}
-        onDelete={() => setShowDeleteDialog(true)}
-        onCancel={() => router.back()}
       />
 
       <SaveTaskDialog

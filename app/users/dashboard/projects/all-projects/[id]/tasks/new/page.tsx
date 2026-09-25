@@ -11,7 +11,11 @@ import { useWorkCategories } from '@tornotron/echno-core/work-category/hooks';
 import { PageHeader } from '@/components/common';
 import { toast } from '@/lib/styles/toast-styles';
 import { routes } from '@/nav';
-import { TaskForm, type TaskFormSubmitData } from '@/features/tasks/components';
+import {
+  TaskForm,
+  TaskFormActions,
+  type TaskFormSubmitData,
+} from '@/features/tasks/components';
 import type { CreateTaskRequest } from '@tornotron/echno-core/task/types';
 import { useDirectAttachmentUpload } from '@/hooks/use-direct-attachment-upload';
 import { AttachmentEntityType } from '@/lib/attachments/entity-types';
@@ -99,21 +103,27 @@ export default function NewTaskPage() {
   return (
     <div className="space-y-4 sm:space-y-6">
       <PageHeader
+        sticky
         title="Create New Task"
         description={
           project
             ? `Add a new task to ${project.projectName}`
             : 'Add a new task to your project'
         }
+        actions={
+          <TaskFormActions
+            mode="create"
+            isSubmitting={isSubmitting}
+            onCancel={() => router.back()}
+          />
+        }
       />
       <TaskForm
         mode="create"
         projectId={projectId}
         projectName={project?.projectName}
-        isSubmitting={isSubmitting}
         uploadStates={directUpload.states}
         onSubmit={handleSubmit}
-        onCancel={() => router.back()}
       />
     </div>
   );
