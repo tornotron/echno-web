@@ -98,6 +98,17 @@ describe('parseSubContract', () => {
     });
     expect(sc.paymentStatus).toBe(ContractPaymentStatus.fullyPaid);
   });
+
+  test('prefers the payment status the backend derived', () => {
+    // The backend knows the end date, so it can say overdue (echno-backend#863).
+    const sc = parseSubContract({
+      id: 1,
+      contractValue: 1000,
+      totalPaid: 200,
+      paymentStatus: 'overdue',
+    });
+    expect(sc.paymentStatus).toBe(ContractPaymentStatus.overdue);
+  });
 });
 
 function formValues(over: Record<string, unknown>): SubContractFormValues {
