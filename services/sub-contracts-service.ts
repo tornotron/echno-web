@@ -46,7 +46,12 @@ function coerce<T extends Record<string, string>>(
     : fallback;
 }
 
-const MILESTONE_STATUSES = ['pending', 'inProgress', 'completed', 'delayed'] as const;
+const MILESTONE_STATUSES = [
+  'pending',
+  'inProgress',
+  'completed',
+  'delayed',
+] as const;
 type MilestoneStatus = (typeof MILESTONE_STATUSES)[number];
 
 function parseMilestone(raw: Raw): ContractMilestone {
@@ -120,9 +125,16 @@ export function parseSubContract(raw: Raw): SubContract {
     retentionPercentage: maybeNum(raw.retentionPercentage),
     retentionAmount: undefined,
 
-    paymentStatus: derivePaymentStatus(contractValue, totalPaid),
+    // The backend derives this since echno-backend#863 (and knows about overdue); the local
+    // derivation covers a backend from before that.
+    paymentStatus: coerce(
+      ContractPaymentStatus,
+      raw.paymentStatus,
+      derivePaymentStatus(contractValue, totalPaid)
+    ),
     totalPaid,
-    totalDue: raw.totalDue == null ? contractValue - totalPaid : num(raw.totalDue),
+    totalDue:
+      raw.totalDue == null ? contractValue - totalPaid : num(raw.totalDue),
     advancePaid: maybeNum(raw.mobilizationAdvance),
 
     startDate,
@@ -201,7 +213,9 @@ const empty = (v?: string): string | undefined =>
  * falls back to the contract id (the form collects an id, not a separate name);
  * milestones map percentage/date onto the backend `paymentPercentage`/`targetDate`.
  */
-export function toPayload(values: SubContractFormValues): Record<string, unknown> {
+export function toPayload(
+  values: SubContractFormValues
+): Record<string, unknown> {
   return {
     contractId: empty(values.contractId),
     contractName: empty(values.contractId) ?? values.contractorName,
@@ -256,7 +270,10 @@ export const subContractsService = {
     return safeParse(raw);
   },
 
-  async update(id: number, values: SubContractFormValues): Promise<SubContract> {
+  async update(
+    id: number,
+    values: SubContractFormValues
+  ): Promise<SubContract> {
     const raw = await api.put<Raw>(`${BASE}/${id}`, toPayload(values));
     return safeParse(raw);
   },

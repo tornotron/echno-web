@@ -34,7 +34,11 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import { PageHeader } from '@/components/common';
-import type { SubContract } from '@/types/third-party/sub-contract';
+import {
+  ContractStatus,
+  ContractType,
+  type SubContract,
+} from '@/types/third-party/sub-contract';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -111,8 +115,8 @@ export function SubContractForm({
     phone: initialData?.phone ?? '',
     email: initialData?.email ?? '',
     address: initialData?.address ?? '',
-    workType: initialData?.type ?? 'construction',
-    status: initialData?.status ?? 'active',
+    workType: initialData?.type ?? ContractType.lumpsum,
+    status: initialData?.status ?? ContractStatus.active,
     scope: initialData?.scope ?? '',
     contractValue: initialData?.contractValue ?? 0,
     totalPaid: initialData?.totalPaid ?? 0,
@@ -354,7 +358,7 @@ export function SubContractForm({
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="workType">Work Type</Label>
+                    <Label htmlFor="workType">Contract Type</Label>
                     <Select
                       value={formData.workType}
                       onValueChange={(value) =>
@@ -365,15 +369,21 @@ export function SubContractForm({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="construction">
-                          Construction
+                        <SelectItem value={ContractType.lumpsum}>
+                          Lump Sum
                         </SelectItem>
-                        <SelectItem value="electrical">Electrical</SelectItem>
-                        <SelectItem value="plumbing">Plumbing</SelectItem>
-                        <SelectItem value="painting">Painting</SelectItem>
-                        <SelectItem value="hvac">HVAC</SelectItem>
-                        <SelectItem value="landscaping">Landscaping</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value={ContractType.itemRate}>
+                          Item Rate
+                        </SelectItem>
+                        <SelectItem value={ContractType.timeAndMaterial}>
+                          Time &amp; Material
+                        </SelectItem>
+                        <SelectItem value={ContractType.costPlus}>
+                          Cost Plus
+                        </SelectItem>
+                        <SelectItem value={ContractType.unitPrice}>
+                          Unit Price
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -415,10 +425,24 @@ export function SubContractForm({
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="suspended">Suspended</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value={ContractStatus.draft}>
+                          Draft
+                        </SelectItem>
+                        <SelectItem value={ContractStatus.active}>
+                          Active
+                        </SelectItem>
+                        <SelectItem value={ContractStatus.onHold}>
+                          On Hold
+                        </SelectItem>
+                        <SelectItem value={ContractStatus.completed}>
+                          Completed
+                        </SelectItem>
+                        <SelectItem value={ContractStatus.terminated}>
+                          Terminated
+                        </SelectItem>
+                        <SelectItem value={ContractStatus.expired}>
+                          Expired
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
