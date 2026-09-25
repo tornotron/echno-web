@@ -53,8 +53,11 @@ mock.module('@tornotron/echno-core/task/hooks', () => ({
   ...realTaskHooks,
   useTasks: () => ({ data: TASKS }),
 }));
+// mock.module replaces the module for every later test file in the run, so the
+// mock has to carry every export another file imports from it.
 mock.module('@/hooks/materials', () => ({
   useMaterialStock: () => ({ data: scopedStock }),
+  useMaterialStocks: () => new Map(),
 }));
 
 const toast = {
@@ -65,9 +68,7 @@ const toast = {
 };
 mock.module('@/lib/styles/toast-styles', () => ({ toast }));
 
-const { MaterialConsumptionForm } = await import(
-  './material-consumption-form'
-);
+const { MaterialConsumptionForm } = await import('./material-consumption-form');
 
 // ---------------------------------------------------------------------------
 // Driving the form
@@ -77,7 +78,9 @@ const { MaterialConsumptionForm } = await import(
 function openSelect(container: HTMLElement, id: string): HTMLElement[] {
   const trigger = container.querySelector(`#${id}`) as HTMLElement;
   fireEvent.keyDown(trigger, { key: 'ArrowDown' });
-  return [...document.body.querySelectorAll('[role="option"]')] as HTMLElement[];
+  return [
+    ...document.body.querySelectorAll('[role="option"]'),
+  ] as HTMLElement[];
 }
 
 function chooseOption(container: HTMLElement, id: string, label: string) {
