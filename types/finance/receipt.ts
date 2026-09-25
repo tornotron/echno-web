@@ -25,7 +25,7 @@ export interface Receipt {
   paymentId?: number; // Foreign key to Payment
   invoiceId?: number; // Foreign key to Invoice
   organizationId?: number; // Foreign key to Organization
-  customerId?: number; // Foreign key to customer/client
+  customerId?: string; // UUID of the finance customer (echno-backend#864)
 
   // Receipt Details
   amount: number;

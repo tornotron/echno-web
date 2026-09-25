@@ -1,6 +1,10 @@
 import { ApiError, api } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
-import { ReceiptType, ReceiptStatus, type Receipt } from '@/types/finance/receipt';
+import {
+  ReceiptType,
+  ReceiptStatus,
+  type Receipt,
+} from '@/types/finance/receipt';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Raw = any;
@@ -81,7 +85,11 @@ export function parseReceipt(raw: Raw): Receipt {
     paymentId: maybeNum(raw.paymentId),
     invoiceId: maybeNum(raw.invoiceId),
     organizationId: maybeNum(raw.organizationId),
-    customerId: maybeNum(raw.customerId),
+    // A finance customer's UUID. An older backend sent a number, which cannot name one.
+    customerId:
+      typeof raw.customerId === 'string' && raw.customerId !== ''
+        ? raw.customerId
+        : undefined,
 
     amount: num(raw.amount),
     currency: raw.currency ?? 'INR',

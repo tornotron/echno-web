@@ -4048,7 +4048,7 @@ export const mockReceipts: Receipt[] = [
     invoiceId: 1,
     projectId: 1,
     organizationId: 1,
-    customerId: 2, // Green Homes Pvt Ltd (client)
+    customerId: 'c0000000-0000-4000-8000-000000000002', // Green Homes Pvt Ltd (client)
     amount: 3_835_000,
     currency: 'INR',
     receiptDate: '2024-11-25',
@@ -4076,7 +4076,7 @@ export const mockReceipts: Receipt[] = [
     status: ReceiptStatus.issued,
     projectId: 1,
     organizationId: 1,
-    customerId: 2, // Green Homes Pvt Ltd
+    customerId: 'c0000000-0000-4000-8000-000000000002', // Green Homes Pvt Ltd
     amount: 5_000_000,
     currency: 'INR',
     receiptDate: '2024-10-15',
@@ -4103,7 +4103,7 @@ export const mockReceipts: Receipt[] = [
     invoiceId: 2,
     projectId: 2,
     organizationId: 1,
-    customerId: 3, // Tech Innovations Inc (client)
+    customerId: 'c0000000-0000-4000-8000-000000000003', // Tech Innovations Inc (client)
     amount: 1_850_000,
     currency: 'INR',
     receiptDate: '2024-12-10',
@@ -4131,7 +4131,7 @@ export const mockReceipts: Receipt[] = [
     status: ReceiptStatus.issued,
     projectId: 3,
     organizationId: 1,
-    customerId: 4, // Urban Developers
+    customerId: 'c0000000-0000-4000-8000-000000000004', // Urban Developers
     amount: 500_000,
     currency: 'INR',
     receiptDate: '2024-09-20',
@@ -4182,7 +4182,7 @@ export const mockReceipts: Receipt[] = [
     invoiceId: 3,
     projectId: 1,
     organizationId: 1,
-    customerId: 2,
+    customerId: 'c0000000-0000-4000-8000-000000000002',
     amount: 125_000,
     currency: 'INR',
     receiptDate: '2024-12-15',
@@ -4205,7 +4205,7 @@ export const mockReceipts: Receipt[] = [
     status: ReceiptStatus.issued,
     projectId: 2,
     organizationId: 1,
-    customerId: 3,
+    customerId: 'c0000000-0000-4000-8000-000000000003',
     amount: 3_000_000,
     currency: 'INR',
     receiptDate: '2024-11-01',
@@ -4230,7 +4230,7 @@ export const mockReceipts: Receipt[] = [
     status: ReceiptStatus.draft,
     projectId: 3,
     organizationId: 1,
-    customerId: 4,
+    customerId: 'c0000000-0000-4000-8000-000000000004',
     amount: 750_000,
     currency: 'INR',
     receiptDate: '2024-12-20',
