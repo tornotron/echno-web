@@ -49,6 +49,7 @@ import { format, subDays } from 'date-fns';
 import { useAttendanceByEmployee } from '@tornotron/echno-core/attendance/hooks';
 import { useCurrentUserEmployee } from '@tornotron/echno-core/employee/hooks';
 import type { RegularizationDetail } from '@tornotron/echno-core/attendance/types';
+import { RegularizationCalendar } from './regularization-calendar';
 
 // ─── Status config ────────────────────────────────────────────────────────────
 
@@ -157,6 +158,8 @@ export function EmployeeRegularizationView({
           }
         />
       )}
+
+      <RegularizationCalendar employeeId={employeeId} />
 
       {/* Stats */}
       <Card className="gap-0 p-6">
@@ -268,7 +271,7 @@ export function EmployeeRegularizationView({
                 </EmptyTitle>
                 <EmptyDescription>
                   {regularizations.length === 0
-                    ? 'Go to Attendance History and open a record with missing events.'
+                    ? 'Pick a highlighted day on the calendar above to regularize it or apply for leave.'
                     : 'Try adjusting your filters.'}
                 </EmptyDescription>
               </EmptyHeader>
@@ -313,6 +316,13 @@ export function EmployeeRegularizationView({
                         Reason: {reg.rejectionReason}
                       </p>
                     )}
+                    {reg.approvedAt && (
+                      <p className="mt-1 text-xs text-zinc-500">
+                        {reg.status === 'rejected' ? 'Rejected' : 'Approved'} by{' '}
+                        {reg.approvedBy ?? 'a manager'} on{' '}
+                        {format(reg.approvedAt, 'dd MMM yyyy')}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>
@@ -328,6 +338,7 @@ export function EmployeeRegularizationView({
                       <TableHead>Reason</TableHead>
                       <TableHead>Requested</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Decided</TableHead>
                       <TableHead className="text-right">Action</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -407,6 +418,21 @@ export function EmployeeRegularizationView({
                                 </p>
                               )}
                           </div>
+                        </TableCell>
+
+                        <TableCell>
+                          {reg.approvedAt ? (
+                            <div>
+                              <p className="text-sm text-zinc-700 dark:text-zinc-300">
+                                {reg.approvedBy ?? '—'}
+                              </p>
+                              <p className="text-xs text-zinc-500">
+                                {format(reg.approvedAt, 'dd MMM, h:mm a')}
+                              </p>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-zinc-400">—</span>
+                          )}
                         </TableCell>
 
                         <TableCell

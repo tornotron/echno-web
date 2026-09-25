@@ -59,7 +59,7 @@ export default function RegularizationsPage() {
         description={
           isManagerView
             ? 'Review and manage pending attendance regularization requests'
-            : 'Track the status of your regularization requests'
+            : 'Pick a highlighted day to regularize it or apply for leave, and track your requests'
         }
         actions={
           <>

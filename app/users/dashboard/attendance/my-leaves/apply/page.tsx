@@ -13,6 +13,10 @@ import { LeaveApplyForm } from '@/features/leave/components/leave-apply-form';
 export default function NewLeaveRequestPage() {
   const searchParams = useSearchParams();
   const editRequestId = searchParams.get('edit');
+  // A day picked on the regularization calendar, carried in as ?date=YYYY-MM-DD.
+  const dateParam = searchParams.get('date');
+  const initialDate =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? dateParam : null;
   const isEditMode = !!editRequestId;
 
   const { data: employee, isLoading: employeeLoading } =
@@ -58,6 +62,7 @@ export default function NewLeaveRequestPage() {
           existingRequest={existingRequest}
           isEditMode={isEditMode}
           editRequestId={editRequestId}
+          initialDate={initialDate}
         />
       )}
     </OrgGuard>
