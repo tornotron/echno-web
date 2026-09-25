@@ -1,3 +1,4 @@
+import { toLocalDateAtMidnight } from '@tornotron/echno-core';
 import { UserRole } from '@tornotron/echno-core/user/types';
 
 /**
@@ -10,7 +11,7 @@ export interface RegistrationRequest {
   password: string;
   phone: string;
   gender: 'Male' | 'Female' | 'Other';
-  dateOfBirth: string; // ISO date string
+  dateOfBirth: string; // Local calendar date at midnight, no offset
   role: UserRole | string;
   acceptTerms: boolean;
 }
@@ -54,6 +55,10 @@ export const initialRegistrationFormData: RegistrationFormData = {
 
 /**
  * Convert form data to API request payload.
+ *
+ * The date of birth goes out as a local calendar date with a zeroed time and no
+ * offset. The backend holds it in a strict LocalDateTime and rejects an ISO
+ * string with a trailing Z. The form keeps the picked date at local midnight.
  */
 export function toRegistrationRequest(
   formData: RegistrationFormData
@@ -65,7 +70,9 @@ export function toRegistrationRequest(
     password: formData.password,
     phone: formData.phone,
     gender: formData.gender,
-    dateOfBirth: formData.dateOfBirth?.toISOString() ?? '',
+    dateOfBirth: formData.dateOfBirth
+      ? toLocalDateAtMidnight(formData.dateOfBirth)
+      : '',
     role: formData.role,
     acceptTerms: formData.acceptTerms,
   };

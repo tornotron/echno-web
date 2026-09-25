@@ -21,10 +21,12 @@ import {
   initialRegistrationFormData,
   toRegistrationRequest,
 } from '@/types/auth/registration';
+import { parseLocalDate } from '@tornotron/echno-core';
 import { UserRole, getUserRoleLabel } from '@tornotron/echno-core/user/types';
 import { authService } from '@/services/auth-service';
 import { ApiError } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
+import { toLocalDateInputValue } from '@/lib/utils/date-utils';
 import {
   required,
   compose,
@@ -346,13 +348,13 @@ export function RegistrationForm() {
             type="date"
             value={
               formData.dateOfBirth
-                ? formData.dateOfBirth.toISOString().split('T')[0]
+                ? toLocalDateInputValue(formData.dateOfBirth)
                 : ''
             }
             onChange={(e) =>
               handleChange(
                 'dateOfBirth',
-                e.target.value ? new Date(e.target.value) : null
+                parseLocalDate(e.target.value || null)
               )
             }
             aria-invalid={!!errors.dateOfBirth}
