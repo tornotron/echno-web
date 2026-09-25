@@ -61,7 +61,7 @@ import { PageHeader } from '@/components/common';
 import { BalanceCard } from '@/features/leave/components/balance-card';
 import { FormSkeleton } from '@/features/leave/components/skeletons';
 import { toast } from '@/lib/styles/toast-styles';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import {
   RANGE_END_OPTIONS,
   RANGE_START_OPTIONS,
@@ -82,7 +82,18 @@ interface LeaveApplyFormProps {
   existingRequest: LeaveRequest | undefined;
   isEditMode: boolean;
   editRequestId: string | null;
+  /**
+   * A day to start the new request on, `YYYY-MM-DD`. Set when the employee
+   * arrives from the regularization calendar with a missed day selected.
+   */
+  initialDate?: string | null;
 }
+
+/**
+ * How far back a leave may start under a policy that asks for no advance
+ * notice. Mirrors `LeaveRequestValidator.MAX_BACKDATED_DAYS` on the backend.
+ */
+const MAX_BACKDATED_DAYS = 30;
 
 const LEAVE_FORM_ID = 'leave-apply-form';
 
@@ -105,6 +116,7 @@ export function LeaveApplyForm({
   existingRequest,
   isEditMode,
   editRequestId,
+  initialDate,
 }: LeaveApplyFormProps) {
   const router = useRouter();
 
@@ -117,7 +129,11 @@ export function LeaveApplyForm({
   const calculateDays = calculateDaysMutation.mutate;
   const checkConflicts = checkConflictsMutation.mutate;
 
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState(() =>
+    !isEditMode && initialDate
+      ? { ...defaultFormData, startDate: initialDate, endDate: initialDate }
+      : defaultFormData
+  );
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [calculatedDays, setCalculatedDays] = useState(0);
@@ -212,6 +228,15 @@ export function LeaveApplyForm({
       ),
     }));
   };
+
+  // A policy with no advance notice may be applied for a missed day after the
+  // fact, up to MAX_BACKDATED_DAYS back; one that asks for notice starts today.
+  const earliestStart = format(
+    selectedPolicy && !(selectedPolicy.advanceNoticeDays > 0)
+      ? subDays(new Date(), MAX_BACKDATED_DAYS)
+      : new Date(),
+    'yyyy-MM-dd'
+  );
 
   const durationIssue = checkDurationAgainstPolicy(
     calculatedDays,
@@ -642,7 +667,7 @@ export function LeaveApplyForm({
                       onChange={(e) =>
                         updateDates(e.target.value, formData.endDate)
                       }
-                      min={format(new Date(), 'yyyy-MM-dd')}
+                      min={earliestStart}
                     />
                   </div>
                   <div className="space-y-2">
@@ -656,9 +681,7 @@ export function LeaveApplyForm({
                       onChange={(e) =>
                         updateDates(formData.startDate, e.target.value)
                       }
-                      min={
-                        formData.startDate || format(new Date(), 'yyyy-MM-dd')
-                      }
+                      min={formData.startDate || earliestStart}
                     />
                   </div>
                 </div>
