@@ -11,5 +11,5 @@ export {
   CreateCategoryDialog,
   DeleteAttachmentDialog,
 } from './task-alert-dialogs';
-export { TaskForm, TASK_FORM_ID } from './task-form';
+export { TaskForm, TaskFormActions, TASK_FORM_ID } from './task-form';
 export type { TaskFormState, TaskFormSubmitData } from './task-form';
