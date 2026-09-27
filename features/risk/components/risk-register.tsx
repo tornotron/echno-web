@@ -58,6 +58,10 @@ import {
   PROBABILITY_LABELS,
   IMPACT_LABELS,
   RISK_CATEGORY_LABELS,
+  RISK_CATEGORY_DESCRIPTIONS,
+  RISK_CATEGORIES,
+  isRiskCategory,
+  riskCategoryLabel,
   RISK_STATUS_LABELS,
   RISK_RESPONSE_LABELS,
   calcRiskScore,
@@ -106,7 +110,7 @@ function blankForm(): RiskFormData {
   return {
     title: '',
     description: '',
-    category: 'schedule',
+    category: 'schedule-planning',
     status: 'identified',
     owner: '',
     probability: 'medium',
@@ -188,22 +192,27 @@ function RiskFormDialog({
             <div className="space-y-2">
               <Label>Category</Label>
               <Select
-                value={form.category}
+                value={isRiskCategory(form.category) ? form.category : ''}
                 onValueChange={(v) => set('category', v as RiskCategory)}
               >
-                <SelectTrigger>
-                  <SelectValue />
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={`${riskCategoryLabel(form.category)} (choose a new category)`}
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {(Object.keys(RISK_CATEGORY_LABELS) as RiskCategory[]).map(
-                    (k) => (
-                      <SelectItem key={k} value={k}>
-                        {RISK_CATEGORY_LABELS[k]}
-                      </SelectItem>
-                    )
-                  )}
+                  {RISK_CATEGORIES.map((k) => (
+                    <SelectItem key={k} value={k}>
+                      {RISK_CATEGORY_LABELS[k]}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+              {isRiskCategory(form.category) && (
+                <p className="text-muted-foreground text-xs">
+                  {RISK_CATEGORY_DESCRIPTIONS[form.category]}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Status</Label>
@@ -489,7 +498,7 @@ function RiskRow({ risk, onEdit, onDelete }: RiskRowProps) {
             variant="outline"
             className="hidden text-[10px] sm:inline-flex"
           >
-            {RISK_CATEGORY_LABELS[risk.category]}
+            {riskCategoryLabel(risk.category)}
           </Badge>
           <span
             className={`rounded px-1.5 py-0.5 text-xs font-bold ${getRiskScoreBadgeClass(risk.riskScore)}`}
@@ -725,12 +734,12 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
           value={filterCategory}
           onValueChange={(v) => setFilterCategory(v as RiskCategory | 'all')}
         >
-          <SelectTrigger className="w-44">
+          <SelectTrigger className="w-56">
             <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
-            {(Object.keys(RISK_CATEGORY_LABELS) as RiskCategory[]).map((k) => (
+            {RISK_CATEGORIES.map((k) => (
               <SelectItem key={k} value={k}>
                 {RISK_CATEGORY_LABELS[k]}
               </SelectItem>
