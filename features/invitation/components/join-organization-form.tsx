@@ -14,6 +14,7 @@ import {
   CardTitle,
 } from '@/components/shadcn/card';
 import { Alert, AlertDescription } from '@/components/shadcn/alert';
+import { getErrorMessage } from '@tornotron/echno-core';
 import { useValidateInviteCodeMutation } from '@tornotron/echno-core/invitation/hooks';
 import { organizationKeys } from '@tornotron/echno-core/organization/hooks';
 import { Invitation } from '@tornotron/echno-core/invitation/types';
@@ -50,6 +51,9 @@ export function JoinOrganizationForm({
   const queryClient = useQueryClient();
   const [inviteCode, setInviteCode] = useState('');
   const [invalidCode, setInvalidCode] = useState(false);
+  // The code is already redeemed while the membership list refetches, so the
+  // form stays busy through it rather than inviting a second redemption.
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const joinMutation = useValidateInviteCodeMutation();
 
@@ -66,9 +70,14 @@ export function JoinOrganizationForm({
       {
         onSuccess: async (result) => {
           if (result.valid) {
-            await queryClient.invalidateQueries({
-              queryKey: organizationKeys.all,
-            });
+            setIsRefreshing(true);
+            try {
+              await queryClient.invalidateQueries({
+                queryKey: organizationKeys.all,
+              });
+            } finally {
+              setIsRefreshing(false);
+            }
             onJoined(result.invitation);
           } else {
             setInvalidCode(true);
@@ -78,7 +87,7 @@ export function JoinOrganizationForm({
     );
   };
 
-  const isJoining = joinMutation.isPending;
+  const isJoining = joinMutation.isPending || isRefreshing;
 
   return (
     <Card>
@@ -116,13 +125,15 @@ export function JoinOrganizationForm({
           </div>
 
           {/* Error */}
-          {(joinMutation.isError || invalidCode) && (
+          {(invalidCode || joinMutation.isError) && (
             <Alert variant="destructive">
               <div className="flex items-start gap-2">
                 <AlertCircle className="h-5 w-5" />
                 <div className="flex-1">
                   <AlertDescription>
-                    Invalid or expired invite code. Please check and try again.
+                    {invalidCode
+                      ? 'Invalid or expired invite code. Please check and try again.'
+                      : `Could not join the organization. ${getErrorMessage(joinMutation.error)}`}
                   </AlertDescription>
                 </div>
               </div>
