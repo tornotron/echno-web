@@ -1,8 +1,4 @@
-import {
-  useQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { assetsService } from '@/services/assets-service';
 import type { AssetFormData } from '@/features/assets/components/asset-form';
 import { assetKeys } from './asset-keys';
@@ -22,6 +18,14 @@ export const useAsset = (id: number) =>
   useQuery({
     queryKey: assetKeys.detail(id),
     queryFn: () => assetsService.getById(id),
+    enabled: !!id,
+  });
+
+/** Fetches the newest page of an asset's movement ledger. */
+export const useAssetMovements = (id: number) =>
+  useQuery({
+    queryKey: assetKeys.movements(id),
+    queryFn: () => assetsService.getMovements(id),
     enabled: !!id,
   });
 

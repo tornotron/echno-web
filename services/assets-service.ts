@@ -2,6 +2,8 @@ import { ApiError, api } from '@/lib/api/api-client';
 import { logger } from '@/lib/logger';
 import type {
   Asset,
+  AssetMovement,
+  AssetMovementType,
   AssetStatus,
   AssetCondition,
   AssetType,
@@ -53,7 +55,7 @@ export function parseAsset(raw: Raw): Asset {
       ? parseLocation(raw.location)
       : {
           id: raw.locationId ?? 0,
-          name: '',
+          name: raw.locationName ?? '',
           type: 'other',
           organizationId: 0,
           isActive: true,
@@ -61,6 +63,9 @@ export function parseAsset(raw: Raw): Asset {
     assignedTo: raw.assignedTo ?? undefined,
     assignedToId: raw.assignedToId ?? undefined,
     assignedProject: raw.assignedProject ?? undefined,
+    assignedProjectId: raw.assignedProjectId ?? undefined,
+    inTransitSiteTransferId: raw.inTransitSiteTransferId ?? undefined,
+    inTransitSiteTransferNumber: raw.inTransitSiteTransferNumber ?? undefined,
     purchaseDate: parseDate(raw.purchaseDate),
     purchasePrice: raw.purchasePrice ?? 0,
     currentValue: raw.currentValue ?? 0,
@@ -91,9 +96,33 @@ export function parseAsset(raw: Raw): Asset {
   };
 }
 
+/** Reads one entry of an asset's movement ledger. */
+export function parseAssetMovement(raw: Raw): AssetMovement {
+  if (!raw?.id) {
+    throw new Error('Invalid asset movement: missing id');
+  }
+  return {
+    id: raw.id,
+    movementType: (raw.movementType ?? 'TRANSFER') as AssetMovementType,
+    fromProjectName: raw.fromProjectName ?? undefined,
+    toProjectName: raw.toProjectName ?? undefined,
+    fromLocationName: raw.fromLocationName ?? undefined,
+    toLocationName: raw.toLocationName ?? undefined,
+    fromAssignedTo: raw.fromAssignedTo ?? undefined,
+    toAssignedTo: raw.toAssignedTo ?? undefined,
+    movedAt: parseDate(raw.movedAt),
+    reason: raw.reason ?? '',
+    notes: raw.notes ?? undefined,
+    referenceNumber: raw.referenceNumber ?? undefined,
+    siteTransferId: raw.siteTransferId ?? undefined,
+    correctsMovementId: raw.correctsMovementId ?? undefined,
+  };
+}
+
 const BASE = '/assets/web';
 
-const text = (v: string): string | undefined => (v.trim() === '' ? undefined : v);
+const text = (v: string): string | undefined =>
+  v.trim() === '' ? undefined : v;
 const number = (v: string): number | undefined =>
   v.trim() === '' ? undefined : Number(v);
 
@@ -146,7 +175,10 @@ export const assetsService = {
       return rows.map((row) => parseAsset(row));
     } catch (error) {
       logger.error('Failed to parse assets:', error);
-      throw new ApiError('Failed to process asset data. Please try again.', 422);
+      throw new ApiError(
+        'Failed to process asset data. Please try again.',
+        422
+      );
     }
   },
 
@@ -163,6 +195,33 @@ export const assetsService = {
   async update(id: number, form: AssetFormData): Promise<Asset> {
     const data = await api.put<Raw>(`${BASE}/${id}`, formToPayload(form));
     return parseAsset(data);
+  },
+
+  /**
+   * One page of the asset's movement ledger, newest first. Readable by any
+   * member of the organization, like the asset itself.
+   */
+  async getMovements(
+    id: number,
+    pageNo = 0,
+    pageSize = 50
+  ): Promise<{ movements: AssetMovement[]; total: number }> {
+    const data = await api.get<Raw>(`${BASE}/${id}/movements`, {
+      pageNo,
+      pageSize,
+    });
+    const rows: Raw[] = Array.isArray(data) ? data : (data?.content ?? []);
+    try {
+      return {
+        movements: rows.map((row) => parseAssetMovement(row)),
+        total: Array.isArray(data)
+          ? rows.length
+          : (data?.totalElements ?? rows.length),
+      };
+    } catch (error) {
+      logger.error('Failed to parse asset movements:', error);
+      throw new ApiError('Failed to process the asset history.', 422);
+    }
   },
 
   async remove(id: number): Promise<void> {

@@ -10,7 +10,10 @@ import { Loader2, Save } from 'lucide-react';
 import { toast } from '@/lib/styles/toast-styles';
 import { getErrorMessage } from '@tornotron/echno-core';
 import { useSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
-import type { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
+import {
+  SiteTransferLineType,
+  type SiteTransfer,
+} from '@tornotron/echno-core/site-transfers/types';
 import {
   inTransitMeaning,
   totalInTransit,
@@ -68,11 +71,17 @@ function seedFromTransfer(transfer: SiteTransfer): Partial<StockAdjustment> {
       `sent from ${sendingSite}.`,
     sourceDocumentType: 'SITE_TRANSFER',
     sourceDocumentId: transfer.id,
+    // Only material lines carry stock. An asset line has no balance for an
+    // adjustment to correct.
     lineItems: transfer.items
-      .filter((item) => item.inTransitQuantity > 0)
+      .filter(
+        (item) =>
+          item.lineType !== SiteTransferLineType.asset &&
+          item.inTransitQuantity > 0
+      )
       .map((item, index) => ({
         id: index + 1,
-        materialId: item.materialId,
+        materialId: item.materialId ?? undefined,
         description: `${item.materialName}: ${item.inTransitQuantity} unaccounted for on ${transfer.transferNumber}`,
         systemQuantity: 0,
         physicalQuantity: 0,

@@ -19,13 +19,19 @@ import { FORM_DRAFT_IDS } from '@/lib/forms/form-draft-ids';
 import { useCreateSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
 import { getErrorTitle, getErrorMessage } from '@tornotron/echno-core';
 import { ApiError } from '@/lib/api/api-client';
-import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
+import {
+  SiteTransferLineType,
+  SiteTransferStatus,
+  type CreateSiteTransferItemRequest,
+} from '@tornotron/echno-core/site-transfers/types';
 import {
   SiteTransferForm,
   SITE_TRANSFER_FORM_ID,
+  type SiteTransferAssetRow,
   type SiteTransferItemRow,
   type SiteTransferSubmitData,
 } from '@/features/site-transfers/components';
+import { assetKeys, useAsset } from '@/hooks/assets';
 
 export default function NewSiteTransferPage() {
   const router = useRouter();
@@ -34,6 +40,15 @@ export default function NewSiteTransferPage() {
   const fromIndentId = searchParams.get('fromIndent')
     ? Number(searchParams.get('fromIndent'))
     : undefined;
+
+  // `?assetId=` raises the transfer from an asset's page: the asset goes on as
+  // a line, and the sending side is where the asset register says it is.
+  const fromAssetId = searchParams.get('assetId')
+    ? Number(searchParams.get('assetId'))
+    : undefined;
+  const { data: sourceAsset, isLoading: assetLoading } = useAsset(
+    fromAssetId ?? 0
+  );
 
   const { data: currentEmployee } = useCurrentUserEmployee();
   const { data: sourceIndent } = useIndent(fromIndentId ?? 0);
@@ -56,7 +71,36 @@ export default function NewSiteTransferPage() {
     );
   }
 
+  if (fromAssetId && assetLoading) {
+    return (
+      <div className="flex h-40 items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-zinc-400" />
+      </div>
+    );
+  }
+
   const resolvedIndent = sourceIndent ?? cachedIndent;
+
+  const assetPrefill =
+    sourceAsset &&
+    sourceAsset.assignedProjectId &&
+    sourceAsset.locationId &&
+    !sourceAsset.inTransitSiteTransferId
+      ? {
+          sending: {
+            projectId: sourceAsset.assignedProjectId,
+            storageLocationId: sourceAsset.locationId,
+          },
+          assets: [
+            {
+              assetId: sourceAsset.id,
+              assetCode: sourceAsset.assetId || null,
+              name: sourceAsset.name,
+              remarks: '',
+            } satisfies SiteTransferAssetRow,
+          ],
+        }
+      : undefined;
 
   const initialItems: SiteTransferItemRow[] | undefined = resolvedIndent?.items
     .length
@@ -85,17 +129,32 @@ export default function NewSiteTransferPage() {
         receivingProjectId: data.form.receivingProjectId,
         receivingStorageLocationId: data.form.receivingStorageLocationId,
         status: SiteTransferStatus.pending,
-        items: data.items.map((item) => ({
-          materialId: item.materialId,
-          sentQuantity: item.sentQuantity,
-          remarks: item.remarks.trim() || undefined,
-        })),
+        items: [
+          ...data.items.map(
+            (item): CreateSiteTransferItemRequest => ({
+              materialId: item.materialId,
+              sentQuantity: item.sentQuantity,
+              remarks: item.remarks.trim() || undefined,
+            })
+          ),
+          ...data.assets.map(
+            (asset): CreateSiteTransferItemRequest => ({
+              lineType: SiteTransferLineType.asset,
+              assetId: asset.assetId,
+              remarks: asset.remarks.trim() || undefined,
+            })
+          ),
+        ],
       },
       {
         onSuccess: (transfer) => {
           // The record exists now, so the local draft describes work already done.
           // Left behind it would be offered on the next visit to this form.
           clearFormDraft(FORM_DRAFT_IDS.SITE_TRANSFER);
+          // An asset line puts its asset in transit or moves it at once.
+          if (data.assets.length > 0) {
+            queryClient.invalidateQueries({ queryKey: assetKeys.all });
+          }
 
           toast.success('Transfer Created', {
             description:
@@ -126,7 +185,7 @@ export default function NewSiteTransferPage() {
       <PageHeader
         sticky
         title="New Site Transfer"
-        description="Transfer materials between sites or projects"
+        description="Transfer materials and assets between sites or projects"
         actions={
           <>
             <Button variant="outline" disabled={isPending} asChild>
@@ -183,7 +242,23 @@ export default function NewSiteTransferPage() {
         </span>
       </div>
 
-      <SiteTransferForm initialItems={initialItems} onSubmit={handleSubmit} />
+      {fromAssetId && sourceAsset && !assetPrefill && (
+        <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <span>
+            {sourceAsset.inTransitSiteTransferId
+              ? `${sourceAsset.name} is already in transit on ${sourceAsset.inTransitSiteTransferNumber ?? 'another transfer'}, so it cannot be added here.`
+              : `${sourceAsset.name} has no project and storage location recorded, so a transfer cannot say where it is sent from. Set them on the asset first.`}
+          </span>
+        </div>
+      )}
+
+      <SiteTransferForm
+        initialItems={initialItems}
+        initialAssets={assetPrefill?.assets}
+        initialSending={assetPrefill?.sending}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 }

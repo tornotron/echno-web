@@ -35,9 +35,10 @@ import { Input } from '@/components/shadcn/input';
 import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import { Loader2 } from 'lucide-react';
-import type {
-  SiteTransfer,
-  ReceiveSiteTransferRequest,
+import {
+  SiteTransferLineType,
+  type SiteTransfer,
+  type ReceiveSiteTransferRequest,
 } from '@tornotron/echno-core/site-transfers/types';
 
 interface ReceiveTransferDialogProps {
@@ -52,7 +53,10 @@ interface ReceiveTransferDialogProps {
 /** One row of the form: a line, and the quantity being claimed for it. */
 interface ReceiptRow {
   itemId: number;
-  materialName: string;
+  /** Whether the line is one asset, answered as arrived or not rather than typed. */
+  isAsset: boolean;
+  /** The material's name, or the asset's code and name. */
+  label: string;
   sentQuantity: number;
   /** What the transfer says is still outstanding on this line. */
   inTransitQuantity: number;
@@ -64,7 +68,11 @@ interface ReceiptRow {
 function rowsFor(transfer: SiteTransfer): ReceiptRow[] {
   return transfer.items.map((item) => ({
     itemId: item.id,
-    materialName: item.materialName,
+    isAsset: item.lineType === SiteTransferLineType.asset,
+    label:
+      item.lineType === SiteTransferLineType.asset
+        ? [item.assetCode, item.assetName].filter(Boolean).join(' · ')
+        : (item.materialName ?? ''),
     sentQuantity: item.sentQuantity,
     inTransitQuantity: item.inTransitQuantity,
     entered: String(item.inTransitQuantity),
@@ -141,42 +149,75 @@ function ReceiptForm({
       <DialogHeader>
         <DialogTitle>Record what arrived</DialogTitle>
         <DialogDescription>
-          Enter the quantity that came off the lorry for each material. This
-          adds stock at the receiving site and is filed under your name.
-          Recording less than was sent is fine: the difference stays open on the
-          transfer.
+          Enter the quantity that came off the lorry for each material, and tick
+          each asset that arrived. This adds stock at the receiving site, moves
+          each ticked asset there, and is filed under your name. Recording less
+          than was sent is fine: the difference stays open on the transfer, and
+          an asset left unticked stays in transit.
         </DialogDescription>
       </DialogHeader>
 
       <div className="space-y-3">
-        {rows.map((row, index) => (
-          <div
-            key={row.itemId}
-            className="grid grid-cols-[1fr_7rem] items-end gap-3"
-          >
-            <div className="min-w-0">
-              <Label htmlFor={`received-${row.itemId}`}>
-                {row.materialName}
-              </Label>
-              <p className="text-muted-foreground mt-1 text-xs">
-                {row.sentQuantity} sent, {row.inTransitQuantity} still in
-                transit
-              </p>
+        {rows.map((row, index) =>
+          row.isAsset ? (
+            <div
+              key={row.itemId}
+              className="grid grid-cols-[1fr_7rem] items-center gap-3"
+            >
+              <div className="min-w-0">
+                <Label htmlFor={`received-${row.itemId}`}>{row.label}</Label>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {row.inTransitQuantity > 0
+                    ? 'Asset, in transit'
+                    : 'Asset, already received'}
+                </p>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  id={`received-${row.itemId}`}
+                  type="checkbox"
+                  className="h-4 w-4"
+                  checked={row.entered === '1'}
+                  disabled={row.inTransitQuantity <= 0}
+                  onChange={(event) => {
+                    const entered = event.target.checked ? '1' : '0';
+                    setRows((current) =>
+                      current.map((r, i) =>
+                        i === index ? { ...r, entered } : r
+                      )
+                    );
+                  }}
+                />
+                Arrived
+              </label>
             </div>
-            <Input
-              id={`received-${row.itemId}`}
-              type="number"
-              min={0}
-              value={row.entered}
-              onChange={(event) => {
-                const entered = event.target.value;
-                setRows((current) =>
-                  current.map((r, i) => (i === index ? { ...r, entered } : r))
-                );
-              }}
-            />
-          </div>
-        ))}
+          ) : (
+            <div
+              key={row.itemId}
+              className="grid grid-cols-[1fr_7rem] items-end gap-3"
+            >
+              <div className="min-w-0">
+                <Label htmlFor={`received-${row.itemId}`}>{row.label}</Label>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {row.sentQuantity} sent, {row.inTransitQuantity} still in
+                  transit
+                </p>
+              </div>
+              <Input
+                id={`received-${row.itemId}`}
+                type="number"
+                min={0}
+                value={row.entered}
+                onChange={(event) => {
+                  const entered = event.target.value;
+                  setRows((current) =>
+                    current.map((r, i) => (i === index ? { ...r, entered } : r))
+                  );
+                }}
+              />
+            </div>
+          )
+        )}
 
         <div>
           <Label htmlFor="receipt-remarks">Note (optional)</Label>
