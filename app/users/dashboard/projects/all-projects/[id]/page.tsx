@@ -74,6 +74,7 @@ import { TeamMembersSection } from '@/features/projects/components';
 import { AttachmentsUploader } from '@/components/common';
 import { ScheduleTab } from '@/features/gantt/components/schedule-tab';
 import { WBSTree } from '@/features/wbs/components/wbs-tree';
+import { ProjectScheduleView } from '@/features/work-progress';
 import { HealthTab } from '@/features/health/components/health-tab';
 import { SCurveTab } from '@/features/evm/components/s-curve-tab';
 import { RisksTab } from '@/features/risk/components/risks-tab';
@@ -946,8 +947,14 @@ export default function ProjectDashboardPage() {
         </TabsContent>
 
         {/* ── WBS ──────────────────────────────────────────────────────────── */}
-        <TabsContent value="wbs" className="mt-6">
-          <WBSTree tasks={resolvedTasks} />
+        <TabsContent value="wbs" className="mt-6 space-y-8">
+          <ProjectScheduleView projectId={project.id} />
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+              Tasks by work category
+            </h3>
+            <WBSTree tasks={resolvedTasks} />
+          </section>
         </TabsContent>
 
         {/* ── Health ───────────────────────────────────────────────────────── */}
