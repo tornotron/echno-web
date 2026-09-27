@@ -16,6 +16,8 @@ import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import { employeeFilterHref } from '@/hooks/use-employee-filter';
 import { routes } from '@/nav';
 import { toast } from '@/lib/styles/toast-styles';
+import { ApiError } from '@/lib/api/api-client';
+import { userFacingErrorMessage } from '@/lib/utils/api-utils';
 import {
   Dialog,
   DialogContent,
@@ -39,6 +41,15 @@ interface TeamMembersSectionProps {
   members: Employee[];
   isDialogOpen: boolean;
   onDialogOpenChange: (open: boolean) => void;
+  /**
+   * Whether the viewer may add and remove team members: `system-admin` or
+   * `project-manager` on the backend (`PROJECT_WRITE_ACCESS`). Without it the
+   * roster is read only and the add dialog is never mounted, because the
+   * employee list it offers is management-only and would come back empty for
+   * anyone else, which used to read as "everyone is already on the team"
+   * (echno-web#505).
+   */
+  canManage: boolean;
 }
 
 export function TeamMembersSection({
@@ -46,37 +57,12 @@ export function TeamMembersSection({
   members: projectEmployees,
   isDialogOpen,
   onDialogOpenChange,
+  canManage,
 }: TeamMembersSectionProps) {
-  const { data: allEmployees, isLoading: isLoadingEmployees } = useEmployees();
-  const addEmployee = useAddEmployeeToProject();
   const removeEmployee = useRemoveEmployeeFromProject();
   const [employeeToRemove, setEmployeeToRemove] = useState<Employee | null>(
     null
   );
-
-  // Filter out employees already in the project
-  const availableEmployees = (allEmployees ?? []).filter(
-    (emp) => !projectEmployees.some((e) => e.id === emp.id)
-  );
-
-  const handleAddEmployee = (employeeId: number) => {
-    addEmployee.mutate(
-      { projectId, employeeId },
-      {
-        onSuccess: () => {
-          toast.success('Employee Added', {
-            description: 'The employee has been added to the project',
-          });
-          onDialogOpenChange(false);
-        },
-        onError: (error) => {
-          const title = getErrorTitle(error, 'Failed to Add Employee');
-          const description = getErrorMessage(error);
-          toast.error(title, { description });
-        },
-      }
-    );
-  };
 
   const handleRemoveEmployee = () => {
     if (!employeeToRemove?.id) return;
@@ -100,59 +86,14 @@ export function TeamMembersSection({
 
   return (
     <div className="space-y-3">
-      {/* Add Employee Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={onDialogOpenChange}>
-        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add Team Members</DialogTitle>
-            <DialogDescription>
-              Select employees from your organization to add to this project
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-2">
-            {isLoadingEmployees ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-              </div>
-            ) : availableEmployees.length === 0 ? (
-              <p className="text-muted-foreground py-8 text-center">
-                All employees have been added to the team
-              </p>
-            ) : (
-              availableEmployees.map((employee) => (
-                <div
-                  key={employee.id}
-                  className="hover:bg-accent flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <EmployeeAvatar employee={employee} size="sm" />
-                    <div>
-                      <p className="text-sm font-medium">{employee.name}</p>
-                      <p className="text-muted-foreground text-sm">
-                        {employee.designation} •{' '}
-                        {getDepartmentLabel(employee.department)}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    disabled={addEmployee.isPending}
-                    onClick={() => handleAddEmployee(employee.id)}
-                  >
-                    {addEmployee.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Plus className="mr-2 h-4 w-4" />
-                    )}
-                    Add
-                  </Button>
-                </div>
-              ))
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {canManage && (
+        <AddTeamMembersDialog
+          projectId={projectId}
+          members={projectEmployees}
+          open={isDialogOpen}
+          onOpenChange={onDialogOpenChange}
+        />
+      )}
 
       {/* Remove Employee Confirmation */}
       <AlertDialog
@@ -242,18 +183,145 @@ export function TeamMembersSection({
                   </p>
                 </div>
               </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setEmployeeToRemove(employee)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
+              {canManage && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  aria-label={`Remove ${employee.name} from the team`}
+                  onClick={() => setEmployeeToRemove(employee)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           ))}
         </div>
       )}
     </div>
+  );
+}
+
+/**
+ * What to say when the employee list cannot be read. A 403 is the one a
+ * member without a management role would meet; saying so beats an empty list.
+ */
+function employeeListErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.status === 403) {
+    return 'You do not have permission to see the employee list, so you cannot add members to this team.';
+  }
+  return userFacingErrorMessage(
+    error,
+    'The employee list could not be loaded.'
+  );
+}
+
+interface AddTeamMembersDialogProps {
+  projectId: number;
+  members: Employee[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+/**
+ * Offers the organization's employees who are not yet on the team.
+ *
+ * Its own component so that the management-only employee list is requested
+ * only for viewers who may add members.
+ */
+function AddTeamMembersDialog({
+  projectId,
+  members: projectEmployees,
+  open,
+  onOpenChange,
+}: AddTeamMembersDialogProps) {
+  const {
+    data: allEmployees,
+    isLoading: isLoadingEmployees,
+    error: employeesError,
+  } = useEmployees();
+  const addEmployee = useAddEmployeeToProject();
+
+  // Filter out employees already in the project
+  const availableEmployees = (allEmployees ?? []).filter(
+    (emp) => !projectEmployees.some((e) => e.id === emp.id)
+  );
+
+  const handleAddEmployee = (employeeId: number) => {
+    addEmployee.mutate(
+      { projectId, employeeId },
+      {
+        onSuccess: () => {
+          toast.success('Employee Added', {
+            description: 'The employee has been added to the project',
+          });
+          onOpenChange(false);
+        },
+        onError: (error) => {
+          const title = getErrorTitle(error, 'Failed to Add Employee');
+          const description = getErrorMessage(error);
+          toast.error(title, { description });
+        },
+      }
+    );
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Add Team Members</DialogTitle>
+          <DialogDescription>
+            Select employees from your organization to add to this project
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2">
+          {isLoadingEmployees ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
+            </div>
+          ) : employeesError ? (
+            <p className="text-muted-foreground py-8 text-center">
+              {employeeListErrorMessage(employeesError)}
+            </p>
+          ) : availableEmployees.length === 0 ? (
+            <p className="text-muted-foreground py-8 text-center">
+              All employees have been added to the team
+            </p>
+          ) : (
+            availableEmployees.map((employee) => (
+              <div
+                key={employee.id}
+                className="hover:bg-accent flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="flex items-center gap-3">
+                  <EmployeeAvatar employee={employee} size="sm" />
+                  <div>
+                    <p className="text-sm font-medium">{employee.name}</p>
+                    <p className="text-muted-foreground text-sm">
+                      {employee.designation} •{' '}
+                      {getDepartmentLabel(employee.department)}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={addEmployee.isPending}
+                  onClick={() => handleAddEmployee(employee.id)}
+                >
+                  {addEmployee.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-2 h-4 w-4" />
+                  )}
+                  Add
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

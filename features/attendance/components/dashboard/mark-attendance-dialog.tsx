@@ -67,8 +67,17 @@ import {
   useCheckIn,
   useRecordClockEvent,
 } from '@tornotron/echno-core/attendance/hooks';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/lib/styles/toast-styles';
+import { userFacingErrorMessage } from '@/lib/utils/api-utils';
 import { format } from 'date-fns';
+import {
+  evaluateSelfPunchFence,
+  readGeofenceReasonRequired,
+  resolvePunchProfile,
+  type GeofenceReasonDemand,
+} from '../../lib/self-punch-geofence';
+import { applyAcceptedPunch } from '../../lib/today-record-cache';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -453,6 +462,14 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   // they are, and cleared by nothing: a reason typed and then walked back into
   // range is simply not sent.
   const [geofenceReason, setGeofenceReason] = useState('');
+  // The server's own demand for a reason, kept against the project it was
+  // made for. Set when a punch comes back refused for want of one, so the
+  // reason field appears on the server's word even where the rule below and
+  // the server's somehow still disagree.
+  const [serverFenceDemand, setServerFenceDemand] = useState<
+    (GeofenceReasonDemand & { projectId: number }) | null
+  >(null);
+  const queryClient = useQueryClient();
 
   const { data: projects = [], isPending: isLoadingProjects } =
     useProjectsByEmployee(employeeId);
@@ -466,7 +483,8 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
   // this check-in is the one attached to the project actually being recorded.
   const selectedProject = pickedProject ?? projectMatch?.project ?? null;
 
-  const { data: projectSettings } = useProjectSettings(selectedProject?.id);
+  const { data: projectSettings, isError: projectSettingsFailed } =
+    useProjectSettings(selectedProject?.id);
   const { data: shifts = [] } = useShifts();
 
   const checkInMutation = useCheckIn();
@@ -487,8 +505,19 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
-  // Priority: project-specific settings → org-level default → hardcoded fallback
-  const liveProfile = projectSettings ?? orgSettings ?? null;
+  // The server judges a punch by the effective settings of the project it is
+  // recorded against: the project's own, else the organization default. The
+  // project-settings endpoint answers from that same resolver, so once a
+  // project is chosen its answer is the profile, and the organization default
+  // is only a preview until it arrives (echno-web#504).
+  const { profile: liveProfile, settled: profileSettled } = resolvePunchProfile(
+    {
+      projectSelected: selectedProject !== null,
+      projectSettings,
+      projectSettingsFailed,
+      orgSettings,
+    }
+  );
   const effectiveProfile = getEffectiveProfile(liveProfile);
   const cycles = effectiveProfile.checkInOutCycles;
   // Compute action regardless of project match so the form shows while location detects
@@ -504,18 +533,33 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
     locationState.status === 'detected' && selectedProject
       ? distanceToProject(locationState.location, selectedProject)
       : null;
-  const isWithinGeofence =
-    selectedDistance !== null &&
-    selectedDistance <= effectiveProfile.geofenceRadiusMeters;
-  // Outside the boundary, and measured rather than assumed. This used to block
-  // the punch outright, in the browser only: the server never evaluated the
-  // fence, so a direct API call walked past it and the record stored a fixed
-  // verdict nobody had computed. The server evaluates it now
-  // (tornotron/echno-backend#646), and the product decision is that being
-  // outside does not refuse the mark. It asks for a reason and sends the day to
-  // the employee's reporting manager.
+  const serverDemandForProject =
+    serverFenceDemand !== null &&
+    selectedProject !== null &&
+    serverFenceDemand.projectId === selectedProject.id
+      ? serverFenceDemand
+      : null;
+  // The radius the server applies: the one it named when it refused, else the
+  // one in the settings it resolves. Unknown while no settings have loaded.
+  const fenceRadius =
+    serverDemandForProject?.radiusMeters ??
+    liveProfile?.geofenceRadiusMeters ??
+    null;
+  const fenceVerdict = evaluateSelfPunchFence(selectedDistance, fenceRadius);
+  const isWithinGeofence = fenceVerdict === 'inside';
+  // Outside the boundary, and measured rather than assumed. The server
+  // evaluates the fence (tornotron/echno-backend#646) and being outside does
+  // not refuse the mark: it asks for a reason and sends the day to the
+  // employee's reporting manager. The server measures every punch that carries
+  // a position against a project with coordinates, whatever the profile says
+  // about geolocationRequired, so the dialog does the same. Gating this on
+  // geolocationRequired is what hid the reason field while the server
+  // demanded one (echno-web#504).
   const isOutsideGeofence =
-    geolocationRequired && selectedDistance !== null && !isWithinGeofence;
+    fenceVerdict === 'outside' || serverDemandForProject !== null;
+  // The distance to quote: this device's measurement, else the server's.
+  const outsideDistance =
+    selectedDistance ?? serverDemandForProject?.distanceMeters ?? null;
   const geofenceReasonMissing =
     isOutsideGeofence && !isGeofenceReasonSatisfied(geofenceReason);
   const locationSettled = isLocationSettled(
@@ -663,15 +707,15 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
     const photo =
       cameraState.status === 'captured' ? cameraState.photo : undefined;
 
-    try {
-      // Sent only when the punch is actually outside the boundary. A reason
-      // typed and then walked back into range is not a geofence exception, and
-      // sending one would hold the day for an approval nothing called for.
-      const geofenceExceptionReason = isOutsideGeofence
-        ? geofenceReason.trim()
-        : undefined;
+    // Sent only when the punch is actually outside the boundary. A reason
+    // typed and then walked back into range is not a geofence exception, and
+    // sending one would hold the day for an approval nothing called for.
+    const geofenceExceptionReason = isOutsideGeofence
+      ? geofenceReason.trim()
+      : undefined;
 
-      await (!todayRecord ||
+    try {
+      const saved = await (!todayRecord ||
       nextAction.eventType === ClockEventType.morningClockIn
         ? checkInMutation.mutateAsync({
             employeeId,
@@ -693,14 +737,32 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
             geofenceExceptionReason,
           }));
 
+      // Puts the day on the page behind the dialog now, then refetches it, so
+      // the page does not wait on a reload to show the punch (echno-web#505).
+      void applyAcceptedPunch(queryClient, saved);
+
       toast.success(`${nextAction.label} recorded`, {
         description: geofenceExceptionReason
           ? `${selectedProject.projectName} · ${format(now, 'HH:mm')} · sent to your reporting manager to approve`
           : `${selectedProject.projectName} · ${format(now, 'HH:mm')}`,
       });
       onClose();
-    } catch {
-      toast.error(`Failed to record ${nextAction.label.toLowerCase()}`);
+    } catch (error) {
+      const demand = readGeofenceReasonRequired(error);
+      if (demand) {
+        // The server measured this punch outside the boundary. Bring up the
+        // reason field on its word and let the employee send it again.
+        setServerFenceDemand({ ...demand, projectId: selectedProject.id });
+        toast.error('A reason is needed to mark from here', {
+          description: demand.message,
+        });
+        return;
+      }
+      // The server's own sentence says what went wrong; a generic "failed"
+      // left the employee guessing.
+      toast.error(`Could not record ${nextAction.label.toLowerCase()}`, {
+        description: userFacingErrorMessage(error),
+      });
     }
   };
 
@@ -812,11 +874,11 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
                 <div className="space-y-1">
                   <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                     You are{' '}
-                    {selectedDistance === null
+                    {outsideDistance === null
                       ? 'some way'
-                      : formatDistance(selectedDistance)}{' '}
+                      : formatDistance(outsideDistance)}{' '}
                     from {selectedProject?.projectName ?? 'the site'}, outside
-                    its {effectiveProfile.geofenceRadiusMeters} m boundary.
+                    its {fenceRadius} m boundary.
                   </p>
                   <p className="text-sm text-amber-700 dark:text-amber-400">
                     You can still mark attendance. Say why, and your reporting
@@ -909,6 +971,7 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
                 // geolocation it comes from the picker rather than a position.
                 disabled={
                   isPending ||
+                  !profileSettled ||
                   !locationSettled ||
                   !selectedProject ||
                   photoMissing ||
