@@ -77,8 +77,8 @@ import {
   BreakdownBars,
   MetricTile,
   WidgetCard,
+  QueryState,
   WidgetEmpty,
-  WidgetLoading,
 } from './dashboard-widgets';
 import {
   FinanceSection,
@@ -94,11 +94,14 @@ function StatCard({
   icon: Icon,
   value,
   note,
+  failed = false,
 }: {
   title: string;
   icon: typeof Users;
   value: number;
   note: React.ReactNode;
+  /** The count's request failed: show a dash, never a zero. */
+  failed?: boolean;
 }) {
   return (
     <Card>
@@ -112,10 +115,10 @@ function StatCard({
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-zinc-900 sm:text-3xl dark:text-zinc-100">
-          {value}
+          {failed ? '—' : value}
         </div>
         <p className="mt-1 text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-          {note}
+          {failed ? 'could not load' : note}
         </p>
       </CardContent>
     </Card>
@@ -233,6 +236,7 @@ export function HomeDashboard() {
       >
         <StatCard
           title="Employees"
+          failed={employeesQuery.isError}
           icon={Users}
           value={employees.length}
           note={
@@ -246,6 +250,7 @@ export function HomeDashboard() {
         />
         <StatCard
           title="Projects"
+          failed={projectsQuery.isError}
           icon={FolderKanban}
           value={projects.length}
           note={
@@ -256,12 +261,14 @@ export function HomeDashboard() {
         />
         <StatCard
           title="Tasks"
+          failed={tasksQuery.isError}
           icon={ClipboardList}
           value={activeTasks}
           note="active tasks"
         />
         <StatCard
           title="Open Issues"
+          failed={issuesQuery.isError}
           icon={TriangleAlert}
           value={openIssues}
           note="require attention"
@@ -293,42 +300,52 @@ export function HomeDashboard() {
               title="Projects by Status"
               description="Every project in the organization"
             >
-              {projectsQuery.isLoading ? (
-                <WidgetLoading />
-              ) : statusBreakdown.length > 0 ? (
-                <BreakdownBars items={statusBreakdown} />
-              ) : (
-                <WidgetEmpty
-                  icon={FolderKanban}
-                  title="No projects yet"
-                  description="Create a project to start tracking its status here."
-                />
-              )}
+              <QueryState
+                loading={projectsQuery.isLoading}
+                error={projectsQuery.isError}
+                what="projects"
+              >
+                {statusBreakdown.length > 0 ? (
+                  <BreakdownBars items={statusBreakdown} />
+                ) : (
+                  <WidgetEmpty
+                    icon={FolderKanban}
+                    title="No projects yet"
+                    description="Create a project to start tracking its status here."
+                  />
+                )}
+              </QueryState>
             </WidgetCard>
 
             <WidgetCard title="Project Metrics" description="Projects by stage">
-              <div className="grid grid-cols-2 gap-4">
-                <MetricTile
-                  icon={CheckCircle2}
-                  label="Active"
-                  value={counts.active}
-                />
-                <MetricTile
-                  icon={Clock}
-                  label="Upcoming"
-                  value={counts.upcoming}
-                />
-                <MetricTile
-                  icon={PauseCircle}
-                  label="On hold"
-                  value={counts.onHold}
-                />
-                <MetricTile
-                  icon={Building}
-                  label="Completed or closed"
-                  value={counts.completed}
-                />
-              </div>
+              <QueryState
+                loading={projectsQuery.isLoading}
+                error={projectsQuery.isError}
+                what="projects"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <MetricTile
+                    icon={CheckCircle2}
+                    label="Active"
+                    value={counts.active}
+                  />
+                  <MetricTile
+                    icon={Clock}
+                    label="Upcoming"
+                    value={counts.upcoming}
+                  />
+                  <MetricTile
+                    icon={PauseCircle}
+                    label="On hold"
+                    value={counts.onHold}
+                  />
+                  <MetricTile
+                    icon={Building}
+                    label="Completed or closed"
+                    value={counts.completed}
+                  />
+                </div>
+              </QueryState>
             </WidgetCard>
           </div>
 
@@ -343,82 +360,86 @@ export function HomeDashboard() {
               </Button>
             }
           >
-            {projectsQuery.isLoading ? (
-              <WidgetLoading />
-            ) : latestProjects.length > 0 ? (
-              <ul className="space-y-4">
-                {latestProjects.map((project) => {
-                  const progress = Math.min(
-                    Math.max(Math.round(project.progress || 0), 0),
-                    100
-                  );
-                  return (
-                    <li key={project.id}>
-                      <Link
-                        href={
-                          routes.projects.allProjects.detail(project.id).href
-                        }
-                        className="block rounded-lg border border-zinc-200 p-4 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
-                      >
-                        <div className="mb-3 flex items-start justify-between gap-4">
-                          <div className="min-w-0 flex-1">
-                            <div className="mb-1 flex flex-wrap items-center gap-2">
-                              <h4 className="truncate text-sm font-semibold text-zinc-900 sm:text-base dark:text-zinc-100">
-                                {project.projectName}
-                              </h4>
-                              <span
-                                className={`rounded px-2 py-0.5 text-xs font-medium ${
-                                  PROJECT_STATUS_BADGE[project.status] ??
-                                  'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                                }`}
-                              >
-                                {getProjectStatusLabel(project.status)}
-                              </span>
+            <QueryState
+              loading={projectsQuery.isLoading}
+              error={projectsQuery.isError}
+              what="projects"
+            >
+              {latestProjects.length > 0 ? (
+                <ul className="space-y-4">
+                  {latestProjects.map((project) => {
+                    const progress = Math.min(
+                      Math.max(Math.round(project.progress || 0), 0),
+                      100
+                    );
+                    return (
+                      <li key={project.id}>
+                        <Link
+                          href={
+                            routes.projects.allProjects.detail(project.id).href
+                          }
+                          className="block rounded-lg border border-zinc-200 p-4 transition-colors hover:border-zinc-300 dark:border-zinc-800 dark:hover:border-zinc-700"
+                        >
+                          <div className="mb-3 flex items-start justify-between gap-4">
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-1 flex flex-wrap items-center gap-2">
+                                <h4 className="truncate text-sm font-semibold text-zinc-900 sm:text-base dark:text-zinc-100">
+                                  {project.projectName}
+                                </h4>
+                                <span
+                                  className={`rounded px-2 py-0.5 text-xs font-medium ${
+                                    PROJECT_STATUS_BADGE[project.status] ??
+                                    'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                                  }`}
+                                >
+                                  {getProjectStatusLabel(project.status)}
+                                </span>
+                              </div>
+                              <p className="text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
+                                {[project.projectCity, project.projectState]
+                                  .filter(Boolean)
+                                  .join(', ') || project.projectAddress}
+                              </p>
                             </div>
-                            <p className="text-xs text-zinc-600 sm:text-sm dark:text-zinc-400">
-                              {[project.projectCity, project.projectState]
-                                .filter(Boolean)
-                                .join(', ') || project.projectAddress}
-                            </p>
+                            <div className="text-right">
+                              <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                                {progress}%
+                              </div>
+                              <div className="text-xs text-zinc-600 dark:text-zinc-400">
+                                complete
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                              {progress}%
-                            </div>
-                            <div className="text-xs text-zinc-600 dark:text-zinc-400">
-                              complete
-                            </div>
+                          <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
+                            <div
+                              className="h-2 rounded-full bg-green-600"
+                              style={{ width: `${progress}%` }}
+                            />
                           </div>
-                        </div>
-                        <div className="h-2 w-full rounded-full bg-zinc-200 dark:bg-zinc-800">
-                          <div
-                            className="h-2 rounded-full bg-green-600"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
-                        <div className="mt-2 flex justify-between text-xs text-zinc-500">
-                          <span>
-                            {formatDateMedium(
-                              project.startDate,
-                              'No start date'
-                            )}
-                          </span>
-                          <span>
-                            {formatDateMedium(project.endDate, 'No end date')}
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <WidgetEmpty
-                icon={FolderKanban}
-                title="No projects yet"
-                description="Your newest projects will be listed here."
-              />
-            )}
+                          <div className="mt-2 flex justify-between text-xs text-zinc-500">
+                            <span>
+                              {formatDateMedium(
+                                project.startDate,
+                                'No start date'
+                              )}
+                            </span>
+                            <span>
+                              {formatDateMedium(project.endDate, 'No end date')}
+                            </span>
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <WidgetEmpty
+                  icon={FolderKanban}
+                  title="No projects yet"
+                  description="Your newest projects will be listed here."
+                />
+              )}
+            </QueryState>
           </WidgetCard>
         </TabsContent>
 
@@ -428,107 +449,125 @@ export function HomeDashboard() {
               title="Tasks by Status"
               description="Every task in the organization"
             >
-              {tasksQuery.isLoading ? (
-                <WidgetLoading />
-              ) : taskBreakdown.length > 0 ? (
-                <BreakdownBars items={taskBreakdown} />
-              ) : (
-                <WidgetEmpty
-                  icon={ListTodo}
-                  title="No tasks yet"
-                  description="Tasks added to projects are counted here by status."
-                />
-              )}
+              <QueryState
+                loading={tasksQuery.isLoading}
+                error={tasksQuery.isError}
+                what="tasks"
+              >
+                {taskBreakdown.length > 0 ? (
+                  <BreakdownBars items={taskBreakdown} />
+                ) : (
+                  <WidgetEmpty
+                    icon={ListTodo}
+                    title="No tasks yet"
+                    description="Tasks added to projects are counted here by status."
+                  />
+                )}
+              </QueryState>
             </WidgetCard>
 
             <WidgetCard
               title="Open Issues by Priority"
               description="Issues not yet resolved"
             >
-              {issuesQuery.isLoading ? (
-                <WidgetLoading />
-              ) : priorityBreakdown.length > 0 ? (
-                <BreakdownBars items={priorityBreakdown} />
-              ) : (
-                <WidgetEmpty
-                  icon={TriangleAlert}
-                  title="No open issues"
-                  description="Open issues are grouped here by priority."
-                />
-              )}
+              <QueryState
+                loading={issuesQuery.isLoading}
+                error={issuesQuery.isError}
+                what="issues"
+              >
+                {priorityBreakdown.length > 0 ? (
+                  <BreakdownBars items={priorityBreakdown} />
+                ) : (
+                  <WidgetEmpty
+                    icon={TriangleAlert}
+                    title="No open issues"
+                    description="Open issues are grouped here by priority."
+                  />
+                )}
+              </QueryState>
             </WidgetCard>
 
             <WidgetCard
               title="Needs Attention"
               description="Overdue tasks and open high-priority issues"
             >
-              {tasksQuery.isLoading || issuesQuery.isLoading ? (
-                <WidgetLoading />
-              ) : attention.length > 0 ? (
-                <ul className="space-y-3">
-                  {attention.map((item) => (
-                    <li
-                      key={`${item.kind}-${item.id}`}
-                      className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                          {item.title}
-                        </p>
-                        <p className="text-xs text-zinc-500">{item.reason}</p>
-                      </div>
-                      {item.kind === 'task' ? (
-                        <ListTodo className="h-4 w-4 shrink-0 text-amber-600" />
-                      ) : (
-                        <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
-                      )}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <WidgetEmpty
-                  icon={CheckCircle2}
-                  title="Nothing needs attention"
-                  description="Overdue tasks and high-priority issues will appear here."
-                />
-              )}
+              <QueryState
+                loading={tasksQuery.isLoading || issuesQuery.isLoading}
+                error={tasksQuery.isError || issuesQuery.isError}
+                what="tasks and issues"
+              >
+                {attention.length > 0 ? (
+                  <ul className="space-y-3">
+                    {attention.map((item) => (
+                      <li
+                        key={`${item.kind}-${item.id}`}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800"
+                      >
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {item.title}
+                          </p>
+                          <p className="text-xs text-zinc-500">{item.reason}</p>
+                        </div>
+                        {item.kind === 'task' ? (
+                          <ListTodo className="h-4 w-4 shrink-0 text-amber-600" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <WidgetEmpty
+                    icon={CheckCircle2}
+                    title="Nothing needs attention"
+                    description="Overdue tasks and high-priority issues will appear here."
+                  />
+                )}
+              </QueryState>
             </WidgetCard>
 
             <WidgetCard
               title="Task & Issue Metrics"
               description="Across all projects"
             >
-              <div className="grid grid-cols-2 gap-4">
-                <MetricTile
-                  icon={CheckCircle2}
-                  label="Tasks completed"
-                  value={metrics.completedTasks}
-                />
-                <MetricTile
-                  icon={Activity}
-                  label="Tasks ongoing"
-                  value={metrics.ongoingTasks}
-                />
-                <MetricTile
-                  icon={TriangleAlert}
-                  label="Open critical issues"
-                  value={metrics.openCriticalIssues}
-                />
-                <MetricTile
-                  icon={Percent}
-                  label="Issues resolved"
-                  value={
-                    metrics.resolutionRate === undefined
-                      ? '—'
-                      : `${metrics.resolutionRate}%`
-                  }
-                  hint={
-                    metrics.resolutionRate === undefined
-                      ? 'No issues yet'
-                      : undefined
-                  }
-                />
-              </div>
+              <QueryState
+                loading={tasksQuery.isLoading || issuesQuery.isLoading}
+                error={tasksQuery.isError || issuesQuery.isError}
+                what="tasks and issues"
+              >
+                <div className="grid grid-cols-2 gap-4">
+                  <MetricTile
+                    icon={CheckCircle2}
+                    label="Tasks completed"
+                    value={metrics.completedTasks}
+                  />
+                  <MetricTile
+                    icon={Activity}
+                    label="Tasks ongoing"
+                    value={metrics.ongoingTasks}
+                  />
+                  <MetricTile
+                    icon={TriangleAlert}
+                    label="Open critical issues"
+                    value={metrics.openCriticalIssues}
+                  />
+                  <MetricTile
+                    icon={Percent}
+                    label="Issues resolved"
+                    value={
+                      metrics.resolutionRate === undefined
+                        ? '—'
+                        : `${metrics.resolutionRate}%`
+                    }
+                    hint={
+                      metrics.resolutionRate === undefined
+                        ? 'No issues yet'
+                        : undefined
+                    }
+                  />
+                </div>
+              </QueryState>
             </WidgetCard>
           </div>
         </TabsContent>
