@@ -202,6 +202,30 @@ export const LABOUR_ACCESS: AccessConfig = {
 } as const;
 
 /**
+ * Shaping a project's schedule: adding, editing and deleting WBS activities
+ * and linking them. `system-admin` or `project-manager` on every write of
+ * `WbsElementControllerWeb`; any member reads the schedule.
+ */
+export const SCHEDULE_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Recording a progress inspection against a schedule activity, and adding
+ * its evidence: `system-admin`, `project-manager` or `site-engineer` on
+ * `ProgressInspectionControllerWeb`, the project team that keeps the actuals.
+ * Any member reads the records. The Work Progress module must also be
+ * enabled for the organization.
+ */
+export const PROGRESS_RECORD_ACCESS: AccessConfig = {
+  allowOrgRoles: [
+    OrgRole.SYSTEM_ADMIN,
+    OrgRole.PROJECT_MANAGER,
+    OrgRole.SITE_ENGINEER,
+  ],
+} as const;
+
+/**
  * Creating, editing and deleting a sub-contract is `system-admin` or
  * `project-manager`. Any member reads them.
  */
