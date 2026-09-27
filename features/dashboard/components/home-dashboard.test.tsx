@@ -24,6 +24,7 @@ const ok = <T,>(data: T) => ({
 });
 
 let orgRoles: string[] = [OrgRole.SYSTEM_ADMIN];
+let projectsResult: unknown = ok([]);
 const emptyPnl = {
   income: [],
   expense: [],
@@ -44,7 +45,7 @@ mock.module('@tornotron/echno-core/employee/hooks', () => ({
 }));
 mock.module('@tornotron/echno-core/project/hooks', () => ({
   ...realProjectHooks,
-  useProjects: () => ok([]),
+  useProjects: () => projectsResult,
 }));
 mock.module('@tornotron/echno-core/task/hooks', () => ({
   ...realTaskHooks,
@@ -82,6 +83,7 @@ const { FinanceSection, InventorySection, LeaveSection } =
 afterEach(() => {
   cleanup();
   orgRoles = [OrgRole.SYSTEM_ADMIN];
+  projectsResult = ok([]);
 });
 
 /** Sample figures the old mock-backed dashboard printed. */
@@ -135,5 +137,19 @@ describe('Home dashboard for a new organization', () => {
     expect(view.queryByText('Finance')).toBeNull();
     expect(view.queryByText('Leave')).toBeNull();
     expect(view.queryByText('Inventory')).toBeNull();
+  });
+
+  test('a failed request shows an error, never an empty state or a zero', () => {
+    projectsResult = {
+      data: undefined,
+      isLoading: false,
+      isError: true,
+      error: new Error('500'),
+    };
+    const view = render(<HomeDashboard />);
+    const text = view.container.textContent ?? '';
+    expect(text).toContain('Could not load projects');
+    expect(text).toContain('could not load');
+    expect(view.queryByText('No projects yet')).toBeNull();
   });
 });

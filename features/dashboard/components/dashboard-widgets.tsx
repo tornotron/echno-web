@@ -101,6 +101,26 @@ export function WidgetError({ what }: { what: string }) {
   );
 }
 
+/**
+ * Loading, then an error message if the request failed, then the content.
+ * A failed list must never fall through to an empty state or a zero.
+ */
+export function QueryState({
+  loading,
+  error,
+  what,
+  children,
+}: {
+  loading: boolean;
+  error: boolean;
+  what: string;
+  children: ReactNode;
+}) {
+  if (loading) return <WidgetLoading />;
+  if (error) return <WidgetError what={what} />;
+  return <>{children}</>;
+}
+
 const BAR_COLORS = [
   'bg-indigo-500',
   'bg-emerald-500',
