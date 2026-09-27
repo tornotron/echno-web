@@ -43,9 +43,12 @@ export default function NewSiteTransferPage() {
 
   // `?assetId=` raises the transfer from an asset's page: the asset goes on as
   // a line, and the sending side is where the asset register says it is.
-  const fromAssetId = searchParams.get('assetId')
-    ? Number(searchParams.get('assetId'))
-    : undefined;
+  const parsedAssetId = Number.parseInt(searchParams.get('assetId') ?? '', 10);
+  const fromAssetId =
+    Number.isFinite(parsedAssetId) && parsedAssetId > 0
+      ? parsedAssetId
+      : undefined;
+  const assetParamGiven = searchParams.has('assetId');
   const { data: sourceAsset, isLoading: assetLoading } = useAsset(
     fromAssetId ?? 0
   );
@@ -241,6 +244,16 @@ export default function NewSiteTransferPage() {
           item has insufficient stock, the entire transfer will be rejected.
         </span>
       </div>
+
+      {assetParamGiven && !sourceAsset && (
+        <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
+          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <span>
+            The asset in the link could not be loaded, so it has not been added.
+            Add it from the Assets to Transfer section below.
+          </span>
+        </div>
+      )}
 
       {fromAssetId && sourceAsset && !assetPrefill && (
         <div className="flex items-start gap-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300">
