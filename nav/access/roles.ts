@@ -200,6 +200,24 @@ export const SUB_CONTRACT_WRITE_ACCESS: AccessConfig = {
   allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
 } as const;
 
+/**
+ * The finance reports (trial balance, profit and loss, balance sheet):
+ * `system-admin` or `project-manager` on every mapping of
+ * `ReportControllerWeb`. The Home dashboard's income and expense figures read
+ * the profit and loss report, so they follow this gate.
+ */
+export const FINANCE_REPORTS_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Reading every leave request in the organization
+ * (`/leave-requests/web/organization`): `system-admin` or `hr-admin`.
+ */
+export const LEAVE_ORG_READ_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.HR_ADMIN],
+} as const;
+
 // ---------------------------------------------------------------------------
 // Role -> permission mapping
 // ---------------------------------------------------------------------------
