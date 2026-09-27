@@ -1,6 +1,10 @@
 import { describe, expect, test } from 'bun:test';
 import type { AssetFormData } from '@/features/assets/components/asset-form';
-import { formToPayload, parseAsset } from './assets-service';
+import {
+  formToPayload,
+  parseAsset,
+  parseAssetMovement,
+} from './assets-service';
 
 function form(over: Record<string, unknown>): AssetFormData {
   return {
@@ -44,7 +48,9 @@ describe('formToPayload', () => {
   });
 
   test('blank numeric fields become undefined; filled ones are numbers', () => {
-    const payload = formToPayload(form({ locationId: '', depreciationRate: '5' }));
+    const payload = formToPayload(
+      form({ locationId: '', depreciationRate: '5' })
+    );
     expect(payload.locationId).toBeUndefined();
     expect(payload.depreciationRate).toBe(5);
   });
@@ -101,5 +107,43 @@ describe('parseAsset', () => {
     const asset = parseAsset({ id: 3 });
     expect(asset.purchaseDate).toBeInstanceOf(Date);
     expect(asset.warrantyExpiry).toBeUndefined();
+  });
+});
+
+describe('what the asset register says about site transfers', () => {
+  test('an asset in transit carries the transfer it is on', () => {
+    const asset = parseAsset({
+      id: 12,
+      name: 'JCB Backhoe',
+      assignedProjectId: 3,
+      locationId: 7,
+      locationName: 'Yard Store',
+      inTransitSiteTransferId: 31,
+      inTransitSiteTransferNumber: 'TRF-2026-000031',
+    });
+    expect(asset.assignedProjectId).toBe(3);
+    expect(asset.location.name).toBe('Yard Store');
+    expect(asset.inTransitSiteTransferId).toBe(31);
+    expect(asset.inTransitSiteTransferNumber).toBe('TRF-2026-000031');
+  });
+
+  test('an asset not in transit carries no transfer', () => {
+    const asset = parseAsset({ id: 12, name: 'JCB Backhoe' });
+    expect(asset.inTransitSiteTransferId).toBeUndefined();
+  });
+
+  test('a ledger entry keeps the transfer it came from', () => {
+    const movement = parseAssetMovement({
+      id: 9,
+      movementType: 'TRANSFER',
+      toProjectName: 'Silver Oak',
+      movedAt: '2026-09-20T10:00:00',
+      reason: 'Received on site transfer TRF-2026-000007',
+      referenceNumber: 'TRF-2026-000007',
+      siteTransferId: 7,
+    });
+    expect(movement.siteTransferId).toBe(7);
+    expect(movement.referenceNumber).toBe('TRF-2026-000007');
+    expect(movement.movedAt.getFullYear()).toBe(2026);
   });
 });

@@ -20,7 +20,10 @@
  * button whose only outcome is a 400.
  */
 import type { SiteTransfer } from '@tornotron/echno-core/site-transfers/types';
-import { SiteTransferStatus } from '@tornotron/echno-core/site-transfers/types';
+import {
+  SiteTransferLineType,
+  SiteTransferStatus,
+} from '@tornotron/echno-core/site-transfers/types';
 
 /**
  * Whether the transfer moves material out of one project and into another.
@@ -111,15 +114,31 @@ export function inTransitMeaning(
 }
 
 /**
- * What is still on the lorry, or unaccounted for, across the whole transfer.
+ * How much stock is still on the lorry, or unaccounted for, across the whole
+ * transfer. Material lines only: an asset line is a machine rather than a
+ * quantity of stock, and {@link assetsInTransit} counts those.
  *
  * @param transfer - The transfer to total.
- * @returns The sum of every line's in-transit quantity.
+ * @returns The sum of every material line's in-transit quantity.
  */
 export function totalInTransit(transfer: SiteTransfer): number {
   let total = 0;
   for (const item of transfer.items) {
+    if (item.lineType === SiteTransferLineType.asset) continue;
     total += item.inTransitQuantity;
   }
   return total;
+}
+
+/**
+ * How many of the transfer's assets have not been recorded as arriving.
+ *
+ * @param transfer - The transfer to count.
+ * @returns The number of asset lines still in transit.
+ */
+export function assetsInTransit(transfer: SiteTransfer): number {
+  return transfer.items.filter(
+    (item) =>
+      item.lineType === SiteTransferLineType.asset && item.inTransitQuantity > 0
+  ).length;
 }

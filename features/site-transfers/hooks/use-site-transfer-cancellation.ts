@@ -17,6 +17,8 @@
  */
 
 import { useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { assetKeys } from '@/hooks/assets/asset-keys';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import { useCancelSiteTransfer } from '@tornotron/echno-core/site-transfers/hooks';
 import { toast } from '@/lib/styles/toast-styles';
@@ -40,6 +42,7 @@ export interface SiteTransferCancellation {
 export function useSiteTransferCancellation(
   id: number
 ): SiteTransferCancellation {
+  const queryClient = useQueryClient();
   const { mutate, isPending } = useCancelSiteTransfer();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,8 +57,11 @@ export function useSiteTransferCancellation(
         {
           onSuccess: () => {
             setIsOpen(false);
+            // Any asset on the transfer is no longer in transit.
+            queryClient.invalidateQueries({ queryKey: assetKeys.all });
             toast.success('Transfer cancelled', {
-              description: 'The stock has been returned to the sending site.',
+              description:
+                'Everything on it has been returned to the sending site.',
             });
           },
           onError: (error) => {
@@ -66,7 +72,7 @@ export function useSiteTransferCancellation(
         }
       );
     },
-    [mutate, id]
+    [mutate, id, queryClient]
   );
 
   return { isOpen, open, close, cancelTransfer, isPending };

@@ -35,7 +35,6 @@ import {
   Truck,
   User,
   Building2,
-  ArrowRight,
   TrendingUp,
 } from 'lucide-react';
 import {
@@ -57,9 +56,15 @@ import {
 } from '@/types/resource';
 import { useAsset } from '@/hooks/assets';
 import { toast } from '@/lib/styles/toast-styles';
-import { AssetTransferModal } from '@/features/assets/components';
+import {
+  AssetInTransitNotice,
+  AssetMovementHistory,
+} from '@/features/assets/components';
 import { useCan } from '@/hooks/use-can';
-import { ASSET_WRITE_ACCESS } from '@/nav/access/roles';
+import {
+  ASSET_WRITE_ACCESS,
+  SITE_TRANSFER_WRITE_ACCESS,
+} from '@/nav/access/roles';
 
 // The original getStatusColor function was not used.
 // The instruction implies using a helper from outside, and getAssetStatusBadgeColor is already imported.
@@ -77,11 +82,13 @@ export default function AssetDetailPage() {
   // Editing, deleting and moving an asset are the project pair's
   // (echno-backend #853); any member reads it.
   const { allowed: canWrite } = useCan(ASSET_WRITE_ACCESS);
+  // Moving an asset to another site is a site transfer, which the stores pair
+  // raises (system-admin, store-keeper).
+  const { allowed: canTransfer } = useCan(SITE_TRANSFER_WRITE_ACCESS);
   const params = useParams();
   const router = useRouter();
   const assetId = Number.parseInt(params.id as string);
   const { data: asset } = useAsset(assetId);
-  const [showTransferModal, setShowTransferModal] = useState(false);
 
   const [now] = useState(() => Date.now());
 
@@ -175,6 +182,8 @@ export default function AssetDetailPage() {
           </Badge>
         )}
       </div>
+
+      <AssetInTransitNotice asset={asset} />
 
       {/* Main Content Grid */}
       <div className="grid gap-6 md:grid-cols-3">
@@ -574,14 +583,18 @@ export default function AssetDetailPage() {
               <CardTitle>Actions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {canWrite && (
+              {canTransfer && !asset.inTransitSiteTransferId && (
                 <Button
+                  asChild
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => setShowTransferModal(true)}
                 >
-                  <TrendingUp className="mr-2 h-4 w-4" />
-                  Transfer Asset
+                  <Link
+                    href={`${routes.resources.transfers.new}?assetId=${asset.id}`}
+                  >
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    Transfer to another site
+                  </Link>
                 </Button>
               )}
               <Button variant="outline" className="w-full justify-start">
@@ -601,98 +614,7 @@ export default function AssetDetailPage() {
         </div>
       </div>
 
-      {/* Location History */}
-      {asset.locationHistory && asset.locationHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Location Transfer History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...asset.locationHistory]
-                // eslint-disable-next-line unicorn/no-array-sort
-                .sort(
-                  (a, b) => b.transferDate.getTime() - a.transferDate.getTime()
-                )
-                .map((history, index) => (
-                  <div
-                    key={history.id}
-                    className="relative pb-4 pl-6 last:pb-0"
-                  >
-                    {index !== asset.locationHistory!.length - 1 && (
-                      <div className="absolute top-6 bottom-0 left-2 w-px bg-zinc-200 dark:bg-zinc-700" />
-                    )}
-                    <div className="absolute top-1.5 left-0 h-4 w-4 rounded-full border-2 border-blue-500 bg-white dark:bg-zinc-900" />
-
-                    <div className="space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            {history.fromLocation && (
-                              <>
-                                <span className="font-medium text-zinc-900 dark:text-zinc-100">
-                                  {history.fromLocation.name}
-                                </span>
-                                <ArrowRight className="h-3 w-3 text-zinc-400" />
-                              </>
-                            )}
-                            <span className="font-medium text-blue-600 dark:text-blue-400">
-                              {history.toLocation?.name}
-                            </span>
-                          </div>
-                          <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                            {history.reason}
-                          </p>
-                          {history.notes && (
-                            <p className="text-muted-foreground mt-1 text-sm italic">
-                              {history.notes}
-                            </p>
-                          )}
-                          <div className="text-muted-foreground mt-2 flex items-center gap-4 text-xs">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {format(history.transferDate, 'MMM dd, yyyy')}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <User className="h-3 w-3" />
-                              {history.transferredBy}
-                            </span>
-                          </div>
-                          {(history.newAssignedTo || history.newProject) && (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {history.newAssignedTo && (
-                                <Badge variant="outline" className="text-xs">
-                                  Assigned to: {history.newAssignedTo}
-                                </Badge>
-                              )}
-                              {history.newProject && (
-                                <Badge variant="outline" className="text-xs">
-                                  Project: {history.newProject}
-                                </Badge>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Transfer Modal */}
-      {showTransferModal && (
-        <AssetTransferModal
-          asset={asset}
-          onClose={() => setShowTransferModal(false)}
-          onTransfer={() => {
-            // In real app, refresh asset data
-            router.refresh();
-          }}
-        />
-      )}
+      <AssetMovementHistory assetId={asset.id} />
     </div>
   );
 }

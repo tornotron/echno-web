@@ -32,9 +32,42 @@ const AGGREGATE_STOCK = { currentStock: 60, unit: 'MT' };
 /** What the sending project and location actually hold. */
 let scopedStock = new Map<number, { currentStock: number; unit: string }>();
 
+/**
+ * What the server says a transfer from the chosen store can send, and the
+ * stores the form has asked about, so a test can check it asks about the
+ * sending store and nothing else.
+ */
+const SENDABLE = [
+  {
+    id: 41,
+    assetCode: 'AST-0041',
+    name: 'JCB Backhoe',
+    type: null,
+    status: null,
+    assignedTo: null,
+  },
+  {
+    id: 42,
+    assetCode: null,
+    name: 'Concrete Mixer',
+    type: null,
+    status: null,
+    assignedTo: null,
+  },
+];
+let sendableAsked: Array<[unknown, unknown]> = [];
+
 mock.module('@tornotron/echno-core/site-transfers/hooks', () => ({
   ...realSiteTransferHooks,
   useSiteTransfers: () => ({ data: [] }),
+  useSendableAssets: (projectId: unknown, storageLocationId: unknown) => {
+    sendableAsked.push([projectId, storageLocationId]);
+    return {
+      data: projectId ? SENDABLE : undefined,
+      isLoading: false,
+      isError: false,
+    };
+  },
 }));
 mock.module('@tornotron/echno-core/materials/hooks', () => ({
   ...realMaterialHooks,
@@ -88,7 +121,6 @@ mock.module('@/hooks/use-form-draft', () => ({
 }));
 
 const { SiteTransferForm } = await import('./site-transfer-form');
-
 
 // ---------------------------------------------------------------------------
 // Driving the form
@@ -432,5 +464,100 @@ describe('SiteTransferForm draft restore before the locations load', () => {
     // refused for the missing location.
     submit(container);
     expect(onSubmit).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Asset lines
+// ---------------------------------------------------------------------------
+
+function chooseSides(container: HTMLElement) {
+  chooseOption(container, 'sendingProjectId', 'Riverside');
+  chooseOption(container, 'sendingStorageLocationId', 'Riverside Store');
+  chooseOption(container, 'receivingProjectId', 'Test 2');
+  chooseOption(container, 'receivingStorageLocationId', 'Central Warehouse');
+}
+
+describe('SiteTransferForm assets', () => {
+  beforeEach(() => {
+    scopedStock = new Map([[2, { currentStock: 32, unit: 'MT' }]]);
+    sendableAsked = [];
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  test('asks for nothing until the sending store is chosen, then offers the assets there', () => {
+    const { container } = renderForm();
+    expect(container.textContent).toContain(
+      'Choose the sending project and storage location to see the assets there.'
+    );
+
+    chooseSides(container);
+
+    expect(sendableAsked.at(-1)).toEqual([6, 4]);
+    const offered = offeredBy(container, 'addAsset');
+    expect(offered).toContain('AST-0041 · JCB Backhoe');
+    expect(offered).toContain('Concrete Mixer');
+  });
+
+  test('a transfer can carry assets alone, leaving the material row blank', () => {
+    const { container, onSubmit } = renderForm();
+    chooseSides(container);
+    chooseOption(container, 'addAsset', 'JCB Backhoe');
+    submit(container);
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    const submitted = onSubmit.mock.calls[0][0] as {
+      items: unknown[];
+      assets: Array<{ assetId: number }>;
+    };
+    expect(submitted.items).toEqual([]);
+    expect(submitted.assets.map((a) => a.assetId)).toEqual([41]);
+  });
+
+  test('materials and assets go together, and a chosen asset is not offered twice', () => {
+    const { container, onSubmit } = renderForm();
+    chooseSides(container);
+    chooseOption(container, 'materialId-0', 'TNT Steel');
+    typeQuantity(container, '5');
+    chooseOption(container, 'addAsset', 'JCB Backhoe');
+
+    expect(offeredBy(container, 'addAsset')).not.toContain('JCB Backhoe');
+    // Close the open listbox before submitting.
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: 'Escape',
+    });
+    submit(container);
+
+    const submitted = onSubmit.mock.calls[0][0] as {
+      items: Array<{ materialId: number }>;
+      assets: Array<{ assetId: number }>;
+    };
+    expect(submitted.items.map((i) => i.materialId)).toEqual([2]);
+    expect(submitted.assets.map((a) => a.assetId)).toEqual([41]);
+  });
+
+  test('changing the sending store takes back the assets chosen from the old one', () => {
+    const { container } = renderForm();
+    chooseSides(container);
+    chooseOption(container, 'addAsset', 'JCB Backhoe');
+    expect(container.textContent).toContain('AST-0041 · JCB Backhoe');
+
+    chooseOption(container, 'sendingProjectId', 'Test 2');
+
+    expect(container.querySelector('[aria-label="Remove JCB Backhoe"]')).toBe(
+      null
+    );
+  });
+
+  test('without assets a blank material row is still refused', () => {
+    const { container, onSubmit } = renderForm();
+    chooseSides(container);
+    submit(container);
+
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(container.textContent).toContain('Select a material');
   });
 });

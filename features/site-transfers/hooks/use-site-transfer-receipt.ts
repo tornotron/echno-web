@@ -25,6 +25,7 @@
 
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { assetKeys } from '@/hooks/assets/asset-keys';
 import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
   useReceiveSiteTransfer,
@@ -80,12 +81,15 @@ export function useSiteTransferReceipt(
             for (const item of transfer.items) {
               shortfall += item.inTransitQuantity;
             }
+            // An arriving asset moves on its own ledger, so the asset pages
+            // have to read it again to show where it now is.
+            queryClient.invalidateQueries({ queryKey: assetKeys.all });
             toast.success('Delivery recorded', {
               description: receipt.allowOverReceipt
                 ? 'Recorded as an acknowledged over-receipt. Stock has been added at the receiving site.'
                 : shortfall > 0
-                  ? 'Stock has been added at the receiving site. What did not arrive is left open on the transfer.'
-                  : 'Stock has been added at the receiving site.',
+                  ? 'Recorded at the receiving site. What did not arrive is left open on the transfer.'
+                  : 'Recorded at the receiving site.',
             });
             onRecorded?.();
           },

@@ -34,6 +34,10 @@ import { useMaterialStocks } from '@/hooks/materials';
 import { storageLocationsForProject } from '@/lib/inventory/storage-location-scope';
 import { required } from '@/lib/validators';
 import { toast } from '@/lib/styles/toast-styles';
+import {
+  SiteTransferAssetLines,
+  type SiteTransferAssetRow,
+} from './site-transfer-asset-lines';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -56,12 +60,26 @@ export interface SiteTransferFormState {
 
 export interface SiteTransferSubmitData {
   form: SiteTransferFormState;
+  /** Material lines. Empty when the transfer carries only assets. */
   items: SiteTransferItemRow[];
+  /** Asset lines, one asset each. */
+  assets: SiteTransferAssetRow[];
 }
 
 interface SiteTransferFormProps {
   initialItems?: SiteTransferItemRow[];
+  /** Assets to start with, for a transfer raised from an asset's page. */
+  initialAssets?: SiteTransferAssetRow[];
+  /** The sending side to start with, where the initial assets are. */
+  initialSending?: { projectId: number; storageLocationId: number };
   onSubmit: (data: SiteTransferSubmitData) => void;
+}
+
+/** The draft this form keeps. `assets` is absent on a draft saved before asset lines. */
+interface SiteTransferDraft {
+  fields: SiteTransferFormState;
+  items: SiteTransferItemRow[];
+  assets?: SiteTransferAssetRow[];
 }
 
 /**
@@ -138,6 +156,8 @@ function StockDisplay({
  */
 export function SiteTransferForm({
   initialItems,
+  initialAssets,
+  initialSending,
   onSubmit,
 }: SiteTransferFormProps) {
   const { data: materials = [] } = useMaterials();
@@ -146,14 +166,17 @@ export function SiteTransferForm({
 
   const [form, setForm] = useState<SiteTransferFormState>(() => ({
     issueDate: new Date().toISOString().slice(0, 10),
-    sendingProjectId: 0,
-    sendingStorageLocationId: 0,
+    sendingProjectId: initialSending?.projectId ?? 0,
+    sendingStorageLocationId: initialSending?.storageLocationId ?? 0,
     receivingProjectId: 0,
     receivingStorageLocationId: 0,
   }));
 
   const [items, setItems] = useState<SiteTransferItemRow[]>(
     initialItems ?? [{ ...EMPTY_ITEM }]
+  );
+  const [assets, setAssets] = useState<SiteTransferAssetRow[]>(
+    initialAssets ?? []
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [rowErrors, setRowErrors] = useState<
@@ -162,26 +185,23 @@ export function SiteTransferForm({
 
   // Source, destination and the items moving between them.
   const draftScope = useFormDraftScope();
-  const draftValues = useMemo(() => ({ fields: form, items }), [form, items]);
-  const applyDraft = useCallback(
-    (values: {
-      fields: SiteTransferFormState;
-      items: SiteTransferItemRow[];
-    }) => {
-      setForm(values.fields);
-      setItems(values.items);
-    },
-    []
+  const draftValues = useMemo(
+    () => ({ fields: form, items, assets }),
+    [form, items, assets]
   );
-  const { draft, restoreDraft, discardDraft } = useFormDraft<{
-    fields: SiteTransferFormState;
-    items: SiteTransferItemRow[];
-  }>({
-    formId: FORM_DRAFT_IDS.SITE_TRANSFER,
-    scope: draftScope,
-    values: draftValues,
-    onRestore: applyDraft,
-  });
+  const applyDraft = useCallback((values: SiteTransferDraft) => {
+    setForm(values.fields);
+    setItems(values.items);
+    setAssets(values.assets ?? []);
+  }, []);
+  const { draft, restoreDraft, discardDraft } = useFormDraft<SiteTransferDraft>(
+    {
+      formId: FORM_DRAFT_IDS.SITE_TRANSFER,
+      scope: draftScope,
+      values: draftValues,
+      onRestore: applyDraft,
+    }
+  );
 
   // ---------------------------------------------------------------------------
   // Storage locations available to each side
@@ -288,6 +308,14 @@ export function SiteTransferForm({
     field: K,
     value: SiteTransferFormState[K]
   ) {
+    // The assets on offer are the ones at the sending store, so choosing a
+    // different store takes back the assets chosen from the old one.
+    if (
+      (field === 'sendingProjectId' || field === 'sendingStorageLocationId') &&
+      form[field] !== value
+    ) {
+      setAssets([]);
+    }
     setForm((prev) => ({ ...prev, [field]: value }));
     clearError(field);
   }
@@ -364,7 +392,11 @@ export function SiteTransferForm({
       newErrors.receivingStorageLocationId =
         'Receiving storage location is required';
 
+    // With assets on the transfer, a material row left blank is simply not a
+    // material line, so the transfer can carry assets alone.
+    const carriesAssets = assets.length > 0;
     for (const [i, item] of items.entries()) {
+      if (carriesAssets && !item.materialId) continue;
       const rowErr: Record<string, string> = {};
       if (!item.materialId) rowErr.materialId = 'Select a material';
       if (item.sentQuantity <= 0) {
@@ -401,7 +433,12 @@ export function SiteTransferForm({
       });
       return;
     }
-    onSubmit({ form, items });
+    onSubmit({
+      form,
+      items:
+        assets.length > 0 ? items.filter((item) => item.materialId > 0) : items,
+      assets,
+    });
   }
 
   // ---------------------------------------------------------------------------
@@ -630,11 +667,11 @@ export function SiteTransferForm({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-orange-500" />
-            Items to Transfer
+            Materials to Transfer
           </CardTitle>
           <CardDescription>
             Add materials to transfer. Stock is decremented immediately on
-            creation.
+            creation. Leave this blank if the transfer only carries assets.
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -783,6 +820,13 @@ export function SiteTransferForm({
           </div>
         </CardContent>
       </Card>
+
+      <SiteTransferAssetLines
+        sendingProjectId={form.sendingProjectId}
+        sendingStorageLocationId={form.sendingStorageLocationId}
+        rows={assets}
+        onChange={setAssets}
+      />
     </form>
   );
 }

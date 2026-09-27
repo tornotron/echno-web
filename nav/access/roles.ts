@@ -161,6 +161,15 @@ export const ASSET_WRITE_ACCESS: AccessConfig = {
 } as const;
 
 /**
+ * Raising a site transfer, and recording what arrived or cancelling one in
+ * transit: `system-admin` or `store-keeper`, since both ends of a transfer are
+ * worked by a store. Reading one is the stores tier ({@link STORES_ACCESS}).
+ */
+export const SITE_TRANSFER_WRITE_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.STORE_KEEPER],
+} as const;
+
+/**
  * Approving, rejecting or deleting a stock adjustment. Raising and editing a
  * draft, and reading the list, is the stores tier ({@link STORES_ACCESS});
  * the decision is the narrower pair, and the backend also refuses the raiser.

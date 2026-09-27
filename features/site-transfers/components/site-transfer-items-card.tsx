@@ -15,10 +15,12 @@ import {
   TableRow,
 } from '@/components/shadcn/table';
 import Link from 'next/link';
-import { Package } from 'lucide-react';
-import type {
-  SiteTransfer,
-  SiteTransferItem,
+import { Cog, Package } from 'lucide-react';
+import { Badge } from '@/components/shadcn/badge';
+import {
+  SiteTransferLineType,
+  type SiteTransfer,
+  type SiteTransferItem,
 } from '@tornotron/echno-core/site-transfers/types';
 import {
   crossesProjectBoundary,
@@ -58,10 +60,92 @@ function inTransitReading(
   return inTransitMeaning(transfer);
 }
 
+/** Where an asset line stands, in the words a storekeeper would use. */
+function assetLineState(
+  transfer: SiteTransfer,
+  item: SiteTransferItem
+): { label: string; className: string } {
+  if ((item.receivedQuantity ?? 0) >= 1) {
+    return {
+      label: crossesProjectBoundary(transfer) ? 'Arrived' : 'Moved',
+      className:
+        'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400',
+    };
+  }
+  if (inTransitMeaning(transfer) === 'on-the-lorry') {
+    return {
+      label: 'In transit',
+      className:
+        'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400',
+    };
+  }
+  return {
+    label: 'Stayed at the sending site',
+    className: 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400',
+  };
+}
+
 /**
- * Read-only card listing a site transfer's material lines: what was sent, what
- * was recorded as arriving, what is still unaccounted for, the value that left
- * the sending site, and any remarks.
+ * The asset lines of a transfer, shown apart from the material lines because
+ * they are read differently: one machine each, no quantity and no value, and a
+ * state (in transit, arrived) where a material line has figures.
+ */
+function AssetLinesTable({
+  transfer,
+  lines,
+}: {
+  transfer: SiteTransfer;
+  lines: SiteTransferItem[];
+}) {
+  return (
+    <div className="overflow-x-auto" data-testid="transfer-asset-lines">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="pl-6">Asset</TableHead>
+            <TableHead>State</TableHead>
+            <TableHead className="pr-6">Remarks</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {lines.map((item) => {
+            const state = assetLineState(transfer, item);
+            return (
+              <TableRow key={item.id}>
+                <TableCell className="pl-6 font-medium">
+                  {item.assetId ? (
+                    <Link
+                      href={routes.resources.assets.detail(item.assetId).href}
+                      className="hover:underline"
+                    >
+                      {item.assetCode
+                        ? `${item.assetCode} · ${item.assetName ?? ''}`
+                        : item.assetName}
+                    </Link>
+                  ) : (
+                    item.assetName
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge className={state.className}>{state.label}</Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground pr-6">
+                  {item.remarks ?? '—'}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+/**
+ * Read-only card listing a site transfer's lines. For each material line: what
+ * was sent, what was recorded as arriving, what is still unaccounted for, the
+ * value that left the sending site, and any remarks. Asset lines follow in a
+ * table of their own.
  *
  * The received column distinguishes a line nobody has confirmed (`—`) from one
  * confirmed as receiving nothing (`0`). Those are different statements: the
@@ -91,8 +175,14 @@ export function SiteTransferItemsCard({
   closingAdjustments = [],
 }: SiteTransferItemsCardProps) {
   const twoStep = crossesProjectBoundary(transfer);
+  const materialLines = transfer.items.filter(
+    (item) => item.lineType !== SiteTransferLineType.asset
+  );
+  const assetLines = transfer.items.filter(
+    (item) => item.lineType === SiteTransferLineType.asset
+  );
   let openVariance = 0;
-  for (const item of transfer.items) {
+  for (const item of materialLines) {
     if (inTransitReading(transfer, item) === 'open-variance') {
       openVariance += item.inTransitQuantity;
     }
@@ -110,75 +200,92 @@ export function SiteTransferItemsCard({
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="pl-6">Material</TableHead>
-                <TableHead>Sent</TableHead>
-                {twoStep && <TableHead>Received</TableHead>}
-                {twoStep && <TableHead>In Transit</TableHead>}
-                <TableHead>Transfer Value</TableHead>
-                <TableHead className="pr-6">Remarks</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transfer.items.length === 0 && (
+        {assetLines.length > 0 && materialLines.length > 0 && (
+          <h3 className="flex items-center gap-2 px-6 pt-2 pb-1 text-sm font-medium">
+            <Package className="h-4 w-4" />
+            Materials
+          </h3>
+        )}
+        {(materialLines.length > 0 || assetLines.length === 0) && (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell
-                    colSpan={twoStep ? 6 : 4}
-                    className="text-muted-foreground py-6 text-center text-sm"
-                  >
-                    No items
-                  </TableCell>
+                  <TableHead className="pl-6">Material</TableHead>
+                  <TableHead>Sent</TableHead>
+                  {twoStep && <TableHead>Received</TableHead>}
+                  {twoStep && <TableHead>In Transit</TableHead>}
+                  <TableHead>Transfer Value</TableHead>
+                  <TableHead className="pr-6">Remarks</TableHead>
                 </TableRow>
-              )}
-              {transfer.items.map((item) => {
-                const reading = inTransitReading(transfer, item);
-                return (
-                  <TableRow key={item.id}>
-                    <TableCell className="pl-6 font-medium">
-                      {item.materialName}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {item.sentQuantity}
-                    </TableCell>
-                    {twoStep && (
-                      <TableCell className="text-muted-foreground">
-                        {item.receivedQuantity == null ? (
-                          <span title="Nobody has confirmed this line yet">
-                            —
-                          </span>
-                        ) : (
-                          item.receivedQuantity
-                        )}
-                      </TableCell>
-                    )}
-                    {twoStep && (
-                      <TableCell
-                        className={
-                          reading === 'open-variance'
-                            ? 'font-medium text-amber-700 dark:text-amber-400'
-                            : 'text-muted-foreground'
-                        }
-                      >
-                        {item.inTransitQuantity}
-                      </TableCell>
-                    )}
-                    <TableCell className="text-muted-foreground">
-                      {item.transferValue == null
-                        ? '—'
-                        : `₹${item.transferValue.toLocaleString('en-IN')}`}
-                    </TableCell>
-                    <TableCell className="text-muted-foreground pr-6">
-                      {item.remarks ?? '—'}
+              </TableHeader>
+              <TableBody>
+                {materialLines.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={twoStep ? 6 : 4}
+                      className="text-muted-foreground py-6 text-center text-sm"
+                    >
+                      No items
                     </TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </div>
+                )}
+                {materialLines.map((item) => {
+                  const reading = inTransitReading(transfer, item);
+                  return (
+                    <TableRow key={item.id}>
+                      <TableCell className="pl-6 font-medium">
+                        {item.materialName}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {item.sentQuantity}
+                      </TableCell>
+                      {twoStep && (
+                        <TableCell className="text-muted-foreground">
+                          {item.receivedQuantity == null ? (
+                            <span title="Nobody has confirmed this line yet">
+                              —
+                            </span>
+                          ) : (
+                            item.receivedQuantity
+                          )}
+                        </TableCell>
+                      )}
+                      {twoStep && (
+                        <TableCell
+                          className={
+                            reading === 'open-variance'
+                              ? 'font-medium text-amber-700 dark:text-amber-400'
+                              : 'text-muted-foreground'
+                          }
+                        >
+                          {item.inTransitQuantity}
+                        </TableCell>
+                      )}
+                      <TableCell className="text-muted-foreground">
+                        {item.transferValue == null
+                          ? '—'
+                          : `₹${item.transferValue.toLocaleString('en-IN')}`}
+                      </TableCell>
+                      <TableCell className="text-muted-foreground pr-6">
+                        {item.remarks ?? '—'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+        {assetLines.length > 0 && (
+          <>
+            <h3 className="flex items-center gap-2 px-6 pt-4 pb-1 text-sm font-medium">
+              <Cog className="h-4 w-4" />
+              Assets
+            </h3>
+            <AssetLinesTable transfer={transfer} lines={assetLines} />
+          </>
+        )}
         {openVariance > 0 && (
           <div className="border-t p-4 text-sm text-amber-800 dark:text-amber-300">
             <p className="font-medium">

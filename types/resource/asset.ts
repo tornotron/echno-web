@@ -15,6 +15,16 @@ export interface Asset {
   assignedTo?: string;
   assignedToId?: number;
   assignedProject?: string;
+  /** Id of the project the asset is on, from the latest entry in its movement ledger. */
+  assignedProjectId?: number;
+  /**
+   * The site transfer the asset is in transit on, sent from one project and
+   * not yet recorded as arriving at the other. While it is set the asset cannot
+   * be moved any other way.
+   */
+  inTransitSiteTransferId?: number;
+  /** Number of that transfer, for display. */
+  inTransitSiteTransferNumber?: string;
   purchaseDate: Date;
   purchasePrice: number;
   currentValue: number;
@@ -46,6 +56,44 @@ export interface Asset {
 
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** Kind of entry in an asset's movement ledger. */
+export type AssetMovementType =
+  | 'REGISTRATION'
+  | 'TRANSFER'
+  | 'ASSIGNMENT'
+  | 'CORRECTION';
+
+export const assetMovementTypeLabels: Record<AssetMovementType, string> = {
+  REGISTRATION: 'Registered',
+  TRANSFER: 'Moved',
+  ASSIGNMENT: 'Handed over',
+  CORRECTION: 'Correction',
+};
+
+/**
+ * One entry in an asset's movement ledger (`/assets/web/{id}/movements`):
+ * where it moved from and to, when, and why. Entries are never edited; a wrong
+ * one is superseded by a correction.
+ */
+export interface AssetMovement {
+  id: number;
+  movementType: AssetMovementType;
+  fromProjectName?: string;
+  toProjectName?: string;
+  fromLocationName?: string;
+  toLocationName?: string;
+  fromAssignedTo?: string;
+  toAssignedTo?: string;
+  movedAt: Date;
+  reason: string;
+  notes?: string;
+  /** The document it came from, for example a site transfer number. */
+  referenceNumber?: string;
+  /** The site transfer it came from, when the asset moved on one. */
+  siteTransferId?: number;
+  correctsMovementId?: number;
 }
 
 export interface AssetLocationHistory {
