@@ -69,10 +69,9 @@ function LocationsPageContent() {
   const totalLocations = locations.length;
   const activeLocations = locations.filter((l) => l.active).length;
   const locationTypes = new Set(locations.map((l) => l.locationType)).size;
-  const totalCapacity = locations.reduce(
-    (sum, l) => sum + (l.capacity ?? 0),
-    0
-  );
+  // Capacity is free text with its own unit ("5000 sq ft", "200 t"), so
+  // locations cannot be summed; count how many have one recorded instead.
+  const withCapacity = locations.filter((l) => l.capacity).length;
 
   const hasActiveFilters = Boolean(
     filters.search || filters.type !== 'all' || filters.status !== 'all'
@@ -115,22 +114,18 @@ function LocationsPageContent() {
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Total Capacity
+              Capacity Recorded
             </p>
             <div className="flex items-center justify-between">
               <p className="text-2xl font-bold tracking-tight text-blue-600 dark:text-blue-400">
-                {totalCapacity > 0
-                  ? totalCapacity >= 1000
-                    ? `${(totalCapacity / 1000).toFixed(1)}K`
-                    : totalCapacity.toLocaleString()
-                  : '—'}
+                {withCapacity}
               </p>
               <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-950/30">
                 <BarChart3 className="size-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
             <p className="text-xs text-zinc-400 dark:text-zinc-500">
-              combined storage units
+              locations with a capacity
             </p>
           </div>
           <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">

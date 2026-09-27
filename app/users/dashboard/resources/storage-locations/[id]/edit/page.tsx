@@ -178,7 +178,7 @@ function EditLocationPageContent() {
                 locationName: location.locationName,
                 locationType: location.locationType,
                 address: location.address ?? '',
-                capacity: location.capacity?.toString() ?? '',
+                capacity: location.capacity ?? '',
                 latitude: location.latitude?.toString() ?? '',
                 longitude: location.longitude?.toString() ?? '',
                 projectId: location.projectId?.toString() ?? '',

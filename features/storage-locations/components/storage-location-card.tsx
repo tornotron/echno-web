@@ -117,7 +117,7 @@ export function StorageLocationCard({ location }: StorageLocationCardProps) {
             <div>
               <div className="text-muted-foreground text-xs">Capacity</div>
               <div className="text-lg font-bold">
-                {location.capacity?.toLocaleString() ?? '—'}
+                {location.capacity ?? '—'}
               </div>
             </div>
             <div>
