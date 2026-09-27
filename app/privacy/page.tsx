@@ -33,7 +33,7 @@ export default function PrivacyPage() {
                 1. Introduction
               </h2>
               <p className="leading-relaxed">
-                Tornotron E-Commerce Private Limited (&quot;the Company&quot;,
+                Tornotron Technologies Private Limited (&quot;the Company&quot;,
                 &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;) operates
                 Echno Console (&quot;the Platform&quot;). This Privacy Policy
                 explains how we collect, use, disclose, and safeguard your
@@ -313,7 +313,7 @@ export default function PrivacyPage() {
               </p>
               <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
                 <p className="font-bold text-zinc-900 dark:text-zinc-100">
-                  Tornotron E-Commerce Private Limited
+                  Tornotron Technologies Private Limited
                 </p>
                 <p className="mt-1">Email: privacy@echnoai.com</p>
                 <p className="mt-3 text-sm font-medium text-zinc-800 dark:text-zinc-200">
