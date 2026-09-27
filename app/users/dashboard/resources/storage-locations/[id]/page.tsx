@@ -179,16 +179,14 @@ function ViewLocationPageContent() {
                 </p>
                 <div className="flex items-center justify-between">
                   <p className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-                    {location.capacity == null
-                      ? '—'
-                      : location.capacity.toLocaleString()}
+                    {location.capacity ?? '—'}
                   </p>
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800">
                     <Package className="size-4 text-zinc-600 dark:text-zinc-400" />
                   </div>
                 </div>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                  storage units
+                  as recorded
                 </p>
               </div>
               <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:px-6">
@@ -209,20 +207,18 @@ function ViewLocationPageContent() {
               </div>
               <div className="flex flex-col gap-1 rounded-lg p-3 sm:rounded-none sm:pl-6">
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Utilization
+                  Status
                 </p>
                 <div className="flex items-center justify-between">
                   <p className="text-2xl font-bold tracking-tight text-green-600 dark:text-green-400">
-                    {location.capacity
-                      ? `${Math.round(((location.storageItemsCount ?? 0) / location.capacity) * 100)}%`
-                      : '—'}
+                    {location.active ? 'Active' : 'Inactive'}
                   </p>
                   <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-green-50 dark:bg-green-950/30">
                     <TrendingUp className="size-4 text-green-600 dark:text-green-400" />
                   </div>
                 </div>
                 <p className="text-xs text-zinc-400 dark:text-zinc-500">
-                  capacity used
+                  {location.active ? 'receiving stock' : 'not receiving stock'}
                 </p>
               </div>
             </div>

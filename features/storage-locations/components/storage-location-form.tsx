@@ -135,7 +135,7 @@ export function StorageLocationForm({
       locationName: formData.locationName.trim(),
       locationType: formData.locationType,
       address: formData.address.trim() || undefined,
-      capacity: formData.capacity ? Number(formData.capacity) : undefined,
+      capacity: formData.capacity.trim() || undefined,
       latitude: formData.latitude ? Number(formData.latitude) : undefined,
       longitude: formData.longitude ? Number(formData.longitude) : undefined,
       projectId: formData.projectId ? Number(formData.projectId) : undefined,
@@ -239,12 +239,14 @@ export function StorageLocationForm({
             </Label>
             <Input
               id="capacity"
-              type="number"
-              placeholder="e.g., 5000"
+              placeholder="e.g., 5000 sq ft"
               value={formData.capacity}
               onChange={(e) => handleInputChange('capacity', e.target.value)}
-              min="1"
+              maxLength={255}
             />
+            <p className="text-muted-foreground text-xs">
+              Include the unit, for example sq ft, m³ or tonnes.
+            </p>
           </div>
 
           <div className="space-y-2">
