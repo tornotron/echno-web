@@ -157,6 +157,10 @@ const getAttachmentIcon = (type: AttachmentType) => {
 export default function ProjectDashboardPage() {
   // Raising an issue is the project pair's (echno-backend #853).
   const { allowed: canWriteIssues } = useCan(PROJECT_WRITE_ACCESS);
+  // Adding and removing team members is the same pair on the backend, and
+  // the employee list the add dialog offers is management-only, so a member
+  // outside it would only ever see an empty list (echno-web#505).
+  const { allowed: canManageTeam } = useCan(PROJECT_WRITE_ACCESS);
   const params = useParams();
   const router = useRouter();
   const { moduleIds } = useEnabledModuleIds();
@@ -681,14 +685,16 @@ export default function ProjectDashboardPage() {
                       {project.members.length} members working on this project
                     </CardDescription>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsAddMemberDialogOpen(true)}
-                  >
-                    <UserPlus className="mr-2 h-4 w-4" />
-                    Add Member
-                  </Button>
+                  {canManageTeam && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsAddMemberDialogOpen(true)}
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Add Member
+                    </Button>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <TeamMembersSection
@@ -696,6 +702,7 @@ export default function ProjectDashboardPage() {
                     members={project.members || []}
                     isDialogOpen={isAddMemberDialogOpen}
                     onDialogOpenChange={setIsAddMemberDialogOpen}
+                    canManage={canManageTeam}
                   />
                 </CardContent>
               </Card>
