@@ -34,7 +34,7 @@ export default function TermsPage() {
               </h2>
               <p className="leading-relaxed">
                 By accessing or using Echno Console (&quot;the Platform&quot;),
-                operated by Tornotron E-Commerce Private Limited (&quot;the
+                operated by Tornotron Technologies Private Limited (&quot;the
                 Company&quot;, &quot;we&quot;, &quot;us&quot;, or
                 &quot;our&quot;), you agree to be bound by these Terms and
                 Conditions. If you do not agree to these terms, you must not use
@@ -126,7 +126,7 @@ export default function TermsPage() {
                 All content, features, and functionality of the Platform,
                 including but not limited to text, graphics, logos, icons,
                 software, and the compilation thereof, are the exclusive
-                property of Tornotron E-Commerce Private Limited and are
+                property of Tornotron Technologies Private Limited and are
                 protected by Indian and international copyright, trademark, and
                 other intellectual property laws.
               </p>
@@ -185,12 +185,13 @@ export default function TermsPage() {
               </h2>
               <p className="leading-relaxed">
                 To the maximum extent permitted by applicable law, Tornotron
-                E-Commerce Private Limited shall not be liable for any indirect,
-                incidental, special, consequential, or punitive damages,
-                including loss of profits, data, or business opportunities,
-                arising from your use of the Platform. Our total liability shall
-                not exceed the amount paid by you, if any, for accessing the
-                Platform during the twelve months preceding the claim.
+                Technologies Private Limited shall not be liable for any
+                indirect, incidental, special, consequential, or punitive
+                damages, including loss of profits, data, or business
+                opportunities, arising from your use of the Platform. Our total
+                liability shall not exceed the amount paid by you, if any, for
+                accessing the Platform during the twelve months preceding the
+                claim.
               </p>
             </div>
 
@@ -254,7 +255,7 @@ export default function TermsPage() {
               </p>
               <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-800 dark:bg-zinc-900">
                 <p className="font-bold text-zinc-900 dark:text-zinc-100">
-                  Tornotron E-Commerce Private Limited
+                  Tornotron Technologies Private Limited
                 </p>
                 <p className="mt-1">Email: support@echnoai.com</p>
               </div>

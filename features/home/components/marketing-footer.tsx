@@ -108,7 +108,7 @@ export function MarketingFooter() {
         {/* Bottom bar */}
         <div className="flex flex-col items-center justify-between gap-4 border-t border-stone-200 pt-8 text-xs text-zinc-400 sm:flex-row dark:border-white/5 dark:text-zinc-700">
           <span>
-            &copy; {year} Tornotron E-Commerce Private Limited. All rights
+            &copy; {year} Tornotron Technologies Private Limited. All rights
             reserved.
           </span>
           <Badge

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 const APP_NAME = 'Echno Console';
 const APP_DESCRIPTION =
-  'Construction project management platform by Tornotron E-Commerce Private Limited';
+  'Construction project management platform by Tornotron Technologies Private Limited';
 const FALLBACK_URL = 'https://console.echno.in';
 function safeAppUrl(): string {
   const raw = process.env.NEXT_PUBLIC_APP_URL;
