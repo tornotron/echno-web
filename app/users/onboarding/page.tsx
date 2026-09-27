@@ -182,7 +182,12 @@ export default function OnboardingPage() {
               Join with Invitation Code
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="create" className="space-y-2">
+          {/* Kept mounted so a half-filled form survives a look at the join tab. */}
+          <TabsContent
+            value="create"
+            forceMount
+            className="space-y-2 data-[state=inactive]:hidden"
+          >
             <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
               You will be the administrator of the organization you create.
             </p>

@@ -14,13 +14,15 @@ import type { ValidateInviteCodeResponse } from '@tornotron/echno-core/invitatio
  */
 
 let response: ValidateInviteCodeResponse = { valid: true };
+let requestError: Error | null = null;
 const redeemCalls: Array<{ userId: number; inviteCode: string }> = [];
 
 mock.module('@tornotron/echno-core/invitation/hooks', () => ({
   ...realInvitationHooks,
   useValidateInviteCodeMutation: () => ({
     isPending: false,
-    isError: false,
+    isError: requestError !== null,
+    error: requestError,
     mutate: (
       args: { userId: number; inviteCode: string },
       options?: { onSuccess?: (result: ValidateInviteCodeResponse) => unknown }
@@ -61,6 +63,7 @@ const submit = () =>
 
 beforeEach(() => {
   response = { valid: true };
+  requestError = null;
   redeemCalls.length = 0;
 });
 
@@ -107,6 +110,15 @@ describe('JoinOrganizationForm', () => {
     expect(document.body.textContent).toContain(
       'Invalid or expired invite code'
     );
+  });
+
+  test('a failed request is not reported as a bad code', () => {
+    requestError = new Error('Service unavailable');
+    renderForm(42, () => {});
+    expect(document.body.textContent).toContain(
+      'Could not join the organization'
+    );
+    expect(document.body.textContent).not.toContain('Invalid or expired');
   });
 
   test('stays disabled until the user is known', () => {
