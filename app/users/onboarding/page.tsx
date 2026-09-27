@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Save, LogOut } from 'lucide-react';
 import { signOut } from 'next-auth/react';
@@ -20,15 +20,28 @@ import {
 } from '@tornotron/echno-core/user/hooks';
 import { toast } from '@/lib/styles/toast-styles';
 import { Button } from '@/components/shadcn/button';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/shadcn/tabs';
+import { JoinOrganizationForm } from '@/features/invitation/components/join-organization-form';
 import { routes } from '@/nav';
 
 /**
  * First-run onboarding for a signed-in user who belongs to no organization yet.
  *
  * Public self-signup lands a brand-new user here (routed by the dashboard
- * layout guard). They create their first organization; the backend makes the
- * creator its system-admin and seeds it. On success we set the new org as the
- * user's default and drop them into the dashboard as its admin.
+ * layout guard). They either create their first organization, in which case
+ * the backend makes the creator its system-admin and seeds it, or redeem an
+ * invitation code from an administrator, which adds them to that organization
+ * as an employee. Either way we set the organization as the user's default and
+ * drop them into the dashboard.
+ *
+ * The join path has to live here and not only on the dashboard join page: the
+ * dashboard layout sends every org-less user to this page, so an invited user
+ * could never reach a join form inside the dashboard.
  *
  * Lives outside the dashboard shell on purpose: a user with no organization has
  * no tenant scope, so the sidebar/breadcrumb chrome would be empty or broken.
@@ -40,6 +53,7 @@ export default function OnboardingPage() {
     useOrganizationSummaries();
   const { mutate: createOrganization, isPending } = useCreateOrganization();
   const { mutate: setDefaultOrganization } = useUpdateUserOrganization();
+  const [mode, setMode] = useState<'create' | 'join'>('create');
 
   const hasOrganization = (organizations?.length ?? 0) > 0;
 
@@ -53,6 +67,18 @@ export default function OnboardingPage() {
       router.replace(routes.href);
     }
   }, [isUserLoading, isOrgsLoading, hasOrganization, router]);
+
+  const handleJoined = (organizationId?: number, organizationName?: string) => {
+    toast.success('Joined Organization', {
+      description: organizationName
+        ? `Welcome to ${organizationName}. Setting up your workspace...`
+        : 'Welcome aboard. Setting up your workspace...',
+    });
+    if (currentUser?.id && organizationId) {
+      setDefaultOrganization({ id: currentUser.id, organizationId });
+    }
+    router.replace(routes.href);
+  };
 
   const handleSubmit = (data: UpdateOrganizationRequest, logoFile?: File) => {
     if (!currentUser?.id) {
@@ -137,12 +163,43 @@ export default function OnboardingPage() {
             Welcome to Echno
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400">
-            You are not part of any organization yet. Create one to get started.
-            You will be its administrator.
+            You are not part of any organization yet. Create one to get started,
+            or join an existing one with the invitation code your administrator
+            gave you.
           </p>
         </div>
 
-        <OrganizationForm onSubmit={handleSubmit} />
+        <Tabs
+          value={mode}
+          onValueChange={(value) => setMode(value as 'create' | 'join')}
+          className="space-y-4"
+        >
+          <TabsList className="mx-auto">
+            <TabsTrigger value="create" disabled={isPending}>
+              Create Organization
+            </TabsTrigger>
+            <TabsTrigger value="join" disabled={isPending}>
+              Join with Invitation Code
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="create" className="space-y-2">
+            <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+              You will be the administrator of the organization you create.
+            </p>
+            <OrganizationForm onSubmit={handleSubmit} />
+          </TabsContent>
+          <TabsContent value="join">
+            <JoinOrganizationForm
+              userId={currentUser.id}
+              onJoined={(invitation) =>
+                handleJoined(
+                  invitation?.organizationId,
+                  invitation?.organizationName
+                )
+              }
+            />
+          </TabsContent>
+        </Tabs>
 
         <div className="flex items-center justify-between gap-3">
           <Button
@@ -153,23 +210,25 @@ export default function OnboardingPage() {
             <LogOut className="mr-2 h-4 w-4" />
             Sign out
           </Button>
-          <Button
-            type="submit"
-            form={ORGANIZATION_FORM_ID}
-            disabled={isPending}
-          >
-            {isPending ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Create Organization
-              </>
-            )}
-          </Button>
+          {mode === 'create' && (
+            <Button
+              type="submit"
+              form={ORGANIZATION_FORM_ID}
+              disabled={isPending}
+            >
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Create Organization
+                </>
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>
