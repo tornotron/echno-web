@@ -11,3 +11,4 @@ export { InvitationOverview } from './components/invitation-overview';
 export { InvitationEmptyState } from './components/invitation-empty-state';
 export { InvitationFetchError } from './components/invitation-fetch-error';
 export { InvitationForm } from './components/invitation-form';
+export { JoinOrganizationForm } from './components/join-organization-form';
