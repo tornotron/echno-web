@@ -69,6 +69,7 @@ import {
 } from '@tornotron/echno-core/attendance/hooks';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/lib/styles/toast-styles';
+import { logger } from '@/lib/logger';
 import { userFacingErrorMessage } from '@/lib/utils/api-utils';
 import { format } from 'date-fns';
 import {
@@ -739,7 +740,11 @@ function MarkAttendanceDialog({ onClose, employeeId, todayRecord }: Props) {
 
       // Puts the day on the page behind the dialog now, then refetches it, so
       // the page does not wait on a reload to show the punch (echno-web#505).
-      void applyAcceptedPunch(queryClient, saved);
+      // The punch has already succeeded, so a failed refresh is logged, not
+      // reported as a failed punch.
+      applyAcceptedPunch(queryClient, saved).catch((refreshError: unknown) => {
+        logger.error('Could not refresh the day after a punch', refreshError);
+      });
 
       toast.success(`${nextAction.label} recorded`, {
         description: geofenceExceptionReason
