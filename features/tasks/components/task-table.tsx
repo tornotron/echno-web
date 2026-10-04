@@ -170,9 +170,8 @@ export function TaskTable({
         key={task.id}
         onClick={() =>
           router.push(
-            routes.projects.allProjects
-              .detail(projectId)
-              .tasks.detail(task.id).href
+            routes.projects.allProjects.detail(projectId).tasks.detail(task.id)
+              .href
           )
         }
         onMouseEnter={() => prefetchTask(task.id)}
@@ -249,6 +248,11 @@ export function TaskTable({
           <span className="text-sm text-zinc-700 dark:text-zinc-300">
             {task.category?.name || 'N/A'}
           </span>
+          {task.subCategory && (
+            <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+              {task.subCategory}
+            </span>
+          )}
         </TableCell>
 
         {/* Due date */}
@@ -406,8 +410,7 @@ export function TaskTable({
                 <Button asChild>
                   <Link
                     href={
-                      routes.projects.allProjects.detail(projectId)
-                        .tasks.new
+                      routes.projects.allProjects.detail(projectId).tasks.new
                     }
                   >
                     <Plus className="mr-2 h-4 w-4" />
@@ -573,10 +576,7 @@ export function TaskTable({
             {!hasActiveFilters && (
               <Button asChild>
                 <Link
-                  href={
-                    routes.projects.allProjects.detail(projectId)
-                      .tasks.new
-                  }
+                  href={routes.projects.allProjects.detail(projectId).tasks.new}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   New Task

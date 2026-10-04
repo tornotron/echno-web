@@ -82,6 +82,8 @@ export default function EditTaskPage({ params }: PageProps) {
         : undefined,
       endDate: data.fields.endDate ? new Date(data.fields.endDate) : undefined,
       categoryId: selectedCategory?.id,
+      // Null clears a sub-category the task had.
+      subCategory: data.fields.subCategory.trim() || null,
       status: data.fields.status,
       progress: Number.parseInt(data.fields.progress),
       tags: data.fields.selectedTags,
