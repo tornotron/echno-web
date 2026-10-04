@@ -46,6 +46,7 @@ export default function NewTaskPage() {
         : undefined,
       endDate: data.fields.endDate ? new Date(data.fields.endDate) : undefined,
       categoryId: selectedCategory?.id,
+      subCategory: data.fields.subCategory.trim() || undefined,
       status: data.fields.status,
       progress: Number.parseInt(data.fields.progress),
       tags: data.fields.selectedTags,

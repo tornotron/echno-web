@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import {
+  Loader2,
   Shield,
   Plus,
   Pencil,
@@ -48,9 +49,17 @@ import { Label } from '@/components/shadcn/label';
 import { Textarea } from '@/components/shadcn/textarea';
 import { Separator } from '@/components/shadcn/separator';
 import { todayForDateInput } from '@/lib/utils/date-utils';
+import { toast } from '@/lib/styles/toast-styles';
+import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
+import {
+  useCreateRisk,
+  useDeleteRisk,
+  useUpdateRisk,
+} from '@tornotron/echno-core/risk/hooks';
+import { SubcategoryField } from '@/components/common/form/subcategory-field';
 import {
   Risk,
-  RiskCategory,
+  RiskRequest,
   RiskStatus,
   RiskProbability,
   RiskImpact,
@@ -67,43 +76,33 @@ import {
   calcRiskScore,
   getRiskScoreBadgeClass,
   getRiskScoreLabel,
+  RISK_SUBCATEGORIES,
 } from '@/types/risk';
 
-// ─── Storage helpers ──────────────────────────────────────────────────────────
+// ─── Form data ────────────────────────────────────────────────────────────────
 
-function storageKey(projectId: number): string {
-  return `echno-risks-${projectId}`;
+/** What the form edits: every field as the inputs hold it. */
+interface RiskFormData {
+  title: string;
+  description: string;
+  /** A category code; an older risk may still carry one from the generic list. */
+  category: string;
+  /** Sub-category as text, standard or typed in; empty for none. */
+  subCategory: string;
+  status: RiskStatus;
+  owner: string;
+  probability: RiskProbability;
+  impact: RiskImpact;
+  residualProbability: RiskProbability;
+  residualImpact: RiskImpact;
+  responseType: RiskResponseType;
+  contingencyPlan: string;
+  identifiedDate: string;
+  reviewDate: string;
+  closedDate?: string;
+  costImpact?: number;
+  scheduleImpact?: number;
 }
-
-export function loadRisks(projectId: number): Risk[] {
-  if (globalThis.window === undefined) return [];
-  try {
-    const raw = localStorage.getItem(storageKey(projectId));
-    return raw ? (JSON.parse(raw) as Risk[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRisks(projectId: number, risks: Risk[]): void {
-  localStorage.setItem(storageKey(projectId), JSON.stringify(risks));
-}
-
-function nextRiskId(risks: Risk[]): string {
-  let max = 0;
-  for (const r of risks) {
-    const num = Number(r.riskId.replace('R-', ''));
-    if (!Number.isNaN(num) && num > max) max = num;
-  }
-  return `R-${String(max + 1).padStart(3, '0')}`;
-}
-
-// ─── Blank form ───────────────────────────────────────────────────────────────
-
-type RiskFormData = Omit<
-  Risk,
-  'id' | 'projectId' | 'riskId' | 'riskScore' | 'residualScore'
->;
 
 function blankForm(): RiskFormData {
   const today = todayForDateInput();
@@ -111,6 +110,7 @@ function blankForm(): RiskFormData {
     title: '',
     description: '',
     category: 'schedule-planning',
+    subCategory: '',
     status: 'identified',
     owner: '',
     probability: 'medium',
@@ -124,12 +124,67 @@ function blankForm(): RiskFormData {
   };
 }
 
+function formFromRisk(risk: Risk): RiskFormData {
+  return {
+    title: risk.title,
+    description: risk.description ?? '',
+    category: risk.category,
+    subCategory: risk.subCategory ?? '',
+    status: risk.status,
+    owner: risk.owner ?? '',
+    probability: risk.probability,
+    impact: risk.impact,
+    residualProbability: risk.residualProbability,
+    residualImpact: risk.residualImpact,
+    responseType: risk.responseType,
+    contingencyPlan: risk.contingencyPlan ?? '',
+    identifiedDate: risk.identifiedDate ?? '',
+    reviewDate: risk.reviewDate ?? '',
+    closedDate: risk.closedDate,
+    costImpact: risk.costImpact,
+    scheduleImpact: risk.scheduleImpact,
+  };
+}
+
+function optional(value: string): string | undefined {
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+/** The request for a save. On an edit, `version` lets the server refuse a stale one. */
+export function riskRequestFromForm(
+  form: RiskFormData,
+  version?: number
+): RiskRequest {
+  return {
+    title: form.title.trim(),
+    description: optional(form.description),
+    category: form.category,
+    subCategory: optional(form.subCategory),
+    status: form.status,
+    owner: optional(form.owner),
+    probability: form.probability,
+    impact: form.impact,
+    residualProbability: form.residualProbability,
+    residualImpact: form.residualImpact,
+    responseType: form.responseType,
+    contingencyPlan: optional(form.contingencyPlan),
+    identifiedDate: optional(form.identifiedDate),
+    reviewDate: optional(form.reviewDate),
+    closedDate: form.closedDate || undefined,
+    costImpact: form.costImpact,
+    scheduleImpact: form.scheduleImpact,
+    version,
+  };
+}
+
 // ─── Risk Form Dialog ─────────────────────────────────────────────────────────
 
 interface RiskFormDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: RiskFormData) => void;
+  /** Saves the risk; resolves true when it was saved, so the dialog closes. */
+  onSave: (data: RiskFormData) => Promise<boolean>;
   initial?: RiskFormData;
   title: string;
 }
@@ -142,6 +197,10 @@ function RiskFormDialog({
   title,
 }: RiskFormDialogProps) {
   const [form, setForm] = useState<RiskFormData>(initial ?? blankForm());
+  const [saving, setSaving] = useState(false);
+  const subcategoryOptions = isRiskCategory(form.category)
+    ? RISK_SUBCATEGORIES[form.category]
+    : [];
 
   const set = <K extends keyof RiskFormData>(key: K, value: RiskFormData[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -152,10 +211,18 @@ function RiskFormDialog({
     form.residualImpact
   );
 
-  const handleSave = () => {
-    if (!form.title.trim()) return;
-    onSave(form);
-    onClose();
+  const handleSave = async () => {
+    if (!form.title.trim() || saving) return;
+    setSaving(true);
+    try {
+      if (await onSave(form)) {
+        // A dialog for a new risk stays mounted, so it starts the next one blank.
+        if (!initial) setForm(blankForm());
+        onClose();
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -193,7 +260,14 @@ function RiskFormDialog({
               <Label>Category</Label>
               <Select
                 value={isRiskCategory(form.category) ? form.category : ''}
-                onValueChange={(v) => set('category', v as RiskCategory)}
+                onValueChange={(v) =>
+                  // A sub-category belongs to its category, so a new category starts without one.
+                  setForm((prev) => ({
+                    ...prev,
+                    category: v,
+                    subCategory: v === prev.category ? prev.subCategory : '',
+                  }))
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue
@@ -234,6 +308,17 @@ function RiskFormDialog({
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="risk-subcategory">Sub-category</Label>
+            <SubcategoryField
+              key={form.category}
+              id="risk-subcategory"
+              value={form.subCategory}
+              onChange={(subCategory) => set('subCategory', subCategory)}
+              options={subcategoryOptions}
+            />
           </div>
 
           <div className="space-y-2">
@@ -448,10 +533,11 @@ function RiskFormDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={onClose} disabled={saving}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={!form.title.trim()}>
+          <Button onClick={handleSave} disabled={!form.title.trim() || saving}>
+            {saving && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />}
             Save Risk
           </Button>
         </DialogFooter>
@@ -464,11 +550,13 @@ function RiskFormDialog({
 
 interface RiskRowProps {
   risk: Risk;
+  /** Whether the viewer may change the register: system-admin or project-manager. */
+  canWrite: boolean;
   onEdit: (risk: Risk) => void;
   onDelete: (id: string) => void;
 }
 
-function RiskRow({ risk, onEdit, onDelete }: RiskRowProps) {
+function RiskRow({ risk, canWrite, onEdit, onDelete }: RiskRowProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -497,6 +585,7 @@ function RiskRow({ risk, onEdit, onDelete }: RiskRowProps) {
           <Badge
             variant="outline"
             className="hidden text-[10px] sm:inline-flex"
+            title={risk.subCategory}
           >
             {riskCategoryLabel(risk.category)}
           </Badge>
@@ -518,22 +607,28 @@ function RiskRow({ risk, onEdit, onDelete }: RiskRowProps) {
             {RISK_STATUS_LABELS[risk.status]}
           </Badge>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7"
-            onClick={() => onEdit(risk)}
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 text-red-500 hover:text-red-700"
-            onClick={() => onDelete(risk.id)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </Button>
+          {canWrite && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                aria-label={`Edit ${risk.riskId}`}
+                onClick={() => onEdit(risk)}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-red-500 hover:text-red-700"
+                aria-label={`Delete ${risk.riskId}`}
+                onClick={() => onDelete(risk.id)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -548,6 +643,13 @@ function RiskRow({ risk, onEdit, onDelete }: RiskRowProps) {
                 </span>
               </div>
             )}
+            <div className="sm:col-span-2">
+              <span className="font-medium text-zinc-500">Category: </span>
+              <span className="text-zinc-700 dark:text-zinc-300">
+                {riskCategoryLabel(risk.category)}
+                {risk.subCategory && ` / ${risk.subCategory}`}
+              </span>
+            </div>
             <div>
               <span className="font-medium text-zinc-500">Owner: </span>
               <span className="text-zinc-700 dark:text-zinc-300">
@@ -626,65 +728,68 @@ function RiskRow({ risk, onEdit, onDelete }: RiskRowProps) {
 
 interface RiskRegisterProps {
   projectId: number;
-  initialRisks: Risk[];
+  /** The project's register, from the server. */
+  risks: Risk[];
+  /** Whether the viewer may change the register: system-admin or project-manager. */
+  canWrite: boolean;
+  isLoading?: boolean;
 }
 
-export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
-  const [risks, setRisks] = useState<Risk[]>(initialRisks);
+export function RiskRegister({
+  projectId,
+  risks,
+  canWrite,
+  isLoading = false,
+}: RiskRegisterProps) {
   const [filterStatus, setFilterStatus] = useState<RiskStatus | 'all'>('all');
-  const [filterCategory, setFilterCategory] = useState<RiskCategory | 'all'>(
-    'all'
-  );
+  const [filterCategory, setFilterCategory] = useState<string>('all');
   const [addOpen, setAddOpen] = useState(false);
   const [editRisk, setEditRisk] = useState<Risk | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const createRisk = useCreateRisk(projectId);
+  const updateRisk = useUpdateRisk(projectId);
+  const deleteRisk = useDeleteRisk(projectId);
 
-  const persist = useCallback(
-    (updated: Risk[]) => {
-      setRisks(updated);
-      saveRisks(projectId, updated);
-    },
-    [projectId]
-  );
-
-  const handleAdd = (data: ReturnType<typeof blankForm>) => {
-    const newRisk: Risk = {
-      ...data,
-      id: crypto.randomUUID(),
-      projectId,
-      riskId: nextRiskId(risks),
-      riskScore: calcRiskScore(data.probability, data.impact),
-      residualScore: calcRiskScore(
-        data.residualProbability,
-        data.residualImpact
-      ),
-    };
-    persist([...risks, newRisk]);
+  const handleAdd = async (data: RiskFormData): Promise<boolean> => {
+    try {
+      const created = await createRisk.mutateAsync(riskRequestFromForm(data));
+      toast.success(`${created.riskId} added to the register`);
+      return true;
+    } catch (error) {
+      toast.error(getErrorTitle(error, 'Failed to Save Risk'), {
+        description: getErrorMessage(error),
+      });
+      return false;
+    }
   };
 
-  const handleEdit = (data: ReturnType<typeof blankForm>) => {
-    if (!editRisk) return;
-    const updated = risks.map((r) =>
-      r.id === editRisk.id
-        ? {
-            ...r,
-            ...data,
-            riskScore: calcRiskScore(data.probability, data.impact),
-            residualScore: calcRiskScore(
-              data.residualProbability,
-              data.residualImpact
-            ),
-          }
-        : r
-    );
-    persist(updated);
-    setEditRisk(null);
+  const handleEdit = async (data: RiskFormData): Promise<boolean> => {
+    if (!editRisk) return false;
+    try {
+      await updateRisk.mutateAsync({
+        riskId: editRisk.id,
+        request: riskRequestFromForm(data, editRisk.version),
+      });
+      toast.success(`${editRisk.riskId} saved`);
+      return true;
+    } catch (error) {
+      toast.error(getErrorTitle(error, 'Failed to Save Risk'), {
+        description: getErrorMessage(error),
+      });
+      return false;
+    }
   };
 
   const handleDelete = () => {
     if (!deleteId) return;
-    persist(risks.filter((r) => r.id !== deleteId));
+    const id = deleteId;
     setDeleteId(null);
+    deleteRisk.mutate(id, {
+      onError: (error) =>
+        toast.error(getErrorTitle(error, 'Failed to Delete Risk'), {
+          description: getErrorMessage(error),
+        }),
+    });
   };
 
   const filtered = risks.filter((r) => {
@@ -732,7 +837,7 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
 
         <Select
           value={filterCategory}
-          onValueChange={(v) => setFilterCategory(v as RiskCategory | 'all')}
+          onValueChange={(v) => setFilterCategory(v)}
         >
           <SelectTrigger className="w-56">
             <SelectValue placeholder="All categories" />
@@ -747,16 +852,23 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
           </SelectContent>
         </Select>
 
-        <div className="ml-auto">
-          <Button onClick={() => setAddOpen(true)} size="sm">
-            <Plus className="mr-1.5 h-4 w-4" />
-            Add Risk
-          </Button>
-        </div>
+        {canWrite && (
+          <div className="ml-auto">
+            <Button onClick={() => setAddOpen(true)} size="sm">
+              <Plus className="mr-1.5 h-4 w-4" />
+              Add Risk
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Risk list */}
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center gap-2 py-8 text-sm text-zinc-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading risks...
+        </div>
+      ) : filtered.length === 0 ? (
         <Empty variant="default">
           <EmptyMedia variant="icon">
             <AlertTriangle className="size-6" />
@@ -765,7 +877,9 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
             <EmptyTitle>No risks found</EmptyTitle>
             <EmptyDescription>
               {risks.length === 0
-                ? 'No risks logged yet. Click "Add Risk" to start the register.'
+                ? canWrite
+                  ? 'No risks logged yet. Click "Add Risk" to start the register.'
+                  : 'No risks logged yet.'
                 : 'No risks match the current filters.'}
             </EmptyDescription>
           </EmptyHeader>
@@ -776,6 +890,7 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
             <RiskRow
               key={risk.id}
               risk={risk}
+              canWrite={canWrite}
               onEdit={setEditRisk}
               onDelete={setDeleteId}
             />
@@ -796,7 +911,7 @@ export function RiskRegister({ projectId, initialRisks }: RiskRegisterProps) {
         <RiskFormDialog
           open={!!editRisk}
           title={`Edit ${editRisk.riskId}`}
-          initial={editRisk}
+          initial={formFromRisk(editRisk)}
           onClose={() => setEditRisk(null)}
           onSave={handleEdit}
         />

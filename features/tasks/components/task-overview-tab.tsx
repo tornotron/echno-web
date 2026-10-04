@@ -161,6 +161,11 @@ export function TaskOverviewTab({
                     <h4 className="font-semibold text-zinc-900 dark:text-zinc-100">
                       {task.category.name}
                     </h4>
+                    {task.subCategory && (
+                      <p className="mt-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        {task.subCategory}
+                      </p>
+                    )}
                     {task.category.description && (
                       <p className="mt-1 text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
                         {task.category.description}
@@ -240,7 +245,10 @@ export function TaskOverviewTab({
                       });
                     }
                   } catch (error) {
-                    const title = getErrorTitle(error, 'Failed to Upload Files');
+                    const title = getErrorTitle(
+                      error,
+                      'Failed to Upload Files'
+                    );
                     const description = getErrorMessage(error);
                     toast.error(title, { description });
                   }

@@ -1,17 +1,25 @@
 // types/risk/risk.ts
+//
+// Presentation for the risk register: labels, descriptions, score colours.
+// The register itself (the Risk record, its request and the vocabularies) is
+// kept on the server and typed in echno-core.
 
-export type RiskProbability =
-  | 'very-low'
-  | 'low'
-  | 'medium'
-  | 'high'
-  | 'very-high';
-export type RiskImpact =
-  | 'negligible'
-  | 'minor'
-  | 'moderate'
-  | 'major'
-  | 'catastrophic';
+import type {
+  RiskImpact,
+  RiskProbability,
+  RiskResponseType,
+  RiskStatus,
+} from '@tornotron/echno-core/risk/types';
+
+export type {
+  Risk,
+  RiskImpact,
+  RiskProbability,
+  RiskRequest,
+  RiskResponseType,
+  RiskStatus,
+} from '@tornotron/echno-core/risk/types';
+
 /**
  * The construction risk categories the product team supplied (ClickUp 86d4609hd), in the order of
  * that list.
@@ -50,16 +58,6 @@ export type LegacyRiskCategory =
   | 'technical'
   | 'external'
   | 'resource';
-export type RiskStatus =
-  | 'identified'
-  | 'analysed'
-  | 'response-planned'
-  | 'mitigated'
-  | 'closed'
-  | 'occurred';
-export type RiskResponseType = 'avoid' | 'mitigate' | 'transfer' | 'accept';
-export type RiskActionStatus = 'open' | 'in-progress' | 'completed';
-
 export const PROBABILITY_SCORE: Record<RiskProbability, number> = {
   'very-low': 1,
   low: 2,
@@ -174,11 +172,12 @@ export function isRiskCategory(value: string): value is RiskCategory {
 }
 
 /** The label for a stored category, including one from the earlier generic list. */
-export function riskCategoryLabel(
-  category: RiskCategory | LegacyRiskCategory
-): string {
+export function riskCategoryLabel(category: string): string {
   if (isRiskCategory(category)) return RISK_CATEGORY_LABELS[category];
-  return LEGACY_RISK_CATEGORY_LABELS[category] ?? category;
+  return (
+    (LEGACY_RISK_CATEGORY_LABELS as Record<string, string>)[category] ??
+    category
+  );
 }
 
 export const RISK_STATUS_LABELS: Record<RiskStatus, string> = {
@@ -220,37 +219,4 @@ export function getRiskScoreLabel(score: number): string {
   if (score <= 9) return 'Medium';
   if (score <= 16) return 'High';
   return 'Critical';
-}
-
-export interface RiskAction {
-  id: string;
-  riskId: string;
-  description: string;
-  owner: string;
-  dueDate: string;
-  status: RiskActionStatus;
-}
-
-export interface Risk {
-  id: string;
-  projectId: number;
-  riskId: string; // user-facing: "R-001"
-  title: string;
-  description: string;
-  category: RiskCategory | LegacyRiskCategory;
-  status: RiskStatus;
-  owner: string;
-  probability: RiskProbability;
-  impact: RiskImpact;
-  riskScore: number;
-  residualProbability: RiskProbability;
-  residualImpact: RiskImpact;
-  residualScore: number;
-  responseType: RiskResponseType;
-  contingencyPlan?: string;
-  identifiedDate: string;
-  reviewDate: string;
-  closedDate?: string;
-  costImpact?: number;
-  scheduleImpact?: number;
 }

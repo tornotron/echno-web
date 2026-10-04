@@ -42,7 +42,9 @@ import { getErrorMessage, getErrorTitle } from '@tornotron/echno-core';
 import {
   useCreateWorkCategory,
   useWorkCategories,
+  useWorkSubcategories,
 } from '@tornotron/echno-core/work-category/hooks';
+import { SubcategoryField } from '@/components/common/form/subcategory-field';
 import { abbreviatedName } from '@tornotron/echno-core/work-category/types';
 import { useDeleteAttachment } from '@tornotron/echno-core/attachment/hooks';
 import { AttachmentsSection } from '@/components/common';
@@ -63,6 +65,8 @@ export interface TaskFormState {
   startDate: string;
   endDate: string;
   categoryId: string;
+  /** Sub-category as text, standard or typed in; empty for none. */
+  subCategory: string;
   status: TaskStatus;
   progress: string;
   selectedAssignees: string[];
@@ -164,6 +168,7 @@ const defaultForm: TaskFormState = {
   startDate: '',
   endDate: '',
   categoryId: '',
+  subCategory: '',
   status: TaskStatus.upcoming,
   progress: '0',
   selectedAssignees: [],
@@ -199,6 +204,7 @@ export function TaskForm(props: TaskFormProps) {
       startDate: task.startDate ? formatDateForInput(task.startDate) : '',
       endDate: task.endDate ? formatDateForInput(task.endDate) : '',
       categoryId: task.category?.id.toString() || '',
+      subCategory: task.subCategory ?? '',
       status: task.status || TaskStatus.upcoming,
       progress: (task.progress || 0).toString(),
       selectedAssignees: task.assignees?.map((a) => a.id.toString()) || [],
@@ -209,6 +215,9 @@ export function TaskForm(props: TaskFormProps) {
   const [tagInput, setTagInput] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const selectedCategoryId = Number.parseInt(form.categoryId) || undefined;
+  const { data: workSubcategories = [], isLoading: subcategoriesLoading } =
+    useWorkSubcategories(selectedCategoryId);
   const deleteAttachment = useDeleteAttachment();
 
   // Description, tags, dates and assignees add up to a long sitting, and the
@@ -217,7 +226,9 @@ export function TaskForm(props: TaskFormProps) {
   const draftScope = useFormDraftScope();
   const draftValues = useMemo(() => ({ fields: form }), [form]);
   const applyDraft = useCallback(
-    (values: { fields: TaskFormState }) => setForm(values.fields),
+    // A draft saved before a field existed lacks it, so it lands on the default.
+    (values: { fields: TaskFormState }) =>
+      setForm({ ...defaultForm, ...values.fields }),
     []
   );
   const { draft, restoreDraft, discardDraft } = useFormDraft<{
@@ -348,6 +359,7 @@ export function TaskForm(props: TaskFormProps) {
           setForm((prev) => ({
             ...prev,
             categoryId: created.id?.toString() || '',
+            subCategory: '',
           }));
           clearError('categoryId');
           setNewCategoryName('');
@@ -584,7 +596,14 @@ export function TaskForm(props: TaskFormProps) {
                         if (value === '__create__') {
                           setShowCreateCategory(true);
                         } else {
-                          setForm((prev) => ({ ...prev, categoryId: value }));
+                          // A sub-category belongs to its category, so a new
+                          // category starts without one.
+                          setForm((prev) => ({
+                            ...prev,
+                            categoryId: value,
+                            subCategory:
+                              value === prev.categoryId ? prev.subCategory : '',
+                          }));
                           clearError('categoryId');
                         }
                       }}
@@ -619,6 +638,25 @@ export function TaskForm(props: TaskFormProps) {
                         {errors.categoryId}
                       </p>
                     )}
+                    <Label htmlFor="subCategory" className="pt-2">
+                      Sub-category
+                    </Label>
+                    <SubcategoryField
+                      key={form.categoryId}
+                      id="subCategory"
+                      value={form.subCategory}
+                      onChange={(subCategory) =>
+                        setForm((prev) => ({ ...prev, subCategory }))
+                      }
+                      options={workSubcategories}
+                      loading={!!selectedCategoryId && subcategoriesLoading}
+                      disabled={!selectedCategoryId}
+                      placeholder={
+                        selectedCategoryId
+                          ? 'Select sub-category (optional)'
+                          : 'Choose a work category first'
+                      }
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="status">
