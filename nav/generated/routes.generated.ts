@@ -5,7 +5,7 @@
  * Run `bun routes:generate` to regenerate from the filesystem.
  *
  * Source: app/users/dashboard (scanned recursively)
- * Generated: 2026-09-20
+ * Generated: 2026-10-04
  */
 
 import type { RouteNode } from '../types';
@@ -117,6 +117,51 @@ export const ROUTE_TREE: RouteNode = {
     isDynamic: false,
     isCatchAll: false,
     children: [
+      {
+        id: 'finance-billing',
+        segment: 'billing',
+        path: '/users/dashboard/finance/billing',
+        isDynamic: false,
+        isCatchAll: false,
+        children: [
+            {
+              id: 'finance-billing-bills',
+              segment: 'bills',
+              path: '/users/dashboard/finance/billing/bills',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [
+                    {
+                      id: 'finance-billing-bills-[id]',
+                      segment: '[id]',
+                      path: '/users/dashboard/finance/billing/bills/[id]',
+                      isDynamic: true,
+                      isCatchAll: false,
+                      paramName: 'id',
+                      children: [],
+                    },
+                  ],
+            },
+            {
+              id: 'finance-billing-contracts',
+              segment: 'contracts',
+              path: '/users/dashboard/finance/billing/contracts',
+              isDynamic: false,
+              isCatchAll: false,
+              children: [
+                    {
+                      id: 'finance-billing-contracts-[id]',
+                      segment: '[id]',
+                      path: '/users/dashboard/finance/billing/contracts/[id]',
+                      isDynamic: true,
+                      isCatchAll: false,
+                      paramName: 'id',
+                      children: [],
+                    },
+                  ],
+            },
+          ],
+      },
       {
         id: 'finance-budgets',
         segment: 'budgets',
