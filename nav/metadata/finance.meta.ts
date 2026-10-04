@@ -11,6 +11,7 @@ import {
   Settings,
   BookOpen,
   Banknote,
+  FileCheck2,
 } from 'lucide-react';
 import type { MetadataRegistry, RouteMetadata } from '../types';
 import { CONSTRUCTION_INVOICES_ACCESS } from '../access/roles';
@@ -97,6 +98,34 @@ export const financeMetadata = {
       'Track what is owed to contractors and vendors, and record payments against it.',
     order: 5,
   },
+
+  // ── contract billing (Work Progress module) ──────────────────────────────
+  // Running account and milestone bills on a sub-contract. Any member reads
+  // them; the steps are gated per action on the pages. Hidden for an
+  // organization without MODULE_WORK_PROGRESS.
+  'finance-billing': {
+    label: 'Billing',
+    icon: FileCheck2,
+    description:
+      'Running account and milestone bills from contractors, through measurement and certification to approval.',
+    order: 5.5,
+    moduleId: 'work-progress',
+  },
+  'finance-billing-contracts': {
+    label: 'Contracts',
+    sidebarHidden: true,
+    nonInteractive: true,
+  },
+  'finance-billing-contracts-[id]': {
+    label: 'Contract',
+    sidebarHidden: true,
+  },
+  'finance-billing-bills': {
+    label: 'Bills',
+    sidebarHidden: true,
+    nonInteractive: true,
+  },
+  'finance-billing-bills-[id]': { label: 'Bill', sidebarHidden: true },
 
   // ── expenses ──────────────────────────────────────────────────────────────
   'finance-expenses': {

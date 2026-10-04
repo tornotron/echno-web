@@ -226,6 +226,31 @@ export const PROGRESS_RECORD_ACCESS: AccessConfig = {
 } as const;
 
 /**
+ * Contract billing set-up and the two signatures on a bill: the contract BOQ
+ * and deduction rules, manual adjustments, certification and final approval.
+ * `system-admin` or `project-manager` on those writes of
+ * `ContractBillingControllerWeb`; any member reads billing.
+ */
+export const BILLING_SIGN_ACCESS: AccessConfig = {
+  allowOrgRoles: [OrgRole.SYSTEM_ADMIN, OrgRole.PROJECT_MANAGER],
+} as const;
+
+/**
+ * Preparing a bill and recording its joint measurement: opening, editing,
+ * submitting and cancelling a bill, its documents and notes, the measurement,
+ * verification, returning it for correction, and milestone requirements.
+ * `system-admin`, `project-manager` or `site-engineer`, as for recording
+ * progress.
+ */
+export const BILL_PREPARE_ACCESS: AccessConfig = {
+  allowOrgRoles: [
+    OrgRole.SYSTEM_ADMIN,
+    OrgRole.PROJECT_MANAGER,
+    OrgRole.SITE_ENGINEER,
+  ],
+} as const;
+
+/**
  * Creating, editing and deleting a sub-contract is `system-admin` or
  * `project-manager`. Any member reads them.
  */
