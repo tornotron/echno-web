@@ -6,6 +6,7 @@ import {
 } from '@/types/third-party/sub-contract';
 import type { SubContractFormValues } from '@/features/sub-contracts/components/sub-contract-form';
 import {
+  commercialTermErrors,
   derivePaymentStatus,
   parseSubContract,
   toPayload,
@@ -262,5 +263,46 @@ describe('toPayload', () => {
     expect(blank.projectId).toBeUndefined();
     expect(blank.retentionPercentage).toBeUndefined();
     expect(blank.mobilizationAdvance).toBeUndefined();
+  });
+});
+
+describe('commercialTermErrors', () => {
+  test('refuses retention the payload would drop or that passes 100', () => {
+    expect(
+      commercialTermErrors({
+        retentionPercentage: '5%',
+        mobilizationAdvance: '',
+      })
+    ).toHaveProperty('retentionPercentage');
+    expect(
+      commercialTermErrors({
+        retentionPercentage: '5,5',
+        mobilizationAdvance: '',
+      })
+    ).toHaveProperty('retentionPercentage');
+    expect(
+      commercialTermErrors({
+        retentionPercentage: '101',
+        mobilizationAdvance: '',
+      })
+    ).toHaveProperty('retentionPercentage');
+    expect(
+      commercialTermErrors({
+        retentionPercentage: '',
+        mobilizationAdvance: '1,00,000',
+      })
+    ).toHaveProperty('mobilizationAdvance');
+  });
+
+  test('accepts blanks and plain numbers', () => {
+    expect(
+      commercialTermErrors({ retentionPercentage: '', mobilizationAdvance: '' })
+    ).toEqual({});
+    expect(
+      commercialTermErrors({
+        retentionPercentage: '5.5',
+        mobilizationAdvance: '100000',
+      })
+    ).toEqual({});
   });
 });
