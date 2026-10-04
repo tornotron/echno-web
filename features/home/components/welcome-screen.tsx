@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
 import { StarsBackground } from '@/components/shadcn/star';
+import { startKeycloakSignIn } from '@/lib/auth/sign-in-flow';
 import { AuthErrorNotice } from './auth-error-notice';
 
 interface WelcomeScreenProps {
@@ -36,7 +37,9 @@ export function WelcomeScreen({ errorCode, hasSession }: WelcomeScreenProps) {
 
         <div className="flex gap-4">
           <button
-            onClick={() => signIn('keycloak')}
+            onClick={() =>
+              void startKeycloakSignIn(signIn, globalThis.location.search)
+            }
             className="rounded-lg bg-amber-500 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-amber-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-amber-500"
           >
             Login

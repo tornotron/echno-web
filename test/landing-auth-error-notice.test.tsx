@@ -143,6 +143,39 @@ describe('Configuration is the stale or duplicate-flow case', () => {
   });
 });
 
+describe('MissingCSRF is the same stale-flow case', () => {
+  // A Login click that raced the sign-out of an idle session posted without a
+  // CSRF token. It used to fall through to the unknown-code message, and a
+  // retry that succeeded still showed "Sign-in failed".
+  test('is described as a stale flow with the sign-out recovery', async () => {
+    expect(describeAuthError('MissingCSRF').kind).toBe('stale-flow');
+    const { container, getByRole } = render(
+      createElement(AuthErrorNotice, {
+        code: 'MissingCSRF',
+        hasSession: false,
+      })
+    );
+    expect(container.textContent ?? '').not.toContain('does not recognise');
+    await act(async () => {
+      fireEvent.click(getByRole('button', { name: 'Sign out and try again' }));
+    });
+    expect(signOutCalls).toEqual([{ redirectTo: '/' }]);
+  });
+
+  test('with the retry already signed in, says so instead of failing', () => {
+    const { container, getByRole } = render(
+      createElement(AuthErrorNotice, {
+        code: 'MissingCSRF',
+        hasSession: true,
+      })
+    );
+    expect(container.textContent ?? '').toContain('already signed in');
+    expect(
+      getByRole('link', { name: 'Continue to dashboard' }).getAttribute('href')
+    ).toBe('/users/dashboard');
+  });
+});
+
 describe('a session that already exists is not a failure', () => {
   test('says so and offers Continue to the dashboard', () => {
     const { container, getByRole } = render(

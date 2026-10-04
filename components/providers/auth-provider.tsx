@@ -10,6 +10,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { apiClient } from '@/lib/api/api-client';
 import { toast } from '@/lib/styles/toast-styles';
 import { clearAllFormDrafts } from '@/lib/forms/form-draft-storage';
+import { endSessionForLifecycle } from '@/lib/auth/sign-in-flow';
 import {
   useSessionLifecycle,
   type SessionNotifier,
@@ -38,10 +39,17 @@ function SessionMonitor({ children }: { children: React.ReactNode }) {
   // the way out because they hold employee names, wages and vendor terms, and a
   // site machine is usually a shared one. The deliberate sign-out is swept in
   // `lib/auth/auth-utils.ts`, which is the path the menu takes.
+  //
+  // The sign-out is registered so a Login click waits for it, and on `/` it
+  // ends the session without navigating (see `lib/auth/sign-in-flow.ts`).
   const signOutClearingDrafts = useCallback(
     (options: { callbackUrl: string }) => {
       clearAllFormDrafts();
-      return signOut(options);
+      return endSessionForLifecycle(
+        signOut,
+        globalThis.location?.pathname ?? '',
+        options
+      );
     },
     []
   );
