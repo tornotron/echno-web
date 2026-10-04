@@ -43,6 +43,16 @@ const MESSAGES: Record<string, AuthErrorMessage> = {
     description:
       'The sign-in that came back did not match the one this browser started. That happens when a sign-in was retried, or was started in two tabs at once. Sign out to clear the stale cookies and try again. If it keeps happening, contact the administrator.',
   },
+  // A sign-in posted without the CSRF token its cookie expects. Seen when a
+  // Login click raced the sign-out that ends an idle session: the sign-out's
+  // navigation cancelled the token fetch. Same family and same recovery as a
+  // failed state check, and when the retry already succeeded the page says so.
+  MissingCSRF: {
+    kind: 'stale-flow',
+    title: 'Sign-in could not be completed',
+    description:
+      "This browser was still signing out an expired session when the sign-in started, and the two got in each other's way. Sign out to clear the stale cookies and try again. If it keeps happening, contact the administrator.",
+  },
   AccessDenied: {
     kind: 'sign-in-failed',
     title: 'Access denied',
@@ -161,7 +171,9 @@ const ECHOABLE_CODE = /^[A-Za-z_]{1,40}$/;
 export function describeAuthError(code: string): AuthErrorMessage {
   const known = MESSAGES[code];
   if (known) return known;
-  const named = ECHOABLE_CODE.test(code) ? `(${code})` : '(an unrecognised error code)';
+  const named = ECHOABLE_CODE.test(code)
+    ? `(${code})`
+    : '(an unrecognised error code)';
   return {
     kind: 'unknown',
     title: 'Sign-in failed',
