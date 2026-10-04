@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { commercialTermErrors } from '@/services/sub-contracts-service';
 import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { Button } from '@/components/shadcn/button';
 import {
@@ -222,9 +223,15 @@ export function SubContractForm({
       newErrors.contactPerson = 'Contact person is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (!formData.email.trim()) newErrors.email = 'Email is required';
+    const termErrors = commercialTermErrors(formData);
+    Object.assign(newErrors, termErrors);
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      toast.error('Please fill in all required fields');
+      toast.error(
+        Object.keys(termErrors).length > 0
+          ? Object.values(termErrors)[0]
+          : 'Please fill in all required fields'
+      );
       return;
     }
     if (onSubmit) {
@@ -613,7 +620,15 @@ export function SubContractForm({
                         handleInputChange('retentionPercentage', e.target.value)
                       }
                       placeholder="5"
+                      className={
+                        errors.retentionPercentage ? 'border-red-500' : ''
+                      }
                     />
+                    {errors.retentionPercentage && (
+                      <p className="text-sm text-red-500">
+                        {errors.retentionPercentage}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="mobilizationAdvance">
@@ -627,7 +642,15 @@ export function SubContractForm({
                         handleInputChange('mobilizationAdvance', e.target.value)
                       }
                       placeholder="0"
+                      className={
+                        errors.mobilizationAdvance ? 'border-red-500' : ''
+                      }
                     />
+                    {errors.mobilizationAdvance && (
+                      <p className="text-sm text-red-500">
+                        {errors.mobilizationAdvance}
+                      </p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="totalPaid">Paid Amount (₹)</Label>

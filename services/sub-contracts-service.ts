@@ -215,6 +215,38 @@ const optionalNumber = (v?: string): number | undefined => {
 };
 
 /**
+ * Checks the commercial terms billing relies on before the form submits: the
+ * retention percent becomes the contract's default retention deduction, so a
+ * value the payload would silently drop (`5%`, `5,5`) or one above 100 is
+ * refused here rather than lost.
+ */
+export function commercialTermErrors(
+  values: Pick<
+    SubContractFormValues,
+    'retentionPercentage' | 'mobilizationAdvance'
+  >
+): Record<string, string> {
+  const errors: Record<string, string> = {};
+  const retention = values.retentionPercentage?.trim() ?? '';
+  if (retention !== '') {
+    const n = Number(retention);
+    if (!Number.isFinite(n) || n < 0 || n > 100) {
+      errors.retentionPercentage =
+        'Retention must be a number from 0 to 100, without the % sign';
+    }
+  }
+  const advance = values.mobilizationAdvance?.trim() ?? '';
+  if (advance !== '') {
+    const n = Number(advance);
+    if (!Number.isFinite(n) || n < 0) {
+      errors.mobilizationAdvance =
+        'Mobilization advance must be an amount in rupees, digits only';
+    }
+  }
+  return errors;
+}
+
+/**
  * Maps the sub-contract form onto the backend `SubContractCreationDto`. The form's
  * flat contractor/bank fields expand to the backend's prefixed names; `contractName`
  * falls back to the contract id (the form collects an id, not a separate name);

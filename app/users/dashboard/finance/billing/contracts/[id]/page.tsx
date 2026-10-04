@@ -1,6 +1,7 @@
 'use client';
 
 import { use } from 'react';
+import { notFound } from 'next/navigation';
 import { ContractBillingView } from '@/features/contract-billing';
 
 export default function ContractBillingPage({
@@ -9,5 +10,9 @@ export default function ContractBillingPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  return <ContractBillingView subContractId={Number(id)} />;
+  const subContractId = /^\d+$/.test(id) ? Number(id) : Number.NaN;
+  if (!Number.isSafeInteger(subContractId) || subContractId <= 0) {
+    notFound();
+  }
+  return <ContractBillingView subContractId={subContractId} />;
 }

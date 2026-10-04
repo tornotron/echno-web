@@ -96,6 +96,9 @@ function failed(title: string) {
 /** A running account or milestone bill, its figures and its workflow. */
 export function BillView({ billId }: { billId: string }) {
   const { data: bill, isPending, isError, error } = useBill(billId);
+  // Held here, above the workspace's key, so a step that remounts the
+  // workspace leaves the user on the tab they were working in.
+  const [tab, setTab] = useState('overview');
 
   if (isPending) {
     return (
@@ -118,19 +121,30 @@ export function BillView({ billId }: { billId: string }) {
       </Empty>
     );
   }
-  // Keyed on the last change so the claim and measurement forms start from
-  // what the server holds after every save.
+  // Keyed on the status so the forms start again from what the server holds
+  // when the bill moves a step. A save within a step resets only the form it
+  // saved, so unsaved edits on another tab survive it.
   return (
     <BillWorkspace
-      key={`${bill.id}-${bill.updatedAt ?? ''}-${bill.status}`}
+      key={`${bill.id}-${bill.status}`}
       bill={bill}
+      tab={tab}
+      onTabChange={setTab}
     />
   );
 }
 
 type Confirm = Extract<BillStep, 'cancel' | 'certify' | 'approve'>;
 
-function BillWorkspace({ bill }: { bill: Bill }) {
+function BillWorkspace({
+  bill,
+  tab,
+  onTabChange,
+}: {
+  bill: Bill;
+  tab: string;
+  onTabChange: (tab: string) => void;
+}) {
   const { allowed: prepare } = useCan(BILL_PREPARE_ACCESS);
   const { allowed: sign } = useCan(BILLING_SIGN_ACCESS);
   const actions = billActions(bill.status, { prepare, sign });
@@ -163,7 +177,12 @@ function BillWorkspace({ bill }: { bill: Bill }) {
       return false;
     }
     try {
-      await updateBill.mutateAsync({ id: bill.id, req: built.request });
+      const saved = await updateBill.mutateAsync({
+        id: bill.id,
+        req: built.request,
+      });
+      setHeader(claimHeaderOf(saved));
+      setClaims({});
       return true;
     } catch (error) {
       failed('Could not save the claim')(error);
@@ -178,7 +197,11 @@ function BillWorkspace({ bill }: { bill: Bill }) {
       return false;
     }
     try {
-      await saveMeasurement.mutateAsync({ id: bill.id, req: built.request });
+      const saved = await saveMeasurement.mutateAsync({
+        id: bill.id,
+        req: built.request,
+      });
+      setMeasurement(measurementFormOf(saved));
       return true;
     } catch (error) {
       failed('Could not save the measurement')(error);
@@ -443,7 +466,7 @@ function BillWorkspace({ bill }: { bill: Bill }) {
         </Alert>
       )}
 
-      <Tabs defaultValue="overview">
+      <Tabs value={tab} onValueChange={(value) => onTabChange(String(value))}>
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           {ra ? (
