@@ -209,4 +209,58 @@ describe('toPayload', () => {
       },
     ]);
   });
+
+  test('a saved milestone keeps its id so an edit updates it in place', () => {
+    const payload = toPayload(
+      formValues({
+        milestones: [
+          {
+            id: 41,
+            name: 'Plinth',
+            description: 'Up to plinth beam',
+            percentage: 10,
+            amount: 0,
+            status: 'pending',
+            date: '',
+          },
+          {
+            name: 'Roof',
+            percentage: 15,
+            amount: 0,
+            status: 'pending',
+            date: '',
+          },
+        ],
+      })
+    );
+    const milestones = payload.milestones as Record<string, unknown>[];
+    expect(milestones[0].id).toBe(41);
+    expect(milestones[0].description).toBe('Up to plinth beam');
+    expect(milestones[1].id).toBeUndefined();
+  });
+
+  test('the project, retention and advance go to the backend as numbers', () => {
+    const payload = toPayload(
+      formValues({
+        projectId: '7',
+        projectName: 'QA-Velachery Residential Towers',
+        retentionPercentage: '5',
+        mobilizationAdvance: '250000',
+      })
+    );
+    expect(payload.projectId).toBe(7);
+    expect(payload.projectName).toBe('QA-Velachery Residential Towers');
+    expect(payload.retentionPercentage).toBe(5);
+    expect(payload.mobilizationAdvance).toBe(250_000);
+    const blank = toPayload(
+      formValues({
+        projectId: '',
+        retentionPercentage: '',
+        mobilizationAdvance: 'abc',
+      })
+    );
+    expect(blank.projectId).toBeUndefined();
+    expect(blank.retentionPercentage).toBeUndefined();
+    expect(blank.mobilizationAdvance).toBeUndefined();
+  });
 });

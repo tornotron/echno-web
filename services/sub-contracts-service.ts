@@ -207,6 +207,13 @@ function safeParse(raw: Raw): SubContract {
 const empty = (v?: string): string | undefined =>
   v && v.trim() !== '' ? v : undefined;
 
+/** A typed number, or undefined when blank or not a finite number. */
+const optionalNumber = (v?: string): number | undefined => {
+  if (v === undefined || v.trim() === '') return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : undefined;
+};
+
 /**
  * Maps the sub-contract form onto the backend `SubContractCreationDto`. The form's
  * flat contractor/bank fields expand to the backend's prefixed names; `contractName`
@@ -229,7 +236,11 @@ export function toPayload(
     type: empty(values.workType),
     status: empty(values.status),
     scopeOfWork: empty(values.scope),
+    projectId: optionalNumber(values.projectId),
+    projectName: empty(values.projectName),
     contractValue: values.contractValue,
+    retentionPercentage: optionalNumber(values.retentionPercentage),
+    mobilizationAdvance: optionalNumber(values.mobilizationAdvance),
     totalPaid: values.totalPaid,
     totalDue: values.totalDue,
     completionPercentage: values.completionPercentage,
@@ -240,8 +251,12 @@ export function toPayload(
     bankAccountNumber: empty(values.accountNumber),
     bankIfsc: empty(values.ifscCode),
     notes: empty(values.notes),
+    // The id goes back so the backend updates the milestone in place: bills and
+    // requirements recorded against it stay attached (it refuses to drop a billed one).
     milestones: values.milestones.map((m) => ({
+      id: m.id,
       name: m.name,
+      description: empty(m.description),
       paymentPercentage: m.percentage,
       amount: m.amount,
       status: m.status,

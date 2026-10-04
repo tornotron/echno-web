@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { routes } from '@/nav';
+import { useProjects } from '@tornotron/echno-core/project/hooks';
 import { Button } from '@/components/shadcn/button';
 import {
   Card,
@@ -45,7 +46,10 @@ import {
 // ---------------------------------------------------------------------------
 
 interface Milestone {
+  /** The saved milestone's id; absent on a new one. Sent back so an edit keeps the milestone and what is billed against it. */
+  id?: number;
   name: string;
+  description?: string;
   percentage: number;
   amount: number;
   status: string;
@@ -62,7 +66,14 @@ export interface SubContractFormValues {
   workType: string;
   status: string;
   scope: string;
+  /** The project the contract belongs to; billing needs it. Empty when not linked. */
+  projectId: string;
+  projectName: string;
   contractValue: number;
+  /** Retention percent of each bill, as a typed string; empty when none. */
+  retentionPercentage: string;
+  /** Mobilization advance in rupees, as a typed string; empty when none. */
+  mobilizationAdvance: string;
   totalPaid: number;
   totalDue: number;
   startDate: string;
@@ -107,6 +118,7 @@ export function SubContractForm({
   isSubmitting = false,
 }: SubContractFormProps) {
   const router = useRouter();
+  const { data: projects = [] } = useProjects();
 
   const [formData, setFormData] = useState<SubContractFormValues>({
     contractId: initialData?.contractId ?? '',
@@ -118,7 +130,17 @@ export function SubContractForm({
     workType: initialData?.type ?? ContractType.lumpsum,
     status: initialData?.status ?? ContractStatus.active,
     scope: initialData?.scope ?? '',
+    projectId: initialData?.projectId ?? '',
+    projectName: initialData?.projectName ?? '',
     contractValue: initialData?.contractValue ?? 0,
+    retentionPercentage:
+      initialData?.retentionPercentage === undefined
+        ? ''
+        : String(initialData.retentionPercentage),
+    mobilizationAdvance:
+      initialData?.mobilizationAdvance === undefined
+        ? ''
+        : String(initialData.mobilizationAdvance),
     totalPaid: initialData?.totalPaid ?? 0,
     totalDue: initialData?.totalDue ?? 0,
     startDate: normalizeDate(initialData?.startDate, true),
@@ -131,7 +153,9 @@ export function SubContractForm({
     ifscCode: initialData?.ifscCode ?? '',
     paymentTerms: initialData?.paymentTerms ?? 'milestone',
     milestones: (initialData?.milestones ?? []).map((m) => ({
+      id: m.id || undefined,
       name: m.name,
+      description: m.description || undefined,
       percentage: m.paymentPercentage,
       amount: m.amount,
       status: m.status,
@@ -413,6 +437,35 @@ export function SubContractForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label htmlFor="projectId">Project</Label>
+                    <select
+                      id="projectId"
+                      className="border-input bg-background h-9 w-full rounded-md border px-2 text-sm shadow-xs"
+                      value={formData.projectId}
+                      onChange={(e) => {
+                        const chosen = projects.find(
+                          (p) => String(p.id) === e.target.value
+                        );
+                        setFormData((prev) => ({
+                          ...prev,
+                          projectId: e.target.value,
+                          projectName: chosen?.projectName ?? '',
+                        }));
+                      }}
+                    >
+                      <option value="">Not linked to a project</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={String(p.id)}>
+                          {p.projectName}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-muted-foreground text-xs">
+                      Bills can be raised on this contract once it is linked to
+                      a project.
+                    </p>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="status">Status *</Label>
                     <Select
@@ -548,6 +601,32 @@ export function SubContractForm({
                         )
                       }
                       placeholder="2500000"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="retentionPercentage">Retention (%)</Label>
+                    <Input
+                      id="retentionPercentage"
+                      inputMode="decimal"
+                      value={formData.retentionPercentage}
+                      onChange={(e) =>
+                        handleInputChange('retentionPercentage', e.target.value)
+                      }
+                      placeholder="5"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="mobilizationAdvance">
+                      Mobilization Advance (₹)
+                    </Label>
+                    <Input
+                      id="mobilizationAdvance"
+                      inputMode="decimal"
+                      value={formData.mobilizationAdvance}
+                      onChange={(e) =>
+                        handleInputChange('mobilizationAdvance', e.target.value)
+                      }
+                      placeholder="0"
                     />
                   </div>
                   <div className="space-y-2">
