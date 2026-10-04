@@ -552,11 +552,19 @@ interface RiskRowProps {
   risk: Risk;
   /** Whether the viewer may change the register: system-admin or project-manager. */
   canWrite: boolean;
+  /** True while this risk's delete is in flight, so it cannot be sent twice. */
+  deleting?: boolean;
   onEdit: (risk: Risk) => void;
   onDelete: (id: string) => void;
 }
 
-function RiskRow({ risk, canWrite, onEdit, onDelete }: RiskRowProps) {
+function RiskRow({
+  risk,
+  canWrite,
+  deleting = false,
+  onEdit,
+  onDelete,
+}: RiskRowProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -623,6 +631,7 @@ function RiskRow({ risk, canWrite, onEdit, onDelete }: RiskRowProps) {
                 size="icon"
                 className="h-7 w-7 text-red-500 hover:text-red-700"
                 aria-label={`Delete ${risk.riskId}`}
+                disabled={deleting}
                 onClick={() => onDelete(risk.id)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -891,6 +900,9 @@ export function RiskRegister({
               key={risk.id}
               risk={risk}
               canWrite={canWrite}
+              deleting={
+                deleteRisk.isPending && deleteRisk.variables === risk.id
+              }
               onEdit={setEditRisk}
               onDelete={setDeleteId}
             />
