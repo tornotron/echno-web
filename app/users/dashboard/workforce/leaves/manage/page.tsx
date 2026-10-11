@@ -16,8 +16,8 @@ const PREF_KEY = 'leave-dashboard-preference';
 
 const ROLE_META: Record<LeaveRole, { title: string; description: string }> = {
   [LeaveRole.EMPLOYEE]: {
-    title: 'My Leave',
-    description: 'Your leave balance, requests, and upcoming time off',
+    title: 'My Leaves',
+    description: 'Your leave balance, leave requests and upcoming leave',
   },
   [LeaveRole.MANAGER]: {
     title: 'Team Leave',

@@ -158,7 +158,7 @@ export default function RequestsPage() {
 
         <Tabs value={tab} onValueChange={handleTabChange}>
           <TabsList className="w-full">
-            <TabsTrigger value="my">My Requests</TabsTrigger>
+            <TabsTrigger value="my">My Leave Requests</TabsTrigger>
             {showApprovals && (
               <TabsTrigger value="approvals" className="gap-2">
                 Approvals
