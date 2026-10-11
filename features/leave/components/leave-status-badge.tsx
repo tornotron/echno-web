@@ -1,8 +1,6 @@
 import { Badge } from '@/components/shadcn/badge';
-import {
-  LeaveStatus,
-  getLeaveStatusLabel,
-} from '@tornotron/echno-core/leave/types';
+import { LeaveStatus } from '@tornotron/echno-core/leave/types';
+import { leaveStatusLabel } from '@/features/leave/lib/leave-status-label';
 import { CheckCircle2, Clock, XCircle, Ban, RotateCcw } from 'lucide-react';
 
 interface LeaveStatusBadgeProps {
@@ -65,7 +63,7 @@ export function LeaveStatusBadge({ status }: LeaveStatusBadgeProps) {
         variant="secondary"
         className="bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
       >
-        {getLeaveStatusLabel(status)}
+        {leaveStatusLabel(status)}
       </Badge>
     );
   }
@@ -75,7 +73,7 @@ export function LeaveStatusBadge({ status }: LeaveStatusBadgeProps) {
   return (
     <Badge variant={config.variant} className={config.className}>
       <Icon className="mr-1 h-3 w-3" />
-      {getLeaveStatusLabel(status)}
+      {leaveStatusLabel(status)}
     </Badge>
   );
 }

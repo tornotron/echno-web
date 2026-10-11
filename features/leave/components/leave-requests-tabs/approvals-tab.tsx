@@ -33,9 +33,9 @@ import { Checkbox } from '@/components/shadcn/checkbox';
 import { EmployeeAvatar } from '@/components/shared/employee-avatar';
 import {
   LeaveStatus,
-  getLeaveStatusLabel,
   getLeaveStatusColor,
 } from '@tornotron/echno-core/leave/types';
+import { leaveStatusLabel } from '@/features/leave/lib/leave-status-label';
 import {
   Department,
   getDepartmentLabel,
@@ -147,7 +147,7 @@ export function ApprovalsTab({ employeeId }: ApprovalsTabProps) {
                   <SelectItem value="all">All Statuses</SelectItem>
                   {Object.values(LeaveStatus).map((s) => (
                     <SelectItem key={s} value={s}>
-                      {getLeaveStatusLabel(s)}
+                      {leaveStatusLabel(s)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -277,7 +277,7 @@ export function ApprovalsTab({ employeeId }: ApprovalsTabProps) {
                       </TableCell>
                       <TableCell>
                         <Badge className={getLeaveStatusColor(r.status)}>
-                          {getLeaveStatusLabel(r.status)}
+                          {leaveStatusLabel(r.status)}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -324,7 +324,7 @@ export function ApprovalsTab({ employeeId }: ApprovalsTabProps) {
                       </div>
                     </div>
                     <Badge className={getLeaveStatusColor(r.status)}>
-                      {getLeaveStatusLabel(r.status)}
+                      {leaveStatusLabel(r.status)}
                     </Badge>
                   </div>
                   <div className="mb-2 flex items-center gap-2">

@@ -24,11 +24,8 @@ import {
   type ChartConfig,
 } from '@/components/shadcn/chart';
 import { TreeMap } from '@/components/shadcn/tree-map';
-import {
-  LeaveRequest,
-  LeaveStatus,
-  getLeaveStatusLabel,
-} from '@tornotron/echno-core/leave/types';
+import { LeaveRequest, LeaveStatus } from '@tornotron/echno-core/leave/types';
+import { leaveStatusLabel } from '@/features/leave/lib/leave-status-label';
 import {
   Department,
   getDepartmentLabel,
@@ -65,7 +62,7 @@ const STATUS_COLORS: Record<string, string> = {
 const LEAVE_STATUS_CONFIG: ChartConfig = Object.fromEntries(
   Object.entries(STATUS_COLORS).map(([status, color]) => [
     status,
-    { label: getLeaveStatusLabel(status as LeaveStatus), color },
+    { label: leaveStatusLabel(status as LeaveStatus), color },
   ])
 );
 
