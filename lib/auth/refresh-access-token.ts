@@ -54,7 +54,13 @@ const RETRYABLE_STATUSES = new Set([408, 429]);
 
 /** Injectable seam, so the tests do not have to stand up a Keycloak. */
 export interface RefreshDependencies {
-  fetch: typeof globalThis.fetch;
+  /**
+   * Only ever called, never read for its properties. Asking for the whole
+   * `typeof globalThis.fetch` also demanded `preconnect`, which the global
+   * carries under Bun's types and the late-binding wrapper in `auth.ts`
+   * cannot have.
+   */
+  fetch: (...args: Parameters<typeof globalThis.fetch>) => Promise<Response>;
   issuer: string;
   clientId: string;
   /** Pause between the failed attempt and the retry. */
@@ -108,10 +114,12 @@ export async function exchangeRefreshToken(
       );
     }
 
-    const body = (await response
-      .json()
-      .catch(() => ({}))) as Record<string, unknown>;
-    const reason = typeof body.error === 'string' ? body.error : 'unknown_error';
+    const body = (await response.json().catch(() => ({}))) as Record<
+      string,
+      unknown
+    >;
+    const reason =
+      typeof body.error === 'string' ? body.error : 'unknown_error';
     throw new RefreshRejectedError(reason);
   }
 

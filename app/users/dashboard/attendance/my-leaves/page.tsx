@@ -31,7 +31,7 @@ export default function MyLeavesPage() {
       <div className="space-y-4 sm:space-y-6">
         <PageHeader
           title="My Leaves"
-          description="Your leave balance, requests and upcoming time off"
+          description="Your leave balance, leave requests and upcoming leave"
         />
         <EmployeeDashboard />
       </div>
